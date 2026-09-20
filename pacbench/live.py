@@ -467,9 +467,14 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                     del sessions[p["thread"]]
                 incomplete_reasons.append(
                     f"user-turn {p['source_id']} failed: {out['error']}")
-                turns.append({"kind": "user-turn-replay", "source_id": p["source_id"],
-                              "at": p["collected_at"], "prompt": p["text"],
-                              "error": out["error"]})
+                failed_turn: dict = {"kind": "user-turn-replay",
+                                     "source_id": p["source_id"],
+                                     "at": p["collected_at"],
+                                     "prompt": p["text"],
+                                     "error": out["error"]}
+                if out.get("record") is not None:
+                    failed_turn.update(_record_of(out["record"]))
+                turns.append(failed_turn)
                 continue
             r = out["record"]
             session_schedule.append({"event": p["source_id"], "at": p["collected_at"],
@@ -477,11 +482,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                                      "resumed": out["resumed"]})
             turns.append({"kind": "user-turn-replay", "source_id": p["source_id"],
                           "at": p["collected_at"], "prompt": p["text"],
-                          "answer": r.answer, "tool_calls": r.tool_calls,
-                          "tool_results": r.tool_results,
-                          "session_id": r.session_id, "policy_blocks": r.policy_blocks,
-                          "latency_s": r.latency_s, "returncode": r.returncode,
-                          "stderr_tail": r.stderr_tail, "raw_events": r.raw_events})
+                          **_record_of(r)})
 
     def maintain(day: str) -> None:
         stamp = f"{day}T23:59:00"
@@ -520,9 +521,12 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
             classifications.append({"checkpoint": cp.id, **classify(
                 cp, None, turn_ok=False, ingested_ids=set(ingested_ids),
                 tool_names=[], result_blob="", policy_blocks=0)})
-            turns.append({"kind": "checkpoint", "checkpoint": cp.id,
-                          "at": cp.at, "prompt": cp.public_prompt(),
-                          "error": out["error"]})
+            failed_cp: dict = {"kind": "checkpoint", "checkpoint": cp.id,
+                               "at": cp.at, "prompt": cp.public_prompt(),
+                               "error": out["error"]}
+            if out.get("record") is not None:
+                failed_cp.update(_record_of(out["record"]))
+            turns.append(failed_cp)
             continue
         r = out["record"]
         session_schedule.append({"event": cp.id, "at": cp.at,
@@ -540,11 +544,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
             policy_blocks=r.policy_blocks)})
         turns.append({"kind": "checkpoint", "checkpoint": cp.id,
                       "at": cp.at, "prompt": cp.public_prompt(),
-                      "answer": r.answer, "tool_calls": r.tool_calls,
-                      "tool_results": r.tool_results, "session_id": r.session_id,
-                      "policy_blocks": r.policy_blocks, "latency_s": r.latency_s,
-                      "returncode": r.returncode, "stderr_tail": r.stderr_tail,
-                      "raw_events": r.raw_events})
+                      **_record_of(r)})
 
     # Complete the week: deliver observations collected after the last checkpoint.
     if obs_idx < len(payloads):

@@ -80,6 +80,8 @@ class LifePlan:
     role: str
     week_start: str             # ISO date of scored-day 0 (a Monday)
     checkpoints: tuple[Checkpoint, ...]
+    #: §39 story family, passed through to Life.lineage.
+    lineage: str = ""
     truth: tuple[TruthFact, ...] = ()
     people: tuple[Person, ...] = ()
     threads: tuple[ThreadPlan, ...] = ()
@@ -150,6 +152,7 @@ def build_life(plan: LifePlan, generate: Generate | None = None,
         entries=tuple(SupportEntry(fact_id=fid, observation_ids=tuple(ids))
                       for fid, ids in sorted(by_fact.items())))
     life = Life(id=plan.id, bet=plan.bet, role=plan.role,
+                lineage=plan.lineage,
                 observations=tuple(observations), checkpoints=plan.checkpoints,
                 control_of=plan.control_of, title=plan.title,
                 horizon_days=plan.horizon_days,

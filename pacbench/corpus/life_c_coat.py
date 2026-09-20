@@ -48,6 +48,7 @@ def _plan() -> LifePlan:
         title="Coat return and weekend opportunities",
         bet="proactive+opportunity",
         role="development",
+        lineage="weekend-opportunities",
         week_start=_WEEK_START,
         difficulty_tags=("proactive-context", "negative-control",
                          "opportunity-coverage", "commitment-precision",

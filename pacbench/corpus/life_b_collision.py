@@ -44,6 +44,7 @@ def _plan() -> LifePlan:
         title="Poker collision and source authority",
         bet="entity-collision+source-authority",
         role="development",
+        lineage="poker-reschedule",
         week_start=_WEEK_START,
         difficulty_tags=("entity-collision-2", "source-authority", "cross-channel-3",
                          "conflict-stale", "history-reconstruction", "control-single",

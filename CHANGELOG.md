@@ -71,6 +71,15 @@
   scan limits), enforced by test. The scan also caught a live grader
   false-conviction path ("noon" inside "afternoon" on reunion now/time),
   fixed with word-boundaried pure-alpha clock words plus regression test.
+- Story lineage (§39): `Life.lineage` declares each life's story family;
+  close variants share one lineage whatever their split (poker-move /
+  poker-unchanged are poker-collision variants; weekend-plans derives
+  from the weekend-opportunities family; controls inherit their parent's
+  lineage — a self-check caught dentist-friday mis-familied and the
+  ruling was corrected). `LineageDiscipline` enforces: declared map,
+  held-out lineage-unique (standing guard, held-out empty), calibration
+  always derivative of development, controls share lineage. Lineage ships
+  in the freeze bundle; hash re-pinned deliberately.
 
 ## 0.1.0 (2026-09-20)
 

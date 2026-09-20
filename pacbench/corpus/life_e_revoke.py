@@ -43,6 +43,7 @@ def _plan() -> LifePlan:
         title="Reversal, deletion, and completion",
         bet="invalidation",
         role="development",
+        lineage="revoke-dinner",
         week_start=_WEEK_START,
         difficulty_tags=("cancel-reversal", "deletion", "task-completion",
                          "negative-control"),

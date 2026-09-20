@@ -99,6 +99,62 @@ class SplitDeclaration(unittest.TestCase):
             self.assertIn(life.role, ROLES, life.id)
 
 
+class LineageDiscipline(unittest.TestCase):
+    """Contract §39: close variants share one lineage, whatever their split.
+
+    Lineage — not life names — is what split-independence is checked on.
+    Calibration lives are deliberately lineage-shared with development
+    (derivative by design, never independent evidence); a future held-out
+    life must carry lineage unique across the corpus. Moving a life
+    between lineages is deliberate (edit EXPECTED below)."""
+
+    EXPECTED = {
+        "dentist-depth": "dentist-cleaning",
+        "dentist-friday": "weekend-opportunities",
+        "poker-collision": "poker-reschedule",
+        "poker-move": "poker-reschedule",
+        "poker-unchanged": "poker-reschedule",
+        "coat-weekend": "weekend-opportunities",
+        "weekend-plans": "weekend-opportunities",
+        "reunion-thread": "reunion-picnic",
+        "revoke-week": "revoke-dinner",
+    }
+
+    def test_declared_lineages(self):
+        by_id = {life.id: life.lineage for life in all_lives()}
+        self.assertEqual(by_id, self.EXPECTED)
+
+    def test_held_out_lineage_is_unique(self):
+        """A renamed variant is not independent held-out evidence: no
+        held-out life may share lineage with any other life. Vacuous
+        today (held-out is empty) — standing guard for the 30-life
+        corpus."""
+        by_lineage: dict[str, list[str]] = {}
+        for life in all_lives():
+            by_lineage.setdefault(life.lineage, []).append(life.id)
+        for life in all_lives():
+            if life.role == "held-out":
+                self.assertEqual(by_lineage[life.lineage], [life.id],
+                                 life.id)
+
+    def test_calibration_is_derivative(self):
+        """Every calibration lineage contains a development life: small
+        families debug the pipeline against their dev parent, and can
+        never be promoted into comparative evidence."""
+        dev_lineages = {life.lineage for life in all_lives()
+                        if life.role == "development"}
+        for life in all_lives():
+            if life.role == "calibration":
+                self.assertIn(life.lineage, dev_lineages, life.id)
+
+    def test_controls_share_lineage(self):
+        by_id = {life.id: life for life in all_lives()}
+        for life in all_lives():
+            if life.control_of:
+                self.assertEqual(life.lineage,
+                                 by_id[life.control_of].lineage, life.id)
+
+
 class HiddenKeysStayHidden(unittest.TestCase):
     def _slots_of(self, life_id):
         life = get_life(life_id)

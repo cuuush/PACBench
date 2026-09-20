@@ -117,6 +117,7 @@ def _plan() -> LifePlan:
         title="Reunion picnic in a noisy thread",
         bet="thread-size",
         role="development",
+        lineage="reunion-picnic",
         week_start=_WEEK_START,
         difficulty_tags=("thread-size-xl", "cross-channel-3",
                          "source-authority", "history-reconstruction",

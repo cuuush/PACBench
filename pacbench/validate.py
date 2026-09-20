@@ -121,6 +121,8 @@ def validate_life(life: Life, manifest: SupportManifest | None = None) -> list[s
         errors.append(f"{life.id}: no checkpoints")
     if life.role not in ROLES:
         errors.append(f"{life.id}: unknown role {life.role!r}")
+    if not life.lineage or not life.lineage.strip():
+        errors.append(f"{life.id}: missing §39 story lineage")
     if life.role == "development" and life.horizon_days != 7:
         errors.append(f"{life.id}: development lives must cover a 7-day horizon")
     for truth in life.truth:

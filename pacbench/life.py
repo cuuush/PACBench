@@ -50,6 +50,14 @@ class Life:
     observations: tuple[Observation, ...]
     checkpoints: tuple[Checkpoint, ...]
     control_of: str | None = None
+    #: Story family this life belongs to (§39). Close variants — same beats,
+    #: traps, names, or timings under a rename — share one lineage string,
+    #: whatever their split. Lineage is what split-independence is checked
+    #: on: a future held-out life must carry lineage unique across the
+    #: corpus, or it is not independent evidence. Calibration lives are
+    #: deliberately lineage-shared with development (derivative by design,
+    #: never independent evidence).
+    lineage: str = ""
     title: str = ""
     #: Number of consecutive simulated days the scored horizon covers (7 in v0.1).
     horizon_days: int = 7

@@ -42,6 +42,7 @@ def _plan() -> LifePlan:
         title="Dentist depth and history",
         bet="update-depth",
         role="development",
+        lineage="dentist-cleaning",
         week_start=_WEEK_START,
         difficulty_tags=("update-depth-4", "cross-channel-3", "evidence-age-month",
                          "history-reconstruction", "conflict-stale", "control-stable",

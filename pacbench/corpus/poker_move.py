@@ -104,6 +104,7 @@ def _bet() -> Life:
         ),
     )
     return Life(id=_ID, bet="write-time-recency", role="calibration",
+                lineage="poker-reschedule",
                 observations=obs, checkpoints=(where, historical))
 
 
@@ -153,6 +154,7 @@ def _control() -> Life:
         ),
     )
     return Life(id=_CTL, bet="write-time-recency", role="calibration",
+                lineage="poker-reschedule",
                 observations=obs, checkpoints=(where,), control_of=_ID)
 
 

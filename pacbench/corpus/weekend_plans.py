@@ -106,6 +106,7 @@ def _bet() -> Life:
         ),
     )
     return Life(id=_ID, bet="implicit-context", role="calibration",
+                lineage="weekend-opportunities",
                 observations=obs, checkpoints=(fun, dinner_day))
 
 
@@ -127,6 +128,7 @@ def _control() -> Life:
         ),
     )
     return Life(id=_CTL, bet="implicit-context", role="calibration",
+                lineage="weekend-opportunities",
                 observations=obs, checkpoints=(when,), control_of=_ID)
 
 

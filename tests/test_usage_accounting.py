@@ -293,5 +293,39 @@ class DreamUsageAccounting(unittest.TestCase):
             conn.close()
 
 
+class RedactKeepsTokenCounts(unittest.TestCase):
+    """Regression: usage-accounting keys survive artifact redaction while
+    string secrets are still scrubbed (a pilot once persisted its whole
+    usage block as "<redacted>" because "turns_with_tokens" contains
+    the substring "token"). Offline: redact + the real rollup, no pilot."""
+
+    def test_efficiency_block_survives_redact(self):
+        rolled = live.sum_turn_tokens(
+            [{"turn_input_tokens": 100, "turn_output_tokens": 10},
+             {"turn_input_tokens": None, "turn_output_tokens": None}])
+        efficiency = {"hermes_turns": 25, "memory_tool_calls": 53,
+                      "answer_latency_s_total": 223.0, "tokens": rolled}
+        self.assertEqual(harness.redact(efficiency), efficiency)
+
+    def test_turn_record_counts_survive_redact(self):
+        record = {"kind": "checkpoint", "session_id": "s1",
+                  "session_input_tokens": 500, "session_output_tokens": 40,
+                  "turn_input_tokens": 250, "turn_output_tokens": 25,
+                  "answer": "Wednesday at 10am."}
+        self.assertEqual(harness.redact(record), record)
+
+    def test_string_secrets_still_scrubbed(self):
+        dirty = {"META_API_KEY": "SECRET-VALUE-1234567890",
+                 "tokens": {"input": 1, "output": 2,
+                            "turns_with_tokens": 1, "turns_total": 1},
+                 "auth": {"user": "u", "passed": True}}
+        clean = harness.redact(dirty)
+        self.assertEqual(clean["META_API_KEY"], "<redacted>")
+        self.assertEqual(clean["tokens"]["turns_with_tokens"], 1)
+        # "auth" is not an accounting key: string values scrubbed, and the
+        # nested structure is replaced wholesale, never partially leaked.
+        self.assertEqual(clean["auth"], "<redacted>")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -318,13 +318,39 @@ def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
     }
 
 
-def redact(obj):
+#: Usage-accounting keys that must survive artifact redaction. Token *counts*
+#: (ints/None) are cost telemetry, never bearer secrets — but every one of
+#: these names contains the substring "token", so the secret-substring rule
+#: below would scrub them (it once turned a whole pilot's usage block into
+#: "<redacted>"). Exact-match allowlist: a real credential never lives under
+#: exactly these keys in PACBench artifacts (driver auth comes only from the
+#: process environment, never from artifact structures).
+_TOKEN_COUNT_KEYS = frozenset({
+    "tokens",
+    "input_tokens", "output_tokens",
+    "prompt_tokens", "completion_tokens",
+    "total_tokens", "cached_tokens",
+    "cache_read_tokens", "cache_write_tokens", "reasoning_tokens",
+    "session_input_tokens", "session_output_tokens",
+    "turn_input_tokens", "turn_output_tokens",
+    "turns_with_tokens", "turns_total",
+})
+
+
+def redact(obj: object) -> object:
     """Strip anything that looks like a credential from an artifact structure."""
     if isinstance(obj, dict):
-        return {k: ("<redacted>" if any(s in k.lower() for s in
-                                        ("token", "secret", "auth", "key", "bearer",
-                                         "credential", "password")) else redact(v))
-                for k, v in obj.items()}
+        out = {}
+        for k, v in obj.items():
+            if k in _TOKEN_COUNT_KEYS:
+                out[k] = redact(v)
+            elif any(s in k.lower() for s in
+                     ("token", "secret", "auth", "key", "bearer",
+                      "credential", "password")):
+                out[k] = "<redacted>"
+            else:
+                out[k] = redact(v)
+        return out
     if isinstance(obj, list):
         return [redact(v) for v in obj]
     if isinstance(obj, str) and len(obj) > 24 and obj[:4] in ("sk-", "xai", "ghu_"):

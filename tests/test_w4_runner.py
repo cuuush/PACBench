@@ -108,6 +108,35 @@ class DriverResolution(unittest.TestCase):
 
 
 class FailureClassification(unittest.TestCase):
+    def test_diagnosis_basis_labels(self):
+        """Conservative diagnosis (Q11): trace-confirmed vs heuristic diagnoses
+        are labeled; unknown makes no claim."""
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        ok = grade_answer(cp, "Wednesday at 10am.")
+        self.assertEqual(
+            live.classify(cp, ok, turn_ok=True,
+                          ingested_ids={"dentist-depth/email-eye"},
+                          tool_names=["memcal_search_archive"],
+                          result_blob="x", policy_blocks=0)["basis"], "none")
+        self.assertEqual(
+            live.classify(cp, None, turn_ok=False, ingested_ids=set(),
+                          tool_names=[], result_blob="", policy_blocks=0)["basis"],
+            "trace")
+        missing = live.classify(
+            cp, grade_answer(cp, "no idea"), turn_ok=True, ingested_ids=set(),
+            tool_names=["memcal_search_archive"], result_blob="zzz",
+            policy_blocks=0)
+        self.assertEqual((missing["category"], missing["basis"]), (1, "trace"))
+        heuristic = live.classify(
+            cp, grade_answer(cp, "no idea"), turn_ok=True,
+            ingested_ids={"dentist-depth/email-eye"},
+            tool_names=["memcal_search_archive"], result_blob="zzz",
+            policy_blocks=0)
+        self.assertEqual(heuristic["basis"], "heuristic")
+        self.assertIn(heuristic["category"], (3, 5))
+
     def _cp(self):
         from pacbench.corpus import get_life
         life = get_life("dentist-depth")

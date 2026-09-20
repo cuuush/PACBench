@@ -31,7 +31,7 @@ from .manifest import SupportManifest
 from .observation import CHANNELS, Observation, chronology_ok
 from .rubric import ERROR_CLASSES, Kind, Slot
 
-ROLES = ("development", "calibration", "held-out")
+ROLES = ("development", "calibration", "held-out", "exposed")
 
 #: Norms whose expected values must appear literally in the cited evidence.
 LITERAL_NORMS = (Norm.DATE, Norm.TIME, Norm.STATUS, Norm.ENTITY, Norm.TEXT)

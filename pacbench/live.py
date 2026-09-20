@@ -360,6 +360,12 @@ def classify(checkpoint: Checkpoint, grade: Grade | None, *,
     Categories follow the contract numbering (1–7); ``unknown`` means the trace
     does not support a specific cause; ``null`` means no failure to classify.
 
+    ``basis`` labels the diagnosis as ``trace`` (set arithmetic on recorded
+    ids, tool-call presence, exit codes — confirmed) or ``heuristic``
+    (substring inference over tool-result blobs — a best guess, see Q11).
+    ``none`` means no diagnosis was made at all. A conservative reader
+    trusts trace, discounts heuristic, and treats unknown as unknown.
+
     ``replayed_ids`` are hermes-channel user-turn source_ids successfully
     replayed through Hermes in this episode. They count as delivered evidence:
     asserting category 1 (ingestion failure) while the only missing support
@@ -367,9 +373,10 @@ def classify(checkpoint: Checkpoint, grade: Grade | None, *,
     Hermes demonstrably saw.
     """
     if grade is not None and grade.misrepresented == 0 and grade.missed == 0:
-        return {"category": None, "reason": "all required slots correct"}
+        return {"category": None, "reason": "all required slots correct",
+                "basis": "none"}
     if not turn_ok:
-        return {"category": 7,
+        return {"category": 7, "basis": "trace",
                 "reason": "Hermes turn failed (nonzero exit); infrastructure, not memory"}
     required_ids: set[str] = set()
     for slot in (*checkpoint.slots, *checkpoint.supported):
@@ -378,13 +385,13 @@ def classify(checkpoint: Checkpoint, grade: Grade | None, *,
     delivered = set(ingested_ids) | set(replayed_ids)
     missing = sorted(required_ids - delivered)
     if missing:
-        return {"category": 1,
+        return {"category": 1, "basis": "trace",
                 "reason": f"required evidence never ingested: {missing}"}
     if policy_blocks and not tool_names:
-        return {"category": 7,
+        return {"category": 7, "basis": "trace",
                 "reason": "memory tools blocked by the dispatch boundary"}
     if not tool_names:
-        return {"category": 4,
+        return {"category": 4, "basis": "trace",
                 "reason": "no memory tool called at question time despite available tools"}
     blob = _norm(result_blob)
     wanted: list[str] = []
@@ -393,12 +400,12 @@ def classify(checkpoint: Checkpoint, grade: Grade | None, *,
             wanted.append(slot.expected)
             wanted.extend(slot.alternatives)
     if wanted and not any(_norm(w).strip() and _norm(w).strip() in blob for w in wanted):
-        return {"category": 3,
+        return {"category": 3, "basis": "heuristic",
                 "reason": "evidence ingested but no tool result surfaced the expected value"}
     if wanted and any(_norm(w).strip() and _norm(w).strip() in blob for w in wanted):
-        return {"category": 5,
+        return {"category": 5, "basis": "heuristic",
                 "reason": "tool results contained the expected value but the answer missed it"}
-    return {"category": "unknown",
+    return {"category": "unknown", "basis": "none",
             "reason": "failure present but trace does not isolate a single cause"}
 
 

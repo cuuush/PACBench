@@ -48,6 +48,14 @@
   the lexical no-op before its first pass. `live.maintain` already treated
   both as incomplete; readiness now agrees instead of contradicting it. Run
   manifests record the declared per-turn real-time budget (`turn_timeout_s`).
+- Integrity + measured difficulty (co-author directives): standing rules in
+  `docs/benchmark-integrity.md` (never optimize to win; exposure is forever;
+  diagnose conservatively; small-corpus phase over). Exposure is a
+  first-class role (`exposed` joins the validated split vocabulary).
+  `pacbench/difficulty.py` measures difficulty from the frozen corpus
+  (relevant-thread size, total exposed, required channels, evidence age,
+  support batches) instead of copying author tags. Failure diagnoses carry
+  `basis: trace|heuristic|none` (Q11).
 
 ## 0.1.0 (2026-09-20)
 

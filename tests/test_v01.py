@@ -392,6 +392,27 @@ class MeasuredDifficultyValues(unittest.TestCase):
         self.assertGreaterEqual(size, 100, thread)
         self.assertIn("thread-size-xl", life.difficulty_tags)
 
+    def test_measured_values_on_reunion_thread(self):
+        from pacbench import difficulty as D
+        life = get_life("reunion-thread")
+        cps = {c.id.split("/")[1]: c for c in life.checkpoints}
+        now = cps["now"]
+        # The graded move hides in the 146-message group chat; evidence
+        # spans email + whatsapp across two collection instants.
+        self.assertEqual(D.relevant_thread_size(life, now), 146)
+        self.assertEqual(D.required_channels(life, now),
+                         {"email", "whatsapp"})
+        self.assertEqual(D.support_batches(life, now), 2)
+        self.assertEqual(D.evidence_age_hours(life, now), 50.0)
+        self.assertEqual(D.total_exposed(life, now.at), 162)
+        # History probe: single email batch, ~5 days old.
+        original = cps["original"]
+        self.assertEqual(D.support_batches(life, original), 1)
+        age = D.evidence_age_hours(life, original)
+        self.assertIsNotNone(age)
+        assert age is not None  # narrow Optional for the type checker
+        self.assertAlmostEqual(age, 123.08, places=1)
+
 
 class ErrorBreakout(unittest.TestCase):
     """§36: MISREPRESENTED breaks out by declared error class; unlabeled

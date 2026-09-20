@@ -1,0 +1,6 @@
+HERMES_REMOTE=https://github.com/NousResearch/hermes-agent.git
+HERMES_PIN=0348a190d9a317d80853618ea018927287c6b1d7
+HERMES_PIN_DESC=main at 2026-09-20; matches the machine's live checkout HEAD
+FETCH=git init + fetch --depth 1 origin $HERMES_PIN + checkout FETCH_HEAD
+TREE=vendor/hermes-isolated (PACBench-owned; live ~/.hermes/hermes-agent never touched)
+VENV=vendor/venv-hermes-isolated (outside the source tree, per upstream docs)

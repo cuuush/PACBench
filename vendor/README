@@ -1,0 +1,8 @@
+# vendor/ — PACBench-owned isolated Hermes (W1)
+
+- `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
+- `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
+  at that SHA, never patched (gitignored — 3GB-scale checkout, not committed).
+- `venv-hermes-isolated/`: isolated venv, editable install of that clone
+  (gitignored). Use with a scratch home, never `~/.hermes`:
+  `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`

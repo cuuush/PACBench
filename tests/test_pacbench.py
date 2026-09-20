@@ -246,6 +246,53 @@ class YesNoPolarityFollowsFirstCue(unittest.TestCase):
             Verdict.CORRECT)
 
 
+class MovedFromFramingIsHistory(unittest.TestCase):
+    """'Moved it from 7pm to 8pm' marks 7pm superseded even with words between
+    the verb and 'from' (fresh-pilot eric-now graded it as current). A bare
+    'moved to <stale>' with no from-framing still counts as current."""
+
+    def setUp(self):
+        from pacbench.corpus import get_life
+        life = get_life("poker-collision")
+        self.eric = next(c for c in life.checkpoints if c.id.endswith("/eric-now"))
+
+    def test_moved_it_from_does_not_assert_old_time(self):
+        g = grade(self.eric,
+                  "You're on for Eric's game Sat Sep 26, 8pm at 15 Harbor Rd "
+                  "with Eric Vance — bringing chips.\n\n"
+                  "Eric moved it from 7pm to 8pm on Sep 9.")
+        by_id = {s.id: s.verdict for s in g.slots}
+        self.assertEqual(by_id["time"], Verdict.CORRECT)
+        self.assertEqual(by_id["day"], Verdict.CORRECT)
+
+    def test_bare_moved_to_stale_still_counts(self):
+        g = grade(self.eric, "Eric's game moved to 7pm Saturday.")
+        by_id = {s.id: s.verdict for s in g.slots}
+        self.assertEqual(by_id["time"], Verdict.MISREPRESENTED)
+
+
+class DeclinedMentionIsNotASuggestion(unittest.TestCase):
+    """Naming a declined option ('you passed on the waterfront festival') is
+    not suggesting it (fresh-pilot anything-fun flagged it as forbidden). A
+    genuine recommendation still flags."""
+
+    def setUp(self):
+        from pacbench.corpus import get_life
+        life = get_life("coat-weekend")
+        self.fun = next(c for c in life.checkpoints if c.id.endswith("/anything-fun"))
+
+    def test_passed_on_mention_is_not_forbidden(self):
+        g = grade(self.fun,
+                  "From what I have: family brunch today, and you passed on "
+                  "the waterfront festival next Saturday — otherwise free.")
+        self.assertEqual(g.suggested_forbidden, 0)
+        self.assertEqual(g.options_found, 1)
+
+    def test_genuine_recommendation_still_flags(self):
+        g = grade(self.fun, "You could hit the waterfront festival Saturday.")
+        self.assertEqual(g.suggested_forbidden, 1)
+
+
 class RendererPreservesTheKey(unittest.TestCase):
     def setUp(self):
         from pacbench.render import Beat

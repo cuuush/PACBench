@@ -42,6 +42,24 @@ _NEGATE = ("no", "not going", "cancelled", "canceled", "called off", "you are no
 #: history-keeping this benchmark rewards would otherwise read as an error.
 _HISTORY_CUES = ("used to", "use to", "was ", "were ", "before", "originally", "previously",
                  "no longer", "moved from", "changed from", "formerly", "had been", "old ")
+#: Same idea when words intervene: "moved it from 7pm", "changed the meeting
+#: from Friday". A from-framed move marks the old value superseded even with an
+#: object between the verb and "from"; without this, "moved it from 7pm to 8pm"
+#: reads as asserting 7pm now. Only the from-framed form strips — a bare
+#: "moved to 8pm" still asserts its value as current.
+_HISTORY_PATTERNS = (
+    r"\bmoved\b.{0,20}\bfrom\b",
+    r"\bchanged\b.{0,20}\bfrom\b",
+    r"\breschedul\w*\b.{0,20}\bfrom\b",
+)
+#: Clauses that decline an option rather than suggest it. A forbidden value
+#: named only to record that the user passed on it ("you passed on the
+#: waterfront festival") is not a suggestion; without this, mention-as-declined
+#: reads as a false positive in the prominently-reported forbidden class.
+#: Checked on normed text (apostrophes are already spaces there).
+_DECLINE_CUES = ("passed on", "passed up", "turned down", "decided against",
+                 "ruled out", "decline", "skipped", "not going",
+                 "aren t going", "said no to")
 
 
 def _norm_text(s: str) -> str:
@@ -138,13 +156,31 @@ def _abstains(answer: str) -> bool:
     return any(cue in hay for cue in _ABSTAIN_CUES)
 
 
+def _split_clauses(answer: str) -> list[str]:
+    return re.split(r"[.;\n]|,? but | though | although | however |,? not ",
+                    answer, flags=re.IGNORECASE)
+
+
+def _is_history_clause(clause: str) -> bool:
+    low = clause.lower()
+    if any(cue in low for cue in _HISTORY_CUES):
+        return True
+    return any(re.search(pat, low) for pat in _HISTORY_PATTERNS)
+
+
 def _current_text(answer: str) -> str:
     """The answer with clauses that are clearly about the past dropped, so a forbidden
     value survives here only when it is asserted as the *current* state."""
-    parts = re.split(r"[.;\n]|,? but | though | although | however |,? not ",
-                     answer, flags=re.IGNORECASE)
-    return " ".join(p for p in parts
-                    if not any(cue in p.lower() for cue in _HISTORY_CUES))
+    return " ".join(p for p in _split_clauses(answer)
+                    if not _is_history_clause(p))
+
+
+def _suggestion_text(answer: str) -> str:
+    """Current text minus declined-framed clauses: naming a declined option is
+    not suggesting it, so trap matching runs here, not on the raw answer."""
+    return " ".join(p for p in _split_clauses(answer)
+                    if not _is_history_clause(p)
+                    and not any(cue in _norm_text(p) for cue in _DECLINE_CUES))
 
 
 @dataclass
@@ -220,7 +256,7 @@ def grade(checkpoint: Checkpoint, answer: str, *, judge: Judge | None = None) ->
         # forbidden ones (expired, declined, wrong person). A forbidden suggestion is a
         # false positive only — it is not a missed supported option, so it is not double
         # counted as a false negative the way a wrong replacement of a required slot is.
-        current = _current_text(answer)
+        current = _suggestion_text(answer)
         for opt in checkpoint.forbidden_options:
             values = (opt.expected, *opt.alternatives)
             if any(_asserts(current, v, opt.norm, judge) for v in values):

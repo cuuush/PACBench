@@ -58,7 +58,11 @@
   `basis: trace|heuristic|none` (Q11). Fictional-clock integrity is tested
   at the harness boundary: `run_turn` exports exactly the fictional `at`
   as PACBENCH_NOW (never host date), meeting the vendor shims that anchor
-  the isolated clock to it (§30).
+  the isolated clock to it (§30). STATUS/TEXT norms pinned in isolation:
+  containment semantics, the conservative no-judge → MISSED default, the
+  per-claim judge seam (fail-closed: an indiscriminate judge convicts
+  forbidden first, never manufactures a pass), and the corpus-anchored
+  eric-now/status paraphrase residual as documented judge territory (§33).
 
 ## 0.1.0 (2026-09-20)
 

@@ -461,5 +461,85 @@ class ErrorBreakout(unittest.TestCase):
         self.assertEqual(summary.errors, {})
 
 
+class StatusAndTextNorms(unittest.TestCase):
+    """Isolated pins for the two least-covered norms (§33).
+
+    STATUS has no corpus slots today (grep Norm.STATUS over
+    pacbench/corpus → only grade.py) — these pins guard its semantics if
+    adopted. TEXT is the workhorse (18 slots) and its deterministic layer
+    plus judge seam are pinned here, including the known eric-now/status
+    residual: a paraphrase with no literal phrase and no judge reads
+    MISSED. That is documented judge territory, not a hidden pass.
+    """
+
+    def _cp(self, slot):
+        return Checkpoint(id="x", at="2026-09-10T12:00:00", question="q",
+                          slots=(slot,))
+
+    def _status_slot(self):
+        return Slot(id="s", kind=Kind.CURRENT, norm=Norm.STATUS,
+                    expected="still on",
+                    forbidden=("canceled", "cancelled"))
+
+    def test_status_containment_is_correct(self):
+        g = grade(self._cp(self._status_slot()),
+                  "The game is still on Saturday at 8pm.")
+        self.assertEqual(g.slots[0].verdict, Verdict.CORRECT)
+
+    def test_status_forbidden_is_misrepresented(self):
+        g = grade(self._cp(self._status_slot()), "The game is canceled.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
+
+    def test_status_silence_is_missed(self):
+        g = grade(self._cp(self._status_slot()),
+                  "I have no information about the game.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+
+    def _text_slot(self):
+        return Slot(id="t", kind=Kind.CURRENT, norm=Norm.TEXT,
+                    expected="still on",
+                    alternatives=("still happening",),
+                    forbidden=("canceled",))
+
+    def test_text_containment_and_alternative_hit(self):
+        self.assertEqual(
+            grade(self._cp(self._text_slot()),
+                  "It is still on.").slots[0].verdict, Verdict.CORRECT)
+        self.assertEqual(
+            grade(self._cp(self._text_slot()),
+                  "It is still happening.").slots[0].verdict,
+            Verdict.CORRECT)
+
+    def test_text_paraphrase_without_judge_is_missed(self):
+        """Conservative default: no containment, no judge → MISSED, never
+        a credited pass the deterministic layer cannot see."""
+        g = grade(self._cp(self._text_slot()),
+                  "Eric's game is on Saturday.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+
+    def test_text_judge_seam_resolves_both_ways(self):
+        # The §33 judge answers one blind binary question PER CLAIM, so the
+        # model judge affirms the expected claim and denies the forbidden
+        # one (a judge returning True for everything would also affirm
+        # "canceled" — and forbidden wins by design).
+        answer = "Eric's game is on Saturday."
+        per_claim = lambda a, c: "cancel" not in c.lower()
+        yes = grade(self._cp(self._text_slot()), answer, judge=per_claim)
+        self.assertEqual(yes.slots[0].verdict, Verdict.CORRECT)
+        no = grade(self._cp(self._text_slot()), answer,
+                   judge=lambda a, c: False)
+        self.assertEqual(no.slots[0].verdict, Verdict.MISSED)
+
+    def test_eric_now_status_residual_is_missed(self):
+        """Corpus-anchored judge residual: the live eric-now/status slot
+        against a paraphrase asserting the game is on. MISSED today;
+        §33 adjudication owns it."""
+        life = get_life("poker-collision")
+        cp = next(c for c in life.checkpoints if c.id.endswith("/eric-now"))
+        g = grade(cp, "Eric's game is on Saturday at 8pm at his place.")
+        status = next(s for s in g.slots if s.id == "status")
+        self.assertEqual(status.verdict, Verdict.MISSED)
+
+
 if __name__ == "__main__":
     unittest.main()

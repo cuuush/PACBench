@@ -103,8 +103,21 @@ def _asserts(answer: str, value: str, norm: Norm, judge: Judge | None) -> bool:
     if norm is Norm.DATE:
         return any(re.search(rf"\b{re.escape(f)}\b", hay) for f in _date_forms(value))
     if norm is Norm.YESNO:
-        cues = _AFFIRM if value.strip().lower() in ("yes", "true", "1") else _NEGATE
-        return any(re.search(rf"\b{re.escape(c)}\b", hay) for c in cues)
+        # Polarity follows the FIRST cue, not mere presence: a denial such as
+        # "No - ... never canceled" contains an incidental affirm word
+        # ("confirmed") that presence-matching would credit as a "yes".
+        # Ties (e.g. "you are" inside "you are not") go to the longer cue.
+        want_affirm = value.strip().lower() in ("yes", "true", "1")
+        first: tuple[int, int, bool] | None = None  # (pos, -len, is_affirm)
+        for cue in (*_AFFIRM, *_NEGATE):
+            m = re.search(rf"\b{re.escape(cue)}\b", hay)
+            if m:
+                cand = (m.start(), -len(cue), cue in _AFFIRM)
+                if first is None or cand < first:
+                    first = cand
+        if first is None:
+            return False
+        return first[2] == want_affirm
     if norm is Norm.ENTITY:
         return any(f in hay for f in _entity_forms(value))
     if norm is Norm.STATUS:

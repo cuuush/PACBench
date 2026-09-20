@@ -177,6 +177,75 @@ class ImplicitControlIsAnsweredByRetrieval(unittest.TestCase):
         self.assertEqual((g.correct, g.misrepresented), (1, 0))
 
 
+class DentistNowDispute(unittest.TestCase):
+    """Pilot answer 'Tuesday Sep 22 at 3pm' vs rubric 'Thursday 4:30pm' (§33).
+
+    Ground truth belongs to the corpus: email-rebook establishes Thursday
+    4:30pm before the checkpoint, so the rubric is right and the answer is
+    wrong — the grader must report MISREPRESENTED, never credit it.
+    """
+
+    def setUp(self):
+        from pacbench.corpus import get_life
+        life = get_life("dentist-depth")
+        self.now = next(c for c in life.checkpoints if c.id.endswith("/now"))
+
+    def test_rubric_truth_is_thursday_from_rebook(self):
+        by_id = {s.id: s for s in self.now.slots}
+        self.assertEqual(by_id["day"].expected, "Thursday")
+        self.assertEqual(by_id["time"].expected, "4:30pm")
+        self.assertIn("dentist-depth/email-rebook", by_id["day"].supported_by)
+
+    def test_dispute_answer_is_misrepresented_not_credited(self):
+        g = grade(self.now, "Tuesday Sep 22 at 3pm.")
+        self.assertEqual((g.correct, g.missed, g.misrepresented), (0, 0, 2))
+        self.assertFalse(g.complete_plan)
+
+    def test_current_answer_is_complete(self):
+        g = grade(self.now, "Your dentist appointment is Thursday at 4:30pm.")
+        self.assertTrue(g.complete_plan)
+
+
+class YesNoPolarityFollowsFirstCue(unittest.TestCase):
+    """Denial-blind presence matching once credited 'never canceled' as 'yes'
+    via an incidental 'confirmed'. Polarity now follows the first cue."""
+
+    def setUp(self):
+        from pacbench.corpus import get_life
+        life = get_life("dentist-depth")
+        self.canceled = next(c for c in life.checkpoints if c.id.endswith("/canceled"))
+        plife = get_life("poker-collision")
+        self.john = next(c for c in plife.checkpoints if c.id.endswith("/john-now"))
+        self.eric_cancel = next(
+            c for c in plife.checkpoints if c.id.endswith("/eric-canceled"))
+
+    def test_affirmation_is_correct(self):
+        g = grade(self.canceled, "Yes, it was canceled Wednesday.")
+        self.assertEqual(g.slots[0].verdict, Verdict.CORRECT)
+
+    def test_denial_with_incidental_affirm_word_is_not_correct(self):
+        g = grade(self.canceled,
+                  "No - it has been confirmed since you set it, never canceled.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+
+    def test_expected_no_answers_still_correct(self):
+        self.assertEqual(
+            grade(self.john, "No, John's game is canceled.").slots[0].verdict,
+            Verdict.CORRECT)
+        self.assertEqual(
+            grade(self.eric_cancel, "No - still on, moved to 8pm Saturday.")
+            .slots[0].verdict, Verdict.CORRECT)
+
+    def test_false_affirmation_of_expected_no_is_not_correct(self):
+        g = grade(self.eric_cancel, "Yes, Eric's game was canceled.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+
+    def test_overlapping_cue_prefers_longer_match(self):
+        self.assertEqual(
+            grade(self.john, "You are not going; game is off.").slots[0].verdict,
+            Verdict.CORRECT)
+
+
 class RendererPreservesTheKey(unittest.TestCase):
     def setUp(self):
         from pacbench.render import Beat

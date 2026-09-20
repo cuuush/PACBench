@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from . import CORPUS_VERSION, VERSION
 from .life import Life
 
-PINNED_HASH = "e567c22c7160ad54576a14feaef4e1896a88842297145164fe88a4e7eec2d6d9"
+PINNED_HASH = "fcae70565de0b0ab46385319287f4598fc404414fc71d8eb41fa8cd378868290"
 
 
 def canonical(lives: list[Life]) -> bytes:

@@ -804,12 +804,15 @@ def run_pilot(*, lives: list[Life], provider: str,
             "tokens": sum_turn_tokens(scored_turns),
         },
         "comparative_claim_valid": False,
-        "comparative_gap": ("No comparative claim is valid from pilot-scale runs: "
-                            "a finding about which system wins requires the 30-life "
-                            "comparative corpus with declared splits (§§39-40). A "
-                            "second provider receiving the same observations (§45.5) "
-                            "makes per-condition snapshots comparable side by side — "
-                            "a sanity check on small high-overlap lives, not a verdict."),
+        "comparative_gap": ("§45.5 unmet: the lexical baseline is a §27 "
+                            "diagnostic, not an external memory provider. "
+                            "Milestone: Memcal + lexical diagnostic complete; "
+                            "Memcal + real external memory provider pending. "
+                            "Full gates: docs/comparative-gates.md."),
+        "efficiency_claim_valid": False,
+        "efficiency_gap": ("No efficiency comparison is valid yet: needs "
+                           "measured, comparable latency/token/cost telemetry "
+                           "on both sides of a frozen comparison."),
     }
     _write_json(pilot_dir / "report.json", summary)
     (pilot_dir / "REPORT.md").write_text(render_report(summary, pilot_dir))
@@ -878,6 +881,8 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
         "## Validity",
         f"comparative_claim_valid: {summary['comparative_claim_valid']}",
         f"gap: {summary['comparative_gap']}",
+        f"efficiency_claim_valid: {summary.get('efficiency_claim_valid', False)}",
+        f"efficiency gap: {summary.get('efficiency_gap', '')}",
         "",
         "Inspect one success and one failure end to end from the per-life "
         "artifacts: manifest.json → observations.json → turns.json "

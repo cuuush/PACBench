@@ -37,6 +37,13 @@ _ABSTAIN_CUES = (
 )
 _AFFIRM = ("yes", "yep", "yeah", "still on", "still going", "confirmed", "you are", "you're")
 _NEGATE = ("no", "not going", "cancelled", "canceled", "called off", "you are not", "won't")
+#: Negate cues that name the cancellation TOPIC rather than asserting a
+#: polarity. "Canceled" answers "is it still on?" by implication (recall),
+#: but asserting the topic is not asserting a polarity: "it was canceled
+#: Wednesday, but it's on Saturday" must never convict on "canceled" alone.
+#: Forbidden-polarity matching therefore uses pure polarity words only;
+#: expected-polarity matching keeps the full set for recall.
+_NEGATE_TOPIC = ("cancelled", "canceled", "called off")
 #: Clauses about the past. A superseded value inside one is history, not a current claim,
 #: so retaining "it used to be Friday" must not be scored as asserting Friday now — the
 #: history-keeping this benchmark rewards would otherwise read as an error.
@@ -113,7 +120,37 @@ def _entity_forms(value: str) -> set[str]:
     return {f.strip() for f in forms if f.strip()}
 
 
-def _asserts(answer: str, value: str, norm: Norm, judge: Judge | None) -> bool:
+def _first_polarity(normed: str, *, include_topic: bool = True) -> bool | None:
+    """Lean of normed text by FIRST polarity cue: True = affirm, False =
+    negate, None = no cues. Polarity follows the first cue, not mere
+    presence: a denial such as "No - ... never canceled" contains an
+    incidental affirm word ("confirmed") that presence-matching would credit
+    as a "yes". Ties (e.g. "you are" inside "you are not") go to the
+    longer cue. With ``include_topic=False``, topic-implying negate cues
+    ("canceled") are ignored — for forbidden matching, where naming the
+    topic must not convict."""
+    first: tuple[int, int, bool] | None = None  # (pos, -len, is_affirm)
+    negates = _NEGATE if include_topic else tuple(
+        c for c in _NEGATE if c not in _NEGATE_TOPIC)
+    for cue in (*_AFFIRM, *negates):
+        # Cues match against normed text, so norm the cue too: the raw cue
+        # "you're" can never match normed hay ("you re") otherwise, and
+        # contractions ("won't" -> "won t") silently stop working.
+        normed_cue = _norm_text(cue).strip()
+        if not normed_cue:
+            continue
+        m = re.search(rf"\b{re.escape(normed_cue)}\b", normed)
+        if m:
+            cand = (m.start(), -len(normed_cue), cue in _AFFIRM)
+            if first is None or cand < first:
+                first = cand
+    if first is None:
+        return None
+    return first[2]
+
+
+def _asserts(answer: str, value: str, norm: Norm, judge: Judge | None,
+             *, for_forbidden: bool = False) -> bool:
     """Does `answer` assert `value` under this norm's matching rule?"""
     hay = _norm_text(answer)
     if norm is Norm.TIME:
@@ -121,21 +158,11 @@ def _asserts(answer: str, value: str, norm: Norm, judge: Judge | None) -> bool:
     if norm is Norm.DATE:
         return any(re.search(rf"\b{re.escape(f)}\b", hay) for f in _date_forms(value))
     if norm is Norm.YESNO:
-        # Polarity follows the FIRST cue, not mere presence: a denial such as
-        # "No - ... never canceled" contains an incidental affirm word
-        # ("confirmed") that presence-matching would credit as a "yes".
-        # Ties (e.g. "you are" inside "you are not") go to the longer cue.
         want_affirm = value.strip().lower() in ("yes", "true", "1")
-        first: tuple[int, int, bool] | None = None  # (pos, -len, is_affirm)
-        for cue in (*_AFFIRM, *_NEGATE):
-            m = re.search(rf"\b{re.escape(cue)}\b", hay)
-            if m:
-                cand = (m.start(), -len(cue), cue in _AFFIRM)
-                if first is None or cand < first:
-                    first = cand
-        if first is None:
+        lean = _first_polarity(hay, include_topic=not for_forbidden)
+        if lean is None:
             return False
-        return first[2] == want_affirm
+        return lean == want_affirm
     if norm is Norm.ENTITY:
         return any(f in hay for f in _entity_forms(value))
     if norm is Norm.STATUS:
@@ -157,7 +184,11 @@ def _abstains(answer: str) -> bool:
 
 
 def _split_clauses(answer: str) -> list[str]:
-    return re.split(r"[.;\n]|,? but | though | although | however |,? not ",
+    # Note: there is deliberately NO bare-"not" delimiter here. Splitting on
+    # " not " would shred negations ("you are not going" -> "you are" +
+    # "going") and flip their polarity downstream — the longer-cue tie-break
+    # in _first_polarity depends on seeing "you are not" intact.
+    return re.split(r"[.;\n]|,? but | though | although | however ",
                     answer, flags=re.IGNORECASE)
 
 
@@ -214,14 +245,32 @@ class Grade:
 def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str]:
     current = _current_text(answer)
     if slot.norm is Norm.YESNO:
-        # Polarity is atemporal: "yes"/"no" carry no tense, so a past-tense
-        # denial ("No, it was never canceled") must not be eaten by the
-        # history-cue filter that protects DATE/TIME/ENTITY values. Match the
-        # forbidden polarity on the full answer; history stripping stays for
-        # every other norm, where superseded values live in past clauses.
+        # Wrong polarity is MISREPRESENTED — but scoped to the proposition
+        # and time being graded, not the whole answer. A "canceled" in a
+        # past-tense clause ("it was canceled Wednesday, but it's on
+        # Saturday") describes a superseded state, not the checkpoint state,
+        # so forbidden polarity is matched on current-tense clauses first.
+        # Fallback: when NOTHING is asserted in the present tense (pure-past
+        # answer such as "No, it was never canceled"), there is no present
+        # claim to scope to, so the full-answer lean decides — otherwise a
+        # past-scoped denial would read as silence.
+        # Known boundary (judge territory, not handled here): mixed-temporal
+        # answers whose only polarity cues are topic words ("It was canceled
+        # Wednesday, but it's on Saturday") read as MISSED rather than
+        # CORRECT — the detector cannot affirm without a pure polarity cue.
+        # That is an honest recall limit, never a fake pass; §33
+        # adjudication covers it.
         forbidden_hit = next(
-            (f for f in slot.forbidden if _asserts(answer, f, slot.norm, judge)),
+            (f for f in slot.forbidden
+             if _asserts(current, f, slot.norm, judge, for_forbidden=True)),
             None)
+        if (forbidden_hit is None
+                and _first_polarity(_norm_text(current),
+                                    include_topic=False) is None):
+            forbidden_hit = next(
+                (f for f in slot.forbidden
+                 if _asserts(answer, f, slot.norm, judge, for_forbidden=True)),
+                None)
     else:
         forbidden_hit = next(
             (f for f in slot.forbidden if _asserts(current, f, slot.norm, judge)),
@@ -252,7 +301,8 @@ def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str
         # CORRECT above wins first, so legitimate history-aware answers that
         # name both values stay correct.)
         full_hit = next(
-            (f for f in slot.forbidden if _asserts(answer, f, slot.norm, judge)),
+            (f for f in slot.forbidden
+             if _asserts(answer, f, slot.norm, judge, for_forbidden=True)),
             None)
         if full_hit:
             return Verdict.MISREPRESENTED, f"asserted stale/forbidden {full_hit!r}"

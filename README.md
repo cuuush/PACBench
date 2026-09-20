@@ -140,9 +140,14 @@ Generation failures are reported, never silently substituted with another model.
 
 ## Comparative pilots (snapshots, not findings)
 
-Two providers have received the same observations under the same conditions —
+Two systems have received the same observations under the same conditions —
 same corpus hash (`afb87c08…`, corpus 0.1.0), same driver
-(`muse-spark-1.3-contributor`), same collection times, same grading:
+(`muse-spark-1.3-contributor`), same collection times, same grading. But the
+second system is a **diagnostic baseline, not an external provider**: per the
+contract co-author, §45.5 is unmet and stays unmet until a real independent
+memory system runs. Milestone: Memcal + lexical diagnostic complete; Memcal
++ real external memory provider pending. Full gates:
+`docs/comparative-gates.md`.
 
 | provider | checkpoints | slots | correct | missed | misrep. | P | R | F1 | turns | tool calls |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

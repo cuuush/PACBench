@@ -20,10 +20,13 @@
   grader shifts old MISSED verdicts — compare frozen grades only, never
   recompute. Prompt-leak validation is word-boundaried (substring matching
   overfired: "no" lives inside "Nova").
-- Runner: `--provider lexical` (stdlib-only archive-search baseline) for
+- Runner: `--provider lexical` (§27 diagnostic baseline, stdlib-only) for
   `run-checkpoint` / `run-pilot`; first measured comparison (lexical F1 0.750
   vs frozen memcal 0.727 on the 3 shared lives — a sanity check at 55 obs,
-  not a finding; `comparative_claim_valid` stays False).
+  not a finding; per the co-author the lexical baseline does NOT satisfy
+  §45.5, which needs a real external memory system:
+  `docs/comparative-gates.md` records all 14 gates for
+  `comparative_claim_valid`, now split from `efficiency_claim_valid`).
 - Usage: per-turn driver tokens (session-delta method) + memcal dream spend
   in pilot efficiency; artifact redaction preserves token-count keys.
 - Splits & repetitions (§§39–40): declared split table (5 development, 4

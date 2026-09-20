@@ -211,8 +211,16 @@ def _plan() -> LifePlan:
                 family="uncertainty",
                 difficulty_tags=("commitment-precision", "uncertainty-abstain"),
                 slots=(
-                    Slot(id="rsvp", kind=Kind.ABSTAIN, norm=Norm.DATE,
-                         expected="", forbidden=("Saturday",),
+                    # Commitment status, not a date: the evidence establishes
+                    # an uncommitted opportunity (no RSVP), never a missing
+                    # date to recall. An empty-DATE sentinel here would muddle
+                    # exactly the opportunity-vs-commitment distinction this
+                    # family measures.
+                    Slot(id="rsvp", kind=Kind.CURRENT, norm=Norm.YESNO,
+                         expected="no", forbidden=("yes",),
+                         supported_by=(f"{_ID}/email-concert",)),
+                    Slot(id="date", kind=Kind.CURRENT, norm=Norm.DATE,
+                         expected="Saturday", forbidden=("Sunday",),
                          supported_by=(f"{_ID}/email-concert",)),
                 ),
             ),

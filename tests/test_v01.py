@@ -206,14 +206,19 @@ class DeterministicGradingOfNewLives(unittest.TestCase):
         brunch = next(c for c in life.checkpoints if c.id.endswith("/brunch-commitment"))
         self.assertEqual(grade(brunch, "Yes, you committed to brunch.").correct, 1)
 
-    def test_unconfirmed_invitation_abstains(self):
+    def test_unconfirmed_invitation_is_uncommitted(self):
         life = get_life("coat-weekend")
         rsvp = next(c for c in life.checkpoints if c.id.endswith("/concert-rsvp"))
-        hedged = grade(rsvp, "Maya invited you but you haven't confirmed — "
-                             "want me to ask?")
-        self.assertEqual(hedged.abstention, 1.0)
+        # Commitment status (not going) + known date: both atoms answerable.
+        full = grade(rsvp, "No, you haven't RSVP'd — the concert is Saturday.")
+        self.assertEqual({s.id: s.verdict for s in full.slots},
+                         {"rsvp": Verdict.CORRECT, "date": Verdict.CORRECT})
+        # Promoting the opportunity into a commitment confabulates the status
+        # atom (the date atom stays correct — slots grade independently).
         guess = grade(rsvp, "You're going Saturday.")
-        self.assertEqual(guess.slots[0].verdict, Verdict.MISREPRESENTED)
+        self.assertEqual({s.id: s.verdict for s in guess.slots},
+                         {"rsvp": Verdict.MISREPRESENTED,
+                          "date": Verdict.CORRECT})
 
 
 class ValidationAndFreezing(unittest.TestCase):

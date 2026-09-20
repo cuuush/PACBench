@@ -1,0 +1,178 @@
+diff --git a/agent/agent_init.py b/agent/agent_init.py
+index 246ab57..d976d2f 100644
+--- a/agent/agent_init.py
++++ b/agent/agent_init.py
+@@ -1253,7 +1253,12 @@ def _init_memory(agent, _agent_cfg, skip_memory, platform):
+         "memory" in (agent.enabled_toolsets or [])
+         and "memory" not in (agent.disabled_toolsets or [])
+     )
+-    if not skip_memory or _memory_toolset_requested:
++    # PACBench isolated-run shim (benchmark harness only): a benchmark episode
++    # must not see real MEMORY.md/USER.md state. Skip the built-in file store
++    # entirely; the memory tool then answers "not available" and the dispatch
++    # boundary gates which (provider) memory tools may run instead.
++    _pacbench_no_builtin_memory = os.environ.get("PACBENCH_NO_BUILTIN_MEMORY", "").strip() == "1"
++    if (not skip_memory or _memory_toolset_requested) and not _pacbench_no_builtin_memory:
+         # Memory is optional — don't break agent init
+         with suppress(Exception):
+             from tools.memory_tool import (
+diff --git a/agent/inline_tool_executors.py b/agent/inline_tool_executors.py
+index 2b5f5f7..4e4a818 100644
+--- a/agent/inline_tool_executors.py
++++ b/agent/inline_tool_executors.py
+@@ -10,6 +10,7 @@ lazily at call time so ``patch("tools.x.y")`` in tests keeps working.
+ from __future__ import annotations
+ 
+ import json
++import os
+ from dataclasses import dataclass
+ from importlib import import_module
+ from typing import Any, Callable, Dict, Optional, Tuple
+@@ -94,6 +95,12 @@ def _callback_tool(module: str, func: str, callback_attr: str, *arg_specs: _ArgS
+ 
+ 
+ def _session_search(agent, args: dict, ctx: InlineToolContext) -> Any:
++    # PACBench isolated-run shim (benchmark harness only): old-session recall
++    # would leak cross-run history into a benchmark episode. Fail closed here
++    # (both dispatch paths funnel through this executor).
++    if os.environ.get("PACBENCH_NO_SESSION_SEARCH", "").strip() == "1":
++        return json.dumps({"success": False,
++                           "error": "PACBENCH-BLOCKED: session_search is disabled in benchmark runs"})
+     session_db = agent._get_session_db_for_recall()
+     if not session_db:
+         from hermes_state import format_session_db_unavailable
+@@ -231,6 +238,21 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
+     Precedence: todo_list/session_search/memory, then memory-manager tools, then the
+     remaining inline tools (``message_agent`` excluded).
+     """
++    # PACBench isolated-run shim (benchmark harness only): memory-tool boundary on
++    # the concurrent path, enforced before every branch (same order as the
++    # sequential guard in tool_executor). Twin of the registry guard in
++    # model_tools.handle_function_call.
++    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
++    if _pacbench_allowlist:
++        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
++                     if t.strip() and not t.strip().endswith("*")}
++        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
++                             if t.strip().endswith("*") and len(t.strip()) > 1)
++        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        if not _pb_ok:
++            return lambda agent, args, ctx, _fn=function_name: json.dumps(
++                {"error": f"PACBENCH-BLOCKED: tool '{_fn}' is outside "
++                          f"the benchmark memory-tool boundary and did not execute"})
+     if function_name in INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES:
+         return INLINE_TOOL_EXECUTORS[function_name]
+     memory_manager = agent._memory_manager
+diff --git a/agent/system_prompt.py b/agent/system_prompt.py
+index 9d5c5e1..cd1ab03 100644
+--- a/agent/system_prompt.py
++++ b/agent/system_prompt.py
+@@ -218,6 +218,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
+             except ValueError:
+                 pass
+     session_start = getattr(agent, "session_start", None)
++    # PACBench isolated-run shim (benchmark harness only): under a fictional clock,
++    # real session-mint timestamps would contradict the simulated date. Anchor the
++    # display date to the simulated now instead.
++    import os as _os
++    if _os.environ.get("PACBENCH_NOW", "").strip():
++        return now
+     return _to_display_tz(session_start) if hasattr(session_start, "astimezone") else now
+ 
+ 
+@@ -290,7 +296,11 @@ def _tool_guidance_block(agent: Any) -> Optional[str]:
+         _kanban_guidance = KANBAN_GUIDANCE
+     tool_guidance = [
+         memory_guidance,
+-        SESSION_SEARCH_GUIDANCE if "session_search" in names else None,
++        # PACBench isolated-run shim (benchmark harness only): session_search is
++        # disabled in benchmark runs, so never advertise it even if the tool is
++        # still in the schema (the executor fails closed).
++        SESSION_SEARCH_GUIDANCE if "session_search" in names
++        and os.environ.get("PACBENCH_NO_SESSION_SEARCH", "").strip() != "1" else None,
+         SKILLS_GUIDANCE if "skill_manage" in names else None,
+         _kanban_guidance,
+     ]
+@@ -516,7 +526,12 @@ def _memory_parts(agent: Any) -> List[str]:
+     the same check ``inject_memory_provider_tools`` uses, so we never advertise
+     tools the toolset config gated off)."""
+     parts: List[str] = []
+-    if agent._memory_store:
++    # PACBench isolated-run shim (benchmark harness only): never inject real
++    # MEMORY.md/USER.md bytes into a benchmark episode's prompt. The external
++    # provider block below is unaffected (provider tools are gated separately
++    # by the dispatch boundary).
++    _pacbench_no_builtin_memory = os.environ.get("PACBENCH_NO_BUILTIN_MEMORY", "").strip() == "1"
++    if agent._memory_store and not _pacbench_no_builtin_memory:
+         for enabled, kind in ((agent._memory_enabled, "memory"), (agent._user_profile_enabled, "user")):
+             block = agent._memory_store.format_for_system_prompt(kind) if enabled else None
+             if block:
+diff --git a/agent/tool_executor.py b/agent/tool_executor.py
+index 4b55c1b..3be7bb6 100644
+--- a/agent/tool_executor.py
++++ b/agent/tool_executor.py
+@@ -1554,6 +1554,21 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
+     function_name, function_args, effective_task_id, tool_call_id, middleware_trace = (
+         ref.name, ref.args, ref.task_id, ref.call_id, ref.trace,
+     )
++    # PACBench isolated-run shim (benchmark harness only): memory-tool boundary,
++    # enforced before every dispatch branch (inline, delegate, context-engine,
++    # memory-provider, registry). See model_tools.handle_function_call for the twin.
++    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
++    if _pacbench_allowlist:
++        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
++                     if t.strip() and not t.strip().endswith("*")}
++        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
++                             if t.strip().endswith("*") and len(t.strip()) > 1)
++        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        if not _pb_ok:
++            return _SequentialDispatch(
++                lambda next_args: json.dumps(
++                    {"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
++                              f"the benchmark memory-tool boundary and did not execute"}))
+     if function_name != "delegate_task" and function_name in INLINE_TOOL_EXECUTORS:
+         # Agent-level tools that need live AIAgent state; table shared with invoke_tool.
+         inline_executor = INLINE_TOOL_EXECUTORS[function_name]
+diff --git a/hermes_time.py b/hermes_time.py
+index a8cab27..e7c3226 100644
+--- a/hermes_time.py
++++ b/hermes_time.py
+@@ -107,5 +107,14 @@ def reset_cache() -> None:
+ 
+ def now() -> datetime:
+     """Current time as a tz-aware datetime: configured zone, else server-local."""
++    override = os.environ.get("PACBENCH_NOW", "").strip()
++    if override:
++        # PACBench isolated-run shim (benchmark harness only): pin the fictional
++        # clock. Same value for every provider; never set outside a run.
++        moment = datetime.fromisoformat(override)
++        tz = get_timezone()
++        if moment.tzinfo is None:
++            moment = moment.replace(tzinfo=tz) if tz is not None else moment.astimezone()
++        return moment
+     tz = get_timezone()
+     return datetime.now(tz) if tz is not None else datetime.now().astimezone()
+diff --git a/model_tools.py b/model_tools.py
+index f0e56c1..5533ba9 100644
+--- a/model_tools.py
++++ b/model_tools.py
+@@ -885,6 +885,19 @@ def handle_function_call(
+         function_args = {}
+     trace = list(tool_request_middleware_trace or [])
+     function_name = _LEGACY_TOOL_ALIASES.get(function_name, function_name)
++    # PACBench isolated-run shim (benchmark harness only): memory-tool boundary.
++    # When PACBENCH_TOOL_ALLOWLIST is set (comma-separated names, "prefix*" wildcards
++    # allowed), any other tool fails closed here. Same harness for every provider.
++    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
++    if _pacbench_allowlist:
++        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
++                     if t.strip() and not t.strip().endswith("*")}
++        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
++                             if t.strip().endswith("*") and len(t.strip()) > 1)
++        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        if not _pb_ok:
++            return json.dumps({"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
++                                        f"the benchmark memory-tool boundary and did not execute"})
+     ids = _CallIds(task_id, session_id, tool_call_id, turn_id, api_request_id)
+     start = time.monotonic()
+ 

@@ -11,18 +11,29 @@ retrieve information internally.
 ## Status
 
 v0.1 is a standalone benchmark **package**: corpus + validation + freeze /
-versioning + deterministic grading + a runner skeleton with explicit
-stubs and seams for the Hermes isolated runtime and provider adapters.
+versioning + deterministic grading + a runner CLI driving isolated Hermes turns.
 
-What is **not** in 0.1 (listed, not papered over):
+W4 reality: `python -m pacbench` provides `list-lives` (offline: lives and
+checkpoints, no model), `smoke` (one bare turn through the isolated clone),
+`run-checkpoint` (one checkpoint end to end via Hermes + provider), and
+`run-pilot` (the full 3-life Memcal development pilot). The isolated Hermes
+clone lives in `vendor/` with fairness-neutral shims re-applied from
+`patches/`; the harness (`pacbench/harness.py`, `pacbench/live.py`) provisions
+scratch homes and never touches the live profile. The Memcal adapter lives
+outside the scored package (`provider_adapters/memcal_adapter.py`) behind the
+provider contract. One checkpoint has been proven live end to end; `runs/`
+artifacts are debugging output, not results.
 
-- Hermes isolated runtime (`pacbench/hermes.py` — policy + seam only).
-- Provider adapters (`pacbench/adapters.py` — contract only; no concrete adapter).
-- Live runs, comparative provider results, and any claim about which system wins.
+What is **not** claimed (listed, not papered over):
+
+- Live runs beyond the proven checkpoint, comparative provider results, and any
+  claim about which system wins.
 - The calibrated semantic judge for paraphrased TEXT slots (the `judge=` seam in
   `pacbench/grade.py`; without it, unmatched paraphrases grade as MISSED,
   never as invented passes).
 - Model-based fact-realization validation and the 30-life comparative corpus.
+- Driver auth: scored runs use the PACBench-owned `.env` (`MODEL` + `META`)
+  only — never live-profile credentials. See `.env.example`.
 
 ## Install
 
@@ -38,6 +49,16 @@ pip install -e .
 python3 -m unittest            # full suite (moved + new 0.1 tests)
 python3 -m pacbench.validate   # deterministic structural validation
 python3 -m pacbench.freeze     # corpus version, counts, sha256
+python3 -m pacbench list-lives # lives + checkpoints (offline, no model)
+```
+
+Live commands need the PACBench-owned `.env` (see `.env.example`) plus the
+isolated clone in `vendor/` — never live-profile credentials:
+
+```sh
+python3 -m pacbench smoke                                          # wiring proof
+python3 -m pacbench run-checkpoint --life <id> --checkpoint <id>  # one checkpoint
+python3 -m pacbench run-pilot                                     # 3-life pilot
 ```
 
 ## Corpus

@@ -31,11 +31,18 @@ class TurnResult:
     at: str
     answer: str
     tool_calls: list[dict]
+    tool_results: list[dict]
     policy_blocks: int
     latency_s: float
     returncode: int
     stderr_tail: str
     raw_events: int
+    session_id: str | None = None
+    # M0 full diagnostics (§§41/42): complete stderr (never truncated — the
+    # root cause lives here) plus the last non-empty stdout lines (quiet-text
+    # answers and harness warnings print outside stream-json).
+    stderr_full: str = ""
+    stdout_tail: str = ""
 
 
 def _check_paths(home: Path) -> None:
@@ -53,16 +60,23 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
                    provider_name: str, model: str = "grok-4.6",
                    model_provider: str = "xai-oauth",
                    live_home: Path | None = None) -> dict:
-    """Build a scratch HERMES_HOME: minimal config, copied auth, provider plugin.
+    """Build a scratch HERMES_HOME: minimal config, provider plugin, no live auth.
 
     - ``provider_plugin_src`` is copied (never symlinked) to
       ``<home>/plugins/<provider_name>/``.
-    - ``auth.json`` is copied from the live home with 0600 permissions so driver
-      model calls authenticate; it never enters artifacts (see ``redact``).
+    - Driver auth comes from PACBench-owned ``.env`` (``MODEL`` + ``META`` via
+      ``pacbench.creds.load_driver``, exported as ``META_API_KEY``) and flows
+      through the process environment into ``harness.run_turn``. This function
+      never copies live-profile ``auth.json``: ``live_home`` is a fail-closed
+      legacy parameter — any non-None value raises (§45.19, §42).
     - Built-in memory stays off; every toolset except ``memory`` is disabled in
       config (the dispatch patch in the clone enforces the rest).
     Returns a record of what was provisioned (no secrets).
     """
+    if live_home is not None:
+        raise RuntimeError(
+            "live-profile auth copy disabled (§45.19): driver credential comes "
+            "from PACBench .env only via pacbench.creds.load_driver")
     _check_paths(home)
     if home.exists():
         shutil.rmtree(home)
@@ -86,10 +100,15 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
             os.chmod(dest_auth, 0o600)
             record["auth_copied"] = True
 
+    # Canonical base URLs per provider: some runtime env-key rungs only send a
+    # key to its authoritative host, so an empty base_url would leave the key
+    # unsent (401). Same table every provider resolves against.
+    base_url = {"xai-oauth": "https://api.x.ai/v1",
+                "openrouter": "https://openrouter.ai/api/v1",
+                "meta-ai": "https://api.meta.ai/v1"}.get(model_provider, "")
     config = {
         "model": {"default": model, "provider": model_provider,
-                  "base_url": ("https://api.x.ai/v1"
-                               if model_provider == "xai-oauth" else "")},
+                  "base_url": base_url},
         "memory": {"memory_enabled": False, "user_profile_enabled": False,
                    "provider": provider_name},
         "agent": {"disabled_toolsets": [
@@ -160,11 +179,15 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
                 latency: float) -> TurnResult:
     answer_parts: list[str] = []
     tool_calls: list[dict] = []
+    tool_results: list[dict] = []
     blocks = 0
     events = 0
     text_deltas: list[str] = []
     result_text = ""
-    for line in (proc.stdout or "").splitlines():
+    session_id: str | None = None
+    stdout_text = proc.stdout or ""
+    stderr_text = proc.stderr or ""
+    for line in stdout_text.splitlines():
         line = line.strip()
         if not line.startswith("{"):
             continue
@@ -173,6 +196,8 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
         except json.JSONDecodeError:
             continue
         events += 1
+        if not session_id and isinstance(event.get("session_id"), str):
+            session_id = event["session_id"]
         kind = event.get("type", "")
         if kind in ("tool_call", "tool_use", "function_call"):
             tool_calls.append(event)
@@ -180,6 +205,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
             text = json.dumps(event)
             if "PACBENCH-BLOCKED" in text:
                 blocks += 1
+            tool_results.append(_summarize_tool_result(event))
         elif kind == "text":
             # Streaming delta of the assistant message.
             delta = event.get("text") or ""
@@ -204,7 +230,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
     if not answer_parts:
         # Fall back to the last non-JSON line (quiet text mode still prints it).
         # Skip harness warnings (e.g. the tirith notice), which are not answers.
-        for line in reversed((proc.stdout or "").splitlines()):
+        for line in reversed(stdout_text.splitlines()):
             stripped = line.strip()
             if not stripped or stripped.startswith("{"):
                 continue
@@ -212,11 +238,39 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
                 continue
             answer_parts.append(stripped)
             break
+    stdout_tail = "\n".join(
+        [ln for ln in stdout_text.splitlines() if ln.strip()][-60:])
+    stderr_lines = stderr_text.splitlines()
     return TurnResult(prompt=prompt, at=at, answer="\n".join(answer_parts),
-                      tool_calls=tool_calls, policy_blocks=blocks,
+                      tool_calls=tool_calls, tool_results=tool_results,
+                      policy_blocks=blocks,
                       latency_s=round(latency, 2), returncode=proc.returncode,
-                      stderr_tail="\n".join((proc.stderr or "").splitlines()[-8:]),
-                      raw_events=events)
+                      stderr_tail="\n".join(stderr_lines[-8:]),
+                      stderr_full=stderr_text,
+                      stdout_tail=stdout_tail,
+                      raw_events=events, session_id=session_id)
+
+
+def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
+    """Compact a tool-result event for artifacts (name + truncated payload).
+
+    Results can be large (archive dumps); the text is synthetic corpus evidence,
+    truncated with an explicit flag so reviewers know the cap. Used for §34
+    failure classification (did retrieved evidence reach Hermes?).
+    """
+    payload = event.get("result")
+    if payload is None:
+        payload = event.get("output")
+    if payload is None:
+        payload = event.get("text", "")
+    text = payload if isinstance(payload, str) else json.dumps(payload)
+    truncated = len(text) > limit
+    return {
+        "tool": event.get("tool") or event.get("name") or "",
+        "success": event.get("success", event.get("error") is None),
+        "text": text[:limit],
+        "truncated": truncated,
+    }
 
 
 def redact(obj):

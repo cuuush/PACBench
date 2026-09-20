@@ -53,7 +53,20 @@ from types import SimpleNamespace
 REPO = Path(__file__).resolve().parents[1]
 ARTIFACTS = REPO / "artifacts"
 
-MEMCAL_SRC = Path("/Users/chris/code/memcal")
+def _resolve_memcal_src() -> Path:
+    """Memcal checkout location without hardcoded user paths (§42 isolation).
+
+    Precedence: MEMCAL_SRC env var, else sibling-checkout convention
+    (<PACBench-parent>/memcal, e.g. ~/code/memcal next to ~/code/PACBench).
+    Never a hardcoded /Users/... path so Linux/CI/other checkouts work.
+    """
+    env = os.environ.get("MEMCAL_SRC", "").strip()
+    if env:
+        return Path(env).expanduser()
+    return REPO.parent / "memcal"
+
+
+MEMCAL_SRC = _resolve_memcal_src()
 if str(MEMCAL_SRC) not in sys.path:
     sys.path.insert(0, str(MEMCAL_SRC))
 
@@ -148,10 +161,11 @@ class MemcalAdapter(ProviderAdapter):
 
     name = "memcal"
 
-    def __init__(self, home: Path):
+    def __init__(self, home: Path, *, dream_model: str | None = None):
         check_scratch_home(home)
         self.home = home
         self.src = MEMCAL_SRC
+        self.dream_model = dream_model
         self.namespace: str | None = None
         self._archived = 0
         self._redirected_turns = 0
@@ -249,8 +263,11 @@ class MemcalAdapter(ProviderAdapter):
                     events.append({"event": event,
                                    **{k: str(v)[:200] for k, v in data.items()}})
 
-                result = dream_run.dream(conn, cfg, mode="nightly", progress=progress)
+                result = dream_run.dream(conn, cfg, mode="nightly",
+                                           model=self.dream_model,
+                                           progress=progress)
                 self._maintenance = {"state": "complete", "at": at,
+                                     "model": self.dream_model,
                                      "run_id": getattr(result, "run_id", None),
                                      "events": events[-20:]}
             finally:

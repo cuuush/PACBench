@@ -82,3 +82,115 @@ class CliPlumbing(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DriverResolution(unittest.TestCase):
+    def test_exact_match_wins(self):
+        from pacbench.creds import resolve_model_id
+        self.assertEqual(
+            resolve_model_id("muse-spark-1.3-contributor",
+                             ["muse-spark-1.3-contributor",
+                              "meta/muse-spark-1.3-contributor"]),
+            "muse-spark-1.3-contributor")
+
+    def test_no_silent_substitution(self):
+        from pacbench.creds import resolve_model_id
+        from pacbench.generation import GenerationError
+        with self.assertRaises(GenerationError):
+            resolve_model_id("muse-spark-1.3-contributor",
+                             ["meta/muse-spark-1.3-contributor"])
+
+    def test_unknown_model_fails_clearly(self):
+        from pacbench.creds import resolve_model_id
+        from pacbench.generation import GenerationError
+        with self.assertRaises(GenerationError):
+            resolve_model_id("nope", ["meta/muse-spark-1.3-contributor"])
+
+
+class FailureClassification(unittest.TestCase):
+    def _cp(self):
+        from pacbench.corpus import get_life
+        life = get_life("dentist-depth")
+        return next(c for c in life.checkpoints if c.id.endswith("/eye-exam"))
+
+    def test_correct_answer_has_no_category(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "Wednesday at 10am.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"dentist-depth/email-eye"},
+                            tool_names=["memcal_search_archive"],
+                            result_blob="eye exam Wednesday at 10am",
+                            policy_blocks=0)
+        self.assertIsNone(out["category"])
+
+    def test_missing_evidence_is_ingestion_failure(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "I don't know.")
+        out = live.classify(cp, grade, turn_ok=True, ingested_ids=set(),
+                            tool_names=[], result_blob="", policy_blocks=0)
+        self.assertEqual(out["category"], 1)
+
+    def test_no_tool_calls_is_tool_selection(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "I don't know.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"dentist-depth/email-eye"},
+                            tool_names=[], result_blob="", policy_blocks=0)
+        self.assertEqual(out["category"], 4)
+
+    def test_empty_results_is_retrieval_failure(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "I don't know.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"dentist-depth/email-eye"},
+                            tool_names=["memcal_search_archive"],
+                            result_blob="nothing relevant found", policy_blocks=0)
+        self.assertEqual(out["category"], 3)
+
+    def test_ignored_evidence_is_reading_failure(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "Sometime next month.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"dentist-depth/email-eye"},
+                            tool_names=["memcal_open_source"],
+                            result_blob="Confirmed: eye exam Wednesday at 10am",
+                            policy_blocks=0)
+        self.assertEqual(out["category"], 5)
+
+    def test_dead_turn_is_runtime_failure(self):
+        from pacbench import live
+        cp = self._cp()
+        out = live.classify(cp, None, turn_ok=False, ingested_ids=set(),
+                            tool_names=[], result_blob="", policy_blocks=0)
+        self.assertEqual(out["category"], 7)
+
+
+class PilotPreflight(unittest.TestCase):
+    def test_scratch_homes_pass_and_live_paths_fail(self):
+        import tempfile
+        from pacbench import live
+        from pacbench.corpus import get_life
+
+        class StubAdapter:
+            def retrieval(self):
+                return {"provider": "stub", "plugin_available": True,
+                        "tool_allowlist": [], "env": {}}
+
+        life = get_life("dentist-depth")
+        with tempfile.TemporaryDirectory() as tmp:
+            ok = live.preflight(life, Path(tmp) / "h-home",
+                                Path(tmp) / "m-home", StubAdapter())
+            self.assertEqual(ok, [])
+            bad = live.preflight(life, Path.home() / ".hermes" / "x",
+                                 Path(tmp) / "m-home", StubAdapter())
+            self.assertTrue(bad)

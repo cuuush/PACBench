@@ -80,8 +80,10 @@ def _date_forms(value: str) -> set[str]:
     except ValueError:
         return {v}
     wd = _WEEKDAYS[d.weekday()]
+    # Portable month/day forms: strftime %-m/%-d is glibc-only and returns a
+    # literal on macOS BSD, so build both padded and unpadded forms directly.
     return {value, wd, wd[:3], d.strftime("%b %d").lower(), d.strftime("%B %d").lower(),
-            d.strftime("%-m/%-d") if hasattr(d, "strftime") else value}
+            f"{d.month}/{d.day}", f"{d.month:02d}/{d.day:02d}"}
 
 
 def _entity_forms(value: str) -> set[str]:

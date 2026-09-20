@@ -116,11 +116,16 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
     plugin_src = seam.get("plugin_src")
     plugin_path = Path(plugin_src) if seam.get("plugin_available") and plugin_src else None
     extra_env = dict(seam.get("env", {}) or {})
+    adapter_env_error: str | None = None
     if hasattr(adapter, "env"):
         try:
             extra_env.update(adapter.env())
-        except Exception:
-            pass
+        except Exception as exc:
+            # P1: no silent fallbacks — a provider-env failure rides into the
+            # manifest (§41) instead of vanishing. The run still fails closed
+            # downstream if the env was load-bearing (missing MEMCAL_HOME
+            # breaks retrieval, which the trace will show).
+            adapter_env_error = f"{type(exc).__name__}: {exc}"
 
     adapter.reset(ns)
     home_record = harness.provision_home(
@@ -183,6 +188,7 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         "run": "pacbench-w4-live",
         "namespace": ns,
         "started_at": started,
+        "adapter_env_error": adapter_env_error,
         "corpus_version": CORPUS_VERSION,
         "corpus_hash": digest([life]),
         "life": life.id,
@@ -302,11 +308,18 @@ def _norm(s: str) -> str:
 
 def classify(checkpoint: Checkpoint, grade: Grade | None, *,
              turn_ok: bool, ingested_ids: set[str], tool_names: list[str],
-             result_blob: str, policy_blocks: int) -> dict:
+             result_blob: str, policy_blocks: int,
+             replayed_ids: set[str] | frozenset[str] = frozenset()) -> dict:
     """Classify a checkpoint outcome per §34 — only when the trace supports it.
 
     Categories follow the contract numbering (1–7); ``unknown`` means the trace
     does not support a specific cause; ``null`` means no failure to classify.
+
+    ``replayed_ids`` are hermes-channel user-turn source_ids successfully
+    replayed through Hermes in this episode. They count as delivered evidence:
+    asserting category 1 (ingestion failure) while the only missing support
+    arrived via a successful turn replay would blame ingestion for evidence
+    Hermes demonstrably saw.
     """
     if grade is not None and grade.misrepresented == 0 and grade.missed == 0:
         return {"category": None, "reason": "all required slots correct"}
@@ -317,7 +330,8 @@ def classify(checkpoint: Checkpoint, grade: Grade | None, *,
     for slot in (*checkpoint.slots, *checkpoint.supported):
         if slot.required:
             required_ids.update(slot.supported_by)
-    missing = sorted(required_ids - ingested_ids)
+    delivered = set(ingested_ids) | set(replayed_ids)
+    missing = sorted(required_ids - delivered)
     if missing:
         return {"category": 1,
                 "reason": f"required evidence never ingested: {missing}"}
@@ -412,6 +426,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     sessions: dict[str, str] = {}
     primary_session: str | None = None
     ingested_ids: set[str] = set()
+    replayed_ids: set[str] = set()
     incomplete_reasons: list[str] = []
     obs_idx = 0
 
@@ -477,6 +492,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                 turns.append(failed_turn)
                 continue
             r = out["record"]
+            replayed_ids.add(p["source_id"])
             session_schedule.append({"event": p["source_id"], "at": p["collected_at"],
                                      "session_id": out["session_id"],
                                      "resumed": out["resumed"]})
@@ -520,7 +536,8 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
             grades.append({**failed.to_dict(), "answer": None, "error": out["error"]})
             classifications.append({"checkpoint": cp.id, **classify(
                 cp, None, turn_ok=False, ingested_ids=set(ingested_ids),
-                tool_names=[], result_blob="", policy_blocks=0)})
+                tool_names=[], result_blob="", policy_blocks=0,
+                replayed_ids=set(replayed_ids))})
             failed_cp: dict = {"kind": "checkpoint", "checkpoint": cp.id,
                                "at": cp.at, "prompt": cp.public_prompt(),
                                "error": out["error"]}
@@ -541,7 +558,8 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
         classifications.append({"checkpoint": cp.id, **classify(
             cp, grade, turn_ok=True, ingested_ids=set(ingested_ids),
             tool_names=[n for n in names if n], result_blob=blob,
-            policy_blocks=r.policy_blocks)})
+            policy_blocks=r.policy_blocks,
+            replayed_ids=set(replayed_ids))})
         turns.append({"kind": "checkpoint", "checkpoint": cp.id,
                       "at": cp.at, "prompt": cp.public_prompt(),
                       **_record_of(r)})

@@ -169,8 +169,29 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     if session_id:
         cmd += ["--resume", session_id]
     started = time.monotonic()
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s,
-                          env=env, cwd=str(REPO))
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout_s, env=env, cwd=str(REPO))
+    except subprocess.TimeoutExpired as exc:
+        # A timeout is a failed turn, not a missing one (§41: failures are
+        # required artifacts). Synthesize the same diagnostic TurnResult a
+        # nonzero exit would carry so no error path is record-less (P1: kill
+        # error-only turns). Partial child output rides along when present.
+        latency = time.monotonic() - started
+        note = (f"Hermes turn timed out after {timeout_s}s "
+                f"(cmd: {' '.join(str(c) for c in cmd)})")
+        part_out = str(exc.stdout or "")
+        part_err = str(exc.stderr or "")
+        return TurnResult(
+            prompt=prompt, at=at, answer="",
+            tool_calls=[], tool_results=[], policy_blocks=0,
+            latency_s=round(latency, 2), returncode=-1,
+            stderr_tail=note,
+            stderr_full=(note + (f"\n--- partial stderr ---\n{part_err}"
+                                 if part_err else "")),
+            stdout_tail="\n".join(
+                [ln for ln in part_out.splitlines() if ln.strip()][-60:]),
+            raw_events=0, session_id=None)
     latency = time.monotonic() - started
     return _parse_turn(prompt, at, proc, latency)
 

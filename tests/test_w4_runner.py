@@ -194,3 +194,78 @@ class PilotPreflight(unittest.TestCase):
             bad = live.preflight(life, Path.home() / ".hermes" / "x",
                                  Path(tmp) / "m-home", StubAdapter())
             self.assertTrue(bad)
+
+
+class ReplayAwareClassification(unittest.TestCase):
+    """P1: user-turn evidence delivered via turn replay must not read as an
+    ingestion failure (§34 — classify only when the trace supports it)."""
+
+    def _cp(self):
+        from pacbench.rubric import Checkpoint, Kind, Norm, Slot
+        return Checkpoint(
+            id="t/cp", at="2026-09-09T20:00:00", question="q",
+            slots=(Slot(id="s", kind=Kind.CURRENT, norm=Norm.STATUS,
+                        expected="active", supported_by=("t/email", "t/hermes-turn")),))
+
+    def test_replayed_support_is_not_ingestion_failure(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "I don't know.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"t/email"},
+                            tool_names=[], result_blob="", policy_blocks=0,
+                            replayed_ids={"t/hermes-turn"})
+        # All required support delivered (one via replay) yet nothing surfaced:
+        # no tool was even called, so this is tool-selection, not ingestion.
+        self.assertEqual(out["category"], 4)
+
+    def test_truly_missing_support_stays_ingestion_failure(self):
+        from pacbench import live
+        from pacbench.runner import grade_answer
+        cp = self._cp()
+        grade = grade_answer(cp, "I don't know.")
+        out = live.classify(cp, grade, turn_ok=True,
+                            ingested_ids={"t/email"},
+                            tool_names=[], result_blob="", policy_blocks=0)
+        self.assertEqual(out["category"], 1)
+
+
+class TurnDiagnostics(unittest.TestCase):
+    """P1: no error path is record-less — every failed turn carries the full
+    TurnResult (stderr_full + stdout_tail + raw_events + latency)."""
+
+    def test_record_of_carries_full_diagnostics(self):
+        from pacbench import live
+        from pacbench.harness import TurnResult
+        r = TurnResult(prompt="p", at="t", answer="a", tool_calls=[],
+                       tool_results=[], policy_blocks=0, latency_s=1.5,
+                       returncode=1, stderr_tail="tail", raw_events=3,
+                       stderr_full="FULL", stdout_tail="OUT")
+        rec = live._record_of(r)
+        for key in ("answer", "tool_calls", "tool_results", "session_id",
+                    "policy_blocks", "latency_s", "returncode", "stderr_tail",
+                    "stderr_full", "stdout_tail", "raw_events"):
+            self.assertIn(key, rec)
+        self.assertEqual(rec["stderr_full"], "FULL")
+        self.assertEqual(rec["latency_s"], 1.5)
+
+    def test_timeout_yields_diagnostic_turn_not_exception(self):
+        import subprocess
+        from unittest import mock
+        from pacbench import harness
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="pacbench-p1-") as tmp:
+            home = Path(tmp) / "h-home"
+            harness.provision_home(home, provider_plugin_src=None,
+                                   provider_name="none")
+            with mock.patch.object(
+                    harness.subprocess, "run",
+                    side_effect=subprocess.TimeoutExpired(
+                        cmd=["hermes"], timeout=0.1)):
+                res = harness.run_turn("hi", at="2026-09-10T12:00:00",
+                                       home=home, allowlist="",
+                                       timeout_s=0.1)
+        self.assertEqual(res.returncode, -1)
+        self.assertIn("timed out", res.stderr_full)
+        self.assertEqual(res.raw_events, 0)

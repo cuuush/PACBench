@@ -2,23 +2,31 @@
 
 ## Unreleased (corpus 0.2.0)
 
-- Corpus: new development life `reunion-thread` (D) — thread-size difficulty
+- Corpus: new development lives `reunion-thread` (D) — thread-size difficulty
   (move + hearsay + stale repeat buried in a ~150-message group chat, work
-  picnic as small-thread control). Corpus now 251 observations / 27
-  checkpoints across 8 lives; freeze hash re-pinned deliberately.
+  picnic as small-thread control) — and `revoke-week` (E) —
+  cancellation-reversal (exactly one active booking), explicit forget (old
+  code stays history, never current), completed-task silence. Corpus now 298
+  observations / 33 checkpoints across 9 lives; freeze hash re-pinned
+  deliberately (twice: new life, then calibration roles).
 - Grading: polarity is atemporal — YESNO forbidden values match on the full
   answer (past-tense verbs no longer eat them via history-cue stripping);
   every required YESNO slot now names the opposite polarity as forbidden, so
   false affirmations/denials grade MISREPRESENTED, not MISSED (invariant
-  tested). Regrading pre-0.2.0 frozen artifacts under this grader shifts
-  old MISSED verdicts — compare frozen grades only, never recompute.
+  tested). Same class fix for HISTORICAL slots: a wrong past value with the
+  expected absent is confabulation even when past-tense phrasing hides it
+  from the current-text filter — while history-aware answers naming both
+  values stay CORRECT. Regrading pre-0.2.0 frozen artifacts under this
+  grader shifts old MISSED verdicts — compare frozen grades only, never
+  recompute. Prompt-leak validation is word-boundaried (substring matching
+  overfired: "no" lives inside "Nova").
 - Runner: `--provider lexical` (stdlib-only archive-search baseline) for
   `run-checkpoint` / `run-pilot`; first measured comparison (lexical F1 0.750
   vs frozen memcal 0.727 on the 3 shared lives — a sanity check at 55 obs,
   not a finding; `comparative_claim_valid` stays False).
 - Usage: per-turn driver tokens (session-delta method) + memcal dream spend
   in pilot efficiency; artifact redaction preserves token-count keys.
-- Splits & repetitions (§§39–40): declared split table (4 development, 4
+- Splits & repetitions (§§39–40): declared split table (5 development, 4
   calibration, 0 held-out — the empty held-out is why no comparison is
   valid); `run-pilot --repetitions N` runs each life N times into namespaced
   dirs with per-rep F1 in the report. Pilot labels fixed (`dev-pilot`, live

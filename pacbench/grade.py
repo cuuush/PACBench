@@ -242,6 +242,20 @@ def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str
         return Verdict.MISREPRESENTED, f"asserted stale/forbidden {forbidden_hit!r}"
     if expected:
         return Verdict.CORRECT, f"asserted {slot.expected!r}"
+    if slot.kind is Kind.HISTORICAL:
+        # History questions are answered in the past tense by necessity
+        # ("the old code was 8821"), which the history-cue filter eats — so a
+        # wrong historical value would read as silence. When the expected
+        # past value is absent AND a forbidden value is asserted anywhere,
+        # that is confabulation, not silence. (When the expected value IS
+        # present, e.g. "was 4410, changed to 8821", this never fires — the
+        # CORRECT above wins first, so legitimate history-aware answers that
+        # name both values stay correct.)
+        full_hit = next(
+            (f for f in slot.forbidden if _asserts(answer, f, slot.norm, judge)),
+            None)
+        if full_hit:
+            return Verdict.MISREPRESENTED, f"asserted stale/forbidden {full_hit!r}"
     return Verdict.MISSED, f"no assertion of {slot.expected!r}"
 
 

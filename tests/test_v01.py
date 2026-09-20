@@ -37,7 +37,7 @@ class DevelopmentLives(unittest.TestCase):
     def test_ids(self):
         self.assertEqual(sorted(l.id for l in development_lives()),
                          ["coat-weekend", "dentist-depth", "poker-collision",
-                          "reunion-thread"])
+                          "reunion-thread", "revoke-week"])
 
     def test_seven_day_horizon_with_older_history(self):
         for life in development_lives():
@@ -85,7 +85,7 @@ class SplitDeclaration(unittest.TestCase):
         self.assertEqual(
             sorted(i for i, r in by_id.items() if r == "development"),
             ["coat-weekend", "dentist-depth", "poker-collision",
-             "reunion-thread"])
+             "reunion-thread", "revoke-week"])
         self.assertEqual(
             sorted(i for i, r in by_id.items() if r == "calibration"),
             ["dentist-friday", "poker-move", "poker-unchanged",
@@ -260,6 +260,25 @@ class ValidationAndFreezing(unittest.TestCase):
         self.assertEqual(
             grade(canceled, "No, it was never canceled.").slots[0].verdict,
             Verdict.MISREPRESENTED)
+
+    def test_historical_confabulation_is_misrepresented(self):
+        """A wrong past value is confabulation (MISREPRESENTED), not silence
+        — even though history answers are past-tense by necessity and the
+        history-cue filter eats past clauses. But naming both values in a
+        history-aware answer ("was 4410, changed to 8821") stays CORRECT:
+        the expected value's presence wins before the fallback fires."""
+        gate_old = next(c for c in get_life("revoke-week").checkpoints
+                        if c.id.endswith("/gate-old"))
+        self.assertEqual(
+            grade(gate_old, "The old code was 8821.").slots[0].verdict,
+            Verdict.MISREPRESENTED)
+        self.assertEqual(
+            grade(gate_old,
+                  "The old code was 4410, changed to 8821.").slots[0].verdict,
+            Verdict.CORRECT)
+        self.assertEqual(
+            grade(gate_old, "Not sure.").slots[0].verdict,
+            Verdict.MISSED)
 
 
 class RunnerSkeleton(unittest.TestCase):

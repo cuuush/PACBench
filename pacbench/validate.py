@@ -151,6 +151,8 @@ def validate_life(life: Life, manifest: SupportManifest | None = None) -> list[s
                                   f"before it is collected (future evidence)")
             # The prompt must not hand over time/status/date answers or stale claims.
             # Entity/text names may appear (a question can name who it asks about).
+            # Leak matching is word-boundaried: substring matching overfires on
+            # short values ("no" lives inside "Nova", "not", "another").
             if slot.kind is Kind.ABSTAIN and not slot.expected:
                 values = [(f, f) for f in slot.forbidden]
             elif slot.norm in (Norm.DATE, Norm.TIME, Norm.STATUS):
@@ -159,7 +161,9 @@ def validate_life(life: Life, manifest: SupportManifest | None = None) -> list[s
             else:
                 values = [(f, "forbidden") for f in slot.forbidden]
             for value, kind in values:
-                if value and value.strip().casefold() in prompt:
+                if not value or not value.strip():
+                    continue
+                if re.search(rf"\b{re.escape(value.strip().casefold())}\b", prompt):
                     errors.append(f"{life.id}: checkpoint {cp.id} prompt leaks "
                                   f"{kind} value {value!r}")
             # Required literal values must appear in the cited evidence (the expected

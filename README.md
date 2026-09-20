@@ -70,10 +70,10 @@ python3 -m pacbench run-pilot --repetitions 2                     # each life tw
 
 ## Corpus
 
-Four synthetic development lives, each covering 7 consecutive simulated days
+Five synthetic development lives, each covering 7 consecutive simulated days
 (Mon 2026-09-07 – Sun 2026-09-13) plus older history, over email, text /
 iMessage, WhatsApp, GroupMe, Hermes user turns, and Slack where the life
-needs it (corpus 0.2.0: 251 observations, 27 checkpoints):
+needs it (corpus 0.2.0: 298 observations, 33 checkpoints):
 
 | Life | Exercises | Matched control |
 | --- | --- | --- |
@@ -81,12 +81,13 @@ needs it (corpus 0.2.0: 251 observations, 27 checkpoints):
 | `poker-collision` (B) | entity collision (John's vs Eric's game), source authority (hearsay vs organizer), stale repeats | single-occurrence team lunch |
 | `coat-weekend` (C) | proactive reminder, opportunity vs commitment, abstention on unresolved plans | silent visit (no reminder should fire) |
 | `reunion-thread` (D) | thread-size difficulty (key facts buried in a ~150-message group chat), hearsay vs organizer, stale repeats | work picnic in a small thread |
+| `revoke-week` (E) | cancellation-reversal (exactly one active booking), explicit forget (old code history, not current), completed-task silence | history probes mirror the current-state probes |
 
 Two smaller incident families from the starting material are kept as
 regression coverage: `poker-move` / `poker-unchanged` (write-time recency) and
 `weekend-plans` / `dentist-friday` (implicit context).
 
-Declared splits (§39): the four lives above are `development` (full-system
+Declared splits (§39): the five lives above are `development` (full-system
 debugging); the four small families are `calibration` (grader and pipeline
 checks); `held-out` is empty until the comparative corpus exists — which is
 why no comparative claim is valid yet. Moving a life between splits is

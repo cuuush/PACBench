@@ -100,7 +100,7 @@ def _bet() -> Life:
                  supported_by=(f"{_ID}/email-oldaddr",)),
         ),
     )
-    return Life(id=_ID, bet="write-time-recency", role="development",
+    return Life(id=_ID, bet="write-time-recency", role="calibration",
                 observations=obs, checkpoints=(where, historical))
 
 
@@ -146,7 +146,7 @@ def _control() -> Life:
                  supported_by=(f"{_CTL}/gm-confirm",)),
         ),
     )
-    return Life(id=_CTL, bet="write-time-recency", role="development",
+    return Life(id=_CTL, bet="write-time-recency", role="calibration",
                 observations=obs, checkpoints=(where,), control_of=_ID)
 
 

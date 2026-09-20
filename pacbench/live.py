@@ -418,10 +418,24 @@ def _failed_grade(checkpoint: Checkpoint, reason: str) -> Grade:
     return grade
 
 
+def rep_dir_name(life_id: str, rep: int, repetitions: int) -> str:
+    """Artifact dir for one (life, repetition). Single-rep pilots keep the
+    historical flat layout (``<life-id>/``); multi-rep pilots namespace each
+    realization (``<life-id>-rep<n>/``) so every realization is preserved,
+    failures included (§40: never retry-until-pass, never overwrite)."""
+    if repetitions == 1:
+        if rep != 0:
+            raise ValueError(f"rep {rep} out of range for 1 repetition")
+        return life_id
+    if rep < 0:
+        raise ValueError(f"rep {rep} must be >= 0")
+    return f"{life_id}-rep{rep}"
+
+
 def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
              life_dir: Path, model: str, model_provider: str,
              driver_configured_model: str,
-             timeout_s: float = 900.0) -> dict:
+             timeout_s: float = 900.0, repetition: int = 0) -> dict:
     """Run one full 7-day life episode: ingest → turns → checkpoints → maintenance.
 
     A single chronological episode per (life, provider): evidence is ingested at
@@ -434,11 +448,11 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     life_dir.mkdir(parents=True, exist_ok=True)
     hermes_home = life_dir / "hermes-home"
     adapter = make_adapter(life_dir / "memcal-home")
-    namespace = f"{life.id}-rep0"
+    namespace = f"{life.id}-rep{repetition}"
 
     problems = preflight(life, hermes_home, life_dir / "memcal-home", adapter)
     if problems:
-        record = {"life": life.id, "state": "invalid",
+        record = {"life": life.id, "state": "invalid", "repetition": repetition,
                   "reasons": problems, "artifacts": str(life_dir)}
         _write_json(life_dir / "validity.json", record)
         return record
@@ -632,6 +646,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     manifest = harness.run_manifest({
         "run": "pacbench-w5-pilot-life",
         "namespace": namespace,
+        "repetition": repetition,
         "corpus_version": CORPUS_VERSION,
         "corpus_hash": digest([life]),
         "life": life.id,
@@ -653,7 +668,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                 {"grades": grades, "classifications": classifications,
                  "summary": summary.to_dict()})
     _write_json(life_dir / "maintenance.json", {"events": maintenance_events})
-    validity = {"life": life.id, "state": state,
+    validity = {"life": life.id, "state": state, "repetition": repetition,
                 "reasons": incomplete_reasons, "artifacts": str(life_dir)}
     _write_json(life_dir / "validity.json", validity)
     return {**validity, "summary": summary.to_dict(),
@@ -661,9 +676,25 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
             "turns": len(turns), "maintenance_runs": len(maintenance_events)}
 
 
+def _rep_dirs(pilot_dir: Path, life_id: str) -> list[Path]:
+    """Artifact dirs holding realizations of one life, earliest first.
+
+    Covers both layouts: the flat single-rep dir (``<life-id>/``) and
+    namespaced multi-rep dirs (``<life-id>-rep<n>/``). Every preserved
+    realization counts — including failures (§40)."""
+    dirs: list[Path] = []
+    flat = pilot_dir / life_id
+    if (flat / "turns.json").exists():
+        dirs.append(flat)
+    for child in sorted(pilot_dir.glob(f"{life_id}-rep*")):
+        if child.is_dir() and (child / "turns.json").exists():
+            dirs.append(child)
+    return dirs
+
+
 def _pilot_turns(lives: list[Life], pilot_dir: Path
                ) -> tuple[list[dict], dict[str, dict]]:
-    """Scored turns across lives plus per-life token rollups (§35).
+    """Scored turns across lives (and repetitions) plus per-life token rollups (§35).
 
     Reads each life's ``turns.json`` (skipping error turns, which carry no
     spend); turns without reported tokens contribute nothing to the totals
@@ -673,9 +704,8 @@ def _pilot_turns(lives: list[Life], pilot_dir: Path
     per_life: dict[str, dict] = {}
     for life in lives:
         life_turns: list[dict] = []
-        turns_path = pilot_dir / life.id / "turns.json"
-        if turns_path.exists():
-            for turn in json.loads(turns_path.read_text())["turns"]:
+        for life_dir in _rep_dirs(pilot_dir, life.id):
+            for turn in json.loads((life_dir / "turns.json").read_text())["turns"]:
                 if "error" in turn:
                     continue
                 life_turns.append(turn)
@@ -687,47 +717,58 @@ def _pilot_turns(lives: list[Life], pilot_dir: Path
 def run_pilot(*, lives: list[Life], provider: str,
               make_adapter: Callable[[Path], Any], pilot_dir: Path,
               model: str, model_provider: str, driver_configured_model: str,
-              timeout_s: float = 900.0) -> dict:
-    """Run the full development pilot: every life, every checkpoint, one episode each.
+              timeout_s: float = 900.0, repetitions: int = 1) -> dict:
+    """Run the full development pilot: every life, every checkpoint, every repetition.
 
-    No retry-until-pass: each life runs once; every failure is preserved in its
-    artifacts and reflected in the pilot state. Returns the pilot record and
-    writes ``report.json`` + ``REPORT.md`` under ``pilot_dir``.
+    No retry-until-pass: each (life, repetition) runs once; every failure is
+    preserved in its own namespaced artifact dir and reflected in the pilot
+    state (§40). Returns the pilot record and writes ``report.json`` +
+    ``REPORT.md`` under ``pilot_dir``.
     """
+    if repetitions < 1:
+        raise ValueError(f"repetitions must be >= 1, got {repetitions}")
     pilot_dir.mkdir(parents=True, exist_ok=True)
     life_records: list[dict] = []
     all_grades: list[Grade] = []
     all_checkpoints: list[Checkpoint] = []
-    for life in lives:
-        record = run_life(
-            life=life, provider=provider, make_adapter=make_adapter,
-            life_dir=pilot_dir / life.id, model=model,
-            model_provider=model_provider,
-            driver_configured_model=driver_configured_model,
-            timeout_s=timeout_s)
-        life_records.append(record)
-        life_dir = pilot_dir / life.id
-        grades_path = life_dir / "grades.json"
-        if grades_path.exists():
-            saved = json.loads(grades_path.read_text())["grades"]
-            for entry, cp in zip(saved, sorted(life.checkpoints, key=lambda c: c.at)):
-                grade = Grade(checkpoint=cp.id)
-                for slot in entry["slots"]:
-                    grade.slots.append(GradedSlot(
-                        slot["id"], slot["verdict"], slot["reason"]))
-                grade.correct = entry["correct"]
-                grade.missed = entry["missed"]
-                grade.misrepresented = entry["misrepresented"]
-                grade.precision = entry["precision"]
-                grade.recall = entry["recall"]
-                grade.f1 = entry["f1"]
-                grade.complete_plan = entry.get("complete_plan")
-                grade.abstention = entry.get("abstention")
-                grade.options_found = entry.get("options_found")
-                grade.options_total = entry.get("options_total")
-                grade.suggested_forbidden = entry.get("suggested_forbidden", 0)
-                all_grades.append(grade)
-                all_checkpoints.append(cp)
+    rep_f1: list[float] = []
+    for rep in range(repetitions):
+        rep_grades: list[Grade] = []
+        rep_checkpoints: list[Checkpoint] = []
+        for life in lives:
+            life_dir = pilot_dir / rep_dir_name(life.id, rep, repetitions)
+            record = run_life(
+                life=life, provider=provider, make_adapter=make_adapter,
+                life_dir=life_dir, model=model,
+                model_provider=model_provider,
+                driver_configured_model=driver_configured_model,
+                timeout_s=timeout_s, repetition=rep)
+            life_records.append(record)
+            grades_path = life_dir / "grades.json"
+            if grades_path.exists():
+                saved = json.loads(grades_path.read_text())["grades"]
+                for entry, cp in zip(saved, sorted(life.checkpoints, key=lambda c: c.at)):
+                    grade = Grade(checkpoint=cp.id)
+                    for slot in entry["slots"]:
+                        grade.slots.append(GradedSlot(
+                            slot["id"], slot["verdict"], slot["reason"]))
+                    grade.correct = entry["correct"]
+                    grade.missed = entry["missed"]
+                    grade.misrepresented = entry["misrepresented"]
+                    grade.precision = entry["precision"]
+                    grade.recall = entry["recall"]
+                    grade.f1 = entry["f1"]
+                    grade.complete_plan = entry.get("complete_plan")
+                    grade.abstention = entry.get("abstention")
+                    grade.options_found = entry.get("options_found")
+                    grade.options_total = entry.get("options_total")
+                    grade.suggested_forbidden = entry.get("suggested_forbidden", 0)
+                    all_grades.append(grade)
+                    all_checkpoints.append(cp)
+                    rep_grades.append(grade)
+                    rep_checkpoints.append(cp)
+        if rep_grades:
+            rep_f1.append(summarize(rep_grades, rep_checkpoints).f1)
     aggregate = summarize(all_grades, all_checkpoints).to_dict()
     states = [r["state"] for r in life_records]
     pilot_state = ("valid" if states and all(s == "valid" for s in states)
@@ -743,9 +784,11 @@ def run_pilot(*, lives: list[Life], provider: str,
     for record in life_records:
         record["tokens"] = life_tokens.get(record["life"], sum_turn_tokens([]))
     summary = {
-        "pilot": f"pacbench-w5-3-life-{provider}",
+        "pilot": f"pacbench-dev-pilot-{provider}",
         "pilot_state": pilot_state,
         "provider": provider,
+        "repetitions": repetitions,
+        "rep_f1": rep_f1,
         "driver_model": model,
         "driver_configured_model": driver_configured_model,
         "corpus_version": CORPUS_VERSION,
@@ -772,11 +815,17 @@ def run_pilot(*, lives: list[Life], provider: str,
 
 def render_report(summary: dict, pilot_dir: Path) -> str:
     """Human-readable aggregate report (§§35–37, §41)."""
+    rep_lives = sorted({r["life"] for r in summary["lives"]})
+    reps = summary.get("repetitions", 1)
+    rep_word = "repetition" if reps == 1 else "repetitions"
     lines = [
-        f"# PACBench W5 pilot report — 3 development lives, Hermes + {summary['provider']}",
+        f"# PACBench pilot report — {len(rep_lives)} lives × {reps} "
+        f"{rep_word}, Hermes + {summary['provider']}",
         "",
         f"pilot_state: **{summary['pilot_state']}**",
         f"provider: {summary['provider']}",
+        f"repetitions: {reps}",
+        f"rep F1: {summary.get('rep_f1', [])}",
         f"driver_model: {summary['driver_model']} "
         f"(configured: {summary['driver_configured_model']})",
         f"corpus_version: {summary['corpus_version']}",
@@ -785,7 +834,8 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
         "## Lives",
     ]
     for record in summary["lives"]:
-        lines.append(f"- {record['life']}: {record['state']} "
+        rep = record.get("repetition", 0)
+        lines.append(f"- {record['life']} rep{rep}: {record['state']} "
                      f"({record.get('checkpoints', '?')} checkpoints)")
         for reason in record.get("reasons", []):
             lines.append(f"  - {reason}")

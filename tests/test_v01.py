@@ -33,7 +33,7 @@ class VersionIs01(unittest.TestCase):
         self.assertEqual(CORPUS_VERSION, "0.2.0")
 
 
-class ThreeDevelopmentLives(unittest.TestCase):
+class DevelopmentLives(unittest.TestCase):
     def test_ids(self):
         self.assertEqual(sorted(l.id for l in development_lives()),
                          ["coat-weekend", "dentist-depth", "poker-collision",
@@ -71,6 +71,32 @@ class ThreeDevelopmentLives(unittest.TestCase):
                 self.assertTrue(cp.difficulty_tags, f"{cp.id}: difficulty tags required")
                 for tag in cp.difficulty_tags:
                     self.assertIn(tag, life.difficulty_tags, cp.id)
+
+
+class SplitDeclaration(unittest.TestCase):
+    """Contract §39: every life declares its split; moving a life between
+    splits is deliberate (edit this table). Development lives debug the full
+    system; calibration families are small grader/pipeline checks; held-out
+    is empty until the comparative corpus exists — and an empty held-out set
+    is exactly why no comparative claim is valid yet."""
+
+    def test_declared_splits(self):
+        by_id = {life.id: life.role for life in all_lives()}
+        self.assertEqual(
+            sorted(i for i, r in by_id.items() if r == "development"),
+            ["coat-weekend", "dentist-depth", "poker-collision",
+             "reunion-thread"])
+        self.assertEqual(
+            sorted(i for i, r in by_id.items() if r == "calibration"),
+            ["dentist-friday", "poker-move", "poker-unchanged",
+             "weekend-plans"])
+        self.assertEqual(
+            [i for i, r in by_id.items() if r == "held-out"], [])
+
+    def test_roles_are_known(self):
+        from pacbench.validate import ROLES
+        for life in all_lives():
+            self.assertIn(life.role, ROLES, life.id)
 
 
 class HiddenKeysStayHidden(unittest.TestCase):

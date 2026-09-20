@@ -18,6 +18,11 @@
   not a finding; `comparative_claim_valid` stays False).
 - Usage: per-turn driver tokens (session-delta method) + memcal dream spend
   in pilot efficiency; artifact redaction preserves token-count keys.
+- Splits & repetitions (§§39–40): declared split table (4 development, 4
+  calibration, 0 held-out — the empty held-out is why no comparison is
+  valid); `run-pilot --repetitions N` runs each life N times into namespaced
+  dirs with per-rep F1 in the report. Pilot labels fixed (`dev-pilot`, live
+  life/rep counts in REPORT.md instead of a stale "3-life" string).
 
 ## 0.1.0 (2026-09-20)
 

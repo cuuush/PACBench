@@ -155,7 +155,7 @@ def _cmd_run_pilot(args: argparse.Namespace) -> int:
             pilot_dir=pilot_dir, model=driver.model_id,
             model_provider=driver.provider,
             driver_configured_model=driver.configured_model,
-            timeout_s=args.timeout)
+            timeout_s=args.timeout, repetitions=args.repetitions)
     except RuntimeError as exc:
         print(f"PILOT FAILED: {exc}", file=sys.stderr)
         print(f"artifacts: {pilot_dir}")
@@ -192,10 +192,13 @@ def build_parser() -> argparse.ArgumentParser:
                        help="run provider scheduled processing before the checkpoint")
     p_run.set_defaults(func=_cmd_run_checkpoint)
 
-    p_pilot = sub.add_parser("run-pilot", help="full 3-life development pilot")
+    p_pilot = sub.add_parser("run-pilot", help="full development pilot")
     p_pilot.add_argument("--provider", default="memcal")
     p_pilot.add_argument("--runs", default=str(REPO / "runs"))
     p_pilot.add_argument("--timeout", type=float, default=900.0)
+    p_pilot.add_argument("--repetitions", type=int, default=1,
+                         help="independent realizations per life (§40); "
+                              "each runs once into its own artifact dir")
     p_pilot.set_defaults(func=_cmd_run_pilot)
     return parser
 

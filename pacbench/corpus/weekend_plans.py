@@ -104,7 +104,7 @@ def _bet() -> Life:
                  forbidden=("Saturday", "Sunday"), supported_by=(f"{_ID}/gm-dinner",)),
         ),
     )
-    return Life(id=_ID, bet="implicit-context", role="development",
+    return Life(id=_ID, bet="implicit-context", role="calibration",
                 observations=obs, checkpoints=(fun, dinner_day))
 
 
@@ -125,7 +125,7 @@ def _control() -> Life:
                  alternatives=("2:30",), supported_by=(f"{_CTL}/email-dentist",)),
         ),
     )
-    return Life(id=_CTL, bet="implicit-context", role="development",
+    return Life(id=_CTL, bet="implicit-context", role="calibration",
                 observations=obs, checkpoints=(when,), control_of=_ID)
 
 

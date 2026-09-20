@@ -65,6 +65,7 @@ python3 -m pacbench smoke                                          # wiring proo
 python3 -m pacbench run-checkpoint --life <id> --checkpoint <id>  # one checkpoint
 python3 -m pacbench run-pilot                                     # dev pilot (memcal)
 python3 -m pacbench run-pilot --provider lexical                  # dev pilot (baseline)
+python3 -m pacbench run-pilot --repetitions 2                     # each life twice, namespaced dirs (§40)
 ```
 
 ## Corpus
@@ -84,6 +85,12 @@ needs it (corpus 0.2.0: 251 observations, 27 checkpoints):
 Two smaller incident families from the starting material are kept as
 regression coverage: `poker-move` / `poker-unchanged` (write-time recency) and
 `weekend-plans` / `dentist-friday` (implicit context).
+
+Declared splits (§39): the four lives above are `development` (full-system
+debugging); the four small families are `calibration` (grader and pipeline
+checks); `held-out` is empty until the comparative corpus exists — which is
+why no comparative claim is valid yet. Moving a life between splits is
+deliberate (pinned by `SplitDeclaration` in `tests/test_v01.py`).
 
 Every life keeps three layers distinct: **world truth** (`Life.truth`), **evidence**
 (`Life.observations` — the only thing adapters ever see), and **expected assistant

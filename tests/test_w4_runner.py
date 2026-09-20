@@ -269,3 +269,72 @@ class TurnDiagnostics(unittest.TestCase):
         self.assertEqual(res.returncode, -1)
         self.assertIn("timed out", res.stderr_full)
         self.assertEqual(res.raw_events, 0)
+
+
+class RepetitionLayout(unittest.TestCase):
+    """Contract §40: repetitions are namespaced realizations, never overwrites."""
+
+    def test_single_rep_keeps_flat_layout(self):
+        self.assertEqual(live.rep_dir_name("dentist-depth", 0, 1),
+                         "dentist-depth")
+
+    def test_multi_rep_namespaces(self):
+        self.assertEqual(live.rep_dir_name("dentist-depth", 0, 2),
+                         "dentist-depth-rep0")
+        self.assertEqual(live.rep_dir_name("dentist-depth", 2, 3),
+                         "dentist-depth-rep2")
+
+    def test_bad_reps_raise(self):
+        with self.assertRaises(ValueError):
+            live.rep_dir_name("x", 1, 1)
+        with self.assertRaises(ValueError):
+            live.run_pilot(lives=[], provider="memcal",
+                           make_adapter=lambda home: None,
+                           pilot_dir=Path("/nonexistent"),
+                           model="m", model_provider="p",
+                           driver_configured_model="m", repetitions=0)
+
+    def test_rep_dirs_covers_both_layouts(self):
+        import json
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            pilot = Path(tmp)
+            (pilot / "dentist-depth").mkdir()
+            (pilot / "dentist-depth" / "turns.json").write_text(
+                json.dumps({"turns": []}))
+            (pilot / "dentist-depth-rep0").mkdir()
+            (pilot / "dentist-depth-rep0" / "turns.json").write_text(
+                json.dumps({"turns": []}))
+            (pilot / "dentist-depth-rep1").mkdir()  # no turns.json: ignored
+            dirs = live._rep_dirs(pilot, "dentist-depth")
+            self.assertEqual(
+                [d.name for d in dirs],
+                ["dentist-depth", "dentist-depth-rep0"])
+
+    def test_render_report_names_repetitions(self):
+        summary = {"lives": [{"life": "a", "state": "valid",
+                              "repetition": 0, "checkpoints": 1},
+                             {"life": "a", "state": "valid",
+                              "repetition": 1, "checkpoints": 1}],
+                   "pilot_state": "valid", "provider": "lexical",
+                   "repetitions": 2, "rep_f1": [0.5, 0.6],
+                   "driver_model": "m", "driver_configured_model": "m",
+                   "corpus_version": "0.2.0",
+                   "aggregate": {"checkpoints": 2, "slots": 2, "correct": 1,
+                                 "missed": 1, "misrepresented": 0,
+                                 "precision": 1.0, "recall": 0.5, "f1": 0.55,
+                                 "current_accuracy": None,
+                                 "historical_accuracy": None,
+                                 "complete_plan_accuracy": None,
+                                 "abstention_accuracy": None,
+                                 "opportunity_recall": None,
+                                 "forbidden_suggested": 0,
+                                 "by_difficulty_tag": {}},
+                   "efficiency": {"hermes_turns": 2, "memory_tool_calls": 0,
+                                  "answer_latency_s_total": 1.0,
+                                  "tokens": {}},
+                   "comparative_claim_valid": False, "comparative_gap": "g"}
+        text = live.render_report(summary, Path("/tmp/x"))
+        self.assertIn("1 lives × 2 repetitions", text)
+        self.assertIn("a rep0: valid", text)
+        self.assertIn("a rep1: valid", text)

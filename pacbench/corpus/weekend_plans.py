@@ -90,9 +90,9 @@ def _bet() -> Life:
         ),
         forbidden_options=(
             Slot(id="trap-gala", kind=Kind.CURRENT, norm=Norm.TEXT, expected="gala",
-                 alternatives=("museum",)),
+                 alternatives=("museum",), error="expired"),
             Slot(id="trap-5k", kind=Kind.CURRENT, norm=Norm.TEXT, expected="5k",
-                 alternatives=("charity run",)),
+                 alternatives=("charity run",), error="expired"),
         ),
     )
     dinner_day = Checkpoint(

@@ -641,5 +641,95 @@ class ContradictionScan(unittest.TestCase):
              "eric-now", "status", "canceled"), keys)
 
 
+class HalfLifeCoverage(unittest.TestCase):
+    """Contract §18: information has different useful lifetimes.
+
+    Each lifetime class maps to the slots exercising it — or to a
+    declared gap. The small-corpus phase is over (standing integrity
+    rule), so gaps are owned by the future generated-life spec, never
+    silently absent and never hand-patched here: GAPS must equal exactly
+    the documented hole set, so adding coverage (or losing it) forces a
+    doc update."""
+
+    HISTORY = [  # event state that later becomes history
+        ("dentist-depth", "original", "day"),
+        ("dentist-depth", "canceled", "canceled"),
+        ("poker-move", "old-address", "old-loc"),
+        ("poker-collision", "eric-original", "time"),
+        ("reunion-thread", "original", "day"),
+        ("reunion-thread", "canceled", "canceled"),
+        ("revoke-week", "dinner-canceled", "canceled"),
+        ("revoke-week", "gate-old", "code"),
+    ]
+    EXPIRED_TRAPS = [  # lapsed matter surfaced as live
+        ("coat-weekend", "anything-fun", "trap-glassworks"),
+        ("weekend-plans", "anything-fun", "trap-gala"),
+        ("revoke-week", "plants-silent", "trap-water"),
+        ("revoke-week", "plants-silent", "trap-plants"),
+    ]
+    #: The "expired" class lumped-declined by taxonomy design (rubric:
+    #: "lapsed, declined, or completed matter surfaced as live"): declined
+    #: invitations suggested as live options.
+    DECLINED_TRAPS = [
+        ("coat-weekend", "anything-fun", "trap-festival"),
+        ("weekend-plans", "anything-fun", "trap-5k"),
+    ]
+    #: Lifetime classes with zero corpus coverage, owned by the
+    #: generated-life spec: "right now" states, durable preferences
+    #: ("hate 6 AM flights"), and time-bounded validity ("good until
+    #: Thursday" — current expiry is event-driven, never date-bounded).
+    GAPS = frozenset({"very-short-lived", "durable-preference",
+                      "time-bounded-validity"})
+
+    def _index(self):
+        from pacbench.corpus import all_lives
+        index = {}
+        for life in all_lives():
+            for cp in life.checkpoints:
+                for slot in (*cp.slots, *cp.supported,
+                             *cp.forbidden_options):
+                    index[(life.id, cp.id.split("/")[-1],
+                           slot.id)] = slot
+        return index
+
+    def test_history_slots_are_historical(self):
+        from pacbench.rubric import Kind
+        index = self._index()
+        for key in self.HISTORY:
+            self.assertIs(index[key].kind, Kind.HISTORICAL, key)
+
+    def test_expired_trap_map_is_complete(self):
+        """Every error="expired" slot in the corpus is in the map: no
+        orphan expiry coverage drifting outside the §18 account."""
+        from pacbench.corpus import all_lives
+        found = set()
+        for life in all_lives():
+            for cp in life.checkpoints:
+                for slot in (*cp.slots, *cp.supported,
+                             *cp.forbidden_options):
+                    if slot.error == "expired":
+                        found.add((life.id, cp.id.split("/")[-1],
+                                   slot.id))
+        self.assertEqual(found,
+                         set(self.EXPIRED_TRAPS) | set(self.DECLINED_TRAPS))
+
+    def test_durable_and_temporary_current(self):
+        from pacbench.rubric import Kind, Norm
+        index = self._index()
+        durable = index[("dentist-depth", "dentist-name", "who")]
+        self.assertIs(durable.kind, Kind.CURRENT)
+        self.assertIs(durable.norm, Norm.ENTITY)
+        current = index[("revoke-week", "gate-now", "code")]
+        self.assertIs(current.kind, Kind.CURRENT)
+        self.assertIs(current.norm, Norm.ENTITY)
+        self.assertEqual(current.expected, "8821")
+
+    def test_gaps_are_exactly_declared(self):
+        self.assertEqual(
+            self.GAPS,
+            frozenset({"very-short-lived", "durable-preference",
+                       "time-bounded-validity"}))
+
+
 if __name__ == "__main__":
     unittest.main()

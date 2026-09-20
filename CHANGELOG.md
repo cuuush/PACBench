@@ -80,6 +80,16 @@
   held-out lineage-unique (standing guard, held-out empty), calibration
   always derivative of development, controls share lineage. Lineage ships
   in the freeze bundle; hash re-pinned deliberately.
+- Half-life account (§18): `HalfLifeCoverage` maps every lifetime class
+  to exercising slots (8 HISTORICAL event→history slots, 4 expired
+  traps + 2 declined traps with error-class completeness, durable
+  dentist-name, temporary gate-code) or to declared gaps owned by the
+  generated-life spec (very-short-lived states, durable preferences,
+  time-bounded validity). Tagging pass: weekend gala/5k traps now carry
+  error="expired" (taxonomy lumps declined by design); hash re-pinned.
+  Pilot-measured: both 0.2.0 pilots suggested the declined waterfront
+  festival with declined-framing (1 forbidden each) — the mention counts;
+  whether declined-framing should exonerate is open grading design.
 
 ## 0.1.0 (2026-09-20)
 

@@ -156,6 +156,33 @@ def check_scratch_home(home: Path) -> Path:
         f"MEMCAL_HOME must be scratch (tmp or PACBench/artifacts/): {home}")
 
 
+def read_run_usage(conn: sqlite3.Connection, run_id: int | None) -> dict | None:
+    """Structured provider spend for one dream pass, or None when unreadable.
+
+    Reads the pass's own `runs` row (written by memcal's ``_finish``): prompt
+    / completion tokens are always recorded (0 is an observed zero, e.g. a
+    nothing-new pass); ``requests`` is None when memcal did not record it.
+    Callers keep tokens None (unknown, never zero) when this returns None.
+    """
+    if run_id is None:
+        return None
+    try:
+        row = conn.execute(
+            "SELECT prompt_tokens, completion_tokens, cached_tokens, cost_usd,"
+            " requests, failed_calls FROM runs WHERE id = ?", (run_id,)).fetchone()
+    except Exception:
+        return None
+    if row is None:
+        return None
+    prompt, comp, cached, cost, requests, failed = row
+    return {"prompt_tokens": int(prompt or 0),
+            "completion_tokens": int(comp or 0),
+            "cached_tokens": int(cached or 0),
+            "cost_usd": cost,
+            "requests": None if requests is None else int(requests),
+            "failed_calls": None if failed is None else int(failed)}
+
+
 class MemcalAdapter(ProviderAdapter):
     """Hermes + Memcal, backed by a scratch MEMCAL_HOME. Never ~/.memcal."""
 
@@ -170,6 +197,11 @@ class MemcalAdapter(ProviderAdapter):
         self._archived = 0
         self._redirected_turns = 0
         self._model_calls = 0
+        # §35 provider-side spend, accumulated from each dream pass's own
+        # `runs` row (see maintenance). None until a pass has been observed —
+        # unknown stays unknown, never zero.
+        self._input_tokens: int | None = None
+        self._output_tokens: int | None = None
         self._latency_s = 0.0
         self._maintenance: dict = {"state": "not-run"}
 
@@ -190,6 +222,8 @@ class MemcalAdapter(ProviderAdapter):
         self._archived = 0
         self._redirected_turns = 0
         self._model_calls = 0
+        self._input_tokens = None
+        self._output_tokens = None
         self._latency_s = 0.0
         self._maintenance = {"state": "not-run"}
 
@@ -247,8 +281,12 @@ class MemcalAdapter(ProviderAdapter):
     def maintenance(self, at: str) -> Usage:
         """Scheduled background work: one memcal nightly-dream pass.
 
-        If dream cannot run here (e.g. no model credentials in the scratch
-        home), the skip is recorded — never converted into a passing run (§42).
+        Provider-side spend comes from the pass's own `runs` row (prompt /
+        completion tokens, provider request count) and is accumulated into
+        usage(); a pass that ran with nothing new reports observed zeros. If
+        dream cannot run here (e.g. no model credentials in the scratch
+        home), the skip is recorded — never converted into a passing run (§42)
+        — and tokens stay None (unknown, never zero).
         """
         started = time.monotonic()
         try:
@@ -266,10 +304,39 @@ class MemcalAdapter(ProviderAdapter):
                 result = dream_run.dream(conn, cfg, mode="nightly",
                                            model=self.dream_model,
                                            progress=progress)
-                self._maintenance = {"state": "complete", "at": at,
-                                     "model": self.dream_model,
-                                     "run_id": getattr(result, "run_id", None),
-                                     "events": events[-20:]}
+                run_id = getattr(result, "run_id", None)
+                spent = read_run_usage(conn, run_id)
+                if spent is None:
+                    self._maintenance = {
+                        "state": "complete", "at": at,
+                        "model": self.dream_model, "run_id": run_id,
+                        "usage": "unreadable",
+                        "events": events[-20:]}
+                    latency = round(time.monotonic() - started, 2)
+                    self._latency_s += latency
+                    return Usage(
+                        model_calls=0, latency_s=latency,
+                        notes=("maintenance: complete but run-usage row "
+                               "unreadable (tokens unknown)",))
+                calls = spent["requests"] if spent["requests"] is not None else 0
+                prompt, comp = spent["prompt_tokens"], spent["completion_tokens"]
+                self._model_calls += calls
+                self._input_tokens = (self._input_tokens or 0) + prompt
+                self._output_tokens = (self._output_tokens or 0) + comp
+                self._maintenance = {
+                    "state": "complete", "at": at,
+                    "model": self.dream_model, "run_id": run_id,
+                    "usage": spent, "events": events[-20:]}
+                latency = round(time.monotonic() - started, 2)
+                self._latency_s += latency
+                unrecorded = (" (request count unrecorded)"
+                              if spent["requests"] is None else "")
+                return Usage(
+                    model_calls=calls, input_tokens=prompt,
+                    output_tokens=comp, latency_s=latency,
+                    notes=(f"maintenance: complete (run #{run_id}: {calls} "
+                           f"provider requests{unrecorded}, {prompt} in / "
+                           f"{comp} out)",))
             finally:
                 conn.close()
         except Exception as exc:
@@ -334,15 +401,23 @@ class MemcalAdapter(ProviderAdapter):
 
     # -- usage reporting (§44 C) -------------------------------------------------
     def usage(self) -> Usage:
-        """Cumulative observable cost/usage; unknown stays unknown, never zero."""
+        """Cumulative observable cost/usage; unknown stays unknown, never zero.
+
+        Dream tokens stay None until a dream pass has been observed; provider
+        request counts accumulate per completed pass (0 with no pass yet).
+        """
+        notes = (f"archived {self._archived}; "
+                 f"user_turns_redirected {self._redirected_turns}")
+        if self._input_tokens is not None:
+            notes += (f"; dream {self._model_calls} requests, "
+                      f"{self._input_tokens} in / {self._output_tokens} out")
         return Usage(
             model_calls=self._model_calls,
-            input_tokens=None,
-            output_tokens=None,
+            input_tokens=self._input_tokens,
+            output_tokens=self._output_tokens,
             latency_s=round(self._latency_s, 2),
             cost_usd=None,
-            notes=(f"archived {self._archived}; "
-                   f"user_turns_redirected {self._redirected_turns}",))
+            notes=(notes,))
 
     def env(self) -> dict:
         return {"MEMCAL_HOME": str(self.home), "MEMCAL_SRC": str(self.src)}

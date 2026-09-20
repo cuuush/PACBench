@@ -43,6 +43,13 @@ class TurnResult:
     # answers and harness warnings print outside stream-json).
     stderr_full: str = ""
     stdout_tail: str = ""
+    # §35 usage accounting: session-cumulative token counters from the clone's
+    # terminal stream-json `result` event (`tokens.input/output`). Cumulative,
+    # NOT per-turn: continuing sessions (`--resume`) grow these across turns,
+    # so per-turn spend is the delta (see pacbench.live). None means the clone
+    # reported no token stats for this turn — unknown stays unknown, never zero.
+    session_input_tokens: int | None = None
+    session_output_tokens: int | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -206,6 +213,8 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
     text_deltas: list[str] = []
     result_text = ""
     session_id: str | None = None
+    session_in: int | None = None
+    session_out: int | None = None
     stdout_text = proc.stdout or ""
     stderr_text = proc.stderr or ""
     for line in stdout_text.splitlines():
@@ -237,6 +246,19 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
             text = event.get("text") or ""
             if isinstance(text, str) and text:
                 result_text = text
+            # §35: session-cumulative token counters (see TurnResult). The
+            # terminal result carries the session totals; per-turn spend is
+            # the delta across turns in one session (pacbench.live). A missing
+            # `tokens` mapping means unreported (None), never zero.
+            tokens = event.get("tokens")
+            if isinstance(tokens, dict):
+                try:
+                    if tokens.get("input") is not None:
+                        session_in = int(tokens["input"])
+                    if tokens.get("output") is not None:
+                        session_out = int(tokens["output"])
+                except (TypeError, ValueError):
+                    pass
         elif kind in ("assistant", "message", "response", "final"):
             text = event.get("text") or event.get("content") or event.get("message") or ""
             if isinstance(text, list):
@@ -269,6 +291,8 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
                       stderr_tail="\n".join(stderr_lines[-8:]),
                       stderr_full=stderr_text,
                       stdout_tail=stdout_tail,
+                      session_input_tokens=session_in,
+                      session_output_tokens=session_out,
                       raw_events=events, session_id=session_id)
 
 

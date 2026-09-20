@@ -68,12 +68,55 @@ def _record_of(result: Any) -> dict:
     return {"answer": result.answer, "tool_calls": result.tool_calls,
             "tool_results": result.tool_results,
             "session_id": result.session_id,
+            "session_input_tokens": result.session_input_tokens,
+            "session_output_tokens": result.session_output_tokens,
             "policy_blocks": result.policy_blocks,
             "latency_s": result.latency_s, "returncode": result.returncode,
             "stderr_tail": result.stderr_tail,
             "stderr_full": result.stderr_full,
             "stdout_tail": result.stdout_tail,
             "raw_events": result.raw_events}
+
+
+def turn_token_delta(marks: dict[str, tuple[int, int]], session_id: str | None,
+                     cum_in: int | None, cum_out: int | None
+                     ) -> tuple[int | None, int | None]:
+    """Per-turn input/output tokens from session-cumulative counters.
+
+    The isolated clone reports session totals in each turn record, so one
+    turn's spend is the delta since the previous turn in the same session
+    (tracked in ``marks``, updated in place). The first turn in a session —
+    or a turn with no session id, which is always a fresh one-shot session —
+    owns the whole cumulative count. Missing counters give ``(None, None)``:
+    unknown stays unknown, never zero.
+    """
+    if cum_in is None or cum_out is None:
+        return None, None
+    if session_id is None:
+        return cum_in, cum_out
+    last = marks.get(session_id)
+    marks[session_id] = (cum_in, cum_out)
+    if last is None:
+        return cum_in, cum_out
+    return max(0, cum_in - last[0]), max(0, cum_out - last[1])
+
+
+def sum_turn_tokens(turns: list[dict]) -> dict:
+    """Pilot token rollup over turn records carrying per-turn token fields.
+
+    Turns without reported tokens (``None``) contribute nothing to the totals
+    but still count in ``turns_total``, so a partial sum can never read as
+    complete coverage — compare ``turns_with_tokens`` against ``turns_total``.
+    """
+    total_in = total_out = with_tokens = 0
+    for turn in turns:
+        tin, tout = turn.get("turn_input_tokens"), turn.get("turn_output_tokens")
+        if isinstance(tin, int) and isinstance(tout, int):
+            total_in += tin
+            total_out += tout
+            with_tokens += 1
+    return {"input": total_in, "output": total_out,
+            "turns_with_tokens": with_tokens, "turns_total": len(turns)}
 
 
 def _failure_error(result: Any) -> str:
@@ -425,6 +468,7 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     session_schedule: list[dict] = []
     sessions: dict[str, str] = {}
     primary_session: str | None = None
+    token_marks: dict[str, tuple[int, int]] = {}
     ingested_ids: set[str] = set()
     replayed_ids: set[str] = set()
     incomplete_reasons: list[str] = []
@@ -454,8 +498,14 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                 sessions[session_key] = sid
             if primary_session is None:
                 primary_session = sid
+        # §35: per-turn spend from the session-cumulative counters. Failed
+        # turns never reach here, so their records carry None (see callers).
+        tin, tout = turn_token_delta(token_marks, sid,
+                                     result.session_input_tokens,
+                                     result.session_output_tokens)
         return {"ok": True, "record": result, "resumed": resumed,
-                "session_id": sid}
+                "session_id": sid,
+                "turn_input_tokens": tin, "turn_output_tokens": tout}
 
     def ingest_until(until: str) -> None:
         nonlocal obs_idx
@@ -498,6 +548,8 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
                                      "resumed": out["resumed"]})
             turns.append({"kind": "user-turn-replay", "source_id": p["source_id"],
                           "at": p["collected_at"], "prompt": p["text"],
+                          "turn_input_tokens": out["turn_input_tokens"],
+                          "turn_output_tokens": out["turn_output_tokens"],
                           **_record_of(r)})
 
     def maintain(day: str) -> None:
@@ -562,6 +614,8 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
             replayed_ids=set(replayed_ids))})
         turns.append({"kind": "checkpoint", "checkpoint": cp.id,
                       "at": cp.at, "prompt": cp.public_prompt(),
+                      "turn_input_tokens": out["turn_input_tokens"],
+                      "turn_output_tokens": out["turn_output_tokens"],
                       **_record_of(r)})
 
     # Complete the week: deliver observations collected after the last checkpoint.
@@ -605,6 +659,29 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     return {**validity, "summary": summary.to_dict(),
             "checkpoints": len(checkpoints),
             "turns": len(turns), "maintenance_runs": len(maintenance_events)}
+
+
+def _pilot_turns(lives: list[Life], pilot_dir: Path
+               ) -> tuple[list[dict], dict[str, dict]]:
+    """Scored turns across lives plus per-life token rollups (§35).
+
+    Reads each life's ``turns.json`` (skipping error turns, which carry no
+    spend); turns without reported tokens contribute nothing to the totals
+    but still count in ``turns_total`` (see :func:`sum_turn_tokens`).
+    """
+    scored: list[dict] = []
+    per_life: dict[str, dict] = {}
+    for life in lives:
+        life_turns: list[dict] = []
+        turns_path = pilot_dir / life.id / "turns.json"
+        if turns_path.exists():
+            for turn in json.loads(turns_path.read_text())["turns"]:
+                if "error" in turn:
+                    continue
+                life_turns.append(turn)
+                scored.append(turn)
+        per_life[life.id] = sum_turn_tokens(life_turns)
+    return scored, per_life
 
 
 def run_pilot(*, lives: list[Life], provider: str,
@@ -658,15 +735,13 @@ def run_pilot(*, lives: list[Life], provider: str,
     tool_calls_total = 0
     latency_total = 0.0
     turn_total = 0
-    for life in lives:
-        turns_path = pilot_dir / life.id / "turns.json"
-        if turns_path.exists():
-            for turn in json.loads(turns_path.read_text())["turns"]:
-                if "error" in turn:
-                    continue
-                turn_total += 1
-                tool_calls_total += len(turn.get("tool_calls", []))
-                latency_total += turn.get("latency_s", 0.0) or 0.0
+    scored_turns, life_tokens = _pilot_turns(lives, pilot_dir)
+    for turn in scored_turns:
+        turn_total += 1
+        tool_calls_total += len(turn.get("tool_calls", []))
+        latency_total += turn.get("latency_s", 0.0) or 0.0
+    for record in life_records:
+        record["tokens"] = life_tokens.get(record["life"], sum_turn_tokens([]))
     summary = {
         "pilot": "pacbench-w5-3-life-memcal",
         "pilot_state": pilot_state,
@@ -680,6 +755,7 @@ def run_pilot(*, lives: list[Life], provider: str,
             "hermes_turns": turn_total,
             "memory_tool_calls": tool_calls_total,
             "answer_latency_s_total": round(latency_total, 1),
+            "tokens": sum_turn_tokens(scored_turns),
         },
         "comparative_claim_valid": False,
         "comparative_gap": ("§45.5 unmet: no external provider has received the same "
@@ -731,12 +807,16 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
         lines.append(f"- {tag}: {stats['correct']}/{stats['total']} "
                      f"({stats['accuracy'] if stats['accuracy'] is None else round(stats['accuracy'], 3)})")
     eff = summary["efficiency"]
+    tok = eff.get("tokens") or {}
     lines += [
         "",
         "## Question-time work (§35)",
         f"hermes turns: {eff['hermes_turns']}, memory tool calls: "
         f"{eff['memory_tool_calls']}, answer latency total: "
         f"{eff['answer_latency_s_total']}s",
+        f"answer tokens: {tok.get('input', '?')} in / {tok.get('output', '?')} out "
+        f"({tok.get('turns_with_tokens', '?')}/{tok.get('turns_total', '?')} turns reported; "
+        f"unreported turns contribute nothing, never zero)",
         "",
         "## Validity",
         f"comparative_claim_valid: {summary['comparative_claim_valid']}",

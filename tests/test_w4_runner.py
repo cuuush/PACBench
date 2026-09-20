@@ -300,6 +300,43 @@ class TurnDiagnostics(unittest.TestCase):
         self.assertEqual(res.raw_events, 0)
 
 
+class FictionalClockIntegrity(unittest.TestCase):
+    """Contract §30: the isolated Hermes sees fictional time, never host date.
+
+    The vendor tree anchors its clock to PACBENCH_NOW (pinned shims,
+    tests/test_vendor_patch.py). This is the harness half: run_turn must
+    export exactly the fictional `at` it was given — no host-now
+    substitution anywhere on the path.
+    """
+
+    def test_run_turn_exports_fictional_now(self):
+        import subprocess
+        from datetime import datetime, timezone
+        from unittest import mock
+        from pacbench import harness
+        import tempfile
+        fictional = "2026-09-10T12:00:00"
+        seen: dict = {}
+
+        def fake_run(cmd, **kw):
+            seen.update(kw.get("env", {}))
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        with tempfile.TemporaryDirectory(prefix="pacbench-clock-") as tmp:
+            home = Path(tmp) / "h-home"
+            harness.provision_home(home, provider_plugin_src=None,
+                                   provider_name="none")
+            with mock.patch.object(harness.subprocess, "run",
+                                   side_effect=fake_run):
+                res = harness.run_turn("hi", at=fictional, home=home,
+                                       allowlist="", timeout_s=10)
+        self.assertEqual(seen.get("PACBENCH_NOW"), fictional)
+        self.assertEqual(res.at, fictional)
+        # Fictional, not host: the exported date is not the machine's today.
+        host_today = datetime.now(timezone.utc).date().isoformat()
+        self.assertNotEqual(seen["PACBENCH_NOW"][:10], host_today)
+
+
 class RepetitionLayout(unittest.TestCase):
     """Contract §40: repetitions are namespaced realizations, never overwrites."""
 

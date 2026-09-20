@@ -55,7 +55,10 @@
   `pacbench/difficulty.py` measures difficulty from the frozen corpus
   (relevant-thread size, total exposed, required channels, evidence age,
   support batches) instead of copying author tags. Failure diagnoses carry
-  `basis: trace|heuristic|none` (Q11).
+  `basis: trace|heuristic|none` (Q11). Fictional-clock integrity is tested
+  at the harness boundary: `run_turn` exports exactly the fictional `at`
+  as PACBENCH_NOW (never host date), meeting the vendor shims that anchor
+  the isolated clock to it (§30).
 
 ## 0.1.0 (2026-09-20)
 

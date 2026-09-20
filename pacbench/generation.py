@@ -8,8 +8,11 @@ configured Spark model.
 Configuration comes from the repo `.env` (never committed, never printed):
 
 - ``MODEL`` — the Spark model id (v0.1: ``muse-spark-1.3-contributor``).
-- ``META`` — the credential for the generation gateway. Treated as a secret:
-  loaders never include it in reprs, logs, or errors.
+- ``META`` — the bearer credential for Meta's Model API
+  (``https://api.meta.ai/v1``), which serves the Spark family natively.
+  Treated as a secret: loaders never include it in reprs, logs, or errors.
+  This is the same file and credential ``pacbench.creds.load_driver`` uses
+  for the scored-run driver — one gateway, one credential.
 
 If the gateway call fails, the error is reported to the caller. The model is never
 silently swapped: a failed generation aborts the rendering it was asked for.
@@ -24,7 +27,7 @@ from pathlib import Path
 
 from .render import Generate
 
-GATEWAY_URL = "https://openrouter.ai/api/v1/chat/completions"
+GATEWAY_URL = "https://api.meta.ai/v1/chat/completions"
 
 
 class GenerationError(RuntimeError):
@@ -71,7 +74,12 @@ def load_config(env_path: str | Path = ".env") -> tuple[SparkConfig, str]:
 def spark_generator(config: SparkConfig, credential: str, *,
                     gateway_url: str = GATEWAY_URL,
                     temperature: float = 0.8, timeout: float = 60.0) -> Generate:
-    """Build a `generate(prompt) -> text` bound to the configured Spark model."""
+    """Build a `generate(prompt) -> text` bound to the configured Spark model.
+
+    Posts to Meta's Model API (``gateway_url``, default ``GATEWAY_URL``) with
+    the ``META`` credential as a Bearer header. The credential never appears
+    in errors or logs; failures raise :class:`GenerationError` naming only
+    the model."""
 
     def generate(prompt: str) -> str:
         body = json.dumps({

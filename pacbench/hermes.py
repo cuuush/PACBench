@@ -1,11 +1,11 @@
-"""Hermes isolated runtime (seam for later stages — not implemented in 0.1).
+"""Hermes isolated runtime (policy plus the live runtime).
 
 The primary experiment evaluates **Hermes + one selected memory provider**: every
 scored answer comes from a real isolated Hermes instance using the installed
 integration, never from direct provider calls and never from a mock.
 
-Isolation requirements for the later runtime stage (binding, stated here so the
-stage is built against them):
+Isolation requirements on the runtime (binding, stated here so the runtime is
+built and held against them):
 
 - One isolated Hermes home/workspace and provider namespace per (life,
   configuration, repetition); never reuse mutable memory across independent runs.
@@ -25,8 +25,11 @@ stage is built against them):
   answers and their consequences remain in the run (assistant-authorship
   contamination is a scored capability, not a harness bug to paper over).
 
-v0.1 ships the policy and the seam only. No Hermes instance is provisioned, no
-scored answer is collected, and no comparative claim is made.
+The isolated runtime now exists: :mod:`pacbench.harness` provisions scratch
+homes and drives turns through the PACBench-owned clone in
+``vendor/hermes-isolated`` (shims re-applied from ``patches/``), and
+:mod:`pacbench.live` runs scored checkpoints through it. This module keeps the
+policy and the offline seam; no comparative claim is made here.
 """
 
 from __future__ import annotations

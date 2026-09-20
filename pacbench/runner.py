@@ -8,10 +8,13 @@ Implemented in 0.1 (real, tested, offline):
 - :class:`RunManifest` — the immutable identity of a run (versions, hashes,
   selections); :func:`manifest_hash` pins it.
 
-Explicit stubs for later stages (raise, never fake a result):
+Explicit skeleton seam for offline use (raises, never fakes a result):
 
 - :func:`run_checkpoint` — needs a live Hermes + provider; raises
-  ``NotImplementedError`` in 0.1. A setup defect must create an invalid run,
+  ``NotImplementedError`` instead of returning a fabricated grade. The live
+  path now lives in :mod:`pacbench.live` (:func:`run_checkpoint_live`,
+  :func:`run_life`, :func:`run_pilot`); this seam remains for offline use.
+  A setup defect must create an invalid run,
   never a passing score, so there is no fallback path that returns grades
   without executing the experiment.
 """
@@ -76,7 +79,10 @@ def run_checkpoint(life: Life, checkpoint: Checkpoint, hermes: IsolatedHermes,
                    adapter: ProviderAdapter, corpus_hash: str) -> Grade:
     """Execute one checkpoint through Hermes + provider and grade it.
 
-    NOT-IN-0.1: raises instead of returning a fabricated grade.
+    Offline skeleton seam: raises instead of returning a fabricated grade.
+    The live implementation is :func:`pacbench.live.run_checkpoint_live`
+    (full episodes: :func:`pacbench.live.run_life`,
+    :func:`pacbench.live.run_pilot`).
     """
     _ = (life, checkpoint, hermes, adapter, corpus_hash, digest)
     raise NotImplementedError(

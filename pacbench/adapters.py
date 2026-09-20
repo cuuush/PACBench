@@ -1,4 +1,4 @@
-"""Provider adapter contract (seam for later stages — not implemented in 0.1).
+"""Provider adapter contract (seam every evaluated provider implements).
 
 Every memory provider evaluated under PACBench implements this contract so the
 runner can treat systems uniformly without knowing their internals:
@@ -28,9 +28,10 @@ written against them from the start):
   across providers, unrelated to specific answer keys, and necessary for an
   isolated controlled experiment.
 
-v0.1 ships the contract only. There is deliberately no concrete adapter and no
-recorded provider result: Hermes isolated runtime, provider adapters, and live
-comparisons are later stages.
+The contract lives here; a concrete adapter now exists outside the scored
+package at ``provider_adapters/memcal_adapter.py`` (scratch MEMCAL_HOME,
+user-turn redirect, native retrieval seam). The runner treats every system
+uniformly through this contract without knowing provider internals.
 """
 
 from __future__ import annotations

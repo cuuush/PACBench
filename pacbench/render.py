@@ -8,8 +8,11 @@ refuses to ship it — so the model does the tedious surface work while the spec
 key. With no generator, `render` returns the draft verbatim, so the corpus still builds
 free, offline, and reproducibly.
 
-Memcal-free like the rest of the package: the OpenRouter client is a dozen lines of
+Memcal-free like the rest of the package: the Meta API client is a dozen lines of
 `urllib`, and the API key is passed in by the caller, never read from a memcal module.
+Spark generation and the scored-run driver share one gateway and one credential:
+Meta's Model API (``https://api.meta.ai/v1``) with the ``META`` credential from
+the PACBench-owned `.env` (see :mod:`pacbench.generation` and `.env.example`).
 """
 
 from __future__ import annotations
@@ -22,7 +25,7 @@ from typing import Callable
 
 Generate = Callable[[str], str]
 
-DEFAULT_MODEL = "meta/muse-spark-1.3-contributor"
+DEFAULT_MODEL = "muse-spark-1.3-contributor"
 
 _REGISTER = {
     "casual": "a casual text message — lowercase-leaning, contractions, no greeting or sign-off",
@@ -89,11 +92,20 @@ def noise_prompt(channel: str, sender: str) -> str:
     )
 
 
-# ---------------------------------------------------------------- OpenRouter --
+# --------------------------------------------------------------------- Meta --
 
-def openrouter_generator(api_key: str, model: str = DEFAULT_MODEL, *,
-                         temperature: float = 0.8, timeout: float = 60.0) -> Generate:
-    """A `generate(prompt) -> text` bound to one OpenRouter model. The only network piece."""
+META_GATEWAY_URL = "https://api.meta.ai/v1/chat/completions"
+
+
+def meta_generator(api_key: str, model: str = DEFAULT_MODEL, *,
+                   temperature: float = 0.8, timeout: float = 60.0) -> Generate:
+    """A `generate(prompt) -> text` bound to one Meta Spark model. The only network piece.
+
+    `api_key` is the ``META`` credential from the PACBench-owned `.env` (the same
+    credential :mod:`pacbench.generation` and :mod:`pacbench.creds` use). It is sent
+    only as a Bearer header and never logged. Failures propagate to the caller —
+    a failed generation is reported, never silently swapped for another model.
+    """
 
     def generate(prompt: str) -> str:
         body = json.dumps({
@@ -102,7 +114,7 @@ def openrouter_generator(api_key: str, model: str = DEFAULT_MODEL, *,
             "messages": [{"role": "user", "content": prompt}],
         }).encode()
         request = urllib.request.Request(
-            "https://openrouter.ai/api/v1/chat/completions", data=body,
+            META_GATEWAY_URL, data=body,
             headers={"Authorization": f"Bearer {api_key}",
                      "Content-Type": "application/json"})
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -112,19 +124,42 @@ def openrouter_generator(api_key: str, model: str = DEFAULT_MODEL, *,
     return generate
 
 
+def openrouter_generator(api_key: str, model: str = DEFAULT_MODEL, *,
+                         temperature: float = 0.8, timeout: float = 60.0) -> Generate:
+    """Legacy alias for :func:`meta_generator` (kept for existing imports).
+
+    Older tooling pointed this name at OpenRouter with ``meta/``-prefixed model
+    ids; it now routes to Meta's Model API like the rest of the generation path.
+    Pass a native model id (e.g. ``muse-spark-1.3-contributor``) — an
+    OpenRouter-style ``meta/...`` id is NOT remapped and will fail against the
+    Meta gateway instead of being silently substituted. New code should call
+    :func:`meta_generator` directly.
+    """
+    return meta_generator(api_key, model,
+                          temperature=temperature, timeout=timeout)
+
+
 def load_key(env_path: str | Path) -> str | None:
-    """Read a bare `sk-or-...` line, or an `OPENROUTER_API_KEY=` line, from a .env file.
-    Tooling calls this; the library's data path never does, so no key touches the corpus."""
+    """Read the `META` credential from a .env file (the Meta API credential).
+
+    Accepts a `META=` (or `META_API_KEY=`) line; legacy `OPENROUTER_API_KEY=`
+    and bare `sk-or-...` lines are still recognized as a fallback, in that
+    order, so old tooling keeps working. Tooling calls this; the library's
+    data path never does, so no key touches the corpus."""
     path = Path(env_path).expanduser()
     if not path.exists():
         return None
+    legacy = None
     for raw in path.read_text().splitlines():
         line = raw.strip()
-        if line.startswith("sk-or-"):
-            return line
-        if line.startswith("OPENROUTER_API_KEY="):
+        if line.startswith("META=") or line.startswith("META_API_KEY="):
             return line.split("=", 1)[1].strip()
-    return None
+        if legacy is None:
+            if line.startswith("sk-or-"):
+                legacy = line
+            elif line.startswith("OPENROUTER_API_KEY="):
+                legacy = line.split("=", 1)[1].strip()
+    return legacy
 
 
 # ------------------------------------------------------------------- smoke --
@@ -134,18 +169,18 @@ def _demo() -> int:
     spark and show the draft, the rewrite, and that every required fact survived."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Render sample beats through OpenRouter.")
+    parser = argparse.ArgumentParser(description="Render sample beats through the Meta API.")
     parser.add_argument("--env", default=".env",
-                        help="a .env holding a bare sk-or-... line (default: ./.env)")
+                        help="a .env holding MODEL + META lines (default: ./.env)")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--temperature", type=float, default=0.8)
     args = parser.parse_args()
 
     key = load_key(args.env)
     if not key:
-        print(f"no OpenRouter key in {args.env} (want a bare sk-or-... line)")
+        print(f"no META credential in {args.env} (want a META=<credential> line)")
         return 1
-    generate = openrouter_generator(key, args.model, temperature=args.temperature)
+    generate = meta_generator(key, args.model, temperature=args.temperature)
 
     beats = [
         Beat(channel="groupme", sender="Jordan Vance",

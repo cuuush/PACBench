@@ -530,6 +530,20 @@ class StatusAndTextNorms(unittest.TestCase):
                    judge=lambda a, c: False)
         self.assertEqual(no.slots[0].verdict, Verdict.MISSED)
 
+    def test_time_alpha_clock_words_are_word_boundaried(self):
+        """§12.3 scan finding: substring matching read "noon" inside
+        "afternoon", turning a correct "Sunday afternoon at 1pm" into a
+        false forbidden conviction on reunion now/time. Pure-alpha clock
+        words match on boundaries; digit forms keep substring behavior."""
+        slot = Slot(id="t", kind=Kind.CURRENT, norm=Norm.TIME,
+                    expected="1pm", forbidden=("12pm", "noon"))
+        g = grade(self._cp(slot), "Sunday afternoon at 1pm.")
+        self.assertEqual(g.slots[0].verdict, Verdict.CORRECT)
+        g = grade(self._cp(slot), "See everyone at the picnic Saturday noon.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
+        g = grade(self._cp(slot), "Staging is frozen till noon.")
+        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
+
     def test_eric_now_status_residual_is_missed(self):
         """Corpus-anchored judge residual: the live eric-now/status slot
         against a paraphrase asserting the game is on. MISSED today;
@@ -539,6 +553,36 @@ class StatusAndTextNorms(unittest.TestCase):
         g = grade(cp, "Eric's game is on Saturday at 8pm at his place.")
         status = next(s for s in g.slots if s.id == "status")
         self.assertEqual(status.verdict, Verdict.MISSED)
+
+
+class ContradictionScan(unittest.TestCase):
+    """Contract §12.3: no accidental contradictions to protected facts.
+
+    The scanner flags every non-support observation asserting a forbidden
+    value in the current tense under grader semantics. Each of today's 96
+    hits carries a reviewed disposition in
+    pacbench/contradictions.py::KNOWN (zero accidental). Any new corpus
+    text that contradicts a protected fact fails here until a human
+    dispositions it or fixes the corpus."""
+
+    def test_no_undispositioned_contradictions(self):
+        from pacbench.contradictions import undispositioned
+        from pacbench.corpus import all_lives
+        self.assertEqual(undispositioned(all_lives()), [])
+
+    def test_dispositions_use_closed_vocabulary(self):
+        from pacbench.contradictions import KNOWN, REASONS
+        self.assertTrue(KNOWN, "allowlist must not be empty")
+        for key, reason in KNOWN.items():
+            self.assertIn(reason, REASONS, key)
+
+    def test_scan_catches_known_hearsay(self):
+        from pacbench.contradictions import scan_contradictions
+        life = get_life("poker-collision")
+        keys = {c.key() for c in scan_contradictions(life)}
+        self.assertIn(
+            ("poker-collision", "poker-collision/wa-priya-claim",
+             "eric-now", "status", "canceled"), keys)
 
 
 if __name__ == "__main__":

@@ -63,6 +63,14 @@
   per-claim judge seam (fail-closed: an indiscriminate judge convicts
   forbidden first, never manufactures a pass), and the corpus-anchored
   eric-now/status paraphrase residual as documented judge territory (§33).
+- Contradiction scan (§12.3): `pacbench/contradictions.py` flags every
+  non-support observation asserting a forbidden value in the current
+  tense under grader semantics; all 96 hits carry reviewed dispositions
+  (zero accidental — deliberate difficulty, different entity/event/topic/
+  procedure, filler coincidence, prompt-side trigger, or verified-benign
+  scan limits), enforced by test. The scan also caught a live grader
+  false-conviction path ("noon" inside "afternoon" on reunion now/time),
+  fixed with word-boundaried pure-alpha clock words plus regression test.
 
 ## 0.1.0 (2026-09-20)
 

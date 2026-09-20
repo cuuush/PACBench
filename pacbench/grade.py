@@ -154,7 +154,18 @@ def _asserts(answer: str, value: str, norm: Norm, judge: Judge | None,
     """Does `answer` assert `value` under this norm's matching rule?"""
     hay = _norm_text(answer)
     if norm is Norm.TIME:
-        return any(f in hay for f in _time_forms(value))
+        for f in _time_forms(value):
+            if any(ch.isdigit() for ch in f):
+                if f in hay:
+                    return True
+            # Pure-alpha clock words ("noon", "midnight") match on word
+            # boundaries only: substring matching reads "noon" inside
+            # "afternoon" and turns a correct "Sunday afternoon at 1pm"
+            # into a false forbidden conviction (found by the §12.3
+            # contradiction scan on reunion now/time).
+            elif re.search(rf"\b{re.escape(f)}\b", hay):
+                return True
+        return False
     if norm is Norm.DATE:
         return any(re.search(rf"\b{re.escape(f)}\b", hay) for f in _date_forms(value))
     if norm is Norm.YESNO:

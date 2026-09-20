@@ -166,10 +166,14 @@ class LexicalAdapter(ProviderAdapter):
 
     # -- readiness (§44 C; §42) ------------------------------------------------
     def readiness(self) -> Readiness:
-        """Report background-work completion (§42: honest, never a fake pass)."""
+        """Report background-work completion (§42: honest, never a fake pass).
+
+        The store is only current-as-claimed after a maintenance pass, even a
+        no-op one — before the first pass, not-ready says exactly that.
+        """
         if self._maintenance.get("state") == "complete":
             return Readiness(ready=True, detail="nothing scheduled; store current")
-        return Readiness(ready=True, detail="no background work scheduled yet")
+        return Readiness(ready=False, detail="maintenance has not run yet")
 
     # -- retrieval integration (§44 C; §28) ------------------------------------
     def retrieval(self) -> dict:

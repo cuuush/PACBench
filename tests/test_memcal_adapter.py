@@ -103,7 +103,8 @@ class MemcalAdapterTmpHome(unittest.TestCase):
 
         readiness = self.adapter.readiness()
         self.assertIsInstance(readiness, Readiness)
-        self.assertTrue(readiness.ready)
+        # Nothing has run yet: not-run reads not-ready (§42 honesty).
+        self.assertFalse(readiness.ready)
 
         seam = self.adapter.retrieval()
         self.assertEqual(seam["provider"], "memcal")
@@ -125,6 +126,19 @@ class MemcalAdapterTmpHome(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             self.adapter.ingest([bad], "2026-09-08T12:00:00")
         self.adapter.cleanup("w3-tmp-rubric")
+
+
+    def test_skipped_maintenance_reads_not_ready(self):
+        """A skipped dream pass means the provider was NOT fully exercised:
+        readiness must not pass it off as healthy (§42). No dream runs here —
+        the skip state is injected directly."""
+        self.adapter.reset("w3-tmp-skipped")
+        self.adapter._maintenance = {"state": "skipped", "at": "t",
+                                     "reason": "ValueError: boom"}
+        readiness = self.adapter.readiness()
+        self.assertFalse(readiness.ready)
+        self.assertIn("skipped", readiness.detail)
+        self.adapter.cleanup("w3-tmp-skipped")
 
 
 if __name__ == "__main__":

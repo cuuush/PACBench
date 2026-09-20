@@ -23,6 +23,12 @@
   valid); `run-pilot --repetitions N` runs each life N times into namespaced
   dirs with per-rep F1 in the report. Pilot labels fixed (`dev-pilot`, live
   life/rep counts in REPORT.md instead of a stale "3-life" string).
+- Readiness honesty (§42) + real-time allowance (§30): only a finished
+  background pass reads ready — memcal skips and pre-run states read
+  not-ready (a skip means the provider was not fully exercised), same for
+  the lexical no-op before its first pass. `live.maintain` already treated
+  both as incomplete; readiness now agrees instead of contradicting it. Run
+  manifests record the declared per-turn real-time budget (`turn_timeout_s`).
 
 ## 0.1.0 (2026-09-20)
 

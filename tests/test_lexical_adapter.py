@@ -116,11 +116,13 @@ class LexicalAdapterCycle(unittest.TestCase):
 
         readiness = self.adapter.readiness()
         self.assertIsInstance(readiness, Readiness)
-        self.assertTrue(readiness.ready)
+        # Nothing has run yet: not-run reads not-ready (§42 honesty).
+        self.assertFalse(readiness.ready)
 
         maint = self.adapter.maintenance("2026-09-08T23:59:00")
         self.assertEqual(self.adapter._maintenance["state"], "complete")
         self.assertIn("nothing scheduled", maint.notes[0])
+        self.assertTrue(self.adapter.readiness().ready)
 
         total = self.adapter.usage()
         self.assertEqual(total.model_calls, 0)

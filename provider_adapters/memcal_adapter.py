@@ -349,16 +349,23 @@ class MemcalAdapter(ProviderAdapter):
 
     # -- readiness (§44 C; §42) ------------------------------------------------
     def readiness(self) -> Readiness:
-        """Report background-work completion (§42: honest, never a fake pass)."""
+        """Report background-work completion (§42: honest, never a fake pass).
+
+        Only a finished dream pass reads ready. A skip means the provider was
+        NOT fully exercised (no consolidation ran); ``not-run`` means no pass
+        has happened yet. Both read not-ready so a reviewer can never mistake
+        either for a healthy background pipeline — ``live.maintain`` already
+        treats both as incomplete for the same reason.
+        """
         state = self._maintenance.get("state")
         if state == "complete":
             return Readiness(ready=True, detail="dream pass finished")
         if state == "skipped":
             return Readiness(
-                ready=True,
-                detail=f"no background work ran "
-                       f"({self._maintenance.get('reason', '')})")
-        return Readiness(ready=True, detail="no background work scheduled yet")
+                ready=False,
+                detail=f"dream pass skipped: "
+                       f"{self._maintenance.get('reason', '')}")
+        return Readiness(ready=False, detail="dream pass has not run yet")
 
     # -- retrieval integration (§44 C; §28) ------------------------------------
     def retrieval(self) -> dict:

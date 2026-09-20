@@ -213,8 +213,19 @@ class Grade:
 
 def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str]:
     current = _current_text(answer)
-    forbidden_hit = next(
-        (f for f in slot.forbidden if _asserts(current, f, slot.norm, judge)), None)
+    if slot.norm is Norm.YESNO:
+        # Polarity is atemporal: "yes"/"no" carry no tense, so a past-tense
+        # denial ("No, it was never canceled") must not be eaten by the
+        # history-cue filter that protects DATE/TIME/ENTITY values. Match the
+        # forbidden polarity on the full answer; history stripping stays for
+        # every other norm, where superseded values live in past clauses.
+        forbidden_hit = next(
+            (f for f in slot.forbidden if _asserts(answer, f, slot.norm, judge)),
+            None)
+    else:
+        forbidden_hit = next(
+            (f for f in slot.forbidden if _asserts(current, f, slot.norm, judge)),
+            None)
     expected = _slot_asserts_expected(answer, slot, judge)
     if slot.kind is Kind.ABSTAIN:
         # Abstaining while naming the candidates ("Saturday or Sunday — not confirmed") is

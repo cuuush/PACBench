@@ -16,7 +16,7 @@ versioning + deterministic grading + a runner CLI driving isolated Hermes turns.
 W4 reality: `python -m pacbench` provides `list-lives` (offline: lives and
 checkpoints, no model), `smoke` (one bare turn through the isolated clone),
 `run-checkpoint` (one checkpoint end to end via Hermes + provider), and
-`run-pilot` (the full 3-life development pilot, `--provider memcal` or
+`run-pilot` (the full development pilot, `--provider memcal` or
 `--provider lexical`). The isolated Hermes
 clone lives in `vendor/` with fairness-neutral shims re-applied from
 `patches/`; the harness (`pacbench/harness.py`, `pacbench/live.py`) provisions
@@ -63,22 +63,23 @@ isolated clone in `vendor/` — never live-profile credentials:
 ```sh
 python3 -m pacbench smoke                                          # wiring proof
 python3 -m pacbench run-checkpoint --life <id> --checkpoint <id>  # one checkpoint
-python3 -m pacbench run-pilot                                     # 3-life pilot (memcal)
-python3 -m pacbench run-pilot --provider lexical                  # 3-life pilot (baseline)
+python3 -m pacbench run-pilot                                     # dev pilot (memcal)
+python3 -m pacbench run-pilot --provider lexical                  # dev pilot (baseline)
 ```
 
 ## Corpus
 
-Three synthetic development lives, each covering 7 consecutive simulated days
+Four synthetic development lives, each covering 7 consecutive simulated days
 (Mon 2026-09-07 – Sun 2026-09-13) plus older history, over email, text /
 iMessage, WhatsApp, GroupMe, Hermes user turns, and Slack where the life
-needs it:
+needs it (corpus 0.2.0: 251 observations, 27 checkpoints):
 
 | Life | Exercises | Matched control |
 | --- | --- | --- |
 | `dentist-depth` (A) | update depth (4 moves + cancel + rebook), history, durable vs transient facts, task | stable eye exam |
 | `poker-collision` (B) | entity collision (John's vs Eric's game), source authority (hearsay vs organizer), stale repeats | single-occurrence team lunch |
 | `coat-weekend` (C) | proactive reminder, opportunity vs commitment, abstention on unresolved plans | silent visit (no reminder should fire) |
+| `reunion-thread` (D) | thread-size difficulty (key facts buried in a ~150-message group chat), hearsay vs organizer, stale repeats | work picnic in a small thread |
 
 Two smaller incident families from the starting material are kept as
 regression coverage: `poker-move` / `poker-unchanged` (write-time recency) and

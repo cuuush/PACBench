@@ -188,7 +188,7 @@ def _plan() -> LifePlan:
                 difficulty_tags=("history-reconstruction",),
                 slots=(
                     Slot(id="canceled", kind=Kind.HISTORICAL, norm=Norm.YESNO,
-                         expected="yes",
+                         expected="yes", forbidden=("no",),
                          supported_by=(f"{_ID}/sms-cancel",)),
                 ),
             ),

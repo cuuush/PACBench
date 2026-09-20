@@ -179,7 +179,7 @@ def _plan() -> LifePlan:
                 difficulty_tags=("entity-collision-2",),
                 slots=(
                     Slot(id="status", kind=Kind.CURRENT, norm=Norm.YESNO,
-                         expected="no",
+                         expected="no", forbidden=("yes",),
                          supported_by=(f"{_ID}/email-john-cancel",)),
                 ),
             ),
@@ -201,7 +201,7 @@ def _plan() -> LifePlan:
                 difficulty_tags=("source-authority",),
                 slots=(
                     Slot(id="status", kind=Kind.CURRENT, norm=Norm.YESNO,
-                         expected="no",
+                         expected="no", forbidden=("yes",),
                          supported_by=(f"{_ID}/im-eric-correct",)),
                 ),
             ),

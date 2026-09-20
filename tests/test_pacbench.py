@@ -226,7 +226,10 @@ class YesNoPolarityFollowsFirstCue(unittest.TestCase):
     def test_denial_with_incidental_affirm_word_is_not_correct(self):
         g = grade(self.canceled,
                   "No - it has been confirmed since you set it, never canceled.")
-        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+        # A false denial of a real cancellation is a confabulation, not a
+        # silence: opposite-polarity YESNO slots carry the polarity as
+        # forbidden, so this promotes from MISSED to MISREPRESENTED.
+        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
 
     def test_expected_no_answers_still_correct(self):
         self.assertEqual(
@@ -238,7 +241,8 @@ class YesNoPolarityFollowsFirstCue(unittest.TestCase):
 
     def test_false_affirmation_of_expected_no_is_not_correct(self):
         g = grade(self.eric_cancel, "Yes, Eric's game was canceled.")
-        self.assertEqual(g.slots[0].verdict, Verdict.MISSED)
+        # Inventing a cancellation that never happened is misrepresentation.
+        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
 
     def test_overlapping_cue_prefers_longer_match(self):
         self.assertEqual(

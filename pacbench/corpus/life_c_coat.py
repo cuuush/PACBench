@@ -201,7 +201,7 @@ def _plan() -> LifePlan:
                 difficulty_tags=("commitment-precision",),
                 slots=(
                     Slot(id="going", kind=Kind.CURRENT, norm=Norm.YESNO,
-                         expected="yes",
+                         expected="yes", forbidden=("no",),
                          supported_by=(f"{_ID}/hermes-brunch-yes",)),
                 ),
             ),

@@ -30,13 +30,14 @@ REPO = Path(__file__).resolve().parents[1]
 class VersionIs01(unittest.TestCase):
     def test_version(self):
         self.assertEqual(VERSION, "0.1.0")
-        self.assertEqual(CORPUS_VERSION, "0.1.0")
+        self.assertEqual(CORPUS_VERSION, "0.2.0")
 
 
 class ThreeDevelopmentLives(unittest.TestCase):
     def test_ids(self):
         self.assertEqual(sorted(l.id for l in development_lives()),
-                         ["coat-weekend", "dentist-depth", "poker-collision"])
+                         ["coat-weekend", "dentist-depth", "poker-collision",
+                          "reunion-thread"])
 
     def test_seven_day_horizon_with_older_history(self):
         for life in development_lives():
@@ -197,7 +198,7 @@ class ValidationAndFreezing(unittest.TestCase):
         self.assertEqual(digest(all_lives()), digest(all_lives()))
         self.assertEqual(digest(all_lives()), PINNED_HASH)
         record = freeze(all_lives())
-        self.assertEqual(record["corpus_version"], "0.1.0")
+        self.assertEqual(record["corpus_version"], "0.2.0")
         self.assertEqual(len(record["sha256"]), 64)
         self.assertGreaterEqual(record["observations"], 40)
 
@@ -206,6 +207,33 @@ class ValidationAndFreezing(unittest.TestCase):
             obs = life.observations[0]
             with self.assertRaises(dataclasses.FrozenInstanceError):
                 obs.text = "tampered"
+
+    def test_yesno_slots_carry_opposite_polarity_as_forbidden(self):
+        """A wrong-polarity YESNO answer is a confabulation (MISREPRESENTED),
+        never a silence (MISSED). That requires every required YESNO slot to
+        name the opposite polarity in ``forbidden`` — and the grader to match
+        polarity on the full answer, since polarity is atemporal (past-tense
+        verbs around it must not eat it via history-cue stripping)."""
+        for life in all_lives():
+            for cp in life.checkpoints:
+                for slot in (*cp.slots, *cp.supported):
+                    if slot.norm is not Norm.YESNO or not slot.required:
+                        continue
+                    want = slot.expected.strip().lower()
+                    opposite = {"yes": "no", "no": "yes"}.get(want)
+                    self.assertIsNotNone(
+                        opposite, f"{life.id}/{cp.id}/{slot.id}: "
+                                  f"YESNO expected {want!r} is not yes/no")
+                    self.assertIn(
+                        opposite, [f.strip().lower() for f in slot.forbidden],
+                        f"{life.id}/{cp.id}/{slot.id}: opposite polarity "
+                        f"{opposite!r} must be forbidden")
+        # Behavior pin: polarity confabulation grades MISREPRESENTED.
+        canceled = next(c for c in get_life("dentist-depth").checkpoints
+                        if c.id.endswith("/canceled"))
+        self.assertEqual(
+            grade(canceled, "No, it was never canceled.").slots[0].verdict,
+            Verdict.MISREPRESENTED)
 
 
 class RunnerSkeleton(unittest.TestCase):

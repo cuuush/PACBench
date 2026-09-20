@@ -9,4 +9,4 @@ of how any provider happens to lay its rows out. A test enforces the boundary
 """
 
 VERSION = "0.1.0"
-CORPUS_VERSION = "0.1.0"
+CORPUS_VERSION = "0.2.0"

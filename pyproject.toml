@@ -1,0 +1,29 @@
+[project]
+name = "pacbench"
+version = "0.1.0"
+description = "PACBench: a benchmark for memory systems used by persistent personal assistants"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Chris Cush", email = "chris@cuuush.com" }]
+requires-python = ">=3.11"
+keywords = ["benchmark", "memory", "personal-assistant", "evaluation"]
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/cuuush/PACBench"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["pacbench*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -5,7 +5,7 @@ Subcommands:
 - ``list-lives`` — offline: lives and their checkpoints (no Hermes, no model).
 - ``smoke`` — one bare turn through the isolated clone (wiring proof).
 - ``run-checkpoint`` — one checkpoint end to end (debugging aid, not a result).
-- ``run-pilot`` — the complete 3-life Memcal development pilot (§45).
+- ``run-pilot`` — the complete 3-life development pilot (§45).
 
 Isolation (§42, §45.19): scored runs never read or copy auth/config from the
 user's live Hermes profile. The driver model and credential come only from
@@ -76,9 +76,14 @@ def _cmd_smoke(args: argparse.Namespace) -> int:
     return 0
 
 
-def _load_memcal_adapter(home: Path, dream_model: str | None):
-    from provider_adapters.memcal_adapter import MemcalAdapter
-    return MemcalAdapter(home, dream_model=dream_model)
+def _load_adapter(home: Path, provider: str, dream_model: str | None):
+    if provider == "memcal":
+        from provider_adapters.memcal_adapter import MemcalAdapter
+        return MemcalAdapter(home, dream_model=dream_model)
+    if provider == "lexical":
+        from provider_adapters.lexical_adapter import LexicalAdapter
+        return LexicalAdapter(home)
+    raise RuntimeError(f"unknown provider {provider!r}")
 
 
 def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
@@ -94,8 +99,8 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
               file=sys.stderr)
         return 2
     checkpoint = matches[0]
-    if args.provider != "memcal":
-        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal)",
+    if args.provider not in ("memcal", "lexical"):
+        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical)",
               file=sys.stderr)
         return 2
     try:
@@ -106,7 +111,8 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
     run_dir = _scratch_run_dir(Path(args.runs), "checkpoint")
     hermes_home = run_dir / "hermes-home"
     try:
-        adapter = _load_memcal_adapter(run_dir / "memcal-home", driver.model_id)
+        adapter = _load_adapter(run_dir / f"{args.provider}-home",
+                                args.provider, driver.model_id)
     except RuntimeError as exc:
         print(f"SETUP FAILED: {exc}", file=sys.stderr)
         return 1
@@ -127,8 +133,8 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
 
 def _cmd_run_pilot(args: argparse.Namespace) -> int:
     from pacbench import corpus, live
-    if args.provider != "memcal":
-        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal)",
+    if args.provider not in ("memcal", "lexical"):
+        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical)",
               file=sys.stderr)
         return 2
     try:
@@ -141,11 +147,11 @@ def _cmd_run_pilot(args: argparse.Namespace) -> int:
     print(f"lives: {[l.id for l in lives]}")
 
     def make_adapter(home: Path):
-        return _load_memcal_adapter(home, driver.model_id)
+        return _load_adapter(home, args.provider, driver.model_id)
 
     try:
         report = live.run_pilot(
-            lives=lives, provider="memcal", make_adapter=make_adapter,
+            lives=lives, provider=args.provider, make_adapter=make_adapter,
             pilot_dir=pilot_dir, model=driver.model_id,
             model_provider=driver.provider,
             driver_configured_model=driver.configured_model,
@@ -186,7 +192,7 @@ def build_parser() -> argparse.ArgumentParser:
                        help="run provider scheduled processing before the checkpoint")
     p_run.set_defaults(func=_cmd_run_checkpoint)
 
-    p_pilot = sub.add_parser("run-pilot", help="full 3-life Memcal development pilot")
+    p_pilot = sub.add_parser("run-pilot", help="full 3-life development pilot")
     p_pilot.add_argument("--provider", default="memcal")
     p_pilot.add_argument("--runs", default=str(REPO / "runs"))
     p_pilot.add_argument("--timeout", type=float, default=900.0)

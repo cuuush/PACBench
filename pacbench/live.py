@@ -743,7 +743,7 @@ def run_pilot(*, lives: list[Life], provider: str,
     for record in life_records:
         record["tokens"] = life_tokens.get(record["life"], sum_turn_tokens([]))
     summary = {
-        "pilot": "pacbench-w5-3-life-memcal",
+        "pilot": f"pacbench-w5-3-life-{provider}",
         "pilot_state": pilot_state,
         "provider": provider,
         "driver_model": model,
@@ -758,8 +758,12 @@ def run_pilot(*, lives: list[Life], provider: str,
             "tokens": sum_turn_tokens(scored_turns),
         },
         "comparative_claim_valid": False,
-        "comparative_gap": ("§45.5 unmet: no external provider has received the same "
-                            "observations yet; single-provider pilot only, no comparison valid."),
+        "comparative_gap": ("No comparative claim is valid from pilot-scale runs: "
+                            "a finding about which system wins requires the 30-life "
+                            "comparative corpus with declared splits (§§39-40). A "
+                            "second provider receiving the same observations (§45.5) "
+                            "makes per-condition snapshots comparable side by side — "
+                            "a sanity check on small high-overlap lives, not a verdict."),
     }
     _write_json(pilot_dir / "report.json", summary)
     (pilot_dir / "REPORT.md").write_text(render_report(summary, pilot_dir))
@@ -769,7 +773,7 @@ def run_pilot(*, lives: list[Life], provider: str,
 def render_report(summary: dict, pilot_dir: Path) -> str:
     """Human-readable aggregate report (§§35–37, §41)."""
     lines = [
-        "# PACBench W5 pilot report — 3 development lives, Hermes + memcal",
+        f"# PACBench W5 pilot report — 3 development lives, Hermes + {summary['provider']}",
         "",
         f"pilot_state: **{summary['pilot_state']}**",
         f"provider: {summary['provider']}",

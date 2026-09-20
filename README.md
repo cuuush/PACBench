@@ -16,18 +16,23 @@ versioning + deterministic grading + a runner CLI driving isolated Hermes turns.
 W4 reality: `python -m pacbench` provides `list-lives` (offline: lives and
 checkpoints, no model), `smoke` (one bare turn through the isolated clone),
 `run-checkpoint` (one checkpoint end to end via Hermes + provider), and
-`run-pilot` (the full 3-life Memcal development pilot). The isolated Hermes
+`run-pilot` (the full 3-life development pilot, `--provider memcal` or
+`--provider lexical`). The isolated Hermes
 clone lives in `vendor/` with fairness-neutral shims re-applied from
 `patches/`; the harness (`pacbench/harness.py`, `pacbench/live.py`) provisions
 scratch homes and never touches the live profile. The Memcal adapter lives
 outside the scored package (`provider_adapters/memcal_adapter.py`) behind the
-provider contract. One checkpoint has been proven live end to end; `runs/`
+provider contract. A second, deliberately dumb baseline — keyword
+archive-search (`provider_adapters/lexical_adapter.py`, no model calls on the
+provider side) — receives the same observations under the same conditions
+(§45.5). One checkpoint has been proven live end to end; `runs/`
 artifacts are debugging output, not results.
 
 What is **not** claimed (listed, not papered over):
 
-- Live runs beyond the proven checkpoint, comparative provider results, and any
-  claim about which system wins.
+- Any claim about which system wins. Per-provider pilot snapshots are
+  comparable side by side (see below), but `comparative_claim_valid` stays
+  `False` until the 30-life comparative corpus with declared splits exists.
 - The calibrated semantic judge for paraphrased TEXT slots (the `judge=` seam in
   `pacbench/grade.py`; without it, unmatched paraphrases grade as MISSED,
   never as invented passes).
@@ -58,7 +63,8 @@ isolated clone in `vendor/` — never live-profile credentials:
 ```sh
 python3 -m pacbench smoke                                          # wiring proof
 python3 -m pacbench run-checkpoint --life <id> --checkpoint <id>  # one checkpoint
-python3 -m pacbench run-pilot                                     # 3-life pilot
+python3 -m pacbench run-pilot                                     # 3-life pilot (memcal)
+python3 -m pacbench run-pilot --provider lexical                  # 3-life pilot (baseline)
 ```
 
 ## Corpus
@@ -122,3 +128,24 @@ python3 -m pacbench.generation --env .env --render-sample # one live render (net
 ```
 
 Generation failures are reported, never silently substituted with another model.
+
+## Comparative pilots (snapshots, not findings)
+
+Two providers have received the same observations under the same conditions —
+same corpus hash (`afb87c08…`, corpus 0.1.0), same driver
+(`muse-spark-1.3-contributor`), same collection times, same grading:
+
+| provider | checkpoints | slots | correct | missed | misrep. | P | R | F1 | turns | tool calls |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| memcal (`runs/pilot-20260920T193846Z`) | 17 | 24 | 16 | 5 | 3 | 0.800 | 0.667 | 0.727 | 25 | 42 |
+| lexical (`runs/pilot-20260920T203711Z`) | 17 | 24 | 18 | 0 | 6 | 0.750 | 0.750 | 0.750 | 25 | 53 |
+
+Read this exactly as labeled: the dumb baseline **edged** Memcal (F1 0.750 vs
+0.727) by retrieving everything (0 missed) while misleading more (6
+misrepresented — stale/conflicting keyword hits asserted as current, against
+Memcal's 5 missed / 3 misrepresented). On 55 observations with distinctive
+keywords, raw term overlap is sufficient — which is precisely why these small
+lives cannot discriminate memory systems, and why a Memcal win here would have
+been a sanity check rather than a victory. Discriminating power arrives with
+corpus scale (200+ obs lives). `comparative_claim_valid` stays `False`; no
+system wins anything until the 30-life comparative corpus exists.

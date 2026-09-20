@@ -155,7 +155,8 @@ def _plan() -> LifePlan:
                          alternatives=("green coat", "his coat", "jacket"),
                          forbidden=("Sam's", "Jordan's"),
                          supported_by=(f"{_ID}/hermes-borrow",
-                                       f"{_ID}/im-coat-norush")),
+                                       f"{_ID}/im-coat-norush"),
+                         error="wrong-person"),
                 ),
             ),
             Checkpoint(
@@ -166,7 +167,8 @@ def _plan() -> LifePlan:
                 difficulty_tags=("proactive-context", "negative-control"),
                 forbidden_options=(
                     Slot(id="trap-coat", kind=Kind.CURRENT, norm=Norm.TEXT,
-                         expected="coat", alternatives=("jacket",)),
+                         expected="coat", alternatives=("jacket",),
+                         error="wrong-person"),
                 ),
             ),
             Checkpoint(
@@ -189,9 +191,11 @@ def _plan() -> LifePlan:
                 forbidden_options=(
                     Slot(id="trap-festival", kind=Kind.CURRENT, norm=Norm.TEXT,
                          expected="waterfront",
-                         alternatives=("waterfront festival",)),
+                         alternatives=("waterfront festival",),
+                         error="expired"),
                     Slot(id="trap-glassworks", kind=Kind.CURRENT, norm=Norm.TEXT,
-                         expected="Glassworks", alternatives=("exhibit",)),
+                         expected="Glassworks", alternatives=("exhibit",),
+                         error="expired"),
                 ),
             ),
             Checkpoint(
@@ -202,7 +206,8 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="going", kind=Kind.CURRENT, norm=Norm.YESNO,
                          expected="yes", forbidden=("no",),
-                         supported_by=(f"{_ID}/hermes-brunch-yes",)),
+                         supported_by=(f"{_ID}/hermes-brunch-yes",),
+                         error="invented"),
                 ),
             ),
             Checkpoint(
@@ -218,10 +223,12 @@ def _plan() -> LifePlan:
                     # family measures.
                     Slot(id="rsvp", kind=Kind.CURRENT, norm=Norm.YESNO,
                          expected="no", forbidden=("yes",),
-                         supported_by=(f"{_ID}/email-concert",)),
+                         supported_by=(f"{_ID}/email-concert",),
+                         error="invented"),
                     Slot(id="date", kind=Kind.CURRENT, norm=Norm.DATE,
                          expected="Saturday", forbidden=("Sunday",),
-                         supported_by=(f"{_ID}/email-concert",)),
+                         supported_by=(f"{_ID}/email-concert",),
+                         error="stale"),
                 ),
             ),
             Checkpoint(

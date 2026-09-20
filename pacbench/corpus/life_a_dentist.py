@@ -163,11 +163,13 @@ def _plan() -> LifePlan:
                     Slot(id="day", kind=Kind.CURRENT, norm=Norm.DATE,
                          expected="Thursday",
                          forbidden=("Friday", "Tuesday", "Wednesday"),
-                         supported_by=(f"{_ID}/email-rebook",)),
+                         supported_by=(f"{_ID}/email-rebook",),
+                         error="stale"),
                     Slot(id="time", kind=Kind.CURRENT, norm=Norm.TIME,
                          expected="4:30pm", alternatives=("4:30",),
                          forbidden=("2pm", "3pm", "11am", "10am"),
-                         supported_by=(f"{_ID}/email-rebook",)),
+                         supported_by=(f"{_ID}/email-rebook",),
+                         error="stale"),
                 ),
             ),
             Checkpoint(
@@ -178,7 +180,8 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="day", kind=Kind.HISTORICAL, norm=Norm.DATE,
                          expected="Friday", forbidden=("Thursday",),
-                         supported_by=(f"{_ID}/email-orig",)),
+                         supported_by=(f"{_ID}/email-orig",),
+                         error="stale"),
                 ),
             ),
             Checkpoint(
@@ -189,7 +192,8 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="canceled", kind=Kind.HISTORICAL, norm=Norm.YESNO,
                          expected="yes", forbidden=("no",),
-                         supported_by=(f"{_ID}/sms-cancel",)),
+                         supported_by=(f"{_ID}/sms-cancel",),
+                         error="invented"),
                 ),
             ),
             Checkpoint(
@@ -200,11 +204,13 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="day", kind=Kind.CURRENT, norm=Norm.DATE,
                          expected="Wednesday", forbidden=("Thursday", "Friday"),
-                         supported_by=(f"{_ID}/email-eye",)),
+                         supported_by=(f"{_ID}/email-eye",),
+                         error="wrong-occurrence"),
                     Slot(id="time", kind=Kind.CURRENT, norm=Norm.TIME,
                          expected="10am", alternatives=("10:00",),
                          forbidden=("11am", "4:30pm"),
-                         supported_by=(f"{_ID}/email-eye",)),
+                         supported_by=(f"{_ID}/email-eye",),
+                         error="wrong-occurrence"),
                 ),
             ),
             Checkpoint(

@@ -9,17 +9,25 @@
   code stays history, never current), completed-task silence. Corpus now 298
   observations / 33 checkpoints across 9 lives; freeze hash re-pinned
   deliberately (twice: new life, then calibration roles).
-- Grading: polarity is atemporal — YESNO forbidden values match on the full
-  answer (past-tense verbs no longer eat them via history-cue stripping);
-  every required YESNO slot now names the opposite polarity as forbidden, so
-  false affirmations/denials grade MISREPRESENTED, not MISSED (invariant
-  tested). Same class fix for HISTORICAL slots: a wrong past value with the
-  expected absent is confabulation even when past-tense phrasing hides it
-  from the current-text filter — while history-aware answers naming both
-  values stay CORRECT. Regrading pre-0.2.0 frozen artifacts under this
-  grader shifts old MISSED verdicts — compare frozen grades only, never
-  recompute. Prompt-leak validation is word-boundaried (substring matching
-  overfired: "no" lives inside "Nova").
+- Grading: YESNO forbidden polarity is scoped to proposition+time
+  (co-author correction): topic-implying cues (canceled/cancelled/called
+  off) aid recall but never convict; a pure-polarity fallback covers
+  pure-past answers; mixed-temporal answers without pure cues read MISSED
+  (honest recall limit, judge territory). Splitter preserves negations and
+  cues are normed before matching. Every required YESNO slot names the
+  opposite polarity as forbidden, so false affirmations/denials grade
+  MISREPRESENTED, not MISSED (invariant tested). Same class fix for
+  HISTORICAL slots: a wrong past value with the expected absent is
+  confabulation even when past-tense phrasing hides it from the
+  current-text filter — while history-aware answers naming both values
+  stay CORRECT. Regrading pre-0.2.0 frozen artifacts under this grader
+  shifts old MISSED verdicts — compare frozen grades only, never recompute.
+  Prompt-leak validation is word-boundaried (substring matching overfired:
+  "no" lives inside "Nova").
+- Error taxonomy (§36): every required slot with forbidden values declares
+  its error class (`rubric.ERROR_CLASSES`: stale, wrong-person,
+  wrong-occurrence, invented, expired, duplicate — enforced by validation);
+  reports break MISREPRESENTED out by class instead of conflating.
 - Runner: `--provider lexical` (§27 diagnostic baseline, stdlib-only) for
   `run-checkpoint` / `run-pilot`; first measured comparison (lexical F1 0.750
   vs frozen memcal 0.727 on the 3 shared lives — a sanity check at 55 obs,

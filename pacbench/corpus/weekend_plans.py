@@ -101,7 +101,8 @@ def _bet() -> Life:
         mode="unanswerable",
         slots=(
             Slot(id="dana-day", kind=Kind.ABSTAIN, norm=Norm.DATE, expected="",
-                 forbidden=("Saturday", "Sunday"), supported_by=(f"{_ID}/gm-dinner",)),
+                 forbidden=("Saturday", "Sunday"), supported_by=(f"{_ID}/gm-dinner",),
+                 error="invented"),
         ),
     )
     return Life(id=_ID, bet="implicit-context", role="calibration",

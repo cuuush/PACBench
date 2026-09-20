@@ -29,7 +29,7 @@ from .grade import Norm
 from .life import Life
 from .manifest import SupportManifest
 from .observation import CHANNELS, Observation, chronology_ok
-from .rubric import Kind, Slot
+from .rubric import ERROR_CLASSES, Kind, Slot
 
 ROLES = ("development", "calibration", "held-out")
 
@@ -176,6 +176,13 @@ def validate_life(life: Life, manifest: SupportManifest | None = None) -> list[s
                                      for t in cited for v in values):
                     errors.append(f"{life.id}: checkpoint {cp.id} slot {slot.id!r} "
                                   f"expected {slot.expected!r} in none of its cited evidence")
+            # §36 error taxonomy: a required slot naming forbidden values must
+            # name the KIND of falsehood they represent, so misrepresentations
+            # break out by class instead of conflating.
+            if slot.required and slot.forbidden and slot.error not in ERROR_CLASSES:
+                errors.append(f"{life.id}: checkpoint {cp.id} slot {slot.id!r} "
+                              f"has forbidden values but no valid error class "
+                              f"(got {slot.error!r})")
         if cp.mode == "complete-plan":
             slot_ids = {s.id for s in cp.slots}
             for fid in cp.required_fields:

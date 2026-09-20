@@ -15,13 +15,13 @@ from pacbench.authoring import AuthoringError, BeatPlan, LifePlan, build_life
 from pacbench.corpus import MANIFESTS, all_lives, development_lives, get_life
 from pacbench.freeze import PINNED_HASH, digest, freeze
 from pacbench.generation import GenerationError, load_config
-from pacbench.grade import grade
+from pacbench.grade import Grade, GradedSlot, grade
 from pacbench.hermes import IsolatedHermes, preflight
 from pacbench.manifest import public_observations
 from pacbench.observation import Observation, delivery_order
 from pacbench.report import summarize
 from pacbench.runner import exposed_observations, grade_answer, run_checkpoint
-from pacbench.rubric import Kind, Norm, Slot, Verdict
+from pacbench.rubric import Checkpoint, Kind, Norm, Slot, Verdict
 from pacbench.validate import check, validate_corpus
 
 REPO = Path(__file__).resolve().parents[1]
@@ -377,6 +377,67 @@ class AbsoluteNaming(unittest.TestCase):
                 if name in text:
                     offenders.append(f"{path.name}: {name}")
         self.assertEqual(offenders, [])
+
+
+class MeasuredDifficultyValues(unittest.TestCase):
+    """Q25: difficulty values measured from the frozen corpus, not copied
+    from the authoring request. First installment: thread-size-xl means the
+    rendered thread actually holds 100+ messages."""
+
+    def test_thread_size_xl_is_measured(self):
+        from collections import Counter
+        life = get_life("reunion-thread")
+        thread, size = Counter(
+            o.thread for o in life.observations).most_common(1)[0]
+        self.assertGreaterEqual(size, 100, thread)
+        self.assertIn("thread-size-xl", life.difficulty_tags)
+
+
+class ErrorBreakout(unittest.TestCase):
+    """§36: MISREPRESENTED breaks out by declared error class; unlabeled
+    slots count under "unlabeled" rather than vanishing."""
+
+    def _grade(self, slot_id, verdict):
+        g = Grade(checkpoint="x")
+        g.slots.append(GradedSlot(slot_id, verdict, "probe"))
+        if verdict == Verdict.CORRECT:
+            g.correct = 1
+        elif verdict == Verdict.MISSED:
+            g.missed = 1
+        else:
+            g.misrepresented = 1
+        return g
+
+    def test_misrepresented_breaks_out_by_class(self):
+        cp = Checkpoint(
+            id="x", at="2026-09-10T12:00:00", question="q",
+            slots=(
+                Slot(id="a", kind=Kind.CURRENT, norm=Norm.DATE,
+                     expected="Saturday", forbidden=("Friday",),
+                     error="stale"),
+                Slot(id="b", kind=Kind.CURRENT, norm=Norm.YESNO,
+                     expected="no", forbidden=("yes",),
+                     error="invented"),
+                Slot(id="c", kind=Kind.CURRENT, norm=Norm.TEXT,
+                     expected="x", forbidden=("y",)),
+            ))
+        summary = summarize(
+            [self._grade("a", Verdict.MISREPRESENTED),
+             self._grade("b", Verdict.MISREPRESENTED),
+             self._grade("c", Verdict.MISREPRESENTED)], [cp] * 3)
+        self.assertEqual(summary.misrepresented, 3)
+        self.assertEqual(summary.errors,
+                         {"stale": 1, "invented": 1, "unlabeled": 1})
+        self.assertEqual(summary.to_dict()["errors"],
+                         {"stale": 1, "invented": 1, "unlabeled": 1})
+
+    def test_clean_run_has_empty_breakout(self):
+        cp = Checkpoint(
+            id="x", at="2026-09-10T12:00:00", question="q",
+            slots=(Slot(id="a", kind=Kind.CURRENT, norm=Norm.DATE,
+                        expected="Saturday", error="stale"),))
+        summary = summarize([self._grade("a", Verdict.CORRECT)], [cp])
+        self.assertEqual(summary.errors, {})
 
 
 if __name__ == "__main__":

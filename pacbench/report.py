@@ -37,6 +37,11 @@ class Summary:
     correct: int = 0
     missed: int = 0
     misrepresented: int = 0
+    #: §36 error taxonomy: MISREPRESENTED verdicts broken out by the slot's
+    #: declared error class (rubric.ERROR_CLASSES). Slots without a class
+    #: (none should exist — validation requires one wherever forbidden
+    #: values exist) count under "unlabeled" rather than vanishing.
+    errors: dict[str, int] = field(default_factory=dict)
     current_correct: int = 0
     current_total: int = 0
     historical_correct: int = 0
@@ -74,6 +79,7 @@ class Summary:
             "opportunity_recall": (self.options_found / self.options_total
                                    if self.options_total else None),
             "forbidden_suggested": self.suggested_forbidden,
+            "errors": dict(self.errors),
             "by_difficulty_tag": self.by_tag,
         }
 
@@ -86,15 +92,25 @@ def summarize(grades: list[Grade], checkpoints: list[Checkpoint]) -> Summary:
         summary.checkpoints += 1
         scored = checkpoint.slots or checkpoint.supported
         kinds = {s.id: s.kind for s in scored}
+        errors = {s.id: (s.error or "unlabeled")
+                  for s in (*checkpoint.slots, *checkpoint.supported,
+                            *checkpoint.forbidden_options)}
         for slot in result.slots:
             kind = kinds.get(slot.id)
             if kind is None:  # forbidden-option extra slot on open-ended grading
+                if slot.verdict == Verdict.MISREPRESENTED:
+                    summary.misrepresented += 1
+                    cls = errors.get(slot.id, "unlabeled")
+                    summary.errors[cls] = summary.errors.get(cls, 0) + 1
                 continue
             summary.slots += 1
             ok = slot.verdict == Verdict.CORRECT
             summary.correct += ok
             summary.missed += slot.verdict == Verdict.MISSED
             summary.misrepresented += slot.verdict == Verdict.MISREPRESENTED
+            if slot.verdict == Verdict.MISREPRESENTED:
+                cls = errors.get(slot.id, "unlabeled")
+                summary.errors[cls] = summary.errors.get(cls, 0) + 1
             if kind is Kind.CURRENT:
                 summary.current_total += 1
                 summary.current_correct += ok

@@ -155,11 +155,13 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="day", kind=Kind.CURRENT, norm=Norm.DATE,
                          expected="Saturday", forbidden=("Friday",),
-                         supported_by=(f"{_ID}/email-rebook",)),
+                         supported_by=(f"{_ID}/email-rebook",),
+                         error="stale"),
                     Slot(id="time", kind=Kind.CURRENT, norm=Norm.TIME,
                          expected="7pm", alternatives=("7:00",),
                          forbidden=("8pm",),
-                         supported_by=(f"{_ID}/email-rebook",)),
+                         supported_by=(f"{_ID}/email-rebook",),
+                         error="stale"),
                 ),
             ),
             Checkpoint(
@@ -173,7 +175,8 @@ def _plan() -> LifePlan:
                          alternatives=("1", "single", "just one",
                                        "one booking"),
                          forbidden=("two", "2", "both"),
-                         supported_by=(f"{_ID}/email-rebook",)),
+                         supported_by=(f"{_ID}/email-rebook",),
+                         error="duplicate"),
                 ),
             ),
             Checkpoint(
@@ -185,7 +188,8 @@ def _plan() -> LifePlan:
                     Slot(id="canceled", kind=Kind.HISTORICAL, norm=Norm.YESNO,
                          expected="yes", forbidden=("no",),
                          supported_by=(f"{_ID}/hermes-cancel",
-                                       f"{_ID}/email-cancelconf")),
+                                       f"{_ID}/email-cancelconf"),
+                         error="invented"),
                 ),
             ),
             Checkpoint(
@@ -197,7 +201,8 @@ def _plan() -> LifePlan:
                     Slot(id="code", kind=Kind.CURRENT, norm=Norm.ENTITY,
                          expected="8821", forbidden=("4410",),
                          supported_by=(f"{_ID}/sms-gate",
-                                       f"{_ID}/hermes-forget")),
+                                       f"{_ID}/hermes-forget"),
+                         error="stale"),
                 ),
             ),
             Checkpoint(
@@ -208,7 +213,8 @@ def _plan() -> LifePlan:
                 slots=(
                     Slot(id="code", kind=Kind.HISTORICAL, norm=Norm.ENTITY,
                          expected="4410", forbidden=("8821",),
-                         supported_by=(f"{_ID}/sms-gate",)),
+                         supported_by=(f"{_ID}/sms-gate",),
+                         error="stale"),
                 ),
             ),
             Checkpoint(
@@ -219,9 +225,11 @@ def _plan() -> LifePlan:
                 difficulty_tags=("task-completion", "negative-control"),
                 forbidden_options=(
                     Slot(id="trap-water", kind=Kind.CURRENT, norm=Norm.TEXT,
-                         expected="water", alternatives=("watering",)),
+                         expected="water", alternatives=("watering",),
+                         error="expired"),
                     Slot(id="trap-plants", kind=Kind.CURRENT, norm=Norm.TEXT,
-                         expected="plants"),
+                         expected="plants",
+                         error="expired"),
                 ),
             ),
         ),

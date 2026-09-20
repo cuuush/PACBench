@@ -105,8 +105,11 @@ Atomic rubrics, deterministic first: each checkpoint is N small slot judgments
 (CORRECT / MISSED / MISREPRESENTED) over normalized dates, times, statuses,
 entities, and text. `pacbench/report.py` aggregates task success, precision /
 recall / F1, current vs historical accuracy, complete-plan accuracy, abstention
-accuracy, opportunity recall, forbidden-suggestion counts, and per-difficulty-tag
-breakdowns.
+accuracy, opportunity recall, forbidden-suggestion counts, per-difficulty-tag
+breakdowns, and a §36 error breakout (every required slot with forbidden
+values declares its error class — stale, wrong-person, wrong-occurrence,
+invented, expired, duplicate — in `rubric.ERROR_CLASSES`, enforced by
+validation).
 
 Two phrasing notes the corpus is written against: history-aware answers keep old
 values in history-marked clauses ("it used to be Friday…", "originally…"), and

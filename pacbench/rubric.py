@@ -46,6 +46,31 @@ class Verdict(str, Enum):
     MISREPRESENTED = "misrepresented"
 
 
+#: Closed vocabulary for the §36 error class of a slot's forbidden values —
+#: what KIND of falsehood it is when one of them is asserted. Every required
+#: slot that names forbidden values must name its class (enforced by
+#: validation), so the report can break MISREPRESENTED out instead of
+#: conflating stale resurrections with invented commitments.
+ERROR_CLASSES = frozenset({
+    # A value from the wrong point in the timeline (superseded time/place
+    # asserted as current, or the current value intruding into history).
+    "stale",
+    # Right fact, wrong person (coat reminder fired for Sam).
+    "wrong-person",
+    # Right kind of thing, wrong instance (John's game for Eric's).
+    "wrong-occurrence",
+    # Asserted with no supporting evidence: a cancellation that never
+    # happened, an uncommitted plan presented as committed, a real
+    # commitment/cancellation falsely denied.
+    "invented",
+    # Lapsed, declined, or completed matter surfaced as live (expired deal,
+    # declined festival, finished task resurfacing).
+    "expired",
+    # One commitment counted twice (two active bookings after a rebook).
+    "duplicate",
+})
+
+
 @dataclass(frozen=True)
 class Slot:
     """One answerable fact.
@@ -53,6 +78,11 @@ class Slot:
     ``forbidden`` are values that must not be asserted *as current* — most often the
     stale value this slot's evidence superseded. Naming them per slot is what lets the
     grader tell a wrong answer (misrepresented) from a silent one (missed).
+
+    ``error`` names the §36 error class of the forbidden values (one of
+    :data:`ERROR_CLASSES`): the KIND of falsehood an assertion of one of them
+    would be. Required slots with forbidden values must set it; slots without
+    forbidden values leave it empty (no misrepresentation is representable).
     """
 
     id: str
@@ -63,6 +93,7 @@ class Slot:
     forbidden: tuple[str, ...] = ()
     supported_by: tuple[str, ...] = ()   # Observation.source_id values
     required: bool = True
+    error: str = ""
 
 
 @dataclass(frozen=True)

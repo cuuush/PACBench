@@ -860,6 +860,7 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
         f"abstention accuracy: {agg['abstention_accuracy']}",
         f"opportunity recall: {agg['opportunity_recall']}, "
         f"forbidden suggested: {agg['forbidden_suggested']}",
+        f"error breakout: {agg.get('errors', {})}",
         "",
         "## Difficulty tags",
     ]

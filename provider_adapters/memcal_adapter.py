@@ -111,10 +111,12 @@ def _scratch_roots() -> list[Path]:
             roots.append(Path(cand).resolve())
         except OSError:
             continue
-    try:
-        roots.append(ARTIFACTS.resolve())
-    except OSError:
-        roots.append(ARTIFACTS)
+    # PACBench-owned scratch dirs (both gitignored): run artifacts and homes.
+    for owned in (ARTIFACTS, REPO / "runs"):
+        try:
+            roots.append(owned.resolve())
+        except OSError:
+            roots.append(owned)
     return roots
 
 

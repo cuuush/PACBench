@@ -1,8 +1,8 @@
 diff --git a/agent/agent_init.py b/agent/agent_init.py
-index 246ab57..d976d2f 100644
+index 246ab57..136440a 100644
 --- a/agent/agent_init.py
 +++ b/agent/agent_init.py
-@@ -1253,7 +1253,12 @@ def _init_memory(agent, _agent_cfg, skip_memory, platform):
+@@ -1253,13 +1253,23 @@ def _init_memory(agent, _agent_cfg, skip_memory, platform):
          "memory" in (agent.enabled_toolsets or [])
          and "memory" not in (agent.disabled_toolsets or [])
      )
@@ -12,10 +12,23 @@ index 246ab57..d976d2f 100644
 +    # entirely; the memory tool then answers "not available" and the dispatch
 +    # boundary gates which (provider) memory tools may run instead.
 +    _pacbench_no_builtin_memory = os.environ.get("PACBENCH_NO_BUILTIN_MEMORY", "").strip() == "1"
++    # PACBench: read the memory section (provider name) even when the built-in
++    # file store is skipped — external provider plugins still need it.
++    mem_config = None
++    with suppress(Exception):
++        from tools.memory_tool import get_builtin_memory_config as _pb_mem_cfg
++        mem_config = _pb_mem_cfg(_agent_cfg)
 +    if (not skip_memory or _memory_toolset_requested) and not _pacbench_no_builtin_memory:
          # Memory is optional — don't break agent init
          with suppress(Exception):
              from tools.memory_tool import (
+-                MemoryStore, get_builtin_memory_config, get_builtin_memory_store_flags,
++                MemoryStore, get_builtin_memory_store_flags,
+             )
+-            mem_config = get_builtin_memory_config(_agent_cfg)
+             agent._memory_enabled, agent._user_profile_enabled = get_builtin_memory_store_flags(
+                 _agent_cfg
+             )
 diff --git a/agent/inline_tool_executors.py b/agent/inline_tool_executors.py
 index 2b5f5f7..4e4a818 100644
 --- a/agent/inline_tool_executors.py

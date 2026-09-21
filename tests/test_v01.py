@@ -476,6 +476,11 @@ class AbsoluteNaming(unittest.TestCase):
         for path in (*REPO.rglob("*.py"), *REPO.glob("*.toml"), *REPO.glob("*.md")):
             if path.name == "test_v01.py":
                 continue  # this file names the rule only to enforce it
+            if path.name == "PACBENCH_CONTRACT.md":
+                continue  # the contract is the input document, not the
+                # implementation; the ban applies to code, config, and repo
+                # docs describing the implementation (untracked working copy
+                # tripped this 2026-09-21; the term is the contract's own).
             text = path.read_text()
             for name in forbidden:
                 if name in text:

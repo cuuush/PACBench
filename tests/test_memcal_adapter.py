@@ -119,6 +119,29 @@ class MemcalAdapterTmpHome(unittest.TestCase):
         self.adapter.cleanup(ns)
         self.assertFalse(self.home.exists())
 
+    def test_ingest_spools_for_dream_and_restores_clock(self):
+        import os
+        self.adapter.reset("w3-tmp-spool")
+        obs = [_fake_obs("msg_1"), _fake_obs("msg_2")]
+        os.environ["MEMCAL_TODAY"] = "sentinel"
+        try:
+            usage = self.adapter.ingest(obs, "2026-09-08T12:00:00")
+            self.assertEqual(os.environ.get("MEMCAL_TODAY"), "sentinel")
+        finally:
+            os.environ.pop("MEMCAL_TODAY", None)
+        self.assertIn("spooled 2/2", usage.notes[0])
+        conn = sqlite3.connect(self.home / "memcal.db")
+        try:
+            spool = conn.execute(
+                "SELECT archive_id, entity, processed_at FROM spool").fetchall()
+        finally:
+            conn.close()
+        # Both archived rows queued for dream with live entity convention.
+        self.assertEqual(len(spool), 2)
+        self.assertTrue(all(r[2] is None for r in spool))
+        self.assertTrue(all(r[1] for r in spool))
+        self.adapter.cleanup("w3-tmp-spool")
+
     def test_ingest_refuses_rubric_payload(self):
         self.adapter.reset("w3-tmp-rubric")
         bad = _fake_obs("msg_bad")

@@ -113,8 +113,8 @@ MEMCAL_PLUGIN_REL = Path("integrations") / "hermes" / "memcal"
 
 def _memcal():
     import memcal  # noqa: F401
-    from memcal import archive, config, db
-    return archive, config, db
+    from memcal import archive, config, db, gate
+    return archive, config, db, gate
 
 
 def _scratch_roots() -> list[Path]:
@@ -212,7 +212,7 @@ class MemcalAdapter(ProviderAdapter):
 
     # -- lifecycle (§44 C: reset) -------------------------------------------
     def _conn(self) -> sqlite3.Connection:
-        _, _, db = _memcal()
+        _, _, db, _ = _memcal()
         return db.open_db(self.home / "memcal.db")
 
     def reset(self, namespace: str) -> None:
@@ -253,11 +253,19 @@ class MemcalAdapter(ProviderAdapter):
         evidence = [o for o in observations
                     if o.get("channel") not in USER_TURN_CHANNELS]
         redirected = len(observations) - len(evidence)
-        archive, _, _ = _memcal()
+        archive, _, _, gate = _memcal()
         conn = self._conn()
+        # Pin memcal's native clock to the fictional collection time for the
+        # duration of ingest (same MEMCAL_TODAY seam the turn env uses):
+        # horizon checks, write precedence, and created_at must see the
+        # benchmark clock, never the host clock. Restored afterwards so no
+        # test pollution leaks out (regression-tested).
+        prev_pin = os.environ.get("MEMCAL_TODAY")
+        os.environ["MEMCAL_TODAY"] = collected_at
         try:
             collection_id = archive.open_collection(conn, mode="pacbench")
             count = 0
+            spooled = 0
             for obs in evidence:
                 row_id = archive.append(
                     conn, channel=obs["channel"], external_id=obs["source_id"],
@@ -266,12 +274,27 @@ class MemcalAdapter(ProviderAdapter):
                     from_me=from_owner_flag(obs), collection_id=collection_id)
                 if row_id is not None:
                     count += 1
+                    # Dream's work queue: live source ingesters spool every
+                    # gated line via gate.entity_for (sources/base.py); the
+                    # adapter previously archived without spooling, so
+                    # benchmark texts never reached distillation — the brief
+                    # stayed structurally empty (observed 2026-09-21).
+                    if archive.within_horizon(obs["written_at"]):
+                        archive.spool_add(
+                            conn, row_id, gate.entity_for(
+                                person=obs["sender"], thread=obs["thread"],
+                                channel=obs["channel"], is_group=False))
+                        spooled += 1
             report = SimpleNamespace(channel="pacbench", read=len(evidence),
                                      archived=count, passed=0, muted=0, too_old=0,
                                      error=None, notes=[f"pacbench ingest @ {collected_at}"],
                                      more=False)
             archive.record_source(conn, collection_id, report)
         finally:
+            if prev_pin is None:
+                os.environ.pop("MEMCAL_TODAY", None)
+            else:
+                os.environ["MEMCAL_TODAY"] = prev_pin
             conn.close()
         self._archived += count
         self._redirected_turns += redirected
@@ -280,6 +303,7 @@ class MemcalAdapter(ProviderAdapter):
         return Usage(
             model_calls=0, latency_s=latency,
             notes=(f"archived {count}/{len(evidence)}; "
+                   f"spooled {spooled}/{count} for dream; "
                    f"user_turns_redirected {redirected}",))
 
     # -- scheduled processing (§44 C) -----------------------------------------
@@ -295,7 +319,7 @@ class MemcalAdapter(ProviderAdapter):
         """
         started = time.monotonic()
         try:
-            archive, config, _ = _memcal()
+            archive, config, _, _ = _memcal()
             from memcal.dream import run as dream_run
             cfg = config.load(self.home)
             conn = self._conn()

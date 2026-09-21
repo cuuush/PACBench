@@ -254,6 +254,7 @@ class MemcalAdapter(ProviderAdapter):
                     if o.get("channel") not in USER_TURN_CHANNELS]
         redirected = len(observations) - len(evidence)
         archive, _, _, gate = _memcal()
+        from memcal import textclean
         conn = self._conn()
         # Pin memcal's native clock to the fictional collection time for the
         # duration of ingest (same MEMCAL_TODAY seam the turn env uses):
@@ -266,12 +267,34 @@ class MemcalAdapter(ProviderAdapter):
             collection_id = archive.open_collection(conn, mode="pacbench")
             count = 0
             spooled = 0
+            gated_out = 0
             for obs in evidence:
+                # Live-source fidelity (sources/base.py deliver): strip
+                # non-spoken placeholders the way the real ingesters do,
+                # then run the product's own gate before archiving. The
+                # gated bit is what the brief/detail readers filter on —
+                # archiving ungated rows the live path would have rejected
+                # manufactures evidence the product would never surface.
+                # "text"/"email" are NOT PASS_ALL streams, so content
+                # gating genuinely applies to them (unlike imessage/
+                # whatsapp/groupme, which pass in full).
+                clean = textclean.spoken_text(obs["text"])
+                if not clean:
+                    gated_out += 1
+                    continue
+                verdict = gate.gate_message(
+                    clean, person=obs["sender"],
+                    from_me=from_owner_flag(obs),
+                    channel=obs["channel"], is_group=False)
+                if not verdict:
+                    gated_out += 1
+                    continue
                 row_id = archive.append(
                     conn, channel=obs["channel"], external_id=obs["source_id"],
-                    ts=obs["written_at"], text=obs["text"], thread=obs["thread"],
+                    ts=obs["written_at"], text=clean, thread=obs["thread"],
                     handle=obs["sender"], person=obs["sender"],
-                    from_me=from_owner_flag(obs), collection_id=collection_id)
+                    from_me=from_owner_flag(obs), collection_id=collection_id,
+                    gated=True, gate_reason=verdict.reason)
                 if row_id is not None:
                     count += 1
                     # Dream's work queue: live source ingesters spool every
@@ -286,7 +309,8 @@ class MemcalAdapter(ProviderAdapter):
                                 channel=obs["channel"], is_group=False))
                         spooled += 1
             report = SimpleNamespace(channel="pacbench", read=len(evidence),
-                                     archived=count, passed=0, muted=0, too_old=0,
+                                     archived=count, passed=spooled, muted=0,
+                                     too_old=gated_out,
                                      error=None, notes=[f"pacbench ingest @ {collected_at}"],
                                      more=False)
             archive.record_source(conn, collection_id, report)
@@ -304,6 +328,7 @@ class MemcalAdapter(ProviderAdapter):
             model_calls=0, latency_s=latency,
             notes=(f"archived {count}/{len(evidence)}; "
                    f"spooled {spooled}/{count} for dream; "
+                   f"gated_out {gated_out}; "
                    f"user_turns_redirected {redirected}",))
 
     # -- scheduled processing (§44 C) -----------------------------------------

@@ -26,6 +26,11 @@ from .rubric import Checkpoint, Kind, Norm, Slot, Verdict
 
 Judge = Callable[[str, str], bool]
 
+#: Grader semantics version, recorded in every run manifest (M3): bump
+#: whenever _verdict_for / _asserts matching semantics change so a past
+#: manifest's number is never silently compared against new rules.
+GRADER_VERSION = "0.2.0-h3-invented-history"
+
 _WEEKDAYS = ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 _ABBREV = {d[:3]: d for d in _WEEKDAYS}
 _ABSTAIN_CUES = (
@@ -281,6 +286,54 @@ class Grade:
         return {**asdict(self)}
 
 
+def _history_known_forms(slot: Slot) -> set[str]:
+    """All normed surface forms the slot's known values can take."""
+    forms: set[str] = set()
+    for value in (slot.expected, *slot.alternatives, *slot.forbidden):
+        if slot.norm is Norm.TIME:
+            forms |= {_norm_text(f) for f in _time_forms(value)}
+        elif slot.norm is Norm.DATE:
+            forms |= {_norm_text(f) for f in _date_forms(value)}
+        elif slot.norm is Norm.ENTITY:
+            forms |= {_norm_text(f) for f in _entity_forms(value)}
+        else:
+            forms.add(_norm_text(value).strip())
+    return {f for f in forms if f}
+
+
+def _asserts_invented_history(answer: str, slot: Slot) -> str | None:
+    """A same-norm value-shaped token in the answer no known value contains.
+
+    Conservative by construction: ENTITY/TEXT/STATUS fire only on a
+    digit-bearing token (codes, times, counts — the corpus's history
+    values are all digit-bearing), DATE/TIME reuse their form matchers
+    against tokens absent from the known set, YESNO never fires (polarity
+    has no "invented" shape). Returns the offending token, else None.
+    """
+    hay = _norm_text(answer)
+    known = _history_known_forms(slot)
+    if slot.norm is Norm.YESNO:
+        return None
+    if slot.norm is Norm.DATE:
+        for tok in re.findall(r"[a-z]+|\d+/\d+|\d+-\d+-\d+", hay):
+            if tok in _ABBREV or tok in _WEEKDAYS or "/" in tok or "-" in tok:
+                if tok not in known:
+                    return tok
+        return None
+    if slot.norm is Norm.TIME:
+        for tok in re.findall(r"\d+\s*(?:am|pm|:?\d*)", hay):
+            tok = tok.strip()
+            if tok and any(ch.isdigit() for ch in tok) and tok not in known:
+                return tok
+        return None
+    # ENTITY / STATUS / TEXT: digit-bearing tokens only — a bare "the code"
+    # is silence, but "9999" where no known value contains it is invention.
+    for tok in re.findall(r"[a-z0-9]*\d[a-z0-9]*", hay):
+        if tok not in known:
+            return tok
+    return None
+
+
 def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str]:
     current = _current_text(answer)
     if slot.norm is Norm.YESNO:
@@ -345,6 +398,17 @@ def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str
             None)
         if full_hit:
             return Verdict.MISREPRESENTED, f"asserted stale/forbidden {full_hit!r}"
+        # H3 blind spot, now closed: an invented past value (one that was
+        # never true at any time — not the expected past value, not a named
+        # forbidden) asserted as the history answer is a confabulation, not
+        # silence. The check is norm-aware but conservative: it fires only
+        # when the answer carries a same-norm value-shaped token the slot's
+        # known values (expected + alternatives + forbidden) do not contain.
+        # Answers with no value-shaped token ("I don't know", "the code")
+        # still read as silence (MISSED).
+        invented = _asserts_invented_history(answer, slot)
+        if invented:
+            return Verdict.MISREPRESENTED, f"asserted invented history {invented!r}"
     return Verdict.MISSED, f"no assertion of {slot.expected!r}"
 
 

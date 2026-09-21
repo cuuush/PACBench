@@ -409,6 +409,111 @@ class MaintenanceApplicability(unittest.TestCase):
         self.assertTrue(live.maintenance_satisfied(legacy)[0])
 
 
+class MaintenanceSpendGate(unittest.TestCase):
+    """H4: multi-day lives fail closed without explicit spend approval.
+
+    Provider scheduled work (dream/graph maintenance) is a second spend
+    entry point on the provider's own backend. Stub run_life's episode
+    core — the gate lives in run_life before any reset/spend.
+    """
+
+    def _run(self, tmp, life_id, env_approved):
+        import os
+        from pathlib import Path
+        from unittest import mock
+        from pacbench.corpus import get_life
+
+        life = get_life(life_id)
+        seen = {}
+
+        def fake_episode(**kwargs):
+            seen["ran"] = True
+            return {"life": life_id, "state": "valid", "repetition": 0,
+                    "checkpoints": 0, "turns": 0, "maintenance_runs": 0,
+                    "summary": {}}
+
+        # maintenance_applicable=True stub: memcal-shaped (a real second
+        # spend entry point exists) without importing memcal. Lexical
+        # (applicable=False) is exempt by design — no scheduled work, no
+        # gate — so the gate test needs an applicable adapter.
+        from types import SimpleNamespace
+        from pacbench.adapters import Readiness
+        stub = SimpleNamespace(
+            name="stub-applicable",
+            maintenance_applicable=True,
+            dream_model=None,
+            retrieval=lambda: {"provider": "stub-applicable",
+                               "tool_allowlist": [],
+                               "plugin_available": True,
+                               "env": {}},
+            reset=lambda ns: None,
+            usage=lambda: SimpleNamespace(__dict__={}))
+
+        env = {"PACBENCH_ALLOW_MAINTENANCE_SPEND": "1"} if env_approved else {}
+        with mock.patch.dict(os.environ, env, clear=False):
+            if not env_approved:
+                os.environ.pop("PACBENCH_ALLOW_MAINTENANCE_SPEND", None)
+            real = live._run_life_episode
+            live._run_life_episode = fake_episode
+            try:
+                return live.run_life(
+                    life=life, provider="stub-applicable",
+                    make_adapter=lambda home: stub,
+                    life_dir=Path(tmp) / life_id, model="m",
+                    model_provider="p", driver_configured_model="m"), seen
+            finally:
+                live._run_life_episode = real
+
+    def test_multiday_without_approval_fails_closed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            record, seen = self._run(tmp, "weekend-plans", False)
+            self.assertEqual(record["state"], "invalid")
+            self.assertTrue(any("maintenance-spend" in r
+                                for r in record["reasons"]))
+            self.assertNotIn("ran", seen)
+
+    def test_multiday_with_approval_runs(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            record, seen = self._run(tmp, "weekend-plans", True)
+            self.assertEqual(record["state"], "valid")
+            self.assertTrue(seen.get("ran"))
+
+    def test_singleday_without_approval_runs(self):
+        import tempfile
+        from pacbench.corpus import life_g_toyday
+        with tempfile.TemporaryDirectory() as tmp:
+            import os
+            from pathlib import Path
+            from unittest import mock
+            from provider_adapters.lexical_adapter import LexicalAdapter
+            life = life_g_toyday.lives()[0]
+            days = {o.collected_at[:10] for o in life.observations}
+            self.assertEqual(len(days), 1)  # guard: stays single-day
+            seen = {}
+
+            def fake_episode(**kwargs):
+                seen["ran"] = True
+                return {"life": life.id, "state": "valid", "repetition": 0,
+                        "checkpoints": 0, "turns": 0, "maintenance_runs": 0,
+                        "summary": {}}
+
+            os.environ.pop("PACBENCH_ALLOW_MAINTENANCE_SPEND", None)
+            real = live._run_life_episode
+            live._run_life_episode = fake_episode
+            try:
+                record = live.run_life(
+                    life=life, provider="lexical",
+                    make_adapter=lambda home: LexicalAdapter(home),
+                    life_dir=Path(tmp) / life.id, model="m",
+                    model_provider="p", driver_configured_model="m")
+            finally:
+                live._run_life_episode = real
+            self.assertEqual(record["state"], "valid")
+            self.assertTrue(seen.get("ran"))
+
+
 class ClockProbeVerdict(unittest.TestCase):
     """Proceed ruling step 2: the adversarial verdict logic, no model."""
     FICTIONAL = "2026-09-09T12:00:00"
@@ -589,3 +694,63 @@ class RepetitionSeeds(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):
                 self._run(tmp, repetitions=2, seeds=["ok", ""])
+
+
+class PilotBundles(unittest.TestCase):
+    """C1: scored pilots consume frozen bundles only — fail closed otherwise.
+
+    run_pilot threads bundles through to run_life; a partial bundle map
+    (missing life) raises before any life runs. Omitting bundles stays
+    legal for offline/diagnostic use (manifest records draft-text).
+    """
+
+    def _stub_run_life(self, **kwargs):
+        from pathlib import Path
+        import json
+        life_dir = kwargs["life_dir"]
+        life_dir.mkdir(parents=True, exist_ok=True)
+        (life_dir / "grades.json").write_text(json.dumps({"grades": []}))
+        self.seen_bundles.append(kwargs.get("bundle"))
+        return {"life": kwargs["life"].id, "state": "valid",
+                "repetition": kwargs.get("repetition", 0),
+                "checkpoints": 0}
+
+    def _run(self, tmp, **kwargs):
+        from pathlib import Path
+        from pacbench.corpus import get_life
+        self.seen_bundles = []
+        real = live.run_life
+        live.run_life = self._stub_run_life
+        try:
+            return live.run_pilot(
+                lives=[get_life("weekend-plans")],
+                provider="lexical", make_adapter=lambda home: None,
+                pilot_dir=Path(tmp), model="m", model_provider="p",
+                driver_configured_model="m", **kwargs)
+        finally:
+            live.run_life = real
+
+    def test_missing_life_bundle_fails_closed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                self._run(tmp, bundles={})
+            self.assertEqual(self.seen_bundles, [])
+
+    def test_bundles_thread_through_to_run_life(self):
+        import tempfile
+        from pacbench import corpus
+        from pacbench.frozen import freeze_observations
+        life = corpus.get_life("weekend-plans")
+        bundle = freeze_observations([life])
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self._run(tmp, bundles={"weekend-plans": bundle})
+            self.assertEqual(out["summary"]["pilot_state"], "valid")
+            self.assertEqual(self.seen_bundles, [bundle])
+
+    def test_omitted_bundles_stays_diagnostic(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self._run(tmp)
+            self.assertEqual(out["summary"]["pilot_state"], "valid")
+            self.assertEqual(self.seen_bundles, [None])

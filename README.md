@@ -108,7 +108,20 @@ tamper-evidence is part of the test.
 **Other commands.** `smoke` (one bare turn, wiring proof), `probe-clock`
 (adversarial fictional-clock probe), `run-checkpoint` (legacy single-checkpoint
 diagnostic with a fresh namespace per checkpoint — drift-prone, not the primary
-path), `run-pilot` (full development pilot).
+path), `run-pilot` (full development pilot — scored use requires one
+`--bundle LIFE=PATH` + `--bundle-hash LIFE=HASH` per development life;
+missing/unpinned lives fail closed with `BUNDLE FAILED` before any spend).
+
+**Spend gates.** Two entry points, both fail-closed: (1) the Hermes driver
+turns (fail without the PACBench `.env` credential); (2) provider scheduled
+work — memcal nightly dream / Hindsight graph maintenance — which spends on
+the provider's own backend. Multi-day lives reach (2) and refuse to start
+unless `PACBENCH_ALLOW_MAINTENANCE_SPEND=1` is set after an explicit
+dream-backend + budget decision (H4). Single-day diagnostics (pizza-/toy-day)
+never reach maintenance and run approval-free. Every run manifest records
+`maintenance_spend_approved`, `provider_recipe` (hindsight_api version,
+internal-LLM model, memcal commit, dream model), `tool_allowlist`, and the
+versioned `grader` string.
 
 ## Reviewing a smoke run
 

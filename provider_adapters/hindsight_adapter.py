@@ -158,6 +158,8 @@ class HindsightAdapter(ProviderAdapter):
         self._retained = 0
         self._redirected_turns = 0
         self._retain_calls = 0
+        self._retain_in_tokens: int | None = None
+        self._retain_out_tokens: int | None = None
         self._latency_s = 0.0
         self._maintenance: dict = {"state": "not-run"}
 
@@ -190,8 +192,19 @@ class HindsightAdapter(ProviderAdapter):
             model=os.environ.get("HINDSIGHT_API_LLM_MODEL", self.llm_model))
 
     def reset(self, namespace: str) -> None:
-        """Start a fresh embedded-PG instance + engine for one namespace."""
+        """Start a fresh embedded-PG instance + engine for one namespace.
+
+        H2: reset is rerun-idempotent — it drops the bank's data first
+        (delete_bank when an engine is already bound) so a same-namespace
+        rerun cannot silently double-ingest against surviving rows.
+        """
         check_scratch_home(self.home)
+        if self._engine is not None and self._bank is not None:
+            try:
+                self._loop.run(self._engine.delete_bank(
+                    self._bank, request_context=self._ctx))
+            except Exception:
+                pass  # fresh bank or already gone: reset still starts clean
         self.close()
         llm = self._llm_config()  # fail-closed before spending anything
         self._loop.start()
@@ -223,6 +236,8 @@ class HindsightAdapter(ProviderAdapter):
         self._retained = 0
         self._redirected_turns = 0
         self._retain_calls = 0
+        self._retain_in_tokens: int | None = None
+        self._retain_out_tokens: int | None = None
         self._latency_s = 0.0
         self._maintenance = {"state": "not-run"}
 
@@ -258,42 +273,51 @@ class HindsightAdapter(ProviderAdapter):
             raise RuntimeError("adapter not reset: call reset() first")
         count = 0
         empty_ids = 0
-        # Native batch path (ruling §1): one retain_batch_async per
-        # collection instant; every original message preserved verbatim
-        # (text, sender, timestamps, ordering, thread) — no summaries,
-        # no packetizing by hidden benchmark events. Deterministic
-        # operation_id per packet supports idempotent OPERATIONAL retry
-        # only; semantic empties are recorded, never retried (§2).
-        groups: dict[str, list[dict]] = {}
-        for obs in evidence:
-            groups.setdefault(
-                str(obs.get("collected_at", collected_at)), []).append(obs)
-        # Deterministic operation_id per packet: idempotent OPERATIONAL
-        # retry only (§2). UUID5 (not a raw string): the product parses
-        # outcome-metadata IDs as UUIDs — a free-form op id breaks its
-        # bookkeeping with "badly formed hexadecimal UUID string"
-        # (observed 2026-09-21) while the memory itself still stores.
-        for group_at in sorted(groups):
-            contents = [
-                {"content": o["text"],
-                 "context": f"{o.get('channel', '?')} from "
-                            f"{o.get('sender', '?')}",
-                 "event_date": _parse_event_date(o.get("written_at")),
-                 "metadata": {"source_id": str(o.get("source_id", "?")),
-                              "thread": str(o.get("thread", "?")),
-                              "sender": str(o.get("sender", "?"))},
-                 "document_id": str(o.get("source_id", "?"))}
-                for o in groups[group_at]
-            ]
+        # Native batch path (ruling §1 + SMART day-batching): ONE
+        # retain_batch_async per INGEST CALL — the caller (_batched_by
+        # _collection in live.py) already groups evidence by collection
+        # instant, and ingest() never re-splits. Every original message
+        # is preserved verbatim (text, sender, timestamps, ordering,
+        # thread) — no summaries, no packetizing by hidden benchmark
+        # events. Per-message document_ids keep upsert semantics honest:
+        # a same-source_id rerun upserts its own document instead of
+        # appending a duplicate. Deterministic operation_id per packet
+        # supports idempotent OPERATIONAL retry only; semantic empties
+        # are recorded, never retried (§2).
+        #
+        # Cost model (verified against the installed engine source):
+        # batching wins WALL-CLOCK (one orchestrator pass, parallel
+        # fact extraction, one embedding batch, one transaction), not
+        # model calls — the engine still extracts per item. Day-level
+        # savings come from live.py's delta cursor (ingest_until only
+        # sends newly-exposed observations), never from re-sending
+        # cumulative history. return_usage=True surfaces TokenUsage so
+        # unknown stays unknown instead of unmeasured.
+        contents = [
+            {"content": o["text"],
+             "context": f"{o.get('channel', '?')} from "
+                        f"{o.get('sender', '?')}",
+             "event_date": _parse_event_date(o.get("written_at")),
+             "metadata": {"source_id": str(o.get("source_id", "?")),
+                          "thread": str(o.get("thread", "?")),
+                          "sender": str(o.get("sender", "?"))},
+             "document_id": str(o.get("source_id", "?"))}
+            for o in sorted(evidence,
+                            key=lambda o: str(o.get("source_id", "?")))
+        ]
+        if contents:
             per_item = self._loop.run(
                 self._engine.retain_batch_async(
                     self._bank, contents, request_context=self._ctx,
+                    return_usage=True,
                     operation_id=str(uuid.uuid5(
                         uuid.NAMESPACE_URL,
-                        f"{self._bank}:{group_at}"))))
+                        f"{self._bank}:{collected_at}"))))
             self._retain_calls += 1
             if isinstance(per_item, tuple):
-                per_item = per_item[0]
+                per_item, token_usage = per_item[0], per_item[1]
+            else:
+                token_usage = None
             if per_item and isinstance(per_item[0], str):
                 per_item = [[ids] for ids in per_item]
             for ids in per_item or []:
@@ -301,15 +325,36 @@ class HindsightAdapter(ProviderAdapter):
                     count += 1
                 else:
                     empty_ids += 1
+        else:
+            token_usage = None
         self._retained += count
         self._redirected_turns += redirected
         latency = round(time.monotonic() - started, 2)
         self._latency_s += latency
+        # TokenUsage telemetry (return_usage=True): unknown stays unknown —
+        # a missing/zero usage object records "unreported", never 0.
+        in_tok: int | None = None
+        out_tok: int | None = None
+        if token_usage is not None:
+            try:
+                in_tok = int(token_usage.input_tokens or 0)
+                out_tok = int(token_usage.output_tokens or 0)
+            except Exception:
+                in_tok = out_tok = None
+        usage_note = (f"retained {count}/{len(evidence)} "
+                      f"({empty_ids} empty-id returns, recorded not retried); "
+                      f"user_turns_redirected {redirected}")
+        if in_tok is None:
+            usage_note += "; retain TokenUsage unreported (unknown, never 0)"
+        else:
+            usage_note += f"; retain tokens {in_tok} in / {out_tok} out"
+            assert in_tok is not None and out_tok is not None
+            self._retain_in_tokens = (self._retain_in_tokens or 0) + in_tok
+            self._retain_out_tokens = (self._retain_out_tokens or 0) + out_tok
         return Usage(
             model_calls=self._retain_calls, latency_s=latency,
-            notes=(f"retained {count}/{len(evidence)} "
-                   f"({empty_ids} empty-id returns, recorded not retried); "
-                   f"user_turns_redirected {redirected}",))
+            input_tokens=in_tok, output_tokens=out_tok,
+            notes=(usage_note,))
 
     # -- scheduled processing (§44 C: native graph maintenance) --------------
     def maintenance(self, at: str) -> Usage:
@@ -441,14 +486,21 @@ class HindsightAdapter(ProviderAdapter):
 
     # -- usage reporting (§44 C) ---------------------------------------------
     def usage(self) -> Usage:
-        notes = (f"retained {self._retained}; "
-                 f"user_turns_redirected {self._redirected_turns}; "
-                 f"retain calls {self._retain_calls} "
-                 f"(tokens unknown, never zero)")
+        if self._retain_in_tokens is None:
+            notes = (f"retained {self._retained}; "
+                     f"user_turns_redirected {self._redirected_turns}; "
+                     f"retain calls {self._retain_calls} "
+                     f"(tokens unknown, never zero)")
+        else:
+            notes = (f"retained {self._retained}; "
+                     f"user_turns_redirected {self._redirected_turns}; "
+                     f"retain calls {self._retain_calls}; "
+                     f"retain {self._retain_in_tokens} in / "
+                     f"{self._retain_out_tokens} out")
         return Usage(
             model_calls=self._retain_calls,
-            input_tokens=None,
-            output_tokens=None,
+            input_tokens=self._retain_in_tokens,
+            output_tokens=self._retain_out_tokens,
             latency_s=round(self._latency_s, 2),
             cost_usd=None,
             notes=(notes,))

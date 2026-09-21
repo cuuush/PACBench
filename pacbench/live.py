@@ -28,7 +28,7 @@ from . import harness
 from .freeze import digest
 from .frozen import bundle_hash as frozen_bundle_hash
 from .frozen import observations_for as frozen_observations_for
-from .grade import Grade, GradedSlot
+from .grade import GRADER_VERSION, Grade, GradedSlot
 from .life import Life
 from .report import summarize
 from .rubric import Checkpoint, Verdict
@@ -184,6 +184,62 @@ def provider_server(adapter: Any, seam: dict):
         _stop_provider_server(adapter)
 
 
+def _memcal_commit() -> str:
+    """memcal checkout commit for the manifest (M3), or 'unknown'."""
+    try:
+        import subprocess as _sp
+        from provider_adapters.memcal_adapter import MEMCAL_SRC
+        out = _sp.run(["git", "-C", str(MEMCAL_SRC), "rev-parse", "--short",
+                       "HEAD"], capture_output=True, text=True, timeout=15)
+        if out.returncode == 0 and out.stdout.strip():
+            return out.stdout.strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
+def _provider_recipe(provider: str, dream_model: str | None = None) -> dict:
+    """Provider recipe/version facts for the run manifest (M3).
+
+    Everything here already exists in-process: the Hindsight package
+    version, the memcal checkout commit (when present), and each
+    provider's provider-side model string. A future comparative run is
+    exactly reproducible from its manifest only when these are recorded.
+    """
+    import os as _os
+    recipe: dict = {"provider": provider}
+    if provider == "hindsight":
+        try:
+            from importlib.metadata import version
+            recipe["hindsight_api_version"] = version("hindsight-api")
+        except Exception:
+            recipe["hindsight_api_version"] = "unknown"
+        recipe["internal_llm_model"] = (
+            _os.environ.get("HINDSIGHT_API_LLM_MODEL") or "default")
+        recipe["internal_llm_base_url"] = (
+            _os.environ.get("HINDSIGHT_API_LLM_BASE_URL")
+            or "https://api.meta.ai/v1")
+    elif provider == "memcal":
+        recipe["memcal_commit"] = _memcal_commit()
+        if dream_model:
+            recipe["dream_model"] = dream_model
+    return recipe
+
+
+def _maintenance_approved() -> bool:
+    """H4 spend gate: provider-side scheduled work needs explicit approval.
+
+    memcal nightly dream and Hindsight graph maintenance spend on the
+    provider's own backend (own credential path, own model string) — a
+    second spend entry point beyond the Hermes driver turns. The gate
+    reads an explicit operator opt-in, never a default: multi-day lives
+    fail closed without it. Single-day diagnostics never reach maintain()
+    and are unaffected.
+    """
+    import os as _os
+    return _os.environ.get("PACBENCH_ALLOW_MAINTENANCE_SPEND", "") == "1"
+
+
 def overlay_bundle_observations(life: Life, bundle: dict) -> list[dict]:
     """Frozen evidence payloads for a life (fail-closed, §5).
 
@@ -322,7 +378,7 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         "checkpoint_at": checkpoint.at,
         "provider": provider_name,
         "driver_model": model,
-        "grader": "deterministic (no judge)",
+        "grader": f"deterministic (no judge; {GRADER_VERSION})",
         "turn_timeout_s": timeout_s,
         "provision": home_record,
         "import_batches": import_batches,
@@ -858,7 +914,7 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
         "provider": provider,
         "driver_model": model,
         "driver_configured_model": driver_configured_model,
-        "grader": "deterministic (no judge)",
+        "grader": f"deterministic (no judge; {GRADER_VERSION})",
         "turn_timeout_s": timeout_s,
         "evidence_source": evidence_source,
         "bundle_version": bundle_version,
@@ -868,6 +924,10 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
         "adapter_usage": (adapter.usage().__dict__
                           if hasattr(adapter, "usage") else {}),
         "session_schedule": session_schedule,
+        "provider_recipe": _provider_recipe(
+            provider, getattr(adapter, "dream_model", None)),
+        "tool_allowlist": allowlist.split(",") if allowlist else [],
+        "maintenance_spend_approved": _maintenance_approved(),
     })
     _write_json(life_dir / "manifest.json", manifest)
     _write_json(life_dir / "observations.json",
@@ -902,6 +962,27 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     hermes_home = life_dir / "hermes-home"
     adapter = make_adapter(life_dir / "memcal-home")
     problems = preflight(life, hermes_home, life_dir / "memcal-home", adapter)
+    # H4 spend gate: scheduled provider work (memcal nightly dream,
+    # Hindsight graph maintenance) spends on the provider's own backend
+    # with its own credential path. A multi-day life reaches it; refuse
+    # to start one until the operator explicitly approves provider-side
+    # spend. Single-day diagnostics (pizza-/toy-day) never reach
+    # maintain() and stay approval-free. maintenance_applicable=False
+    # providers (lexical: no scheduled work exists) are exempt — there
+    # is no second spend entry point to gate.
+    if getattr(adapter, "maintenance_applicable", True):
+        days = {o.collected_at[:10] for o in life.observations}
+        if len(days) > 1 and not _maintenance_approved():
+            record = {"life": life.id, "state": "invalid",
+                      "repetition": repetition,
+                      "reasons": ["maintenance-spend approval missing: "
+                                  "multi-day life reaches provider scheduled "
+                                  "work (dream/graph maintenance); rerun with "
+                                  "PACBENCH_ALLOW_MAINTENANCE_SPEND=1 after "
+                                  "the H4 dream-backend + budget decision"],
+                      "artifacts": str(life_dir)}
+            _write_json(life_dir / "validity.json", record)
+            return record
     if problems:
         record = {"life": life.id, "state": "invalid", "repetition": repetition,
                   "reasons": problems, "artifacts": str(life_dir)}
@@ -961,13 +1042,21 @@ def run_pilot(*, lives: list[Life], provider: str,
               make_adapter: Callable[[Path], Any], pilot_dir: Path,
               model: str, model_provider: str, driver_configured_model: str,
               timeout_s: float = 900.0, repetitions: int = 1,
-              seeds: list[str] | None = None) -> dict:
+              seeds: list[str] | None = None,
+              bundles: dict[str, dict] | None = None) -> dict:
     """Run the full development pilot: every life, every checkpoint, every repetition.
 
     No retry-until-pass: each (life, repetition) runs once; every failure is
     preserved in its own namespaced artifact dir and reflected in the pilot
     state (§40). Returns the pilot record and writes ``report.json`` +
     ``REPORT.md`` under ``pilot_dir``.
+
+    ``bundles`` maps life id → frozen observation bundle (§5, C1). A scored
+    pilot requires a bundle for EVERY life; a life with no bundle fails
+    closed (ValueError) instead of silently scoring draft text. Omit
+    ``bundles`` only for offline/diagnostic use — the per-life manifest
+    then records the draft-text fallback, same as ``run_life`` without
+    a bundle.
 
     Repetition protocol (2026-09-21 ruling, Q5): configuration is frozen
     across reps by construction — one call, one config, recorded verbatim
@@ -987,6 +1076,12 @@ def run_pilot(*, lives: list[Life], provider: str,
         rep_seeds = list(seeds)
     else:
         rep_seeds = ["provider-managed"] * repetitions
+    if bundles is not None:
+        missing = [life.id for life in lives if life.id not in bundles]
+        if missing:
+            raise ValueError(
+                f"pilot bundle missing for lives {missing}: scored pilots "
+                f"require a frozen bundle per life (§5); refusing draft text")
     pilot_dir.mkdir(parents=True, exist_ok=True)
     life_records: list[dict] = []
     all_grades: list[Grade] = []
@@ -1002,7 +1097,9 @@ def run_pilot(*, lives: list[Life], provider: str,
                 life_dir=life_dir, model=model,
                 model_provider=model_provider,
                 driver_configured_model=driver_configured_model,
-                timeout_s=timeout_s, repetition=rep)
+                timeout_s=timeout_s, repetition=rep,
+                bundle=(bundles.get(life.id) if bundles is not None
+                        else None))
             record["seed"] = rep_seeds[rep]
             life_records.append(record)
             grades_path = life_dir / "grades.json"

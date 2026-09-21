@@ -150,6 +150,43 @@ class MemcalAdapterTmpHome(unittest.TestCase):
             self.adapter.ingest([bad], "2026-09-08T12:00:00")
         self.adapter.cleanup("w3-tmp-rubric")
 
+    def test_brief_renders_fictional_date_not_host_week(self):
+        """H1 provider-path clock: the brief follows MEMCAL_TODAY, not host.
+
+        Regression for the 2026-09-21 smoke leak: evidence archived with
+        fictional 2026-09-08 timestamps, but the brief rendered the host
+        week (\"today is Monday 21 September 2026\") with nothing known.
+        Pinning the product's own MEMCAL_TODAY seam must render the
+        fictional date in the week header.
+        """
+        import os
+        self.adapter.reset("w3-tmp-clock")
+        try:
+            self.adapter.ingest([_fake_obs("msg_c")], "2026-09-08T12:00:00")
+            from memcal import brief, config, db
+            prev = os.environ.get("MEMCAL_TODAY")
+            os.environ["MEMCAL_TODAY"] = "2026-09-08T12:00:00"
+            try:
+                conn = self.adapter._conn()
+                try:
+                    ref = db.today()
+                    text = brief.render(conn, config.load(self.home))
+                finally:
+                    conn.close()
+            finally:
+                if prev is None:
+                    os.environ.pop("MEMCAL_TODAY", None)
+                else:
+                    os.environ["MEMCAL_TODAY"] = prev
+        finally:
+            self.adapter.cleanup("w3-tmp-clock")
+        self.assertEqual(str(ref), "2026-09-08")
+        # The header carries the FICTIONAL date from the MEMCAL_TODAY pin
+        # (2026-09-08 was a Tuesday) — never the host week. The hard
+        # regression is the date, not the weekday word: assert the full
+        # header line so a host-week render fails loudly.
+        self.assertIn("today is Tuesday 8 September 2026", text)
+
 
     def test_skipped_maintenance_reads_not_ready(self):
         """A skipped dream pass means the provider was NOT fully exercised:

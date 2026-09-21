@@ -26,6 +26,7 @@ class FakeEngine:
     def __init__(self):
         self.retained = []
         self.batches = []
+        self.deleted_banks = []
 
     async def retain_async(self, bank, text, context="",
                            event_date=None,
@@ -37,9 +38,11 @@ class FakeEngine:
 
     async def retain_batch_async(self, bank, contents,
                                  request_context=None,
-                                 operation_id=None, **kw):
+                                 operation_id=None,
+                                 return_usage=False, **kw):
         self.batches.append({"bank": bank, "n": len(contents),
                              "operation_id": operation_id,
+                             "return_usage": return_usage,
                              "event_dates": [c.get("event_date")
                                              for c in contents]})
         out = []
@@ -50,7 +53,16 @@ class FakeEngine:
                                   "document_id": c.get("document_id"),
                                   "operation_id": operation_id})
             out.append(["mem-1"])
+        if return_usage:
+            from types import SimpleNamespace
+            return out, SimpleNamespace(input_tokens=100 * len(contents),
+                                        output_tokens=10 * len(contents))
         return out
+
+    async def delete_bank(self, bank_id, request_context=None, **kw):
+        self.deleted_banks.append(bank_id)
+        self.retained = [r for r in self.retained if r["bank"] != bank_id]
+        return {"units": 0}
 
 
 def _adapter(**kw):
@@ -154,6 +166,36 @@ class ResetFailClosed(unittest.TestCase):
                 adapter.reset("ns1")
 
 
+class RerunIdempotency(unittest.TestCase):
+    """H2: same-namespace reruns never silently double-ingest.
+
+    ``reset`` drops the bound bank's data first (delete_bank), so a
+    reset → ingest cycle sees exactly the rerun's observations — clean
+    by mechanism, not by manual PG-instance cleanup.
+    """
+
+    def _obs(self, sid="t/1"):
+        return {"source_id": sid, "channel": "text", "sender": "Gus",
+                "thread": "tx", "text": "the car is ready Friday",
+                "written_at": "2026-09-18T11:00:00"}
+
+    def test_reset_drops_bank_before_restart(self):
+        adapter, fake = _adapter()
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "k"}):
+            adapter.reset("ns-rerun")
+            adapter.ingest([self._obs()], "2026-09-18T12:00:00")
+            first = len(fake.retained)
+            self.assertEqual(first, 1)
+            # Second cycle on the SAME namespace: bank dropped first,
+            # then one fresh ingest — never 2 rows.
+            adapter.reset("ns-rerun")
+            self.assertEqual(fake.deleted_banks, ["pacbench-ns-rerun"])
+            adapter.ingest([self._obs()], "2026-09-18T12:00:00")
+        self.assertEqual(len(fake.retained), 1)
+        adapter.close()
+
+
 class Ingest(unittest.TestCase):
     def _obs(self, channel="text", text="the car is ready Friday"):
         return {"source_id": "t/1", "channel": channel, "sender": "Gus",
@@ -206,6 +248,81 @@ class Ingest(unittest.TestCase):
             _uuid.NAMESPACE_URL,
             "pacbench-ns1:2026-09-18T12:00:00")))
         adapter.close()
+
+    def test_single_call_per_ingest_with_usage_telemetry(self):
+        # SMART: one retain_batch_async per ingest() call (the caller
+        # already groups by collection instant) with return_usage=True,
+        # so TokenUsage flows into Usage instead of staying unknown.
+        adapter, fake = _adapter()
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "k"}):
+            adapter.reset("ns1")
+            usage = adapter.ingest(
+                [self._obs(), {**self._obs(), "source_id": "t/2"}],
+                "2026-09-18T12:00:00")
+        self.assertEqual(len(fake.batches), 1)
+        self.assertEqual(fake.batches[0]["n"], 2)
+        self.assertTrue(fake.batches[0]["return_usage"])
+        self.assertIn("retained 2/2", usage.notes[0])
+        self.assertIn("retain tokens 200 in / 20 out", usage.notes[0])
+        self.assertEqual((usage.input_tokens, usage.output_tokens),
+                         (200, 20))
+        total = adapter.usage()
+        self.assertEqual((total.input_tokens, total.output_tokens),
+                         (200, 20))
+        adapter.close()
+
+
+class MentionedAtWallClock(unittest.TestCase):
+    """M1: ingest-time wall-clock is the product default, documented not patched.
+
+    The adapter passes authoring ``written_at`` as ``event_date`` (the
+    native time anchor) and deliberately does NOT set ``mentioned_at``:
+    Hindsight defaults it to processing time (host wall-clock). This
+    test pins that contract surface — contents carry event_date, never
+    mentioned_at — so a future mentioned_at change is a deliberate
+    characterization-backed decision, not drift. Recency-weighted
+    Hindsight claims stay invalid until the §4 wall-clock
+    characterization lands (ruling BLOCKED item).
+    """
+
+    def test_contents_carry_event_date_not_mentioned_at(self):
+        adapter, fake = _adapter()
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "k"}):
+            adapter.reset("ns1")
+            adapter.ingest(
+                [{"source_id": "t/9", "channel": "text", "sender": "Gus",
+                  "thread": "tx", "text": "old news from March",
+                  "written_at": "2026-03-01T10:00:00"}],
+                "2026-09-18T12:00:00")
+        self.assertEqual(len(fake.batches), 1)
+        # FakeEngine records retained payloads; the real contract is on
+        # the contents dicts passed to retain_batch_async — capture them.
+        adapter2, fake2 = _adapter()
+        seen = {}
+        orig = fake2.retain_batch_async
+
+        async def spy(bank, contents, **kw):
+            seen["contents"] = [dict(c) for c in contents]
+            return await orig(bank, contents, **kw)
+
+        fake2.retain_batch_async = spy
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "k"}):
+            adapter2.reset("ns1")
+            adapter2.ingest(
+                [{"source_id": "t/9", "channel": "text", "sender": "Gus",
+                  "thread": "tx", "text": "old news from March",
+                  "written_at": "2026-03-01T10:00:00"}],
+                "2026-09-18T12:00:00")
+        adapter.close()
+        adapter2.close()
+        self.assertIn("contents", seen)
+        for item in seen["contents"]:
+            self.assertNotIn("mentioned_at", item)
+            self.assertIsNotNone(item.get("event_date"))
+            self.assertEqual(item["event_date"].month, 3)
 
 
 class MaintenanceReadiness(unittest.TestCase):

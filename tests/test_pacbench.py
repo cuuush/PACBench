@@ -45,6 +45,22 @@ class ObservationsAreImmutablePublicData(unittest.TestCase):
         self.assertNotIn("forbidden", keys)
         self.assertEqual(keys, {f.name for f in dataclasses.fields(Observation)})
 
+    def test_public_payload_key_allowlist(self):
+        # M5: the adapter boundary is an allowlist, not just honest
+        # construction. A future field carrying truth (e.g. scenario_hint)
+        # must trip this test before it can flow to adapters with the
+        # suite green. frozen.OBS_KEYS must stay within this same set —
+        # the bundle carries public evidence only.
+        from pacbench import frozen as frozen_mod
+        allowed = {"source_id", "text", "channel", "sender", "thread",
+                   "written_at", "arrived_at", "collected_at",
+                   "from_owner", "structured"}
+        obs = poker_move.lives()[0].observations[0]
+        self.assertEqual(set(obs.public()), allowed)
+        self.assertTrue(set(frozen_mod.OBS_KEYS) <= allowed,
+                        f"bundle keys exceed public allowlist: "
+                        f"{set(frozen_mod.OBS_KEYS) - allowed}")
+
     def test_question_hides_the_answer_key(self):
         _, where = _where("poker-move")
         prompt = where.public_prompt().lower()
@@ -118,6 +134,17 @@ class HistoricalAndControlProbes(unittest.TestCase):
         hist = next(c for c in life.checkpoints if c.id.endswith("/old-address"))
         g = grade(hist, "It was originally at Sam's, 12 Ash Street.")
         self.assertEqual(g.correct, 1)
+
+    def test_wrong_historical_value_is_not_silence(self):
+        # H3: a wrong old value asserted as history is a confabulation
+        # (MISREPRESENTED), never MISSED-as-silence — even when the wrong
+        # value is not one of the slot's named forbidden values. The
+        # corpus-declared old code is 4410; "9999" was never any code.
+        life = next(l for l in corpus.all_lives() if l.id == "revoke-week")
+        hist = next(c for c in life.checkpoints if c.id.endswith("/gate-old"))
+        g = grade(hist, "The old code was 9999.")
+        v = {gs.id: gs.verdict for gs in g.slots}
+        self.assertEqual(v["code"], Verdict.MISREPRESENTED)
 
     def test_control_answers_the_unchanged_plan(self):
         _, where = _where("poker-unchanged")

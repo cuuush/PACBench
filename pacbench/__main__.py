@@ -229,17 +229,71 @@ def _cmd_run_life(args: argparse.Namespace) -> int:
 
 def _cmd_run_pilot(args: argparse.Namespace) -> int:
     from pacbench import corpus, live
+    from pacbench.frozen import load_bundle
     if args.provider not in ("memcal", "lexical", "hindsight"):
         print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical, hindsight)",
               file=sys.stderr)
         return 2
+    # C1: scored pilots consume frozen bundles only — one --bundle and one
+    # --bundle-hash per life (repeatable LIFE=X flags), each verified
+    # against its pinned hash. Fail closed before any spend when a life
+    # has no bundle or no pinned hash.
+    lives = corpus.development_lives()
+    want = {life.id for life in lives}
+    specs: dict[str, str] = {}
+    for spec in args.bundle or []:
+        if "=" not in spec:
+            print(f"error: --bundle must be LIFE=PATH, got {spec!r}",
+                  file=sys.stderr)
+            return 2
+        life_id, path = spec.split("=", 1)
+        if life_id in specs:
+            print(f"error: duplicate --bundle for life {life_id!r}",
+                  file=sys.stderr)
+            return 2
+        specs[life_id] = path
+    pins: dict[str, str] = {}
+    for spec in args.bundle_hash or []:
+        if "=" not in spec:
+            print(f"error: --bundle-hash must be LIFE=HASH, got {spec!r}",
+                  file=sys.stderr)
+            return 2
+        life_id, h = spec.split("=", 1)
+        if life_id in pins:
+            print(f"error: duplicate --bundle-hash for life {life_id!r}",
+                  file=sys.stderr)
+            return 2
+        pins[life_id] = h
+    unknown = sorted((set(specs) | set(pins)) - want)
+    if unknown:
+        print(f"error: --bundle/--bundle-hash for unknown lives {unknown} "
+              f"(pilot lives: {sorted(want)})", file=sys.stderr)
+        return 2
+    missing = sorted(want - set(specs))
+    if missing:
+        print(f"BUNDLE FAILED: pilot bundle missing for lives {missing} "
+              f"(scored pilots require a frozen bundle per life, §5; "
+              f"never draft-text)", file=sys.stderr)
+        return 1
+    unpinned = sorted(lid for lid in want if lid not in pins)
+    if unpinned:
+        print(f"BUNDLE FAILED: pilot bundle hash missing for lives {unpinned} "
+              f"(every bundle needs a pinned sha256; never trust by path)",
+              file=sys.stderr)
+        return 1
+    bundles = {}
+    for life_id in sorted(want):
+        try:
+            bundles[life_id] = load_bundle(specs[life_id], pins[life_id])
+        except RuntimeError as exc:
+            print(f"BUNDLE FAILED: {exc}", file=sys.stderr)
+            return 1
     try:
         driver = _load_driver()
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
     print(f"driver: {driver!r}")
     pilot_dir = _scratch_run_dir(Path(args.runs), "pilot")
-    lives = corpus.development_lives()
     print(f"lives: {[l.id for l in lives]}")
 
     def make_adapter(home: Path):
@@ -254,7 +308,7 @@ def _cmd_run_pilot(args: argparse.Namespace) -> int:
             model_provider=driver.provider,
             driver_configured_model=driver.configured_model,
             timeout_s=args.timeout, repetitions=args.repetitions,
-            seeds=seeds)
+            seeds=seeds, bundles=bundles)
     except (RuntimeError, ValueError) as exc:
         print(f"PILOT FAILED: {exc}", file=sys.stderr)
         print(f"artifacts: {pilot_dir}")
@@ -292,7 +346,10 @@ def build_parser() -> argparse.ArgumentParser:
                               "disagree with the host date")
     p_clock.set_defaults(func=_cmd_probe_clock)
 
-    p_run = sub.add_parser("run-checkpoint", help="one checkpoint via Hermes + provider")
+    p_run = sub.add_parser("run-checkpoint", help="one checkpoint via Hermes + provider "
+                                                 "(diagnostic debugging aid, NOT a result: "
+                                                 "fresh namespace per checkpoint, no frozen bundle; "
+                                                 "scored claims require run-life/run-pilot)")
     p_run.add_argument("--life", required=True)
     p_run.add_argument("--checkpoint", required=True)
     p_run.add_argument("--provider", default="memcal")
@@ -313,8 +370,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_life.add_argument("--timeout", type=float, default=900.0)
     p_life.set_defaults(func=_cmd_run_life)
 
-    p_pilot = sub.add_parser("run-pilot", help="full development pilot")
+    p_pilot = sub.add_parser("run-pilot", help="full development pilot (scored: frozen bundles required)")
     p_pilot.add_argument("--provider", default="memcal")
+    p_pilot.add_argument("--bundle", action="append", default=[],
+                         help="frozen bundle per life as LIFE=PATH (repeatable; "
+                              "one per development life, fail-closed)")
+    p_pilot.add_argument("--bundle-hash", action="append", default=[],
+                         help="pinned sha256 per life as LIFE=HASH (repeatable; "
+                              "one per development life, fail-closed)")
     p_pilot.add_argument("--runs", default=str(REPO / "runs"))
     p_pilot.add_argument("--timeout", type=float, default=900.0)
     p_pilot.add_argument("--repetitions", type=int, default=1,

@@ -750,16 +750,33 @@ def _pilot_turns(lives: list[Life], pilot_dir: Path
 def run_pilot(*, lives: list[Life], provider: str,
               make_adapter: Callable[[Path], Any], pilot_dir: Path,
               model: str, model_provider: str, driver_configured_model: str,
-              timeout_s: float = 900.0, repetitions: int = 1) -> dict:
+              timeout_s: float = 900.0, repetitions: int = 1,
+              seeds: list[str] | None = None) -> dict:
     """Run the full development pilot: every life, every checkpoint, every repetition.
 
     No retry-until-pass: each (life, repetition) runs once; every failure is
     preserved in its own namespaced artifact dir and reflected in the pilot
     state (§40). Returns the pilot record and writes ``report.json`` +
     ``REPORT.md`` under ``pilot_dir``.
+
+    Repetition protocol (2026-09-21 ruling, Q5): configuration is frozen
+    across reps by construction — one call, one config, recorded verbatim
+    in ``repetition_config``. ``seeds`` are three predeclared values for a
+    comparative claim; where the provider stack takes no seed, every rep
+    records ``provider-managed`` instead of pretending control. A seeds
+    list whose length differs from ``repetitions`` fails closed.
     """
     if repetitions < 1:
         raise ValueError(f"repetitions must be >= 1, got {repetitions}")
+    if seeds is not None:
+        if len(seeds) != repetitions:
+            raise ValueError(
+                f"{len(seeds)} predeclared seeds != {repetitions} repetitions")
+        if any(not isinstance(s, str) or not s for s in seeds):
+            raise ValueError("predeclared seeds must be non-empty strings")
+        rep_seeds = list(seeds)
+    else:
+        rep_seeds = ["provider-managed"] * repetitions
     pilot_dir.mkdir(parents=True, exist_ok=True)
     life_records: list[dict] = []
     all_grades: list[Grade] = []
@@ -776,6 +793,7 @@ def run_pilot(*, lives: list[Life], provider: str,
                 model_provider=model_provider,
                 driver_configured_model=driver_configured_model,
                 timeout_s=timeout_s, repetition=rep)
+            record["seed"] = rep_seeds[rep]
             life_records.append(record)
             grades_path = life_dir / "grades.json"
             if grades_path.exists():
@@ -822,6 +840,18 @@ def run_pilot(*, lives: list[Life], provider: str,
         "provider": provider,
         "repetitions": repetitions,
         "rep_f1": rep_f1,
+        "rep_seeds": rep_seeds,
+        "repetition_config": {
+            "provider": provider,
+            "driver_model": model,
+            "driver_provider": model_provider,
+            "driver_configured_model": driver_configured_model,
+            "corpus_version": CORPUS_VERSION,
+            "corpus_hash": digest(lives),
+            "timeout_s": timeout_s,
+            "note": ("frozen across reps by construction: one call, one "
+                     "config; temperature/model/prompts never vary (§40)"),
+        },
         "driver_model": model,
         "driver_configured_model": driver_configured_model,
         "corpus_version": CORPUS_VERSION,
@@ -862,6 +892,7 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
         f"provider: {summary['provider']}",
         f"repetitions: {reps}",
         f"rep F1: {summary.get('rep_f1', [])}",
+        f"rep seeds: {summary.get('rep_seeds', [])}",
         f"driver_model: {summary['driver_model']} "
         f"(configured: {summary['driver_configured_model']})",
         f"corpus_version: {summary['corpus_version']}",
@@ -871,7 +902,8 @@ def render_report(summary: dict, pilot_dir: Path) -> str:
     ]
     for record in summary["lives"]:
         rep = record.get("repetition", 0)
-        lines.append(f"- {record['life']} rep{rep}: {record['state']} "
+        lines.append(f"- {record['life']} rep{rep} (seed {record.get('seed', '?')}): "
+                     f"{record['state']} "
                      f"({record.get('checkpoints', '?')} checkpoints)")
         for reason in record.get("reasons", []):
             lines.append(f"  - {reason}")

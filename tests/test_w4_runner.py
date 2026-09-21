@@ -423,11 +423,12 @@ class RepetitionLayout(unittest.TestCase):
 
     def test_render_report_names_repetitions(self):
         summary = {"lives": [{"life": "a", "state": "valid",
-                              "repetition": 0, "checkpoints": 1},
+                              "repetition": 0, "checkpoints": 1, "seed": "s0"},
                              {"life": "a", "state": "valid",
-                              "repetition": 1, "checkpoints": 1}],
+                              "repetition": 1, "checkpoints": 1, "seed": "s1"}],
                    "pilot_state": "valid", "provider": "lexical",
                    "repetitions": 2, "rep_f1": [0.5, 0.6],
+                   "rep_seeds": ["s0", "s1"],
                    "driver_model": "m", "driver_configured_model": "m",
                    "corpus_version": "0.2.0",
                    "aggregate": {"checkpoints": 2, "slots": 2, "correct": 1,
@@ -446,5 +447,77 @@ class RepetitionLayout(unittest.TestCase):
                    "comparative_claim_valid": False, "comparative_gap": "g"}
         text = live.render_report(summary, Path("/tmp/x"))
         self.assertIn("1 lives × 2 repetitions", text)
-        self.assertIn("a rep0: valid", text)
-        self.assertIn("a rep1: valid", text)
+        self.assertIn("rep seeds: ['s0', 's1']", text)
+        self.assertIn("a rep0 (seed s0): valid", text)
+        self.assertIn("a rep1 (seed s1): valid", text)
+
+
+class RepetitionSeeds(unittest.TestCase):
+    """Ruling 2026-09-21 (Q5): predeclared seeds or honest provider-managed.
+
+    run_life is stubbed (no Hermes, no model): it creates the life dir
+    with an empty grades.json and returns a valid record. What is under
+    test is the provenance recording, not the episode itself."""
+
+    def _stub_run_life(self, **kwargs):
+        from pathlib import Path
+        import json
+        life_dir = kwargs["life_dir"]
+        life_dir.mkdir(parents=True, exist_ok=True)
+        (life_dir / "grades.json").write_text(json.dumps({"grades": []}))
+        return {"life": kwargs["life"].id, "state": "valid",
+                "repetition": kwargs.get("repetition", 0),
+                "checkpoints": 0}
+
+    def _run(self, tmp, **kwargs):
+        from pathlib import Path
+        from pacbench.corpus import get_life
+        real = live.run_life
+        live.run_life = self._stub_run_life
+        try:
+            return live.run_pilot(
+                lives=[get_life("weekend-plans")],
+                provider="lexical", make_adapter=lambda home: None,
+                pilot_dir=Path(tmp), model="m", model_provider="p",
+                driver_configured_model="m", **kwargs)
+        finally:
+            live.run_life = real
+
+    def test_default_seeds_are_provider_managed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self._run(tmp, repetitions=3)
+            summary = out["summary"]
+            self.assertEqual(summary["rep_seeds"],
+                             ["provider-managed"] * 3)
+            self.assertTrue(all(r["seed"] == "provider-managed"
+                                for r in summary["lives"]))
+
+    def test_predeclared_seeds_flow_to_reps_and_config(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out = self._run(tmp, repetitions=3,
+                             seeds=["alpha", "beta", "gamma"])
+            summary = out["summary"]
+            self.assertEqual(summary["rep_seeds"],
+                             ["alpha", "beta", "gamma"])
+            self.assertEqual([r["seed"] for r in summary["lives"]],
+                             ["alpha", "beta", "gamma"])
+            cfg = summary["repetition_config"]
+            self.assertEqual(cfg["driver_model"], "m")
+            self.assertEqual(cfg["timeout_s"], 900.0)
+            self.assertTrue(cfg["corpus_hash"])
+            self.assertIn("rep seeds: ['alpha', 'beta', 'gamma']",
+                          (Path(tmp) / "REPORT.md").read_text())
+
+    def test_seed_count_mismatch_fails_closed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                self._run(tmp, repetitions=3, seeds=["only-one"])
+
+    def test_empty_seed_fails_closed(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                self._run(tmp, repetitions=2, seeds=["ok", ""])

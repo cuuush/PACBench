@@ -105,6 +105,11 @@
   no-to). Verbatim regrade of both frozen 0.2.0 pilot answers: 1 → 0 each
   (regrade-shift, frozen runs untouched). Mixed-sentence shielding pinned as
   known judge-territory boundary. 185 green.
+- Repetition protocol (ruling Q5): `run-pilot --seeds` with fail-closed
+  count match; per-rep seed on life records + `rep_seeds`; frozen
+  `repetition_config` (provider, driver, corpus hash, timeout) in
+  report.json and REPORT.md; omitted seeds record `provider-managed`.
+  189 green.
 
 ## 0.1.0 (2026-09-20)
 

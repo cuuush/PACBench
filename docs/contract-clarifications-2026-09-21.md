@@ -78,7 +78,7 @@ regrade of both frozen pilot answers: 1 → 0 each. Known boundary
 pinned by test: one declined item shields a second suggested trap in
 the same sentence — deterministic layer exonerates, §33 judge owns it.
 
-## Q5. Repetition protocol — TO IMPLEMENT
+## Q5. Repetition protocol — IMPLEMENTED 2026-09-21
 
 Three reps for the first comparative claim; config frozen across reps
 (corpus, prompts, model, reasoning/temperature, provider config,
@@ -88,6 +88,12 @@ measure run-to-run stochastic robustness of one product configuration.
 Same-seed determinism diagnostics are optional extras, not primary reps.
 (`--repetitions N` + namespacing exist; seed pre-declaration and
 randomness-provenance recording are missing.)
+Implemented 2026-09-21: `run-pilot --seeds a,b,c` (count must match,
+else fail closed); every rep records its seed on the life record and in
+`rep_seeds`; `repetition_config` in report.json freezes the one config
+(provider, driver model+provider, corpus version+hash, timeout) by
+construction; REPORT.md renders seeds. No `--seeds` ⇒ honest
+`provider-managed` per rep, never pretended control.
 
 ## Q6. Generated-corpus acceptance — SPEC RECORDED
 

@@ -150,13 +150,16 @@ def _cmd_run_pilot(args: argparse.Namespace) -> int:
         return _load_adapter(home, args.provider, driver.model_id)
 
     try:
+        seeds = ([s for s in args.seeds.split(",") if s]
+                 if args.seeds else None)
         report = live.run_pilot(
             lives=lives, provider=args.provider, make_adapter=make_adapter,
             pilot_dir=pilot_dir, model=driver.model_id,
             model_provider=driver.provider,
             driver_configured_model=driver.configured_model,
-            timeout_s=args.timeout, repetitions=args.repetitions)
-    except RuntimeError as exc:
+            timeout_s=args.timeout, repetitions=args.repetitions,
+            seeds=seeds)
+    except (RuntimeError, ValueError) as exc:
         print(f"PILOT FAILED: {exc}", file=sys.stderr)
         print(f"artifacts: {pilot_dir}")
         return 1
@@ -199,6 +202,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_pilot.add_argument("--repetitions", type=int, default=1,
                          help="independent realizations per life (§40); "
                               "each runs once into its own artifact dir")
+    p_pilot.add_argument("--seeds", default=None,
+                         help="comma-separated predeclared seeds, one per "
+                              "repetition (ruling 2026-09-21 Q5); omit when "
+                              "the stack takes no seed (records "
+                              "provider-managed)")
     p_pilot.set_defaults(func=_cmd_run_pilot)
     return parser
 

@@ -30,8 +30,9 @@ class CalibrationPoolShape(unittest.TestCase):
             self.assertGreaterEqual(counts[category], 10, category)
 
     def test_pool_has_room_to_grow(self):
-        # Draft pool now (~100); final 200 = survivors + audit residuals.
-        self.assertGreaterEqual(len(CANDIDATES), 90)
+        # Draft pool complete at 200 (104 + 96 race-week/boundary drafts);
+        # pilot residuals EXTEND it (versioned), never silently replace.
+        self.assertEqual(len(CANDIDATES), 200)
 
     def test_ids_unique_and_sequential(self):
         ids = [c.id for c in CANDIDATES]

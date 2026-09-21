@@ -64,9 +64,18 @@ def build_packet(life_id: str, bundle: dict | None = None) -> str:
 
     bundled = bundle is not None
     n_ok = 0
+    recomputed: set = set()
     if bundled:
         n_ok = sum(1 for r in bundle["records"].values()
                    if r.get("status") == "ok")
+        # Added atoms are RECOMPUTED with the current screens (they improve;
+        # the bundle keeps its at-render-time record as the audit trail).
+        recomputed = set()
+        for o in life.observations:
+            rec = bundle["records"].get(o.source_id.split("/")[-1])
+            if rec is not None and rec.get("status") == "ok":
+                recomputed.update(
+                    gen_qa.added_atoms(rec["rendered"], o.text))
     lines.append(f"# Review packet: {life_id} "
                  f"({'SPARK-RENDERED' if bundled else 'DRAFT'})")
     lines.append("")
@@ -81,9 +90,8 @@ def build_packet(life_id: str, bundle: dict | None = None) -> str:
         failed = [k for k, r in bundle["records"].items()
                   if r.get("status") != "ok"]
         lines.append(f"- failed beats: {failed if failed else 'none'}")
-        added = sorted({a for r in bundle["records"].values()
-                        for a in r.get("added_atoms", [])})
-        lines.append(f"- distinct added atoms: {added if added else 'none'}")
+        lines.append(f"- distinct added atoms (current screens): "
+                     f"{sorted(recomputed) if recomputed else 'none'}")
     else:
         lines.append("- render: NONE — drafts verbatim (style review N/A)")
 

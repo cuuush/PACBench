@@ -60,6 +60,13 @@ class FillerScreen(unittest.TestCase):
         self.assertEqual(
             gen_qa.screen_filler_text("Soup is in the fridge"), [])
 
+    def test_contraction_mon_is_not_monday(self):
+        # Live render hit (f0539): c'mon is voice, not a weekday.
+        self.assertEqual(
+            gen_qa.added_atoms("c'mon y'all gotta get some water in ya",
+                               "Hydrate, people"), set())
+        self.assertIn("mon", gen_qa.added_atoms("see you mon", "see you"))
+
 
 class RaceWeekProof(unittest.TestCase):
     """Criterion 1 proof points on the draft life (pre-Spark rendering)."""

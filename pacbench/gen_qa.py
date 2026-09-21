@@ -28,13 +28,15 @@ def _word_re(words: tuple[str, ...], plural: bool = False) -> re.Pattern:
 _FULL_DAY_RE = _word_re(
     ("monday", "tuesday", "wednesday", "thursday", "friday",
      "saturday", "sunday"), plural=True)
-_ABBR_DAY_RE = _word_re(("mon", "tue", "wed", "thu", "fri", "sat", "sun"))
+_ABBR_DAY_RE = re.compile(
+    r"(?<![A-Za-z0-9_'\u2019])"
+    r"(?:mon|tue|wed|thu|fri|sat|sun)\b")
 _FULL_MONTH_RE = _word_re(
     ("january", "february", "march", "april", "may", "june", "july",
      "august", "september", "october", "november", "december"), plural=True)
-_ABBR_MONTH_RE = _word_re(
-    ("jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep",
-     "sept", "oct", "nov", "dec"))
+_ABBR_MONTH_RE = re.compile(
+    r"(?<![A-Za-z0-9_'\u2019])"
+    r"(?:jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\b")
 RELATIVE_DAYS = ("tomorrow", "tonight", "today", "yesterday")
 COMMITMENTS = ("appointment", "meeting", "dinner", "party", "brunch",
                "rsvp", "deadline", "booked", "scheduled", "reserved",

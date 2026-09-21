@@ -49,6 +49,67 @@ def _no_key():
     return mock.patch.dict(os.environ, env, clear=False)
 
 
+class RetryOnEmpty(unittest.TestCase):
+    """Silent-drop hardening: [] retried once, then named dropped."""
+
+    def test_empty_then_ids_counts_retained(self):
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        home = Path(tempfile.mkdtemp(prefix="hs-test-"))
+        calls = {"n": 0}
+
+        async def flaky(bank, text, context="", event_date=None,
+                        request_context=None):
+            calls["n"] += 1
+            return [] if calls["n"] == 1 else ["mem-9"]
+
+        fake = FakeEngine()
+        fake.retain_async = flaky
+        adapter = HindsightAdapter(
+            home, engine_factory=lambda db_url, llm: fake,
+            pg_factory=FakePG)
+        env = dict(os.environ,
+                   HINDSIGHT_API_LLM_API_KEY="k",
+                   META_API_KEY="m", META_BASE_URL="https://x/v1")
+        with mock.patch.dict(os.environ, env, clear=False):
+            adapter.reset("ns-retry")
+            usage = adapter.ingest(
+                [{"source_id": "s/1", "text": "hello",
+                  "channel": "text", "sender": "a",
+                  "written_at": "2026-09-09T10:00:00"}],
+                collected_at="2026-09-09T10:00:01")
+        adapter.close()
+        self.assertIn("retained 1/1", usage.notes[0])
+        self.assertIn("no drops", usage.notes[0])
+        self.assertEqual(calls["n"], 2)
+
+    def test_empty_twice_names_dropped(self):
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        home = Path(tempfile.mkdtemp(prefix="hs-test-"))
+
+        async def always_empty(bank, text, context="", event_date=None,
+                               request_context=None):
+            return []
+
+        fake = FakeEngine()
+        fake.retain_async = always_empty
+        adapter = HindsightAdapter(
+            home, engine_factory=lambda db_url, llm: fake,
+            pg_factory=FakePG)
+        env = dict(os.environ,
+                   HINDSIGHT_API_LLM_API_KEY="k",
+                   META_API_KEY="m", META_BASE_URL="https://x/v1")
+        with mock.patch.dict(os.environ, env, clear=False):
+            adapter.reset("ns-drop")
+            usage = adapter.ingest(
+                [{"source_id": "s/2", "text": "gone",
+                  "channel": "text", "sender": "a",
+                  "written_at": "2026-09-09T10:00:00"}],
+                collected_at="2026-09-09T10:00:01")
+        adapter.close()
+        self.assertIn("retained 0/1", usage.notes[0])
+        self.assertIn("s/2", usage.notes[0])
+
+
 class ScratchGuard(unittest.TestCase):
     def test_refuses_non_scratch(self):
         from provider_adapters.hindsight_adapter import HindsightAdapter

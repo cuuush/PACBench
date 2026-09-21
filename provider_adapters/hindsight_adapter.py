@@ -245,28 +245,46 @@ class HindsightAdapter(ProviderAdapter):
             raise RuntimeError("adapter not reset: call reset() first")
         count = 0
         empty_ids = 0
+        dropped: list[str] = []
         for obs in evidence:
-            ids = self._loop.run(self._engine.retain_async(
-                self._bank,
-                obs["text"],
-                context=f"{obs.get('channel', '?')} from "
-                        f"{obs.get('sender', '?')}",
-                event_date=_parse_event_date(obs.get("written_at")),
-                request_context=self._ctx))
-            self._retain_calls += 1
+            ids = self._retain(obs)
+            if not ids:
+                # Known provider behavior (characterized 2026-09-21, 2/2
+                # replications): a second text sharing a subject with a
+                # just-retained text may return [] AND its content is
+                # absent from recall — a silent drop, not a merge. Retry
+                # once; if still empty, name it dropped, never hide it.
+                ids = self._retain(obs)
             if ids:
                 count += 1
             else:
                 empty_ids += 1
+                dropped.append(str(obs.get("source_id", "?")))
         self._retained += count
         self._redirected_turns += redirected
+        self._dropped = getattr(self, "_dropped", []) + dropped
         latency = round(time.monotonic() - started, 2)
         self._latency_s += latency
+        dropped_note = (f"; dropped after retry: {dropped}"
+                        if dropped else "; no drops after retry")
         return Usage(
             model_calls=self._retain_calls, latency_s=latency,
             notes=(f"retained {count}/{len(evidence)} "
-                   f"({empty_ids} empty-id returns); "
-                   f"user_turns_redirected {redirected}",))
+                   f"({empty_ids} empty-id returns after one retry); "
+                   f"user_turns_redirected {redirected}{dropped_note}",))
+
+    def _retain(self, obs: dict) -> list[str]:
+        """One retain call; returns unit ids (possibly [])."""
+        assert self._engine is not None
+        ids = self._loop.run(self._engine.retain_async(
+            self._bank,
+            obs["text"],
+            context=f"{obs.get('channel', '?')} from "
+                    f"{obs.get('sender', '?')}",
+            event_date=_parse_event_date(obs.get("written_at")),
+            request_context=self._ctx))
+        self._retain_calls += 1
+        return list(ids)
 
     # -- scheduled processing (§44 C: native graph maintenance) --------------
     def maintenance(self, at: str) -> Usage:

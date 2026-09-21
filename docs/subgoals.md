@@ -32,8 +32,11 @@ local embeddings (fully local), internal LLM = existing META gateway
 `written_at`→`event_date`, `run_graph_maintenance_job` scheduled work,
 MCP-native retrieval (no automatic brief — recorded capability gap),
 fail-closed keys, honest readiness. Live-proven: retain→recall→
-maintenance→ready→cleanup (toy data) + isolated Hermes `mcp test`
-(✓ 540ms, 36 tools). 8 offline tests green.
+Live-proven: retain→recall→maintenance→ready→cleanup (toy data) + isolated Hermes `mcp test`
+(✓ 540ms, 36 tools). Characterized 2026-09-21: near-dupe second retain
+→ `[]` with content recall-absent (2/2 reps) — a provider silent drop,
+not a merge; adapter retries once, then names dropped source_ids in
+usage. Exact duplicates DO get fresh ids. 10 offline tests green.
 
 ## Criterion 4 — two-provider pilot on the frozen life: BLOCKED
 Needs: finished renders → rendered packet → sign-off (criteria 1

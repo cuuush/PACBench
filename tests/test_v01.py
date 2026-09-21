@@ -169,7 +169,7 @@ class ExposureLog(unittest.TestCase):
             if not line.startswith("|"):
                 continue
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
-            if len(cells) != 4 or not cells[0]:
+            if len(cells) != 6 or not cells[0]:
                 continue
             if all(set(c) <= {"-"} for c in cells):
                 continue  # separator row
@@ -187,14 +187,16 @@ class ExposureLog(unittest.TestCase):
 
     def test_log_rows_are_well_formed(self):
         import re
-        for life, date, reason, version in self._rows():
+        for life, lineage, date, who, reason, version in self._rows():
             self.assertTrue(life)
+            self.assertTrue(lineage, life)
             self.assertRegex(date, r"^\d{4}-\d{2}-\d{2}$", life)
+            self.assertTrue(who, life)
             self.assertTrue(reason, life)
             self.assertTrue(version, life)
 
     def test_every_exposed_life_is_logged(self):
-        logged = {life for life, _, _, _ in self._rows()}
+        logged = {life for life, _, _, _, _, _ in self._rows()}
         for life in all_lives():
             if life.role == "exposed_after_review":
                 self.assertIn(life.id, logged, life.id)

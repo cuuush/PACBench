@@ -125,3 +125,44 @@ the log (life + date + reason + version-after-which-exposed, empty
 today — mechanism waiting for lives); `ExposureLog` tests enforce the
 vocab term, row well-formedness, and every-exposed-life-is-logged;
 docs/split-lineage.md states the aggregate-vs-detailed rule.
+
+---
+
+# Proceed rulings (co-author reply, 2026-09-21)
+
+Mandated sequence from here (supersedes any earlier ordering):
+
+1. Draft the judge-calibration candidate pool (agent drafts, humans
+   label — drafting is not labeling; Chris may be one of the two
+   labelers; the second must be another human blind to Chris's labels;
+   co-author does not count; disagreements prefer joint adjudication,
+   else a third human).
+2. Run the adversarial clock probe (approved; bundle with live work;
+   isolated PACBench Hermes state only; host vs fictional date must
+   imply different answers).
+3. Generate + validate one 1,000–2,000-obs Spark life (approved; actual
+   Spark model + rendering path; $50 runaway guard stands as safety,
+   not quality; stop-and-inspect near the guard, never silently
+   degrade; Chris is the required human reviewer via a compact review
+   packet — truth, checkpoints, support windows, warnings,
+   contradiction + extra-fact findings, difficulty, ambient sample;
+   accepted only on his explicit sign-off).
+4. Build + validate the real Hindsight adapter (structure against docs
+   now is fine; never a fake provider or stub result; unvalidated
+   until ingestion/readiness/retrieval/isolation/cleanup smoke tests
+   pass on a real instance; no creds ⇒ fail preflight with a setup
+   requirement; Chris provides creds when reached).
+5. Run Memcal + Hindsight on the same frozen large dev life; manual
+   audit (deterministic grading + inspection; development material,
+   not held-out evidence).
+6. Finalize the 200-example set (pool subset + audit residuals —
+   deliberately authored adversarial AND observed failures), human
+   label, calibrate + freeze the judge. The judge must be calibrated
+   before any held-out comparative scoring.
+7. Scale toward 30 lives with real dev/calibration/held-out separation
+   under the curator boundary.
+
+Do NOT freeze the final 200 immediately — leave room for audit
+residuals. Corpus renderer, driver, provider models, and grader are
+separate roles (Spark need not match the driver family). Never change
+grading rules on who won; only genuine correctness/ambiguity.

@@ -114,6 +114,15 @@
   `exposed_after_review`; docs/exposure-log.md + `ExposureLog` tests
   (term, row shape, every-exposed-life-logged); aggregate-vs-detailed
   rule in docs/split-lineage.md. 192 green.
+- Judge-calibration candidate pool (proceed step 1):
+  `pacbench/judge_calibration.py` v0.1.0-draft, 104 candidates across
+  the co-author's eight categories (16 paraphrase/negation, 12 each of
+  the rest); one atom + one answer + minimum metadata per item, NO
+  label field anywhere (drafting ≠ labeling, enforced by test). Final
+  200 = pool survivors + large-life audit residuals; judge must
+  calibrate before held-out scoring. Exposure log widened to the
+  six required columns; integrity laws added (never tune on who won,
+  roles stay separate). 199 green.
 
 ## 0.1.0 (2026-09-20)
 

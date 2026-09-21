@@ -257,33 +257,27 @@ class HindsightAdapter(ProviderAdapter):
             raise RuntimeError("adapter not reset: call reset() first")
         count = 0
         empty_ids = 0
-        dropped: list[str] = []
         for obs in evidence:
+            # Ruling 2026-09-21 (consolidated §2): NO semantic retry. A
+            # retain that returns [] is a measured provider outcome —
+            # retrying would give the provider a second stochastic chance
+            # and smooth away the failure PACBench must expose. Retry is
+            # reserved for operational uncertainty (transport/timeout/
+            # unknown status), ideally with an idempotent operation ID.
             ids = self._retain(obs)
-            if not ids:
-                # Known provider behavior (characterized 2026-09-21, 2/2
-                # replications): a second text sharing a subject with a
-                # just-retained text may return [] AND its content is
-                # absent from recall — a silent drop, not a merge. Retry
-                # once; if still empty, name it dropped, never hide it.
-                ids = self._retain(obs)
             if ids:
                 count += 1
             else:
                 empty_ids += 1
-                dropped.append(str(obs.get("source_id", "?")))
         self._retained += count
         self._redirected_turns += redirected
-        self._dropped = getattr(self, "_dropped", []) + dropped
         latency = round(time.monotonic() - started, 2)
         self._latency_s += latency
-        dropped_note = (f"; dropped after retry: {dropped}"
-                        if dropped else "; no drops after retry")
         return Usage(
             model_calls=self._retain_calls, latency_s=latency,
             notes=(f"retained {count}/{len(evidence)} "
-                   f"({empty_ids} empty-id returns after one retry); "
-                   f"user_turns_redirected {redirected}{dropped_note}",))
+                   f"({empty_ids} empty-id returns, recorded not retried); "
+                   f"user_turns_redirected {redirected}",))
 
     def _retain(self, obs: dict) -> list[str]:
         """One retain call; returns unit ids (possibly [])."""

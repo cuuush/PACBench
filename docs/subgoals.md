@@ -11,37 +11,59 @@ Done: LifeSpec (`pacbench/corpus/life_f_race.py`, 1,592 obs / 11 cps /
 21 truth), structural validation CLEAN, must_include entailment,
 support IDs + manifest, `gen_qa` screens (filler clean, noise 2.6% in
 band), contradiction scan (28 candidates, all dispositioned),
-extra-fact review process (proven on live `c'mon` hit + screen fix),
-review-packet builder, measured difficulty (threads 135–297 obs).
-Pending: render tail (~950/1,592 beats, background job running
-untouched), rendered packet, Chris + co-author sign-off.
-Early signal @799 renders: length ratio 1.71x, token Jaccard 0.28
-(real rewriting, 0 verbatim-lower), 0 added atoms (current screens).
+extra-fact review process (proven on live `c'mon` hit + screen fix;
+ruled §7 correct, keep recording validator changes), review-packet
+builder, measured difficulty (threads 135–297 obs).
+Render bundle PARTIAL by spend decision: 1,299/1,592 beats ok, 1
+operational failure (f1177 `security training due soon`,
+transport TimeoutError, attempts 1 — resumable, not semantic).
+Render HALTED by Chris 2026-09-21 to stop spend; do NOT relaunch
+without explicit go (overrides consolidated §16-step-1 "may continue").
+Consolidated ruling 2026-09-21 (16 sections) now governs: persistent
+sequential life + delta ingest replaces per-checkpoint fresh
+namespaces (§1); canonical frozen bundles replace draft-text scored
+runs (§5); no semantic retry (§2); `mentioned_at` NOT accepted as
+bookkeeping — wall-clock temporal characterization required (§4);
+packet needs expansion-tail + length distributions (§6); 9 proof
+points + 5%-ambient review + Chris sign-off (§8); judge: 200 drafts
+stand, spot-check only, residuals extend, κ≥0.90 bar (§§9–10);
+3 fixed-config reps (§12); 13-step order (§16).
 
-## Criterion 2 — adversarial simulated time: COMPLETE
+## Criterion 2 — adversarial simulated time: PARTIAL (was COMPLETE)
 Memcal clock probe FAIL→PASS (`probe-clock`, `[Simulated now]` prefix,
-`FictionalClockIntegrity` test). Hindsight probe PASS 2026-09-21:
-relative dates resolve against authoring `event_date` (Fri→09-18,
-Thu→09-17 from Wed 09-16), not wall clock. Evidence: suite
-(`ClockProbeVerdict`, `FictionalClockIntegrity`), audit addenda.
+`FictionalClockIntegrity` test) stands. Hindsight event_date probe
+PASS stands, BUT consolidated §4 rejects the `mentioned_at`-as-
+bookkeeping stance: wall-clock temporal characterization now
+required (two facts, very different simulated ages, near-identical
+real ingest times; `query_timestamp` for recall where supported).
+If wall-clock ranking effects can't be controlled via a supported
+mechanism, mark the temporal coverage limited/unsupported — a
+provider limitation is a result. Resumed-session + memory-op clock
+verification also approved and pending.
 
 ## Criterion 3 — real Hindsight adapter: COMPLETE
 `provider_adapters/hindsight_adapter.py`: embedded PG + MemoryEngine +
 local embeddings (fully local), internal LLM = existing META gateway
 (Chris decision, zero new credentials), retain_async ingest with
 `written_at`→`event_date`, `run_graph_maintenance_job` scheduled work,
-MCP-native retrieval (no automatic brief — recorded capability gap),
-fail-closed keys, honest readiness. Live-proven: retain→recall→
-Live-proven: retain→recall→maintenance→ready→cleanup (toy data) + isolated Hermes `mcp test`
-(✓ 540ms, 36 tools). Characterized 2026-09-21: near-dupe second retain
-→ `[]` with content recall-absent (2/2 reps) — a provider silent drop,
-not a merge; adapter retries once, then names dropped source_ids in
-usage. Exact duplicates DO get fresh ids. 10 offline tests green.
+MCP-native retrieval (no automatic brief — ruled §3 legitimate
+capability gap, never compensate), fail-closed keys, honest readiness.
+Live-proven: retain→recall→maintenance→ready→cleanup (toy data) +
+isolated Hermes `mcp test` (✓ 540ms, 36 tools). Characterized
+2026-09-21: near-dupe second retain → `[]` with content recall-absent
+(2/2 reps) — ruled §2 a measured provider outcome: NO semantic retry,
+empty-id returns recorded in usage. Exact duplicates DO get fresh ids.
+10 offline tests green.
 
 ## Criterion 4 — two-provider pilot on the frozen life: BLOCKED
-Needs: finished renders → rendered packet → sign-off (criteria 1
-tail). Will run memcal + Hindsight on the identical frozen life with
-full traces; every failure preserved.
+Blocked twice over: (a) spend — Chris halted paid runs 2026-09-21,
+no relaunch without explicit go; (b) design — primary path must
+become one persistent sequential life with delta ingest (§1),
+canonical frozen-bundle runtime (§5), Hindsight-native packets +
+batch/async ingest (§1), `query_timestamp` recall (§4). Per-
+checkpoint fresh namespaces + cumulative replay is implementation
+drift, removed from the primary path (diagnostic branches only).
+13-step order in §16 governs.
 
 ## Criterion 5 — manual-audit packet: PARTIAL
 Builder COMPLETE (`pacbench/review_packet.py`, deterministic, tested;

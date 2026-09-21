@@ -34,6 +34,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import socket
+import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -212,6 +215,10 @@ class HindsightAdapter(ProviderAdapter):
 
     def close(self) -> None:
         try:
+            self.stop_server()
+        except Exception:
+            pass
+        try:
             if self._pg is not None:
                 self._loop.run(self._pg.stop())
         except Exception:
@@ -308,6 +315,9 @@ class HindsightAdapter(ProviderAdapter):
             "bank_scoped": True,
             "transport": "MCP via `hermes mcp add` "
                          "(harness installs the server spec)",
+            "server_entry": "python3 -m hindsight_api.mcp_local "
+                            "(adapter.start_server shares the run's PG; "
+                            "bank-pinned /mcp/<bank>/)",
             "automatic_context": "none (native shape: Hermes calls "
                                  "recall/reflect explicitly; no brief "
                                  "prefetch — a real capability difference, "
@@ -318,6 +328,61 @@ class HindsightAdapter(ProviderAdapter):
 
     def tool_allowlist(self) -> tuple[str, ...]:
         return HINDSIGHT_TOOL_ALLOWLIST
+
+    # -- MCP server (native retrieval transport) -------------------------------
+    def mcp_url(self, port: int) -> str:
+        if not self._bank:
+            raise RuntimeError("adapter not reset: call reset() first")
+        return f"http://127.0.0.1:{port}/mcp/{self._bank}/"
+
+    def mcp_server_spec(self, port: int) -> dict:
+        return {"name": "hindsight", "url": self.mcp_url(port)}
+
+    def start_server(self, port: int, timeout_s: float = 60.0) -> str:
+        """Launch hindsight-local-mcp against this adapter's PG instance."""
+        if self._engine is None or self._pg is None:
+            raise RuntimeError("adapter not reset: call reset() first")
+        llm = self._llm_config()
+        db_url = self._loop.run(self._pg.get_uri())
+        env = dict(os.environ)
+        env.update({
+            "HINDSIGHT_API_DATABASE_URL": db_url,
+            "HINDSIGHT_API_PORT": str(port),
+            "HINDSIGHT_API_LLM_API_KEY": llm.api_key,
+            "HINDSIGHT_API_LLM_PROVIDER": llm.provider,
+            "HINDSIGHT_API_LLM_MODEL": llm.model,
+            "HINDSIGHT_API_LLM_BASE_URL": llm.base_url,
+        })
+        self._server = subprocess.Popen(
+            [sys.executable, "-m", "hindsight_api.mcp_local"],
+            env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            try:
+                with socket.create_connection(("127.0.0.1", port),
+                                              timeout=2):
+                    return self.mcp_url(port)
+            except OSError:
+                if self._server.poll() is not None:
+                    raise RuntimeError(
+                        "hindsight MCP server exited during startup")
+                time.sleep(1.0)
+        self.stop_server()
+        raise RuntimeError("hindsight MCP server did not open "
+                           f"127.0.0.1:{port} in time")
+
+    def stop_server(self) -> None:
+        server = getattr(self, "_server", None)
+        if server is not None:
+            try:
+                server.terminate()
+                server.wait(timeout=15)
+            except Exception:
+                try:
+                    server.kill()
+                except Exception:
+                    pass
+            self._server = None
 
     # -- cleanup (§44 C; §42) ------------------------------------------------
     def cleanup(self, namespace: str) -> None:

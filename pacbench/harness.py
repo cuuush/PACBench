@@ -66,11 +66,18 @@ def _check_paths(home: Path) -> None:
 def provision_home(home: Path, *, provider_plugin_src: Path | None,
                    provider_name: str, model: str = "grok-4.6",
                    model_provider: str = "xai-oauth",
-                   live_home: Path | None = None) -> dict:
+                   live_home: Path | None = None,
+                   mcp_servers: list[dict] | None = None) -> dict:
     """Build a scratch HERMES_HOME: minimal config, provider plugin, no live auth.
 
     - ``provider_plugin_src`` is copied (never symlinked) to
       ``<home>/plugins/<provider_name>/``.
+    - ``mcp_servers`` (provider-blind): [{name, url?, command?, args?,
+      env?}] written as enabled entries under ``mcp_servers:`` in the
+      isolated config — how MCP-native providers (Hindsight) expose
+      memory tools to scored turns. No secrets: env values here land in
+      the isolated config file, so callers pass only non-secret env
+      (ports, bank paths, model names); credentials stay in process env.
     - Driver auth comes from PACBench-owned ``.env`` (``MODEL`` + ``META`` via
       ``pacbench.creds.load_driver``, exported as ``META_API_KEY``) and flows
       through the process environment into ``harness.run_turn``. This function
@@ -127,8 +134,25 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
             "tts", "video", "video_gen", "vision", "web", "x_search",
         ]},
     }
+    if mcp_servers:
+        entries = {}
+        for spec in mcp_servers:
+            name = spec["name"]
+            entry: dict = {"enabled": True}
+            if spec.get("url"):
+                entry["url"] = spec["url"]
+            if spec.get("command"):
+                entry["command"] = spec["command"]
+            if spec.get("args"):
+                entry["args"] = list(spec["args"])
+            if spec.get("env"):
+                entry["env"] = dict(spec["env"])
+            entries[name] = entry
+        config["mcp_servers"] = entries
     _write_yaml(home / "config.yaml", config)
     record["config_written"] = True
+    record["mcp_servers"] = sorted(
+        s["name"] for s in (mcp_servers or []))
     return record
 
 

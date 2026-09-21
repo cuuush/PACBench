@@ -31,7 +31,14 @@ from .manifest import SupportManifest
 from .observation import CHANNELS, Observation, chronology_ok
 from .rubric import ERROR_CLASSES, Kind, Slot
 
-ROLES = ("development", "calibration", "held-out", "exposed")
+#: Corpus split roles (§39 + ruling 2026-09-21 Q7). ``exposed_after_review``
+#: marks a life whose detailed inspection (evidence, rubric, output,
+#: trace, failure) could have informed implementation, prompts, grader,
+#: or provider config: its results are preserved as regression, but it
+#: is never fresh held-out again. Aggregate-only review (F1, latency,
+#: error counts, curves) leaves a life held out. Every life carrying
+#: this role must appear in docs/exposure-log.md (enforced by test).
+ROLES = ("development", "calibration", "held-out", "exposed_after_review")
 
 #: Norms whose expected values must appear literally in the cited evidence.
 LITERAL_NORMS = (Norm.DATE, Norm.TIME, Norm.STATUS, Norm.ENTITY, Norm.TEXT)

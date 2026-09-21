@@ -108,7 +108,7 @@ transition behavior tested (time-bounded affects answers before expiry,
 stops after, stays historically recoverable), each in >1 lineage, ≥1
 example ultimately in held-out.
 
-## Q7. Held-out exposure protocol — TO IMPLEMENT
+## Q7. Held-out exposure protocol — IMPLEMENTED 2026-09-21
 
 Aggregate inspection (F1, comparisons, latency, error counts, curves)
 never exposes. Detailed inspection of a life's evidence/rubric/output/
@@ -119,3 +119,9 @@ held-out again). Aggregate-only review leaves lives held out; no
 repeated peeking while claiming untouched. Exposure log required:
 life + date + reason + version-after-which-exposed. (Code has `exposed`;
 needs the co-author's `exposed_after_review` value + the log.)
+Implemented 2026-09-21: `ROLES` carries `exposed_after_review` (our
+invented `exposed` retired, nothing used it); docs/exposure-log.md is
+the log (life + date + reason + version-after-which-exposed, empty
+today — mechanism waiting for lives); `ExposureLog` tests enforce the
+vocab term, row well-formedness, and every-exposed-life-is-logged;
+docs/split-lineage.md states the aggregate-vs-detailed rule.

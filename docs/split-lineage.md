@@ -27,3 +27,8 @@ Consequences (enforced by `LineageDiscipline`, tests/test_v01.py):
   EXPECTED table deliberately — silent re-familiedrift fails the suite.
 - Lineage ships in the freeze bundle (`freeze.canonical`), so a
   re-familied corpus moves the pinned hash.
+- Exposure (ruling 2026-09-21 Q7): aggregate inspection never exposes;
+  detailed inspection of a life's evidence/rubric/output/trace/failure
+  flips its role to `exposed_after_review` and logs the row in
+  docs/exposure-log.md the same change. Results preserved as
+  regression, never fresh held-out again.

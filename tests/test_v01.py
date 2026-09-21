@@ -155,6 +155,51 @@ class LineageDiscipline(unittest.TestCase):
                                  by_id[life.control_of].lineage, life.id)
 
 
+class ExposureLog(unittest.TestCase):
+    """Ruling 2026-09-21 (Q7): detailed inspection marks a life
+    ``exposed_after_review`` and logs life + date + reason +
+    version-after-which-exposed. Aggregate-only review never exposes.
+    Vacuous today (held-out is empty, no rows) — standing guard."""
+
+    LOG = REPO / "docs" / "exposure-log.md"
+
+    def _rows(self):
+        rows = []
+        for line in self.LOG.read_text().splitlines():
+            if not line.startswith("|"):
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) != 4 or not cells[0]:
+                continue
+            if all(set(c) <= {"-"} for c in cells):
+                continue  # separator row
+            if cells[0] == "life":
+                continue  # header row
+            if cells[0].startswith("_("):
+                continue  # placeholder row: mechanism waiting for lives
+            rows.append(cells)
+        return rows
+
+    def test_role_vocab_uses_coauthor_term(self):
+        from pacbench.validate import ROLES
+        self.assertIn("exposed_after_review", ROLES)
+        self.assertNotIn("exposed", ROLES)
+
+    def test_log_rows_are_well_formed(self):
+        import re
+        for life, date, reason, version in self._rows():
+            self.assertTrue(life)
+            self.assertRegex(date, r"^\d{4}-\d{2}-\d{2}$", life)
+            self.assertTrue(reason, life)
+            self.assertTrue(version, life)
+
+    def test_every_exposed_life_is_logged(self):
+        logged = {life for life, _, _, _ in self._rows()}
+        for life in all_lives():
+            if life.role == "exposed_after_review":
+                self.assertIn(life.id, logged, life.id)
+
+
 class HiddenKeysStayHidden(unittest.TestCase):
     def _slots_of(self, life_id):
         life = get_life(life_id)

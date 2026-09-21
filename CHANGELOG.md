@@ -110,6 +110,10 @@
   `repetition_config` (provider, driver, corpus hash, timeout) in
   report.json and REPORT.md; omitted seeds record `provider-managed`.
   189 green.
+- Exposure protocol (ruling Q7): role vocab uses the co-author's exact
+  `exposed_after_review`; docs/exposure-log.md + `ExposureLog` tests
+  (term, row shape, every-exposed-life-logged); aggregate-vs-detailed
+  rule in docs/split-lineage.md. 192 green.
 
 ## 0.1.0 (2026-09-20)
 

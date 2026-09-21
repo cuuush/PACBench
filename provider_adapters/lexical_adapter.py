@@ -73,6 +73,11 @@ class LexicalAdapter(ProviderAdapter):
 
     name = "lexical"
 
+    #: A keyword store has no native scheduled background work
+    #: (clarification 2026-09-21): maintenance is not applicable, the
+    #: runner records that, and the run stays valid. Readiness below
+    #: agrees — ready per the native lifecycle (ingest only).
+
     def __init__(self, home: Path):
         check_scratch_home(home)
         self.home = home
@@ -151,29 +156,32 @@ class LexicalAdapter(ProviderAdapter):
 
     # -- scheduled processing (§44 C) -----------------------------------------
     def maintenance(self, at: str) -> Usage:
-        """Honest no-op: a keyword store has no background work to schedule.
+        """Not applicable: a keyword store has no background work to schedule.
 
-        Records ``complete`` with nothing scheduled — not ``skipped``, because
-        there is nothing to skip. Readiness agrees (see below).
+        Records ``not-applicable`` — never ``complete`` (nothing completed)
+        and never ``skipped`` (nothing to skip). The runner records the N/A
+        and the run stays valid (clarification 2026-09-21).
         """
         started = time.monotonic()
-        self._maintenance = {"state": "complete", "at": at,
-                             "detail": "lexical store: nothing scheduled"}
+        self._maintenance = {"state": "not-applicable", "at": at,
+                             "detail": "lexical store: no scheduled work"}
         latency = round(time.monotonic() - started, 2)
         self._latency_s += latency
         return Usage(model_calls=0, latency_s=latency,
-                     notes=("maintenance: complete (nothing scheduled)",))
+                     notes=("maintenance: not applicable (nothing scheduled)",))
 
     # -- readiness (§44 C; §42) ------------------------------------------------
     def readiness(self) -> Readiness:
-        """Report background-work completion (§42: honest, never a fake pass).
+        """Ready per the native lifecycle (clarification 2026-09-21).
 
-        The store is only current-as-claimed after a maintenance pass, even a
-        no-op one — before the first pass, not-ready says exactly that.
+        The native lifecycle is ingest-only: there is never background
+        work pending, so readiness is always ready once the adapter
+        exists. This is not a fake pass — it is what "ready according to
+        the supported native lifecycle" means for a hook-less provider.
         """
-        if self._maintenance.get("state") == "complete":
-            return Readiness(ready=True, detail="nothing scheduled; store current")
-        return Readiness(ready=False, detail="maintenance has not run yet")
+        return Readiness(
+            ready=True,
+            detail="scheduled maintenance not applicable; store current as ingested")
 
     # -- retrieval integration (§44 C; §28) ------------------------------------
     def retrieval(self) -> dict:

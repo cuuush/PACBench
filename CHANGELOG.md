@@ -90,6 +90,15 @@
   Pilot-measured: both 0.2.0 pilots suggested the declined waterfront
   festival with declined-framing (1 forbidden each) — the mention counts;
   whether declined-framing should exonerate is open grading design.
+- Co-author rulings 2026-09-21 (`docs/contract-clarifications-2026-09-21.md`,
+  seven answers, mandated sequence: integrity → Spark proof → Hindsight →
+  same-life audit → finalize pipeline → 30 lives + held-out). Judge route
+  verified: `gpt-5.6-sol` via Codex CLI (openai provider, medium effort) —
+  NOT OpenRouter; Hermes-subagent route fails (meta-ai 404, copilot
+  unlicensed). Lifecycle optionality implemented: `maintenance_applicable`
+  on the adapter contract; N/A providers record not-applicable and stay
+  valid; readiness = ready per native lifecycle (lexical always-ready);
+  memcal skip semantics unchanged. 182 green.
 
 ## 0.1.0 (2026-09-20)
 

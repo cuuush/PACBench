@@ -188,6 +188,11 @@ class MemcalAdapter(ProviderAdapter):
 
     name = "memcal"
 
+    #: Memcal HAS native scheduled work (nightly dream), so maintenance
+    #: applies: a skipped pass means the provider was not fully exercised
+    #: (clarification 2026-09-21 changes nothing here — it protects
+    #: providers with no such lifecycle, e.g. lexical).
+
     def __init__(self, home: Path, *, dream_model: str | None = None):
         check_scratch_home(home)
         self.home = home

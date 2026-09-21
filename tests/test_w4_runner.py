@@ -337,6 +337,50 @@ class FictionalClockIntegrity(unittest.TestCase):
         self.assertNotEqual(seen["PACBENCH_NOW"][:10], host_today)
 
 
+class MaintenanceApplicability(unittest.TestCase):
+    """Contract clarification 2026-09-21 (Q3): scheduled maintenance is
+    optional. N/A providers stay valid; applicable providers still need a
+    complete pass plus ready. Stub adapters — no model, no Hermes."""
+
+    def _stub(self, applicable, state, ready):
+        from types import SimpleNamespace
+        from pacbench.adapters import Readiness
+        return SimpleNamespace(
+            maintenance_applicable=applicable,
+            _maintenance={"state": state},
+            readiness=lambda: Readiness(ready=ready, detail="stub"))
+
+    def test_not_applicable_is_satisfied(self):
+        ok, reason = live.maintenance_satisfied(
+            self._stub(False, "not-applicable", True))
+        self.assertTrue(ok)
+        self.assertIn("not applicable", reason)
+
+    def test_complete_and_ready_is_satisfied(self):
+        ok, _ = live.maintenance_satisfied(
+            self._stub(True, "complete", True))
+        self.assertTrue(ok)
+
+    def test_skipped_is_unsatisfied(self):
+        ok, reason = live.maintenance_satisfied(
+            self._stub(True, "skipped", False))
+        self.assertFalse(ok)
+        self.assertIn("skipped", reason)
+
+    def test_complete_but_not_ready_is_unsatisfied(self):
+        ok, _ = live.maintenance_satisfied(
+            self._stub(True, "complete", False))
+        self.assertFalse(ok)
+
+    def test_legacy_adapter_defaults_to_applicable(self):
+        from types import SimpleNamespace
+        from pacbench.adapters import Readiness
+        legacy = SimpleNamespace(
+            _maintenance={"state": "complete"},
+            readiness=lambda: Readiness(ready=True, detail="stub"))
+        self.assertTrue(live.maintenance_satisfied(legacy)[0])
+
+
 class RepetitionLayout(unittest.TestCase):
     """Contract §40: repetitions are namespaced realizations, never overwrites."""
 

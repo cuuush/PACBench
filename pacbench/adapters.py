@@ -6,9 +6,16 @@ runner can treat systems uniformly without knowing their internals:
 - ``reset`` — clear all state for one isolated (life, configuration, repetition).
 - ``ingest`` — accept one batch of *public* observations at a collection boundary.
 - ``maintenance`` — run scheduled background work (e.g. nightly consolidation).
+  Scheduled maintenance is OPTIONAL (clarification 2026-09-21): a provider
+  with no native background work sets ``maintenance_applicable = False``;
+  the runner then records not-applicable and the run stays valid. Do not
+  invent nightly work for another provider or penalize it for lacking
+  Memcal's lifecycle.
 - ``readiness`` — report whether background work has completed; the runner waits on
   declared real-time deadlines and records timeouts rather than waiting without
-  limit (waiting without limit would flatter slow systems).
+  limit (waiting without limit would flatter slow systems). Readiness means
+  ready according to that provider's supported native lifecycle — not "has
+  completed something analogous to Memcal dream".
 - ``cleanup`` — delete only resources this run owns.
 - ``usage`` — report observable cost/usage; unknown cost stays unknown, never zero.
 
@@ -63,6 +70,11 @@ class ProviderAdapter(ABC):
     """Common contract every evaluated memory provider implements (later stage)."""
 
     name: str = "unnamed"
+    #: False when the provider has no native scheduled background work
+    #: (clarification 2026-09-21): the runner records not-applicable and
+    #: the run stays valid. True (default) means a scheduled pass is part
+    #: of the native lifecycle and a skip leaves the provider not exercised.
+    maintenance_applicable: bool = True
 
     @abstractmethod
     def reset(self, namespace: str) -> None:

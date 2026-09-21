@@ -116,12 +116,14 @@ class LexicalAdapterCycle(unittest.TestCase):
 
         readiness = self.adapter.readiness()
         self.assertIsInstance(readiness, Readiness)
-        # Nothing has run yet: not-run reads not-ready (§42 honesty).
-        self.assertFalse(readiness.ready)
+        # No native background work (clarification 2026-09-21): readiness
+        # is ready per the ingest-only lifecycle even before any pass.
+        self.assertTrue(readiness.ready)
+        self.assertIn("not applicable", readiness.detail)
 
         maint = self.adapter.maintenance("2026-09-08T23:59:00")
-        self.assertEqual(self.adapter._maintenance["state"], "complete")
-        self.assertIn("nothing scheduled", maint.notes[0])
+        self.assertEqual(self.adapter._maintenance["state"], "not-applicable")
+        self.assertIn("not applicable", maint.notes[0])
         self.assertTrue(self.adapter.readiness().ready)
 
         total = self.adapter.usage()

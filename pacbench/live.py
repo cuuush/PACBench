@@ -441,6 +441,26 @@ def rep_dir_name(life_id: str, rep: int, repetitions: int) -> str:
     return f"{life_id}-rep{rep}"
 
 
+def maintenance_satisfied(adapter: Any) -> tuple[bool, str]:
+    """Is the provider's maintenance obligation met at this boundary?
+
+    Contract clarification 2026-09-21 (Q3): scheduled maintenance is
+    optional. A provider declaring ``maintenance_applicable = False`` has
+    no native background work — the runner records not-applicable and the
+    run stays valid. Otherwise (default) a scheduled pass is part of the
+    native lifecycle: satisfaction needs state ``complete`` AND readiness
+    ready. A memcal skip still means not fully exercised.
+    """
+    readiness = adapter.readiness()
+    if not bool(getattr(adapter, "maintenance_applicable", True)):
+        return True, "scheduled maintenance not applicable to this provider"
+    state = (adapter._maintenance.get("state")
+             if hasattr(adapter, "_maintenance") else "unknown")
+    if state == "complete" and readiness.ready:
+        return True, "maintenance complete and ready"
+    return False, f"maintenance not complete (state={state}, ready={readiness.ready})"
+
+
 def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
              life_dir: Path, model: str, model_provider: str,
              driver_configured_model: str,
@@ -579,15 +599,18 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
         stamp = f"{day}T23:59:00"
         usage = adapter.maintenance(stamp)
         readiness = adapter.readiness()
+        ok, reason = maintenance_satisfied(adapter)
         maintenance_events.append({
             "at": stamp,
+            "maintenance_applicable": bool(
+                getattr(adapter, "maintenance_applicable", True)),
             "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
             "readiness": readiness.__dict__,
+            "satisfied": ok,
+            "reason": reason,
         })
-        state = adapter._maintenance.get("state") if hasattr(adapter, "_maintenance") else "unknown"
-        if state != "complete" or not readiness.ready:
-            incomplete_reasons.append(
-                f"maintenance {stamp} not complete (state={state}, ready={readiness.ready})")
+        if not ok:
+            incomplete_reasons.append(f"maintenance {stamp} {reason}")
 
     dates = sorted({p["collected_at"][:10] for p in payloads}
                    | {c.at[:10] for c in checkpoints})

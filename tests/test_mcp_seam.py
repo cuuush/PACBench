@@ -87,6 +87,19 @@ class PreflightMcp(unittest.TestCase):
         self.assertEqual(problems, [])
 
 
+class TurnEnvClock(unittest.TestCase):
+    def test_fictional_now_pins_memcal_clock(self):
+        import tempfile
+        from pathlib import Path
+        from pacbench.harness import turn_env
+        with tempfile.TemporaryDirectory() as tmp:
+            env = turn_env("2026-09-10T19:00:00", Path(tmp), "allow")
+        self.assertEqual(env["PACBENCH_NOW"], "2026-09-10T19:00:00")
+        # memcal's documented benchmark seam: brief windows + write
+        # precedence follow MEMCAL_TODAY, never the machine clock.
+        self.assertEqual(env["MEMCAL_TODAY"], "2026-09-10T19:00:00")
+
+
 class ProvisionMcp(unittest.TestCase):
     def test_mcp_servers_written_enabled(self):
         from pacbench import harness

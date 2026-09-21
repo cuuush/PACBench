@@ -180,6 +180,34 @@ def _to_yaml(data: dict, indent: int = 0) -> str:
     return "\n".join(lines) + "\n"
 
 
+def turn_env(at: str, home: Path,
+             allowlist: str,
+             extra_env: dict | None = None) -> dict:
+    """Environment for one isolated turn.
+
+    MEMCAL_TODAY pins memcal's native clock (brief windows, write
+    precedence) to the fictional now via the product's documented
+    benchmark seam (`MEMCAL_TODAY`, memcal.db clock header). Without it
+    the memcal brief renders the host week — observed 2026-09-21: brief
+    said "(nothing known)" for host-week Sep 18–28 while the fictional
+    2026-09-10 evidence sat in archive, and Hermes trusted the empty
+    brief. Accepts the full ISO `at` (memcal splits day + time).
+    """
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    env.update({
+        "HERMES_HOME": str(home),
+        "PACBENCH_NOW": at,
+        "MEMCAL_TODAY": at,
+        "PACBENCH_TOOL_ALLOWLIST": allowlist,
+        "PACBENCH_NO_BUILTIN_MEMORY": "1",
+        "PACBENCH_NO_SESSION_SEARCH": "1",
+        "TERM": "dumb",
+    })
+    if extra_env:
+        env.update(extra_env)
+    return env
+
+
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None) -> TurnResult:
@@ -194,17 +222,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     _check_paths(home)
     prompt = (f"[Simulated now: {at}. Treat this as the current date and "
               f"time for everything in this turn.]\n\n{prompt}")
-    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
-    env.update({
-        "HERMES_HOME": str(home),
-        "PACBENCH_NOW": at,
-        "PACBENCH_TOOL_ALLOWLIST": allowlist,
-        "PACBENCH_NO_BUILTIN_MEMORY": "1",
-        "PACBENCH_NO_SESSION_SEARCH": "1",
-        "TERM": "dumb",
-    })
-    if extra_env:
-        env.update(extra_env)
+    env = turn_env(at, home, allowlist, extra_env)
     cmd = [str(ISOLATED_BIN), "chat", "-q", prompt, "-Q", "--format", "stream-json"]
     if session_id:
         cmd += ["--resume", session_id]

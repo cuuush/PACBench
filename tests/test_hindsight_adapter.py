@@ -44,9 +44,11 @@ def _adapter(**kw):
 
 
 def _no_key():
+    # clear=True: merely omitting the key from the update dict does NOT
+    # remove a real exported key (patch.dict defaults to update-only).
     env = {k: v for k, v in os.environ.items()
            if k != "HINDSIGHT_API_LLM_API_KEY"}
-    return mock.patch.dict(os.environ, env, clear=False)
+    return mock.patch.dict(os.environ, env, clear=True)
 
 
 class RetryOnEmpty(unittest.TestCase):
@@ -110,6 +112,20 @@ class RetryOnEmpty(unittest.TestCase):
         self.assertIn("s/2", usage.notes[0])
 
 
+class LlmConfigFallback(unittest.TestCase):
+    """Internal LLM key falls back to the repo .env (driver precedent)."""
+
+    def test_explicit_key_wins(self):
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        home = Path(tempfile.mkdtemp(prefix="hs-test-"))
+        adapter = HindsightAdapter(
+            home, engine_factory=lambda db_url, llm: FakeEngine(),
+            pg_factory=FakePG)
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "explicit"}):
+            self.assertEqual(adapter._llm_config().api_key, "explicit")
+
+
 class ScratchGuard(unittest.TestCase):
     def test_refuses_non_scratch(self):
         from provider_adapters.hindsight_adapter import HindsightAdapter
@@ -119,8 +135,12 @@ class ScratchGuard(unittest.TestCase):
 
 class ResetFailClosed(unittest.TestCase):
     def test_no_key_refuses(self):
+        # No env key AND no .env key: still fail-closed.
+        from pacbench.generation import GenerationError
         adapter, _ = _adapter()
-        with _no_key():
+        with _no_key(), mock.patch(
+                "pacbench.generation.load_config",
+                side_effect=GenerationError("no key")):
             with self.assertRaises(RuntimeError):
                 adapter.reset("ns1")
 

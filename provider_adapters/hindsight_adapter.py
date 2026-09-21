@@ -163,6 +163,18 @@ class HindsightAdapter(ProviderAdapter):
     def _llm_config(self) -> SimpleNamespace:
         key = os.environ.get("HINDSIGHT_API_LLM_API_KEY", "").strip()
         if not key:
+            # Repo credential precedent (cf. creds.load_driver): the PACBench
+            # .env META credential backs the internal LLM unless an explicit
+            # HINDSIGHT_API_LLM_API_KEY overrides it. Still fail-closed when
+            # no key exists anywhere.
+            try:
+                from pacbench.creds import DEFAULT_ENV
+                from pacbench.generation import load_config
+                _, key = load_config(DEFAULT_ENV)
+                key = (key or "").strip()
+            except Exception:
+                key = ""
+        if not key:
             raise RuntimeError(
                 "HINDSIGHT_API_LLM_API_KEY is not set. Point it at an "
                 "OpenAI-compatible chat endpoint (dev: the META credential) "

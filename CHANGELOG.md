@@ -123,6 +123,15 @@
   calibrate before held-out scoring. Exposure log widened to the
   six required columns; integrity laws added (never tune on who won,
   roles stay separate). 199 green.
+- Adversarial clock probe (proceed step 2): `probe-clock`
+  asks the isolated driver for today's date under a fictional clock.
+  First live run FAILED (host-date leak: answered 2026-09-21 under
+  PACBENCH_NOW=2026-09-09) — root cause: the shim governed tool-time
+  only; nothing told the model the fictional date, so model-time stayed
+  host-anchored in ALL prior pilots (disclosed caveat on frozen scores:
+  evidence said Sep 8–14 while the model believed ~Sep 20–21). Fix:
+  `run_turn` carries `[Simulated now: at]` in chat context, recorded in
+  turn artifacts; re-probe PASSES. 206 green.
 
 ## 0.1.0 (2026-09-20)
 

@@ -336,6 +336,34 @@ class FictionalClockIntegrity(unittest.TestCase):
         host_today = datetime.now(timezone.utc).date().isoformat()
         self.assertNotEqual(seen["PACBENCH_NOW"][:10], host_today)
 
+    def test_run_turn_carries_simulated_now_in_chat_context(self):
+        """The model must SEE the fictional now: tool-time shim alone
+        leaves model-time host-anchored (clock probe answered the host
+        date on a bare turn). The prefix is recorded, never hidden."""
+        import subprocess
+        from unittest import mock
+        from pacbench import harness
+        import tempfile
+        fictional = "2026-09-10T12:00:00"
+        seen_cmd: list = []
+
+        def fake_run(cmd, **kw):
+            seen_cmd.extend(cmd)
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        with tempfile.TemporaryDirectory(prefix="pacbench-clock-") as tmp:
+            home = Path(tmp) / "h-home"
+            harness.provision_home(home, provider_plugin_src=None,
+                                   provider_name="none")
+            with mock.patch.object(harness.subprocess, "run",
+                                   side_effect=fake_run):
+                harness.run_turn("hi", at=fictional, home=home,
+                                 allowlist="", timeout_s=10)
+        q_index = seen_cmd.index("-q") + 1
+        sent = seen_cmd[q_index]
+        self.assertIn(f"[Simulated now: {fictional}.", sent)
+        self.assertTrue(sent.endswith("hi"))
+
 
 class MaintenanceApplicability(unittest.TestCase):
     """Contract clarification 2026-09-21 (Q3): scheduled maintenance is
@@ -379,6 +407,46 @@ class MaintenanceApplicability(unittest.TestCase):
             _maintenance={"state": "complete"},
             readiness=lambda: Readiness(ready=True, detail="stub"))
         self.assertTrue(live.maintenance_satisfied(legacy)[0])
+
+
+class ClockProbeVerdict(unittest.TestCase):
+    """Proceed ruling step 2: the adversarial verdict logic, no model."""
+    FICTIONAL = "2026-09-09T12:00:00"
+
+    def test_fictional_date_passes(self):
+        verdict, _ = live.classify_clock_answer(
+            "Wednesday, September 9, 2026.", self.FICTIONAL)
+        self.assertEqual(verdict, "pass")
+
+    def test_iso_form_passes(self):
+        verdict, _ = live.classify_clock_answer("2026-09-09", self.FICTIONAL)
+        self.assertEqual(verdict, "pass")
+
+    def test_host_leak_fails(self):
+        from datetime import datetime, timezone
+        host = datetime.now(timezone.utc).date()
+        verdict, reason = live.classify_clock_answer(
+            f"Today is {host.strftime('%B')} {host.day}, 2026.",
+            self.FICTIONAL)
+        self.assertEqual(verdict, "fail")
+        self.assertIn("host-date leak", reason)
+
+    def test_host_leak_dominates_fictional_mention(self):
+        from datetime import datetime, timezone
+        host = datetime.now(timezone.utc).date()
+        verdict, _ = live.classify_clock_answer(
+            f"Fictional September 9, but really {host.strftime('%B')} "
+            f"{host.day}.", self.FICTIONAL)
+        self.assertEqual(verdict, "fail")
+
+    def test_hedge_is_inconclusive_not_forced(self):
+        verdict, _ = live.classify_clock_answer(
+            "I don't have access to the current date.", self.FICTIONAL)
+        self.assertEqual(verdict, "inconclusive")
+
+    def test_bare_weekday_alone_is_inconclusive(self):
+        verdict, _ = live.classify_clock_answer("Wednesday.", self.FICTIONAL)
+        self.assertEqual(verdict, "inconclusive")
 
 
 class RepetitionLayout(unittest.TestCase):

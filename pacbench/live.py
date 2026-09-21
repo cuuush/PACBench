@@ -18,7 +18,7 @@ adapter boundary — only public observation payloads do.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -266,6 +266,92 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         "latency_s": scored.latency_s,
         "artifacts": str(run_dir),
     }
+
+
+def _clock_forms(day: date) -> set[str]:
+    """Surface forms of a calendar date a driver might answer with."""
+    wd = day.strftime("%A").lower()
+    mon = day.strftime("%B").lower()
+    mon_ab = day.strftime("%b").lower()
+    d = day.day
+    return {
+        f"{mon} {d}", f"{mon_ab} {d}", f"{mon} {d}, 2026",
+        f"{mon_ab} {d}, 2026", f"{d}/{day.month}", f"{day.month}/{d}",
+        f"{day.isoformat()}", f"{day:%m/%d}", f"{day:%m-%d}",
+        f"{mon} {d}{_ordinal(d)}", wd,
+    }
+
+
+def _ordinal(n: int) -> str:
+    if 10 <= n % 100 <= 20:
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+
+def classify_clock_answer(answer: str, fictional_at: str) -> tuple[str, str]:
+    """Adversarial clock verdict (proceed ruling step 2): PASS only when
+    the answer names the fictional date; any host-date (UTC or local)
+    mention is a host leak and FAILs even alongside the fictional one;
+    anything else is INCONCLUSIVE — recorded verbatim, never forced.
+    A bare weekday match alone is supporting, not sufficient."""
+    hay = answer.lower()
+    fict = date.fromisoformat(fictional_at[:10])
+    now_utc = datetime.now(timezone.utc)
+    host_days = {now_utc.date(), now_utc.astimezone().date()}
+    fict_forms = _clock_forms(fict)
+    host_forms = set().union(*(_clock_forms(d) for d in host_days))
+    hit_fict = {f for f in fict_forms if f in hay}
+    hit_host = {f for f in host_forms if f in hay} - hit_fict
+    # Weekday alone does not pass: require a month-day or ISO form too.
+    strong_fict = {f for f in hit_fict if not _is_bare_weekday(f)}
+    if hit_host:
+        return ("fail",
+                f"host-date leak: {sorted(hit_host)} in answer")
+    if strong_fict:
+        return ("pass",
+                f"fictional date asserted: {sorted(strong_fict)}")
+    return ("inconclusive",
+            "answer names neither the fictional nor the host date")
+
+
+def _is_bare_weekday(form: str) -> bool:
+    return form in ("monday", "tuesday", "wednesday", "thursday",
+                    "friday", "saturday", "sunday")
+
+
+def probe_clock(*, hermes_home: Path, run_dir: Path,
+                model: str, model_provider: str,
+                timeout_s: float = 600.0,
+                fictional_at: str = "2026-09-09T12:00:00") -> dict:
+    """One adversarial turn: ask the isolated driver for today's date under
+    a fictional clock that disagrees with the host (UTC and local).
+    Spend: exactly one driver call. Artifacts always written."""
+    run_dir.mkdir(parents=True, exist_ok=True)
+    home_record = harness.provision_home(
+        hermes_home, provider_plugin_src=None,
+        provider_name="none", model=model, model_provider=model_provider,
+        live_home=None)
+    result = harness.run_turn(
+        "What is today's date? Reply with just the date.", at=fictional_at,
+        home=hermes_home, allowlist="", timeout_s=timeout_s)
+    verdict, reason = classify_clock_answer(result.answer, fictional_at)
+    now_utc = datetime.now(timezone.utc)
+    record = {
+        "probe": "pacbench-clock-probe",
+        "prompt": result.prompt,
+        "fictional_at": fictional_at,
+        "host_utc": now_utc.isoformat(),
+        "host_local": now_utc.astimezone().isoformat(),
+        "answer": result.answer,
+        "verdict": verdict,
+        "reason": reason,
+        "latency_s": result.latency_s,
+        "returncode": result.returncode,
+        "provision": home_record,
+        "artifacts": str(run_dir),
+    }
+    _write_json(run_dir / "probe.json", record)
+    return record
 
 
 def run_smoke(*, hermes_home: Path, run_dir: Path,

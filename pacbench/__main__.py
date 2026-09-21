@@ -86,6 +86,30 @@ def _load_adapter(home: Path, provider: str, dream_model: str | None):
     raise RuntimeError(f"unknown provider {provider!r}")
 
 
+def _cmd_probe_clock(args: argparse.Namespace) -> int:
+    from pacbench import live
+    try:
+        driver = _load_driver()
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 2
+    print(f"driver: {driver!r}")
+    run_dir = _scratch_run_dir(Path(args.runs), "clock-probe")
+    hermes_home = run_dir / "hermes-home"
+    try:
+        record = live.probe_clock(
+            hermes_home=hermes_home, run_dir=run_dir, model=driver.model_id,
+            model_provider=driver.provider, timeout_s=args.timeout,
+            fictional_at=args.fictional_at)
+    except RuntimeError as exc:
+        print(f"PROBE ERROR: {exc}", file=sys.stderr)
+        print(f"artifacts: {run_dir}")
+        return 1
+    print(json.dumps(record, indent=2, sort_keys=True))
+    print(f"artifacts: {run_dir}")
+    print(f"verdict: {record['verdict']} ({record['reason']})")
+    return 0 if record["verdict"] == "pass" else 1
+
+
 def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
     from pacbench import corpus, live
     try:
@@ -184,6 +208,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_smoke.add_argument("--runs", default=str(REPO / "runs"))
     p_smoke.add_argument("--timeout", type=float, default=600.0)
     p_smoke.set_defaults(func=_cmd_smoke)
+
+    p_clock = sub.add_parser("probe-clock",
+                             help="adversarial fictional-clock probe: ask the "
+                                  "isolated driver for today's date under a "
+                                  "fictional clock (proceed ruling step 2)")
+    p_clock.add_argument("--runs", default=str(REPO / "runs"))
+    p_clock.add_argument("--timeout", type=float, default=600.0)
+    p_clock.add_argument("--fictional-at", default="2026-09-09T12:00:00",
+                         help="fictional now exported as PACBENCH_NOW; must "
+                              "disagree with the host date")
+    p_clock.set_defaults(func=_cmd_probe_clock)
 
     p_run = sub.add_parser("run-checkpoint", help="one checkpoint via Hermes + provider")
     p_run.add_argument("--life", required=True)

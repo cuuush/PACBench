@@ -159,8 +159,17 @@ def _to_yaml(data: dict, indent: int = 0) -> str:
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None) -> TurnResult:
-    """Drive one noninteractive turn through the isolated clone and parse traces."""
+    """Drive one noninteractive turn through the isolated clone and parse traces.
+
+    Every turn carries its simulated now in chat context (not only in the
+    PACBENCH_NOW tool-time shim): the model otherwise anchors "today" on
+    the host date — demonstrated by the adversarial clock probe answering
+    the host date under a fictional clock. The prefix is recorded in the
+    turn artifact, never hidden.
+    """
     _check_paths(home)
+    prompt = (f"[Simulated now: {at}. Treat this as the current date and "
+              f"time for everything in this turn.]\n\n{prompt}")
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     env.update({
         "HERMES_HOME": str(home),

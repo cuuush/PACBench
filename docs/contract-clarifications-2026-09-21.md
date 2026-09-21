@@ -139,7 +139,9 @@ Mandated sequence from here (supersedes any earlier ordering):
    else a third human).
 2. Run the adversarial clock probe (approved; bundle with live work;
    isolated PACBench Hermes state only; host vs fictional date must
-   imply different answers).
+   imply different answers). DONE 2026-09-21: first run failed (host
+   leak), root-caused to model-time never entering chat context, fixed
+   with recorded `[Simulated now]` turn prefix, re-probe passes.
 3. Generate + validate one 1,000–2,000-obs Spark life (approved; actual
    Spark model + rendering path; $50 runaway guard stands as safety,
    not quality; stop-and-inspect near the guard, never silently

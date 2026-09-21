@@ -663,6 +663,21 @@ def _plan() -> LifePlan:
 _LIFE, _MANIFEST = build_life(_plan())
 
 
+def render_meta() -> dict[str, dict]:
+    """Per-beat render metadata for the batch pass: register + must_include.
+
+    Evidence beats carry both from the authoring plan; filler defaults to
+    casual with no required tokens (content fixed by the screened
+    templates, style by the model).
+    """
+    meta = {b.local_id: {"register": b.register,
+                         "must_include": tuple(b.must_include)}
+            for b in _evidence()}
+    for i in range(_FILLER_N):
+        meta[f"f{i:04d}"] = {"register": "casual", "must_include": ()}
+    return meta
+
+
 def lives() -> list[Life]:
     return [_LIFE]
 

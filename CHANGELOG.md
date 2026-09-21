@@ -21,6 +21,11 @@
   route) + review packet + sign-off still ahead; GAPS account untouched
   (first instances of all three gap classes recorded, closure proposed
   for co-author review).
+- Render pass tooling (`pacbench/batch_render.py`): fail-closed per-beat
+  batch rendering (entailment retry, transport retry+backoff, resume from
+  checkpoint, frozen-config guard), approved prompter `substantial-v1`
+  (probe: plain prompt only lowercased; substantial rewrites genuinely
+  with 0 dropped tokens / 0 added atoms on 10/10).
 
 ## Unreleased (corpus 0.2.0)
 

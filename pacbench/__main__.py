@@ -158,6 +158,64 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
     return 0
 
 
+def _load_life(life_id: str):
+    """Registered corpus life, else the unregistered toy diagnostic."""
+    from pacbench import corpus
+    try:
+        return corpus.get_life(life_id)
+    except KeyError:
+        pass
+    if life_id == "toy-day":
+        from pacbench.corpus import life_g_toyday
+        print("diagnostic: toy-day is unregistered plumbing material, "
+              "never corpus evidence")
+        return life_g_toyday.lives()[0]
+    raise KeyError(f"unknown life {life_id!r}")
+
+
+def _cmd_run_life(args: argparse.Namespace) -> int:
+    from pacbench import live
+    from pacbench.frozen import load_bundle
+    try:
+        life = _load_life(args.life)
+    except KeyError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.provider not in ("memcal", "lexical", "hindsight"):
+        print(f"error: unknown provider {args.provider!r} (supports: memcal, lexical, hindsight)",
+              file=sys.stderr)
+        return 2
+    try:
+        bundle = load_bundle(args.bundle, args.bundle_hash)
+    except RuntimeError as exc:
+        print(f"BUNDLE FAILED: {exc}", file=sys.stderr)
+        return 1
+    try:
+        driver = _load_driver()
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 2
+    print(f"driver: {driver!r}")
+    life_dir = _scratch_run_dir(Path(args.runs), "life")
+
+    def make_adapter(home: Path):
+        return _load_adapter(home, args.provider, driver.model_id)
+
+    try:
+        record = live.run_life(
+            life=life, provider=args.provider, make_adapter=make_adapter,
+            life_dir=life_dir, model=driver.model_id,
+            model_provider=driver.provider,
+            driver_configured_model=driver.configured_model,
+            timeout_s=args.timeout, bundle=bundle)
+    except (RuntimeError, ValueError) as exc:
+        print(f"RUN FAILED: {exc}", file=sys.stderr)
+        print(f"artifacts: {life_dir}")
+        return 1
+    print(json.dumps(record["summary"], indent=2, sort_keys=True))
+    print(f"artifacts: {life_dir}")
+    return 0
+
+
 def _cmd_run_pilot(args: argparse.Namespace) -> int:
     from pacbench import corpus, live
     if args.provider not in ("memcal", "lexical", "hindsight"):
@@ -232,6 +290,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--with-maintenance", action="store_true",
                        help="run provider scheduled processing before the checkpoint")
     p_run.set_defaults(func=_cmd_run_checkpoint)
+
+    p_life = sub.add_parser("run-life", help="one sequential life episode (primary path)")
+    p_life.add_argument("--life", required=True)
+    p_life.add_argument("--provider", default="memcal")
+    p_life.add_argument("--bundle", required=True,
+                        help="frozen observation bundle (fail-closed; never draft-text for scored runs)")
+    p_life.add_argument("--bundle-hash", required=True,
+                        help="pinned sha256 of the frozen bundle")
+    p_life.add_argument("--runs", default=str(REPO / "runs"))
+    p_life.add_argument("--timeout", type=float, default=900.0)
+    p_life.set_defaults(func=_cmd_run_life)
 
     p_pilot = sub.add_parser("run-pilot", help="full development pilot")
     p_pilot.add_argument("--provider", default="memcal")

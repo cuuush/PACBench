@@ -72,6 +72,7 @@ class LexicalAdapter(ProviderAdapter):
     """Keyword-search baseline backed by a scratch sqlite home. No model calls."""
 
     name = "lexical"
+    maintenance_applicable = False
 
     #: A keyword store has no native scheduled background work
     #: (clarification 2026-09-21): maintenance is not applicable, the

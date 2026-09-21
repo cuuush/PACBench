@@ -257,18 +257,42 @@ class HindsightAdapter(ProviderAdapter):
             raise RuntimeError("adapter not reset: call reset() first")
         count = 0
         empty_ids = 0
+        # Native batch path (ruling §1): one retain_batch_async per
+        # collection instant; every original message preserved verbatim
+        # (text, sender, timestamps, ordering, thread) — no summaries,
+        # no packetizing by hidden benchmark events. Deterministic
+        # operation_id per packet supports idempotent OPERATIONAL retry
+        # only; semantic empties are recorded, never retried (§2).
+        groups: dict[str, list[dict]] = {}
         for obs in evidence:
-            # Ruling 2026-09-21 (consolidated §2): NO semantic retry. A
-            # retain that returns [] is a measured provider outcome —
-            # retrying would give the provider a second stochastic chance
-            # and smooth away the failure PACBench must expose. Retry is
-            # reserved for operational uncertainty (transport/timeout/
-            # unknown status), ideally with an idempotent operation ID.
-            ids = self._retain(obs)
-            if ids:
-                count += 1
-            else:
-                empty_ids += 1
+            groups.setdefault(
+                str(obs.get("collected_at", collected_at)), []).append(obs)
+        for group_at in sorted(groups):
+            contents = [
+                {"content": o["text"],
+                 "context": f"{o.get('channel', '?')} from "
+                            f"{o.get('sender', '?')}",
+                 "event_date": _parse_event_date(o.get("written_at")),
+                 "metadata": {"source_id": str(o.get("source_id", "?")),
+                              "thread": str(o.get("thread", "?")),
+                              "sender": str(o.get("sender", "?"))},
+                 "document_id": str(o.get("source_id", "?"))}
+                for o in groups[group_at]
+            ]
+            per_item = self._loop.run(
+                self._engine.retain_batch_async(
+                    self._bank, contents, request_context=self._ctx,
+                    operation_id=f"{self._bank}:{group_at}"))
+            self._retain_calls += 1
+            if isinstance(per_item, tuple):
+                per_item = per_item[0]
+            if per_item and isinstance(per_item[0], str):
+                per_item = [[ids] for ids in per_item]
+            for ids in per_item or []:
+                if ids:
+                    count += 1
+                else:
+                    empty_ids += 1
         self._retained += count
         self._redirected_turns += redirected
         latency = round(time.monotonic() - started, 2)
@@ -278,19 +302,6 @@ class HindsightAdapter(ProviderAdapter):
             notes=(f"retained {count}/{len(evidence)} "
                    f"({empty_ids} empty-id returns, recorded not retried); "
                    f"user_turns_redirected {redirected}",))
-
-    def _retain(self, obs: dict) -> list[str]:
-        """One retain call; returns unit ids (possibly [])."""
-        assert self._engine is not None
-        ids = self._loop.run(self._engine.retain_async(
-            self._bank,
-            obs["text"],
-            context=f"{obs.get('channel', '?')} from "
-                    f"{obs.get('sender', '?')}",
-            event_date=_parse_event_date(obs.get("written_at")),
-            request_context=self._ctx))
-        self._retain_calls += 1
-        return list(ids)
 
     # -- scheduled processing (§44 C: native graph maintenance) --------------
     def maintenance(self, at: str) -> Usage:

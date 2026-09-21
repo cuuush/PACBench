@@ -17,6 +17,7 @@ adapter boundary — only public observation payloads do.
 
 from __future__ import annotations
 
+import contextlib
 import json
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -25,6 +26,8 @@ from typing import Any, Callable
 from . import CORPUS_VERSION
 from . import harness
 from .freeze import digest
+from .frozen import bundle_hash as frozen_bundle_hash
+from .frozen import observations_for as frozen_observations_for
 from .grade import Grade, GradedSlot
 from .life import Life
 from .report import summarize
@@ -160,6 +163,45 @@ def _stop_provider_server(adapter: Any) -> None:
             stop()
         except Exception:
             pass
+
+
+@contextlib.contextmanager
+def provider_server(adapter: Any, seam: dict):
+    """Bank-scoped provider MCP server for one sequential life episode.
+
+    Plugin-based providers need nothing (yields None). MCP providers
+    (seam ``mcp_server``) get a free loopback port, a started server,
+    and the one-entry spec list for ``provision_home``; the server is
+    always stopped on exit. Use as::
+
+        with provider_server(adapter, seam) as mcp_servers:
+            ...
+    """
+    specs = _start_provider_server(adapter, seam)
+    try:
+        yield specs
+    finally:
+        _stop_provider_server(adapter)
+
+
+def overlay_bundle_observations(life: Life, bundle: dict) -> list[dict]:
+    """Frozen evidence payloads for a life (fail-closed, §5).
+
+    Source-ID set must match the code-defined life exactly; texts come
+    from the bundle (rendered surface may differ from drafts by
+    design). Sorted by (collected_at, source_id)."""
+    frozen_obs = frozen_observations_for(bundle, life.id)
+    by_id = {d["source_id"]: d for d in frozen_obs}
+    life_ids = {o.source_id for o in life.observations}
+    if set(by_id) != life_ids:
+        missing = sorted(life_ids - set(by_id))
+        extra = sorted(set(by_id) - life_ids)
+        raise RuntimeError(
+            f"frozen bundle does not match life {life.id}: "
+            f"missing {missing} extra {extra}")
+    payloads = [dict(by_id[o.source_id]) for o in life.observations]
+    payloads.sort(key=lambda d: (d["collected_at"], d["source_id"]))
+    return payloads
 
 
 def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
@@ -588,30 +630,24 @@ def maintenance_satisfied(adapter: Any) -> tuple[bool, str]:
     return False, f"maintenance not complete (state={state}, ready={readiness.ready})"
 
 
-def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
-             life_dir: Path, model: str, model_provider: str,
-             driver_configured_model: str,
-             timeout_s: float = 900.0, repetition: int = 0) -> dict:
+def _run_life_episode(*, life: Life, provider: str, adapter: Any,
+                      namespace: str,
+                      life_dir: Path, model: str, model_provider: str,
+                      driver_configured_model: str,
+                      timeout_s: float = 900.0, repetition: int = 0,
+                      bundle: dict | None = None,
+                      mcp_servers: list[dict] | None = None) -> dict:
     """Run one full 7-day life episode: ingest → turns → checkpoints → maintenance.
 
-    A single chronological episode per (life, provider): evidence is ingested at
-    declared collection times, hermes-channel observations run as continuing
-    Hermes turns in per-thread sessions, each checkpoint is asked in the
-    continuing episode session and graded, and one nightly maintenance pass runs
-    per simulated date with verified readiness. Returns the life record
-    (``state`` is ``valid``, ``incomplete``, or ``invalid``).
+    PRIMARY PATH (consolidated ruling §1): one persistent provider state
+    per (life × provider × repetition), sequential delta ingest, one
+    namespace. ``bundle`` (frozen observations, §5) replaces draft texts
+    when given; without it the run is draft-text diagnostic and the
+    manifest says so. Returns the life record (``state`` is ``valid``,
+    ``incomplete``, or ``invalid``).
     """
     life_dir.mkdir(parents=True, exist_ok=True)
     hermes_home = life_dir / "hermes-home"
-    adapter = make_adapter(life_dir / "memcal-home")
-    namespace = f"{life.id}-rep{repetition}"
-
-    problems = preflight(life, hermes_home, life_dir / "memcal-home", adapter)
-    if problems:
-        record = {"life": life.id, "state": "invalid", "repetition": repetition,
-                  "reasons": problems, "artifacts": str(life_dir)}
-        _write_json(life_dir / "validity.json", record)
-        return record
 
     seam = adapter.retrieval()
     allowlist = ",".join(seam.get("tool_allowlist", ()))
@@ -623,11 +659,21 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     home_record = harness.provision_home(
         hermes_home, provider_plugin_src=plugin_path,
         provider_name=provider, model=model,
-        model_provider=model_provider, live_home=None)
+        model_provider=model_provider, live_home=None,
+        mcp_servers=mcp_servers)
 
     obs = sorted(life.observations, key=lambda o: (o.collected_at, o.source_id))
     checkpoints = sorted(life.checkpoints, key=lambda c: c.at)
-    payloads = [o.public() for o in obs]
+    if bundle is None:
+        payloads = [o.public() for o in obs]
+        evidence_source = "draft-text (diagnostic; scored runs require a frozen bundle)"
+        bundle_version = ""
+        bundle_hash = ""
+    else:
+        payloads = overlay_bundle_observations(life, bundle)
+        evidence_source = "frozen-bundle"
+        bundle_version = str(bundle.get("bundle_version", ""))
+        bundle_hash = frozen_bundle_hash(bundle)
 
     turns: list[dict] = []
     grades: list[dict] = []
@@ -814,6 +860,9 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
         "driver_configured_model": driver_configured_model,
         "grader": "deterministic (no judge)",
         "turn_timeout_s": timeout_s,
+        "evidence_source": evidence_source,
+        "bundle_version": bundle_version,
+        "bundle_hash": bundle_hash,
         "provision": home_record,
         "import_batches": import_batches,
         "adapter_usage": (adapter.usage().__dict__
@@ -834,6 +883,40 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     return {**validity, "summary": summary.to_dict(),
             "checkpoints": len(checkpoints),
             "turns": len(turns), "maintenance_runs": len(maintenance_events)}
+
+
+def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
+             life_dir: Path, model: str, model_provider: str,
+             driver_configured_model: str,
+             timeout_s: float = 900.0, repetition: int = 0,
+             bundle: dict | None = None) -> dict:
+    """Primary sequential life episode with provider server lifecycle.
+
+    One persistent provider state per (life × provider × repetition):
+    reset once, start the bank-scoped MCP server when the seam calls
+    for one (always stopped in a finally), then run the episode.
+    ``bundle`` carries frozen evidence (§5); without it the manifest
+    marks the run draft-text diagnostic.
+    """
+    life_dir.mkdir(parents=True, exist_ok=True)
+    hermes_home = life_dir / "hermes-home"
+    adapter = make_adapter(life_dir / "memcal-home")
+    problems = preflight(life, hermes_home, life_dir / "memcal-home", adapter)
+    if problems:
+        record = {"life": life.id, "state": "invalid", "repetition": repetition,
+                  "reasons": problems, "artifacts": str(life_dir)}
+        _write_json(life_dir / "validity.json", record)
+        return record
+    namespace = f"{life.id}-rep{repetition}"
+    adapter.reset(namespace)
+    with provider_server(adapter, adapter.retrieval()) as mcp_servers:
+        return _run_life_episode(
+            life=life, provider=provider, adapter=adapter,
+            namespace=namespace,
+            life_dir=life_dir, model=model, model_provider=model_provider,
+            driver_configured_model=driver_configured_model,
+            timeout_s=timeout_s, repetition=repetition, bundle=bundle,
+            mcp_servers=mcp_servers)
 
 
 def _rep_dirs(pilot_dir: Path, life_id: str) -> list[Path]:

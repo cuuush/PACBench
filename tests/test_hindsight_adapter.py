@@ -25,12 +25,32 @@ class FakePG:
 class FakeEngine:
     def __init__(self):
         self.retained = []
+        self.batches = []
 
-    async def retain_async(self, bank, text, context="", event_date=None,
+    async def retain_async(self, bank, text, context="",
+                           event_date=None,
                            request_context=None):
         self.retained.append({"bank": bank, "text": text,
-                              "context": context, "event_date": event_date})
+                              "context": context,
+                              "event_date": event_date})
         return ["mem-1"]
+
+    async def retain_batch_async(self, bank, contents,
+                                 request_context=None,
+                                 operation_id=None, **kw):
+        self.batches.append({"bank": bank, "n": len(contents),
+                             "operation_id": operation_id,
+                             "event_dates": [c.get("event_date")
+                                             for c in contents]})
+        out = []
+        for c in contents:
+            self.retained.append({"bank": bank, "text": c.get("content"),
+                                  "context": c.get("context"),
+                                  "event_date": c.get("event_date"),
+                                  "document_id": c.get("document_id"),
+                                  "operation_id": operation_id})
+            out.append(["mem-1"])
+        return out
 
 
 def _adapter(**kw):
@@ -59,13 +79,13 @@ class NoSemanticRetry(unittest.TestCase):
         home = Path(tempfile.mkdtemp(prefix="hs-test-"))
         calls = {"n": 0}
 
-        async def always_empty(bank, text, context="", event_date=None,
-                               request_context=None):
+        async def always_empty(bank, contents, request_context=None,
+                               operation_id=None, **kw):
             calls["n"] += 1
-            return []
+            return [[] for _ in contents]
 
         fake = FakeEngine()
-        fake.retain_async = always_empty
+        fake.retain_batch_async = always_empty
         adapter = HindsightAdapter(
             home, engine_factory=lambda db_url, llm: fake,
             pg_factory=FakePG)
@@ -163,6 +183,10 @@ class Ingest(unittest.TestCase):
         self.assertEqual(rec["bank"], "pacbench-ns1")
         self.assertIsNotNone(rec["event_date"])
         self.assertEqual(rec["event_date"].day, 18)
+        self.assertEqual(rec["document_id"], "t/1")
+        self.assertEqual(len(fake.batches), 1)
+        self.assertTrue(
+            fake.batches[0]["operation_id"].endswith("2026-09-18T12:00:00"))
         self.assertIn("user_turns_redirected 1", usage.notes[0])
         adapter.close()
 

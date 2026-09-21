@@ -216,6 +216,12 @@ def _cmd_run_life(args: argparse.Namespace) -> int:
         print(f"RUN FAILED: {exc}", file=sys.stderr)
         print(f"artifacts: {life_dir}")
         return 1
+    if "summary" not in record:
+        # Preflight-invalid (or otherwise non-episode) record: report the
+        # reasons cleanly instead of crashing on the missing summary.
+        print(json.dumps(record, indent=2, sort_keys=True))
+        print(f"artifacts: {life_dir}")
+        return 1
     print(json.dumps(record["summary"], indent=2, sort_keys=True))
     print(f"artifacts: {life_dir}")
     return 0

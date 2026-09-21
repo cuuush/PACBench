@@ -126,6 +126,42 @@ def _failure_error(result: Any) -> str:
     return f"exit {result.returncode}: {cause}"
 
 
+def _free_loopback_port() -> int:
+    import socket as _socket
+    with _socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _start_provider_server(adapter: Any, seam: dict) -> list[dict] | None:
+    """Start a provider MCP server for this checkpoint (or None).
+
+    Providers whose retrieval seam sets ``mcp_server`` expose
+    ``start_server``/``mcp_server_spec``; plugin-based providers need
+    nothing. The caller stops the server via ``_stop_provider_server``
+    in a finally.
+    """
+    if not seam.get("mcp_server"):
+        return None
+    start = getattr(adapter, "start_server", None)
+    if not callable(start):
+        raise RuntimeError(
+            "retrieval seam advertises mcp_server but the adapter "
+            "has no start_server")
+    port = _free_loopback_port()
+    start(port)
+    return [adapter.mcp_server_spec(port)]
+
+
+def _stop_provider_server(adapter: Any) -> None:
+    stop = getattr(adapter, "stop_server", None)
+    if callable(stop):
+        try:
+            stop()
+        except Exception:
+            pass
+
+
 def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
                         hermes_home: Path, run_dir: Path,
                         model: str = "grok-4.6",
@@ -171,59 +207,64 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
             adapter_env_error = f"{type(exc).__name__}: {exc}"
 
     adapter.reset(ns)
-    home_record = harness.provision_home(
-        hermes_home, provider_plugin_src=plugin_path,
-        provider_name=provider_name, model=model,
-        model_provider=model_provider, live_home=auth_src)
+    mcp_servers = _start_provider_server(adapter, seam)
+    try:
+        home_record = harness.provision_home(
+            hermes_home, provider_plugin_src=plugin_path,
+            provider_name=provider_name, model=model,
+            model_provider=model_provider, live_home=auth_src,
+            mcp_servers=mcp_servers)
 
-    exposed = exposed_observations(life, checkpoint.at)
-    payloads = [o.public() for o in exposed]
-    evidence, user_turns = split_collection(payloads)
+        exposed = exposed_observations(life, checkpoint.at)
+        payloads = [o.public() for o in exposed]
+        evidence, user_turns = split_collection(payloads)
 
-    import_batches: list[dict] = []
-    for collected_at, batch in _batched_by_collection(evidence):
-        usage = adapter.ingest(batch, collected_at)
-        import_batches.append({
-            "collected_at": collected_at,
-            "observations": [o["source_id"] for o in batch],
-            "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
-        })
+        import_batches: list[dict] = []
+        for collected_at, batch in _batched_by_collection(evidence):
+            usage = adapter.ingest(batch, collected_at)
+            import_batches.append({
+                "collected_at": collected_at,
+                "observations": [o["source_id"] for o in batch],
+                "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
+            })
 
-    turns: list[dict] = []
-    for obs in user_turns:
-        # §31: natural user message through real isolated Hermes (§28 runtime,
-        # §30 fictional clock). The provider persists it via its own hook.
-        result = harness.run_turn(
-            obs["text"], at=obs["collected_at"], home=hermes_home,
+        turns: list[dict] = []
+        for obs in user_turns:
+            # §31: natural user message through real isolated Hermes (§28 runtime,
+            # §30 fictional clock). The provider persists it via its own hook.
+            result = harness.run_turn(
+                obs["text"], at=obs["collected_at"], home=hermes_home,
+                allowlist=allowlist, extra_env=extra_env, timeout_s=timeout_s)
+            turns.append({"kind": "user-turn-replay", "source_id": obs["source_id"],
+                          "at": obs["collected_at"], "prompt": obs["text"],
+                          **_record_of(result)})
+            if result.returncode != 0:
+                raise RuntimeError(
+                    f"user-turn replay {obs['source_id']} failed "
+                    f"{_failure_error(result)}")
+
+        maintenance_record: dict | None = None
+        if with_maintenance:
+            usage = adapter.maintenance(checkpoint.at)
+            maintenance_record = {
+                "at": checkpoint.at,
+                "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
+                "readiness": adapter.readiness().__dict__,
+            }
+
+        # §32: the scored question goes through Hermes, not grade_answer(prewritten).
+        scored = harness.run_turn(
+            checkpoint.public_prompt(), at=checkpoint.at, home=hermes_home,
             allowlist=allowlist, extra_env=extra_env, timeout_s=timeout_s)
-        turns.append({"kind": "user-turn-replay", "source_id": obs["source_id"],
-                      "at": obs["collected_at"], "prompt": obs["text"],
-                      **_record_of(result)})
-        if result.returncode != 0:
+        turns.append({"kind": "checkpoint", "checkpoint": checkpoint.id,
+                      "at": checkpoint.at, "prompt": checkpoint.public_prompt(),
+                      **_record_of(scored)})
+        if scored.returncode != 0:
             raise RuntimeError(
-                f"user-turn replay {obs['source_id']} failed "
-                f"{_failure_error(result)}")
-
-    maintenance_record: dict | None = None
-    if with_maintenance:
-        usage = adapter.maintenance(checkpoint.at)
-        maintenance_record = {
-            "at": checkpoint.at,
-            "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
-            "readiness": adapter.readiness().__dict__,
-        }
-
-    # §32: the scored question goes through Hermes, not grade_answer(prewritten).
-    scored = harness.run_turn(
-        checkpoint.public_prompt(), at=checkpoint.at, home=hermes_home,
-        allowlist=allowlist, extra_env=extra_env, timeout_s=timeout_s)
-    turns.append({"kind": "checkpoint", "checkpoint": checkpoint.id,
-                  "at": checkpoint.at, "prompt": checkpoint.public_prompt(),
-                  **_record_of(scored)})
-    if scored.returncode != 0:
-        raise RuntimeError(
-            f"checkpoint turn failed (exit {scored.returncode}): "
-            f"{_failure_error(scored)}")
+                f"checkpoint turn failed (exit {scored.returncode}): "
+                f"{_failure_error(scored)}")
+    finally:
+        _stop_provider_server(adapter)
 
     grade = grade_answer(checkpoint, scored.answer)
 

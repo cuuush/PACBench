@@ -329,7 +329,10 @@ class HindsightAdapter(ProviderAdapter):
     def retrieval(self) -> dict:
         return {
             "provider": self.name,
+            "tool_allowlist": list(HINDSIGHT_TOOL_ALLOWLIST),
             "mcp_tools": list(HINDSIGHT_TOOL_ALLOWLIST),
+            "plugin_available": False,
+            "mcp_server": True,
             "bank_scoped": True,
             "transport": "MCP via `hermes mcp add` "
                          "(harness installs the server spec)",

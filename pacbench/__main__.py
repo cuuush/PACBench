@@ -83,6 +83,9 @@ def _load_adapter(home: Path, provider: str, dream_model: str | None):
     if provider == "lexical":
         from provider_adapters.lexical_adapter import LexicalAdapter
         return LexicalAdapter(home)
+    if provider == "hindsight":
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        return HindsightAdapter(home)
     raise RuntimeError(f"unknown provider {provider!r}")
 
 
@@ -123,8 +126,8 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
               file=sys.stderr)
         return 2
     checkpoint = matches[0]
-    if args.provider not in ("memcal", "lexical"):
-        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical)",
+    if args.provider not in ("memcal", "lexical", "hindsight"):
+        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical, hindsight)",
               file=sys.stderr)
         return 2
     try:
@@ -157,8 +160,8 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
 
 def _cmd_run_pilot(args: argparse.Namespace) -> int:
     from pacbench import corpus, live
-    if args.provider not in ("memcal", "lexical"):
-        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical)",
+    if args.provider not in ("memcal", "lexical", "hindsight"):
+        print(f"error: unknown provider {args.provider!r} (W5 supports: memcal, lexical, hindsight)",
               file=sys.stderr)
         return 2
     try:

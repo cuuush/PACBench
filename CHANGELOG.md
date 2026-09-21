@@ -26,6 +26,19 @@
   checkpoint, frozen-config guard), approved prompter `substantial-v1`
   (probe: plain prompt only lowercased; substantial rewrites genuinely
   with 0 dropped tokens / 0 added atoms on 10/10).
+- Hindsight adapter (`provider_adapters/hindsight_adapter.py`, criterion
+  3): native lifecycle throughout — embedded PG (pg0) + MemoryEngine
+  (SyncTaskBackend, local embeddings), internal LLM from
+  HINDSIGHT_API_LLM_* (approved: existing META gateway + Spark, zero
+  new credentials), ingest via retain_async with authoring written_at
+  as event_date, scheduled work via run_graph_maintenance_job,
+  retrieval via native MCP tools (retain/recall/reflect; no automatic
+  brief — recorded as a real capability difference). Live smoke (toy
+  data): retain→recall→maintenance→ready→cleanup all pass; duplicate
+  retain returns [] natively (dedup), tracked as empty-id returns.
+  Open: Hindsight relative-date resolution vs fictional clock (probe it,
+  don't assume); Hermes-side MCP install seam in harness; llm_trace
+  token wiring.
 
 ## Unreleased (corpus 0.2.0)
 

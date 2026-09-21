@@ -185,8 +185,10 @@ class Ingest(unittest.TestCase):
         self.assertEqual(rec["event_date"].day, 18)
         self.assertEqual(rec["document_id"], "t/1")
         self.assertEqual(len(fake.batches), 1)
-        self.assertTrue(
-            fake.batches[0]["operation_id"].endswith("2026-09-18T12:00:00"))
+        import uuid as _uuid
+        self.assertEqual(fake.batches[0]["operation_id"], str(_uuid.uuid5(
+            _uuid.NAMESPACE_URL,
+            "pacbench-ns1:2026-09-18T12:00:00")))
         self.assertIn("user_turns_redirected 1", usage.notes[0])
         adapter.close()
 

@@ -87,6 +87,12 @@ class BeatRecord:
     missing: tuple[str, ...] = ()
     usage: CallUsage = field(default_factory=CallUsage)
     error: str = ""
+    #: Per-beat input provenance (M4): the exact inputs this record was
+    #: rendered from. Resume validates these before skipping an "ok"
+    #: record — a changed prompter/draft mid-resume must never silently
+    #: mix surfaces under one bundle hash.
+    prompt_sha: str = ""
+    draft_sha: str = ""
 
 
 @dataclass
@@ -135,6 +141,10 @@ def render_beat(beat: Beat, local_id: str, generate, prompt_fn,
     """Render one beat, fail-closed. Transport errors back off and retry."""
     rec = BeatRecord(local_id=local_id, draft=beat.draft)
     prompt = prompt_fn(beat)
+    # Per-beat provenance (M4): stamp the exact inputs BEFORE generating,
+    # so even a failed record carries the regime it was attempted under.
+    rec.prompt_sha = hashlib.sha256(prompt.encode()).hexdigest()[:16]
+    rec.draft_sha = hashlib.sha256(beat.draft.encode()).hexdigest()[:16]
     transport_tries = 0
     while True:
         rec.attempts += 1
@@ -176,13 +186,45 @@ def render_all(beats: list[tuple[str, Beat]], generate, *,
                resume: RenderBundle | None = None,
                workers: int = 4,
                progress=None) -> RenderBundle:
-    """Render a beat list; skip local_ids already ok in `resume`."""
+    """Render a beat list; skip local_ids already ok in `resume`.
+
+    M4 resume-time validation: an "ok" record is skipped only when its
+    stamped per-beat provenance (prompt_sha + draft_sha) matches the
+    current regime. A changed prompter or draft fails closed instead of
+    silently mixing surfaces under one bundle hash.
+    """
     prompt_fn = PROMPTERS[prompter]
     bundle = resume
-    todo = [(lid, b) for lid, b in beats
-            if bundle is None or bundle.records.get(lid) is None
-            or bundle.records[lid].status != "ok"]
     assert bundle is not None  # caller builds it with frozen config
+    current_prompt_sha = prompt_sha(prompter)
+    stale: list[str] = []
+    for lid, beat in beats:
+        rec = bundle.records.get(lid)
+        if rec is None or rec.status != "ok":
+            continue
+        want_draft = hashlib.sha256(beat.draft.encode()).hexdigest()[:16]
+        # prompt_sha depends only on the prompter for a fixed probe beat,
+        # but the per-beat stamp binds the actual prompt text — recompute
+        # the same way render_beat does for an exact comparison.
+        want_prompt = hashlib.sha256(
+            prompt_fn(beat).encode()).hexdigest()[:16]
+        if rec.prompt_sha and rec.draft_sha:
+            if rec.prompt_sha != want_prompt or rec.draft_sha != want_draft:
+                stale.append(lid)
+        # Legacy records (pre-provenance) keep the old skip behavior but
+        # are flagged in the stale list for operator review — never
+        # silently trusted under a new regime.
+        elif current_prompt_sha != bundle.prompt_sha:
+            stale.append(lid)
+    if stale:
+        raise RuntimeError(
+            f"resume refused: {len(stale)} ok record(s) rendered under a "
+            f"different regime (prompter/draft changed): "
+            f"{stale[:10]}{'...' if len(stale) > 10 else ''}. "
+            f"Move the bundle aside or re-render clean.")
+    todo = [(lid, b) for lid, b in beats
+            if bundle.records.get(lid) is None
+            or bundle.records[lid].status != "ok"]
     if not todo:
         return bundle
 

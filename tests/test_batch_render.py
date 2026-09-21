@@ -94,6 +94,37 @@ class RenderAll(unittest.TestCase):
         self.assertEqual(back.records["a"].rendered, "hello world")
         self.assertEqual(back.model, "m")
 
+    def test_beat_carries_input_provenance(self):
+        rec = render_beat(_beat("hello world"), "a",
+                          lambda p: "hello world!", substantial_prompt)
+        self.assertEqual(rec.status, "ok")
+        import hashlib
+        want_draft = hashlib.sha256(b"hello world").hexdigest()[:16]
+        self.assertEqual(rec.draft_sha, want_draft)
+        self.assertTrue(rec.prompt_sha)  # bound to the actual prompt text
+
+    def test_resume_refuses_changed_prompter(self):
+        # M4: a prompter change mid-resume fails closed instead of
+        # silently mixing surfaces under one bundle hash.
+        from pacbench.batch_render import PROMPTERS
+        bundle = self._bundle()
+        bundle.records["a"] = render_beat(
+            _beat(), "a", lambda p: "hello world", substantial_prompt)
+        beats = [("a", _beat()), ("b", _beat("second beat here"))]
+        with self.assertRaises(RuntimeError) as ctx:
+            render_all(beats, lambda p: "second beat here",
+                       prompter="plain", resume=bundle, workers=1)
+        self.assertIn("resume refused", str(ctx.exception))
+
+    def test_resume_refuses_changed_draft(self):
+        bundle = self._bundle()
+        bundle.records["a"] = render_beat(
+            _beat(), "a", lambda p: "hello world", substantial_prompt)
+        beats = [("a", _beat("tampered draft")), ("b", _beat("x"))]
+        with self.assertRaises(RuntimeError):
+            render_all(beats, lambda p: "x",
+                       resume=bundle, workers=1)
+
 
 if __name__ == "__main__":
     unittest.main()

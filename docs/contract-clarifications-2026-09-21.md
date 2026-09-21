@@ -60,7 +60,7 @@ ready per native lifecycle; never invent nightly work or penalize a
 hook-less provider. See CHANGELOG. (Overrules the prior skips→invalid
 posture for hook-less providers; memcal skip semantics unchanged.)
 
-## Q4. Declined-framing exoneration — NEXT TO IMPLEMENT
+## Q4. Declined-framing exoneration — IMPLEMENTED 2026-09-21
 
 "Skipping per your note" / "you said you can't make it" is NOT a
 forbidden suggestion; the penalty applies when the declined/expired
@@ -70,6 +70,13 @@ would be a separate relevance metric, never a false-memory error.
 Measured baseline (0.2.0 pilots): both systems suggested the declined
 festival with declined-framing (1 each) — expect both to clear after
 the fix, documented as regrade-shift, never rewritten into frozen runs.
+Implemented 2026-09-21: `_suggestion_text` strips at sentence scope
+(the memcal "but you said you can't make it" declines via anaphora
+across the "but", which clause-splitting shreds); cues extended
+(skip-stem, can/couldn-t-make-it, no-to covering told-X-no). Verbatim
+regrade of both frozen pilot answers: 1 → 0 each. Known boundary
+pinned by test: one declined item shields a second suggested trap in
+the same sentence — deterministic layer exonerates, §33 judge owns it.
 
 ## Q5. Repetition protocol — TO IMPLEMENT
 

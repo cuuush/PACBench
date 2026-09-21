@@ -63,10 +63,16 @@ _HISTORY_PATTERNS = (
 #: named only to record that the user passed on it ("you passed on the
 #: waterfront festival") is not a suggestion; without this, mention-as-declined
 #: reads as a false positive in the prominently-reported forbidden class.
-#: Checked on normed text (apostrophes are already spaces there).
-_DECLINE_CUES = ("passed on", "passed up", "turned down", "decided against",
-                 "ruled out", "decline", "skipped", "not going",
-                 "aren t going", "said no to")
+#: Checked on normed text (apostrophes are already spaces there, hence
+#: "can t make it"). Per the 2026-09-21 ruling, declined-framing
+#: exonerates: the penalty applies only when the declined/expired thing is
+#: presented as a viable current option. Matching is substring on stems
+#: where safe ("skip" covers skip/skipped/skipping; "no to" covers both
+#: "said no to" and "told Reese no to").
+_DECLINE_CUES = ("passed on", "passing on", "passed up", "turned down",
+                 "decided against", "ruled out", "decline", "skip",
+                 "not going", "aren t going", "no to", "can t make it",
+                 "couldn t make it")
 
 
 def _norm_text(s: str) -> str:
@@ -217,12 +223,34 @@ def _current_text(answer: str) -> str:
                     if not _is_history_clause(p))
 
 
+def _declined_sentence(sentence: str) -> bool:
+    """Does this sentence frame its options as declined (2026-09-21 ruling)?
+
+    Sentence scope, deliberately wider than the clause scope used for
+    history filtering: contrastive sentences ("...the festival with Devon,
+    but you said you can't make it") decline via anaphora across the
+    "but", and clause-splitting would leave the first half looking like a
+    viable suggestion. Known boundary (judge territory): one declined item
+    in a sentence shields a second, genuinely-suggested forbidden item in
+    the same sentence — the deterministic layer cannot resolve whose
+    framing scopes over which mention, so it exonerates and the §33
+    adjudication path owns the residual.
+    """
+    return any(cue in _norm_text(sentence) for cue in _DECLINE_CUES)
+
+
 def _suggestion_text(answer: str) -> str:
-    """Current text minus declined-framed clauses: naming a declined option is
-    not suggesting it, so trap matching runs here, not on the raw answer."""
-    return " ".join(p for p in _split_clauses(answer)
-                    if not _is_history_clause(p)
-                    and not any(cue in _norm_text(p) for cue in _DECLINE_CUES))
+    """Current text minus declined-framed sentences: naming a declined option is
+    not suggesting it, so trap matching runs here, not on the raw answer.
+    History filtering stays clause-level inside the surviving sentences, so a
+    past-tense clause ("it was canceled Wednesday") still drops while a
+    present-tense revival ("but it's on Saturday") survives."""
+    kept = []
+    for sent in re.split(r"[.;\n]", answer):
+        if _declined_sentence(sent):
+            continue
+        kept.extend(p for p in _split_clauses(sent) if not _is_history_clause(p))
+    return " ".join(kept)
 
 
 @dataclass

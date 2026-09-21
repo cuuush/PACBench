@@ -296,6 +296,31 @@ class DeclinedMentionIsNotASuggestion(unittest.TestCase):
         g = grade(self.fun, "You could hit the waterfront festival Saturday.")
         self.assertEqual(g.suggested_forbidden, 1)
 
+    def test_ruling_skipping_framing_is_not_forbidden(self):
+        # Co-author ruling 2026-09-21, verbatim lexical-pilot framing.
+        g = grade(self.fun,
+                  "Lantern Show concert Saturday 8pm, Maya invited you. "
+                  "Skipping waterfront festival per your note to Devon.")
+        self.assertEqual(g.suggested_forbidden, 0)
+
+    def test_ruling_cant_make_it_across_but_is_not_forbidden(self):
+        # Co-author ruling 2026-09-21, verbatim memcal-pilot framing: the
+        # decline scopes over the "but" via anaphora, so sentence (not
+        # clause) scope must exonerate.
+        g = grade(self.fun,
+                  "Next Saturday is the waterfront festival with Devon, "
+                  "but you said you can't make it — too crowded.")
+        self.assertEqual(g.suggested_forbidden, 0)
+
+    def test_mixed_sentence_shielding_is_a_known_boundary(self):
+        # One declined item shields a second suggested trap in the same
+        # sentence: the deterministic layer exonerates (documented in
+        # _declined_sentence) and the §33 judge owns the residual.
+        g = grade(self.fun,
+                  "You declined the waterfront festival but the Glassworks "
+                  "exhibit is still on Saturday, go!")
+        self.assertEqual(g.suggested_forbidden, 0)
+
 
 class RendererPreservesTheKey(unittest.TestCase):
     def setUp(self):

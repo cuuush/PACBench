@@ -99,6 +99,12 @@
   on the adapter contract; N/A providers record not-applicable and stay
   valid; readiness = ready per native lifecycle (lexical always-ready);
   memcal skip semantics unchanged. 182 green.
+- Declined-framing exoneration (ruling Q4): `_suggestion_text` strips at
+  sentence scope (the ruled "but you said you can't make it" declines via
+  anaphora across the "but"); cues extended (skip-stem, can/couldn't-make-it,
+  no-to). Verbatim regrade of both frozen 0.2.0 pilot answers: 1 → 0 each
+  (regrade-shift, frozen runs untouched). Mixed-sentence shielding pinned as
+  known judge-territory boundary. 185 green.
 
 ## 0.1.0 (2026-09-20)
 

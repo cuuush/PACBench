@@ -1,4 +1,4 @@
-# PACBench 0.1
+# PACBench
 
 PACBench is a benchmark for memory systems used by persistent personal assistants.
 It asks: **can a memory-backed assistant maintain an accurate, actionable,
@@ -6,67 +6,171 @@ provenance-aware model of a person's current life as information arrives,
 changes, conflicts, expires, and becomes relevant across many channels?**
 
 Systems earn credit for correct assistant behavior, however they store or
-retrieve information internally.
+retrieve information internally. Nobody earns credit for the harness helping
+them: every failure is preserved, attributed, and traceable to source evidence.
 
 ## Status
 
-v0.1 is a standalone benchmark **package**: corpus + validation + freeze /
-versioning + deterministic grading + a runner CLI driving isolated Hermes turns.
+The primary path is a **sequential life episode** (`run-life`): one persistent
+provider state per life × provider × repetition, frozen observation bundles in,
+delta ingest in time order, isolated Hermes turns, deterministic grading out.
+Corpus 0.3.0 (1,890 observations, 44 checkpoints across 6 development lives);
+suite 257 green; `validate` clean.
 
-W4 reality: `python -m pacbench` provides `list-lives` (offline: lives and
-checkpoints, no model), `smoke` (one bare turn through the isolated clone),
-`run-checkpoint` (one checkpoint end to end via Hermes + provider), and
-`run-pilot` (the full development pilot, `--provider memcal` or
-`--provider lexical`). The isolated Hermes
-clone lives in `vendor/` with fairness-neutral shims re-applied from
-`patches/`; the harness (`pacbench/harness.py`, `pacbench/live.py`) provisions
-scratch homes and never touches the live profile. The Memcal adapter lives
-outside the scored package (`provider_adapters/memcal_adapter.py`) behind the
-provider contract. A second, deliberately dumb baseline — keyword
-archive-search (`provider_adapters/lexical_adapter.py`, no model calls on the
-provider side) — receives the same observations under the same conditions
-(§45.5). One checkpoint has been proven live end to end; `runs/`
-artifacts are debugging output, not results.
+Providers: **Memcal** (native lifecycle: archive ingest, nightly dream,
+prefetch brief, 21 Hermes tools), **Hindsight** (native lifecycle: batched
+async retains with deterministic UUID5 operation IDs, MCP recall/reflect
+server, no semantic retry of empty retains), and **lexical** (deliberately
+dumb keyword baseline — diagnostic, never an external provider).
 
 What is **not** claimed (listed, not papered over):
 
-- Any claim about which system wins. Per-provider pilot snapshots are
-  comparable side by side (see below), but `comparative_claim_valid` stays
-  `False` until the 30-life comparative corpus with declared splits exists.
-- The calibrated semantic judge for paraphrased TEXT slots (the `judge=` seam in
-  `pacbench/grade.py`; without it, unmatched paraphrases grade as MISSED,
-  never as invented passes).
+- Any claim about which system wins. `comparative_claim_valid` stays `False`
+  until the held-out comparative corpus with declared splits, repetitions,
+  frozen configs, calibrated grading, and a real external provider exists.
+- The calibrated semantic judge for paraphrased TEXT slots (the `judge=` seam
+  in `pacbench/grade.py`; without it, unmatched paraphrases grade as MISSED,
+  never as invented passes). A 200-item calibration pool is drafted and
+  awaiting two independent human labelers.
 - Model-based fact-realization validation and the 30-life comparative corpus.
 - Driver auth: scored runs use the PACBench-owned `.env` (`MODEL` + `META`)
   only — never live-profile credentials. See `.env.example`.
 
 ## Install
 
-Requires Python 3.11+, no third-party dependencies.
+Requires Python 3.11+, no third-party Python dependencies for the harness
+itself. Provider backends have their own homes:
+
+- Memcal: a checkout at `~/code/memcal` (native plugin + dream backend).
+- Hindsight: the `hindsight_api` package importable under `/usr/local/bin/python3`
+  (3.12) — the Homebrew 3.14 `python3` on PATH cannot see it.
 
 ```sh
 pip install -e .
 ```
 
-## Run
+## Offline checks (free, no model, no network)
 
 ```sh
-python3 -m unittest            # full suite (moved + new 0.1 tests)
+python3 -m unittest            # full suite
 python3 -m pacbench.validate   # deterministic structural validation
 python3 -m pacbench.freeze     # corpus version, counts, sha256
 python3 -m pacbench list-lives # lives + checkpoints (offline, no model)
 ```
 
-Live commands need the PACBench-owned `.env` (see `.env.example`) plus the
-isolated clone in `vendor/` — never live-profile credentials:
+## Smoke test (end to end, ~$0)
+
+The smoke runs an extremely minimal unregistered diagnostic life through the
+exact production path — frozen bundle → sequential episode → graded artifacts —
+on both real providers. It proves the pipeline, not the providers: low scores
+with clean attribution are a working benchmark, not a failure.
+
+**The life.** `pizza-day` (Thursday 2026-09-10, unregistered plumbing material,
+never corpus evidence): Devon asks Leo to grab pizza Friday; 4 observations,
+2 checkpoints (what / when+who), zero replay turns. Deliberately tiny so a full
+two-provider loop costs a handful of driver calls.
+
+**Prerequisites.** PACBench-owned `.env` (`MODEL` + `META`), the isolated Hermes
+clone in `vendor/`, the memcal checkout, and `hindsight_api` (see Install).
+**Use `/usr/local/bin/python3` for every live command** — background shells
+default to a 3.14 `python3` that cannot import `hindsight_api`. Never relaunch
+spend-bearing commands without an explicit go after a halt.
+
+**1. Freeze the bundle** (offline, free — the `runs/` dir is gitignored
+scratch, so each machine builds its own):
 
 ```sh
-python3 -m pacbench smoke                                          # wiring proof
-python3 -m pacbench run-checkpoint --life <id> --checkpoint <id>  # one checkpoint
-python3 -m pacbench run-pilot                                     # dev pilot (memcal)
-python3 -m pacbench run-pilot --provider lexical                  # dev pilot (baseline)
-python3 -m pacbench run-pilot --repetitions 2                     # each life twice, namespaced dirs (§40)
+/usr/local/bin/python3 -c "
+from pacbench.corpus.life_h_pizzaday import lives
+from pacbench.frozen import freeze_observations, write_bundle
+h = write_bundle(freeze_observations(lives()), 'runs/tiny-pizza-bundle.json')
+print('BUNDLE_HASH=' + h)"
 ```
+
+**2. Run Memcal** (2 paid driver calls; ingest + maintenance are local):
+
+```sh
+/usr/local/bin/python3 -m pacbench run-life --life pizza-day --provider memcal \
+  --bundle runs/tiny-pizza-bundle.json --bundle-hash <hash from step 1> --runs runs/
+```
+
+**3. Run Hindsight** (same bundle, same frozen evidence; ~4 provider retains
+plus 2 driver calls):
+
+```sh
+/usr/local/bin/python3 -m pacbench run-life --life pizza-day --provider hindsight \
+  --bundle runs/tiny-pizza-bundle.json --bundle-hash <hash from step 1> --runs runs/
+```
+
+A wrong `--bundle-hash` fails closed (`BUNDLE FAILED`, zero spend) — try it;
+tamper-evidence is part of the test.
+
+**Other commands.** `smoke` (one bare turn, wiring proof), `probe-clock`
+(adversarial fictional-clock probe), `run-checkpoint` (legacy single-checkpoint
+diagnostic with a fresh namespace per checkpoint — drift-prone, not the primary
+path), `run-pilot` (full development pilot).
+
+## Reviewing a smoke run
+
+Each run writes `runs/life-<UTC stamp>/`:
+
+| Artifact | What to check |
+| --- | --- |
+| `validity.json` | `state` must be `valid`. Anything else names its reasons — read them before the grades. |
+| `manifest.json` | `evidence_source` must be `frozen-bundle` with the pinned `bundle_hash`; `import_batches` shows per-batch ingest usage (archived/spooled/dropped counts). |
+| `observations.json` | `ingested_ids` — every frozen observation accounted for. |
+| `turns.json` | Per-turn prompt, answer, `tool_calls`/`tool_results`, token deltas. The autopsy lives here. |
+| `grades.json` | `summary` (precision/recall/F1) plus per-checkpoint slot detail. |
+| `memcal-home/` | Scratch store: `memcal.db` + `brief.md` (see below). |
+| `hermes-home/` | Isolated Hermes home (config, plugin, sessions, logs). |
+
+**The 60-second verdict:**
+
+```sh
+D=runs/life-<stamp>
+python3 -c "
+import json
+print('validity:', json.load(open('$D/validity.json'))['state'])
+print('evidence:', json.load(open('$D/manifest.json'))['evidence_source'])
+print('summary:', json.dumps(json.load(open('$D/grades.json'))['summary']))"
+```
+
+**Attributing a miss** (do this before calling anything a provider bug):
+
+1. `observations.json` → was the fact ingested? (`ingested_ids`)
+2. Provider store → did it stick? Memcal: query `archive`/`spool` in
+   `memcal-home/memcal.db`; Hindsight: `import_batches` usage notes count
+   `empty-id returns` (retains the product stored nothing for — recorded,
+   never retried).
+3. `turns.json` → did Hermes even try? Empty `tool_calls` with an available
+   allowlist is a Hermes answer failure, not a memory failure.
+
+**Clock check.** The brief must render the *fictional* week. Reproduce what the
+turn saw, offline and free:
+
+```sh
+MEMCAL_TODAY="2026-09-10T19:00:00" python3 -c "
+import sys; sys.path.insert(0, '/Users/chris/code/memcal')
+from memcal import brief, config, db
+cfg = config.load('$D/memcal-home')
+print(brief.render(db.open_db(cfg.db_path), cfg).strip()[:400])"
+```
+
+If it says "today is Thursday 10 September 2026", the `MEMCAL_TODAY` pin held.
+A same-evening brief is *correctly* empty of text-derived facts (dream runs
+nightly) — the question is whether Hermes then searched, not whether the brief
+knew.
+
+**What "done" means.** Both providers reach `valid` with graded artifacts and
+every miss attributed to memory vs. Hermes vs. harness. Scores are evidence,
+not a gate.
+
+**Spend.** A full two-provider smoke is ~10 paid driver calls on the META key
+plus local-only provider work. Two things are deliberately out of scope until
+explicitly approved: the race-week render (hundreds of calls, currently
+halted) and a live memcal dream pass (bills to the codex subscription, not
+META). A dry-run dream on a scratch DB copy verifies the distillation queue
+for free.
 
 ## Corpus
 
@@ -88,11 +192,15 @@ Two smaller incident families from the starting material are kept as
 regression coverage: `poker-move` / `poker-unchanged` (write-time recency) and
 `weekend-plans` / `dentist-friday` (implicit context).
 
-Declared splits (§39): the five lives above are `development` (full-system
+Declared splits (§39): the six lives above are `development` (full-system
 debugging); the four small families are `calibration` (grader and pipeline
 checks); `held-out` is empty until the comparative corpus exists — which is
 why no comparative claim is valid yet. Moving a life between splits is
 deliberate (pinned by `SplitDeclaration` in `tests/test_v01.py`).
+
+Diagnostic lives (`toy-day`, `pizza-day`) are unregistered by design: they
+exercise plumbing end to end but can never enter corpus evidence, splits, or
+comparative claims.
 
 Every life keeps three layers distinct: **world truth** (`Life.truth`), **evidence**
 (`Life.observations` — the only thing adapters ever see), and **expected assistant
@@ -141,29 +249,29 @@ python3 -m pacbench.generation --env .env --render-sample # one live render (net
 ```
 
 Generation failures are reported, never silently substituted with another model.
+Render-once/run-many: rendered output freezes into bundles that scored runs
+consume verbatim — generation is never called during a scored run.
 
 ## Comparative pilots (snapshots, not findings)
 
 Two systems have received the same observations under the same conditions —
-same corpus hash (`afb87c08…`, corpus 0.1.0), same driver
-(`muse-spark-1.3-contributor`), same collection times, same grading. But the
+same corpus hash, same driver, same collection times, same grading. But the
 second system is a **diagnostic baseline, not an external provider**: per the
 contract co-author, §45.5 is unmet and stays unmet until a real independent
-memory system runs. Milestone: Memcal + lexical diagnostic complete; Memcal
-+ real external memory provider pending. Full gates:
-`docs/comparative-gates.md`.
+memory system runs. Full gates: `docs/comparative-gates.md`.
 
-| provider | checkpoints | slots | correct | missed | misrep. | P | R | F1 | turns | tool calls |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| memcal (`runs/pilot-20260920T193846Z`) | 17 | 24 | 16 | 5 | 3 | 0.800 | 0.667 | 0.727 | 25 | 42 |
-| lexical (`runs/pilot-20260920T203711Z`) | 17 | 24 | 18 | 0 | 6 | 0.750 | 0.750 | 0.750 | 25 | 53 |
+The 0.1.0-era pilot snapshots (memcal F1 0.727 vs lexical 0.750 on 17
+checkpoints) are archived in `runs/`; read them exactly as labeled — on 55
+observations with distinctive keywords, raw term overlap suffices, which is why
+small lives cannot discriminate memory systems. Discriminating power arrives
+with corpus scale. `comparative_claim_valid` stays `False`; no system wins
+anything until the 30-life comparative corpus exists.
 
-Read this exactly as labeled: the dumb baseline **edged** Memcal (F1 0.750 vs
-0.727) by retrieving everything (0 missed) while misleading more (6
-misrepresented — stale/conflicting keyword hits asserted as current, against
-Memcal's 5 missed / 3 misrepresented). On 55 observations with distinctive
-keywords, raw term overlap is sufficient — which is precisely why these small
-lives cannot discriminate memory systems, and why a Memcal win here would have
-been a sanity check rather than a victory. Discriminating power arrives with
-corpus scale (200+ obs lives). `comparative_claim_valid` stays `False`; no
-system wins anything until the 30-life comparative corpus exists.
+## Docs
+
+- `docs/subgoals.md` — C2/C3/C4/C7 subgoal ledger (what's proven, blocked, next).
+- `docs/pilot-ops.md` — interpreter pin, credentials, poll-only background discipline.
+- `docs/benchmark-integrity.md`, `docs/comparative-gates.md`,
+  `docs/contract-clarifications-2026-09-21.md`, `docs/exposure-log.md`,
+  `docs/judge-scope.md`, `docs/split-lineage.md` — contract compliance record.
+- `docs/audit-2026-09-20.md` — the 88-point contract audit.

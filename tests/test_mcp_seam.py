@@ -69,6 +69,24 @@ class ServerLifecycle(unittest.TestCase):
         self.assertTrue(seam["mcp_server"])
 
 
+class PreflightMcp(unittest.TestCase):
+    def test_mcp_seam_needs_no_plugin(self):
+        import tempfile
+        from pathlib import Path
+        from pacbench.live import preflight
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        from pacbench.corpus.life_h_pizzaday import lives
+        life = lives()[0]
+        adapter = HindsightAdapter(
+            Path(tempfile.mkdtemp(prefix="hs-")),
+            engine_factory=lambda db_url, llm: None,
+            pg_factory=lambda name: None)
+        with tempfile.TemporaryDirectory() as tmp:
+            problems = preflight(
+                life, Path(tmp) / "h", Path(tmp) / "m", adapter)
+        self.assertEqual(problems, [])
+
+
 class ProvisionMcp(unittest.TestCase):
     def test_mcp_servers_written_enabled(self):
         from pacbench import harness

@@ -506,7 +506,7 @@ def preflight(life: Life, hermes_home: Path, memcal_home: Path,
     except Exception as exc:
         problems.append(f"adapter.retrieval failed: {exc}")
         seam = {}
-    if seam and not seam.get("plugin_available"):
+    if seam and not seam.get("plugin_available") and not seam.get("mcp_server"):
         problems.append("provider plugin unavailable for isolated home install")
     if not life.checkpoints:
         problems.append(f"life {life.id} has no checkpoints")

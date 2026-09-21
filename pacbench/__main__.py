@@ -170,6 +170,11 @@ def _load_life(life_id: str):
         print("diagnostic: toy-day is unregistered plumbing material, "
               "never corpus evidence")
         return life_g_toyday.lives()[0]
+    if life_id == "pizza-day":
+        from pacbench.corpus import life_h_pizzaday
+        print("diagnostic: pizza-day is unregistered plumbing material, "
+              "never corpus evidence")
+        return life_h_pizzaday.lives()[0]
     raise KeyError(f"unknown life {life_id!r}")
 
 

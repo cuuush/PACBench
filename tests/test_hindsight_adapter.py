@@ -190,6 +190,21 @@ class Ingest(unittest.TestCase):
         self.assertIn("user_turns_redirected 1", usage.notes[0])
         adapter.close()
 
+    def test_operation_id_is_deterministic_uuid(self):
+        import uuid as _uuid
+        adapter, fake = _adapter()
+        with mock.patch.dict(os.environ,
+                             {"HINDSIGHT_API_LLM_API_KEY": "k"}):
+            adapter.reset("ns1")
+        adapter.ingest([self._obs()], "2026-09-18T12:00:00")
+        op = fake.batches[0]["operation_id"]
+        # Well-formed UUID (product parses outcome-metadata IDs as UUIDs)
+        # AND deterministic per packet (idempotent operational retry).
+        self.assertEqual(op, str(_uuid.uuid5(
+            _uuid.NAMESPACE_URL,
+            "pacbench-ns1:2026-09-18T12:00:00")))
+        adapter.close()
+
 
 class MaintenanceReadiness(unittest.TestCase):
     def _ready_adapter(self):

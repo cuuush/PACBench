@@ -40,6 +40,7 @@ import sys
 import tempfile
 import threading
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -267,6 +268,11 @@ class HindsightAdapter(ProviderAdapter):
         for obs in evidence:
             groups.setdefault(
                 str(obs.get("collected_at", collected_at)), []).append(obs)
+        # Deterministic operation_id per packet: idempotent OPERATIONAL
+        # retry only (§2). UUID5 (not a raw string): the product parses
+        # outcome-metadata IDs as UUIDs — a free-form op id breaks its
+        # bookkeeping with "badly formed hexadecimal UUID string"
+        # (observed 2026-09-21) while the memory itself still stores.
         for group_at in sorted(groups):
             contents = [
                 {"content": o["text"],
@@ -282,7 +288,9 @@ class HindsightAdapter(ProviderAdapter):
             per_item = self._loop.run(
                 self._engine.retain_batch_async(
                     self._bank, contents, request_context=self._ctx,
-                    operation_id=f"{self._bank}:{group_at}"))
+                    operation_id=str(uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        f"{self._bank}:{group_at}"))))
             self._retain_calls += 1
             if isinstance(per_item, tuple):
                 per_item = per_item[0]

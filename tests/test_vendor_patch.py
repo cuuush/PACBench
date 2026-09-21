@@ -8,6 +8,7 @@ upstream pull), these fail until the diff is regenerated deliberately.
 """
 
 import hashlib
+import os
 import subprocess
 import sys
 import unittest
@@ -16,6 +17,21 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 VENDOR = REPO / "vendor" / "hermes-isolated"
 PATCH = REPO / "patches" / "hermes-isolated.diff"
+
+
+def _git(*args: str) -> str:
+    """Read-only git against the vendor tree: bounded and non-interactive.
+
+    The suite must never hang a gate runner: ``timeout`` converts a stuck
+    git (index lock, prompt, sick filesystem) into a fast named failure,
+    and the env disables pagers and credential prompts. These are the
+    only un-mocked blocking calls in the suite.
+    """
+    env = {**os.environ, "GIT_PAGER": "cat", "GIT_TERMINAL_PROMPT": "0"}
+    proc = subprocess.run(["git", "-C", str(VENDOR), *args],
+                          capture_output=True, text=True,
+                          timeout=60, env=env)
+    return proc.stdout
 
 
 def _read_pin() -> str:
@@ -27,23 +43,17 @@ def _read_pin() -> str:
 
 class VendorPatchIntegrity(unittest.TestCase):
     def test_tree_is_pinned_commit(self):
-        head = subprocess.run(
-            ["git", "-C", str(VENDOR), "rev-parse", "HEAD"],
-            capture_output=True, text=True).stdout.strip()
+        head = _git("rev-parse", "HEAD").strip()
         self.assertEqual(head, _read_pin())
 
     def test_tree_diff_equals_tracked_patch(self):
-        live = subprocess.run(
-            ["git", "-C", str(VENDOR), "diff"],
-            capture_output=True, text=True).stdout
+        live = _git("diff")
         self.assertEqual(live, PATCH.read_text(),
                          "vendor tree has hand edits or drift: regenerate "
                          "patches/hermes-isolated.diff deliberately")
 
     def test_only_expected_files_patched(self):
-        names = subprocess.run(
-            ["git", "-C", str(VENDOR), "diff", "--name-only"],
-            capture_output=True, text=True).stdout.split()
+        names = _git("diff", "--name-only").split()
         self.assertEqual(sorted(names), [
             "agent/agent_init.py",
             "agent/inline_tool_executors.py",

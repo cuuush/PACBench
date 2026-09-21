@@ -27,3 +27,6 @@ namespaces = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Tripwire: if any test ever hangs in any environment, dump tracebacks
+# naming the stuck test instead of dying silent at a runner timeout.
+faulthandler_timeout = 240

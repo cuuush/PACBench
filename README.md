@@ -70,10 +70,10 @@ python3 -m pacbench run-pilot --repetitions 2                     # each life tw
 
 ## Corpus
 
-Five synthetic development lives, each covering 7 consecutive simulated days
-(Mon 2026-09-07 – Sun 2026-09-13) plus older history, over email, text /
+Six synthetic development lives, each covering 7 consecutive simulated days
+plus older history, over email, text /
 iMessage, WhatsApp, GroupMe, Hermes user turns, and Slack where the life
-needs it (corpus 0.2.0: 298 observations, 33 checkpoints):
+needs it (corpus 0.3.0: 1890 observations, 44 checkpoints):
 
 | Life | Exercises | Matched control |
 | --- | --- | --- |
@@ -82,6 +82,7 @@ needs it (corpus 0.2.0: 298 observations, 33 checkpoints):
 | `coat-weekend` (C) | proactive reminder, opportunity vs commitment, abstention on unresolved plans | silent visit (no reminder should fire) |
 | `reunion-thread` (D) | thread-size difficulty (key facts buried in a ~150-message group chat), hearsay vs organizer, stale repeats | work picnic in a small thread |
 | `revoke-week` (E) | cancellation-reversal (exactly one active booking), explicit forget (old code history, not current), completed-task silence | history probes mirror the current-state probes |
+| `race-week` (F) | long-horizon noisy recall: 9-update training saga, venue chain, superseded times, durable allergy, time-bounded deadlines, very-short-lived states, declined/expired/wrong-person traps, denied rumor; 1,592 obs at 2.6% support | — (scale life, no control) |
 
 Two smaller incident families from the starting material are kept as
 regression coverage: `poker-move` / `poker-unchanged` (write-time recency) and

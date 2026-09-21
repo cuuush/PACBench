@@ -30,14 +30,14 @@ REPO = Path(__file__).resolve().parents[1]
 class VersionIs01(unittest.TestCase):
     def test_version(self):
         self.assertEqual(VERSION, "0.1.0")
-        self.assertEqual(CORPUS_VERSION, "0.2.0")
+        self.assertEqual(CORPUS_VERSION, "0.3.0")
 
 
 class DevelopmentLives(unittest.TestCase):
     def test_ids(self):
         self.assertEqual(sorted(l.id for l in development_lives()),
                          ["coat-weekend", "dentist-depth", "poker-collision",
-                          "reunion-thread", "revoke-week"])
+                          "race-week", "reunion-thread", "revoke-week"])
 
     def test_seven_day_horizon_with_older_history(self):
         for life in development_lives():
@@ -85,7 +85,7 @@ class SplitDeclaration(unittest.TestCase):
         self.assertEqual(
             sorted(i for i, r in by_id.items() if r == "development"),
             ["coat-weekend", "dentist-depth", "poker-collision",
-             "reunion-thread", "revoke-week"])
+             "race-week", "reunion-thread", "revoke-week"])
         self.assertEqual(
             sorted(i for i, r in by_id.items() if r == "calibration"),
             ["dentist-friday", "poker-move", "poker-unchanged",
@@ -118,6 +118,7 @@ class LineageDiscipline(unittest.TestCase):
         "weekend-plans": "weekend-opportunities",
         "reunion-thread": "reunion-picnic",
         "revoke-week": "revoke-dinner",
+        "race-week": "harbor-10k",
     }
 
     def test_declared_lineages(self):
@@ -332,7 +333,7 @@ class ValidationAndFreezing(unittest.TestCase):
         self.assertEqual(digest(all_lives()), digest(all_lives()))
         self.assertEqual(digest(all_lives()), PINNED_HASH)
         record = freeze(all_lives())
-        self.assertEqual(record["corpus_version"], "0.2.0")
+        self.assertEqual(record["corpus_version"], "0.3.0")
         self.assertEqual(len(record["sha256"]), 64)
         self.assertGreaterEqual(record["observations"], 40)
 
@@ -713,6 +714,7 @@ class HalfLifeCoverage(unittest.TestCase):
         ("weekend-plans", "anything-fun", "trap-gala"),
         ("revoke-week", "plants-silent", "trap-water"),
         ("revoke-week", "plants-silent", "trap-plants"),
+        ("race-week", "weekend-fun", "trap-coupon"),
     ]
     #: The "expired" class lumped-declined by taxonomy design (rubric:
     #: "lapsed, declined, or completed matter surfaced as live"): declined
@@ -720,6 +722,7 @@ class HalfLifeCoverage(unittest.TestCase):
     DECLINED_TRAPS = [
         ("coat-weekend", "anything-fun", "trap-festival"),
         ("weekend-plans", "anything-fun", "trap-5k"),
+        ("race-week", "weekend-fun", "trap-housewarming"),
     ]
     #: Lifetime classes with zero corpus coverage, owned by the
     #: generated-life spec: "right now" states, durable preferences

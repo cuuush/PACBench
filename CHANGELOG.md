@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## Unreleased (corpus 0.3.0)
+
+- Corpus: new development life `race-week` (F) — long-horizon noisy
+  recall: Harbor 10k training saga (9 updates), birthday venue chain
+  (4 updates), superseded car/dinner times, durable peanut allergy,
+  time-bounded deadlines (early-bird, RSVP), very-short-lived states
+  (heads-down, meter), declined/expired/wrong-person traps, denied
+  storm-cancellation rumor. 1,592 obs / 11 checkpoints at 2.6% measured
+  support (Q6 band 2–10%); filler programmatic from timeless templates
+  (seeded) with gen_qa screens (temporal/commitment/slot-token/negate
+  clean). Corpus now 1890 observations / 44 checkpoints across 10
+  lives; freeze hash re-pinned deliberately; CORPUS_VERSION 0.2.0→0.3.0.
+- Generation QA (`pacbench/gen_qa.py`, criterion 1 proof wiring):
+  `added_atoms` (extra-fact screen for Spark renders), `screen_life`
+  (filler discipline incl. negate-cue dodge for the YESNO scan),
+  `noise_report` (measured support ratio). Difficulty measured on the
+  frozen draft: relevant threads 135–297 obs/checkpoint, ages 1–118h,
+  multi-channel on 3/11. Spark pass (renderer muse-spark-1.3, verified
+  route) + review packet + sign-off still ahead; GAPS account untouched
+  (first instances of all three gap classes recorded, closure proposed
+  for co-author review).
+
 ## Unreleased (corpus 0.2.0)
 
 - Corpus: new development lives `reunion-thread` (D) — thread-size difficulty

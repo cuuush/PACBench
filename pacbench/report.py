@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 
 from .grade import Grade
 from .rubric import Checkpoint, Kind, Verdict
+from .exposure import compare_exposure
 
 
 @dataclass
@@ -84,8 +85,96 @@ class Summary:
         }
 
 
-def summarize(grades: list[Grade], checkpoints: list[Checkpoint]) -> Summary:
-    """Aggregate grades. `checkpoints[i]` is the checkpoint `grades[i]` answers."""
+def check_adapter_digests(digests: list[str | None]) -> str | None:
+    """Fail closed on mixed adapter-config digests (plan.md P0-2).
+
+    Returns the single agreed digest (``None`` when every run predates
+    the digest field). Raises ``RuntimeError`` naming each distinct
+    digest when runs ingested under different adapter configs would
+    otherwise blend silently.
+    """
+    distinct = sorted({d for d in digests if d is not None})
+    if len(distinct) > 1:
+        raise RuntimeError(
+            "refusing to aggregate runs with different "
+            f"adapter-config digests: {', '.join(distinct)}")
+    return distinct[0] if distinct else None
+
+
+def manifest_digest(manifest: dict) -> str | None:
+    """One manifest's ``adapter_config_digest`` (``None`` if absent)."""
+    recipe = manifest.get("provider_recipe", None) or {}
+    return recipe.get("adapter_config_digest")
+
+
+def check_manifest_digests(manifests: list[dict]) -> str | None:
+    """Refuse to aggregate manifests ingested under mixed digests."""
+    return check_adapter_digests([manifest_digest(m) for m in manifests])
+
+
+#: Run-name prefixes that are diagnostic-only by construction (P0-11):
+#: the checkpoint debugging aid never had a frozen-bundle path.
+_DIAGNOSTIC_RUN_PREFIXES = ("pacbench-w4-live",)
+
+
+def require_scored_manifest(manifest: dict) -> bool:
+    """Refuse draft-text / diagnostic-only runs at the scoring gate.
+
+    Returns True for a manifest that may enter scored aggregation: a
+    frozen-bundle life episode. Raises ``RuntimeError`` for
+    diagnostic-only checkpoint runs (``diagnostic_only`` or a
+    ``pacbench-w4-live*`` run name, with or without the flag for
+    pre-P0-11 manifests) and for any manifest whose ``evidence_source``
+    is present but is not ``"frozen-bundle"``.
+    """
+    run = str(manifest.get("run", ""))
+    if manifest.get("diagnostic_only", False):
+        raise RuntimeError(
+            f"refusing diagnostic-only run {run!r}: never a scored result "
+            f"(scored runs require run-life/run-pilot on a frozen bundle)")
+    if any(run.startswith(prefix) for prefix in _DIAGNOSTIC_RUN_PREFIXES):
+        raise RuntimeError(
+            f"refusing diagnostic-only run {run!r}: the checkpoint "
+            f"debugging aid has no frozen-bundle path and is never scored")
+    source = manifest.get("evidence_source")
+    if source is not None and source != "frozen-bundle":
+        raise RuntimeError(
+            f"refusing non-frozen evidence source {source!r} in run "
+            f"{run!r}: scored runs consume hash-verified frozen bundles (§5)")
+    return True
+
+
+def check_exposure_equivalence(manifest_a: dict, manifest_b: dict) -> dict:
+    """Comparative-validity gate over two runs' exposure ledgers (P0-6).
+
+    Returns the :func:`pacbench.exposure.compare_exposure` result on a
+    match; raises ``RuntimeError`` naming every divergent boundary
+    otherwise. Two providers' runs for the same life/configuration may
+    be compared only through this gate.
+    """
+    result = compare_exposure(manifest_a, manifest_b)
+    if not result["match"]:
+        lines = [f"{m['boundary']}: {m['reason']} ({m['detail']})"
+                 for m in result["mismatches"]]
+        raise RuntimeError(
+            "refusing to compare runs with different offered evidence: "
+            + "; ".join(lines))
+    return result
+
+
+def summarize(grades: list[Grade], checkpoints: list[Checkpoint],
+                adapter_digests: list[str | None] | None = None) -> Summary:
+    """Aggregate grades. `checkpoints[i]` is the checkpoint `grades[i]` answers.
+
+    `adapter_digests` carries one run-manifest ``adapter_config_digest``
+    per aggregated run (plan.md P0-2): mixed digests refuse to aggregate
+    (fail closed, naming the digests) instead of silently blending runs
+    ingested under different adapter configs. ``None`` (default) keeps
+    the legacy caller contract — pure grade aggregation with no
+    provenance check.
+    """
+    if adapter_digests is not None:
+        check_adapter_digests(list(adapter_digests))
     summary = Summary()
     tag_stats: dict[str, list[int]] = {}  # tag -> [correct, total]
     for result, checkpoint in zip(grades, checkpoints):

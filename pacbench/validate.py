@@ -29,7 +29,7 @@ from .grade import Norm
 from .life import Life
 from .manifest import SupportManifest
 from .observation import CHANNELS, Observation, chronology_ok
-from .rubric import ERROR_CLASSES, Kind, Slot
+from .rubric import ERROR_CLASSES, Checkpoint, Kind, Slot
 
 #: Corpus split roles (§39 + ruling 2026-09-21 Q7). ``exposed_after_review``
 #: marks a life whose detailed inspection (evidence, rubric, output,
@@ -251,6 +251,127 @@ def check(lives: list[Life],
     errors = validate_corpus(lives, manifests)
     if errors:
         raise CorpusError("\n".join(errors))
+
+
+# ---------------------------------------------------------------------------
+# P0-12: support-graph ablation (additive; no existing behavior changed).
+#
+# ``Slot.supported_by`` stays cited-only (see docs/support-graph.md): it
+# records which observations are cited as relevant, never sufficiency or
+# necessity. The helpers below prove stronger claims explicitly by removing
+# one claimed-essential source and recomputing knowability under the same
+# literal-carry rule structural validation uses.
+# ---------------------------------------------------------------------------
+
+@dataclasses.dataclass(frozen=True)
+class AblationResult:
+    """Outcome of removing one source/channel and recomputing knowability."""
+
+    checkpoint_id: str
+    removed_ids: tuple[str, ...]
+    answer_changed_or_uncertain: bool
+    affected_slot_ids: tuple[str, ...] = ()
+    detail: str = ""
+
+
+def _slot_values(slot: Slot) -> tuple[str, ...]:
+    return tuple(v for v in (slot.expected, *slot.alternatives) if v and v.strip())
+
+
+def _slot_carried(slot: Slot, texts: list[str]) -> bool | None:
+    """Literal-carry knowability of one slot over the given evidence texts.
+
+    Returns True/False for required literal slots with an expected value;
+    None when the slot is outside the literal rule (YESNO, no expected
+    value, or ABSTAIN) and ablation cannot decide it.
+    """
+    if (not slot.required or not slot.expected
+            or slot.norm not in LITERAL_NORMS or slot.kind is Kind.ABSTAIN):
+        return None
+    values = _slot_values(slot)
+    return any(evidence_carries(t, v, slot.norm) for t in texts for v in values)
+
+
+def ablation_check(life: Life, checkpoint: Checkpoint,
+                   channel_or_source: str) -> AblationResult:
+    """Remove one claimed-essential source and recompute knowability.
+
+    ``channel_or_source`` is either a channel name (removes every
+    observation on that channel) or one observation ``source_id`` (removes
+    just it). Only evidence collected at or before the checkpoint counts,
+    mirroring the future-evidence rule in :func:`validate_life`.
+
+    ``answer_changed_or_uncertain`` is True iff at least one required
+    literal slot is carried by the full cited evidence but uncarried after
+    the removal. Unknown channel/source names raise ``ValueError``.
+    """
+    by_id = {o.source_id: o for o in life.observations}
+    if channel_or_source in CHANNELS:
+        removed = tuple(o.source_id for o in life.observations
+                        if o.channel == channel_or_source)
+    elif channel_or_source in by_id:
+        removed = (channel_or_source,)
+    else:
+        raise ValueError(f"unknown channel or source_id {channel_or_source!r}")
+    removed_set = set(removed)
+
+    affected: list[str] = []
+    undecided: list[str] = []
+    baseline_unknowable: list[str] = []
+    for slot in (*checkpoint.slots, *checkpoint.supported):
+        full_texts = [by_id[oid].text for oid in slot.supported_by
+                      if oid in by_id and by_id[oid].collected_at <= checkpoint.at]
+        kept_texts = [by_id[oid].text for oid in slot.supported_by
+                      if oid in by_id and oid not in removed_set
+                      and by_id[oid].collected_at <= checkpoint.at]
+        before = _slot_carried(slot, full_texts)
+        if before is None:
+            undecided.append(slot.id)
+            continue
+        after = _slot_carried(slot, kept_texts)
+        if before and not after:
+            affected.append(slot.id)
+        elif not before:
+            baseline_unknowable.append(slot.id)
+
+    parts = [f"removed {len(removed)} observation(s)"]
+    if affected:
+        parts.append(f"affected: {', '.join(affected)}")
+    if baseline_unknowable:
+        parts.append(f"uncarried even before removal: "
+                     f"{', '.join(baseline_unknowable)}")
+    if undecided:
+        parts.append(f"outside the literal rule (needs-human-review): "
+                     f"{', '.join(undecided)}")
+    return AblationResult(
+        checkpoint_id=checkpoint.id,
+        removed_ids=removed,
+        answer_changed_or_uncertain=bool(affected),
+        affected_slot_ids=tuple(affected),
+        detail="; ".join(parts),
+    )
+
+
+def multi_source_dependency(life: Life) -> list[str]:
+    """Ids of checkpoints whose *cited* required support spans >1 channel.
+
+    Candidacy list only: citation span is not proof of dependence (see
+    docs/support-graph.md). Prove each entry with :func:`ablation_check`.
+    """
+    by_id = {o.source_id: o for o in life.observations}
+    out: list[str] = []
+    for cp in life.checkpoints:
+        channels = set()
+        for slot in (*cp.slots, *cp.supported):
+            if not slot.required:
+                continue
+            for oid in slot.supported_by:
+                obs = by_id.get(oid)
+                if obs is not None:
+                    channels.add(obs.channel)
+        if len(channels) > 1:
+            out.append(cp.id)
+    return out
 
 
 if __name__ == "__main__":

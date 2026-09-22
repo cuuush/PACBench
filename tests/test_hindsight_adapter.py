@@ -225,7 +225,9 @@ class Ingest(unittest.TestCase):
         self.assertEqual(rec["bank"], "pacbench-ns1")
         self.assertIsNotNone(rec["event_date"])
         self.assertEqual(rec["event_date"].day, 18)
-        self.assertEqual(rec["document_id"], "t/1")
+        # P0-2 migration: conversation packets share the stable logical
+        # document id (text:tx), not the old per-message source_id scheme.
+        self.assertEqual(rec["document_id"], "text:tx")
         self.assertEqual(len(fake.batches), 1)
         import uuid as _uuid
         self.assertEqual(fake.batches[0]["operation_id"], str(_uuid.uuid5(

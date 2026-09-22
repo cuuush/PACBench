@@ -98,12 +98,22 @@ class PrimaryEpisodeOffline(unittest.TestCase):
                     (life_dir / "manifest.json").read_text())
                 return rec, manifest
 
-    def test_draft_episode_marks_diagnostic(self):
-        rec, manifest = self._run()
-        self.assertEqual(rec["state"], "valid")
-        self.assertTrue(
-            manifest["evidence_source"].startswith("draft-text"))
-        self.assertEqual(manifest["bundle_hash"], "")
+    def test_draft_episode_refuses_to_score(self):
+        # P0-11: the draft-text fallback was removed. run_life without a
+        # frozen bundle fails closed (ValueError) — it can never produce
+        # a scored-looking valid result.
+        from provider_adapters.lexical_adapter import LexicalAdapter
+        from pacbench import corpus
+        from pacbench.live import run_life
+        life = corpus.get_life("poker-collision")
+        with tempfile.TemporaryDirectory(prefix="episode-") as tmp:
+            with self.assertRaises(ValueError):
+                run_life(
+                    life=life, provider="lexical",
+                    make_adapter=lambda home: LexicalAdapter(home),
+                    life_dir=Path(tmp) / "life", model="m",
+                    model_provider="mp", driver_configured_model="m",
+                    bundle=None)
 
     def test_bundled_episode_records_hash(self):
         from pacbench import corpus
@@ -176,10 +186,11 @@ class PrimaryEpisodeOffline(unittest.TestCase):
         seen = {}
 
         class SpyAdapter(LexicalAdapter):
-            def ingest(self, observations, collected_at):
+            def ingest(self, observations, collected_at, group_flags=None):
                 seen.setdefault("calls", []).append(
                     (collected_at, [o["source_id"] for o in observations]))
-                return super().ingest(observations, collected_at)
+                return super().ingest(observations, collected_at,
+                                      group_flags=group_flags)
 
         from pacbench.frozen import BUNDLE_VERSION, freeze_observations
         bundle = freeze_observations([life])

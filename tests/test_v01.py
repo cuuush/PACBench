@@ -481,6 +481,10 @@ class AbsoluteNaming(unittest.TestCase):
                 # implementation; the ban applies to code, config, and repo
                 # docs describing the implementation (untracked working copy
                 # tripped this 2026-09-21; the term is the contract's own).
+            if path.name.lower() == "plan.md":
+                continue  # the user's own implementation plan (untracked,
+                # renamed from TRACKED_WORK.md 2026-09-22); same input-doc
+                # rationale as the contract above.
             text = path.read_text()
             for name in forbidden:
                 if name in text:

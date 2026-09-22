@@ -112,7 +112,8 @@ class LexicalAdapter(ProviderAdapter):
         self._maintenance = {"state": "not-run"}
 
     # -- ingestion (§44 C; §§29/31/42) ---------------------------------------
-    def ingest(self, observations: list[dict], collected_at: str) -> Usage:
+    def ingest(self, observations: list[dict], collected_at: str,
+               group_flags: dict | None = None) -> Usage:
         """Ingest one batch of public observations at a collection boundary.
 
         Non-user-turn channels are stored verbatim with sender/thread/channel

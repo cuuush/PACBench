@@ -82,8 +82,15 @@ class ProviderAdapter(ABC):
         raise NotImplementedError("NOT-IN-0.1: provider adapters")
 
     @abstractmethod
-    def ingest(self, observations: list[dict], collected_at: str) -> Usage:
-        """Ingest one batch of public observations. NOT-IN-0.1."""
+    def ingest(self, observations: list[dict], collected_at: str,
+               group_flags: dict[tuple[str, str], bool] | None = None) -> Usage:
+        """Ingest one batch of public observations. NOT-IN-0.1.
+
+        ``group_flags`` maps (channel, thread) → is-group, computed by
+        the runner from corpus-authored provenance (CONTRACT §8, shared
+        across providers per §29). Adapters that need no group signal
+        accept and ignore it.
+        """
         raise NotImplementedError("NOT-IN-0.1: provider adapters")
 
     @abstractmethod

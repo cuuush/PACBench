@@ -13,6 +13,13 @@ constructed duck-typed adapter (``reset`` / ``ingest`` / ``retrieval`` /
 ``usage`` / ``readiness`` / ``maintenance`` / ``env``) plus scratch paths owned
 by the caller. Corpus truth, rubrics, and support manifests never cross the
 adapter boundary — only public observation payloads do.
+
+Canonical runtime path (P0-11): author → validate/render → freeze →
+hash → run. Every scored episode consumes a hash-verified frozen
+bundle; draft text never reaches a scored run (see ``run_life``).
+``run_checkpoint_live`` is a diagnostic-only debugging aid and is
+refused by the scoring/reporting gates (see
+``pacbench.report.require_scored_manifest``).
 """
 
 from __future__ import annotations
@@ -25,6 +32,7 @@ from typing import Any, Callable
 
 from . import CORPUS_VERSION
 from . import harness
+from .exposure import check_offered_batch, exposure_digest
 from .freeze import digest
 from .frozen import BUNDLE_VERSION
 from .frozen import bundle_hash as frozen_bundle_hash
@@ -51,6 +59,39 @@ def split_collection(payloads: list[dict]) -> tuple[list[dict], list[dict]]:
     return evidence, turns
 
 
+def _thread_group_flags(evidence: list[dict]) -> dict[tuple[str, str], bool]:
+    """Which (channel, thread) pairs are group conversations.
+
+    A thread with 3+ distinct non-owner senders is a group chat (same
+    rule memcal's own imessage/whatsapp ingesters use: members > 2);
+    everything else is a DM. Pure function over the PUBLIC batch, so
+    both providers share it (fairness-neutral, CONTRACT §29) — the
+    alternative (memcal hardcoded False, Hindsight nothing) would tilt
+    entity keying toward one provider. CONTRACT §8 preserves thread
+    identity; §44C demands the native lifecycle, and native group
+    detection IS the lifecycle (gate.entity_for branches on it).
+    """
+    speakers: dict[tuple[str, str], set[str]] = {}
+    for obs in evidence:
+        key = (str(obs.get("channel", "")), str(obs.get("thread", "")))
+        sender = str(obs.get("sender", ""))
+        if not obs.get("from_owner") and sender.lower() != "me":
+            speakers.setdefault(key, set()).add(sender)
+    return {key: len(names) > 2 for key, names in speakers.items()}
+
+
+def _ingested_now() -> str:
+    """Wall-clock submit moment for one adapter.ingest call (P0-5).
+
+    Run artifact only: records when the runner actually submitted the
+    batch on the host. Never a substitute for per-observation
+    ``collected_at`` (simulated source-discovery time) and never an
+    input to op-id derivation or the MEMCAL_TODAY pin — those stay on
+    the simulated benchmark clock.
+    """
+    return datetime.now(timezone.utc).isoformat()
+
+
 def _batched_by_collection(evidence: list[dict]) -> list[tuple[str, list[dict]]]:
     """Group evidence by collection DAY (YYYY-MM-DD), earliest first.
 
@@ -68,6 +109,15 @@ def _batched_by_collection(evidence: list[dict]) -> list[tuple[str, list[dict]]]
     for obs in evidence:
         batches.setdefault(str(obs["collected_at"])[:10], []).append(obs)
     return sorted(batches.items(), key=lambda kv: kv[0])
+
+
+def _group_flags_for(caller_evidence: list[dict]) -> dict[tuple[str, str], bool]:
+    """Group flags for one ingest call's evidence (shared helper).
+
+    Computed over the evidence actually being ingested — never future
+    observations (CONTRACT §42: observations delivered at correct times).
+    """
+    return _thread_group_flags(caller_evidence)
 
 
 def _write_json(path: Path, obj: Any) -> None:
@@ -210,13 +260,21 @@ def _memcal_commit() -> str:
     return "unknown"
 
 
-def _provider_recipe(provider: str, dream_model: str | None = None) -> dict:
+def _provider_recipe(provider: str, dream_model: str | None = None,
+                     adapter: Any = None) -> dict:
     """Provider recipe/version facts for the run manifest (M3).
 
     Everything here already exists in-process: the Hindsight package
     version, the memcal checkout commit (when present), and each
     provider's provider-side model string. A future comparative run is
     exactly reproducible from its manifest only when these are recorded.
+
+    Also carries the plan.md P0-2 adapter-config digest: the six-field
+    ``adapter_config`` dict plus its stable ``adapter_config_digest``
+    hex. ``live.py`` never imports a provider module, so Hindsight-side
+    fields arrive via the duck-typed ``adapter.adapter_config()``
+    hook; providers without the hook get explicit ``n/a`` markers
+    (never silent defaults that could collide with a real config).
     """
     import os as _os
     recipe: dict = {"provider": provider}
@@ -235,7 +293,62 @@ def _provider_recipe(provider: str, dream_model: str | None = None) -> dict:
         recipe["memcal_commit"] = _memcal_commit()
         if dream_model:
             recipe["dream_model"] = dream_model
+    config = _adapter_config_for(provider, adapter)
+    recipe["adapter_config"] = config
+    recipe["adapter_config_digest"] = _adapter_config_digest(config)
     return recipe
+
+
+#: Plan.md P0-2 digest fields: every run manifest records all six, with
+#: explicit per-provider ``n/a`` where a field does not apply.
+ADAPTER_CONFIG_FIELDS = (
+    "source_document_mapping_version",
+    "hindsight_document_id_scheme",
+    "hindsight_update_mode",
+    "packetization",
+    "operation_id_strategy",
+    "memcal_recipe_version",
+)
+
+
+def _adapter_config_for(provider: str, adapter: Any = None) -> dict:
+    """Six-field adapter-config dict for the run-manifest digest.
+
+    Hindsight-side fields come from the duck-typed
+    ``adapter.adapter_config()`` hook (live.py never imports a
+    provider); anything missing stays an explicit ``n/a`` marker.
+    ``memcal_recipe_version`` is the memcal checkout pin on memcal
+    runs, ``n/a`` elsewhere — a Hindsight digest must not wobble with
+    an unrelated checkout.
+    """
+    from .source_documents import SOURCE_DOCUMENT_MAPPING_VERSION
+    config = {
+        "source_document_mapping_version": SOURCE_DOCUMENT_MAPPING_VERSION,
+        "hindsight_document_id_scheme": f"n/a (provider={provider})",
+        "hindsight_update_mode": f"n/a (provider={provider})",
+        "packetization": f"n/a (provider={provider})",
+        "operation_id_strategy": f"n/a (provider={provider})",
+        "memcal_recipe_version": (
+            _memcal_commit() if provider == "memcal"
+            else f"n/a (provider={provider})"),
+    }
+    if adapter is not None and hasattr(adapter, "adapter_config"):
+        try:
+            reported = dict(adapter.adapter_config())
+        except Exception:
+            reported = {}
+        for key in ADAPTER_CONFIG_FIELDS:
+            if key in reported and key != "memcal_recipe_version":
+                config[key] = reported[key]
+    return config
+
+
+def _adapter_config_digest(config: dict) -> str:
+    """Stable hex digest of an adapter-config dict (refusal key)."""
+    import hashlib as _hashlib
+    import json as _json
+    canonical = _json.dumps(config, sort_keys=True, separators=(",", ":"))
+    return _hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def _maintenance_approved() -> bool:
@@ -291,6 +404,12 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
                         namespace: str | None = None) -> dict:
     """Execute one checkpoint through Hermes + provider (§32) and grade it.
 
+    DIAGNOSTIC ONLY — never a scored result. This entry point has no
+    frozen-bundle path (it ingests draft text into a fresh namespace
+    per checkpoint), so its manifest carries ``diagnostic_only: True``
+    and ``pacbench.report.require_scored_manifest`` refuses it. Scored
+    claims require run-life/run-pilot on a frozen bundle.
+
     Returns a JSON-serializable summary (also persisted under ``run_dir``).
     Raises ``RuntimeError`` on any setup/Hermes defect — a defect is reported,
     never converted into a passing grade (§42).
@@ -339,17 +458,30 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         evidence, user_turns = split_collection(payloads)
 
         import_batches: list[dict] = []
+        group_flags = _group_flags_for(evidence)
         for day, batch in _batched_by_collection(evidence):
             # Day-batch transport, exact-instant clock: the adapter sees
             # the batch's latest collected_at (full ISO) as its collection
             # moment — MEMCAL_TODAY pin / op-id seed keep exact timing —
             # while the day key records the transport grouping (§41).
+            # The day's group flags ride along so both providers key
+            # bundle entities identically (CONTRACT §8 thread identity;
+            # §29 same observations at the same times).
             boundary = max(o["collected_at"] for o in batch)
-            usage = adapter.ingest(batch, boundary)
+            ingested_at = _ingested_now()
+            # P0-6 exposure ledger: digest the OFFERED batch (before
+            # provider packaging) and prove it was provider-blind.
+            check_offered_batch(batch)
+            offered_digest = exposure_digest(batch)
+            usage = adapter.ingest(batch, boundary, group_flags=group_flags)
             import_batches.append({
                 "batch_day": day,
                 "collected_at": boundary,
+                "ingested_at": ingested_at,
                 "observations": [o["source_id"] for o in batch],
+                "exposure_digest": offered_digest,
+                "group_flags": sorted(
+                    f"{ch}/{th}" for (ch, th), g in group_flags.items() if g),
                 "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
             })
 
@@ -394,7 +526,11 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
     grade = grade_answer(checkpoint, scored.answer)
 
     manifest = harness.run_manifest({
-        "run": "pacbench-w4-live",
+        "run": "pacbench-w4-live-diagnostic",
+        "diagnostic_only": True,
+        "evidence_source": ("draft-text (diagnostic; never a scored "
+                            "result — scored runs require run-life/run-pilot "
+                            "on a frozen bundle)"),
         "namespace": ns,
         "started_at": started,
         "adapter_env_error": adapter_env_error,
@@ -410,6 +546,8 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         "provision": home_record,
         "import_batches": import_batches,
         "maintenance": maintenance_record,
+        "provider_recipe": _provider_recipe(
+            provider_name, getattr(adapter, "dream_model", None), adapter),
         "adapter_usage": (adapter.usage().__dict__
                           if hasattr(adapter, "usage") else {}),
     })
@@ -718,17 +856,23 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
                       life_dir: Path, model: str, model_provider: str,
                       driver_configured_model: str,
                       timeout_s: float = 900.0, repetition: int = 0,
-                      bundle: dict | None = None,
+                      bundle: dict,
                       mcp_servers: list[dict] | None = None) -> dict:
     """Run one full 7-day life episode: ingest → turns → checkpoints → maintenance.
 
     PRIMARY PATH (consolidated ruling §1): one persistent provider state
     per (life × provider × repetition), sequential delta ingest, one
-    namespace. ``bundle`` (frozen observations, §5) replaces draft texts
-    when given; without it the run is draft-text diagnostic and the
-    manifest says so. Returns the life record (``state`` is ``valid``,
-    ``incomplete``, or ``invalid``).
+    namespace. ``bundle`` is the hash-verified frozen observation bundle
+    (§5, P0-11: required — draft text can never reach a scored episode;
+    freeze first with ``pacbench.frozen.freeze_observations``, which is
+    offline and spends nothing). Returns the life record (``state`` is
+    ``valid``, ``incomplete``, or ``invalid``).
     """
+    if bundle is None:
+        raise ValueError(
+            "a frozen bundle is required (§5, P0-11): draft-text episodes "
+            "were removed; freeze the life first (offline, no spend) and "
+            "pass bundle=freeze_observations([life])")
     life_dir.mkdir(parents=True, exist_ok=True)
     hermes_home = life_dir / "hermes-home"
 
@@ -748,15 +892,14 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
     obs = sorted(life.observations, key=lambda o: (o.collected_at, o.source_id))
     checkpoints = sorted(life.checkpoints, key=lambda c: c.at)
     if bundle is None:
-        payloads = [o.public() for o in obs]
-        evidence_source = "draft-text (diagnostic; scored runs require a frozen bundle)"
-        bundle_version = ""
-        bundle_hash = ""
-    else:
-        payloads = overlay_bundle_observations(life, bundle)
-        evidence_source = "frozen-bundle"
-        bundle_version = str(bundle.get("bundle_version", ""))
-        bundle_hash = frozen_bundle_hash(bundle)
+        raise ValueError(
+            "a frozen bundle is required (§5, P0-11): draft-text episodes "
+            "were removed; freeze the life first (offline, no spend) and "
+            "pass bundle=freeze_observations([life])")
+    payloads = overlay_bundle_observations(life, bundle)
+    evidence_source = "frozen-bundle"
+    bundle_version = str(bundle.get("bundle_version", ""))
+    bundle_hash = frozen_bundle_hash(bundle)
 
     turns: list[dict] = []
     grades: list[dict] = []
@@ -810,16 +953,32 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
         nonlocal obs_idx
         pending = [p for p in payloads[obs_idx:] if p["collected_at"] <= until]
         evidence = [p for p in pending if p.get("channel") not in USER_TURN_CHANNELS]
+        # Group flags see the full run's evidence known SO FAR (payloads up
+        # to the current cursor), never future observations — a thread that
+        # becomes a group on day 3 must still key as a DM on days 1-2, the
+        # way a live ingester would. CONTRACT §42 (correct times) + §8.
+        group_flags = _group_flags_for(
+            [p for p in payloads[:obs_idx + len(pending)]
+             if p.get("channel") not in USER_TURN_CHANNELS])
         for day, batch in _batched_by_collection(evidence):
             # Same day-batch transport as run_checkpoint_live: batch's
             # latest collected_at is the adapter's collection moment.
             boundary = max(o["collected_at"] for o in batch)
-            usage = adapter.ingest(batch, boundary)
+            ingested_at = _ingested_now()
+            # P0-6 exposure ledger: digest the OFFERED batch (before
+            # provider packaging) and prove it was provider-blind.
+            check_offered_batch(batch)
+            offered_digest = exposure_digest(batch)
+            usage = adapter.ingest(batch, boundary, group_flags=group_flags)
             ingested_ids.update(o["source_id"] for o in batch)
             import_batches.append({
                 "batch_day": day,
                 "collected_at": boundary,
+                "ingested_at": ingested_at,
                 "observations": [o["source_id"] for o in batch],
+                "exposure_digest": offered_digest,
+                "group_flags": sorted(
+                    f"{ch}/{th}" for (ch, th), g in group_flags.items() if g),
                 "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
             })
         obs_idx += len(pending)
@@ -956,7 +1115,7 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
                           if hasattr(adapter, "usage") else {}),
         "session_schedule": session_schedule,
         "provider_recipe": _provider_recipe(
-            provider, getattr(adapter, "dream_model", None)),
+            provider, getattr(adapter, "dream_model", None), adapter),
         "tool_allowlist": allowlist.split(",") if allowlist else [],
         "maintenance_spend_approved": _maintenance_approved(),
     })
@@ -986,9 +1145,21 @@ def run_life(*, life: Life, provider: str, make_adapter: Callable[[Path], Any],
     One persistent provider state per (life × provider × repetition):
     reset once, start the bank-scoped MCP server when the seam calls
     for one (always stopped in a finally), then run the episode.
-    ``bundle`` carries frozen evidence (§5); without it the manifest
-    marks the run draft-text diagnostic.
+    ``bundle`` is the hash-verified frozen observation bundle (§5,
+    P0-11: required — a missing bundle fails closed instead of
+    silently scoring draft text).
+
+    P0-11 canonical path: author → validate/render → freeze → hash →
+    run, for hand-authored and Spark-rendered lives alike. NOTE: the
+    partial race-week render (runs/render-race-week-*.json) is NOT a
+    canonical bundle artifact — unvalidated, unhashed render output.
+    Do not pass it as ``bundle=`` until it finishes validation and
+    freeze. No relaunch: spend is halted.
     """
+    if bundle is None:
+        raise ValueError(
+            "run_life requires a frozen bundle (§5, P0-11): refusing to "
+            "score draft text; freeze the life first (offline, no spend)")
     life_dir.mkdir(parents=True, exist_ok=True)
     hermes_home = life_dir / "hermes-home"
     adapter = make_adapter(life_dir / "memcal-home")
@@ -1084,10 +1255,9 @@ def run_pilot(*, lives: list[Life], provider: str,
 
     ``bundles`` maps life id → frozen observation bundle (§5, C1). A scored
     pilot requires a bundle for EVERY life; a life with no bundle fails
-    closed (ValueError) instead of silently scoring draft text. Omit
-    ``bundles`` only for offline/diagnostic use — the per-life manifest
-    then records the draft-text fallback, same as ``run_life`` without
-    a bundle.
+    closed (ValueError) instead of silently scoring draft text. Passing
+    ``bundles=None`` also fails closed (ValueError, P0-11): there is no
+    draft-text pilot path anymore — freeze first (offline, no spend).
 
     Repetition protocol (2026-09-21 ruling, Q5): configuration is frozen
     across reps by construction — one call, one config, recorded verbatim
@@ -1098,6 +1268,11 @@ def run_pilot(*, lives: list[Life], provider: str,
     """
     if repetitions < 1:
         raise ValueError(f"repetitions must be >= 1, got {repetitions}")
+    if bundles is None:
+        raise ValueError(
+            "run_pilot requires frozen bundles (§5, P0-11): refusing a "
+            "draft-text pilot; freeze every life first (offline, no spend) "
+            "and pass bundles={life_id: bundle}")
     if seeds is not None:
         if len(seeds) != repetitions:
             raise ValueError(
@@ -1129,8 +1304,7 @@ def run_pilot(*, lives: list[Life], provider: str,
                 model_provider=model_provider,
                 driver_configured_model=driver_configured_model,
                 timeout_s=timeout_s, repetition=rep,
-                bundle=(bundles.get(life.id) if bundles is not None
-                        else None))
+                bundle=bundles.get(life.id))
             record["seed"] = rep_seeds[rep]
             life_records.append(record)
             grades_path = life_dir / "grades.json"

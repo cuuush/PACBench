@@ -233,7 +233,8 @@ class MemcalAdapter(ProviderAdapter):
         self._maintenance = {"state": "not-run"}
 
     # -- ingestion (§44 C; §§29/31/42) ---------------------------------------
-    def ingest(self, observations: list[dict], collected_at: str) -> Usage:
+    def ingest(self, observations: list[dict], collected_at: str,
+               group_flags: dict[tuple[str, str], bool] | None = None) -> Usage:
         """Ingest one batch of public observations at a collection boundary.
 
         Only non-user-turn channels are archived (same ordinary
@@ -271,30 +272,52 @@ class MemcalAdapter(ProviderAdapter):
             for obs in evidence:
                 # Live-source fidelity (sources/base.py deliver): strip
                 # non-spoken placeholders the way the real ingesters do,
-                # then run the product's own gate before archiving. The
-                # gated bit is what the brief/detail readers filter on —
-                # archiving ungated rows the live path would have rejected
-                # manufactures evidence the product would never surface.
-                # "text"/"email" are NOT PASS_ALL streams, so content
-                # gating genuinely applies to them (unlike imessage/
-                # whatsapp/groupme, which pass in full).
+                # then run the product's own gate before archiving — a
+                # rejected line is archived ungated (search/indexing still
+                # sees it, like deliver()) but never spooled. The gated
+                # bit is what brief/detail readers filter on; dropping
+                # rejected rows from archive would manufacture a store
+                # the product never builds. "text"/"email" are NOT
+                # PASS_ALL streams, so content gating genuinely applies
+                # to them (unlike imessage/whatsapp/groupme, full pass).
                 clean = textclean.spoken_text(obs["text"])
                 if not clean:
                     gated_out += 1
                     continue
+                # Group detection is corpus-authored provenance (§8), shared
+                # with the Hindsight adapter via the runner (fair, §29):
+                # 3+ distinct non-owner senders on the thread = group chat
+                # (memcal's own imessage/whatsapp rule, members > 2).
+                _gf = group_flags or {}
+                _is_group = bool(_gf.get(
+                    (str(obs["channel"]), str(obs["thread"])), False))
                 verdict = gate.gate_message(
                     clean, person=obs["sender"],
                     from_me=from_owner_flag(obs),
-                    channel=obs["channel"], is_group=False)
+                    channel=obs["channel"], is_group=_is_group)
                 if not verdict:
                     gated_out += 1
-                    continue
+                # entity_for's `person` is the exchange counterpart: for
+                # owner turns the recipient (the thread partner), otherwise
+                # the author — so a conversation keys as ONE bundle (§8).
+                # The thread id is lowercased first: the corpus uses
+                # 'devon' vs 'Devon' for the same conversation across
+                # turns, and without normalization the bundle splits in
+                # two (observed 2026-09-22: person:Devon +
+                # thread:text:Devon instead of one entity). Case is not
+                # thread identity — the product lowercases handles for
+                # the same reason (identity.normalize).
+                sender = str(obs["sender"])
+                owner = from_owner_flag(obs) or sender.lower() == "me"
+                other = None if owner else sender
+                thread_key = str(obs["thread"] or "").lower()
                 row_id = archive.append(
                     conn, channel=obs["channel"], external_id=obs["source_id"],
-                    ts=obs["written_at"], text=clean, thread=obs["thread"],
-                    handle=obs["sender"], person=obs["sender"],
-                    from_me=from_owner_flag(obs), collection_id=collection_id,
-                    gated=True, gate_reason=verdict.reason)
+                    ts=obs["written_at"], text=clean, thread=thread_key,
+                    handle=None if owner else sender, person=sender,
+                    from_me=owner, collection_id=collection_id,
+                    gated=bool(verdict), gate_reason=verdict.reason)
+                conn.commit()
                 if row_id is not None:
                     count += 1
                     # Dream's work queue: live source ingesters spool every
@@ -302,11 +325,15 @@ class MemcalAdapter(ProviderAdapter):
                     # adapter previously archived without spooling, so
                     # benchmark texts never reached distillation — the brief
                     # stayed structurally empty (observed 2026-09-21).
-                    if archive.within_horizon(obs["written_at"]):
+                    # entity_for ALSO needs the normalized thread: it keys
+                    # thread:{channel}:{thread} verbatim, so the raw-case
+                    # thread would re-split the just-unified bundle.
+                    if verdict and archive.within_horizon(obs["written_at"]):
                         archive.spool_add(
                             conn, row_id, gate.entity_for(
-                                person=obs["sender"], thread=obs["thread"],
-                                channel=obs["channel"], is_group=False))
+                                person=other, thread=thread_key,
+                                channel=obs["channel"], is_group=_is_group))
+                        conn.commit()
                         spooled += 1
             report = SimpleNamespace(channel="pacbench", read=len(evidence),
                                      archived=count, passed=spooled, muted=0,

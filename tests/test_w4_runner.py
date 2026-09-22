@@ -425,8 +425,11 @@ class MaintenanceSpendGate(unittest.TestCase):
         from pathlib import Path
         from unittest import mock
         from pacbench.corpus import get_life
+        from pacbench.frozen import freeze_observations
 
         life = get_life(life_id)
+        # P0-11: run_life requires a frozen bundle (freeze is offline).
+        bundle = freeze_observations([life])
         seen = {}
 
         def fake_episode(**kwargs):
@@ -463,7 +466,8 @@ class MaintenanceSpendGate(unittest.TestCase):
                     life=life, provider="stub-applicable",
                     make_adapter=lambda home: stub,
                     life_dir=Path(tmp) / life_id, model="m",
-                    model_provider="p", driver_configured_model="m"), seen
+                    model_provider="p", driver_configured_model="m",
+                    bundle=bundle), seen
             finally:
                 live._run_life_episode = real
 
@@ -490,6 +494,7 @@ class MaintenanceSpendGate(unittest.TestCase):
             import os
             from pathlib import Path
             from unittest import mock
+            from pacbench.frozen import freeze_observations
             from provider_adapters.lexical_adapter import LexicalAdapter
             life = life_g_toyday.lives()[0]
             days = {o.collected_at[:10] for o in life.observations}
@@ -510,7 +515,8 @@ class MaintenanceSpendGate(unittest.TestCase):
                     life=life, provider="lexical",
                     make_adapter=lambda home: LexicalAdapter(home),
                     life_dir=Path(tmp) / life.id, model="m",
-                    model_provider="p", driver_configured_model="m")
+                    model_provider="p", driver_configured_model="m",
+                    bundle=freeze_observations([life]))
             finally:
                 live._run_life_episode = real
             self.assertEqual(record["state"], "valid")
@@ -648,11 +654,16 @@ class RepetitionSeeds(unittest.TestCase):
     def _run(self, tmp, **kwargs):
         from pathlib import Path
         from pacbench.corpus import get_life
+        from pacbench.frozen import freeze_observations
+        life = get_life("weekend-plans")
+        # P0-11: run_pilot requires frozen bundles (freeze is offline).
+        kwargs.setdefault("bundles",
+                          {"weekend-plans": freeze_observations([life])})
         real = live.run_life
         live.run_life = self._stub_run_life
         try:
             return live.run_pilot(
-                lives=[get_life("weekend-plans")],
+                lives=[life],
                 provider="lexical", make_adapter=lambda home: None,
                 pilot_dir=Path(tmp), model="m", model_provider="p",
                 driver_configured_model="m", **kwargs)
@@ -700,11 +711,12 @@ class RepetitionSeeds(unittest.TestCase):
 
 
 class PilotBundles(unittest.TestCase):
-    """C1: scored pilots consume frozen bundles only — fail closed otherwise.
+    """C1 + P0-11: scored pilots consume frozen bundles only — fail closed.
 
     run_pilot threads bundles through to run_life; a partial bundle map
-    (missing life) raises before any life runs. Omitting bundles stays
-    legal for offline/diagnostic use (manifest records draft-text).
+    (missing life) raises before any life runs. Omitting bundles
+    entirely also raises (P0-11: no draft-text pilot path) — freeze
+    first, which is offline.
     """
 
     def _stub_run_life(self, **kwargs):
@@ -751,9 +763,9 @@ class PilotBundles(unittest.TestCase):
             self.assertEqual(out["summary"]["pilot_state"], "valid")
             self.assertEqual(self.seen_bundles, [bundle])
 
-    def test_omitted_bundles_stays_diagnostic(self):
+    def test_omitted_bundles_fails_closed(self):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
-            out = self._run(tmp)
-            self.assertEqual(out["summary"]["pilot_state"], "valid")
-            self.assertEqual(self.seen_bundles, [None])
+            with self.assertRaises(ValueError):
+                self._run(tmp)
+            self.assertEqual(self.seen_bundles, [])

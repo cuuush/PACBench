@@ -18,6 +18,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .difficulty import flag_depth_mismatch, measured_difficulty
+
 BUNDLE_VERSION = "0.2.0"
 
 #: Public evidence keys frozen per observation (subset of Observation.public(),
@@ -30,7 +32,15 @@ OBS_KEYS = ("source_id", "text", "channel", "sender", "thread",
 
 
 def freeze_observations(lives: list[Any]) -> dict:
-    """Compile lives into a canonical (unhashed) bundle dict."""
+    """Compile lives into a canonical (unhashed) bundle dict.
+
+    Each life entry carries a freeze-time ``measured`` difficulty block
+    (computed from the frozen observations + support graph, never from
+    author-declared tags) plus a ``difficulty`` side-by-side of requested
+    tags vs measured values with the depth-mismatch flag — so a
+    depth-8 request rendering depth 7 is recorded as such and can never
+    silently enter the depth-8 bucket.
+    """
     frozen: dict[str, Any] = {"bundle_version": BUNDLE_VERSION, "lives": {}}
     for life in lives:
         obs = []
@@ -38,9 +48,19 @@ def freeze_observations(lives: list[Any]) -> dict:
             d = o.public() if hasattr(o, "public") else dict(o)
             obs.append({k: d.get(k, "") for k in OBS_KEYS})
         obs.sort(key=lambda d: (d["collected_at"], d["source_id"]))
+        measured = measured_difficulty(life)
+        mismatch = flag_depth_mismatch(life, measured)
         frozen["lives"][life.id] = {
             "lineage": getattr(life, "lineage", ""),
             "observations": obs,
+            "measured": measured,
+            "difficulty": {
+                "requested_tags": list(getattr(life, "difficulty_tags", ())
+                                       or ()),
+                "measured_update_depth": measured["measured_update_depth"],
+                "depth_mismatch": mismatch["has_mismatch"],
+                "depth_detail": mismatch["mismatches"],
+            },
         }
     return frozen
 

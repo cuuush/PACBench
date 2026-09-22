@@ -135,6 +135,9 @@ def _cmd_run_checkpoint(args: argparse.Namespace) -> int:
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
     print(f"driver: {driver!r}")
+    print("DIAGNOSTIC ONLY: run-checkpoint ingests draft text with no frozen "
+          "bundle; its manifest is diagnostic_only and scoring/reporting "
+          "gates refuse it (P0-11).")
     run_dir = _scratch_run_dir(Path(args.runs), "checkpoint")
     hermes_home = run_dir / "hermes-home"
     try:
@@ -346,9 +349,10 @@ def build_parser() -> argparse.ArgumentParser:
                               "disagree with the host date")
     p_clock.set_defaults(func=_cmd_probe_clock)
 
-    p_run = sub.add_parser("run-checkpoint", help="one checkpoint via Hermes + provider "
-                                                 "(diagnostic debugging aid, NOT a result: "
-                                                 "fresh namespace per checkpoint, no frozen bundle; "
+    p_run = sub.add_parser("run-checkpoint", help="DIAGNOSTIC ONLY one checkpoint via Hermes + provider "
+                                                 "(debugging aid, NEVER a scored result: "
+                                                 "fresh namespace per checkpoint, draft text, no frozen bundle; "
+                                                 "manifest is diagnostic_only and scoring/reporting gates refuse it; "
                                                  "scored claims require run-life/run-pilot)")
     p_run.add_argument("--life", required=True)
     p_run.add_argument("--checkpoint", required=True)

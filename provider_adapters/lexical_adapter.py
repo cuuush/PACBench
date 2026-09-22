@@ -206,6 +206,15 @@ class LexicalAdapter(ProviderAdapter):
         """Lexical tool names Hermes may call (for PACBENCH_TOOL_ALLOWLIST)."""
         return LEXICAL_TOOL_ALLOWLIST
 
+    def server_entry(self) -> str:
+        """How this adapter's transport is launched (audit surface).
+
+        Lexical needs no server (plugin-only seam) — returns "" so the
+        interpreter-pinning audit (hindsight_adapter.server_entry) has a
+        uniform surface across adapters.
+        """
+        return ""
+
     def plugin_src(self) -> Path:
         """Source dir to install as the isolated home's lexical plugin."""
         return LEXICAL_PLUGIN_DIR

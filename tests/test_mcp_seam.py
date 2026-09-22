@@ -151,5 +151,73 @@ class ServerSpec(unittest.TestCase):
                              ["retain", "recall", "reflect"])
 
 
+class PinnedInterpreter(unittest.TestCase):
+    """Hindsight server_entry: pinned interpreter, never sys.executable.
+
+    Bare sys.executable inherits whatever launched the run (Homebrew
+    3.14 lacks hindsight_api → ModuleNotFoundError mid-run); a fresh
+    hardcoded literal rots on the next machine. server_entry() is the
+    single audit surface: start_server launches exactly it, and the
+    retrieval seam records it.
+    """
+
+    def test_entry_is_harness_pin_not_running_interpreter(self):
+        from unittest import mock
+        from pacbench import harness as _harness
+        from provider_adapters.hindsight_adapter import HindsightAdapter
+        with tempfile.TemporaryDirectory(prefix="hs-pin-") as tmp:
+            adapter = HindsightAdapter(
+                Path(tmp), engine_factory=lambda u, l: None,
+                pg_factory=lambda n: None)
+            entry = adapter.server_entry()
+        self.assertEqual(entry,
+                         f"{_harness.python_bin()} -m hindsight_api.mcp_local")
+        self.assertIn("hindsight_api.mcp_local", entry)
+        # start_server launches EXACTLY the pinned entry, whatever
+        # interpreter happens to be running this test.
+        adapter._engine = object()
+        pg = mock.Mock()
+        pg.get_uri = mock.Mock(return_value="not-a-coro")
+        adapter._pg = pg
+        adapter._loop = mock.Mock()
+        adapter._loop.run = lambda coro: "db-url"
+        adapter._llm_config = lambda: mock.Mock(
+            api_key="k", provider="p", model="m", base_url="u")
+        with mock.patch("subprocess.Popen") as popen, mock.patch(
+                "socket.create_connection",
+                side_effect=OSError("nope")), mock.patch(
+                "provider_adapters.hindsight_adapter.HindsightAdapter."
+                "stop_server", lambda self: None):
+            popen.return_value.poll.return_value = 1
+            with self.assertRaises(RuntimeError):
+                adapter.start_server(8891, timeout_s=0.05)
+        argv = popen.call_args[0][0]
+        self.assertEqual(argv[:2],
+                         [_harness.python_bin(), "-m"])
+        self.assertEqual(argv[2], "hindsight_api.mcp_local")
+
+    def test_pin_default_and_override(self):
+        import os
+        from unittest import mock
+        from pacbench import harness as _harness
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop(_harness.PYTHON_ENV_OVERRIDE, None)
+            self.assertEqual(_harness.python_bin(), _harness.DEFAULT_PYTHON)
+            with mock.patch.dict(os.environ,
+                                 {_harness.PYTHON_ENV_OVERRIDE: "/opt/py3"}):
+                self.assertEqual(_harness.python_bin(), "/opt/py3")
+
+    def test_plugin_adapters_need_no_server(self):
+        from provider_adapters.lexical_adapter import LexicalAdapter
+        from provider_adapters.memcal_adapter import MemcalAdapter
+        with tempfile.TemporaryDirectory(prefix="pin-") as tmp:
+            self.assertEqual(LexicalAdapter(Path(tmp) / "l").server_entry(),
+                             "")
+        # memcal server_entry is method-level (no instance state needed):
+        # construct without __init__ (which requires MEMCAL_SRC).
+        self.assertEqual(MemcalAdapter.server_entry(
+            object.__new__(MemcalAdapter)), "")
+
+
 if __name__ == "__main__":
     unittest.main()

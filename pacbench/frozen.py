@@ -18,10 +18,15 @@ import json
 from pathlib import Path
 from typing import Any
 
-BUNDLE_VERSION = "0.1.0"
+BUNDLE_VERSION = "0.2.0"
 
+#: Public evidence keys frozen per observation (subset of Observation.public(),
+#: §8 provenance + §15 authorship). from_owner/arrived_at/structured were
+#: dropped in 0.1.0 — scored runs then lost authorship (memcal from_me always
+#: False) and arrival time. 0.2.0 carries them; overlay fail-closes on version.
 OBS_KEYS = ("source_id", "text", "channel", "sender", "thread",
-            "written_at", "collected_at")
+            "written_at", "arrived_at", "collected_at",
+            "from_owner", "structured")
 
 
 def freeze_observations(lives: list[Any]) -> dict:

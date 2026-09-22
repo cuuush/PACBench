@@ -117,3 +117,87 @@ class PrimaryEpisodeOffline(unittest.TestCase):
             rec, manifest = self._run(bundle=bundle)
         self.assertEqual(manifest["evidence_source"], "frozen-bundle")
         self.assertEqual(manifest["bundle_hash"], h)
+
+    def test_stale_bundle_version_fails_closed(self):
+        # 0.1.0 bundles lack from_owner/arrived_at/structured: scored runs
+        # must fail closed, never silently score with flattened provenance.
+        from pacbench import corpus
+        from pacbench.frozen import BUNDLE_VERSION, freeze_observations
+        from pacbench.live import overlay_bundle_observations
+        life = corpus.get_life("poker-collision")
+        bundle = freeze_observations([life])
+        assert bundle["bundle_version"] == BUNDLE_VERSION
+        bundle["bundle_version"] = "0.1.0"
+        with self.assertRaises(RuntimeError) as ctx:
+            overlay_bundle_observations(life, bundle)
+        self.assertIn("BUNDLE_VERSION", str(ctx.exception))
+
+    def test_day_batch_clock_keeps_exact_instant(self):
+        # SMART: the day key is transport grouping only. The adapter's
+        # collection moment is the batch's latest exact collected_at
+        # (MEMCAL_TODAY pin / op-id seed keep exact timing); each payload
+        # keeps its own written_at/thread/sender untouched. 2 days × 2
+        # msgs → 2 ingest calls (delta-only, never cumulative re-ingest).
+        from pacbench.life import Life
+        from pacbench.live import run_life
+        from pacbench.observation import Observation
+        from pacbench.rubric import Checkpoint, Kind, Norm, Slot
+        from provider_adapters.lexical_adapter import LexicalAdapter
+        obs = (
+            Observation(source_id="d1a", channel="text",
+                        written_at="2026-09-08T10:00:00",
+                        arrived_at="2026-09-08T10:00:00",
+                        collected_at="2026-09-08T10:00:00",
+                        sender="Gus", thread="tx", text="day one first"),
+            Observation(source_id="d1b", channel="text",
+                        written_at="2026-09-08T10:05:00",
+                        arrived_at="2026-09-08T10:05:00",
+                        collected_at="2026-09-08T10:05:00",
+                        sender="Gus", thread="tx", text="day one second"),
+            Observation(source_id="d2a", channel="text",
+                        written_at="2026-09-09T09:00:00",
+                        arrived_at="2026-09-09T09:00:00",
+                        collected_at="2026-09-09T09:00:00",
+                        sender="Gus", thread="tx", text="day two first"),
+            Observation(source_id="d2b", channel="text",
+                        written_at="2026-09-09T10:00:00",
+                        arrived_at="2026-09-09T10:00:00",
+                        collected_at="2026-09-09T10:00:00",
+                        sender="Gus", thread="tx", text="day two second"),
+        )
+        cp = Checkpoint(
+            id="t/cp", at="2026-09-09T11:00:00",
+            question="What did Gus say?",
+            slots=(Slot(id="s", kind=Kind.CURRENT, norm=Norm.TEXT,
+                        expected="day",
+                        supported_by=("d1a", "d2a")),))
+        life = Life(id="t", bet="b", role="development",
+                    observations=obs, checkpoints=(cp,))
+        seen = {}
+
+        class SpyAdapter(LexicalAdapter):
+            def ingest(self, observations, collected_at):
+                seen.setdefault("calls", []).append(
+                    (collected_at, [o["source_id"] for o in observations]))
+                return super().ingest(observations, collected_at)
+
+        from pacbench.frozen import BUNDLE_VERSION, freeze_observations
+        bundle = freeze_observations([life])
+        with tempfile.TemporaryDirectory(prefix="episode-") as tmp:
+            life_dir = Path(tmp) / "life"
+            with mock.patch("pacbench.live.harness.run_turn",
+                            side_effect=_fake_turn):
+                rec = run_life(
+                    life=life, provider="lexical",
+                    make_adapter=lambda home: SpyAdapter(home),
+                    life_dir=life_dir, model="m", model_provider="mp",
+                    driver_configured_model="m", bundle=bundle)
+            batches = json.loads(
+                (life_dir / "manifest.json").read_text())["import_batches"]
+        self.assertEqual([c for c, _ in seen["calls"]],
+                         ["2026-09-08T10:05:00", "2026-09-09T10:00:00"])
+        self.assertEqual([sorted(ids) for _, ids in seen["calls"]],
+                         [["d1a", "d1b"], ["d2a", "d2b"]])
+        self.assertEqual([b["batch_day"] for b in batches],
+                         ["2026-09-08", "2026-09-09"])
+        self.assertEqual(rec["state"], "valid")

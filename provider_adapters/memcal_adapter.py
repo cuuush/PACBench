@@ -445,6 +445,15 @@ class MemcalAdapter(ProviderAdapter):
         """memcal tool names Hermes may call (for PACBENCH_TOOL_ALLOWLIST)."""
         return MEMCAL_TOOL_ALLOWLIST
 
+    def server_entry(self) -> str:
+        """How this adapter's transport is launched (audit surface).
+
+        Memcal needs no server (plugin-only seam) — returns "" so the
+        interpreter-pinning audit (hindsight_adapter.server_entry) has a
+        uniform surface across adapters.
+        """
+        return ""
+
     def plugin_src(self) -> Path:
         """Source dir to install as the isolated home's memcal plugin."""
         return self.src / MEMCAL_PLUGIN_REL

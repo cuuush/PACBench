@@ -39,15 +39,18 @@ class CollectionSplit(unittest.TestCase):
         self.assertEqual([p["source_id"] for p in evidence + turns],
                          ["m1", "m2", "t1", "t2"])
 
-    def test_evidence_batches_group_by_collection_time(self):
+    def test_evidence_batches_group_by_collection_day(self):
         payloads = [
             _payload("b", collected_at="2026-09-09T10:00:00"),
             _payload("a", collected_at="2026-09-08T10:00:00"),
-            _payload("a2", collected_at="2026-09-08T10:00:00"),
+            _payload("a2", collected_at="2026-09-08T10:05:00"),
         ]
         batches = live._batched_by_collection(payloads)
+        # SMART day-batching (§§29/30/41): same-day instants share ONE
+        # transport batch — day 1's 100 messages = 1 ingest call, day 2's
+        # 100 new = 1 more call, delta-only, never cumulative re-ingest.
         self.assertEqual([k for k, _ in batches],
-                         ["2026-09-08T10:00:00", "2026-09-09T10:00:00"])
+                         ["2026-09-08", "2026-09-09"])
         self.assertEqual([p["source_id"] for _, b in batches for p in b],
                          ["a", "a2", "b"])
 

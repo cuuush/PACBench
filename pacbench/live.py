@@ -26,6 +26,7 @@ from typing import Any, Callable
 from . import CORPUS_VERSION
 from . import harness
 from .freeze import digest
+from .frozen import BUNDLE_VERSION
 from .frozen import bundle_hash as frozen_bundle_hash
 from .frozen import observations_for as frozen_observations_for
 from .grade import GRADER_VERSION, Grade, GradedSlot
@@ -51,10 +52,21 @@ def split_collection(payloads: list[dict]) -> tuple[list[dict], list[dict]]:
 
 
 def _batched_by_collection(evidence: list[dict]) -> list[tuple[str, list[dict]]]:
-    """Group evidence by collection instant, earliest first (import batches)."""
+    """Group evidence by collection DAY (YYYY-MM-DD), earliest first.
+
+    SMART day-batching (CONTRACT §§29/30/41): one transport batch per day
+    per ingest sweep. Day 1's 100 messages go out as ONE adapter.ingest
+    call; day 2's 100 new same-sender messages go as the next ONE call —
+    delta-only via the obs_idx cursor, never cumulative re-ingest (day 2
+    sends its 100, not 200). Per-observation collected_at / written_at /
+    thread / sender provenance rides along untouched inside each payload;
+    the day key is transport grouping only, never a substitute for event
+    time. Shared across providers (fairness-neutral, §29) and recorded
+    per batch in import_batches (§41).
+    """
     batches: dict[str, list[dict]] = {}
     for obs in evidence:
-        batches.setdefault(obs["collected_at"], []).append(obs)
+        batches.setdefault(str(obs["collected_at"])[:10], []).append(obs)
     return sorted(batches.items(), key=lambda kv: kv[0])
 
 
@@ -245,7 +257,16 @@ def overlay_bundle_observations(life: Life, bundle: dict) -> list[dict]:
 
     Source-ID set must match the code-defined life exactly; texts come
     from the bundle (rendered surface may differ from drafts by
-    design). Sorted by (collected_at, source_id)."""
+    design). Sorted by (collected_at, source_id). Bundle version must
+    match BUNDLE_VERSION — an old bundle missing authorship fields
+    (from_owner/arrived_at/structured) fails closed instead of silently
+    scoring with flattened provenance, never auto-upgraded.
+    """
+    if str(bundle.get("bundle_version", "")) != BUNDLE_VERSION:
+        raise RuntimeError(
+            f"frozen bundle version {bundle.get('bundle_version', 'none')!r} "
+            f"!= code BUNDLE_VERSION {BUNDLE_VERSION!r}: re-freeze from the "
+            f"pinned corpus, never auto-upgrade (provenance fields differ)")
     frozen_obs = frozen_observations_for(bundle, life.id)
     by_id = {d["source_id"]: d for d in frozen_obs}
     life_ids = {o.source_id for o in life.observations}
@@ -318,10 +339,16 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
         evidence, user_turns = split_collection(payloads)
 
         import_batches: list[dict] = []
-        for collected_at, batch in _batched_by_collection(evidence):
-            usage = adapter.ingest(batch, collected_at)
+        for day, batch in _batched_by_collection(evidence):
+            # Day-batch transport, exact-instant clock: the adapter sees
+            # the batch's latest collected_at (full ISO) as its collection
+            # moment — MEMCAL_TODAY pin / op-id seed keep exact timing —
+            # while the day key records the transport grouping (§41).
+            boundary = max(o["collected_at"] for o in batch)
+            usage = adapter.ingest(batch, boundary)
             import_batches.append({
-                "collected_at": collected_at,
+                "batch_day": day,
+                "collected_at": boundary,
                 "observations": [o["source_id"] for o in batch],
                 "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
             })
@@ -783,11 +810,15 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
         nonlocal obs_idx
         pending = [p for p in payloads[obs_idx:] if p["collected_at"] <= until]
         evidence = [p for p in pending if p.get("channel") not in USER_TURN_CHANNELS]
-        for collected_at, batch in _batched_by_collection(evidence):
-            usage = adapter.ingest(batch, collected_at)
+        for day, batch in _batched_by_collection(evidence):
+            # Same day-batch transport as run_checkpoint_live: batch's
+            # latest collected_at is the adapter's collection moment.
+            boundary = max(o["collected_at"] for o in batch)
+            usage = adapter.ingest(batch, boundary)
             ingested_ids.update(o["source_id"] for o in batch)
             import_batches.append({
-                "collected_at": collected_at,
+                "batch_day": day,
+                "collected_at": boundary,
                 "observations": [o["source_id"] for o in batch],
                 "usage": usage.__dict__ if hasattr(usage, "__dict__") else str(usage),
             })

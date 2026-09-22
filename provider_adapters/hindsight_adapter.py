@@ -11,11 +11,22 @@ Native lifecycle (nothing Memcal-shaped is forced onto it):
 - Internal LLM: OpenAI-compatible endpoint from the environment
   (``HINDSIGHT_API_LLM_*``; the approved dev value points at the
   existing META gateway with a Spark model). Fail-closed when absent.
-- Ingest: ``retain_async`` per public observation with the authoring
-  ``written_at`` as ``event_date`` — Hindsight's native time anchor,
-  not wall-clock (criterion 2: relative-date resolution against the
-  fictional clock is an open verification item, probed like the
-  memcal clock probe, not assumed).
+- Ingest: ONE ``retain_batch_async`` call per ingest batch (SMART
+  day-batching): the runner groups a day's evidence into one transport
+  batch, and the adapter sends it as ONE batch call — day 1's 100
+  messages = 1 call, day 2's 100 new same-sender messages = 1 more
+  call, delta-only, never cumulative re-ingest. The engine extracts
+  per item in parallel inside that call (wall-clock win, one
+  transaction) — batching saves round-trips, not model calls; day-level
+  savings come from the delta cursor. Each message keeps its own
+  content item (verbatim text, sender, timestamps, thread, per-message
+  document_id for honest upsert); same-document packing is deliberately
+  NOT used (the sync engine folds shared document_ids into one
+  document — day 2 would rewrite day 1 instead of appending). The
+  authoring ``written_at`` rides as ``event_date`` — Hindsight's native
+  time anchor, not wall-clock (criterion 2: relative-date resolution
+  against the fictional clock is an open verification item, probed like
+  the memcal clock probe, not assumed).
 - Scheduled work: ``run_graph_maintenance_job`` (relink/prune) — the
   native consolidation pass, analogue of memcal's dream, not a copy.
 - Retrieval: Hindsight MCP tools (retain/recall/reflect) consumed by
@@ -275,15 +286,17 @@ class HindsightAdapter(ProviderAdapter):
         empty_ids = 0
         # Native batch path (ruling §1 + SMART day-batching): ONE
         # retain_batch_async per INGEST CALL — the caller (_batched_by
-        # _collection in live.py) already groups evidence by collection
-        # instant, and ingest() never re-splits. Every original message
-        # is preserved verbatim (text, sender, timestamps, ordering,
-        # thread) — no summaries, no packetizing by hidden benchmark
-        # events. Per-message document_ids keep upsert semantics honest:
-        # a same-source_id rerun upserts its own document instead of
-        # appending a duplicate. Deterministic operation_id per packet
-        # supports idempotent OPERATIONAL retry only; semantic empties
-        # are recorded, never retried (§2).
+        # _collection in live.py) already groups a day's evidence into one
+        # transport batch, and ingest() never re-splits: day 1's 100
+        # messages = 1 call, day 2's 100 new same-sender messages = 1 more
+        # call, delta-only via live.py's obs_idx cursor, never cumulative
+        # re-ingest. Every original message is preserved verbatim (text,
+        # sender, timestamps, ordering, thread) — no summaries, no
+        # packetizing by hidden benchmark events. Per-message document_ids
+        # keep upsert semantics honest: a same-source_id rerun upserts its
+        # own document instead of appending a duplicate. Deterministic
+        # operation_id per packet supports idempotent OPERATIONAL retry
+        # only; semantic empties are recorded, never retried (§2).
         #
         # Cost model (verified against the installed engine source):
         # batching wins WALL-CLOCK (one orchestrator pass, parallel
@@ -406,9 +419,9 @@ class HindsightAdapter(ProviderAdapter):
             "bank_scoped": True,
             "transport": "MCP via `hermes mcp add` "
                          "(harness installs the server spec)",
-            "server_entry": "python3 -m hindsight_api.mcp_local "
-                            "(adapter.start_server shares the run's PG; "
-                            "bank-pinned /mcp/<bank>/)",
+            "server_entry": self.server_entry(),
+            "server_note": ("adapter.start_server shares the run's PG; "
+                            "bank-pinned /mcp/<bank>/"),
             "automatic_context": "none (native shape: Hermes calls "
                                  "recall/reflect explicitly; no brief "
                                  "prefetch — a real capability difference, "
@@ -429,10 +442,28 @@ class HindsightAdapter(ProviderAdapter):
     def mcp_server_spec(self, port: int) -> dict:
         return {"name": "hindsight", "url": self.mcp_url(port)}
 
+    def server_entry(self) -> str:
+        """How this adapter's retrieval transport is launched (audit surface).
+
+        The ONLY interpreter allowed here is the harness-pinned one —
+        ``pacbench.harness.python_bin()`` (same binary that owns the
+        hindsight_api install). A bare ``sys.executable`` silently
+        inherits whatever interpreter launched the run (3.14 lacks the
+        deps → ModuleNotFoundError mid-run); a hardcoded
+        ``/usr/local/bin/python3`` rots on the next machine. Pinned in
+        code, pinned by test, recorded in the retrieval seam.
+        """
+        from pacbench import harness as _harness
+        return f"{_harness.python_bin()} -m hindsight_api.mcp_local"
+
     def start_server(self, port: int, timeout_s: float = 60.0) -> str:
-        """Launch hindsight-local-mcp against this adapter's PG instance."""
+        """Launch hindsight-local-mcp against this adapter's PG instance.
+
+        Interpreter is the harness pin (python_bin), never sys.executable.
+        """
         if self._engine is None or self._pg is None:
             raise RuntimeError("adapter not reset: call reset() first")
+        from pacbench import harness as _harness
         llm = self._llm_config()
         db_url = self._loop.run(self._pg.get_uri())
         env = dict(os.environ)
@@ -445,7 +476,7 @@ class HindsightAdapter(ProviderAdapter):
             "HINDSIGHT_API_LLM_BASE_URL": llm.base_url,
         })
         self._server = subprocess.Popen(
-            [sys.executable, "-m", "hindsight_api.mcp_local"],
+            [_harness.python_bin(), "-m", "hindsight_api.mcp_local"],
             env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:

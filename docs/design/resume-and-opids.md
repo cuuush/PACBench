@@ -1,6 +1,6 @@
-# Resume / idempotency protocol (P0-8)
+# Resume and op-ids
 
-Crash recovery for provider writes. The rule: **never guess whether a
+**Current rule for crash recovery of provider writes: never guess whether a
 write landed — classify, then act per state.**
 
 ## The four write states
@@ -79,7 +79,8 @@ runs.
   `...+00:00` / naive / `Z` / offset respellings of one instant mint
   one id — then the chronological max, never a lexicographic one).
   Never the transport day key, never wall-clock `ingested_at`,
-  never life/checkpoint/story ids (cf. P0-2, P0-5).
+  never life/checkpoint/story ids (cf. P0-2,
+  [time-and-collected-at](time-and-collected-at.md)).
 - Same batch → same id on every attempt, including resume-after-crash.
   Different batch → different id. No random ids, no per-attempt salts.
 - `reset()` stays rerun-idempotent (drops the bank's data first), so a
@@ -108,7 +109,7 @@ provider needs resume-grade identity, it must adopt
 ## Runner obligations (wiring, not in `resume.py`)
 
 Per provider write, the runner must durably record — in
-`import_batches` (§41) or equivalent — at minimum:
+`import_batches` or equivalent — at minimum:
 
 - the batch key (`bank`, `collected_at` boundary) → op id;
 - `submitted` (sent to provider);
@@ -118,3 +119,7 @@ On resume the runner replays `classify_write` → `resume_action` per
 uncompleted batch and follows the table. Anything else (provider
 op-status query, prefix rebuild) is adapter/runner wiring that these
 pure helpers deliberately do not perform.
+
+## History
+
+Plan.md P0-8, merged from `docs/resume-protocol.md`.

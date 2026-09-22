@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## Unreleased
+
+- Post-P0 validity spine + first audits (`e1743a3`): Hindsight
+  one-item-per-packet joined-transcript transport (stable doc ids, append
+  conversational / replace singleton) + packetized probe harnesses
+  (`scripts/live_probe_p09_evolution.py`, `scripts/live_probe_p10_temporal.py`,
+  `scripts/discrim3_ingestion_path.py`, `scripts/discrim_append_vs_replace.py`,
+  `scripts/targeted_recall_p09c3.py`); canonical op-id derivation shared by
+  resume/adapter/live (chronological max, normalized instants); exposure
+  digest 8→10 fields. P0-9 (multi-day association PASS cycles 1–2, cycle-3
+  consolidation-drop provider finding) + P0-10 (temporal ranking PASS)
+  classified with decision record; audit trail now `docs/audit-log.md`
+  (supersedes `probe-dispositions.md` + four more); bulk-ingest vendor
+  verdict (shape+transport match). First bounded audits reviewed:
+  revoke-week (memcal F1 0.667, hindsight F1 0.2) + race-week memcal arm
+  (F1 0.889); corpus explorer UI + build script. Suite 430 passed,
+  2 skipped; `comparative_claim_valid` stays false.
+- Generated corpus explorer untracked (`fdf42f0`): 400KB inlined data out
+  of git (now gitignored); rebuild with
+  `/usr/local/bin/python3 scripts/build_corpus_explorer.py`.
+
 ## Unreleased (corpus 0.3.0)
 
 - Corpus: new development life `race-week` (F) — long-horizon noisy

@@ -1,22 +1,12 @@
-# `collected_at` definition + `ingested_at` split (P0-5)
+# Time and `collected_at`
 
-Frozen: 2026-09-22. This document is the normative definition; code
-comments point here, not the reverse.
-
-## Definition
-
-`collected_at` = **the simulated time PACBench's source collector
-discovers and exposes the observation** (observation.py: the harness is
-scheduled to expose it; before collection no system can be expected to
-know the update).
-
-Properties:
-
-- It is **source-discovery/exposure time**, part of the corpus truth.
-- It is **immutable through transport**: day-batch grouping, adapter
-  submission order, and host wall-clock must never rewrite it.
-- Provider batching changes only **grouping** (which observations share
-  one `adapter.ingest` call), never per-observation chronology.
+**Current rule: `collected_at` is the simulated time PACBench's source
+collector discovers and exposes the observation** (before collection no
+system can be expected to know the update). It is source-discovery/exposure
+time, part of the corpus truth, and **immutable through transport**: day-batch
+grouping, adapter submission order, and host wall-clock must never rewrite
+it. Provider batching changes only **grouping** (which observations share one
+`adapter.ingest` call), never per-observation chronology.
 
 ## The split: `collected_at` vs `ingested_at`
 
@@ -34,11 +24,11 @@ and simulated evidence ages would collapse to "everything arrived just
 now". Concretely:
 
 - Hindsight `operation_id = uuid5(NAMESPACE_URL, f"{bank}:{collected_at}")`
-  (hindsight_adapter.py): idempotent operational retry identity keyed to
+  (`hindsight_adapter.py`): idempotent operational retry identity keyed to
   the **simulated** collection boundary. Keying it to wall-clock
   `ingested_at` would make every re-run / resume a *different*
   operation instead of a safe retry of the same one.
-- Memcal `MEMCAL_TODAY = collected_at` pin (memcal_adapter.py, restored
+- Memcal `MEMCAL_TODAY = collected_at` pin (`memcal_adapter.py`, restored
   afterwards): the product's horizon/write-precedence logic must reason
   about fictional event dates, not the CI machine's date.
 
@@ -62,7 +52,7 @@ Classification: **D** = discovery-time (simulated, immutable);
 | 7 | `pacbench/live.py` — `_batched_by_collection` day key | D (grouping) | Transport grouping only, never event time. |
 | 8 | `pacbench/live.py` — `boundary = ingest_boundary(batch)` (canonical chronological max, both call sites) passed as `adapter.ingest` moment | D | Batch's latest discovery instant is the adapter's collection moment. |
 | 9 | `pacbench/live.py` — `import_batches[].collected_at = boundary` | R-of-D | Manifest record *of* the discovery boundary. |
-| 10 | `pacbench/live.py` — `import_batches[].ingested_at` (**new**, both call sites) | R | Wall-clock submit moment; semantic no-op. |
+| 10 | `pacbench/live.py` — `import_batches[].ingested_at` (both call sites) | R | Wall-clock submit moment; semantic no-op. |
 | 11 | `pacbench/live.py` — `overlay_bundle_observations` sort; `do_turn`/`replay_turns` `at=` scheduling | D | Bundle order + simulated replay clock. |
 | 12 | `pacbench/adapters.py` — `ingest(obs, collected_at, ...)` signature | D | Contract: the instant is a simulated boundary. |
 | 13 | `provider_adapters/hindsight_adapter.py` — op-id `uuid5(bank:collected_at)` | D | Deliberately simulated (see rationale above). Do not switch to `ingested_at`. |
@@ -79,11 +69,13 @@ Classification: **D** = discovery-time (simulated, immutable);
 | 24 | Corpus modules (`corpus/*.py`) — authored `collected_at` values | D | Fixture data, simulated by construction. |
 | 25 | `pacbench/live.py` — manifest `started_at`, namespace timestamp | R | Pre-existing wall-clock run artifacts; unchanged. |
 
-## Acceptance (P0-5)
+## History
 
-- [x] `collected_at` never rewritten by batching (payloads ride along untouched).
-- [x] `ingested_at` recorded per `adapter.ingest` call in both `live.py` sites.
-- [x] Op-id seed + `MEMCAL_TODAY` pin documented as intentionally simulated.
-- [x] Regression test `tests/test_ingested_at.py`: same-day distinct-`collected_at`
-      pair shares one transport batch, keeps original times/order at the
-      adapter, and the op-id still derives from the `collected_at` boundary.
+Plan.md P0-5, frozen 2026-09-22 as `docs/collected-at-definition.md`; this
+page is the normative definition and code comments point here, not the
+reverse. Acceptance at freeze: `collected_at` never rewritten by batching;
+`ingested_at` recorded per `adapter.ingest` call in both `live.py` sites;
+op-id seed + `MEMCAL_TODAY` pin documented as intentionally simulated;
+regression test `tests/test_ingested_at.py` (same-day distinct-`collected_at`
+pair shares one transport batch, keeps original times/order at the adapter,
+op-id still derives from the `collected_at` boundary).

@@ -1,33 +1,30 @@
-# Memcal source-spine audit (plan.md P0-7)
+# Memcal spine
 
-Doc-first audit. **No code changes were made and none are proposed here —
-implementation follows P0-1 approval.**
+**Current rule: the public observation contract stays provider-neutral.
+PACBench never copies Memcal-only metadata into observations to inflate
+Memcal scores. `is_group` stays shared provenance** (computed by the runner
+over the public batch, delivered to all adapters via `group_flags`).
 
-Scope rule (from P0-7): the public observation contract stays provider-neutral.
-PACBench must never copy Memcal-only metadata into observations to inflate
-Memcal scores. `is_group` stays shared provenance (computed by the runner over
-the public batch, delivered to all adapters via `group_flags`).
-
-References (pins, read 2026-09-22):
-
-- `~/code/memcal/memcal/sources/base.py` — `deliver()` signature (~line 159)
-  and body (lines 159–257).
-- `~/code/memcal/memcal/gate.py` — `gate_message` (257–305),
-  `PASS_ALL_STREAMS` (213–220), `entity_for`/`bundle_entity` (380–400).
-- `provider_adapters/memcal_adapter.py` — `ingest` (lines 236–359, read-only
-  for this audit).
-- `pacbench/observation.py` — public `Observation` fields.
-- `pacbench/live.py` — `_thread_group_flags` (lines 54–72).
-
-## Public fields already available (neutral, no change)
-
-`source_id, channel, written_at, arrived_at, collected_at, sender, thread,
-text, from_owner, structured`. The classifications below are judged against
-exactly this set: anything Memcal needs beyond it, Memcal derives itself.
+Public fields available (neutral, no change): `source_id, channel,
+written_at, arrived_at, collected_at, sender, thread, text, from_owner,
+structured`. Every classification below is judged against exactly this set:
+anything Memcal needs beyond it, Memcal derives itself.
 
 ## Classification
 
-### 1. `counterpart` — (b) provider-internal (Memcal derives itself)
+| Item | Class | New public field? |
+|---|---|---|
+| `counterpart` | provider-internal | No — `sender`+`from_owner`+`thread`+`channel` suffice |
+| `addressed_to` | provider-internal | No |
+| `top_tier` | out of scope | No — corpus must not depend on it |
+| `meta` | provider-internal | No |
+| owner-handle resolution | provider-internal | No |
+
+No item classifies as (a): every genuine public semantic in this spine is
+already expressible with existing `Observation` fields, so this audit
+proposes zero contract additions.
+
+### 1. `counterpart` — provider-internal (Memcal derives itself)
 
 What it is: `deliver()`'s explicit "exchange participant regardless of
 direction" (`base.py` lines 175, 207–215). For owner turns it is the
@@ -54,7 +51,7 @@ non-owner turns by `person:{sender}`. `handle` is passed as `None` for owner
 turns, else the sender string, with `person=sender` always set — so
 `deliver()`-style resolution has nothing left to resolve.
 
-### 2. `addressed_to` — (b) provider-internal (Memcal derives itself)
+### 2. `addressed_to` — provider-internal (Memcal derives itself)
 
 What it is: recipient-type flag (`"person"` default / `"machine"`,
 `base.py` line 176; `gate.gate_message` line 265). Its only behavioral
@@ -80,7 +77,7 @@ Current behavior pin: the adapter's `gate.gate_message` call
 it. Owner directives therefore gate as `"own-commitment"`, identical to a
 live source that never sets the flag.
 
-### 3. `top_tier` — (c) out of scope
+### 3. `top_tier` — out of scope
 
 What it is: a caller-supplied VIP sender set, checked at `gate.py`
 lines 303–304 (`"top-tier-sender"` pass). It is reachable only for
@@ -103,7 +100,7 @@ Current behavior pin: the adapter never passes `top_tier` (absent from the
 `gate_message` call), so it is `None` and the check is dead code for this
 path — matching a live source with no tier list configured.
 
-### 4. `meta` — (b) provider-internal (Memcal derives itself)
+### 4. `meta` — provider-internal (Memcal derives itself)
 
 What it is: free-form dict (`base.py` line 171) archived verbatim on the row
 and read for `seen_name` during contact resolution
@@ -130,7 +127,7 @@ no `seen_name` anywhere; `handle`/`person` are set directly from the public
 `sender`/`from_owner` fields (lines 310–319), so the `identity.resolve`
 fallback chain in `deliver()` is trivially satisfied with nothing unresolved.
 
-### 5. Owner-handle resolution — (b) provider-internal (Memcal derives itself)
+### 5. Owner-handle resolution — provider-internal (Memcal derives itself)
 
 What it is: `deliver()`'s handle→person pipeline (`base.py` lines 192–202):
 normalize, `identity.resolve`, `link_by_name`, `adopt_seen_name`,
@@ -160,30 +157,22 @@ authorship signal, read from the public `from_owner` field.
 
 ## `is_group` provenance (unchanged, pinned)
 
-`is_group` remains shared provenance per P0-7: computed by
+`is_group` remains shared provenance: computed by
 `pacbench/live.py::_thread_group_flags` over the public batch (3+ distinct
 non-owner senders on a thread), delivered to adapters via `group_flags`, and
 consumed identically by the Memcal adapter (`memcal_adapter.py` lines 287–293)
 for both `gate_message` and `entity_for`. It is not Memcal-only information
 and no per-provider group signal may replace it.
 
-## Summary table
+## History
 
-| Item | Class | New public field? |
-|---|---|---|
-| `counterpart` | (b) provider-internal | No — `sender`+`from_owner`+`thread`+`channel` suffice |
-| `addressed_to` | (b) provider-internal | No |
-| `top_tier` | (c) out of scope | No — corpus must not depend on it |
-| `meta` | (b) provider-internal | No |
-| owner-handle resolution | (b) provider-internal | No |
-
-No item classifies as (a): every genuine public semantic in this spine is
-already expressible with existing `Observation` fields, so this audit
-proposes zero contract additions.
-
-## No-code-changes statement
-
-This document is the P0-7 deliverable in full. No adapter, contract, runner,
-or corpus file was modified. Any implementation work implied above (none is
-required — current adapter behavior already matches every classification)
-follows P0-1 source-document approval, not this audit.
+Plan.md P0-7, merged from `docs/memcal-spine-audit.md`. Doc-first audit:
+**no code changes were made and none are proposed** — implementation follows
+P0-1 approval, and current adapter behavior already matches every
+classification. References pinned 2026-09-22: `~/code/memcal/memcal/sources/
+base.py` `deliver()` (~line 159, body 159–257); `~/code/memcal/memcal/gate.py`
+`gate_message` (257–305), `PASS_ALL_STREAMS` (213–220),
+`entity_for`/`bundle_entity` (380–400);
+`provider_adapters/memcal_adapter.py` `ingest` (lines 236–359, read-only for
+the audit); `pacbench/observation.py` public fields;
+`pacbench/live.py` `_thread_group_flags` (lines 54–72).

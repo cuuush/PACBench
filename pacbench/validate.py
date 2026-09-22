@@ -256,7 +256,7 @@ def check(lives: list[Life],
 # ---------------------------------------------------------------------------
 # P0-12: support-graph ablation (additive; no existing behavior changed).
 #
-# ``Slot.supported_by`` stays cited-only (see docs/support-graph.md): it
+# ``Slot.supported_by`` stays cited-only (see docs/design/difficulty-and-cost.md): it
 # records which observations are cited as relevant, never sufficiency or
 # necessity. The helpers below prove stronger claims explicitly by removing
 # one claimed-essential source and recomputing knowability under the same
@@ -383,7 +383,7 @@ def multi_source_dependency(life: Life) -> list[str]:
     """Ids of checkpoints whose *cited* required support spans >1 channel.
 
     Candidacy list only: citation span is not proof of dependence (see
-    docs/support-graph.md). Prove each entry with :func:`ablation_check`.
+    docs/design/difficulty-and-cost.md). Prove each entry with :func:`ablation_check`.
     """
     by_id = {o.source_id: o for o in life.observations}
     out: list[str] = []

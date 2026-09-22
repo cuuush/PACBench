@@ -1,6 +1,6 @@
 """P0-3 guard: Hindsight update-semantics spec invariants (spec-first, no adapter).
 
-Pins what docs/hindsight-update-semantics.md relies on:
+Pins what docs/design/hindsight-transport.md relies on:
 
 - The corpus cannot express edits/deletes/reorders (schema carries no mutation
   markers; authoring is single-write; validation rejects identity reuse), so
@@ -24,7 +24,7 @@ from pacbench.life import Life
 from pacbench.observation import Observation
 from pacbench.validate import validate_corpus, validate_life
 
-#: The exact Observation fields docs/hindsight-update-semantics.md §5 relies on.
+#: The exact Observation fields docs/design/hindsight-transport.md §5 relies on.
 EXPECTED_OBSERVATION_FIELDS = frozenset({
     "source_id", "channel", "written_at", "arrived_at", "collected_at",
     "sender", "thread", "text", "from_owner", "structured",
@@ -131,7 +131,7 @@ class PinnedHindsightApiSurface(unittest.TestCase):
     """Pin the installed-API facts the update-semantics spec cites.
 
     If hindsight-api upgrades and any of these fail, the spec
-    (docs/hindsight-update-semantics.md) must be re-verified first.
+    (docs/design/hindsight-transport.md) must be re-verified first.
     """
 
     def test_version_is_pinned_and_parseable(self):

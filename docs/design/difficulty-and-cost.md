@@ -1,4 +1,10 @@
-# Support-graph semantics (P0-12)
+# Difficulty and cost
+
+**Current rule: citations are not proofs, difficulty is measured on the
+simulated clock, and transport is delta-only.** No validator, grader,
+difficulty function, or report may silently upgrade a citation into a
+stronger claim; no run may resend history or retry for a nicer-looking
+result.
 
 ## 1. `supported_by` is cited-only — frozen
 
@@ -17,11 +23,9 @@ It does **NOT** mean:
   answer);
 - that a checkpoint citing N channels **depends on** N channels.
 
-This meaning is frozen. No validator, grader, difficulty function, or report
-may silently upgrade a citation into a sufficiency or necessity claim.
-`required_support_ids` (`pacbench/difficulty.py`) is likewise a citation
-closure — the ids the rubric cites — not a minimal set. Any stronger claim
-must use the explicit concepts below and pass ablation (§4).
+This meaning is frozen. `required_support_ids` (`pacbench/difficulty.py`) is
+likewise a citation closure — the ids the rubric cites — not a minimal set.
+Any stronger claim must use the explicit concepts below and pass ablation.
 
 ## 2. Sufficient evidence set
 
@@ -96,3 +100,28 @@ Until a checkpoint's multi-source claim passes ablation, reports must not
 make quantitative claims about "number of required channels" for it.
 `required_channels` remains a descriptive citation-span measure. Qualitative
 audit use is fine provided the unproven status is stated.
+
+## 6. Difficulty is measured on discovery time
+
+`pacbench/difficulty.py` — `total_exposed`, `evidence_age_hours`,
+`support_batches` — measures volume/staleness/depth on simulated
+`collected_at` (see [time-and-collected-at](time-and-collected-at.md)), never
+on wall-clock. A run executed on Tuesday scores the same difficulty as the
+same run executed on Friday.
+
+## 7. Delta-only cost model
+
+Day-2+ transport delivers only newly exposed information and never resends
+history (see [hindsight-transport](hindsight-transport.md)); full
+chronological re-serialization of stored history is explicitly not v1. An
+empty-success (provider returned success with empty ids) is `completed`,
+never an excuse for a second semantic attempt (see
+[resume-and-opids](resume-and-opids.md)) — re-trying it would both violate
+idempotency and bias the benchmark toward non-empty-looking runs.
+
+## History
+
+Merged from `docs/support-graph.md` (plan.md P0-12: cited-only semantics,
+sufficient sets, multi-source claims, ablation procedure, claim discipline),
+with §§6–7 restating the difficulty-age and cost rules owned by the
+companion design pages above. Guard test: `tests/test_ablation.py`.

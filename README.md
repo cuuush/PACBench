@@ -5,6 +5,13 @@ It asks: **can a memory-backed assistant maintain an accurate, actionable,
 provenance-aware model of a person's current life as information arrives,
 changes, conflicts, expires, and becomes relevant across many channels?**
 
+**One-line status.** The benchmark runs end to end and scores: frozen evidence
+in, sequential life episode, deterministic grading out. Current work is corpus
+realism (scale, difficulty, grading calibration). **No comparative claim is
+valid** — `comparative_claim_valid` stays `False` until the held-out
+comparative corpus with declared splits, repetitions, frozen configs,
+calibrated grading, and a real external provider exists.
+
 Systems earn credit for correct assistant behavior, however they store or
 retrieve information internally. Nobody earns credit for the harness helping
 them: every failure is preserved, attributed, and traceable to source evidence.
@@ -15,7 +22,7 @@ The primary path is a **sequential life episode** (`run-life`): one persistent
 provider state per life × provider × repetition, frozen observation bundles in,
 delta ingest in time order, isolated Hermes turns, deterministic grading out.
 Corpus 0.3.0 (1,890 observations, 44 checkpoints across 6 development lives);
-suite 257 green; `validate` clean.
+suite 430 passed, 2 skipped; `validate` clean.
 
 Providers: **Memcal** (native lifecycle: archive ingest, nightly dream,
 prefetch brief, 21 Hermes tools), **Hindsight** (native lifecycle: batched
@@ -25,9 +32,7 @@ dumb keyword baseline — diagnostic, never an external provider).
 
 What is **not** claimed (listed, not papered over):
 
-- Any claim about which system wins. `comparative_claim_valid` stays `False`
-  until the held-out comparative corpus with declared splits, repetitions,
-  frozen configs, calibrated grading, and a real external provider exists.
+- Any claim about which system wins (see above).
 - The calibrated semantic judge for paraphrased TEXT slots (the `judge=` seam
   in `pacbench/grade.py`; without it, unmatched paraphrases grade as MISSED,
   never as invented passes). A 200-item calibration pool is drafted and
@@ -123,7 +128,29 @@ never reach maintenance and run approval-free. Every run manifest records
 internal-LLM model, memcal commit, dream model), `tool_allowlist`, and the
 versioned `grader` string.
 
-## Reviewing a smoke run
+## One development life
+
+Same production path as the smoke, but with real corpus evidence. Freeze
+offline (free), then run — e.g. `coat-weekend` on Memcal:
+
+```sh
+/usr/local/bin/python3 -c "
+from pacbench.corpus import get_life
+from pacbench.frozen import freeze_observations, write_bundle
+h = write_bundle(freeze_observations([get_life('coat-weekend')]), 'runs/coat-bundle.json')
+print('BUNDLE_HASH=' + h)"
+/usr/local/bin/python3 -m pacbench run-life --life coat-weekend --provider memcal \
+  --bundle runs/coat-bundle.json --bundle-hash <hash> --runs runs/
+```
+
+Multi-day lives reach provider maintenance: they refuse to start unless
+`PACBENCH_ALLOW_MAINTENANCE_SPEND=1` is set after an explicit dream-backend +
+budget decision (see Spend gates above). For all six development lives at once,
+use `run-pilot` with one `--bundle` + `--bundle-hash` pair per life
+(see `--help`); long jobs are poll-only — launch, then monitor read-only
+(see `docs/pilot-ops.md`).
+
+## Reviewing a run
 
 Each run writes `runs/life-<UTC stamp>/`:
 
@@ -176,14 +203,11 @@ knew.
 
 **What "done" means.** Both providers reach `valid` with graded artifacts and
 every miss attributed to memory vs. Hermes vs. harness. Scores are evidence,
-not a gate.
-
-**Spend.** A full two-provider smoke is ~10 paid driver calls on the META key
-plus local-only provider work. Two things are deliberately out of scope until
-explicitly approved: the race-week render (hundreds of calls, currently
-halted) and a live memcal dream pass (bills to the codex subscription, not
-META). A dry-run dream on a scratch DB copy verifies the distillation queue
-for free.
+not a gate. A full two-provider smoke is ~10 paid driver calls on the META key
+plus local-only provider work. Deliberately out of scope until explicitly
+approved: the race-week render (hundreds of calls, currently halted) and a
+live memcal dream pass (bills to the codex subscription, not META); a dry-run
+dream on a scratch DB copy verifies the distillation queue for free.
 
 ## Corpus
 
@@ -223,8 +247,8 @@ is never scored-run visible.
 
 ### Browsing the corpus
 
-`docs/corpus-explorer.html` is a single self-contained page (no server, no
-CDN — open it straight from `file://`) for reading every frozen observation
+`docs/corpus-explorer.html` is a generated, gitignored single page (no server,
+no CDN — open it straight from `file://`) for reading every frozen observation
 the way the providers see it: pick a life, step through it day by day, filter
 by channel/thread, or search text and senders. Chat channels render as
 bubbles (owner right-aligned); email renders as an inbox list; every message
@@ -286,7 +310,7 @@ Two systems have received the same observations under the same conditions —
 same corpus hash, same driver, same collection times, same grading. But the
 second system is a **diagnostic baseline, not an external provider**: per the
 contract co-author, §45.5 is unmet and stays unmet until a real independent
-memory system runs. Full gates: `docs/comparative-gates.md`.
+memory system runs. Full gates: `docs/audit-log.md` §3.
 
 The 0.1.0-era pilot snapshots (memcal F1 0.727 vs lexical 0.750 on 17
 checkpoints) are archived in `runs/`; read them exactly as labeled — on 55
@@ -297,9 +321,22 @@ anything until the 30-life comparative corpus exists.
 
 ## Docs
 
-- `docs/subgoals.md` — C2/C3/C4/C7 subgoal ledger (what's proven, blocked, next).
-- `docs/pilot-ops.md` — interpreter pin, credentials, poll-only background discipline.
-- `docs/benchmark-integrity.md`, `docs/comparative-gates.md`,
-  `docs/contract-clarifications-2026-09-21.md`, `docs/exposure-log.md`,
+- `docs/audit-log.md` — the running audit log: every probe and audit
+  realization, what was established vs not, attribution, gate states, spend
+  figures, and comparative-validity impact. Realizations are never deleted.
+  Supersedes the former `probe-dispositions.md`, `probe-decision-record.md`,
+  `subgoals.md`, `comparative-gates.md`, and
+  `contract-clarifications-2026-09-21.md`. Start here for current evidence.
+- `docs/design/` — current design rules: `hindsight-transport.md` (one
+  conversation packet transport), `source-documents.md` (provider-neutral
+  document identity), `time-and-collected-at.md` (`collected_at` semantics),
+  `memcal-spine.md` (Memcal source-spine audit), `resume-and-opids.md`
+  (resume states, operation identity), `temporal-probes.md` (temporal probe
+  status), `difficulty-and-cost.md` (difficulty, ablation, cost rules).
+- `docs/pilot-ops.md` — interpreter pin, credentials, poll-only background
+  discipline, render resume, smoke-before-pilot. Read before launching anything
+  long-running.
+- `docs/benchmark-integrity.md`, `docs/exposure-log.md`,
   `docs/judge-scope.md`, `docs/split-lineage.md` — contract compliance record.
-- `docs/audit-2026-09-20.md` — the 88-point contract audit.
+- `docs/audit-2026-09-20.md` — the 0.1.0-era 36-question contract audit
+  (historical snapshot; counts predate corpus 0.3.0).

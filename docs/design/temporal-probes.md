@@ -1,12 +1,8 @@
-# Temporal ledger — P0-10 (Hindsight)
+# Temporal probes
 
-Temporal fidelity is NOT globally working. This ledger is the standing
-record; do not mark it working without closing the items below, and do
-not silently downgrade open findings into "bookkeeping."
-
-Source: `plan.md` P0-10. Gate: C4 item 11 ("temporal-risk ledger is
-explicit and the adversarial probe has been run"). Status mirror:
-`docs/subgoals.md` Criterion 2.
+**Current rule: temporal fidelity is NOT globally working.** This page is the
+standing record; do not mark it working without closing the items below, and
+do not silently downgrade open findings into "bookkeeping."
 
 ## 1. Proven
 
@@ -53,7 +49,7 @@ explicit and the adversarial probe has been run"). Status mirror:
 - Everything else: no global temporal-fidelity claim; no stale-vs-fresh
   adjudication; no expiration, half-life, or historical-reconstruction
   interpretation grounded in wall-clock-contaminated ranking; no
-  `mentioned_at`-as-bookkeeping shortcut (consolidated §4 rejects it).
+  `mentioned_at`-as-bookkeeping shortcut.
 
 ## Affected families (flagged until characterized)
 
@@ -61,3 +57,10 @@ explicit and the adversarial probe has been run"). Status mirror:
 - Opportunity expiration.
 - Temporary-state / half-life behavior.
 - Historical reconstruction.
+
+## History
+
+Plan.md P0-10, merged from `docs/temporal-ledger.md`. Gate: C4 item 11
+("temporal-risk ledger is explicit and the adversarial probe has been run").
+Status mirror: `docs/subgoals.md` Criterion 2. Per-realization probe
+outcomes live in the running log `docs/probe-dispositions.md`, not here.

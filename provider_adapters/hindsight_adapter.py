@@ -124,7 +124,7 @@ PACKETIZATION = (
     "chronological within packet, one retain_batch_async per ingest call"
 )
 
-#: Idempotent operational retry identity (collected-at-definition.md):
+#: Idempotent operational retry identity (docs/design/time-and-collected-at.md):
 #: simulated collection boundary, never wall-clock ingested_at.
 OPERATION_ID_STRATEGY = "uuid5(NAMESPACE_URL, '{bank}:{collected_at-boundary}')"
 
@@ -456,7 +456,7 @@ class HindsightAdapter(ProviderAdapter):
         # the canonical boundary derived above from batch contents
         # (chronological max collected_at, caller agreement asserted
         # after the same normalization) — never wall-clock
-        # ingested_at (collected-at-definition.md). ONE id per ingest
+        # ingested_at (docs/design/time-and-collected-at.md). ONE id per ingest
         # call (not per packet): the whole transport batch shares the
         # canonical bank:boundary identity via the shared
         # resume.same_operation_id helper, so a same-batch retry mints

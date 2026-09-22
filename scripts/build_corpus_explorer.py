@@ -88,7 +88,7 @@ function subjOf(t){var l=String(t==null?"":t).split("\\n")[0];var c=l.split(/[.!
 function byId(sid){var r=null;obs().forEach(function(o){if(o.source_id===sid)r=o});return r}
 function chatHTML(t,msgs){var ch=msgs[0].channel,se={},i;for(i=0;i<msgs.length;i++)if(!msgs[i].from_owner)se[msgs[i].sender]=1;
 var grp=GROUPCH.indexOf(ch)>=0||Object.keys(se).length>1;
-var h='<div class="conv '+(grp?"grp":"dm")+'"><h3>'+esc(t)+" &middot; "+esc(ch)+" ("+msgs.length+")</h3><div class="cwin">";
+var h='<div class="conv '+(grp?"grp":"dm")+'"><h3>'+esc(t)+" &middot; "+esc(ch)+" ("+msgs.length+")</h3><div class='cwin'>";
 var prev=null,pday=null;
 msgs.forEach(function(o){var day=(o.written_at||"").slice(0,10),tm=(o.written_at||"").slice(11,16);
 if(day!==pday){h+='<div class="daydiv"><span>'+esc(day)+"</span></div>";prev=null;pday=day}
@@ -101,10 +101,10 @@ h+='<div class="row'+(jn?" joined":"")+'">'+av+'<div class="col">'+nm+'<div clas
 prev=o.sender});
 return h+"</div></div>"}
 function readHTML(o){var from=o.from_owner?"me":o.sender,to=o.from_owner?o.thread:"me";
-return '<div class="subj">'+esc(subjOf(o.text))+"</div><div class=\"mh\"><div><b>From:</b> "+esc(from)+"</div><div><b>To:</b> "+esc(to)+"</div><div><b>Date:</b> "+esc(o.written_at)+"</div><div><b>Thread:</b> "+esc(o.thread)+"</div></div><div class=\"body\">"+esc(o.text)+"</div><details><summary>provenance &middot; "+esc(o.source_id)+"</summary>"+meta(o)+"</details>"}
-function mailHTML(t,msgs){var h='<div class="conv"><h3>'+esc(t)+" &middot; email ("+msgs.length+")</h3><div class=\"mailapp\"><div class=\"maillist">";
+return '<div class="subj">'+esc(subjOf(o.text))+"</div><div class='mh'><div><b>From:</b> "+esc(from)+"</div><div><b>To:</b> "+esc(to)+"</div><div><b>Date:</b> "+esc(o.written_at)+"</div><div><b>Thread:</b> "+esc(o.thread)+"</div></div><div class='body'>"+esc(o.text)+"</div><details><summary>provenance &middot; "+esc(o.source_id)+"</summary>"+meta(o)+"</details>"}
+function mailHTML(t,msgs){var h='<div class="conv"><h3>'+esc(t)+" &middot; email ("+msgs.length+")</h3><div class='mailapp'><div class='maillist'>";
 msgs.forEach(function(o,i){h+='<div class="mailitem'+(i===0?" active":"")+'" data-sid="'+esc(o.source_id)+'"><div class="mi-from">'+esc(o.from_owner?"me":o.sender)+'</div><div class="mi-subj">'+esc(subjOf(o.text))+'</div><div class="mi-date">'+esc((o.written_at||"").slice(0,16).replace("T"," "))+"</div></div>"});
-return h+"</div><div class=\"mailread\">"+readHTML(msgs[0])+"</div></div></div>"}
+return h+"</div><div class='mailread'>"+readHTML(msgs[0])+"</div></div></div>"}
 function render(){var L=DATA[S.life];
 document.getElementById("h-life").textContent="life: "+S.life;
 document.getElementById("h-hash").textContent="bundle "+L.hash.slice(0,12)+" ("+L.bundle+")";

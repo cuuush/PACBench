@@ -22,7 +22,7 @@ Properties:
 
 | Field | Clock | Meaning | May derive ... |
 |---|---|---|---|
-| `collected_at` (per observation; batch `boundary = max(...)`) | simulated benchmark clock | when the collector exposed the observation | op-ids, `MEMCAL_TODAY` pin, horizon/write-precedence, exposure gating, difficulty ages |
+| `collected_at` (per observation; batch `boundary = ingest_boundary(batch)`) | simulated benchmark clock | when the collector exposed the observation | op-ids, `MEMCAL_TODAY` pin, horizon/write-precedence, exposure gating, difficulty ages |
 | `ingested_at` (per `import_batches` entry) | host wall-clock, ISO-8601 UTC at the actual `adapter.ingest` submit moment | run artifact: when this run physically submitted the batch | nothing semantic; diagnostics and ordering audits only |
 
 ### Why op-id derivation and the `MEMCAL_TODAY` pin stay on simulated `collected_at`
@@ -60,7 +60,7 @@ Classification: **D** = discovery-time (simulated, immutable);
 | 5 | `pacbench/runner.py` — `exposed_observations` (`collected_at <= until`) | D | Exposure gate: expectations follow this clock. |
 | 6 | `pacbench/frozen.py` — `OBS_KEYS` carries `collected_at`; freeze sort key | D | Frozen bundle preserves discovery time verbatim. |
 | 7 | `pacbench/live.py` — `_batched_by_collection` day key | D (grouping) | Transport grouping only, never event time. |
-| 8 | `pacbench/live.py` — `boundary = max(collected_at)` passed as `adapter.ingest` moment (both call sites) | D | Batch's latest discovery instant is the adapter's collection moment. |
+| 8 | `pacbench/live.py` — `boundary = ingest_boundary(batch)` (canonical chronological max, both call sites) passed as `adapter.ingest` moment | D | Batch's latest discovery instant is the adapter's collection moment. |
 | 9 | `pacbench/live.py` — `import_batches[].collected_at = boundary` | R-of-D | Manifest record *of* the discovery boundary. |
 | 10 | `pacbench/live.py` — `import_batches[].ingested_at` (**new**, both call sites) | R | Wall-clock submit moment; semantic no-op. |
 | 11 | `pacbench/live.py` — `overlay_bundle_observations` sort; `do_turn`/`replay_turns` `at=` scheduling | D | Bundle order + simulated replay clock. |

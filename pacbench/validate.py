@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .grade import Norm
 from .life import Life
@@ -292,6 +292,24 @@ def _slot_carried(slot: Slot, texts: list[str]) -> bool | None:
     return any(evidence_carries(t, v, slot.norm) for t in texts for v in values)
 
 
+def _parse_ts_strict(value: str, *, what: str) -> datetime:
+    """Parse an ISO-8601 timestamp, failing closed on garbage.
+
+    Mirrors the ``datetime.fromisoformat`` precedent in
+    :func:`pacbench.difficulty.evidence_age_hours`, but normalizes naive
+    stamps as UTC (the corpus convention) so mixed naive/offset pairs
+    compare chronologically instead of raising ``TypeError`` — and never
+    falls back to lexical ordering, which misorders mixed-offset pairs.
+    """
+    try:
+        parsed = datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        raise ValueError(f"bad timestamp {value!r} for {what}")
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
 def ablation_check(life: Life, checkpoint: Checkpoint,
                    channel_or_source: str) -> AblationResult:
     """Remove one claimed-essential source and recompute knowability.
@@ -315,15 +333,24 @@ def ablation_check(life: Life, checkpoint: Checkpoint,
         raise ValueError(f"unknown channel or source_id {channel_or_source!r}")
     removed_set = set(removed)
 
+    checkpoint_dt = _parse_ts_strict(checkpoint.at,
+                                     what=f"checkpoint {checkpoint.id}")
+
+    def _on_time(oid: str) -> bool:
+        obs = by_id[oid]
+        return (_parse_ts_strict(obs.collected_at,
+                                 what=f"observation {oid}")
+                <= checkpoint_dt)
+
     affected: list[str] = []
     undecided: list[str] = []
     baseline_unknowable: list[str] = []
     for slot in (*checkpoint.slots, *checkpoint.supported):
         full_texts = [by_id[oid].text for oid in slot.supported_by
-                      if oid in by_id and by_id[oid].collected_at <= checkpoint.at]
+                      if oid in by_id and _on_time(oid)]
         kept_texts = [by_id[oid].text for oid in slot.supported_by
                       if oid in by_id and oid not in removed_set
-                      and by_id[oid].collected_at <= checkpoint.at]
+                      and _on_time(oid)]
         before = _slot_carried(slot, full_texts)
         if before is None:
             undecided.append(slot.id)

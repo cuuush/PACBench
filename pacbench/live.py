@@ -40,6 +40,7 @@ from .frozen import observations_for as frozen_observations_for
 from .grade import GRADER_VERSION, Grade, GradedSlot
 from .life import Life
 from .report import summarize
+from .resume import ingest_boundary
 from .rubric import Checkpoint, Verdict
 from .runner import exposed_observations, grade_answer
 
@@ -467,7 +468,9 @@ def run_checkpoint_live(*, life: Life, checkpoint: Checkpoint, adapter: Any,
             # The day's group flags ride along so both providers key
             # bundle entities identically (CONTRACT §8 thread identity;
             # §29 same observations at the same times).
-            boundary = max(o["collected_at"] for o in batch)
+            # Canonical boundary shared with the adapter by construction
+            # (resume.ingest_boundary: chronological max, normalized).
+            boundary = ingest_boundary(batch)
             ingested_at = _ingested_now()
             # P0-6 exposure ledger: digest the OFFERED batch (before
             # provider packaging) and prove it was provider-blind.
@@ -963,7 +966,9 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
         for day, batch in _batched_by_collection(evidence):
             # Same day-batch transport as run_checkpoint_live: batch's
             # latest collected_at is the adapter's collection moment.
-            boundary = max(o["collected_at"] for o in batch)
+            # Canonical boundary shared with the adapter by construction
+            # (resume.ingest_boundary: chronological max, normalized).
+            boundary = ingest_boundary(batch)
             ingested_at = _ingested_now()
             # P0-6 exposure ledger: digest the OFFERED batch (before
             # provider packaging) and prove it was provider-blind.

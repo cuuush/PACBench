@@ -6,7 +6,7 @@ provider packaging — so a Memcal run and a Hindsight run over the same
 life/configuration can prove they saw the same public evidence.
 Different provider packaging is allowed; different evidence is not.
 
-Canonical form: each offered observation projected to the 8 public
+Canonical form: each offered observation projected to the 10 public
 fields below, batch order preserved (message order is evidence, P0-4).
 Provider-private fields (native document ids, op-ids, MEMCAL_TODAY,
 gate verdicts, entity keys) must never reach this digest: projection
@@ -22,12 +22,14 @@ import hashlib
 import json
 from typing import Any
 
-#: The 8 public evidence fields digested at every collection boundary
+#: The 10 public evidence fields digested at every collection boundary
 #: (plan.md P0-6: source identity, channel, thread, sender, text,
-#: written time, arrival time, collected/discovery time). ``from_owner``
-#: and ``structured`` ride along in the offered payloads untouched but
-#: are outside this digest's scope: authorship surface is pinned by the
-#: frozen-bundle hash (§5), this ledger pins the offered evidence.
+#: written time, arrival time, collected/discovery time, plus the two
+#: authorship-relevant public observation fields: ``from_owner``
+#: (source-role bit) and ``structured`` (genuine source payload, e.g.
+#: an iCal row). Both ride along in the offered payloads and are now
+#: pinned here too, so a source-role flip moves the digest and fails
+#: the equivalence gate — not just the frozen-bundle hash (§5).
 EXPOSURE_DIGEST_FIELDS = (
     "source_id",
     "channel",
@@ -37,6 +39,8 @@ EXPOSURE_DIGEST_FIELDS = (
     "written_at",
     "arrived_at",
     "collected_at",
+    "from_owner",
+    "structured",
 )
 
 #: Provider-private keys that must never appear in an offered batch or
@@ -75,7 +79,7 @@ def check_offered_batch(batch: list[dict]) -> None:
 
 
 def exposure_canonical(batch: list[dict]) -> list[dict]:
-    """Project one offered batch to the 8-field canonical form.
+    """Project one offered batch to the 10-field canonical form.
 
     Batch order is preserved (order is evidence). Only the
     :data:`EXPOSURE_DIGEST_FIELDS` keys survive — anything else,

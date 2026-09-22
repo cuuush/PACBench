@@ -11,6 +11,9 @@ Covered:
   query-status-or-rebuild-from-prefix, never a blind append;
 * op-id reuse on genuine-uncertainty retry (deterministic, matches the
   Hindsight adapter's uuid5(bank:collected_at-boundary) derivation);
+* canonical ingest boundary shared with the adapter (max collected_at
+  over batch contents, fail-closed on malformed batches) and op-id
+  parity through the same helper;
 * empty-success (success with nothing extracted) receives zero second
   semantic attempts.
 """
@@ -28,6 +31,7 @@ from pacbench.resume import (
     SUBMIT,
     SUBMITTED_UNKNOWN,
     classify_write,
+    ingest_boundary,
     resume_action,
     same_operation_id,
 )
@@ -207,3 +211,47 @@ def test_failed_batch_retries_under_same_op_id():
     assert action == SUBMIT
     # Retry reuses the identical operation identity (idempotent retry).
     assert engine.appends[-1]["operation_id"] == op_id
+
+
+# -- canonical ingest boundary (shared with the Hindsight adapter) -------
+
+
+def test_ingest_boundary_derives_max_collected_at():
+    obs = [{"source_id": "m1", "collected_at": "2026-03-02T09:00:00+00:00"},
+           {"source_id": "m2", "collected_at": "2026-03-02T10:00:00+00:00"}]
+    # Canonical form is naive UTC (corpus stamp convention): the +00:00
+    # spellings collapse to the same instants, then the chronological
+    # max wins.
+    assert ingest_boundary(obs) == "2026-03-02T10:00:00"
+    # Order-independent: the max wins regardless of batch order.
+    assert ingest_boundary(list(reversed(obs))) == "2026-03-02T10:00:00"
+    # Single-observation batch: its own instant is the boundary.
+    assert ingest_boundary(obs[:1]) == "2026-03-02T09:00:00"
+
+
+def test_ingest_boundary_fails_closed():
+    with pytest.raises(ValueError):
+        ingest_boundary([])  # empty batch: no boundary derivable
+    with pytest.raises(ValueError):
+        ingest_boundary([{"source_id": "m1"}])  # missing collected_at
+    with pytest.raises(ValueError):
+        ingest_boundary(
+            [{"source_id": "m1", "collected_at": "  "}])  # blank stamp
+    with pytest.raises(ValueError):
+        ingest_boundary(
+            [{"source_id": "m1",
+              "collected_at": "2026-03-02T10:00:00+00:00"},
+             {"source_id": "m2"}])  # one bad member poisons the batch
+
+
+def test_op_id_parity_boundary_then_same_helper():
+    # Same helper, same ID for same inputs: derive the boundary from
+    # batch contents, then mint the id — the exact sequence the
+    # Hindsight adapter runs per ingest call.
+    bank = "pacbench-lifeE-cp5"
+    obs = [{"source_id": "m1", "collected_at": "2026-03-06T09:00:00+00:00"},
+           {"source_id": "m2", "collected_at": "2026-03-06T10:00:00+00:00"}]
+    boundary = ingest_boundary(obs)
+    assert boundary == "2026-03-06T10:00:00"
+    assert same_operation_id((bank, boundary)) == str(
+        uuid.uuid5(uuid.NAMESPACE_URL, f"{bank}:{boundary}"))

@@ -18,14 +18,20 @@ from pathlib import Path
 from unittest import mock
 
 # Two facts, substantially different simulated ages (~6.5 months apart).
+# Distinct threads on purpose: under one-joined-item-per-packet
+# packetization each fact is its own single-message packet, so the two
+# facts still ride as TWO items in one batch (the adversarial condition:
+# simulated ages differ, real ingest times are near-identical).
 FACT_OLD = {"source_id": "probe/old", "channel": "text", "sender": "Gus",
-            "thread": "probe-tx",
+            "thread": "probe-tx-old",
             "text": "the lake cabin rental ends March 10",
-            "written_at": "2026-03-01T10:00:00"}
+            "written_at": "2026-03-01T10:00:00",
+            "collected_at": "2026-09-18T12:00:00"}
 FACT_NEW = {"source_id": "probe/new", "channel": "text", "sender": "Gus",
-            "thread": "probe-tx",
+            "thread": "probe-tx-new",
             "text": "the lake cabin rental ends October 5",
-            "written_at": "2026-09-18T10:00:00"}
+            "written_at": "2026-09-18T10:00:00",
+            "collected_at": "2026-09-18T12:00:00"}
 
 # One shared collection instant: a single ingest() call means the two
 # facts share a transport batch, operation_id, and wall-clock ingest
@@ -170,8 +176,12 @@ class OfflineTemporalProbe(unittest.TestCase):
                         QUERY_TIMESTAMP)))
         finally:
             loop.close()
-        self.assertEqual(ranked[0], FACT_NEW["text"])
-        self.assertEqual(ranked[-1], FACT_OLD["text"])
+        self.assertEqual(
+            ranked[0],
+            f"Gus ({FACT_NEW['written_at']}): {FACT_NEW['text']}")
+        self.assertEqual(
+            ranked[-1],
+            f"Gus ({FACT_OLD['written_at']}): {FACT_OLD['text']}")
 
 
 @unittest.skip("spend-gated: live-engine probe execution requires explicit "

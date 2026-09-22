@@ -109,7 +109,8 @@ class NoSemanticRetry(unittest.TestCase):
             usage = adapter.ingest(
                 [{"source_id": "s/2", "text": "gone",
                   "channel": "text", "sender": "a",
-                  "written_at": "2026-09-09T10:00:00"}],
+                  "written_at": "2026-09-09T10:00:00",
+                  "collected_at": "2026-09-09T10:00:01"}],
                 collected_at="2026-09-09T10:00:01")
         adapter.close()
         self.assertIn("retained 0/1", usage.notes[0])
@@ -126,7 +127,8 @@ class NoSemanticRetry(unittest.TestCase):
             usage = adapter.ingest(
                 [{"source_id": "s/1", "text": "hello",
                   "channel": "text", "sender": "a",
-                  "written_at": "2026-09-09T10:00:00"}],
+                  "written_at": "2026-09-09T10:00:00",
+                  "collected_at": "2026-09-09T10:00:01"}],
                 collected_at="2026-09-09T10:00:01")
         adapter.close()
         self.assertIn("retained 1/1", usage.notes[0])
@@ -177,7 +179,8 @@ class RerunIdempotency(unittest.TestCase):
     def _obs(self, sid="t/1"):
         return {"source_id": sid, "channel": "text", "sender": "Gus",
                 "thread": "tx", "text": "the car is ready Friday",
-                "written_at": "2026-09-18T11:00:00"}
+                "written_at": "2026-09-18T11:00:00",
+                "collected_at": "2026-09-18T12:00:00"}
 
     def test_reset_drops_bank_before_restart(self):
         adapter, fake = _adapter()
@@ -200,7 +203,8 @@ class Ingest(unittest.TestCase):
     def _obs(self, channel="text", text="the car is ready Friday"):
         return {"source_id": "t/1", "channel": channel, "sender": "Gus",
                 "thread": "tx", "text": text,
-                "written_at": "2026-09-18T11:00:00"}
+                "written_at": "2026-09-18T11:00:00",
+                "collected_at": "2026-09-18T12:00:00"}
 
     def test_forbidden_keys_raise(self):
         adapter, _ = _adapter()
@@ -255,6 +259,7 @@ class Ingest(unittest.TestCase):
         # SMART: one retain_batch_async per ingest() call (the caller
         # already groups by collection instant) with return_usage=True,
         # so TokenUsage flows into Usage instead of staying unknown.
+        # One joined item per packet: both messages share text:tx.
         adapter, fake = _adapter()
         with mock.patch.dict(os.environ,
                              {"HINDSIGHT_API_LLM_API_KEY": "k"}):
@@ -263,15 +268,22 @@ class Ingest(unittest.TestCase):
                 [self._obs(), {**self._obs(), "source_id": "t/2"}],
                 "2026-09-18T12:00:00")
         self.assertEqual(len(fake.batches), 1)
-        self.assertEqual(fake.batches[0]["n"], 2)
+        self.assertEqual(fake.batches[0]["n"], 1)
         self.assertTrue(fake.batches[0]["return_usage"])
-        self.assertIn("retained 2/2", usage.notes[0])
-        self.assertIn("retain tokens 200 in / 20 out", usage.notes[0])
+        self.assertIn("retained 1/1", usage.notes[0])
+        self.assertIn("retain tokens 100 in / 10 out", usage.notes[0])
         self.assertEqual((usage.input_tokens, usage.output_tokens),
-                         (200, 20))
+                         (100, 10))
         total = adapter.usage()
         self.assertEqual((total.input_tokens, total.output_tokens),
-                         (200, 20))
+                         (100, 10))
+        self.assertEqual(len(fake.retained), 1)
+        rec = fake.retained[0]
+        self.assertEqual(rec["document_id"], "text:tx")
+        self.assertEqual(
+            rec["text"],
+            "Gus (2026-09-18T11:00:00): the car is ready Friday\n"
+            "Gus (2026-09-18T11:00:00): the car is ready Friday")
         adapter.close()
 
 
@@ -296,7 +308,8 @@ class MentionedAtWallClock(unittest.TestCase):
             adapter.ingest(
                 [{"source_id": "t/9", "channel": "text", "sender": "Gus",
                   "thread": "tx", "text": "old news from March",
-                  "written_at": "2026-03-01T10:00:00"}],
+                  "written_at": "2026-03-01T10:00:00",
+                  "collected_at": "2026-09-18T12:00:00"}],
                 "2026-09-18T12:00:00")
         self.assertEqual(len(fake.batches), 1)
         # FakeEngine records retained payloads; the real contract is on
@@ -316,7 +329,8 @@ class MentionedAtWallClock(unittest.TestCase):
             adapter2.ingest(
                 [{"source_id": "t/9", "channel": "text", "sender": "Gus",
                   "thread": "tx", "text": "old news from March",
-                  "written_at": "2026-03-01T10:00:00"}],
+                  "written_at": "2026-03-01T10:00:00",
+                  "collected_at": "2026-09-18T12:00:00"}],
                 "2026-09-18T12:00:00")
         adapter.close()
         adapter2.close()

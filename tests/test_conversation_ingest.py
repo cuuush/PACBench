@@ -85,9 +85,11 @@ def _reset(adapter):
 
 
 def _obs(source_id, channel="text", thread="fam", sender="Gus",
-          text="hello", written_at="2026-09-18T09:00:00"):
+          text="hello", written_at="2026-09-18T09:00:00",
+          collected_at="2026-09-18T12:00:00"):
     return {"source_id": source_id, "channel": channel, "thread": thread,
-            "sender": sender, "text": text, "written_at": written_at}
+            "sender": sender, "text": text, "written_at": written_at,
+            "collected_at": collected_at}
 
 
 def _items(engine, call=0):
@@ -103,9 +105,13 @@ class Stability(unittest.TestCase):
             _reset(adapter)
             day1 = [_obs("life1/s-02", written_at="2026-09-18T09:00:00"),
                     _obs("life1/s-01", written_at="2026-09-18T09:05:00")]
-            day2 = [_obs("life1/s-04", written_at="2026-09-19T10:00:00")]
+            day2 = [_obs("life1/s-04", written_at="2026-09-19T10:00:00",
+                         collected_at="2026-09-19T12:00:00")]
             adapter.ingest(day1, "2026-09-18T12:00:00")
             adapter.ingest(day2, "2026-09-19T12:00:00")
+            # One joined item per packet per ingest call.
+            self.assertEqual(len(_items(engine, 0)), 1)
+            self.assertEqual(len(_items(engine, 1)), 1)
             ids1 = {i["document_id"] for i in _items(engine, 0)}
             ids2 = {i["document_id"] for i in _items(engine, 1)}
             self.assertEqual(ids1, {"text:fam"})
@@ -144,7 +150,9 @@ class Stability(unittest.TestCase):
             _reset(adapter)
             batch = [_obs("life1/a", written_at="2026-09-18T09:00:00")]
             adapter.ingest(batch, "2026-09-18T12:00:00")  # before cp-1
-            adapter.ingest(batch, "2026-09-19T12:00:00")  # before cp-2
+            batch2 = [_obs("life1/a", written_at="2026-09-18T09:00:00",
+                           collected_at="2026-09-19T12:00:00")]
+            adapter.ingest(batch2, "2026-09-19T12:00:00")  # before cp-2
             for call in (0, 1):
                 doc_id = _items(engine, call)[0]["document_id"]
                 self.assertEqual(doc_id, "text:fam")
@@ -237,10 +245,18 @@ class Ordering(unittest.TestCase):
             # Lexicographic source_id order disagrees with time on purpose:
             # "s-01" sorts first as a string but was written second.
             self.assertLess("life1/s-01", "life1/s-02")
-            self.assertEqual([i["content"] for i in items],
-                             ["FIRST written", "SECOND written"])
-            dates = [i["event_date"] for i in items]
-            self.assertEqual(dates, sorted(dates))
+            # One joined item per packet, chronological lines, verbatim.
+            self.assertEqual(len(items), 1)
+            item = items[0]
+            self.assertEqual(item["document_id"], "text:fam")
+            self.assertEqual(
+                item["content"],
+                "Gus (2026-09-18T09:00:00): FIRST written\n"
+                "Gus (2026-09-18T09:05:00): SECOND written")
+            self.assertEqual(item["metadata"]["source_ids"],
+                             ["life1/s-02", "life1/s-01"])
+            self.assertEqual((item["event_date"].hour,
+                              item["event_date"].minute), (9, 0))
         finally:
             adapter.close()
 
@@ -275,33 +291,53 @@ class Verbatim(unittest.TestCase):
                           written_at="2026-09-18T09:00:00")]
             adapter.ingest(batch, "2026-09-18T12:00:00")
             items = _items(engine)
+            # One joined-transcript item per packet: chronological
+            # "sender (written_at): text" lines, verbatim, no summaries.
+            self.assertEqual(len(items), 1)
+            item = items[0]
+            self.assertEqual(item["document_id"], "text:fam")
             self.assertEqual(
-                [(i["content"], i["metadata"]["sender"],
-                  i["metadata"]["written_at"], i["metadata"]["thread"])
-                 for i in items],
-                [("the car is ready Friday", "Gus",
-                  "2026-09-18T09:00:00", "fam"),
-                 ("pickup after 5pm", "Mia",
-                  "2026-09-18T09:05:00", "fam")])
-            for item in items:
-                self.assertNotIn("summary", item)
-                self.assertNotIn("summary", item["metadata"])
+                item["content"],
+                "Gus (2026-09-18T09:00:00): the car is ready Friday\n"
+                "Mia (2026-09-18T09:05:00): pickup after 5pm")
+            self.assertEqual(item["context"],
+                             "text thread fam from Gus, Mia")
+            meta = item["metadata"]
+            self.assertEqual(meta["source_ids"], ["life1/a", "life1/b"])
+            self.assertEqual(meta["senders"], ["Gus", "Mia"])
+            self.assertEqual(meta["written_at_start"],
+                             "2026-09-18T09:00:00")
+            self.assertEqual(meta["written_at_end"],
+                             "2026-09-18T09:05:00")
+            self.assertEqual(meta["thread"], "fam")
+            self.assertEqual(meta["logical_document"], "text:fam")
+            self.assertEqual(item["update_mode"], "append")
+            self.assertNotIn("summary", item)
+            self.assertNotIn("summary", meta)
         finally:
             adapter.close()
 
 
 class OpId(unittest.TestCase):
     def test_op_id_on_simulated_boundary_not_wall_clock(self):
+        from pacbench.resume import ingest_boundary, same_operation_id
         adapter, engine = _adapter()
         try:
             _reset(adapter)
-            adapter.ingest([_obs("life1/a",
-                                written_at="2026-09-18T09:00:00")],
-                           "2026-09-18T12:00:00")
+            batch = [_obs("life1/a",
+                          written_at="2026-09-18T09:00:00")]
+            adapter.ingest(batch, "2026-09-18T12:00:00")
             op = engine.calls[0]["operation_id"]
             self.assertEqual(op, str(uuid.uuid5(
                 uuid.NAMESPACE_URL,
                 "pacbench-ns-conv:2026-09-18T12:00:00")))
+            # Parity: the adapter shares resume's helper — the boundary
+            # derives from batch contents and the id from (bank,
+            # boundary) through the same function the runner uses.
+            self.assertEqual(ingest_boundary(batch), "2026-09-18T12:00:00")
+            self.assertEqual(
+                op, same_operation_id(
+                    ("pacbench-ns-conv", ingest_boundary(batch))))
         finally:
             adapter.close()
 

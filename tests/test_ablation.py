@@ -148,5 +148,58 @@ class AblationFlipsMultiSource(unittest.TestCase):
         self.assertFalse(result.answer_changed_or_uncertain)
 
 
+    def test_mixed_offset_timestamps_compare_chronologically(self):
+        # Lexically "2026-09-03T10:00:00+05:00" > "2026-09-03T08:00:00+00:00",
+        # so a string-<= time filter wrongly excludes this evidence as future.
+        # Chronologically it is 05:00 UTC <= 08:00 UTC, so it counts and
+        # removing the only carrying channel must flip the checkpoint.
+        obs = [
+            _obs("tz/m1", "email", "The gala moved to the Grand Hall.",
+                 collected="2026-09-03T10:00:00+05:00"),
+        ]
+        cp = Checkpoint(
+            id="tz/cp",
+            at="2026-09-03T08:00:00+00:00",
+            question="Where is the gala?",
+            slots=(
+                Slot(id="venue", kind=Kind.CURRENT, norm=Norm.ENTITY,
+                     expected="Grand Hall", supported_by=("tz/m1",)),
+            ),
+        )
+        life = _life("tz", obs, [cp])
+        result = ablation_check(life, cp, "email")
+        self.assertTrue(result.answer_changed_or_uncertain)
+        self.assertEqual(result.affected_slot_ids, ("venue",))
+
+    def test_unparseable_timestamps_raise_instead_of_string_compare(self):
+        cp = Checkpoint(
+            id="bad/cp",
+            at="2026-09-03T10:00:00",
+            question="Where is the gala?",
+            slots=(
+                Slot(id="venue", kind=Kind.CURRENT, norm=Norm.ENTITY,
+                     expected="Grand Hall", supported_by=("bad/m1",)),
+            ),
+        )
+        bad_obs = _life("bad", [_obs(
+            "bad/m1", "email", "The gala moved to the Grand Hall.",
+            collected="not-a-time")], [cp])
+        with self.assertRaises(ValueError):
+            ablation_check(bad_obs, cp, "email")
+        good_obs = [_obs("bad/m1", "email",
+                         "The gala moved to the Grand Hall.")]
+        bad_cp = Checkpoint(
+            id="bad/cp",
+            at="yesterday",
+            question="Where is the gala?",
+            slots=(
+                Slot(id="venue", kind=Kind.CURRENT, norm=Norm.ENTITY,
+                     expected="Grand Hall", supported_by=("bad/m1",)),
+            ),
+        )
+        with self.assertRaises(ValueError):
+            ablation_check(_life("bad", good_obs, [bad_cp]), bad_cp, "email")
+
+
 if __name__ == "__main__":
     unittest.main()

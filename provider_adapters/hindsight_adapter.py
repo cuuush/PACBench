@@ -21,17 +21,21 @@ Native lifecycle (nothing Memcal-shaped is forced onto it):
   savings come from the delta cursor. Within the call, evidence is
   grouped by ``logical_document_key`` into conversation packets: one
   stable conversation ``document_id`` per conversational source with
-  per-item ``update_mode="append"`` for the day's newly exposed
+  per-packet ``update_mode="append"`` for the day's newly exposed
   messages (a day-2 ``replace`` under a conversation id would wipe day
   1 — the replace-wipes-day-1 trap, P0-3 §2); email singletons keep
   per-message ids with ``update_mode="replace"`` (honest upsert).
-  Each message keeps its own content item (verbatim text, sender,
-  timestamps, thread) serialized chronologically by ``written_at``
-  within its packet — no summaries, no benchmark-event packetizing.
-  The authoring ``written_at`` rides as ``event_date`` — Hindsight's native
-  time anchor, not wall-clock (criterion 2: relative-date resolution
-  against the fictional clock is an open verification item, probed like
-  the memcal clock probe, not assumed).
+  Each packet rides as exactly ONE content item (vendor docs: a full
+  conversation is retained as a single item; the server refuses batches
+  that share one document_id across items): the packet's messages
+  serialized chronologically by ``written_at`` and joined as
+  ``sender (written_at): text`` lines — verbatim, no summaries, no
+  benchmark-event packetizing. The packet context names the thread and
+  its senders; the earliest authoring ``written_at`` rides as
+  ``event_date`` — Hindsight's native time anchor, not wall-clock
+  (criterion 2: relative-date resolution against the fictional clock is
+  an open verification item, probed like the memcal clock probe, not
+  assumed).
 - Scheduled work: ``run_graph_maintenance_job`` (relink/prune) — the
   native consolidation pass, analogue of memcal's dream, not a copy.
 - Retrieval: Hindsight MCP tools (retain/recall/reflect) consumed by
@@ -58,7 +62,6 @@ import sys
 import tempfile
 import threading
 import time
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -67,6 +70,11 @@ REPO = Path(__file__).resolve().parents[1]
 ARTIFACTS = REPO / "artifacts"
 
 from pacbench.adapters import ProviderAdapter, Readiness, Usage  # noqa: E402
+from pacbench.resume import (  # noqa: E402
+    _normalize_ts,
+    ingest_boundary,
+    same_operation_id,
+)
 from pacbench.source_documents import (  # noqa: E402
     SOURCE_DOCUMENT_MAPPING_VERSION,
     is_conversational,
@@ -107,11 +115,12 @@ UPDATE_MODE_CONVERSATIONAL = "append"
 UPDATE_MODE_SINGLETON = "replace"
 
 #: Packetization: each ingest batch is grouped by logical_document_key
-#: into conversation packets; packets ride as items in ONE
-#: retain_batch_async call per ingest batch (SMART day-batching
+#: into conversation packets; each packet rides as exactly ONE content
+#: item (joined ``sender (written_at): text`` transcript) in ONE
+#: retain_batch_async call per ingest call (SMART day-batching
 #: transport is unchanged — grouping only, never re-ingest).
 PACKETIZATION = (
-    "conversation-packets-per-ingest-batch: group by logical_document_key, "
+    "one-joined-item-per-conversation-packet: group by logical_document_key, "
     "chronological within packet, one retain_batch_async per ingest call"
 )
 
@@ -194,21 +203,19 @@ def _chrono_key(obs: dict) -> tuple:
             str(obs.get("source_id", "?")))
 
 
-def _thread_context(obs: dict,
+def _packet_context(channel: str, thread: str, senders: list[str],
                     group_flags: dict[tuple[str, str], bool] | None) -> str:
-    """Extraction context for one observation (CONTRACT §§8/29).
+    """Extraction context for one conversation packet (CONTRACT §§8/29).
 
     Same thread identity both providers see: ``"<channel> thread
-    <thread> from <sender>"``, plus ``" (group chat)"`` when the
+    <thread> from <sender, ...>"`` (packet senders in chronological
+    first-appearance order), plus ``" (group chat)"`` when the
     runner's shared group flags mark the thread a group — the same
     signal memcal's gate/entity_for receives. Context shapes
     extraction (per the retain doc), so a group thread must read as
     one conversation to the extractor, not N disconnected DMs.
     """
-    channel = str(obs.get("channel", "?"))
-    thread = str(obs.get("thread", "?"))
-    sender = str(obs.get("sender", "?"))
-    ctx = f"{channel} thread {thread} from {sender}"
+    ctx = f"{channel} thread {thread} from {', '.join(senders)}"
     if (group_flags or {}).get((channel, thread)):
         ctx += " (group chat)"
     return ctx
@@ -383,6 +390,30 @@ class HindsightAdapter(ProviderAdapter):
                     raise RuntimeError(
                         f"refusing non-public payload field {key!r} "
                         f"in observation {obs.get('source_id', '?')}")
+        # Canonical ingest boundary (operation-id robustness): derive
+        # the boundary from the actual supplied observations (canonical
+        # chronological max over the batch's collected_at, via the shared
+        # resume helper so runner and adapter can never drift), then
+        # assert the caller-supplied collected_at agrees AFTER passing it
+        # through the SAME normalizer — trailing space, ``+00:00``-vs-naive,
+        # and offset respellings of one instant must never fork identity.
+        # Any disagreement — or any batch with no derivable boundary —
+        # fails closed: a wrong boundary would mint a wrong operation
+        # identity and break idempotent resume.
+        derived_boundary = ingest_boundary(observations)
+        try:
+            caller_boundary = _normalize_ts(collected_at)
+        except ValueError as exc:
+            raise ValueError(
+                f"refusing ingest with unparsable collected_at boundary "
+                f"{collected_at!r}: boundary must be ISO-8601") from exc
+        if caller_boundary != derived_boundary:
+            raise ValueError(
+                f"refusing ingest with inconsistent collected_at boundary: "
+                f"caller supplied {collected_at!r} (canonical "
+                f"{caller_boundary!r}) but batch contents derive "
+                f"{derived_boundary!r} (canonical chronological max over "
+                f"{len(observations)} observation(s))")
         evidence = [o for o in observations
                     if o.get("channel") not in USER_TURN_CHANNELS]
         redirected = len(observations) - len(evidence)
@@ -395,16 +426,22 @@ class HindsightAdapter(ProviderAdapter):
         # stable conversation document_id with update_mode="append" for
         # the day's newly exposed messages; email singletons keep
         # per-message ids with update_mode="replace" (honest upsert).
-        # Items serialize chronologically by written_at within each
-        # packet (deterministic source_id tiebreak) preserving sender /
-        # written / verbatim text / order / thread — no summaries.
+        # Each packet rides as exactly ONE content item: the packet's
+        # messages serialize chronologically by written_at (deterministic
+        # source_id tiebreak) and join as "sender (written_at): text"
+        # lines — verbatim text/sender/timestamps/order/thread, no
+        # summaries.
         #
-        # SUPERSEDED (P0-2 rewrite): the old per-message scheme
-        # (document_id = source_id, engine-default update_mode
-        # "replace"). Per-message ids were honest only while each
-        # document held exactly one message; under conversation-level
-        # identity a day-2 "replace" would wipe day 1 instead of
-        # appending (P0-3 §2 replace-wipes-day-1 trap).
+        # SUPERSEDED (one-item-per-packet rewrite): the per-message-items
+        # scheme (one item per message sharing the packet's document_id).
+        # Vendor docs retain a full conversation as a single item, and
+        # the server refuses batches that share one document_id across
+        # items — multi-item packets returned empty. Before that, the
+        # older per-message scheme (document_id = source_id,
+        # engine-default update_mode "replace") was honest only while
+        # each document held exactly one message; under
+        # conversation-level identity a day-2 "replace" would wipe day 1
+        # instead of appending (P0-3 §2 replace-wipes-day-1 trap).
         #
         # Transport is unchanged (ruling §1 + SMART day-batching): ONE
         # retain_batch_async per INGEST CALL — the caller (_batched_by
@@ -412,11 +449,18 @@ class HindsightAdapter(ProviderAdapter):
         # transport batch, and ingest() never re-splits: day 1's 100
         # messages = 1 call, day 2's 100 new same-sender messages = 1 more
         # call, delta-only via live.py's obs_idx cursor, never cumulative
-        # re-ingest. Deterministic operation_id per packet supports
+        # re-ingest. Deterministic operation_id per INGEST CALL supports
         # idempotent OPERATIONAL retry only; semantic empties are
         # recorded, never retried (§2). The op-id stays
-        # uuid5(bank:collected_at-boundary) on the SIMULATED boundary —
-        # never wall-clock ingested_at (collected-at-definition.md).
+        # uuid5(bank:canonical-boundary) on the SIMULATED boundary —
+        # the canonical boundary derived above from batch contents
+        # (chronological max collected_at, caller agreement asserted
+        # after the same normalization) — never wall-clock
+        # ingested_at (collected-at-definition.md). ONE id per ingest
+        # call (not per packet): the whole transport batch shares the
+        # canonical bank:boundary identity via the shared
+        # resume.same_operation_id helper, so a same-batch retry mints
+        # the same identity automatically.
         #
         # Cost model (verified against the installed engine source):
         # batching wins WALL-CLOCK (one orchestrator pass, parallel
@@ -426,6 +470,10 @@ class HindsightAdapter(ProviderAdapter):
         # sends newly-exposed observations), never from re-sending
         # cumulative history. return_usage=True surfaces TokenUsage so
         # unknown stays unknown instead of unmeasured.
+        #
+        # Count semantics: counts are PACKETS (items), not messages — the
+        # usage note reads "retained X/Y" where Y is packets submitted
+        # and X packets with non-empty id returns.
         packets: dict[str, list[dict]] = {}
         for o in evidence:
             # Tolerate minimal fake payloads the way the old per-message
@@ -443,28 +491,41 @@ class HindsightAdapter(ProviderAdapter):
                 str(members[0].get("channel", "?")))
             mode = (UPDATE_MODE_CONVERSATIONAL if conversational
                     else UPDATE_MODE_SINGLETON)
-            for o in sorted(members, key=_chrono_key):
-                contents.append(
-                    {"content": o["text"],
-                     "context": _thread_context(o, group_flags),
-                     "event_date": _parse_event_date(o.get("written_at")),
-                     "metadata": {
-                         "source_id": str(o.get("source_id", "?")),
-                         "thread": str(o.get("thread", "?")),
-                         "sender": str(o.get("sender", "?")),
-                         "written_at": o.get("written_at"),
-                         "logical_document": doc_id,
-                     },
-                     "document_id": doc_id,
-                     "update_mode": mode})
+            ordered = sorted(members, key=_chrono_key)
+            channel = str(ordered[0].get("channel", "?"))
+            thread = str(ordered[0].get("thread", "?"))
+            senders = list(dict.fromkeys(
+                str(o.get("sender", "?")) for o in ordered))
+            lines = [f"{o.get('sender', '?')} ({o.get('written_at')}): "
+                     f"{o['text']}" for o in ordered]
+            event_date = None
+            for o in ordered:
+                event_date = _parse_event_date(o.get("written_at"))
+                if event_date is not None:
+                    break
+            contents.append(
+                {"content": "\n".join(lines),
+                 "context": _packet_context(channel, thread, senders,
+                                            group_flags),
+                 "event_date": event_date,
+                 "metadata": {
+                     "source_ids": [str(o.get("source_id", "?"))
+                                    for o in ordered],
+                     "thread": thread,
+                     "senders": senders,
+                     "written_at_start": ordered[0].get("written_at"),
+                     "written_at_end": ordered[-1].get("written_at"),
+                     "logical_document": doc_id,
+                 },
+                 "document_id": doc_id,
+                 "update_mode": mode})
         if contents:
             per_item = self._loop.run(
                 self._engine.retain_batch_async(
                     self._bank, contents, request_context=self._ctx,
                     return_usage=True,
-                    operation_id=str(uuid.uuid5(
-                        uuid.NAMESPACE_URL,
-                        f"{self._bank}:{collected_at}"))))
+                    operation_id=same_operation_id(
+                        (self._bank, derived_boundary))))
             self._retain_calls += 1
             if isinstance(per_item, tuple):
                 per_item, token_usage = per_item[0], per_item[1]
@@ -493,7 +554,7 @@ class HindsightAdapter(ProviderAdapter):
                 out_tok = int(token_usage.output_tokens or 0)
             except Exception:
                 in_tok = out_tok = None
-        usage_note = (f"retained {count}/{len(evidence)} "
+        usage_note = (f"retained {count}/{len(contents)} "
                       f"({empty_ids} empty-id returns, recorded not retried); "
                       f"user_turns_redirected {redirected}")
         if in_tok is None:

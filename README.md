@@ -221,6 +221,21 @@ behavior** (`Checkpoints` with hidden atomic rubrics). The support manifest
 (`pacbench/manifest.py`) links facts to intended evidence at authoring time and
 is never scored-run visible.
 
+### Browsing the corpus
+
+`docs/corpus-explorer.html` is a single self-contained page (no server, no
+CDN — open it straight from `file://`) for reading every frozen observation
+the way the providers see it: pick a life, step through it day by day, filter
+by channel/thread, or search text and senders. Chat channels render as
+bubbles (owner right-aligned); email renders as an inbox list; every message
+carries its provenance (`source_id`, `written_at`, `collected_at`) in a
+details toggle, and the header pins the bundle hash the view was built from.
+
+Regenerate after any bundle change (build verifies each bundle hash
+fail-closed before embedding):
+
+    /usr/local/bin/python3 scripts/build_corpus_explorer.py
+
 ## Grading
 
 Atomic rubrics, deterministic first: each checkpoint is N small slot judgments

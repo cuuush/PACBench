@@ -73,9 +73,12 @@ runs.
 
 - Derived **solely** from `(bank, collected_at-boundary)`:
   `uuid5(NAMESPACE_URL, f"{bank}:{boundary}")`.
-- `bank` = provider bank (`f"pacbench-{namespace}"`); `boundary` =
-  the batch's max `collected_at` (full ISO, exact-instant benchmark
-  clock). Never the transport day key, never wall-clock `ingested_at`,
+- `bank` = provider bank (`pacbench-{namespace}`); `boundary` =
+  the batch's canonical max `collected_at` (`ingest_boundary(batch)`:
+  every stamp normalized to its UTC instant — naive means UTC, so
+  `...+00:00` / naive / `Z` / offset respellings of one instant mint
+  one id — then the chronological max, never a lexicographic one).
+  Never the transport day key, never wall-clock `ingested_at`,
   never life/checkpoint/story ids (cf. P0-2, P0-5).
 - Same batch → same id on every attempt, including resume-after-crash.
   Different batch → different id. No random ids, no per-attempt salts.
@@ -83,6 +86,24 @@ runs.
   same-namespace rerun cannot double-ingest against surviving rows —
   resume-with-same-op-id and rerun-from-clean-reset are the two
   non-duplicating paths; blind re-append is neither.
+
+## Coverage: Hindsight ingest only
+
+The boundary assert (`ingest` refuses a caller `collected_at` that
+disagrees with `ingest_boundary(batch)` after the same normalization)
+and the deterministic op-id (`same_operation_id`) cover the Hindsight
+ingest path only — adapter, `live.py` `import_batches` wiring, and
+`pacbench/resume.py` share one derivation by construction. Declared
+out of scope, not overlooked:
+
+- memcal / lexical `ingest` perform no boundary assert and mint no
+  op-id;
+- Hindsight `maintenance` mints a free-form `pacbench-{at}` id outside
+  `same_operation_id`.
+
+None of those paths participates in crash-resume identity. If a future
+provider needs resume-grade identity, it must adopt
+`ingest_boundary` / `same_operation_id` — not invent a second scheme.
 
 ## Runner obligations (wiring, not in `resume.py`)
 

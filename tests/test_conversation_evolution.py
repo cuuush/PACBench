@@ -123,22 +123,28 @@ class FakeConversationStore:
 CONVERSATION = [
     {"source_id": "s-02", "channel": "text", "thread": "fam",
      "sender": "Gus", "text": "day1-a: the car is ready Friday",
-     "written_at": "2026-09-18T09:00:00"},
+     "written_at": "2026-09-18T09:00:00",
+     "collected_at": "2026-09-18T12:00:00"},
     {"source_id": "s-01", "channel": "text", "thread": "fam",
      "sender": "Mia", "text": "day1-b: pickup after 5pm works",
-     "written_at": "2026-09-18T09:05:00"},
+     "written_at": "2026-09-18T09:05:00",
+     "collected_at": "2026-09-18T12:00:00"},
     {"source_id": "s-04", "channel": "text", "thread": "fam",
      "sender": "Gus", "text": "day2-a: running late, make it 6pm",
-     "written_at": "2026-09-19T10:00:00"},
+     "written_at": "2026-09-19T10:00:00",
+     "collected_at": "2026-09-19T12:00:00"},
     {"source_id": "s-03", "channel": "text", "thread": "fam",
      "sender": "Mia", "text": "day2-b: 6pm confirmed",
-     "written_at": "2026-09-19T10:07:00"},
+     "written_at": "2026-09-19T10:07:00",
+     "collected_at": "2026-09-19T12:00:00"},
     {"source_id": "s-06", "channel": "text", "thread": "fam",
      "sender": "Gus", "text": "day3-a: car washed, see you at 6",
-     "written_at": "2026-09-20T08:30:00"},
+     "written_at": "2026-09-20T08:30:00",
+     "collected_at": "2026-09-20T12:00:00"},
     {"source_id": "s-05", "channel": "text", "thread": "fam",
      "sender": "Mia", "text": "day3-b: bringing the paperwork",
-     "written_at": "2026-09-20T08:45:00"},
+     "written_at": "2026-09-20T08:45:00",
+     "collected_at": "2026-09-20T12:00:00"},
 ]
 
 CYCLES = [
@@ -151,7 +157,13 @@ BANK = "pacbench-ns-evo"
 
 
 def _contents(messages: list[dict]) -> list[dict]:
-    """Adapter-shaped batch items: chronological, one message each."""
+    """Store-level message items: chronological, one message each.
+
+    NOTE: this feeds the FakeConversationStore directly (message-level
+    store model), not the adapter wire shape — the real adapter now
+    sends one joined-transcript item per packet (see
+    AdapterBatchContract below and tests/test_conversation_ingest.py).
+    """
     return [{
         "content": m["text"],
         "context": f"{m['channel']} thread {m['thread']} from {m['sender']}",
@@ -294,7 +306,9 @@ class AdapterBatchContract(unittest.TestCase):
                 adapter.ingest(newly_exposed, collected_at)
         try:
             self.assertEqual(len(fake.batches), 3)
-            self.assertEqual([b["n"] for b in fake.batches], [2, 2, 2])
+            # One joined item per packet: each cycle's two messages share
+            # text:fam, so one item per batch.
+            self.assertEqual([b["n"] for b in fake.batches], [1, 1, 1])
             ops = [b["operation_id"] for b in fake.batches]
             self.assertEqual(len(set(ops)), 3)
             for (_, collected_at), op in zip(CYCLES, ops):
@@ -331,7 +345,9 @@ class LiveConversationEvolution(unittest.TestCase):
                 usage = adapter.ingest(newly_exposed, collected_at)
                 totals.append(usage.notes[0])
             for note in totals:
-                self.assertIn("retained 2/2", note)
+                # One joined item per packet: two same-packet messages
+                # retain as 1/1.
+                self.assertIn("retained 1/1", note)
         finally:
             adapter.close()
 

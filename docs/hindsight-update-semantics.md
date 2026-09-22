@@ -72,14 +72,22 @@ Why this one, with citations:
   `retain_batch_async` selects LLM/config resolution
   (`_resolve_retain_config`, `memory_engine.py:5745`), not append-vs-replace.
 
-Consequence for the current adapter: today's ingest
-(`hindsight_adapter.py:330-348`) sends per-message `document_id = source_id`
-with **no** `update_mode` key, i.e. engine-default `"replace"` — which is
-honest only because each document holds exactly one message (a same-`source_id`
-rerun upserts its own document instead of duplicating). The moment document
-identity becomes conversation-level (P0-2), day-2 deltas **must** set
-`update_mode="append"`, or day 2 would wipe day 1. That switch is
-implementation work, not this spec.
+Consequence for the adapter: ingest sends exactly ONE joined-transcript
+item per conversation packet (`hindsight_adapter.py` ingest). The item
+carries the packet's stable conversation `document_id` with
+`update_mode="append"` (email singletons: per-message ids with
+`"replace"`, honest upsert); its content is the packet's messages in
+chronological `written_at` order joined as `sender (written_at): text`
+lines — verbatim, no summaries. Context names the thread and its
+senders; `event_date` is the earliest `written_at` in the packet;
+metadata carries `source_ids` / `senders` / `written_at_start` /
+`written_at_end` / `logical_document`. One document_id appears on
+exactly one item per batch: vendor docs retain a full conversation as a
+single item, and the server refuses batches that share one document_id
+across items (multi-item packets returned empty). This supersedes both
+older shapes — per-message `document_id = source_id` with engine-default
+`"replace"` (honest only while each document held exactly one message),
+and per-message items sharing the packet's conversation id.
 
 ## 3. Day transport semantics (all days, v1)
 
@@ -92,11 +100,13 @@ implementation work, not this spec.
   "before it is collected (future evidence)").
 - **Never one-doc-per-message** for conversational sources: messages in one
   logical conversation share one `document_id` (natural source boundaries per
-  P0-1). Within a single day's batch, messages serialize chronologically by
-  `written_at` (P0-4); across days, stored order is exposure order (see
-  late-arrival case).
-- Each message keeps verbatim text, sender, `event_date` (= authoring
-  `written_at`, the native time anchor), thread, and per-message metadata.
+  P0-1) and ride as ONE joined-transcript item per packet. Within a packet,
+  message lines serialize chronologically by `written_at` (P0-4); across
+  days, stored order is exposure order (see late-arrival case).
+- Each packet keeps verbatim text (one `sender (written_at): text` line per
+  message), senders, `event_date` (= earliest authoring `written_at`, the
+  native time anchor), thread, and packet metadata (`source_ids`,
+  `written_at_start/end`).
 
 ## 4. The six cases
 

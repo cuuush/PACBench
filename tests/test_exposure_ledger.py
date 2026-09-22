@@ -129,12 +129,12 @@ def _run_episode(tmp, life, bundle, make_adapter, provider):
 
 
 class ExposureDigestUnit(unittest.TestCase):
-    def test_canonical_form_is_exactly_the_8_public_fields(self):
+    def test_canonical_form_is_exactly_the_10_public_fields(self):
         batch = [_obs("m1", "2026-09-08T10:00:00")]
         canonical = exposure_canonical(batch)
         self.assertEqual(len(canonical), 1)
         self.assertEqual(set(canonical[0]), set(EXPOSURE_DIGEST_FIELDS))
-        self.assertEqual(len(EXPOSURE_DIGEST_FIELDS), 8)
+        self.assertEqual(len(EXPOSURE_DIGEST_FIELDS), 10)
 
     def test_digest_is_deterministic(self):
         batch = [_obs("m1", "2026-09-08T10:00:00"),

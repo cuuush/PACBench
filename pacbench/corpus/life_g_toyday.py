@@ -35,7 +35,7 @@ def lives() -> list[Life]:
         Observation(
             source_id=f"{_ID}/im-dinner-ok", channel="imessage",
             written_at=_t("08:05"), arrived_at=_t("08:05"),
-            collected_at=_t("08:05"), sender="Me", thread="Maya",
+            collected_at=_t("08:05"), sender="Me", thread="maya",
             text="Friday 7 at Casa Luna, see you there",
         ),
         Observation(
@@ -63,7 +63,7 @@ def lives() -> list[Life]:
         Observation(
             source_id=f"{_ID}/text-plumb-ok", channel="text",
             written_at=_t("11:00"), arrived_at=_t("11:00"),
-            collected_at=_t("11:00"), sender="Me", thread="Gus",
+            collected_at=_t("11:00"), sender="Me", thread="gus",
             text="2pm works, see you then",
         ),
         # -- event 3: package locker code --------------------------------

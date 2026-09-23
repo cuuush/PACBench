@@ -65,6 +65,7 @@ class TurnResult:
     # reported no token stats for this turn — unknown stays unknown, never zero.
     session_input_tokens: int | None = None
     session_output_tokens: int | None = None
+    prefetch_context: str | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -216,6 +217,7 @@ def turn_env(at: str, home: Path,
         "PACBENCH_TOOL_ALLOWLIST": allowlist,
         "PACBENCH_NO_BUILTIN_MEMORY": "1",
         "PACBENCH_NO_SESSION_SEARCH": "1",
+        "PACBENCH_CONTEXT_TRACE": str(home.parent / "context.jsonl"),
         "TERM": "dumb",
     })
     if extra_env:
@@ -266,7 +268,15 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                 [ln for ln in part_out.splitlines() if ln.strip()][-60:]),
             raw_events=0, session_id=None)
     latency = time.monotonic() - started
-    return _parse_turn(prompt, at, proc, latency)
+    result = _parse_turn(prompt, at, proc, latency)
+    trace = home.parent / "context.jsonl"
+    if trace.exists():
+        try:
+            latest = json.loads(trace.read_text(encoding="utf-8").splitlines()[-1])
+            result.prefetch_context = latest.get("prefetch")
+        except (IndexError, ValueError, OSError):
+            pass
+    return result
 
 
 def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
@@ -301,7 +311,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
             text = json.dumps(event)
             if "PACBENCH-BLOCKED" in text:
                 blocks += 1
-            tool_results.append(_summarize_tool_result(event))
+            tool_results.append(_summarize_tool_result(event, limit=200_000))
         elif kind == "text":
             # Streaming delta of the assistant message.
             delta = event.get("text") or ""
@@ -376,9 +386,12 @@ def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
         payload = event.get("text", "")
     text = payload if isinstance(payload, str) else json.dumps(payload)
     truncated = len(text) > limit
+    policy_blocked = "PACBENCH-BLOCKED" in text
     return {
         "tool": event.get("tool") or event.get("name") or "",
-        "success": event.get("success", event.get("error") is None),
+        "success": bool(event.get("success", event.get("error") is None))
+                   and not policy_blocked,
+        "policy_blocked": policy_blocked,
         "text": text[:limit],
         "truncated": truncated,
     }

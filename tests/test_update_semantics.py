@@ -18,7 +18,6 @@ import importlib.util
 import inspect
 import unittest
 
-from pacbench.authoring import AuthoringError, BeatPlan, LifePlan, ThreadPlan, build_life
 from pacbench.corpus import MANIFESTS, all_lives
 from pacbench.life import Life
 from pacbench.observation import Observation
@@ -70,31 +69,6 @@ class SchemaCarriesNoMutationMarkers(unittest.TestCase):
         with self.assertRaises(dataclasses.FrozenInstanceError):
             o.text = "rewritten"  # type: ignore[assignment]  # noqa: B018
 
-    def test_beat_plan_has_no_mutation_fields(self):
-        beat_fields = {f.name for f in dataclasses.fields(BeatPlan)}
-        self.assertTrue(beat_fields.isdisjoint(BANNED_MUTATION_MARKERS),
-                        f"mutation markers in BeatPlan: {beat_fields & BANNED_MUTATION_MARKERS}")
-
-
-class AuthoringIsSingleWrite(unittest.TestCase):
-    def _plan(self, *beats):
-        return LifePlan(id="t", bet="b", role="development", week_start="2026-09-07",
-                        checkpoints=(),
-                        threads=(ThreadPlan(id="th", channel="text"),),
-                        beats=beats)
-
-    def test_duplicate_beat_local_id_raises(self):
-        beat = BeatPlan(local_id="m1", thread="th", sender="Mom", day=1,
-                        clock="09:00", draft="hello")
-        with self.assertRaises(AuthoringError):
-            build_life(self._plan(beat, beat))
-
-    def test_one_observation_per_beat(self):
-        beats = [BeatPlan(local_id=f"m{i}", thread="th", sender="Mom", day=1,
-                          clock=f"09:0{i}", draft=f"hello {i}") for i in range(3)]
-        life, _ = build_life(self._plan(*beats))
-        self.assertEqual([o.source_id for o in life.observations],
-                         [f"t/m{i}" for i in range(3)])
 
 
 class ValidationRejectsIdentityReuse(unittest.TestCase):

@@ -1,7 +1,8 @@
 # Pilot operations (hard-won, 2026-09-21)
 
-How to launch and monitor pilots/renders on this machine. Read this
-before (re)launching anything long-running.
+Historical notes for the retired batch-render and A–F pilot workflow. The
+commands below are not the current launch path. Use the repository README and
+`AGENTS.md` for semantic experiments.
 
 ## Interpreter pin
 

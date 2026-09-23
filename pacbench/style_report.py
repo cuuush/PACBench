@@ -7,18 +7,12 @@ event-name repetition, punctuation/formality signals — with
 channel-specific splits.
 
 Output is distributions + side-by-side contrasts (dict/JSON-serializable).
-There is deliberately NO score, NO threshold, and NO pass/fail: this is an
-instrument for human review, and the human review packet remains
-authoritative for deciding whether important messages look suspiciously
-easier than ambient traffic.
+There is no score or threshold; this is optional material for human review.
 
 Provider-blind: reads only ``Life`` observations (channel/sender/text)
 plus a support-id set. Never touches adapters, providers, or grading.
 
-Wiring note (comment only, no gates wired): ``review_packet.build_packet``
-could embed ``style_report_for_life(life)`` output (e.g. a "## Style
-contrasts (support vs ambient)" section) as review material alongside the
-ambient sample. Nothing in this module gates, blocks, or scores any run.
+Nothing in this module gates, blocks, or scores a run.
 """
 
 from __future__ import annotations
@@ -29,8 +23,7 @@ import statistics
 from collections import Counter
 from typing import Any, Iterable
 
-# Explicit date/time surface signals (wording mirrors gen_qa screens, but
-# kept local so this instrument has no coupling to QA pass/fail logic).
+# Explicit date/time surface signals for optional style inspection.
 _WEEKDAY_RE = re.compile(
     r"\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b",
     re.IGNORECASE,

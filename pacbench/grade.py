@@ -334,6 +334,23 @@ def _asserts_invented_history(answer: str, slot: Slot) -> str | None:
     return None
 
 
+def _mask_allowed(hay: str, slot: Slot) -> str:
+    """Mask allowed-phrase spans so they can never convict a forbidden value.
+
+    Operates on normed text (norms its input first; :func:`_asserts`
+    re-norms idempotently downstream); each normed allowed phrase is
+    replaced with spaces (length-preserving, so no positions shift for
+    later checks). Expected-value matching uses the unmasked text —
+    masking applies ONLY to the forbidden paths in :func:`_verdict_for`.
+    """
+    hay = _norm_text(hay)
+    for phrase in slot.allowed_phrases:
+        p = _norm_text(phrase).strip()
+        if p:
+            hay = hay.replace(p, " " * len(p))
+    return hay
+
+
 def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str]:
     current = _current_text(answer)
     if slot.norm is Norm.YESNO:
@@ -365,7 +382,8 @@ def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str
                 None)
     else:
         forbidden_hit = next(
-            (f for f in slot.forbidden if _asserts(current, f, slot.norm, judge)),
+            (f for f in slot.forbidden
+             if _asserts(_mask_allowed(current, slot), f, slot.norm, judge)),
             None)
     expected = _slot_asserts_expected(answer, slot, judge)
     if slot.kind is Kind.ABSTAIN:
@@ -394,7 +412,8 @@ def _verdict_for(answer: str, slot: Slot, judge: Judge | None) -> tuple[str, str
         # name both values stay correct.)
         full_hit = next(
             (f for f in slot.forbidden
-             if _asserts(answer, f, slot.norm, judge, for_forbidden=True)),
+             if _asserts(_mask_allowed(answer, slot), f, slot.norm, judge,
+                         for_forbidden=True)),
             None)
         if full_hit:
             return Verdict.MISREPRESENTED, f"asserted stale/forbidden {full_hit!r}"

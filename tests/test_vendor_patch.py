@@ -59,6 +59,7 @@ class VendorPatchIntegrity(unittest.TestCase):
             "agent/inline_tool_executors.py",
             "agent/system_prompt.py",
             "agent/tool_executor.py",
+            "agent/turn_context.py",
             "hermes_time.py",
             "model_tools.py",
         ])

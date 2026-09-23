@@ -50,7 +50,7 @@ class Life:
     observations: tuple[Observation, ...]
     checkpoints: tuple[Checkpoint, ...]
     control_of: str | None = None
-    #: Story family this life belongs to (§39). Close variants — same beats,
+    #: Story family this life belongs to (§39). Close variants — same events,
     #: traps, names, or timings under a rename — share one lineage string,
     #: whatever their split. Lineage is what split-independence is checked
     #: on: a future held-out life must carry lineage unique across the

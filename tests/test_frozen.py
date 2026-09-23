@@ -23,29 +23,29 @@ class FreezeRoundTrip(unittest.TestCase):
         from pacbench.frozen import (bundle_hash, freeze_observations,
                                      load_bundle, observations_for,
                                      write_bundle)
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
-        self.assertEqual(len(bundle["lives"]["poker-collision"]
-                             ["observations"]), 12)
+        self.assertEqual(len(bundle["lives"]["poker-unchanged"]
+                             ["observations"]), len(life.observations))
         with tempfile.TemporaryDirectory(prefix="frozen-") as tmp:
             path = Path(tmp) / "tiny.json"
             h = write_bundle(bundle, path)
             self.assertEqual(h, bundle_hash(bundle))
             back = load_bundle(path, h)
-            self.assertEqual(len(observations_for(back, "poker-collision")),
-                             12)
+            self.assertEqual(len(observations_for(back, "poker-unchanged")),
+                             len(life.observations))
 
     def test_tamper_fails_closed(self):
         from pacbench import corpus
         from pacbench.frozen import (freeze_observations, load_bundle,
                                      write_bundle)
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
         with tempfile.TemporaryDirectory(prefix="frozen-") as tmp:
             path = Path(tmp) / "tiny.json"
             h = write_bundle(bundle, path)
             raw = json.loads(path.read_text(encoding="utf-8"))
-            raw["lives"]["poker-collision"]["observations"][0]["text"] += "!"
+            raw["lives"]["poker-unchanged"]["observations"][0]["text"] += "!"
             path.write_text(json.dumps(raw), encoding="utf-8")
             with self.assertRaises(RuntimeError):
                 load_bundle(path, h)
@@ -58,12 +58,12 @@ class FreezeRoundTrip(unittest.TestCase):
         from pacbench import corpus
         from pacbench.frozen import freeze_observations
         from pacbench.live import overlay_bundle_observations
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
         got = overlay_bundle_observations(life, bundle)
-        self.assertEqual(len(got), 12)
-        bundle["lives"]["poker-collision"]["observations"] = (
-            bundle["lives"]["poker-collision"]["observations"][:-1])
+        self.assertEqual(len(got), len(life.observations))
+        bundle["lives"]["poker-unchanged"]["observations"] = (
+            bundle["lives"]["poker-unchanged"]["observations"][:-1])
         with self.assertRaises(RuntimeError):
             overlay_bundle_observations(life, bundle)
 
@@ -84,7 +84,7 @@ class PrimaryEpisodeOffline(unittest.TestCase):
         from pacbench import corpus
         from pacbench.live import run_life
         from provider_adapters.lexical_adapter import LexicalAdapter
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         with tempfile.TemporaryDirectory(prefix="episode-") as tmp:
             life_dir = Path(tmp) / "life"
             with mock.patch("pacbench.live.harness.run_turn",
@@ -105,7 +105,7 @@ class PrimaryEpisodeOffline(unittest.TestCase):
         from provider_adapters.lexical_adapter import LexicalAdapter
         from pacbench import corpus
         from pacbench.live import run_life
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         with tempfile.TemporaryDirectory(prefix="episode-") as tmp:
             with self.assertRaises(ValueError):
                 run_life(
@@ -119,7 +119,7 @@ class PrimaryEpisodeOffline(unittest.TestCase):
         from pacbench import corpus
         from pacbench.frozen import (bundle_hash, freeze_observations,
                                      write_bundle)
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
         with tempfile.TemporaryDirectory(prefix="frozen-") as tmp:
             path = Path(tmp) / "tiny.json"
@@ -134,7 +134,7 @@ class PrimaryEpisodeOffline(unittest.TestCase):
         from pacbench import corpus
         from pacbench.frozen import BUNDLE_VERSION, freeze_observations
         from pacbench.live import overlay_bundle_observations
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
         assert bundle["bundle_version"] == BUNDLE_VERSION
         bundle["bundle_version"] = "0.1.0"

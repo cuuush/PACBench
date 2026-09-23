@@ -83,6 +83,12 @@ class Slot:
     :data:`ERROR_CLASSES`): the KIND of falsehood an assertion of one of them
     would be. Required slots with forbidden values must set it; slots without
     forbidden values leave it empty (no misrepresentation is representable).
+
+    ``allowed_phrases`` are answer spans that must never convict a forbidden
+    value: normed occurrences are masked before forbidden matching (expected
+    matching is untouched). For count slots this distinguishes the counted
+    entity from coincidental numbers — "table for two" is party size, not a
+    second booking, so it must not trip forbidden "two".
     """
 
     id: str
@@ -93,6 +99,7 @@ class Slot:
     forbidden: tuple[str, ...] = ()
     supported_by: tuple[str, ...] = ()   # Observation.source_id values
     required: bool = True
+    allowed_phrases: tuple[str, ...] = ()
     error: str = ""
 
 

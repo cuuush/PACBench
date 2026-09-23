@@ -1,0 +1,52 @@
+{
+  "status": "proposed_for_human_review",
+  "contract_hash": "94ebcde5c653ea5292b5ef2836a0101c7ccb1c83b012f74691d384969771a165",
+  "claim_ids": ["who", "restaurant", "street", "date", "time"],
+  "examples": [
+    {
+      "id": "full",
+      "answer": "You're meeting Devon at Luigi's on 5th on Friday, September 11 at 7pm.",
+      "proposed": ["correct", "correct", "correct", "correct", "correct"]
+    },
+    {
+      "id": "no_companion",
+      "answer": "Pizza at Luigi's on 5th, Friday September 11 at 7pm.",
+      "proposed": ["missed", "correct", "correct", "correct", "correct"]
+    },
+    {
+      "id": "no_street",
+      "answer": "You're meeting Devon at Luigi's on Friday September 11 at 7pm.",
+      "proposed": ["correct", "correct", "missed", "correct", "correct"]
+    },
+    {
+      "id": "no_restaurant",
+      "answer": "You're meeting Devon at a restaurant on 5th on Friday September 11 at 7pm. I can't recall its name.",
+      "proposed": ["correct", "missed", "correct", "correct", "correct"]
+    },
+    {
+      "id": "no_date",
+      "answer": "You're meeting Devon at Luigi's on 5th at 7pm, but I don't know the date.",
+      "proposed": ["correct", "correct", "correct", "missed", "correct"]
+    },
+    {
+      "id": "no_time",
+      "answer": "You're meeting Devon at Luigi's on 5th on Friday September 11. I'm unsure of the time.",
+      "proposed": ["correct", "correct", "correct", "correct", "missed"]
+    },
+    {
+      "id": "wrong_venue",
+      "answer": "You're meeting Devon at Mario's on 5th on Friday September 11 at 7pm.",
+      "proposed": ["correct", "misrepresented", "correct", "correct", "correct"]
+    },
+    {
+      "id": "wrong_time",
+      "answer": "You're meeting Devon at Luigi's on 5th on Friday September 11 at 8pm.",
+      "proposed": ["correct", "correct", "correct", "correct", "misrepresented"]
+    },
+    {
+      "id": "historical_not_current",
+      "answer": "You're going with Devon for pizza. You used to meet at Luigi's on 5th, but I can't tell where this plan is. I do see Friday September 11 at 7pm.",
+      "proposed": ["correct", "missed", "missed", "correct", "correct"]
+    }
+  ]
+}

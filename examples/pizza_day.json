@@ -1,0 +1,25 @@
+{
+  "id": "pizza-day",
+  "test_scene_id": "pizza-plan",
+  "maintenance_at": "2026-09-10T23:59:00",
+  "question_at": "2026-09-11T09:00:00",
+  "providers": ["memcal", "hindsight"],
+  "scenes": [
+    {
+      "id": "pizza-plan",
+      "channel": "text",
+      "thread": "devon",
+      "window_start": "2026-09-10T18:00:00",
+      "scene": "Devon and the user make plans to get pizza Friday night. They settle on Luigi's on 5th at 7pm.",
+      "test_intent": "Later, ask what pizza plan the user agreed to. A complete answer must identify who they are going with, the restaurant and street, the calendar date, and the agreed time. Judge each of those details separately."
+    },
+    {
+      "id": "ducks-side",
+      "channel": "text",
+      "thread": "ducks",
+      "window_start": "2026-09-10T18:30:00",
+      "scene": "Maya floats a Saturday morning ducks outing at the pond in a group chat with Devon and the user. Devon is keen and asks about timing; Maya proposes 9am; the user stays noncommittal.",
+      "test_intent": "If asked about the ducks outing, distinguish the proposal from a confirmed plan."
+    }
+  ]
+}

@@ -5,9 +5,9 @@ import json
 import unittest
 
 from pacbench import style_report as sr
-from pacbench.corpus import MANIFESTS, get_life
+from pacbench.corpus import get_life
 
-LIFE_ID = "dentist-depth"
+LIFE_ID = "poker-move"
 
 # No scoring/gating vocabulary may appear anywhere in the report output.
 FORBIDDEN = ("score", "threshold", "pass", "fail", "gate", "verdict",
@@ -94,13 +94,6 @@ class StyleReport(unittest.TestCase):
         self.assertEqual(json.loads(blob), self.report)
         again = sr.style_report_for_life(get_life(LIFE_ID))
         self.assertEqual(again, self.report)
-
-    def test_manifest_ids_agree(self):
-        manifest_ids = sr.support_ids_from_manifest(MANIFESTS[LIFE_ID])
-        self.assertGreater(len(manifest_ids), 0)
-        via_manifest = sr.style_report(self.life, manifest_ids)
-        self.assertGreater(via_manifest["n_support"], 0)
-        self.assertGreater(via_manifest["n_ambient"], 0)
 
     def test_message_features_surface_only(self):
         feats = sr.message_features("Confirmed: dental cleaning Friday at 2pm!")

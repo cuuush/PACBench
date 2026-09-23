@@ -225,7 +225,7 @@ def summarize(grades: list[Grade], checkpoints: list[Checkpoint],
     tp = summary.correct
     fp = summary.misrepresented + summary.suggested_forbidden
     fn = summary.missed + summary.misrepresented
-    summary.precision = tp / (tp + fp) if tp + fp else 1.0
+    summary.precision = tp / (tp + fp) if tp + fp else (0.0 if fn else 1.0)
     summary.recall = tp / (tp + fn) if tp + fn else 1.0
     summary.f1 = (2 * summary.precision * summary.recall
                   / (summary.precision + summary.recall)

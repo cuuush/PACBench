@@ -1,6 +1,6 @@
-"""Task B regression: Spark generation routes to Meta's Model API only.
+"""Spark generation routes to Meta's Model API only.
 
-One gateway, one credential: `pacbench.generation` and `pacbench.render`
+One gateway, one credential: `pacbench.generation` and `pacbench.model_calls`
 post to `https://api.meta.ai/v1/chat/completions` with the META bearer
 credential from the PACBench-owned `.env`. No OpenRouter route remains,
 no silent model substitution, and the secret never appears in errors.
@@ -29,7 +29,7 @@ def _fake_response(payload: dict):
     return context
 
 
-def _choices_payload(text="rewritten beat"):
+def _choices_payload(text="generated dialogue"):
     return {"choices": [{"message": {"content": text}}]}
 
 
@@ -44,21 +44,18 @@ class GatewayIsMetaOnly(unittest.TestCase):
             generation.GATEWAY_URL.startswith(creds.BASE_URL.rstrip("/") + "/"),
             f"{generation.GATEWAY_URL} should extend driver BASE_URL {creds.BASE_URL}")
 
-    def test_render_gateway_matches_generation_gateway(self):
+    def test_audited_calls_use_generation_gateway(self):
         from pacbench import generation
-        from pacbench import render
-        self.assertEqual(render.META_GATEWAY_URL, generation.GATEWAY_URL)
+        from pacbench.model_calls import ModelClient
+        self.assertEqual(ModelClient(key="x", model="m", record_dir=Path("/tmp")).url,
+                         generation.GATEWAY_URL)
 
     def test_no_openrouter_url_in_generation_path(self):
         from pacbench import generation
-        from pacbench import render
-        for url in (generation.GATEWAY_URL, render.META_GATEWAY_URL):
+        from pacbench.model_calls import ModelClient
+        for url in (generation.GATEWAY_URL,
+                    ModelClient(key="x", model="m", record_dir=Path("/tmp")).url):
             self.assertNotIn("openrouter", url)
-
-    def test_default_model_is_native_id(self):
-        from pacbench import render
-        self.assertEqual(render.DEFAULT_MODEL, "muse-spark-1.3-contributor")
-        self.assertFalse(render.DEFAULT_MODEL.startswith("meta/"))
 
 
 class SparkGeneratorRouting(unittest.TestCase):
@@ -122,63 +119,6 @@ class SparkGeneratorRouting(unittest.TestCase):
                          "Bearer SECRET-CRED")
 
 
-class RenderGeneratorRouting(unittest.TestCase):
-    def test_meta_generator_posts_to_meta(self):
-        from pacbench import render
-        seen = {}
-
-        def fake_urlopen(request, timeout=None):
-            seen["request"] = request
-            return _fake_response(_choices_payload("natural rewrite"))
-
-        with mock.patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            out = render.meta_generator(
-                "SECRET-CRED",
-                model="muse-spark-1.3-contributor")("Rewrite this.")
-        self.assertEqual(out, "natural rewrite")
-        self.assertEqual(seen["request"].full_url, META_URL)
-        self.assertEqual(seen["request"].get_header("Authorization"),
-                         "Bearer SECRET-CRED")
-
-    def test_legacy_openrouter_name_routes_to_meta_unchanged(self):
-        """The kept-for-imports alias must hit the Meta gateway, never OpenRouter,
-        and must not remap the model (fail closed, no silent substitution)."""
-        from pacbench import render
-        seen = {}
-
-        def fake_urlopen(request, timeout=None):
-            seen["request"] = request
-            return _fake_response(_choices_payload("x"))
-
-        with mock.patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            render.openrouter_generator("SECRET-CRED",
-                                        model="meta/muse-spark-1.3-contributor")("p")
-        self.assertEqual(seen["request"].full_url, META_URL)
-        body = json.loads(seen["request"].data.decode())
-        self.assertEqual(body["model"], "meta/muse-spark-1.3-contributor")
-
-    def test_load_key_prefers_meta_over_legacy(self):
-        from pacbench import render
-        with tempfile.TemporaryDirectory() as tmp:
-            env = Path(tmp) / ".env"
-            env.write_text("MODEL=muse-spark-1.3-contributor\n"
-                           "OPENROUTER_API_KEY=legacy-key\n"
-                           "META=new-secret\n")
-            self.assertEqual(render.load_key(env), "new-secret")
-
-    def test_load_key_falls_back_to_legacy(self):
-        from pacbench import render
-        with tempfile.TemporaryDirectory() as tmp:
-            env = Path(tmp) / ".env"
-            env.write_text("OPENROUTER_API_KEY=legacy-key\n")
-            self.assertEqual(render.load_key(env), "legacy-key")
-            env.write_text("sk-or-legacy\n")
-            self.assertEqual(render.load_key(env), "sk-or-legacy")
-
-    def test_load_key_missing_is_none(self):
-        from pacbench import render
-        with tempfile.TemporaryDirectory() as tmp:
-            self.assertIsNone(render.load_key(Path(tmp) / "nope"))
 
 
 if __name__ == "__main__":

@@ -175,7 +175,7 @@ class SumTurnTokens(unittest.TestCase):
 class PilotTurnsRollup(unittest.TestCase):
     def test_reads_turns_and_skips_errors(self):
         from pacbench.corpus import get_life
-        life = get_life("dentist-depth")
+        life = get_life("poker-move")
         with tempfile.TemporaryDirectory(prefix="pacbench-pilot-") as tmp:
             pilot_dir = Path(tmp)
             life_dir = pilot_dir / life.id

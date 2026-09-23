@@ -77,6 +77,67 @@ class FakeProviderB:
         return SimpleNamespace(model_calls=0, latency_s=0.0, notes="fake-b")
 
 
+class ChronologicalReplay(unittest.TestCase):
+    def test_user_turn_cannot_search_evidence_collected_before_later_checkpoint(self):
+        from pacbench.frozen import freeze_observations
+        from pacbench.life import Life
+        from pacbench.observation import Observation
+        from pacbench.rubric import Checkpoint, Kind, Norm, Slot
+
+        def item(source_id, channel, at, text):
+            return Observation(source_id=source_id, channel=channel,
+                               written_at=at, arrived_at=at, collected_at=at,
+                               sender="Me" if channel == "hermes" else "Bistro Nova",
+                               thread="booking", text=text,
+                               from_owner=channel == "hermes")
+
+        life = Life(id="chronology", bet="b", role="development",
+                    observations=(
+                        item("booking", "email", "2026-09-08T09:00:00", "Friday booking"),
+                        item("cancel", "hermes", "2026-09-08T18:00:00", "Cancel Friday"),
+                        item("future", "email", "2026-09-09T10:00:00", "Canceled"),
+                    ), checkpoints=(Checkpoint(
+                        id="chronology/check", at="2026-09-09T12:00:00",
+                        question="Was it canceled?",
+                        slots=(Slot(id="s", kind=Kind.CURRENT, norm=Norm.TEXT,
+                                    expected="yes", supported_by=("future",)),)),))
+        events = []
+
+        class TimedProvider(FakeProviderB):
+            def ingest(self, observations, collected_at, group_flags=None):
+                events.append(("ingest", [o["source_id"] for o in observations]))
+                return super().ingest(observations, collected_at, group_flags)
+
+            def maintenance(self, at):
+                events.append(("maintenance", at))
+                return super().maintenance(at)
+
+        provider = TimedProvider()
+        seen = []
+
+        def fake_turn(prompt, **kw):
+            ingested = [o["source_id"] for _, batch in provider.calls for o in batch]
+            seen.append((kw["at"], ingested))
+            events.append(("turn", kw["at"]))
+            return _fake_turn(prompt, **kw)
+
+        with tempfile.TemporaryDirectory(prefix="chronology-") as tmp:
+            with mock.patch("pacbench.live.harness.provision_home",
+                            return_value={"ok": True}), \
+                 mock.patch("pacbench.live.harness.run_turn", side_effect=fake_turn):
+                live.run_life(
+                    life=life, provider="fake-b", make_adapter=lambda home: provider,
+                    life_dir=Path(tmp) / "life", model="m", model_provider="mp",
+                    driver_configured_model="m",
+                    bundle=freeze_observations([life]))
+        self.assertEqual(seen[0], ("2026-09-08T18:00:00", ["booking"]))
+        self.assertEqual(seen[1], ("2026-09-09T12:00:00", ["booking", "future"]))
+        self.assertEqual(events[:5], [
+            ("ingest", ["booking"]), ("turn", "2026-09-08T18:00:00"),
+            ("maintenance", "2026-09-08T23:59:00"),
+            ("ingest", ["future"]), ("turn", "2026-09-09T12:00:00")])
+
+
 def _two_day_life(text_day2="day two first"):
     from pacbench.life import Life
     from pacbench.observation import Observation

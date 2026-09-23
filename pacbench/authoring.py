@@ -1,160 +1,508 @@
-"""PACBench life authoring: the structured plan a fictional life is built from.
-
-A `LifePlan` is the human-reviewable authoring source of truth for one life. It
-describes the meaningful stories — people, threads, state transitions, difficulty
-settings, required evidence placements, noise budgets, and hidden checkpoints — but
-it never contains finished message text beyond plain drafts.
-
-A generation model (Spark) only writes *surface language*: each `BeatPlan` carries a
-`draft` that already states the fact plus atomic `must_include` tokens that define
-its meaning. Rendering goes through :mod:`pacbench.render`, which rejects any
-rewrite that drops a required token. The model therefore does the tedious surface
-work while the plan keeps the answer key. With no generator, the draft ships
-verbatim, so the corpus still builds free, offline, and reproducibly.
-
-Nothing here is scored-run visible: :func:`build_life` returns the public `Life`
-(evidence + hidden rubric) alongside a `SupportManifest` that stays on the
-authoring side of the boundary (see :mod:`pacbench.manifest`).
-"""
+"""Build a dialogue from prose and verify it before freezing observations."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+import hashlib
+import json
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Callable
 
-from .life import Life, TruthFact
-from .manifest import SupportEntry, SupportManifest
 from .observation import CHANNELS, Observation
-from .render import Beat, Generate, entails, render
-from .rubric import Checkpoint
+from .model_calls import ModelOutput
+
+Generate = Callable[[str], str | ModelOutput]
 
 
 class AuthoringError(RuntimeError):
-    """A life plan that cannot be built as specified."""
+    """A scene that cannot be built as specified."""
+
+
+class SceneRenderError(AuthoringError):
+    """A scene rendering that could not be parsed into messages."""
+
+    def __init__(self, scene_id: str, output: str, problem: str):
+        super().__init__(f"scene {scene_id!r}: {problem}")
+        self.scene_id, self.output, self.problem = scene_id, output, problem
+
+
+class SceneJudgeError(AuthoringError):
+    """A scene rendering the narrow judge rejected (or an unusable verdict)."""
+
+    def __init__(self, scene_id: str, problem: str,
+                 judgment_path: str | None = None):
+        super().__init__(f"scene {scene_id!r}: judge rejected: {problem}")
+        self.scene_id, self.problem = scene_id, problem
+        #: Audit record for the failed call (None when not recording).
+        self.judgment_path = judgment_path
 
 
 @dataclass(frozen=True)
-class Person:
-    """Someone who appears in the life. Identity is what the evidence says it is."""
+class ScenePlan:
+    """Describe a thread and, optionally, the facts it must establish."""
 
-    name: str
-    relation: str = ""  # e.g. "organizer of Eric's poker game", "owner's mom"
+    scene: str
+    test_intent: str = ""
+    facts: tuple[str, ...] = ()
+    id: str = "scene"
+    channel: str = "text"
+    thread: str = ""
+    at: str = ""
+    window_start: str = ""
+    window_end: str = ""
 
-
-@dataclass(frozen=True)
-class ThreadPlan:
-    """A channel thread the beats play out in. Provenance, not a tenant boundary."""
-
-    id: str
-    channel: str
-    participants: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
-class BeatPlan:
-    """One meaningful message. `draft` states the fact plainly; `must_include` are
-    the atomic tokens a rendering must preserve verbatim."""
-
-    local_id: str
-    thread: str
-    sender: str
-    day: int                    # offset from the plan's week_start (may be negative
-                                # for older history)
-    clock: str                  # "HH:MM" on that day
-    draft: str
-    fact_id: str = ""
-    must_include: tuple[str, ...] = ()
-    register: str = "casual"
-    from_owner: bool = False
-    arrival_delay_min: int = 0
-    collection_delay_min: int = 0
-    structured: dict | None = None
+    def __post_init__(self) -> None:
+        if not self.scene.strip():
+            raise AuthoringError("scene needs a description")
+        if (not isinstance(self.facts, (list, tuple)) or
+                any(not isinstance(f, str) or not f.strip() for f in self.facts)):
+            raise AuthoringError("facts must be a list of nonempty prose assertions")
+        object.__setattr__(self, "facts", tuple(f.strip() for f in self.facts))
+        if self.at and self.window_start and self.at != self.window_start:
+            raise AuthoringError("at and window_start disagree")
+        start = self.at or self.window_start or datetime.now(timezone.utc).replace(
+            microsecond=0).isoformat()
+        object.__setattr__(self, "window_start", start)
+        object.__setattr__(self, "at", start)
+        if not self.thread:
+            object.__setattr__(self, "thread", self.id)
+        if not self.window_end:
+            object.__setattr__(self, "window_end", (
+                datetime.fromisoformat(start) + timedelta(minutes=20))
+                .isoformat(timespec="seconds"))
 
 
-@dataclass(frozen=True)
-class LifePlan:
-    """The complete authoring plan for one life."""
-
-    id: str
-    bet: str
-    role: str
-    week_start: str             # ISO date of scored-day 0 (a Monday)
-    checkpoints: tuple[Checkpoint, ...]
-    #: §39 story family, passed through to Life.lineage.
-    lineage: str = ""
-    truth: tuple[TruthFact, ...] = ()
-    people: tuple[Person, ...] = ()
-    threads: tuple[ThreadPlan, ...] = ()
-    beats: tuple[BeatPlan, ...] = ()
-    title: str = ""
-    horizon_days: int = 7
-    difficulty_tags: tuple[str, ...] = ()
-    control_of: str | None = None
-    noise_budget: int = 0       # informative: how many filler beats the life wants
+#: Prompt version for scene-level authoring.
+SCENE_PROMPT_VERSION = "scene-v8"
 
 
-def _stamp(day_start: date, day: int, clock: str, delay_min: int = 0) -> str:
-    hour, minute = (int(p) for p in clock.split(":"))
-    moment = datetime(day_start.year, day_start.month, day_start.day,
-                      hour, minute) + timedelta(days=day, minutes=delay_min)
-    return moment.isoformat(timespec="seconds")
+def scene_prompt(plan: ScenePlan) -> str:
+    """The generator sees the scene, never the later evaluation intent."""
+    required = ("\n\nThe conversation must naturally and unambiguously establish each of "
+                "these facts (they are authoring constraints, not lines to copy):\n" +
+                "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
+                if plan.facts else "")
+    return (
+        f"Write a believable {plan.channel} conversation from this scenario. "
+        "Use `Me` exactly for the user's own messages and distinct names for "
+        "other people. The user must speak at least once. Do not use `User`, "
+        "`I`, or another alias for the user's speaker label.\n\n"
+        f"Conversation date: {plan.window_start[:10]}. Relative dates in "
+        "the conversation use this date as their reference.\n"
+        f"Scenario: {plan.scene}{required}\n\n"
+        "Let the people sound like people: start with ordinary chatter, "
+        "a small joke or unrelated detail, and an uneven path into the "
+        "main topic. Some messages should have nothing to do with the "
+        "tested facts. Avoid adding another concrete plan, commitment, "
+        "address, durable preference, or relationship as filler. Do not "
+        "recite the required facts as a list.\n\n"
+        "When the scenario says a group agrees on a plan, give every named "
+        "participant a clear acceptance after the final date, time, and "
+        "place are proposed. A tentative 'should be' is not an acceptance.\n\n"
+        "Use natural date language in casual messages. A phrase such as "
+        "'next Wednesday' is enough when this conversation date makes it "
+        "unambiguous; do not force a full year into a text message.\n\n"
+        "Choose the number of messages needed for a natural exchange. "
+        "Write one message per line, as `Name: message` using consistent "
+        "speaker names. No timestamps, headers, or narration inside the "
+        "dialogue. Return only a JSON object with `dialogue` (one string "
+        "containing the message lines) and `writer_note` (one or two "
+        "sentences about the creative choices that made the conversation "
+        "natural). The note is an explanation for the author, not a "
+        "private reasoning transcript."
+    )
 
 
-def build_life(plan: LifePlan, generate: Generate | None = None,
-               ) -> tuple[Life, SupportManifest]:
-    """Render a plan into a `Life` plus its support manifest.
+def scene_prompt_sha() -> str:
+    probe = ScenePlan(id="probe", channel="text", thread="probe",
+                      scene="Two friends making weekend plans.",
+                      test_intent="Recall their plan.")
+    return hashlib.sha256(scene_prompt(probe).encode()).hexdigest()[:16]
 
-    `generate` is the optional Spark rewrite hook (surface language only). With
-    `None`, drafts ship verbatim — deterministic and offline.
-    """
+
+def scene_spec(plan: ScenePlan) -> dict[str, Any]:
+    """The full scene spec, as persisted in judgment audit records."""
+    return {
+        "id": plan.id,
+        "channel": plan.channel,
+        "thread": plan.thread,
+        "scene": plan.scene,
+        "test_intent": plan.test_intent,
+        "facts": list(plan.facts),
+        "at": plan.at,
+        "window_start": plan.window_start,
+        "window_end": plan.window_end,
+        "prompt_version": SCENE_PROMPT_VERSION,
+        "judge_prompt_version": JUDGE_PROMPT_VERSION,
+    }
+
+
+def parse_scene_lines(text: str, plan: ScenePlan) -> list[tuple[str, str]]:
+    """Parse speaker labels and require the explicit `Me` owner convention."""
+    lines: list[tuple[str, str]] = []
+    for lineno, raw in enumerate(text.splitlines(), 1):
+        if not raw.strip():
+            continue
+        head, sep, body = raw.partition(":")
+        speaker = head.strip()
+        if (not sep or not speaker or not body.strip() or
+                speaker.lower() in {"user", "owner", "i", "myself"} or
+                (speaker.lower() == "me" and speaker != "Me")):
+            raise SceneRenderError(
+                plan.id, text,
+                f"line {lineno} has malformed or ambiguous speaker attribution: "
+                f"{raw.strip()[:80]!r}")
+        lines.append((speaker, body.strip()))
+    if not lines:
+        raise SceneRenderError(plan.id, text, "no message lines parsed")
+    if not any(s == "Me" for s, _ in lines):
+        raise SceneRenderError(plan.id, text, "no `Me` message establishes ownership")
+    if not any(s != "Me" for s, _ in lines):
+        raise SceneRenderError(plan.id, text, "no other participant in conversation")
+    return lines
+
+
+def spread_timestamps(plan: ScenePlan, n: int) -> list[str]:
+    """Spread `n` timestamps evenly across the scene window, deterministically
+    in Python — the model never authors timestamps."""
     try:
-        week_start = date.fromisoformat(plan.week_start)
+        start = datetime.fromisoformat(plan.window_start)
+        end = datetime.fromisoformat(plan.window_end)
     except ValueError as exc:
-        raise AuthoringError(f"plan {plan.id!r}: bad week_start {plan.week_start!r}") from exc
-    threads = {t.id: t for t in plan.threads}
+        raise AuthoringError(
+            f"scene {plan.id!r}: bad window "
+            f"{plan.window_start!r}-{plan.window_end!r}") from exc
+    if end <= start:
+        raise AuthoringError(
+            f"scene {plan.id!r}: window end {plan.window_end!r} is not after "
+            f"start {plan.window_start!r}")
+    if n <= 1:
+        return [start.isoformat(timespec="seconds")]
+    step = (end - start) / (n - 1)
+    return [(start + step * i).isoformat(timespec="seconds") for i in range(n)]
+
+
+def norm_thread(thread: str) -> str:
+    """Canonical thread-id form: stripped lowercase. Anything else fails
+    closed at build/freeze time (no silent case-split threads)."""
+    return thread.strip().lower()
+
+
+def build_scene_observations(life_id: str, plan: ScenePlan,
+                             lines: list[tuple[str, str]]
+                             ) -> tuple[Observation, ...]:
+    """Realize frozen scene lines into observations. Deterministic and
+    offline: timestamps come from :func:`spread_timestamps`, source ids from
+    the scene id, ownership from the cast. Fail closed on any spec breach —
+    unnormalized thread, unknown channel, unknown speaker, empty text, or a
+    verbatim dupe inside the scene."""
+    if plan.thread != norm_thread(plan.thread) or not plan.thread:
+        raise AuthoringError(
+            f"scene {plan.id!r}: thread {plan.thread!r} is not canonical "
+            f"(want {norm_thread(plan.thread)!r})")
+    if plan.channel not in CHANNELS:
+        raise AuthoringError(
+            f"scene {plan.id!r}: unknown channel {plan.channel!r}")
     seen: set[str] = set()
-    observations: list[Observation] = []
-    by_fact: dict[str, list[str]] = {}
-    for beat in plan.beats:
-        if beat.local_id in seen:
-            raise AuthoringError(f"plan {plan.id!r}: duplicate beat {beat.local_id!r}")
-        seen.add(beat.local_id)
-        thread = threads.get(beat.thread)
-        if thread is None:
-            raise AuthoringError(f"plan {plan.id!r}: beat {beat.local_id!r} "
-                                 f"names unknown thread {beat.thread!r}")
-        if thread.channel not in CHANNELS:
-            raise AuthoringError(f"plan {plan.id!r}: unknown channel {thread.channel!r}")
-        rendered = render(Beat(channel=thread.channel, sender=beat.sender,
-                               draft=beat.draft, must_include=beat.must_include,
-                               register=beat.register), generate=generate)
-        missing = entails(rendered, Beat(channel=thread.channel, sender=beat.sender,
-                                         draft=beat.draft,
-                                         must_include=beat.must_include))
-        if missing:
-            raise AuthoringError(f"plan {plan.id!r}: beat {beat.local_id!r} draft itself "
-                                 f"drops required tokens {missing}")
-        source_id = f"{plan.id}/{beat.local_id}"
-        written = _stamp(week_start, beat.day, beat.clock)
-        observations.append(Observation(
-            source_id=source_id, channel=thread.channel,
-            written_at=written,
-            arrived_at=_stamp(week_start, beat.day, beat.clock,
-                              beat.arrival_delay_min),
-            collected_at=_stamp(week_start, beat.day, beat.clock,
-                                beat.arrival_delay_min + beat.collection_delay_min),
-            sender=beat.sender, thread=thread.id, text=rendered,
-            from_owner=beat.from_owner, structured=beat.structured))
-        if beat.fact_id:
-            by_fact.setdefault(beat.fact_id, []).append(source_id)
-    manifest = SupportManifest(
-        life_id=plan.id,
-        entries=tuple(SupportEntry(fact_id=fid, observation_ids=tuple(ids))
-                      for fid, ids in sorted(by_fact.items())))
-    life = Life(id=plan.id, bet=plan.bet, role=plan.role,
-                lineage=plan.lineage,
-                observations=tuple(observations), checkpoints=plan.checkpoints,
-                control_of=plan.control_of, title=plan.title,
-                horizon_days=plan.horizon_days,
-                difficulty_tags=plan.difficulty_tags, truth=plan.truth)
-    return life, manifest
+    for sender, text in lines:
+        if sender != "Me" and sender.lower() in {"user", "owner", "i", "myself", "me"}:
+            raise AuthoringError(f"scene {plan.id!r}: ambiguous owner label {sender!r}")
+        if not text.strip():
+            raise AuthoringError(f"scene {plan.id!r}: empty message text")
+        key = text.strip().lower()
+        if key in seen:
+            raise AuthoringError(
+                f"scene {plan.id!r}: verbatim dupe {text[:60]!r}")
+        seen.add(key)
+    stamps = spread_timestamps(plan, len(lines))
+    return tuple(
+        Observation(
+            source_id=f"{life_id}/{plan.id}-{i:02d}", channel=plan.channel,
+            written_at=stamp, arrived_at=stamp, collected_at=stamp,
+            sender=sender, thread=plan.thread, text=text,
+            from_owner=sender == "Me")
+        for i, ((sender, text), stamp) in enumerate(zip(lines, stamps)))
+
+
+# ------------------------------------------------------------------ judging --
+
+#: Approved narrow-judge prompter (verdicts only, never ground truth).
+JUDGE_PROMPT_VERSION = "scene-judge-v6"
+
+def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]]) -> str:
+    """Verify that the transcript establishes the authored scene."""
+    transcript = "\n".join(f"{i + 1}. {s}: {t}"
+                           for i, (s, t) in enumerate(lines))
+    required = ("\n\nFor each numbered required fact, report whether the dialogue "
+                "actually establishes it, with line citations. Distinguish "
+                "a suggestion from a commitment and an old option from the "
+                "current plan. Include `facts`, an array with one object per "
+                "numbered fact: index (1-based integer), supported (boolean), "
+                "evidence (array of line integers), problem (short string). "
+                "Reject the scene if any fact is absent or contradicted.\n"+
+                "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
+                if plan.facts else "")
+    return (
+        "You are verifying a fictional conversation, not writing it. "
+        "Does the dialogue establish the scenario, including each specified "
+        "person, detail, and commitment? Reject missing, contradictory, or "
+        "merely tentative details when the scenario says agreed. Check that "
+        "for a group plan, every named participant whose attendance is "
+        "asserted accepts the final plan after its date, time, and place "
+        "are set. 'Should be', 'maybe', silence, or an earlier expression "
+        "of interest is not final acceptance. Cite each participant's "
+        "acceptance or reject the scenario. Check that "
+        "`Me` consistently represents the user. Judge meaning, not token "
+        "overlap. Return only JSON with keys supported (boolean), evidence "
+        "(array of numbered dialogue line integers), and problem (short "
+        "explanation, empty when supported).\n\n"
+        f"Conversation date: {plan.window_start[:10]}. Resolve relative "
+        "dates from this fictional date.\n"
+        f"Scenario: {plan.scene}{required}\n\nTranscript:\n{transcript}"
+    )
+
+
+def write_judgment_record(*, record_dir: str | Path, scene_id: str,
+                          attempt: int, spec: dict[str, Any],
+                          dialogue: list[str], judge_prompt_text: str,
+                          judge_response: str, verdict: dict[str, Any] | None,
+                          passed: bool, model: str,
+                          prompt_chars: int, response_chars: int,
+                          model_call: str | None = None,
+                          model_usage: dict | None = None) -> str:
+    """Persist one judge decision as audit evidence. Timestamped names, never
+    overwritten: ``<scene-id>-<utc-timestamp>-<attempt>.json`` (a ``-2``,
+    ``-3``, ... suffix disambiguates a same-second collision). Returns the
+    record path as a string."""
+    outdir = Path(record_dir)
+    outdir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    base = f"{scene_id}-{stamp}-{attempt}"
+    path = outdir / f"{base}.json"
+    suffix = 2
+    while path.exists():
+        path = outdir / f"{base}-{suffix}.json"
+        suffix += 1
+    record = {
+        "scene_id": scene_id,
+        "attempt": attempt,
+        "passed": passed,
+        "model": model,
+        "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "spec": spec,
+        "dialogue": dialogue,
+        "judge_prompt": judge_prompt_text,
+        "judge_response": judge_response,
+        "verdict": verdict,
+        "prompt_chars": prompt_chars,
+        "response_chars": response_chars,
+        "model_call": model_call,
+        "usage": model_usage,
+        "cost_usd": (model_usage or {}).get("cost_usd"),
+        "cost_note": ("reported by API" if (model_usage or {}).get("cost_usd") is not None
+                      else "API did not report a charge"),
+    }
+    path.write_text(json.dumps(record, indent=2) + "\n")
+    return str(path)
+
+
+@dataclass
+class SceneRecord:
+    """Per-scene call and verification provenance."""
+
+    scene_id: str
+    status: str = "pending"  # ok
+    attempts: int = 0
+    judge_calls: int = 0
+    prompt_chars: int = 0
+    response_chars: int = 0
+    prompt_sha: str = ""
+    scene_sha: str = ""
+    #: Audit trail: judgment-record paths, one per judge call, in order.
+    judgment_paths: list[str] = field(default_factory=list)
+    generation_paths: list[str] = field(default_factory=list)
+    writer_notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SceneRealization:
+    """Frozen scene lines plus their provenance and the passing verdict."""
+
+    scene_id: str
+    lines: tuple[tuple[str, str], ...]
+    record: SceneRecord
+    verdict: dict = field(default_factory=dict)
+
+
+def judge_scene(plan: ScenePlan, lines: list[tuple[str, str]],
+                judge_generate: Generate, *, model: str = "",
+                record_dir: str | Path | None = None,
+                attempt: int = 1) -> tuple[dict, int, int, str | None]:
+    """Run the narrow judge; return (verdict, prompt_chars, response_chars,
+    judgment_path). Fail closed on an unparsable verdict or any unsupported
+    fact. Every call is persisted to `record_dir` when given (audit evidence,
+    pass or fail)."""
+    prompt = judge_prompt(plan, lines)
+    generated = judge_generate(prompt)
+    model_call = generated.record_path if isinstance(generated, ModelOutput) else None
+    model_usage = generated.usage if isinstance(generated, ModelOutput) else None
+    out = (generated.text if isinstance(generated, ModelOutput) else generated).strip()
+    usage = (len(prompt), len(out))
+    verdict: dict[str, Any] | None = None
+    problem = ""
+    try:
+        start, stop = out.index("{"), out.rindex("}") + 1
+        verdict = json.loads(out[start:stop])
+    except (ValueError, json.JSONDecodeError) as exc:
+        problem = f"unparsable verdict: {out[:120]!r}"
+        path = _record(plan, lines, prompt, out, None, False, model,
+                       record_dir, attempt, *usage,
+                       model_call=model_call, model_usage=model_usage)
+        raise SceneJudgeError(plan.id, problem,
+                              judgment_path=path) from exc
+    try:
+        if not isinstance(verdict, dict):
+            raise TypeError("judge verdict must be a JSON object")
+        evidence = verdict["evidence"]
+        ok = (isinstance(verdict["supported"], bool)
+              and verdict["supported"] is True
+              and isinstance(evidence, list) and bool(evidence)
+              and all(type(i) is int and 1 <= i <= len(lines) for i in evidence)
+              and isinstance(verdict["problem"], str))
+        if plan.facts:
+            facts = verdict.get("facts")
+            ok = ok and isinstance(facts, list) and len(facts) == len(plan.facts)
+            if ok:
+                ok = all(
+                    isinstance(row, dict) and row.get("index") == i and
+                    row.get("supported") is True and
+                    isinstance(row.get("evidence"), list) and row["evidence"] and
+                    all(type(n) is int and 1 <= n <= len(lines)
+                        for n in row["evidence"]) and
+                    isinstance(row.get("problem"), str)
+                    for i, row in enumerate(facts, 1))
+    except (AttributeError, TypeError, KeyError) as exc:
+        problem = f"malformed verdict shape: {out[:120]!r}"
+        path = _record(plan, lines, prompt, out, verdict, False, model,
+                       record_dir, attempt, *usage,
+                       model_call=model_call, model_usage=model_usage)
+        raise SceneJudgeError(plan.id, problem, judgment_path=path) from exc
+    if not ok:
+        problem = str(verdict.get("problem") or verdict)[:300]
+        path = _record(plan, lines, prompt, out, verdict, False, model,
+                       record_dir, attempt, *usage,
+                       model_call=model_call, model_usage=model_usage)
+        raise SceneJudgeError(plan.id, problem, judgment_path=path)
+    path = _record(plan, lines, prompt, out, verdict, True, model,
+                   record_dir, attempt, *usage,
+                   model_call=model_call, model_usage=model_usage)
+    return verdict, *usage, path
+
+
+def _record(plan: ScenePlan, lines: list[tuple[str, str]], prompt: str,
+            out: str, verdict: dict[str, Any] | None, passed: bool,
+            model: str, record_dir: str | Path | None, attempt: int,
+            prompt_chars: int, response_chars: int,
+            model_call: str | None = None,
+            model_usage: dict | None = None) -> str | None:
+    if record_dir is None:
+        return None
+    return write_judgment_record(
+        record_dir=record_dir, scene_id=plan.id, attempt=attempt,
+        spec=scene_spec(plan),
+        dialogue=[f"{s}: {t}" for s, t in lines],
+        judge_prompt_text=prompt, judge_response=out, verdict=verdict,
+        passed=passed, model=model,
+        prompt_chars=prompt_chars, response_chars=response_chars,
+        model_call=model_call, model_usage=model_usage)
+
+
+def realize_scene(plan: ScenePlan, generate: Generate,
+                  judge_generate: Generate, *, model: str = "",
+                  record_dir: str | Path | None = None) -> SceneRealization:
+    """Render one scene and verify it with the narrow judge only — no
+    deterministic checks. One re-render with the failure quoted; then fail
+    loudly. Returns frozen lines plus provenance."""
+    if plan.channel not in CHANNELS or not plan.thread or plan.thread != norm_thread(plan.thread):
+        raise AuthoringError(f"scene {plan.id!r}: invalid channel or thread metadata")
+    spread_timestamps(plan, 2)
+    record = SceneRecord(scene_id=plan.id)
+    initial_prompt = scene_prompt(plan)
+    note = ""
+    failure = ""
+    previous_draft = ""
+    retry_feedback = ""
+    while True:
+        record.attempts += 1
+        prompt = initial_prompt + note
+        if record.attempts > 1 and hasattr(generate, "complete"):
+            messages = [
+                {"role": "user", "content": initial_prompt},
+                {"role": "assistant", "content": previous_draft},
+                {"role": "user", "content": retry_feedback}]
+            record.prompt_sha = hashlib.sha256(json.dumps(messages).encode()).hexdigest()[:16]
+            record.prompt_chars += sum(len(m["content"]) for m in messages)
+            generated = generate.complete(messages)
+        else:
+            record.prompt_sha = hashlib.sha256(prompt.encode()).hexdigest()[:16]
+            record.prompt_chars += len(prompt)
+            generated = generate(prompt)
+        out = (generated.text if isinstance(generated, ModelOutput) else generated).strip()
+        if isinstance(generated, ModelOutput):
+            record.generation_paths.append(generated.record_path)
+        record.response_chars += len(out)
+        try:
+            dialogue = out
+            writer_note = ""
+            if out.startswith("{"):
+                rendered = json.loads(out)
+                if not isinstance(rendered, dict) or not isinstance(rendered.get("dialogue"), str):
+                    raise ValueError("render must contain dialogue text")
+                if not isinstance(rendered.get("writer_note"), str):
+                    raise ValueError("render must contain a writer note")
+                dialogue = rendered["dialogue"]
+                writer_note = rendered["writer_note"].strip()
+                if not writer_note:
+                    raise ValueError("render writer note is empty")
+            lines = parse_scene_lines(dialogue, plan)
+            record.writer_notes.append(writer_note)
+        except (SceneRenderError, ValueError) as exc:
+            failure = f"unparsable render: {exc.problem if isinstance(exc, SceneRenderError) else exc}"
+        else:
+            try:
+                build_scene_observations("scene-build", plan, lines)
+            except AuthoringError as exc:
+                failure = str(exc)
+            else:
+                try:
+                    verdict, pc, rc, jpath = judge_scene(
+                        plan, lines, judge_generate, model=model,
+                        record_dir=record_dir, attempt=record.attempts)
+                except SceneJudgeError as exc:
+                    record.judge_calls += 1
+                    if exc.judgment_path is not None:
+                        record.judgment_paths.append(exc.judgment_path)
+                    failure = str(exc.problem)[:300]
+                else:
+                    record.judge_calls += 1
+                    record.prompt_chars += pc
+                    record.response_chars += rc
+                    if jpath is not None:
+                        record.judgment_paths.append(jpath)
+                    record.scene_sha = hashlib.sha256(
+                        "\n".join(f"{s}: {t}" for s, t in lines)
+                        .encode()).hexdigest()[:16]
+                    record.status = "ok"
+                    return SceneRealization(
+                        scene_id=plan.id, lines=tuple(lines),
+                        record=record, verdict=verdict)
+        if record.attempts > 1:
+            raise AuthoringError(
+                f"scene {plan.id!r}: failed after re-render: {failure}")
+        previous_draft = out
+        retry_feedback = (f"The verifier rejected this draft: {failure}. "
+                          "Revise the same conversation, preserving good "
+                          "lines and fixing the failure.")
+        note = (f"\n\nYour previous draft was:\n{out}\n\n"
+                f"{retry_feedback}")

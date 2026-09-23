@@ -275,10 +275,11 @@ class CorpusFormatStability(unittest.TestCase):
     """Uniform corpus-format batches keep byte-identical op-ids."""
 
     def test_corpus_stamp_format_is_already_canonical(self):
-        from datetime import date
-
-        from pacbench.authoring import _stamp
-        corpus = _stamp(date(2026, 3, 2), 0, "09:00")
+        from pacbench.authoring import ScenePlan, spread_timestamps
+        corpus = spread_timestamps(ScenePlan(
+            scene="Two friends make a plan", test_intent="Recall the plan",
+            window_start="2026-03-02T09:00:00",
+            window_end="2026-03-02T10:00:00"), 2)[0]
         self.assertEqual(_normalize_ts(corpus), corpus)
         self.assertEqual(_normalize_ts("2026-03-02T09:00:00"),
                          "2026-03-02T09:00:00")

@@ -1,19 +1,15 @@
-"""Natural source-document identity (plan.md P0-1).
+"""Natural source-document identity for public observations.
 
 Maps each public observation to the *logical source document* it belongs to,
 using natural source boundaries — never benchmark-story boundaries.
 
-Authoring context: a ``BeatPlan`` becomes an ``Observation`` with
-``source_id = f"{plan.id}/{beat.local_id}"`` (see :mod:`pacbench.authoring`),
-so the life/story prefix is baked into every ``source_id``. This module is
-where that benchmark-internal prefix is stripped back out: document identity
-is derived solely from public source provenance (channel, thread, and — for
-singleton documents — the message-local part of ``source_id``).
+An observation's ``source_id`` may contain a life prefix. Document identity
+strips that prefix and uses public source provenance: channel, thread, and,
+for singleton documents, the message-local part of ``source_id``.
 
 Only public ``Observation`` fields are read here (``channel``, ``thread``,
 ``sender``, ``source_id``, plus ``structured`` where noted). Nothing
-authoring-side (``ThreadPlan.participants``, ``LifePlan`` lineage, checkpoint
-or grading objects) is consulted, because adapters never receive it.
+authoring-side or grading data is consulted, because adapters never receive it.
 
 Mapping version: :data:`SOURCE_DOCUMENT_MAPPING_VERSION`. Bumped whenever
 the channel table or key format changes; adapter run manifests must record
@@ -78,10 +74,8 @@ def is_conversational(channel: str) -> bool:
 def _message_local_id(source_id: str) -> str:
     """The message-local part of ``source_id`` with the life prefix removed.
 
-    Authoring formats ``source_id`` as ``{plan.id}/{beat.local_id}``; the
-    ``plan.id`` (life/story) prefix is benchmark-internal and must never
-    appear in document identity, so only the part after the first ``/`` is
-    kept. A ``source_id`` without ``/`` is already local and used as-is.
+    The first segment is a benchmark life prefix when present. A
+    ``source_id`` without ``/`` is already local and used as-is.
     """
     head, sep, tail = source_id.partition("/")
     return tail if sep else head
@@ -96,9 +90,7 @@ def logical_document_key(obs: dict) -> str:
       Slack DM / thread / channel, Hermes): ``{channel}:{thread}``. Sender
       is deliberately NOT part of the key — a conversation with several
       senders is still one document; sender rides inside the document
-      content instead. Participant lists are authoring-side
-      (``ThreadPlan.participants``) and never reach adapters, so they
-      cannot be key inputs either.
+      content instead. Authoring-side participant lists never reach adapters.
     * email (singleton until the corpus can model a real thread with
       message-ID references): ``email:{message-local-id}`` — one document
       per message, with the life prefix stripped. Same-sender mail is NOT

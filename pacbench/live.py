@@ -133,6 +133,9 @@ def _record_of(result: Any) -> dict:
     """
     return {"answer": result.answer, "tool_calls": result.tool_calls,
             "tool_results": result.tool_results,
+            "prefetch_context": (getattr(result, "prefetch_context", None)
+                                 if isinstance(getattr(result, "prefetch_context", None),
+                                               (str, type(None))) else None),
             "session_id": result.session_id,
             "session_input_tokens": result.session_input_tokens,
             "session_output_tokens": result.session_output_tokens,
@@ -1040,16 +1043,27 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
                    | {c.at[:10] for c in checkpoints})
     maintained: set[str] = set()
 
-    def maintain_completed_days(current_time: str) -> None:
-        for day in dates:
-            if day not in maintained and f"{day}T23:59:59" < current_time:
+    def advance_until(until: str) -> None:
+        # Replay authored user turns at their own collection boundary. Ingesting
+        # all evidence up to a later checkpoint first would let an earlier
+        # Hermes turn search messages that had not arrived yet.
+        turn_times = sorted({p["collected_at"] for p in payloads[obs_idx:]
+                             if p["collected_at"] <= until and
+                             p.get("channel") in USER_TURN_CHANNELS})
+        milestones = [(at, 0, "") for at in turn_times]
+        milestones += [(f"{day}T23:59:00", 1, day) for day in dates
+                       if day not in maintained and f"{day}T23:59:59" < until]
+        for at, kind, day in sorted(milestones):
+            pending = ingest_until(at)
+            replay_turns(pending)
+            if kind == 1:
                 maintain(day)
                 maintained.add(day)
+        pending = ingest_until(until)
+        replay_turns(pending)
 
     for cp in checkpoints:
-        pending = ingest_until(cp.at)
-        replay_turns(pending)
-        maintain_completed_days(cp.at)
+        advance_until(cp.at)
         out = do_turn(cp.public_prompt(), cp.at, session_key=None)
         if not out["ok"]:
             incomplete_reasons.append(f"checkpoint {cp.id} turn failed: {out['error']}")
@@ -1090,8 +1104,7 @@ def _run_life_episode(*, life: Life, provider: str, adapter: Any,
 
     # Complete the week: deliver observations collected after the last checkpoint.
     if obs_idx < len(payloads):
-        pending = ingest_until("9999-12-31T23:59:59")
-        replay_turns(pending)
+        advance_until("9999-12-31T23:59:59")
     for day in dates:
         if day not in maintained:
             maintain(day)

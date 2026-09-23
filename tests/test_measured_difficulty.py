@@ -19,10 +19,10 @@ def _life():
     from pacbench.observation import Observation
     from pacbench.rubric import Checkpoint, Kind, Norm, Slot
 
-    def ob(sid, thread, channel, sender, at, text="msg"):
+    def ob(sid, thread, channel, sender, at, text=None):
         return Observation(source_id=sid, channel=channel, thread=thread,
                            written_at=at, arrived_at=at, collected_at=at,
-                           sender=sender, text=text)
+                           sender=sender, text=text or sid)
 
     # cp-deep: 8 support observations but only 7 distinct collection
     # instants (e6/e7 share one) — requested depth 8, measured depth 7.
@@ -50,7 +50,8 @@ def _life():
         slots=(Slot(id="s-shallow", kind=Kind.CURRENT, norm=Norm.TEXT,
                     expected="y", supported_by=("a0", "a1")),))
     return Life(id="t", bet="b", role="development",
-                observations=tuple(deep + shallow + fillers),
+                observations=tuple(sorted(deep + shallow + fillers,
+                                          key=lambda o: o.written_at)),
                 checkpoints=(cp_deep, cp_shallow),
                 difficulty_tags=("update-depth-8", "update-depth-2",
                                  "cross-channel-2", "entity-collision-2"))

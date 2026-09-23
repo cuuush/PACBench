@@ -55,7 +55,7 @@ class FrozenBundleOnlyRuntime(unittest.TestCase):
     def test_run_life_without_bundle_refuses(self):
         from pacbench import corpus
         from provider_adapters.lexical_adapter import LexicalAdapter
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         with tempfile.TemporaryDirectory(prefix="frozen-rt-") as tmp:
             with self.assertRaises(ValueError):
                 live.run_life(
@@ -67,7 +67,7 @@ class FrozenBundleOnlyRuntime(unittest.TestCase):
 
     def test_life_episode_without_bundle_refuses(self):
         from pacbench import corpus
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         with tempfile.TemporaryDirectory(prefix="frozen-rt-") as tmp:
             with self.assertRaises(ValueError):
                 live._run_life_episode(
@@ -88,7 +88,7 @@ class FrozenBundleOnlyRuntime(unittest.TestCase):
     def test_checkpoint_run_is_diagnostic_only_and_refused(self):
         import json
         from pacbench import corpus
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         cp = life.checkpoints[0]
         engine = FakeEngine()
         with tempfile.TemporaryDirectory(prefix="frozen-rt-") as tmp:
@@ -122,7 +122,7 @@ class FrozenBundleOnlyRuntime(unittest.TestCase):
         from pacbench.frozen import (bundle_hash, freeze_observations,
                                      write_bundle)
         from provider_adapters.lexical_adapter import LexicalAdapter
-        life = corpus.get_life("poker-collision")
+        life = corpus.get_life("poker-unchanged")
         bundle = freeze_observations([life])
         with tempfile.TemporaryDirectory(prefix="frozen-rt-") as tmp:
             path = Path(tmp) / "tiny.json"

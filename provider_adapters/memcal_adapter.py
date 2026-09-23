@@ -370,6 +370,8 @@ class MemcalAdapter(ProviderAdapter):
         — and tokens stay None (unknown, never zero).
         """
         started = time.monotonic()
+        previous_today = os.environ.get("MEMCAL_TODAY")
+        os.environ["MEMCAL_TODAY"] = at
         try:
             archive, config, _, _ = _memcal()
             from memcal.dream import run as dream_run
@@ -423,6 +425,11 @@ class MemcalAdapter(ProviderAdapter):
         except Exception as exc:
             self._maintenance = {"state": "skipped", "at": at,
                                  "reason": f"{type(exc).__name__}: {exc}"[:300]}
+        finally:
+            if previous_today is None:
+                os.environ.pop("MEMCAL_TODAY", None)
+            else:
+                os.environ["MEMCAL_TODAY"] = previous_today
         latency = round(time.monotonic() - started, 2)
         self._latency_s += latency
         return Usage(model_calls=0, latency_s=latency,

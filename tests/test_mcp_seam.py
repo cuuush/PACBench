@@ -65,6 +65,9 @@ class ServerLifecycle(unittest.TestCase):
         seam = adapter.retrieval()
         self.assertEqual(seam["provider"], "hindsight")
         self.assertTrue(seam["tool_allowlist"])
+        self.assertIn("mcp__hindsight__recall", seam["tool_allowlist"])
+        self.assertIn("tool_describe", seam["tool_allowlist"])
+        self.assertIn("tool_search", seam["tool_allowlist"])
         self.assertFalse(seam["plugin_available"])
         self.assertTrue(seam["mcp_server"])
 
@@ -75,7 +78,7 @@ class PreflightMcp(unittest.TestCase):
         from pathlib import Path
         from pacbench.live import preflight
         from provider_adapters.hindsight_adapter import HindsightAdapter
-        from pacbench.corpus.life_h_pizzaday import lives
+        from pacbench.corpus.life_g_toyday import lives
         life = lives()[0]
         adapter = HindsightAdapter(
             Path(tempfile.mkdtemp(prefix="hs-")),

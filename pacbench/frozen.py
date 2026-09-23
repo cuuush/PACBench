@@ -31,6 +31,40 @@ OBS_KEYS = ("source_id", "text", "channel", "sender", "thread",
             "from_owner", "structured")
 
 
+def check_freezeable(lives: list[Any]) -> None:
+    """Build-time validation for the freeze path. Unconditional, no bypass:
+    every observation thread must already be canonical (stripped lowercase —
+    the freeze never silently merges a case-split thread), no thread may
+    carry the same text twice verbatim, and each thread's written timestamps
+    must be non-decreasing. Raises :class:`RuntimeError` on any breach."""
+    from .authoring import norm_thread
+    problems: list[str] = []
+    for life in lives:
+        by_thread: dict[str, list] = {}
+        for o in life.observations:
+            if o.thread != norm_thread(o.thread) or not o.thread:
+                problems.append(
+                    f"{life.id}: {o.source_id} thread {o.thread!r} is not "
+                    f"canonical (want {norm_thread(o.thread)!r})")
+            by_thread.setdefault(o.thread, []).append(o)
+        for thread, obs in by_thread.items():
+            seen: dict[str, str] = {}
+            for o in obs:
+                key = o.text.strip().lower()
+                if key in seen:
+                    problems.append(
+                        f"{life.id}: thread {thread!r} verbatim dupe "
+                        f"{o.source_id} == {seen[key]}")
+                else:
+                    seen[key] = o.source_id
+            stamps = [o.written_at for o in obs]
+            if stamps != sorted(stamps):
+                problems.append(
+                    f"{life.id}: thread {thread!r} timestamps out of order")
+    if problems:
+        raise RuntimeError("freeze refused:\n" + "\n".join(problems[:20]))
+
+
 def freeze_observations(lives: list[Any]) -> dict:
     """Compile lives into a canonical (unhashed) bundle dict.
 
@@ -41,6 +75,7 @@ def freeze_observations(lives: list[Any]) -> dict:
     depth-8 request rendering depth 7 is recorded as such and can never
     silently enter the depth-8 bucket.
     """
+    check_freezeable(lives)
     frozen: dict[str, Any] = {"bundle_version": BUNDLE_VERSION, "lives": {}}
     for life in lives:
         obs = []

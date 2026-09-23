@@ -89,8 +89,11 @@ USER_TURN_CHANNELS = ("hermes", "agent")
 FORBIDDEN_OBS_KEYS = ("expected", "slots", "supported", "forbidden",
                       "answer_key", "support_manifest", "truth")
 
-#: Hindsight MCP tools Hermes may call (native tool names).
-HINDSIGHT_TOOL_ALLOWLIST = ("retain", "recall", "reflect")
+#: Hermes registers MCP tools under their server-qualified wire names.
+#: The bare names remain in mcp_tools for adapter documentation.
+HINDSIGHT_MCP_TOOLS = ("retain", "recall", "reflect")
+HINDSIGHT_TOOL_ALLOWLIST = ("tool_search", "tool_describe") + tuple(
+    f"mcp__hindsight__{name}" for name in HINDSIGHT_MCP_TOOLS)
 
 META_GATEWAY_URL = "https://api.meta.ai/v1"
 DEFAULT_INTERNAL_MODEL = "muse-spark-1.3"
@@ -519,6 +522,7 @@ class HindsightAdapter(ProviderAdapter):
                  },
                  "document_id": doc_id,
                  "update_mode": mode})
+        self._last_packets = contents
         if contents:
             per_item = self._loop.run(
                 self._engine.retain_batch_async(
@@ -613,7 +617,7 @@ class HindsightAdapter(ProviderAdapter):
         return {
             "provider": self.name,
             "tool_allowlist": list(HINDSIGHT_TOOL_ALLOWLIST),
-            "mcp_tools": list(HINDSIGHT_TOOL_ALLOWLIST),
+            "mcp_tools": list(HINDSIGHT_MCP_TOOLS),
             "plugin_available": False,
             "mcp_server": True,
             "bank_scoped": True,
@@ -622,10 +626,7 @@ class HindsightAdapter(ProviderAdapter):
             "server_entry": self.server_entry(),
             "server_note": ("adapter.start_server shares the run's PG; "
                             "bank-pinned /mcp/<bank>/"),
-            "automatic_context": "none (native shape: Hermes calls "
-                                 "recall/reflect explicitly; no brief "
-                                 "prefetch — a real capability difference, "
-                                 "not a handicap)",
+            "automatic_context": "none; Hermes calls recall/reflect explicitly",
             "server_package": "hindsight_api",
             "env": self.env(),
         }

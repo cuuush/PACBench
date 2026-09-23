@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PACBench · Story and runs</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <header class="site-head">
+    <div class="brand"><span class="brand-mark">P</span><div><strong>PACBench</strong><small>Story and assistant runs</small></div></div>
+    <div class="run-control">
+      <label for="run-select">Run</label>
+      <select id="run-select" aria-label="Select saved run"></select>
+      <button id="refresh" type="button">Refresh</button>
+    </div>
+  </header>
+  <main id="content"><p>Loading saved runs…</p></main>
+  <footer><span id="data-time"></span><a href="legacy.html">Open original corpus browser</a></footer>
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

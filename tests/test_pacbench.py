@@ -135,16 +135,6 @@ class HistoricalAndControlProbes(unittest.TestCase):
         g = grade(hist, "It was originally at Sam's, 12 Ash Street.")
         self.assertEqual(g.correct, 1)
 
-    def test_wrong_historical_value_is_not_silence(self):
-        # H3: a wrong old value asserted as history is a confabulation
-        # (MISREPRESENTED), never MISSED-as-silence — even when the wrong
-        # value is not one of the slot's named forbidden values. The
-        # corpus-declared old code is 4410; "9999" was never any code.
-        life = next(l for l in corpus.all_lives() if l.id == "revoke-week")
-        hist = next(c for c in life.checkpoints if c.id.endswith("/gate-old"))
-        g = grade(hist, "The old code was 9999.")
-        v = {gs.id: gs.verdict for gs in g.slots}
-        self.assertEqual(v["code"], Verdict.MISREPRESENTED)
 
     def test_control_answers_the_unchanged_plan(self):
         _, where = _where("poker-unchanged")
@@ -204,177 +194,14 @@ class ImplicitControlIsAnsweredByRetrieval(unittest.TestCase):
         self.assertEqual((g.correct, g.misrepresented), (1, 0))
 
 
-class DentistNowDispute(unittest.TestCase):
-    """Pilot answer 'Tuesday Sep 22 at 3pm' vs rubric 'Thursday 4:30pm' (§33).
-
-    Ground truth belongs to the corpus: email-rebook establishes Thursday
-    4:30pm before the checkpoint, so the rubric is right and the answer is
-    wrong — the grader must report MISREPRESENTED, never credit it.
-    """
-
-    def setUp(self):
-        from pacbench.corpus import get_life
-        life = get_life("dentist-depth")
-        self.now = next(c for c in life.checkpoints if c.id.endswith("/now"))
-
-    def test_rubric_truth_is_thursday_from_rebook(self):
-        by_id = {s.id: s for s in self.now.slots}
-        self.assertEqual(by_id["day"].expected, "Thursday")
-        self.assertEqual(by_id["time"].expected, "4:30pm")
-        self.assertIn("dentist-depth/email-rebook", by_id["day"].supported_by)
-
-    def test_dispute_answer_is_misrepresented_not_credited(self):
-        g = grade(self.now, "Tuesday Sep 22 at 3pm.")
-        self.assertEqual((g.correct, g.missed, g.misrepresented), (0, 0, 2))
-        self.assertFalse(g.complete_plan)
-
-    def test_current_answer_is_complete(self):
-        g = grade(self.now, "Your dentist appointment is Thursday at 4:30pm.")
-        self.assertTrue(g.complete_plan)
 
 
-class YesNoPolarityFollowsFirstCue(unittest.TestCase):
-    """Denial-blind presence matching once credited 'never canceled' as 'yes'
-    via an incidental 'confirmed'. Polarity now follows the first cue."""
-
-    def setUp(self):
-        from pacbench.corpus import get_life
-        life = get_life("dentist-depth")
-        self.canceled = next(c for c in life.checkpoints if c.id.endswith("/canceled"))
-        plife = get_life("poker-collision")
-        self.john = next(c for c in plife.checkpoints if c.id.endswith("/john-now"))
-        self.eric_cancel = next(
-            c for c in plife.checkpoints if c.id.endswith("/eric-canceled"))
-
-    def test_affirmation_is_correct(self):
-        g = grade(self.canceled, "Yes, it was canceled Wednesday.")
-        self.assertEqual(g.slots[0].verdict, Verdict.CORRECT)
-
-    def test_denial_with_incidental_affirm_word_is_not_correct(self):
-        g = grade(self.canceled,
-                  "No - it has been confirmed since you set it, never canceled.")
-        # A false denial of a real cancellation is a confabulation, not a
-        # silence: opposite-polarity YESNO slots carry the polarity as
-        # forbidden, so this promotes from MISSED to MISREPRESENTED.
-        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
-
-    def test_expected_no_answers_still_correct(self):
-        self.assertEqual(
-            grade(self.john, "No, John's game is canceled.").slots[0].verdict,
-            Verdict.CORRECT)
-        self.assertEqual(
-            grade(self.eric_cancel, "No - still on, moved to 8pm Saturday.")
-            .slots[0].verdict, Verdict.CORRECT)
-
-    def test_false_affirmation_of_expected_no_is_not_correct(self):
-        g = grade(self.eric_cancel, "Yes, Eric's game was canceled.")
-        # Inventing a cancellation that never happened is misrepresentation.
-        self.assertEqual(g.slots[0].verdict, Verdict.MISREPRESENTED)
-
-    def test_overlapping_cue_prefers_longer_match(self):
-        self.assertEqual(
-            grade(self.john, "You are not going; game is off.").slots[0].verdict,
-            Verdict.CORRECT)
 
 
-class MovedFromFramingIsHistory(unittest.TestCase):
-    """'Moved it from 7pm to 8pm' marks 7pm superseded even with words between
-    the verb and 'from' (fresh-pilot eric-now graded it as current). A bare
-    'moved to <stale>' with no from-framing still counts as current."""
-
-    def setUp(self):
-        from pacbench.corpus import get_life
-        life = get_life("poker-collision")
-        self.eric = next(c for c in life.checkpoints if c.id.endswith("/eric-now"))
-
-    def test_moved_it_from_does_not_assert_old_time(self):
-        g = grade(self.eric,
-                  "You're on for Eric's game Sat Sep 26, 8pm at 15 Harbor Rd "
-                  "with Eric Vance — bringing chips.\n\n"
-                  "Eric moved it from 7pm to 8pm on Sep 9.")
-        by_id = {s.id: s.verdict for s in g.slots}
-        self.assertEqual(by_id["time"], Verdict.CORRECT)
-        self.assertEqual(by_id["day"], Verdict.CORRECT)
-
-    def test_bare_moved_to_stale_still_counts(self):
-        g = grade(self.eric, "Eric's game moved to 7pm Saturday.")
-        by_id = {s.id: s.verdict for s in g.slots}
-        self.assertEqual(by_id["time"], Verdict.MISREPRESENTED)
 
 
-class DeclinedMentionIsNotASuggestion(unittest.TestCase):
-    """Naming a declined option ('you passed on the waterfront festival') is
-    not suggesting it (fresh-pilot anything-fun flagged it as forbidden). A
-    genuine recommendation still flags."""
-
-    def setUp(self):
-        from pacbench.corpus import get_life
-        life = get_life("coat-weekend")
-        self.fun = next(c for c in life.checkpoints if c.id.endswith("/anything-fun"))
-
-    def test_passed_on_mention_is_not_forbidden(self):
-        g = grade(self.fun,
-                  "From what I have: family brunch today, and you passed on "
-                  "the waterfront festival next Saturday — otherwise free.")
-        self.assertEqual(g.suggested_forbidden, 0)
-        self.assertEqual(g.options_found, 1)
-
-    def test_genuine_recommendation_still_flags(self):
-        g = grade(self.fun, "You could hit the waterfront festival Saturday.")
-        self.assertEqual(g.suggested_forbidden, 1)
-
-    def test_ruling_skipping_framing_is_not_forbidden(self):
-        # Co-author ruling 2026-09-21, verbatim lexical-pilot framing.
-        g = grade(self.fun,
-                  "Lantern Show concert Saturday 8pm, Maya invited you. "
-                  "Skipping waterfront festival per your note to Devon.")
-        self.assertEqual(g.suggested_forbidden, 0)
-
-    def test_ruling_cant_make_it_across_but_is_not_forbidden(self):
-        # Co-author ruling 2026-09-21, verbatim memcal-pilot framing: the
-        # decline scopes over the "but" via anaphora, so sentence (not
-        # clause) scope must exonerate.
-        g = grade(self.fun,
-                  "Next Saturday is the waterfront festival with Devon, "
-                  "but you said you can't make it — too crowded.")
-        self.assertEqual(g.suggested_forbidden, 0)
-
-    def test_mixed_sentence_shielding_is_a_known_boundary(self):
-        # One declined item shields a second suggested trap in the same
-        # sentence: the deterministic layer exonerates (documented in
-        # _declined_sentence) and the §33 judge owns the residual.
-        g = grade(self.fun,
-                  "You declined the waterfront festival but the Glassworks "
-                  "exhibit is still on Saturday, go!")
-        self.assertEqual(g.suggested_forbidden, 0)
 
 
-class RendererPreservesTheKey(unittest.TestCase):
-    def setUp(self):
-        from pacbench.render import Beat
-        self.beat = Beat(channel="groupme", sender="Jordan Vance",
-                         draft="moving poker to Saturday 8pm at 44 Birch Ave",
-                         must_include=("Saturday", "8pm", "44 Birch"))
-
-    def test_no_generator_is_the_draft_verbatim(self):
-        from pacbench.render import render
-        self.assertEqual(render(self.beat), self.beat.draft)
-
-    def test_entails_reports_dropped_tokens(self):
-        from pacbench.render import entails
-        self.assertEqual(entails("poker is Saturday at 8pm", self.beat), ["44 Birch"])
-        self.assertEqual(entails("Saturday 8pm at 44 Birch Ave, be there", self.beat), [])
-
-    def test_render_refuses_a_rewrite_that_drops_a_fact(self):
-        from pacbench.render import RenderError, render
-        with self.assertRaises(RenderError):
-            render(self.beat, generate=lambda _p: "poker moved to Saturday night, come by")
-
-    def test_render_accepts_a_faithful_rewrite(self):
-        from pacbench.render import render
-        out = render(self.beat,
-                     generate=lambda _p: "heads up — poker's Saturday 8pm now, 44 Birch Ave")
-        self.assertIn("44 Birch", out)
 
 
 if __name__ == "__main__":

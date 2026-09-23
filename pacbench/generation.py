@@ -1,9 +1,8 @@
-"""Spark surface-language generation, configured by `.env`.
+"""Spark credentials and a small prompt-to-text gateway helper.
 
-Life authoring is specified by PACBench (`pacbench.authoring`); Spark only writes
-surface language through :func:`pacbench.render.render`, which rejects any rewrite
-that drops a required fact token. This module binds that rewrite hook to the
-configured Spark model.
+Scene generation and audit records live in `pacbench.authoring` and
+`pacbench.model_calls`. This module retains the shared credential loader used
+by the driver and provider setup.
 
 Configuration comes from the repo `.env` (never committed, never printed):
 
@@ -25,7 +24,9 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-from .render import Generate
+from typing import Callable
+
+Generate = Callable[[str], str]
 
 GATEWAY_URL = "https://api.meta.ai/v1/chat/completions"
 
@@ -108,7 +109,7 @@ def spark_generator(config: SparkConfig, credential: str, *,
 
 
 def generator_from_env(env_path: str | Path = ".env", **kwargs) -> Generate:
-    """One-step hook for authoring: config from `.env`, ready for `build_life`."""
+    """One-step Spark generator from the repository credential file."""
     config, credential = load_config(env_path)
     return spark_generator(config, credential, **kwargs)
 
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check Spark generation config.")
     parser.add_argument("--env", default=".env")
     parser.add_argument("--render-sample", action="store_true",
-                        help="render one sample beat through Spark (network)")
+                        help="send one sample prompt through Spark (network)")
     args = parser.parse_args()
     try:
         config, _credential = load_config(args.env)
@@ -129,13 +130,5 @@ if __name__ == "__main__":
     print(f"model: {config.model}")
     print(f"credential: present (<redacted>, {len(_credential)} chars)")
     if args.render_sample:
-        from .render import Beat, render
         generate = generator_from_env(args.env)
-        beat = Beat(channel="groupme", sender="Jordan Vance",
-                    draft="moving poker to Saturday 8pm at my place, 44 Birch Ave",
-                    must_include=("Saturday", "8pm", "44 Birch"))
-        try:
-            print(f"rendered: {render(beat, generate=generate)}")
-        except Exception as exc:
-            print(f"generation failed (reported, not substituted): {exc}")
-            raise SystemExit(2)
+        print(generate("Write one sentence about a fictional weekend plan."))

@@ -146,6 +146,55 @@ index 4b55c1b..3be7bb6 100644
      if function_name != "delegate_task" and function_name in INLINE_TOOL_EXECUTORS:
          # Agent-level tools that need live AIAgent state; table shared with invoke_tool.
          inline_executor = INLINE_TOOL_EXECUTORS[function_name]
+diff --git a/agent/turn_context.py b/agent/turn_context.py
+index cc71fb4..723de71 100644
+--- a/agent/turn_context.py
++++ b/agent/turn_context.py
+@@ -9,11 +9,14 @@ returns a ``TurnContext`` with only the locals the loop reads back.
+ from __future__ import annotations
+ 
+ import logging
++import json
++import os
+ import sys
+ import threading
+ import time
+ import uuid
+ from contextlib import suppress
++from pathlib import Path
+ from dataclasses import dataclass
+ from typing import Any, Dict, List, Mapping, Optional, Tuple
+ 
+@@ -785,6 +788,14 @@ def _memory_turn_start_and_prefetch(
+     before the tool loop (skipped on trivial prompts with no semantic signal).
+     Returns the prefetch text (``""`` when nothing was injected)."""
+     if not agent._memory_manager:
++        trace_path = os.environ.get("PACBENCH_CONTEXT_TRACE")
++        if trace_path:
++            with suppress(Exception):
++                with Path(trace_path).open("a", encoding="utf-8") as trace:
++                    trace.write(json.dumps({"session_id": agent.session_id,
++                                            "query": original_user_message,
++                                            "prefetch": ""},
++                                           ensure_ascii=False) + "\n")
+         return ""
+     _query = original_user_message if isinstance(original_user_message, str) else ""
+     # The author rides along so a provider can attribute THIS turn, not whoever opened the session.
+@@ -799,6 +810,14 @@ def _memory_turn_start_and_prefetch(
+     with suppress(Exception):
+         if not is_trivial_prompt(_query):
+             ext_prefetch_cache = agent._memory_manager.prefetch_all(_query, session_id=agent.session_id) or ""
++    trace_path = os.environ.get("PACBENCH_CONTEXT_TRACE")
++    if trace_path:
++        with suppress(Exception):
++            with Path(trace_path).open("a", encoding="utf-8") as trace:
++                trace.write(json.dumps({"session_id": agent.session_id,
++                                        "query": _query,
++                                        "prefetch": ext_prefetch_cache},
++                                       ensure_ascii=False) + "\n")
+     # Deterministic recall indicator via _emit_status so the model can't silently
+     # drop injected memory.
+     if ext_prefetch_cache:
 diff --git a/hermes_time.py b/hermes_time.py
 index a8cab27..e7c3226 100644
 --- a/hermes_time.py

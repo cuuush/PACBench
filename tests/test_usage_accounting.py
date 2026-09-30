@@ -23,7 +23,7 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from pacbench import harness, live  # noqa: E402
+from pacbench import harness  # noqa: E402
 
 try:
     from provider_adapters.memcal_adapter import (  # noqa: E402
@@ -110,92 +110,6 @@ class ParseTurnTokens(unittest.TestCase):
         self.assertIsNone(result.session_output_tokens)
 
 
-class RecordOfCarriesTokens(unittest.TestCase):
-    def test_record_of_includes_session_counters(self):
-        result = harness.TurnResult(
-            prompt="p", at="t", answer="a", tool_calls=[], tool_results=[],
-            policy_blocks=0, latency_s=1.0, returncode=0, stderr_tail="",
-            stderr_full="", stdout_tail="", raw_events=1, session_id="s",
-            session_input_tokens=500, session_output_tokens=40)
-        record = live._record_of(result)
-        self.assertEqual(record["session_input_tokens"], 500)
-        self.assertEqual(record["session_output_tokens"], 40)
-
-
-class TurnTokenDelta(unittest.TestCase):
-    def test_first_turn_owns_cumulative(self):
-        marks: dict = {}
-        self.assertEqual(live.turn_token_delta(marks, "s", 100, 20), (100, 20))
-        self.assertEqual(marks["s"], (100, 20))
-
-    def test_later_turns_are_deltas(self):
-        marks = {"s": (100, 20)}
-        self.assertEqual(live.turn_token_delta(marks, "s", 350, 45), (250, 25))
-        self.assertEqual(marks["s"], (350, 45))
-
-    def test_sessions_tracked_independently(self):
-        marks = {"a": (100, 10)}
-        self.assertEqual(live.turn_token_delta(marks, "b", 50, 5), (50, 5))
-        self.assertEqual(live.turn_token_delta(marks, "a", 120, 12), (20, 2))
-
-    def test_missing_counters_are_none(self):
-        marks: dict = {}
-        self.assertEqual(live.turn_token_delta(marks, "s", None, None),
-                         (None, None))
-        self.assertEqual(marks, {})
-        self.assertEqual(live.turn_token_delta(marks, "s", 100, None),
-                         (None, None))
-
-    def test_anonymous_turn_is_fresh_session(self):
-        self.assertEqual(live.turn_token_delta({}, None, 80, 9), (80, 9))
-
-    def test_backward_counters_clamp_at_zero(self):
-        marks = {"s": (500, 50)}
-        self.assertEqual(live.turn_token_delta(marks, "s", 100, 10), (0, 0))
-
-
-class SumTurnTokens(unittest.TestCase):
-    def test_sums_reported_turns_only(self):
-        turns = [
-            {"turn_input_tokens": 100, "turn_output_tokens": 10},
-            {"turn_input_tokens": None, "turn_output_tokens": None},
-            {"kind": "checkpoint"},  # legacy record without token keys
-            {"turn_input_tokens": 50, "turn_output_tokens": 5},
-        ]
-        self.assertEqual(live.sum_turn_tokens(turns),
-                         {"input": 150, "output": 15,
-                          "turns_with_tokens": 2, "turns_total": 4})
-
-    def test_empty_is_zero_with_full_honesty(self):
-        self.assertEqual(live.sum_turn_tokens([]),
-                         {"input": 0, "output": 0,
-                          "turns_with_tokens": 0, "turns_total": 0})
-
-
-class PilotTurnsRollup(unittest.TestCase):
-    def test_reads_turns_and_skips_errors(self):
-        from pacbench.corpus import get_life
-        life = get_life("poker-move")
-        with tempfile.TemporaryDirectory(prefix="pacbench-pilot-") as tmp:
-            pilot_dir = Path(tmp)
-            life_dir = pilot_dir / life.id
-            life_dir.mkdir()
-            (life_dir / "turns.json").write_text(json.dumps({"turns": [
-                {"kind": "checkpoint", "turn_input_tokens": 100,
-                 "turn_output_tokens": 10, "tool_calls": [{"a": 1}],
-                 "latency_s": 2.0},
-                {"kind": "checkpoint", "error": "boom"},
-                {"kind": "user-turn-replay",
-                 "turn_input_tokens": None, "turn_output_tokens": None,
-                 "tool_calls": [], "latency_s": 1.0},
-            ]}))
-            scored, per_life = live._pilot_turns([life], pilot_dir)
-        self.assertEqual(len(scored), 2)
-        self.assertEqual(per_life[life.id],
-                         {"input": 100, "output": 10,
-                          "turns_with_tokens": 1, "turns_total": 2})
-
-
 @unittest.skipIf(MemcalAdapter is None,
                   f"memcal checkout unavailable: {_IMPORT_ERROR}")
 class DreamUsageAccounting(unittest.TestCase):
@@ -273,7 +187,7 @@ class DreamUsageAccounting(unittest.TestCase):
         with mock.patch.object(dream_run, "dream",
                                return_value=SimpleNamespace(run_id=999999)):
             usage = self.adapter.maintenance("2026-09-10T23:59:00")
-        self.assertEqual(self.adapter._maintenance["state"], "complete")
+        self.assertEqual(self.adapter._maintenance["state"], "failed")
         self.assertIsNone(usage.input_tokens)
         self.assertIn("unreadable", usage.notes[0])
 
@@ -300,9 +214,8 @@ class RedactKeepsTokenCounts(unittest.TestCase):
     the substring "token"). Offline: redact + the real rollup, no pilot."""
 
     def test_efficiency_block_survives_redact(self):
-        rolled = live.sum_turn_tokens(
-            [{"turn_input_tokens": 100, "turn_output_tokens": 10},
-             {"turn_input_tokens": None, "turn_output_tokens": None}])
+        rolled = {"input": 100, "output": 10, "turns_with_tokens": 1,
+                  "turns_total": 2}
         efficiency = {"hermes_turns": 25, "memory_tool_calls": 53,
                       "answer_latency_s_total": 223.0, "tokens": rolled}
         self.assertEqual(harness.redact(efficiency), efficiency)

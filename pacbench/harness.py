@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import shutil
+import sqlite3
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -61,7 +62,7 @@ class TurnResult:
     # §35 usage accounting: session-cumulative token counters from the clone's
     # terminal stream-json `result` event (`tokens.input/output`). Cumulative,
     # NOT per-turn: continuing sessions (`--resume`) grow these across turns,
-    # so per-turn spend is the delta (see pacbench.live). None means the clone
+    # so per-turn spend is the delta. None means the clone
     # reported no token stats for this turn — unknown stays unknown, never zero.
     session_input_tokens: int | None = None
     session_output_tokens: int | None = None
@@ -269,6 +270,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
             raw_events=0, session_id=None)
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
+    _recover_tool_results(result, home / "state.db")
     trace = home.parent / "context.jsonl"
     if trace.exists():
         try:
@@ -277,6 +279,29 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         except (IndexError, ValueError, OSError):
             pass
     return result
+
+
+def _recover_tool_results(turn: TurnResult, state_db: Path) -> None:
+    """Use Hermes's saved tool messages when stream-json clipped their output."""
+    if not turn.session_id or not turn.tool_results or not state_db.exists():
+        return
+    try:
+        with sqlite3.connect(f"file:{state_db}?mode=ro", uri=True) as db:
+            rows = db.execute(
+                "SELECT tool_name, content FROM messages WHERE session_id = ? "
+                "AND role = 'tool' ORDER BY id", (turn.session_id,)).fetchall()
+    except sqlite3.Error:
+        return
+    if (len(rows) != len(turn.tool_results) or
+            any(name != result["tool"] or not isinstance(content, str)
+                for result, (name, content) in zip(turn.tool_results, rows))):
+        return
+    for result, (_, content) in zip(turn.tool_results, rows):
+        if len(result["text"]) == 5003 and result["text"].endswith("..."):
+            result["stream_preview"] = result["text"]
+        result["text"] = content
+        result["truncated"] = False
+        result["capture"] = "hermes_session_db"
 
 
 def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
@@ -324,7 +349,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
                 result_text = text
             # §35: session-cumulative token counters (see TurnResult). The
             # terminal result carries the session totals; per-turn spend is
-            # the delta across turns in one session (pacbench.live). A missing
+            # the delta across turns in one session. A missing
             # `tokens` mapping means unreported (None), never zero.
             tokens = event.get("tokens")
             if isinstance(tokens, dict):
@@ -385,15 +410,22 @@ def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
     if payload is None:
         payload = event.get("text", "")
     text = payload if isinstance(payload, str) else json.dumps(payload)
-    truncated = len(text) > limit
+    stream_clipped = len(text) == 5003 and text.endswith("...")
+    truncated = len(text) > limit or stream_clipped
     policy_blocked = "PACBENCH-BLOCKED" in text
+    try:
+        decoded = json.loads(text)
+    except (TypeError, ValueError):
+        decoded = None
+    tool_error = isinstance(decoded, dict) and "error" in decoded
     return {
         "tool": event.get("tool") or event.get("name") or "",
         "success": bool(event.get("success", event.get("error") is None))
-                   and not policy_blocked,
+                   and not policy_blocked and not tool_error,
         "policy_blocked": policy_blocked,
         "text": text[:limit],
         "truncated": truncated,
+        "capture": "stream_json_preview" if stream_clipped else "stream_json",
     }
 
 

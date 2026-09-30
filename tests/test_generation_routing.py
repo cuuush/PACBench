@@ -1,8 +1,8 @@
 """Spark generation routes to Meta's Model API only.
 
-One gateway, one credential: `pacbench.generation` and `pacbench.model_calls`
-post to `https://api.meta.ai/v1/chat/completions` with the META bearer
-credential from the PACBench-owned `.env`. No OpenRouter route remains,
+One gateway, one credential: the single-turn generator and model judge use
+Meta Chat Completions; the revisable scene writer uses Meta Responses.
+Both use the META bearer credential from the PACBench-owned `.env`. No OpenRouter route remains,
 no silent model substitution, and the secret never appears in errors.
 
 Offline: all network calls are mocked; nothing here touches the network

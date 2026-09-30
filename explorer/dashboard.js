@@ -11,7 +11,7 @@ const notice = text => '<div class="notice">' + esc(text) + "</div>";
 const details = (title, body, extra = "") => '<details class="fold ' + extra + '"><summary>' + esc(title) + '</summary><div class="fold-body">' + body + "</div></details>";
 const badge = (text, tone = "") => '<span class="badge ' + tone + '">' + esc(text) + "</span>";
 const idOf = run => run.id || run.dir;
-const sources = run => run.kind === "semantic" ? (run.observations || []) : ((run.exposure || {}).exposed || []);
+const sources = run => run.messages || run.observations || [];
 const sourceLink = id => {
   const match = String(id).match(/-(\d+)$/);
   const label = match ? "Message " + (Number(match[1]) + 1) : "Show message";
@@ -19,8 +19,7 @@ const sourceLink = id => {
 };
 
 function stateOf(run) {
-  if (run.audit?.valid_for_comparison === false) return "excluded";
-  if (run.kind === "historical") return "historical";
+  if (run.audit?.valid_for_comparison === false || run.audit?.state === "fail") return "excluded";
   if (run.summary?.state) return run.summary.state;
   if (run.experiment_status?.state && run.experiment_status.state !== "running")
     return run.experiment_status.state;
@@ -55,7 +54,7 @@ function nav(items) {
     '<button type="button" data-page="' + esc(item[0]) + '" class="' +
     (page === item[0] ? "active" : "") + '">' + esc(item[1]) + "</button>").join("") + "</nav>";
 }
-function observation(id) {
+function message(id) {
   return sources(selected()).find(item => item.source_id === id);
 }
 function clock(value) {
@@ -74,7 +73,7 @@ function chatThread(items) {
     if (nextDay !== priorDay) rows += '<div class="chat-day">' + nextDay + "</div>";
     const owner = item.from_owner === true;
     rows += '<div class="chat-row ' + (owner ? "mine" : "theirs") +
-      '" data-observation="' + esc(item.source_id) + '">' +
+      '" data-message="' + esc(item.source_id) + '">' +
       (owner ? "" : '<span class="avatar">' + esc((item.sender || "?").slice(0, 1).toUpperCase()) + "</span>") +
       '<div class="chat-message">' + (owner ? "" : '<div class="sender">' + esc(item.sender) + "</div>") +
       '<div class="bubble">' + esc(item.text) + "</div>" +
@@ -90,7 +89,7 @@ function emailRead(item) {
   const from = item.from_owner ? "You" : item.sender;
   const to = item.from_owner ? item.thread : "You";
   const subject = String(item.text || "").split("\n")[0].slice(0, 90) || "(no subject)";
-  return '<div data-observation="' + esc(item.source_id) + '"><h3>' + esc(subject) +
+  return '<div data-message="' + esc(item.source_id) + '"><h3>' + esc(subject) +
     '</h3><div class="mail-meta">From: ' + esc(from) + "<br>To: " + esc(to) +
     "<br>Date: " + esc(item.written_at) + '</div><div class="mail-body">' +
     esc(item.text) + "</div></div>";
@@ -122,20 +121,20 @@ function modelCall(run, path) {
   const name = String(path || "").split("/").pop();
   return (run.model_calls || []).find(call => call.file === name)?.record;
 }
-function modelReasoning(call) {
-  const message = call?.response?.choices?.[0]?.message;
-  return message?.reasoning_content || message?.reasoning ||
-    call?.response?.choices?.[0]?.reasoning || null;
+function modelReasoningSummary(call) {
+  const summaries = (call?.response?.output || []).filter(item => item.type === "reasoning")
+    .flatMap(item => item.summary || []).map(item => item.text || "").filter(Boolean);
+  return summaries.length ? summaries.join("\n") : null;
 }
 function renderModelCall(call) {
   if (!call) return notice("Model call record not captured.");
-  const reasoning = modelReasoning(call);
+  const reasoning = modelReasoningSummary(call);
   return '<div class="model-meta">' + esc(call.model || "model not captured") +
     " · " + esc(call.created_at || "time not captured") + " · " +
     esc(call.usage?.total_tokens ?? "tokens not reported") + ' tokens</div>' +
-    '<h4>Prompt sent</h4>' + dump(call.request?.messages || []) +
+    '<h4>Prompt sent</h4>' + dump(call.request?.input || call.request?.messages || []) +
     '<h4>Output returned</h4><pre>' + esc(call.text || "") + "</pre>" +
-    '<p class="muted">' + (reasoning ? "Model reasoning returned:" : "Private model reasoning was not returned by this API call.") +
+    '<p class="muted">' + (reasoning ? "Model reasoning summary returned:" : "No readable reasoning summary was returned by this API call.") +
     "</p>" + (reasoning ? '<pre>' + esc(reasoning) + "</pre>" : "") +
     details("Full model request and response", dump(call));
 }
@@ -164,7 +163,8 @@ function renderSceneReview(run, scene) {
       esc(record.attempt || "?") + "</strong>" +
       badge(record.passed ? "Accepted" : "Rejected", record.passed ? "ok" : "bad") +
       "</div>" + (verdict.problem ? "<p>" + esc(verdict.problem) + "</p>" : "") +
-      (factRows || '<p class="muted">Scenario evidence: ' +
+      (factRows ? '<h4>Authored facts checked against this conversation</h4>' + factRows :
+        '<p class="muted">This saved run had no authored fact list. The reviewer checked the scene description instead. Scenario evidence: ' +
         reviewedLines(run, scene.scene_id, verdict.evidence) + "</p>") +
       details("Reviewer prompt and full decision", '<h4>Prompt</h4><pre>' +
         esc(record.judge_prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
@@ -181,20 +181,51 @@ function renderContract(run) {
       (claim.evidence || []).map(sourceLink).join(" ") + "</span></div>").join("") +
     details("Contract review and hashes", dump(run.contract));
 }
+function calibrationChecks(run) {
+  const reports = run.calibrations || [];
+  if (!reports.length) return "";
+  const groups = reports.map(group => {
+    const rows = group.report?.results || [];
+    const matches = rows.filter(row => row.agree === true).length;
+    const cases = rows.map(row => {
+      const saved = group.cases?.[row.id];
+      let verdicts = [];
+      try { verdicts = JSON.parse(saved?.response || "{}").verdicts || []; } catch { /* show saved text below */ }
+      return details(row.id.replaceAll("_", " ") + " · " +
+        (row.error ? "ungraded" : row.agree === true ? "matches proposal" : "review needed"),
+        '<p><strong>Sample answer</strong><br>' + esc(saved?.answer || "not captured") + "</p>" +
+        (verdicts.length ? verdicts.map(item => '<div class="verdict-row">' +
+          badge(item.verdict, item.verdict === "correct" ? "ok" :
+            item.verdict === "missed" ? "warn" : "bad") + '<div><strong>' +
+          esc(item.id) + '</strong><p>' + esc(item.reason || "reason not captured") +
+          "</p></div></div>").join("") : notice(row.error || "Judgment not captured.")) +
+        details("Exact judge prompt and response", dump(saved)));
+    }).join("");
+    return details(group.name + " · " + matches + "/" + rows.length + " match proposed labels",
+      '<p class="muted">Proposed labels await human review.</p>' + cases);
+  }).join("");
+  return '<section class="stage"><h2>Answer judge checks</h2>' + groups + "</section>";
+}
 function semanticStory(run) {
-  const plans = run.spec?.scenes || [];
+  const plans = run.spec?.scenes || Object.entries(run.spec?.days || {}).flatMap(
+    ([day, rows]) => rows.map(row => ({...row, day})));
   const made = run.scenes?.scenes || [];
   const instructions = plans.map((plan, index) =>
-    '<div class="scene-intent"><span class="eyebrow">Scene ' + (index + 1) +
+    '<div class="scene-intent"><span class="eyebrow">' +
+      esc(plan.day ? plan.day + ' · ' + plan.chat + ' · ' + plan.time :
+        'Scene ' + (index + 1)) +
       '</span><p>' + esc(plan.scene) + "</p>" +
       (plan.facts?.length ? '<div class="requested-facts"><strong>Facts that must appear</strong>' +
-        plan.facts.map(fact => "<div>• " + esc(fact) + "</div>").join("") + "</div>" : "") +
+        plan.facts.map(fact => "<div>• " + esc(fact) + "</div>").join("") + "</div>" :
+        '<p class="muted">No authored fact list in this saved run.</p>') +
       (plan.test_intent ? '<p class="muted">Recall intent: ' + esc(plan.test_intent) + "</p>" : "") +
     "</div>").join("");
   const renderAudit = made.map((scene, index) => {
     const paths = scene.record?.generation_paths || [];
     const note = (scene.record?.writer_notes || []).filter(Boolean).at(-1);
-    return '<section class="stage"><h2>Rendering · scene ' + (index + 1) + '</h2>' +
+    return '<section class="stage"><h2>Rendering · ' +
+      esc(plans[index]?.day ? plans[index].day + ' · ' + plans[index].chat :
+        'scene ' + (index + 1)) + '</h2>' +
       '<p class="muted">The writer generated the conversation. Message times and source IDs were assigned afterward.</p>' +
       (note ? '<div class="writer-note"><strong>Writer note</strong><p>' + esc(note) + '</p></div>' :
         '<p class="muted">No writer note was saved for this run.</p>') +
@@ -202,23 +233,31 @@ function semanticStory(run) {
         renderModelCall(modelCall(run, path)))).join("") +
       renderSceneReview(run, scene) + "</section>";
   }).join("");
+  const daily = Object.entries(run.daily_facts || {}).map(([day, ledger]) =>
+    details(day + ' · next morning facts',
+      (ledger.claims || []).map(claim => '<div class="verdict-row"><div><strong>' +
+        esc(claim.statement) + '</strong><p>' +
+        (claim.evidence || []).map(sourceLink).join(' ') + '</p></div></div>').join('') +
+      details('Semantic carryover review', dump({statuses: ledger.statuses,
+        review: ledger.review, proposal_prompt: ledger.proposal_prompt,
+        proposal_response: ledger.proposal_response,
+        review_prompt: ledger.review_prompt,
+        review_response: ledger.review_response})))).join('');
   return '<section class="stage"><h2>What the author asked for</h2>' + instructions + "</section>" +
     '<section class="stage"><h2>Rendered conversation</h2>' + conversations(run) +
       details("Exact frozen bundle", run.bundle ? dump(run.bundle) : notice("Full bundle not captured.")) +
     "</section>" + renderAudit +
-    '<section class="stage"><h2>Facts ready for recall</h2><p class="muted">These claims come from the required facts and cited dialogue. They were frozen before either assistant answered.</p>' +
-    renderContract(run) + "</section>";
-}
-function historicalStory(run) {
-  return '<section class="stage"><h2>Saved conversation</h2>' +
-    (run.bundle_match === true ? "" :
-      notice("The original full bundle was not captured. These messages are the run's saved exposure; today's fixture was not substituted.")) +
-    conversations(run) + details("Saved exposure and hash", dump({
-      bundle_hash: run.bundle_hash, exposure: run.exposure
-    })) + "</section>";
+    (daily ? '<section class="stage"><h2>Day by day facts</h2>' + daily + '</section>' : '') +
+    '<section class="stage"><h2>Facts ready for recall</h2><p class="muted">These claims were reviewed against the recall goal and cited dialogue, then frozen before either assistant answered.</p>' +
+    renderContract(run) + "</section>" + calibrationChecks(run);
 }
 function parseResult(result) {
   let value = result?.text;
+  if (typeof value === "string" && value.startsWith("<untrusted_tool_result ")) {
+    const start = value.indexOf("\n\n");
+    const end = value.lastIndexOf("\n</untrusted_tool_result>");
+    if (start >= 0 && end > start) value = value.slice(start + 2, end);
+  }
   for (let n = 0; n < 4; n++) {
     if (typeof value === "string") {
       try { value = JSON.parse(value); } catch { break; }
@@ -271,20 +310,31 @@ function toolCards(run, arm, turn) {
   calls.forEach((call, index) => {
     const result = turn.tool_results?.[index];
     const blocked = result?.policy_blocked || String(result?.text || "").includes("PACBENCH-BLOCKED");
-    const query = call.input?.query || call.input?.line_id || "";
+    const nested = Array.isArray(call.input?.calls) ? call.input.calls : [];
+    const memoryCall = call.name?.startsWith("memcal_") ||
+      call.name?.startsWith("mcp__hindsight__") || nested.some(c =>
+        c.name?.startsWith("memcal_") || c.name?.startsWith("mcp__hindsight__"));
+    let error = false;
+    try { error = Boolean(JSON.parse(result?.text || "{}").error); } catch (_) {}
+    const failed = result?.success === false || error;
+    const query = call.input?.query || call.input?.line_id ||
+      (nested.length ? nested.map(c => toolName(c.name)).join(", ") : "");
+    const label = call.name === "tool_call" && nested.length === 1 ?
+      toolName(nested[0].name) : toolName(call.name);
     const card = '<details class="tool-card"><summary><span class="tool-icon">⌕</span><span><strong>' +
-      esc(toolName(call.name)) + '</strong><small>' +
-      esc(query || (blocked ? "Blocked" : result?.success === false ? "Failed" : "Open output")) +
-      '</small></span><span class="tool-state">' + (blocked ? "blocked" : result?.success === true ? "returned" : "not captured") +
+      esc(label) + '</strong><small>' +
+      esc(query || (blocked ? "Blocked" : failed ? "Failed" : "Open output")) +
+      '</small></span><span class="tool-state">' + (blocked ? "blocked" : failed ? "failed" : result?.success === true ? "returned" : "not captured") +
       '</span></summary><div class="tool-body"><h4>Arguments</h4>' + dump(call.input || {}) +
       '<h4>What came back</h4>' + resultBody(run, arm, result) + "</div></details>";
-    (call.name?.startsWith("memcal_") || call.name?.startsWith("mcp__hindsight__") ?
-      memory : other).push(card);
+    (memoryCall ? memory : other).push(card);
   });
   return memory.join("") + (other.length ?
     details("Tool setup and other calls · " + other.length, other.join("")) : "");
 }
 function score(ex) {
+  if (ex.status?.state === "invalid") return ["Invalid checkpoint", "bad"];
+  if (ex.status?.state === "incomplete") return ["Incomplete checkpoint", "warn"];
   const grade = ex.grade;
   if (!grade) return ["Ungraded", "neutral"];
   if (grade.misrepresented) return [grade.misrepresented + " wrong detail" +
@@ -296,7 +346,7 @@ function score(ex) {
 function scoreDetails(run, ex) {
   const [label, tone] = score(ex);
   const rows = (ex.grade?.claims || []).map(item => {
-    const claim = run.contract?.claims?.find(c => c.id === item.id);
+    const claim = (ex.contract || run.contract)?.claims?.find(c => c.id === item.id);
     return '<div class="verdict-row">' + badge(item.verdict, item.verdict === "correct" ? "ok" :
       item.verdict === "missed" ? "warn" : "bad") + '<div><strong>' +
       esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason) + '</p>' +
@@ -332,6 +382,7 @@ function providerPage(run, provider) {
   const status = arm.status || {};
   const access = status.capability?.available;
   const used = status.behavior?.retrieval_called;
+  const blockedRetrieval = !used && (status.behavior?.blocked_provider_calls || []).length > 0;
   const exchanges = arm.exchanges || (arm.turn ? [{turn: arm.turn, judgment: arm.judgment, grade: arm.grade}] : []);
   const brief = provider === "memcal" ?
     '<section class="brief"><strong>Memory brief visible to Hermes</strong>' +
@@ -342,10 +393,13 @@ function providerPage(run, provider) {
     '</h2><div class="provider-badges">' +
     badge(access === true ? "Memory access verified" : access === false ? "Memory unavailable" : "Access not captured",
       access === true ? "ok" : access === false ? "bad" : "neutral") +
-    badge(used === true ? "Hermes used memory" : used === false ? "Hermes did not retrieve" : "Use not captured",
-      used === true ? "ok" : used === false ? "warn" : "neutral") + "</div></div>" +
+    badge(used === true ? "Hermes used memory" : blockedRetrieval ? "Retrieval blocked" :
+      used === false ? "Hermes did not retrieve" : "Use not captured",
+      used === true ? "ok" : blockedRetrieval ? "bad" : used === false ? "warn" : "neutral") + "</div></div>" +
     (status.reason ? notice(status.reason) : "") +
+    (blockedRetrieval ? notice("Hermes attempted a memory tool, but the benchmark tool policy blocked it. The answer is diagnostic, not a provider-memory result.") : "") +
     (run.audit?.valid_for_comparison === false ? notice("Excluded from comparison: " + run.audit.finding) : "") +
+    (run.audit?.state === "fail" ? notice("Run audit failed: " + run.audit.errors.join("; ")) : "") +
     brief + (exchanges.length ? exchanges.map((ex, i) => providerExchange(run, arm, ex, i)).join("") :
       notice("No assistant question or answer was saved for this provider.")) +
     '<p class="muted calibration">Answer badges are diagnostic until the proposed calibration labels are human reviewed.</p>' +
@@ -354,74 +408,40 @@ function providerPage(run, provider) {
       '<h4>Tool discovery and preflight</h4>' + dump(arm.preflight) +
       '<h4>Provider status</h4>' + dump(arm.status));
 }
-function historicalProvider(run) {
-  const turns = run.turns || [];
-  let priorSnapshot = null;
-  return '<div class="provider-head"><h2>' + esc(run.provider || "Provider") +
-    '</h2>' + badge("Historical run", "neutral") + '</div>' +
-    notice("Saved Hermes session context is shown for each turn when available. Provider internal state beyond saved records is not captured.") +
-    (turns.length ? turns.map((turn, index) => {
-      const context = turn.prefetch_context;
-      const snapshot = context?.match(/MEMCAL SNAPSHOT[^\n]*\[id=([^\]]+)\]/)?.[1] || null;
-      const contextLabel = !context ? (run.provider === "hindsight" ?
-        "No automatic brief; recall appears in tool calls" : "Memory context not captured") :
-        snapshot && snapshot === priorSnapshot ? "Memcal brief sent again · unchanged snapshot" :
-        "Memcal brief sent · refreshed snapshot";
-      const earlyEvidence = (run.audit?.temporal_exposure || []).filter(row => row.turn === index + 1);
-      if (snapshot) priorSnapshot = snapshot;
-      return '<section class="exchange"><div class="exchange-label">Question ' + (index + 1) +
-      " · " + esc(turn.at || "time not captured") + '</div>' +
-      (earlyEvidence.length ? notice("Timing flaw: " + earlyEvidence.length +
-        " later evidence batch(es) were ingested before this turn. Open Saved files for source IDs.") : "") +
-      (context ? details(contextLabel, '<pre>' + esc(context) + "</pre>") : notice(contextLabel)) +
-      '<div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
-      esc(turn.prompt || "Question not captured") + "</div></div></div>" +
-      '<div class="tool-sequence">' + toolCards(run, {}, turn) + "</div>" +
-      '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message">' +
-      '<div class="sender">Hermes</div><div class="bubble answer-bubble">' +
-      esc(turn.answer || "Answer not captured") + "</div>" +
-      details("Legacy grade · semantic verdict not captured", dump(run.grades?.[index])) +
-      "</div></div></section>";
-    }).join("") : notice("No Hermes turns captured."));
-}
 function technicalPage(run) {
-  if (run.kind === "historical") return '<section class="stage"><h2>Saved run files</h2>' +
-    details("Timing audit", dump(run.audit || {finding: "No recorded timing violation; other internal state may be absent."})) +
-    details("Evidence and provenance", dump({bundle_hash: run.bundle_hash,
-      exposure: run.exposure, import_batches: run.import_batches,
-      maintenance: run.maintenance, session_schedule: run.session_schedule})) + "</section>";
   return '<section class="stage"><h2>Saved run files</h2><p class="muted">These records are here for debugging. The Story and provider pages show the readable path through the experiment.</p>' +
     details("Original and resolved author spec", dump({author: run.spec, resolved: run.resolved_spec})) +
     details("Frozen bundle and contract", dump({bundle: run.bundle, contract: run.contract})) +
     details("Model requests and responses · " + (run.model_calls || []).length,
       (run.model_calls || []).map(call => details(call.record?.model + " · " + call.file.slice(0, 12),
         renderModelCall(call.record))).join("")) +
-    details("Experiment status and comparison audit", dump({status: run.experiment_status,
+    details("Experiment status and run audit", dump({status: run.experiment_status,
       summary: run.summary, audit: run.audit})) + "</section>";
 }
 function render() {
   const run = selected();
   if (!run) { el("content").innerHTML = notice("No saved run selected."); return; }
-  const historic = run.kind === "historical";
-  const items = historic ?
-    [["story", "Story"], ["provider", "Assistant"], ["details", "Saved files"]] :
-    [["story", "Story"], ...Object.keys(run.arms || {}).map(name => [name, name === "memcal" ? "Memcal" : "Hindsight"]),
-      ["details", "Saved files"]];
+  const items = [["story", "Story"], ...Object.keys(run.arms || {}).map(name =>
+    [name, name === "memcal" ? "Memcal" : "Hindsight"]), ["details", "Saved files"]];
   if (!items.some(item => item[0] === page)) page = "story";
   const status = stateOf(run);
-  const alert = run.audit?.valid_for_comparison === false ?
+  const alert = run.audit?.state === "fail" ?
+    '<div class="alert bad">Run audit failed: ' + esc(run.audit.errors.join("; ")) + "</div>" :
+    run.audit?.valid_for_comparison === false ?
     '<div class="alert bad">Excluded: ' + esc(run.audit.finding) + "</div>" :
     run.summary?.error ? '<div class="alert bad">Stopped during ' +
       esc(run.summary.failed_stage || "experiment") + ": " + esc(run.summary.error) + "</div>" : "";
-  const body = page === "story" ? (historic ? historicalStory(run) : semanticStory(run)) :
-    page === "details" ? technicalPage(run) :
-      historic ? historicalProvider(run) : providerPage(run, page);
+  const rerun = run.rerun_provenance ? '<div class="alert">Memcal was rerun from the frozen evidence in ' +
+    esc(run.rerun_provenance.source_run) + '. The Hindsight trace was reused from that run.</div>' : "";
+  const body = page === "story" ? semanticStory(run) :
+    page === "details" ? technicalPage(run) : providerPage(run, page);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
-    (historic ? "Historical evidence" : "Experiment") + '</span><h1>' +
+    "Experiment" + '</span><h1>' +
     esc(titleOf(run)) + '</h1><p>' + esc(idOf(run)) +
-    '</p></div>' + badge(status, status === "complete" ? "ok" :
+    '</p></div>' + (run.audit?.state === "pass" ? badge("Trace audited", "ok") : "") +
+    badge(status, status === "complete" ? "ok" :
       status === "excluded" || status === "incomplete" ? "bad" : "neutral") +
-    "</div>" + alert + nav(items) + '<div class="page-body">' + body + "</div>";
+    "</div>" + alert + rerun + nav(items) + '<div class="page-body">' + body + "</div>";
 }
 async function refresh() {
   el("refresh").disabled = true;
@@ -449,8 +469,8 @@ document.addEventListener("click", event => {
   const sourceButton = target.closest("[data-jump]");
   if (sourceButton) {
     if (page !== "story") choose(current, "story");
-    const source = [...document.querySelectorAll("[data-observation]")].find(
-      node => node.dataset.observation === sourceButton.dataset.jump);
+    const source = [...document.querySelectorAll("[data-message]")].find(
+      node => node.dataset.message === sourceButton.dataset.jump);
     if (source) {
       source.scrollIntoView({block: "center", behavior: "smooth"});
       source.classList.remove("flash");
@@ -461,7 +481,7 @@ document.addEventListener("click", event => {
   }
   const emailButton = target.closest("[data-email]");
   if (emailButton) {
-    const item = observation(emailButton.dataset.email);
+    const item = message(emailButton.dataset.email);
     const app = emailButton.closest(".mail-app");
     app.querySelectorAll(".mail-item").forEach(node => node.classList.remove("active"));
     emailButton.classList.add("active");

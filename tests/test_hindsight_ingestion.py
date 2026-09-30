@@ -1,14 +1,4 @@
-"""plan.md P0-2+P0-4: conversation-packet ingest for the Hindsight adapter.
-
-OFFLINE-ONLY: fakes only (no network, no spend).
-
-Covers: stable logical document ids across recollection / resume /
-repetition / checkpoint execution; forbidden encodings absent;
-distinct-conversation no-collision; adversarial source_id-vs-time
-ordering; append mode on conversation packets (replace on email
-singletons); verbatim preservation; op-id on the simulated
-collected_at boundary; manifest digest present; mixed-digest refusal.
-"""
+"""Hindsight conversation packet ingestion with a fake engine."""
 
 import os
 import sys
@@ -22,9 +12,6 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from pacbench import live  # noqa: E402
-from pacbench import report  # noqa: E402
-from pacbench.source_documents import SOURCE_DOCUMENT_MAPPING_VERSION  # noqa: E402
 
 
 class FakePG:
@@ -107,8 +94,9 @@ class Stability(unittest.TestCase):
                     _obs("life1/s-01", written_at="2026-09-18T09:05:00")]
             day2 = [_obs("life1/s-04", written_at="2026-09-19T10:00:00",
                          collected_at="2026-09-19T12:00:00")]
-            adapter.ingest(day1, "2026-09-18T12:00:00")
-            adapter.ingest(day2, "2026-09-19T12:00:00")
+            first = adapter.ingest(day1, "2026-09-18T12:00:00")
+            second = adapter.ingest(day2, "2026-09-19T12:00:00")
+            self.assertEqual((first.model_calls, second.model_calls), (1, 1))
             # One joined item per packet per ingest call.
             self.assertEqual(len(_items(engine, 0)), 1)
             self.assertEqual(len(_items(engine, 1)), 1)
@@ -116,6 +104,37 @@ class Stability(unittest.TestCase):
             ids2 = {i["document_id"] for i in _items(engine, 1)}
             self.assertEqual(ids1, {"text:fam"})
             self.assertEqual(ids2, {"text:fam"})
+        finally:
+            adapter.close()
+
+    def test_one_daily_batch_contains_two_imessage_threads(self):
+        adapter, engine = _adapter()
+        try:
+            _reset(adapter)
+            self.assertIn("mcp__hindsight__list_memories",
+                          adapter.retrieval()["tool_allowlist"])
+            batch = [
+                _obs("pizza-1", channel="imessage", thread="pizza", sender="Me",
+                     text="Pizza Friday?", written_at="2026-09-18T09:00:00"),
+                _obs("pizza-2", channel="imessage", thread="pizza", sender="Devon",
+                     text="Yes, 7pm.", written_at="2026-09-18T09:01:00"),
+                _obs("ducks-1", channel="imessage", thread="ducks", sender="Maya",
+                     text="Ducks Saturday?", written_at="2026-09-18T09:02:00"),
+                _obs("ducks-2", channel="imessage", thread="ducks", sender="Devon",
+                     text="I'm in.", written_at="2026-09-18T09:03:00"),
+            ]
+            adapter.ingest(batch, "2026-09-18T12:00:00", group_flags={
+                ("imessage", "pizza"): False,
+                ("imessage", "ducks"): True,
+            })
+            self.assertEqual(len(engine.calls), 1)
+            items = {item["document_id"]: item for item in _items(engine)}
+            self.assertEqual(set(items), {"imessage:pizza", "imessage:ducks"})
+            self.assertEqual(items["imessage:pizza"]["metadata"]["source_ids"],
+                             ["pizza-1", "pizza-2"])
+            self.assertEqual(items["imessage:ducks"]["metadata"]["source_ids"],
+                             ["ducks-1", "ducks-2"])
+            self.assertIn("group chat", items["imessage:ducks"]["context"])
         finally:
             adapter.close()
 
@@ -340,131 +359,3 @@ class OpId(unittest.TestCase):
                     ("pacbench-ns-conv", ingest_boundary(batch))))
         finally:
             adapter.close()
-
-
-class ManifestDigest(unittest.TestCase):
-    def test_provider_recipe_carries_six_field_digest(self):
-        from provider_adapters.hindsight_adapter import HindsightAdapter
-        home = Path(tempfile.mkdtemp(prefix="hs-digest-"))
-        adapter = HindsightAdapter(
-            home, engine_factory=lambda db_url, llm: SpyEngine(),
-            pg_factory=FakePG)
-        recipe = live._provider_recipe("hindsight", adapter=adapter)
-        config = recipe["adapter_config"]
-        self.assertEqual(
-            sorted(config),
-            sorted(live.ADAPTER_CONFIG_FIELDS))
-        self.assertEqual(config["source_document_mapping_version"],
-                         SOURCE_DOCUMENT_MAPPING_VERSION)
-        self.assertIn("logical-document-key",  # real scheme, not n/a
-                      config["hindsight_document_id_scheme"])
-        digest = recipe["adapter_config_digest"]
-        self.assertEqual(len(digest), 64)
-        int(digest, 16)  # hex
-        # Stable: same config, same digest.
-        again = live._provider_recipe("hindsight", adapter=adapter)
-        self.assertEqual(again["adapter_config_digest"], digest)
-        # Matches the adapter-side hash of the same dict.
-        from provider_adapters.hindsight_adapter import (
-            adapter_config_digest)
-        self.assertEqual(adapter_config_digest(config), digest)
-
-    def test_checkpoint_manifest_includes_digest(self):
-        # Checkpoint-manifest wiring without a subprocess: a stub with
-        # the real adapter_config() hook and a serverless seam.
-        from types import SimpleNamespace
-        from provider_adapters.hindsight_adapter import (
-            adapter_config as real_config)
-        import json
-        from pacbench.life import Life
-        from pacbench.observation import Observation
-        from pacbench.rubric import Checkpoint, Kind, Norm, Slot
-
-        class HookAdapter:
-            name = "hindsight"
-
-            def reset(self, namespace):
-                pass
-
-            def retrieval(self):
-                return {"provider": "hindsight", "tool_allowlist": ()}
-
-            def ingest(self, observations, collected_at,
-                       group_flags=None):
-                return SimpleNamespace(model_calls=0, latency_s=0.0,
-                                       input_tokens=None,
-                                       output_tokens=None, notes=("fake",))
-
-            def adapter_config(self):
-                return real_config()
-
-            def usage(self):
-                return SimpleNamespace(model_calls=0, latency_s=0.0,
-                                       input_tokens=None,
-                                       output_tokens=None, notes=("fake",))
-
-            def env(self):
-                return {}
-
-        obs = (Observation(
-            source_id="m1", channel="text",
-            written_at="2026-09-08T09:00:00",
-            arrived_at="2026-09-08T09:05:00",
-            collected_at="2026-09-08T10:00:00",
-            sender="Gus", thread="tx", text="day one"),)
-        cp = Checkpoint(
-            id="t/cp", at="2026-09-08T11:00:00",
-            question="What did Gus say?",
-            slots=(Slot(id="s", kind=Kind.CURRENT, norm=Norm.TEXT,
-                        expected="day one",
-                        supported_by=("m1",)),))
-        life = Life(id="t", bet="b", role="development",
-                    observations=obs, checkpoints=(cp,))
-        run_dir = Path(tempfile.mkdtemp(prefix="hs-manifest-"))
-        turn = mock.Mock(returncode=0, answer="day one", tool_calls=[],
-                         tool_results=[], policy_blocks=0, latency_s=0.1,
-                         stderr_tail="", stderr_full="", stdout_tail="",
-                         raw_events=0, session_id=None,
-                         session_input_tokens=None,
-                         session_output_tokens=None)
-        with mock.patch("pacbench.live.harness.provision_home",
-                        return_value={"ok": True}), \
-             mock.patch("pacbench.live.harness.run_turn",
-                        return_value=turn):
-            live.run_checkpoint_live(
-                life=life, checkpoint=cp, adapter=HookAdapter(),
-                hermes_home=run_dir / "home", run_dir=run_dir,
-                model="m", model_provider="mp", namespace="t-ns")
-        manifest = json.loads(
-            (run_dir / "manifest.json").read_text())
-        recipe = manifest["provider_recipe"]
-        self.assertEqual(recipe["provider"], "hindsight")
-        self.assertIn("logical-document-key",
-                      recipe["adapter_config"]["hindsight_document_id_scheme"])
-        self.assertEqual(len(recipe["adapter_config_digest"]), 64)
-
-
-class DigestRefusal(unittest.TestCase):
-    def test_same_digest_aggregates(self):
-        summary = report.summarize([], [], adapter_digests=["abc", "abc"])
-        self.assertEqual(summary.checkpoints, 0)
-
-    def test_mixed_digests_refuse_naming_both(self):
-        with self.assertRaises(RuntimeError) as ctx:
-            report.summarize([], [], adapter_digests=["digest-aaa",
-                                                      "digest-bbb"])
-        msg = str(ctx.exception)
-        self.assertIn("digest-aaa", msg)
-        self.assertIn("digest-bbb", msg)
-
-    def test_manifest_level_refusal(self):
-        good = {"provider_recipe": {"adapter_config_digest": "d1"}}
-        bad = {"provider_recipe": {"adapter_config_digest": "d2"}}
-        self.assertEqual(report.check_manifest_digests([good, dict(good)]),
-                         "d1")
-        with self.assertRaises(RuntimeError):
-            report.check_manifest_digests([good, bad])
-
-
-if __name__ == "__main__":
-    unittest.main()

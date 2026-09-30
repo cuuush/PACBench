@@ -11,6 +11,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
@@ -44,6 +46,14 @@ def _fake_obs(source_id, channel="email", sender="Maya",
         "from_owner": from_owner,
         "structured": None,
     }
+
+
+def _chat_message(source_id, thread, sender, text, minute, *, owner=False):
+    row = _fake_obs(source_id, channel="imessage", sender=sender,
+                    thread=thread, text=text, from_owner=owner,
+                    collected_at="2026-09-08T12:00:00")
+    row["written_at"] = f"2026-09-08T09:{minute:02d}:00"
+    return row
 
 
 @unittest.skipIf(MemcalAdapter is None,
@@ -150,6 +160,52 @@ class MemcalAdapterTmpHome(unittest.TestCase):
             self.adapter.ingest([bad], "2026-09-08T12:00:00")
         self.adapter.cleanup("w3-tmp-rubric")
 
+    def test_native_imessage_ingests_two_threads_once(self):
+        self.adapter.reset("w3-native-chat")
+        day = [
+            _chat_message("pizza-1", "pizza", "Me", "Pizza Friday at Luigi's?", 0,
+                          owner=True),
+            _chat_message("pizza-2", "pizza", "Devon", "Yes, 7pm works.", 1),
+            _chat_message("ducks-1", "ducks", "Maya", "Ducks Saturday at 9?", 2),
+            _chat_message("ducks-2", "ducks", "Devon", "I'm in.", 3),
+            _chat_message("ducks-3", "ducks", "Me", "Maybe for me.", 4,
+                          owner=True),
+        ]
+        flags = {("imessage", "pizza"): False, ("imessage", "ducks"): True}
+        first = self.adapter.ingest(day, "2026-09-08T12:00:00", group_flags=flags)
+        self.assertIn("archived 5", first.notes[0])
+        conn = sqlite3.connect(self.home / "memcal.db")
+        try:
+            rows = conn.execute("SELECT external_id FROM archive ORDER BY id").fetchall()
+            spool = conn.execute("SELECT entity FROM spool ORDER BY archive_id").fetchall()
+        finally:
+            conn.close()
+        self.assertEqual({r[0] for r in rows}, {m["source_id"] for m in day})
+        self.assertEqual(len(spool), 5)
+        self.assertEqual({r[0] for r in spool},
+                         {"person:Devon", "thread:imessage:ducks"})
+        self.assertTrue((self.home / "chat.db").exists())
+        self.assertEqual({p["source_id"] for p in self.adapter._last_packets},
+                         {m["source_id"] for m in day})
+        self.assertEqual({p["entity"] for p in self.adapter._last_packets},
+                         {"person:Devon", "thread:imessage:ducks"})
+
+        next_day = [_chat_message("pizza-3", "pizza", "Devon",
+                                  "Looking forward to it.", 5)]
+        next_day[0]["written_at"] = "2026-09-09T09:05:00"
+        next_day[0]["collected_at"] = "2026-09-09T12:00:00"
+        self.adapter.ingest(next_day, "2026-09-09T12:00:00", group_flags=flags)
+        conn = sqlite3.connect(self.home / "memcal.db")
+        try:
+            ids = [r[0] for r in conn.execute("SELECT external_id FROM archive")]
+            entities = [r[0] for r in conn.execute("SELECT entity FROM spool")]
+        finally:
+            conn.close()
+        self.assertEqual(len(ids), 6)
+        self.assertEqual(len(set(ids)), 6)
+        self.assertEqual(entities.count("person:Devon"), 3)
+        self.adapter.cleanup("w3-native-chat")
+
     def test_brief_renders_fictional_date_not_host_week(self):
         """H1 provider-path clock: the brief follows MEMCAL_TODAY, not host.
 
@@ -199,6 +255,35 @@ class MemcalAdapterTmpHome(unittest.TestCase):
         self.assertFalse(readiness.ready)
         self.assertIn("skipped", readiness.detail)
         self.adapter.cleanup("w3-tmp-skipped")
+
+    def test_dream_error_is_not_ready_and_uses_explicit_endpoint(self):
+        adapter = MemcalAdapter(
+            self.home, dream_model="test-model",
+            dream_base_url="https://example.test/v1", dream_api_key="test-key")
+        adapter.reset("w3-dream-error")
+
+        def failed_dream(conn, cfg, **_kwargs):
+            self.assertEqual(cfg.llm_provider, "openai-compatible")
+            self.assertEqual(cfg.openai_base_url, "https://example.test/v1")
+            self.assertEqual(cfg.openai_api_key, "test-key")
+            self.assertEqual((cfg.propose_model, cfg.sweep_model, cfg.match_model),
+                             ("test-model",) * 3)
+            self.assertEqual(cfg.propose_output_floor, 16384)
+            row = conn.execute(
+                "INSERT INTO runs(started_at, finished_at, mode, model, bundles, "
+                "items, prompt_tokens, completion_tokens, requests, failed_calls, error) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                ("2026-09-10T23:59:00", "2026-09-10T23:59:00", "nightly",
+                 "test-model", 1, 1, 100, 5, 1, 1, "HTTP 400 unsupported model"))
+            conn.commit()
+            return SimpleNamespace(run_id=row.lastrowid)
+
+        with mock.patch("memcal.dream.run.dream", side_effect=failed_dream):
+            usage = adapter.maintenance("2026-09-10T23:59:00")
+        self.assertEqual(usage.input_tokens, 100)
+        self.assertEqual(adapter._maintenance["state"], "failed")
+        self.assertIn("HTTP 400", adapter.readiness().detail)
+        adapter.cleanup("w3-dream-error")
 
 
 if __name__ == "__main__":

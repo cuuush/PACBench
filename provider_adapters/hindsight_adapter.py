@@ -91,8 +91,13 @@ FORBIDDEN_OBS_KEYS = ("expected", "slots", "supported", "forbidden",
 
 #: Hermes registers MCP tools under their server-qualified wire names.
 #: The bare names remain in mcp_tools for adapter documentation.
-HINDSIGHT_MCP_TOOLS = ("retain", "recall", "reflect")
-HINDSIGHT_TOOL_ALLOWLIST = ("tool_search", "tool_describe") + tuple(
+HINDSIGHT_MCP_TOOLS = (
+    "retain", "recall", "reflect",
+    "list_memories", "get_memory", "list_documents", "get_document",
+    "search_knowledge_base", "get_knowledge_base_tree", "get_knowledge_page",
+    "list_mental_models", "get_mental_model", "list_directives",
+)
+HINDSIGHT_TOOL_ALLOWLIST = ("tool_search", "tool_describe", "tool_call") + tuple(
     f"mcp__hindsight__{name}" for name in HINDSIGHT_MCP_TOOLS)
 
 META_GATEWAY_URL = "https://api.meta.ai/v1"
@@ -133,12 +138,7 @@ OPERATION_ID_STRATEGY = "uuid5(NAMESPACE_URL, '{bank}:{collected_at-boundary}')"
 
 
 def adapter_config() -> dict:
-    """Adapter-config facts feeding the run-manifest digest (plan.md P0-2).
-
-    ``memcal_recipe_version`` is filled in by ``pacbench.live`` (which
-    owns the memcal checkout pin); this module reports the five
-    Hindsight-side fields.
-    """
+    """Describe Hindsight's ingestion and update configuration."""
     return {
         "source_document_mapping_version": SOURCE_DOCUMENT_MAPPING_VERSION,
         "hindsight_document_id_scheme": DOCUMENT_ID_SCHEME,
@@ -569,7 +569,7 @@ class HindsightAdapter(ProviderAdapter):
             self._retain_in_tokens = (self._retain_in_tokens or 0) + in_tok
             self._retain_out_tokens = (self._retain_out_tokens or 0) + out_tok
         return Usage(
-            model_calls=self._retain_calls, latency_s=latency,
+            model_calls=1 if contents else 0, latency_s=latency,
             input_tokens=in_tok, output_tokens=out_tok,
             notes=(usage_note,))
 
@@ -738,12 +738,7 @@ class HindsightAdapter(ProviderAdapter):
             notes=(notes,))
 
     def adapter_config(self) -> dict:
-        """Hindsight-side adapter-config facts (plan.md P0-2 digest input).
-
-        Duck-typed hook: ``pacbench.live`` reads this without importing
-        any provider module, then adds ``memcal_recipe_version`` and
-        hashes the merged dict into the run manifest.
-        """
+        """Return Hindsight's configuration metadata."""
         return adapter_config()
 
     def env(self) -> dict:

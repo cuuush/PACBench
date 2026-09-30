@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
+from zoneinfo import ZoneInfo
 
 from .observation import CHANNELS, Observation
 from .model_calls import ModelOutput
@@ -51,6 +52,7 @@ class ScenePlan:
     at: str = ""
     window_start: str = ""
     window_end: str = ""
+    timezone: str = ""
 
     def __post_init__(self) -> None:
         if not self.scene.strip():
@@ -68,21 +70,33 @@ class ScenePlan:
         if not self.thread:
             object.__setattr__(self, "thread", self.id)
         if not self.window_end:
-            object.__setattr__(self, "window_end", (
-                datetime.fromisoformat(start) + timedelta(minutes=20))
-                .isoformat(timespec="seconds"))
+            end = datetime.fromisoformat(start) + timedelta(minutes=20)
+            if self.timezone:
+                end = end.astimezone(ZoneInfo(self.timezone))
+            object.__setattr__(self, "window_end", end.isoformat(timespec="seconds"))
 
 
 #: Prompt version for scene-level authoring.
-SCENE_PROMPT_VERSION = "scene-v8"
+SCENE_PROMPT_VERSION = "scene-v13"
 
 
-def scene_prompt(plan: ScenePlan) -> str:
+def scene_prompt(plan: ScenePlan,
+                 prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
     """The generator sees the scene, never the later evaluation intent."""
     required = ("\n\nThe conversation must naturally and unambiguously establish each of "
                 "these facts (they are authoring constraints, not lines to copy):\n" +
                 "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
                 if plan.facts else "")
+    continuity = (
+        "Earlier messages in this same thread, with their dates "
+        "(context, not text to repeat):\n" +
+        "\n".join((f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
+                   else f"{row[0]}: {row[1]}") for row in prior_lines[-12:]) +
+        "\nContinue naturally. People remember the prior exchange and do not "
+        "recap settled details unless conversation calls for it. Respect any "
+        "gap between those dates and today's date; don't reply as if an old "
+        "message just arrived.\n\n"
+        if prior_lines else "")
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "
         "Use `Me` exactly for the user's own messages and distinct names for "
@@ -90,19 +104,27 @@ def scene_prompt(plan: ScenePlan) -> str:
         "`I`, or another alias for the user's speaker label.\n\n"
         f"Conversation date: {plan.window_start[:10]}. Relative dates in "
         "the conversation use this date as their reference.\n"
+        f"These messages will be timestamped between {plan.window_start[11:16]} "
+        f"and {plan.window_end[11:16]} local time. Keep references to the "
+        "current time of day consistent with that window.\n"
+        f"{continuity}"
         f"Scenario: {plan.scene}{required}\n\n"
-        "Let the people sound like people: start with ordinary chatter, "
-        "a small joke or unrelated detail, and an uneven path into the "
-        "main topic. Some messages should have nothing to do with the "
-        "tested facts. Avoid adding another concrete plan, commitment, "
-        "address, durable preference, or relationship as filler. Do not "
-        "recite the required facts as a list.\n\n"
-        "When the scenario says a group agrees on a plan, give every named "
-        "participant a clear acceptance after the final date, time, and "
-        "place are proposed. A tentative 'should be' is not an acceptance.\n\n"
-        "Use natural date language in casual messages. A phrase such as "
-        "'next Wednesday' is enough when this conversation date makes it "
-        "unambiguous; do not force a full year into a text message.\n\n"
+        "Let the people sound like people. They can ramble about an ordinary "
+        "day, drift into the main topic, and sometimes change subject. "
+        "Some messages should have nothing to do with tested facts. Do not "
+        "force a joke or use the same greeting pattern in every thread. "
+        "Ordinary side activities are fine; avoid inventing major new "
+        "commitments, addresses, durable preferences, or relationships. "
+        "Write only text messages: no bracketed stage directions, photo "
+        "placeholders, or imaginary attachment markers.\n\n"
+        "Make commitments clear, but never turn confirmations into a recital "
+        "of date, time, place, and companion. A short 'yeah that works' after "
+        "a specific proposal is a real acceptance. In a continuation, people "
+        "can change one detail without repeating the whole existing plan. "
+        "A tentative 'should be' alone is not an acceptance.\n\n"
+        "Use natural date language in casual messages. 'Friday' is enough "
+        "when this conversation date makes it unambiguous; avoid month, day "
+        "number, or year unless a person would actually clarify it.\n\n"
         "Choose the number of messages needed for a natural exchange. "
         "Write one message per line, as `Name: message` using consistent "
         "speaker names. No timestamps, headers, or narration inside the "
@@ -133,6 +155,7 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         "at": plan.at,
         "window_start": plan.window_start,
         "window_end": plan.window_end,
+        "timezone": plan.timezone,
         "prompt_version": SCENE_PROMPT_VERSION,
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
     }
@@ -179,8 +202,16 @@ def spread_timestamps(plan: ScenePlan, n: int) -> list[str]:
             f"start {plan.window_start!r}")
     if n <= 1:
         return [start.isoformat(timespec="seconds")]
+    if plan.timezone:
+        zone = ZoneInfo(plan.timezone)
+        start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
+        step = (end - start) / (n - 1)
+        return [(end if i == n - 1 else start + step * i)
+                .astimezone(zone).isoformat(timespec="seconds")
+                for i in range(n)]
     step = (end - start) / (n - 1)
-    return [(start + step * i).isoformat(timespec="seconds") for i in range(n)]
+    return [(end if i == n - 1 else start + step * i).isoformat(timespec="seconds")
+            for i in range(n)]
 
 
 def norm_thread(thread: str) -> str:
@@ -228,12 +259,18 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
 # ------------------------------------------------------------------ judging --
 
 #: Approved narrow-judge prompter (verdicts only, never ground truth).
-JUDGE_PROMPT_VERSION = "scene-judge-v6"
+JUDGE_PROMPT_VERSION = "scene-judge-v8"
 
-def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]]) -> str:
+def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
+                 prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
     """Verify that the transcript establishes the authored scene."""
     transcript = "\n".join(f"{i + 1}. {s}: {t}"
                            for i, (s, t) in enumerate(lines))
+    prior = ("Earlier messages in this thread, for interpreting references "
+             "(cite only the numbered new messages below):\n" +
+             "\n".join((f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
+                        else f"{row[0]}: {row[1]}") for row in prior_lines[-20:]) +
+             "\n\n" if prior_lines else "")
     required = ("\n\nFor each numbered required fact, report whether the dialogue "
                 "actually establishes it, with line citations. Distinguish "
                 "a suggestion from a commitment and an old option from the "
@@ -259,7 +296,10 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]]) -> str:
         "explanation, empty when supported).\n\n"
         f"Conversation date: {plan.window_start[:10]}. Resolve relative "
         "dates from this fictional date.\n"
-        f"Scenario: {plan.scene}{required}\n\nTranscript:\n{transcript}"
+        f"The new messages will be timestamped between {plan.window_start[11:16]} "
+        f"and {plan.window_end[11:16]} local time. Reject dialogue that "
+        "clearly places the current exchange at a different time of day.\n"
+        f"Scenario: {plan.scene}{required}\n\n{prior}New messages:\n{transcript}"
     )
 
 
@@ -338,12 +378,13 @@ class SceneRealization:
 def judge_scene(plan: ScenePlan, lines: list[tuple[str, str]],
                 judge_generate: Generate, *, model: str = "",
                 record_dir: str | Path | None = None,
-                attempt: int = 1) -> tuple[dict, int, int, str | None]:
+                attempt: int = 1,
+                prior_lines: tuple[tuple[str, ...], ...] = ()) -> tuple[dict, int, int, str | None]:
     """Run the narrow judge; return (verdict, prompt_chars, response_chars,
     judgment_path). Fail closed on an unparsable verdict or any unsupported
     fact. Every call is persisted to `record_dir` when given (audit evidence,
     pass or fail)."""
-    prompt = judge_prompt(plan, lines)
+    prompt = judge_prompt(plan, lines, prior_lines)
     generated = judge_generate(prompt)
     model_call = generated.record_path if isinstance(generated, ModelOutput) else None
     model_usage = generated.usage if isinstance(generated, ModelOutput) else None
@@ -420,7 +461,8 @@ def _record(plan: ScenePlan, lines: list[tuple[str, str]], prompt: str,
 
 def realize_scene(plan: ScenePlan, generate: Generate,
                   judge_generate: Generate, *, model: str = "",
-                  record_dir: str | Path | None = None) -> SceneRealization:
+                  record_dir: str | Path | None = None,
+                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> SceneRealization:
     """Render one scene and verify it with the narrow judge only — no
     deterministic checks. One re-render with the failure quoted; then fail
     loudly. Returns frozen lines plus provenance."""
@@ -428,15 +470,19 @@ def realize_scene(plan: ScenePlan, generate: Generate,
         raise AuthoringError(f"scene {plan.id!r}: invalid channel or thread metadata")
     spread_timestamps(plan, 2)
     record = SceneRecord(scene_id=plan.id)
-    initial_prompt = scene_prompt(plan)
+    initial_prompt = scene_prompt(plan, prior_lines)
     note = ""
     failure = ""
     previous_draft = ""
+    previous_result: ModelOutput | None = None
     retry_feedback = ""
     while True:
         record.attempts += 1
         prompt = initial_prompt + note
-        if record.attempts > 1 and hasattr(generate, "complete"):
+        if record.attempts > 1 and previous_result is not None and hasattr(generate, "continue_from"):
+            record.prompt_chars += len(initial_prompt) + len(retry_feedback)
+            generated = generate.continue_from(previous_result, initial_prompt, retry_feedback)
+        elif record.attempts > 1 and hasattr(generate, "complete"):
             messages = [
                 {"role": "user", "content": initial_prompt},
                 {"role": "assistant", "content": previous_draft},
@@ -451,6 +497,9 @@ def realize_scene(plan: ScenePlan, generate: Generate,
         out = (generated.text if isinstance(generated, ModelOutput) else generated).strip()
         if isinstance(generated, ModelOutput):
             record.generation_paths.append(generated.record_path)
+            previous_result = generated
+            if generated.request_sha:
+                record.prompt_sha = generated.request_sha[:16]
         record.response_chars += len(out)
         try:
             dialogue = out
@@ -478,7 +527,8 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                 try:
                     verdict, pc, rc, jpath = judge_scene(
                         plan, lines, judge_generate, model=model,
-                        record_dir=record_dir, attempt=record.attempts)
+                        record_dir=record_dir, attempt=record.attempts,
+                        prior_lines=prior_lines)
                 except SceneJudgeError as exc:
                     record.judge_calls += 1
                     if exc.judgment_path is not None:

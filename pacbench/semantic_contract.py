@@ -22,6 +22,17 @@ def _json(result: str | ModelOutput) -> dict:
     return value
 
 
+def _call_json(call: Callable, prompt: str) -> dict:
+    for attempt in range(2):
+        try:
+            return _json(call(prompt))
+        except (TypeError, json.JSONDecodeError, ValueError):
+            if attempt == 0:
+                prompt += ("\nThe previous response was not a valid JSON object. "
+                           "Return one complete JSON object with no surrounding text.")
+    raise ValueError("contract model returned malformed JSON twice")
+
+
 def _dialogue(observations: list[dict]) -> str:
     return "\n".join(f"{o['source_id']} | written {o['written_at']} | "
                      f"{o['sender']}: {o['text']}"
@@ -60,15 +71,16 @@ def build_contract(*, scene: str, test_intent: str,
     if len(ids) != len(observations):
         raise ValueError("duplicate dialogue source ids")
     fact_instruction = (
-        "The author supplied the following required facts. Make exactly one "
-        "independently assessable claim for each, in the same order, with IDs "
-        "fact-1, fact-2, and so on. Cite dialogue evidence for each. Do not "
-        "merge facts, add claims, or treat intended but absent details as true. "
-        "If a supplied fact combines independently testable details, flag "
-        "that in the review rather than silently splitting it.\nRequired facts:\n" +
+        "The author supplied the following required facts. Return one claim "
+        "per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact "
+        "dialogue source IDs as evidence. Do not merge facts, add claims, or "
+        "treat intended but absent details as true. The authored fact text is "
+        "the claim statement; do not rewrite it or add another fact's value. "
+        "If a supplied fact combines details that can be graded separately, "
+        "flag that in the review rather than silently splitting it.\nRequired facts:\n" +
         "\n".join(f"{i}. {fact}" for i, fact in enumerate(author_facts, 1)) + "\n"
         if author_facts else "")
-    proposed = _json(generate(
+    proposed = _call_json(generate,
         "Identify independently assessable factual claims that cover every "
         "detail required by the test intent. Separate details that an answer "
         "could get right or wrong independently, such as a date and a time, "
@@ -82,7 +94,7 @@ def build_contract(*, scene: str, test_intent: str,
         '"evidence":["source-id"]}]}.\n\n'
         f"Private scenario: {scene}\nTest intent: {test_intent}\n"
         f"{fact_instruction}"
-        f"Frozen dialogue:\n{dialogue}"))
+        f"Frozen dialogue:\n{dialogue}")
     rows = proposed.get("claims")
     if not isinstance(rows, list) or not rows:
         raise ValueError("contract generator returned no claims")
@@ -93,8 +105,9 @@ def build_contract(*, scene: str, test_intent: str,
     for row in rows:
         if not isinstance(row, dict):
             raise ValueError("malformed contract claim")
-        cid, statement, evidence = (row.get("id"), row.get("statement"),
-                                    row.get("evidence"))
+        cid, evidence = row.get("id"), row.get("evidence")
+        statement = (author_facts[len(claims)] if author_facts and
+                     len(claims) < len(author_facts) else row.get("statement"))
         if (not isinstance(cid, str) or not cid or cid in seen or
                 (author_facts and cid != f"fact-{len(claims) + 1}") or
                 not isinstance(statement, str) or not statement.strip() or
@@ -104,11 +117,13 @@ def build_contract(*, scene: str, test_intent: str,
         seen.add(cid)
         claims.append(ContractClaim(cid, statement.strip(), tuple(evidence)))
 
-    reviewed = _json(verify(
+    reviewed = _call_json(verify,
         "Review each proposed claim against the dialogue and test intent. "
         "When required facts are supplied, verify that each matching claim "
-        "faithfully covers exactly that one fact, that the authored fact is "
-        "independently assessable, and that no current-state detail was "
+        "faithfully covers exactly that one fact. Try answering one detail "
+        "correctly while omitting another detail in the same claim: if this "
+        "is possible, reject that compound authored fact and ask for it to "
+        "be split. Check that no current-state detail was "
         "invented from an old or tentative mention. Reject a compound fact "
         "that should be split by its author. "
         "Also decide whether the set covers every intent-required detail "
@@ -123,7 +138,7 @@ def build_contract(*, scene: str, test_intent: str,
         '"relevant":true,"unambiguous":true,"reason":"brief explanation"}]}. '
         "One review per claim in order.\n\n"
         f"Test intent: {test_intent}\n{fact_instruction}Frozen dialogue:\n{dialogue}\n"
-        f"Proposed claims: {json.dumps([vars(c) for c in claims])}"))
+        f"Proposed claims: {json.dumps([vars(c) for c in claims])}")
     reviews = reviewed.get("reviews")
     if (reviewed.get("complete") is not True or
             not isinstance(reviews, list) or len(reviews) != len(claims) or
@@ -135,7 +150,14 @@ def build_contract(*, scene: str, test_intent: str,
         raise ValueError(f"contract review rejected claims: {reviewed}")
 
     question_prompt = (
-        "Write one natural user question that tests these claims together. "
+        "Write one short, casual question a person would actually text to "
+        "their assistant. It should invite a useful recap that covers the "
+        "claims, but must not read like an evaluation checklist or enumerate "
+        "who/where/when fields. Give the assistant a useful scope, such as "
+        "this weekend's plans; 'where do things stand?' alone is too vague. "
+        "If the claims include completed events, ask about what happened as "
+        "well as what is coming up. If a plan changed, a natural question can "
+        "ask what changed. "
         "Do not reveal any answer, person, venue, time, or other claim value. "
         "Do not invent who performed an action or make an unsupported "
         "ownership or commitment claim in the question. For tickets bought "
@@ -146,12 +168,16 @@ def build_contract(*, scene: str, test_intent: str,
         f"Claims: {json.dumps([vars(c) for c in claims])}")
     question_review_prompt = (
         "Check the proposed user question against the frozen dialogue and "
-        "claims. Does it reveal an answer to a claim? Does it assert or "
+        "claims. Does it give a useful topic or time scope without being a "
+        "checklist? A question with no identifiable scope, such as 'where do "
+        "things stand?', should be rejected. Does it reveal an answer to a "
+        "claim? Does it assert or "
         "presuppose anything the dialogue does not establish, including who "
         "bought, booked, chose, or agreed to something? Return only JSON: "
         '{"safe":true,"faithful":true,"reason":"brief explanation"}. '
-        "Safe means no answer is disclosed; faithful means every factual "
-        "presupposition is supported by the dialogue. For example, 'tickets "
+        "Safe means no answer is disclosed; faithful means the question has "
+        "a useful scope and every factual presupposition is supported by the "
+        "dialogue. For example, 'tickets "
         "I purchased' is unfaithful if a companion bought them.\n\n"
         f"Frozen dialogue:\n{dialogue}\nQuestion: {{question}}\nClaims: "
         f"{json.dumps([vars(c) for c in claims])}")
@@ -159,11 +185,11 @@ def build_contract(*, scene: str, test_intent: str,
     question_review = None
     correction = ""
     for _ in range(2):
-        question_doc = _json(question_generate(question_prompt + correction))
+        question_doc = _call_json(question_generate, question_prompt + correction)
         question = question_doc.get("question")
         if not isinstance(question, str) or not question.strip().endswith("?"):
             raise ValueError("question generator returned no usable question")
-        question_review = _json(verify(question_review_prompt.replace("{question}", question)))
+        question_review = _call_json(verify, question_review_prompt.replace("{question}", question))
         if question_review.get("safe") is True and question_review.get("faithful") is True:
             break
         correction = (f"\nThe previous question was rejected: {question}. "

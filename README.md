@@ -1,43 +1,47 @@
 # PACBench
 
-PACBench tests whether a personal assistant can answer from a frozen fictional conversation through a memory provider. A scene can be authored as a thread description plus a short list of required facts, each written as a plain-language assertion. The generator can write natural side chatter, while a separate verifier checks that the conversation actually establishes every fact. The earlier `scene` + `test_intent` form remains supported. See [authoring options](docs/authoring-options.md) for the tradeoffs.
+PACBench tests whether a personal assistant can recall a plan from a fictional conversation. [Pizza Day](examples/pizza_day.json) is the current small example: the author describes a chat and lists five facts the assistant should remember. The writer adds natural side chatter and chooses the message count.
 
-## Run a semantic experiment
+## Run Pizza Day
 
-`examples/ice_cream.json` shows a thread description, one fictional occurrence time, and three required facts. The writer chooses the conversation length; PACBench assigns message timestamps afterward. Scene and thread IDs default from scene order. A thread ID is only needed when several scenes belong to the same conversation. Maintenance defaults to one hour before a next-morning question. `examples/pizza_day.json` and `examples/movie_night.json` show the earlier intent form. The runner is scenario-agnostic:
+See [PIZZA_DAY.md](PIZZA_DAY.md) for the complete setup, live command, artifact checks, and findings from the latest run.
 
-```sh
-/usr/local/bin/python3 -m pacbench.semantic_experiment examples/pizza_day.json
-/usr/local/bin/python3 -m pacbench.semantic_experiment examples/ice_cream.json --prepare-only
-```
-
-Set the model credentials used by `pacbench.creds` first. The run writes to a new `runs/semantic-*` directory and prints its path. The facts guide the writer, are checked against the rendered conversation by a separate verifier, and become evidence-cited claims for answer grading only after that review passes. The writer also returns a short author-facing note about its creative choices. PACBench saves the authored and resolved metadata separately. `--prepare-only` stops after freezing the dialogue, contract, and common question. A full run sends the same bundle and question through Memcal and Hindsight. Every model request, response, token usage, and available charge is recorded; if the API omits a charge, the artifact says so. A failed model call or malformed judge response leaves the arm incomplete.
-
-The isolated Hermes runtime needs the MCP SDK for Hindsight. Install its pinned extra requirement after creating `vendor/venv-hermes-isolated`:
+Put `MODEL` and `META` in the repo's `.env`. PACBench reads that file; it does not use credentials from a personal Hermes profile.
 
 ```sh
-/usr/local/bin/python3 -m pip --python vendor/venv-hermes-isolated/bin/python install -r vendor/hermes-isolated-extra-requirements.txt
+/usr/local/bin/python3 -m pacbench.semantic_experiment examples/pizza_day.json --prepare-only
 ```
 
-The Hindsight arm tests SDK import, MCP connection and namespaced tool discovery, allowlist access, and an actual read-only recall from its test bank before scoring a turn. Its result separately records whether Hermes chose to call recall. Memcal maintenance and turn prefetch are pinned to the fictional clock. A mismatch invalidates that arm.
+Preparation generates the chats, checks each authored fact against the rendered messages, and freezes a question and evidence-cited contract. It stops before either memory provider runs. Remove `--prepare-only` to ingest the same frozen messages into Memcal and Hindsight and ask both the same question. Each provider arm records tool access, actual calls, the answer, and separate verdicts for each fact.
 
-## Inspect runs
+The runner groups new messages by fictional day. Each provider ingests that day's messages once and runs its native maintenance before the next day. [The one-window correction](examples/pizza_day_correction.json) and [two-day correction](examples/pizza_day_two_days.json) test whether an old 6pm time stays distinct from the agreed 7pm plan. [Pizza Day week](examples/pizza_day_week.json) uses Monday–Sunday chats with human times. It freezes one evidence-cited claim and temporal state per authored fact for each day, then asks Hermes the following morning. Sunday has no new messages but still gets a checkpoint: earlier facts carry forward as history, while Tuesday's correction keeps the old 6pm time superseded. The examples specify `America/New_York`; each local time gets the offset for its own fictional day. Both providers receive the same frozen timestamp and text.
+
+The five Pizza Day facts cover Devon, Luigi's, 5th, Friday September 11, and 7pm. The date fact does not require the year in an assistant answer. For fact-authored scenes, the contract keeps the author's wording exactly; a model supplies dialogue citations and independently reviews support and ambiguity. An unsupported fact stops preparation. The scoring judge sees the frozen claims, question, and answer, never the private scene description.
+
+The generic runner also accepts `scene` plus `test_intent` prose and derives claims from verified dialogue. Pizza Day uses the clearer authored fact list. [Authoring options](docs/authoring-options.md) explains the choice.
+
+The scene writer uses Meta Responses and can replay saved encrypted reasoning when revising a rejected draft. The verifier and answer judge use single-turn calls. Each model call saves its request, response, model, tokens, and any reported dollar charge in the private run directory. An unavailable charge is recorded as unavailable. Incomplete or malformed judgments leave a run ungraded.
+
+## Inspect a run
 
 ```sh
 /usr/local/bin/python3 serve_explorer.py
 ```
 
-The local WebUI rebuilds its artifact index when loaded or refreshed. Story shows the rendered texts or emails, writer prompt and note, and the separate rendering review. Each provider gets a chat view with the question, any automatic brief, tool calls and returned memory, answer, and a clickable verdict badge with the answer judge's per-fact reasons. Saved files holds the detailed artifacts. The viewer accepts multiple saved question/answer exchanges when present; the current semantic runner freezes one question per experiment. The earlier corpus browser remains at `legacy.html`. Historical runs retain their original saved observations and hash even if a current fixture has changed. Missing internal traces are labeled “not captured.”
+The WebUI shows Pizza Day's authored facts, rendered texts, writer note and prompt, each scene-verifier decision with message citations, the frozen contract, and answer judgments. Provider views show the question, Memcal brief or recall calls, tool arguments and results, answer, and claim-level reasons. Encrypted reasoning is retained in the private run record and redacted from explorer data. Each run uses its own saved bundle and hash. Old run artifacts remain on disk, but the retired historical corpus and its browser are gone.
 
-## Calibration and tests
+## Calibrate and check
 
-`calibration/pizza_answers.json` contains proposed labels for a full answer, omissions, wrong details, uncertainty, and a historical venue mention. Run the same judge against the frozen contract with:
+The [nine Pizza Day answers](calibration/pizza_answers.json) cover a full answer, omissions, wrong details, uncertainty, and a venue mentioned only as history. `runs/semantic-20260923T140000Z/calibration-facts/report.json` contains nine real judge results matching nine **proposed** labels. A person still needs to review those labels before using the scores to compare providers. Calibration input is bound to one contract hash; use the run's saved `calibration-proposed.json` with that run's contract.
+
+The first live seven-day diagnostic is `runs/semantic-pizza-week-live-v15-20260928/`: 116 messages, one quiet day, seven valid morning checkpoints per provider, matched input hashes, and observed memory-tool use in both arms. [PIZZA_DAY.md](PIZZA_DAY.md) records the verdicts and remaining grading questions.
+
+Each new run also writes `run-audit.json`. The audit checks frozen hashes and citations, exactly-once daily input, matched provider packets, fictional clocks, preflight access, and complete claim judgments. Run it again on a saved result with `python3 -m pacbench.run_audit runs/<run-id>`. A passing trace audit establishes experiment integrity; human-reviewed calibration is still required before interpreting answer scores comparatively.
 
 ```sh
-/usr/local/bin/python3 -m pacbench.semantic_calibration runs/semantic-<run>/contract.json calibration/pizza_answers.json runs/semantic-<run>/calibration
-pytest
+/usr/local/bin/python3 -m pytest -q
+node --check explorer/dashboard.js
+/usr/local/bin/python3 scripts/build_explorer_data.py
 ```
 
-The proposed labels require human review before semantic scores are used to compare providers. The older `run-life` CLI and historical benchmark artifacts remain available for provenance; older design notes in `docs/` describe prior workflows and may refer to removed corpus fixtures.
-
-Current development rules and next steps are in [AGENTS.md](AGENTS.md).
+MCP seam tests need loopback access. Pizza Day is a diagnostic case; proposed calibration labels need human review before comparative scores. [AGENTS.md](AGENTS.md) records the current evidence and next work.

@@ -7,12 +7,10 @@ answer text or chooses a semantic verdict. A failed judge call cannot pass.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from .grade import Grade, GradedSlot
-from .rubric import Verdict
 from .model_calls import ModelOutput
 
 Generate = Callable[[str], str]
@@ -25,13 +23,36 @@ class Claim:
     evidence: tuple[str, ...] = ()
 
 
+@dataclass
+class GradedClaim:
+    id: str
+    verdict: str
+    reason: str
+
+
+@dataclass
+class Grade:
+    checkpoint: str
+    slots: list[GradedClaim] = field(default_factory=list)
+    correct: int = 0
+    missed: int = 0
+    misrepresented: int = 0
+    claim_coverage: float = 0.0
+    all_claims_correct: bool = False
+
+
+VERDICTS = {"correct", "missed", "misrepresented"}
+
+
 def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...]) -> str:
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
         "You are a semantic memory-benchmark judge. Evaluate each claim "
         "independently against the assistant's answer to the user's question. "
-        "Use meaning and context, not string matching. A fact mentioned as "
+        "Use meaning and context, not string matching or a demand for "
+        "verbatim wording. Grade only the details stated in each claim. "
+        "A fact mentioned as "
         "historical does not count as an assertion about the current plan. "
         "If absent or explicitly "
         "unknown, mark missed; if contradicted or a wrong value is asserted "
@@ -67,7 +88,7 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
         rows = parsed["verdicts"]
         valid = (isinstance(rows, list) and len(rows) == len(claims) and
                  all(isinstance(r, dict) and r.get("id") == c.id and
-                     r.get("verdict") in {v.value for v in Verdict} and
+                     r.get("verdict") in VERDICTS and
                      isinstance(r.get("reason"), str) and r["reason"].strip()
                      for r, c in zip(rows, claims)))
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
@@ -75,14 +96,10 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
     if not valid:
         raise ValueError(f"unusable semantic judge verdicts: {output[:200]!r}")
     result = Grade(checkpoint=checkpoint_id)
-    result.slots = [GradedSlot(r["id"], r["verdict"], r["reason"]) for r in rows]
-    result.correct = sum(r.verdict == Verdict.CORRECT for r in result.slots)
-    result.missed = sum(r.verdict == Verdict.MISSED for r in result.slots)
-    result.misrepresented = sum(r.verdict == Verdict.MISREPRESENTED for r in result.slots)
-    result.recall = result.correct / len(claims)
-    result.precision = (result.correct / (result.correct + result.misrepresented)
-                        if result.correct + result.misrepresented else 0.0)
-    result.f1 = (2 * result.precision * result.recall / (result.precision + result.recall)
-                 if result.precision + result.recall else 0.0)
-    result.complete_plan = result.correct == len(claims)
+    result.slots = [GradedClaim(r["id"], r["verdict"], r["reason"]) for r in rows]
+    result.correct = sum(r.verdict == "correct" for r in result.slots)
+    result.missed = sum(r.verdict == "missed" for r in result.slots)
+    result.misrepresented = sum(r.verdict == "misrepresented" for r in result.slots)
+    result.claim_coverage = result.correct / len(claims)
+    result.all_claims_correct = result.correct == len(claims)
     return result

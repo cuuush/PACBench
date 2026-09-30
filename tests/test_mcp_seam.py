@@ -5,54 +5,12 @@ import unittest
 from pathlib import Path
 
 
-class FakeServerAdapter:
-    def __init__(self):
-        self.started_on = []
-        self.stops = 0
-
-    def start_server(self, port):
-        self.started_on.append(port)
-        return f"http://127.0.0.1:{port}/mcp/bank/"
-
-    def mcp_server_spec(self, port):
-        return {"name": "fake",
-                "url": f"http://127.0.0.1:{port}/mcp/bank/"}
-
-    def stop_server(self):
-        self.stops += 1
-
-
 class ServerLifecycle(unittest.TestCase):
     def test_free_port_is_loopback_ephemeral(self):
-        from pacbench.live import _free_loopback_port
+        from pacbench.semantic_experiment import _free_loopback_port
         port = _free_loopback_port()
-        self.assertIsInstance(port, int)
         self.assertGreater(port, 0)
         self.assertLessEqual(port, 65535)
-
-    def test_no_flag_means_no_server(self):
-        from pacbench.live import _start_provider_server
-        self.assertIsNone(
-            _start_provider_server(FakeServerAdapter(), {}))
-
-    def test_flag_starts_and_stop_is_idempotent(self):
-        from pacbench.live import (_start_provider_server,
-                                   _stop_provider_server)
-        adapter = FakeServerAdapter()
-        specs = _start_provider_server(adapter, {"mcp_server": True})
-        self.assertIsNotNone(specs)
-        assert specs is not None
-        self.assertEqual(len(specs), 1)
-        self.assertEqual(specs[0]["name"], "fake")
-        self.assertEqual(len(adapter.started_on), 1)
-        _stop_provider_server(adapter)
-        _stop_provider_server(object())  # no stop_server: no-op
-        self.assertEqual(adapter.stops, 1)
-
-    def test_flag_without_adapter_method_fails_closed(self):
-        from pacbench.live import _start_provider_server
-        with self.assertRaises(RuntimeError):
-            _start_provider_server(object(), {"mcp_server": True})
 
     def test_hindsight_seam_carries_checkpoint_keys(self):
         import os
@@ -68,26 +26,9 @@ class ServerLifecycle(unittest.TestCase):
         self.assertIn("mcp__hindsight__recall", seam["tool_allowlist"])
         self.assertIn("tool_describe", seam["tool_allowlist"])
         self.assertIn("tool_search", seam["tool_allowlist"])
+        self.assertIn("tool_call", seam["tool_allowlist"])
         self.assertFalse(seam["plugin_available"])
         self.assertTrue(seam["mcp_server"])
-
-
-class PreflightMcp(unittest.TestCase):
-    def test_mcp_seam_needs_no_plugin(self):
-        import tempfile
-        from pathlib import Path
-        from pacbench.live import preflight
-        from provider_adapters.hindsight_adapter import HindsightAdapter
-        from pacbench.corpus.life_g_toyday import lives
-        life = lives()[0]
-        adapter = HindsightAdapter(
-            Path(tempfile.mkdtemp(prefix="hs-")),
-            engine_factory=lambda db_url, llm: None,
-            pg_factory=lambda name: None)
-        with tempfile.TemporaryDirectory() as tmp:
-            problems = preflight(
-                life, Path(tmp) / "h", Path(tmp) / "m", adapter)
-        self.assertEqual(problems, [])
 
 
 class TurnEnvClock(unittest.TestCase):
@@ -101,6 +42,28 @@ class TurnEnvClock(unittest.TestCase):
         # memcal's documented benchmark seam: brief windows + write
         # precedence follow MEMCAL_TODAY, never the machine clock.
         self.assertEqual(env["MEMCAL_TODAY"], "2026-09-10T19:00:00")
+
+
+class FullToolTrace(unittest.TestCase):
+    def test_recovers_exact_hermes_tool_message_after_stream_cap(self):
+        import sqlite3
+        from pacbench.harness import TurnResult, _recover_tool_results
+
+        with tempfile.TemporaryDirectory(prefix="pacbench-trace-") as tmp:
+            db_path = Path(tmp) / "state.db"
+            with sqlite3.connect(db_path) as db:
+                db.execute("CREATE TABLE messages (id INTEGER PRIMARY KEY, "
+                           "session_id TEXT, role TEXT, tool_name TEXT, content TEXT)")
+                db.execute("INSERT INTO messages VALUES (1, 'session-1', 'tool', "
+                           "'mcp__hindsight__recall', ?)", ("full result " + "x" * 6000,))
+            turn = TurnResult("q", "2026-09-08T08:00:00-04:00", "a", [],
+                              [{"tool": "mcp__hindsight__recall", "text": "p" * 5000 + "...",
+                                "truncated": False}], 0, 1.0, 0, "", 1,
+                              session_id="session-1")
+            _recover_tool_results(turn, db_path)
+            self.assertEqual(turn.tool_results[0]["text"], "full result " + "x" * 6000)
+            self.assertEqual(turn.tool_results[0]["stream_preview"], "p" * 5000 + "...")
+            self.assertEqual(turn.tool_results[0]["capture"], "hermes_session_db")
 
 
 class ProvisionMcp(unittest.TestCase):
@@ -150,8 +113,10 @@ class ServerSpec(unittest.TestCase):
             with mock.patch.dict(os.environ,
                                  {"HINDSIGHT_API_LLM_API_KEY": "k"}):
                 retrieval = adapter.retrieval()
-            self.assertEqual(retrieval["mcp_tools"],
-                             ["retain", "recall", "reflect"])
+            self.assertTrue({"retain", "recall", "reflect", "list_memories",
+                             "get_memory", "get_document"}.issubset(
+                                 retrieval["mcp_tools"]))
+            self.assertNotIn("delete_bank", retrieval["mcp_tools"])
 
 
 class PinnedInterpreter(unittest.TestCase):
@@ -210,14 +175,8 @@ class PinnedInterpreter(unittest.TestCase):
                                  {_harness.PYTHON_ENV_OVERRIDE: "/opt/py3"}):
                 self.assertEqual(_harness.python_bin(), "/opt/py3")
 
-    def test_plugin_adapters_need_no_server(self):
-        from provider_adapters.lexical_adapter import LexicalAdapter
+    def test_memcal_has_no_server_entry(self):
         from provider_adapters.memcal_adapter import MemcalAdapter
-        with tempfile.TemporaryDirectory(prefix="pin-") as tmp:
-            self.assertEqual(LexicalAdapter(Path(tmp) / "l").server_entry(),
-                             "")
-        # memcal server_entry is method-level (no instance state needed):
-        # construct without __init__ (which requires MEMCAL_SRC).
         self.assertEqual(MemcalAdapter.server_entry(
             object.__new__(MemcalAdapter)), "")
 

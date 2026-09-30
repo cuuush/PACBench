@@ -169,18 +169,19 @@ def read_run_usage(conn: sqlite3.Connection, run_id: int | None) -> dict | None:
     try:
         row = conn.execute(
             "SELECT prompt_tokens, completion_tokens, cached_tokens, cost_usd,"
-            " requests, failed_calls FROM runs WHERE id = ?", (run_id,)).fetchone()
+            " requests, failed_calls, error FROM runs WHERE id = ?", (run_id,)).fetchone()
     except Exception:
         return None
     if row is None:
         return None
-    prompt, comp, cached, cost, requests, failed = row
+    prompt, comp, cached, cost, requests, failed, error = row
     return {"prompt_tokens": int(prompt or 0),
             "completion_tokens": int(comp or 0),
             "cached_tokens": int(cached or 0),
             "cost_usd": cost,
             "requests": None if requests is None else int(requests),
-            "failed_calls": None if failed is None else int(failed)}
+            "failed_calls": None if failed is None else int(failed),
+            "error": str(error or "")}
 
 
 class MemcalAdapter(ProviderAdapter):
@@ -193,11 +194,15 @@ class MemcalAdapter(ProviderAdapter):
     #: (clarification 2026-09-21 changes nothing here — it protects
     #: providers with no such lifecycle, e.g. lexical).
 
-    def __init__(self, home: Path, *, dream_model: str | None = None):
+    def __init__(self, home: Path, *, dream_model: str | None = None,
+                 dream_base_url: str | None = None,
+                 dream_api_key: str | None = None):
         check_scratch_home(home)
         self.home = home
         self.src = MEMCAL_SRC
         self.dream_model = dream_model
+        self.dream_base_url = dream_base_url
+        self.dream_api_key = dream_api_key
         self.namespace: str | None = None
         self._archived = 0
         self._redirected_turns = 0
@@ -254,8 +259,23 @@ class MemcalAdapter(ProviderAdapter):
         evidence = [o for o in observations
                     if o.get("channel") not in USER_TURN_CHANNELS]
         redirected = len(observations) - len(evidence)
+        speakers_by_thread: dict[tuple[str, str], set[str]] = {}
+        for obs in evidence:
+            sender = str(obs["sender"])
+            if from_owner_flag(obs) or sender.casefold() == "me":
+                continue
+            key = (str(obs["channel"]), str(obs["thread"] or "").lower())
+            speakers_by_thread.setdefault(key, set()).add(sender.casefold())
+        group_keys = {key for key, speakers in speakers_by_thread.items()
+                      if len(speakers) > 1}
+        group_keys.update((str(channel), str(thread).lower())
+                          for (channel, thread), grouped in (group_flags or {}).items()
+                          if grouped)
         archive, _, _, gate = _memcal()
-        from memcal import textclean
+        from memcal import identity, textclean
+        from memcal.sources import base as source_base
+        from memcal.sources import imessage
+        from provider_adapters.imessage_fixture import append_messages
         conn = self._conn()
         # Pin memcal's native clock to the fictional collection time for the
         # duration of ingest (same MEMCAL_TODAY seam the turn env uses):
@@ -269,7 +289,28 @@ class MemcalAdapter(ProviderAdapter):
             count = 0
             spooled = 0
             gated_out = 0
-            for obs in evidence:
+            imessage_batch = [o for o in evidence if o["channel"] == "imessage"]
+            if imessage_batch:
+                for sender in {str(o["sender"]) for o in imessage_batch
+                               if not (from_owner_flag(o) or
+                                       str(o["sender"]).casefold() == "me")}:
+                    identity.link(conn, sender, sender, source="pacbench:roster",
+                                  commit=False)
+                conn.commit()
+                added = append_messages(self.home / "chat.db", imessage_batch,
+                                        imessage.apple_ns)
+                native = imessage.ingest(conn, db_path=self.home / "chat.db",
+                                         limit=max(2000, added + 1),
+                                         collection_id=collection_id)
+                if native.error or native.read != added:
+                    raise RuntimeError(
+                        f"synthetic iMessage read incomplete: {native.error or ''} "
+                        f"read {native.read}/{added}")
+                count += native.archived
+                spooled += native.passed
+                gated_out += native.read - native.passed - native.too_old
+            queued: list[tuple[int, dict, str]] = []
+            for obs in (o for o in evidence if o["channel"] != "imessage"):
                 # Live-source fidelity (sources/base.py deliver): strip
                 # non-spoken placeholders the way the real ingesters do,
                 # then run the product's own gate before archiving — a
@@ -284,33 +325,17 @@ class MemcalAdapter(ProviderAdapter):
                 if not clean:
                     gated_out += 1
                     continue
-                # Group detection is corpus-authored provenance (§8), shared
-                # with the Hindsight adapter via the runner (fair, §29):
-                # 3+ distinct non-owner senders on the thread = group chat
-                # (memcal's own imessage/whatsapp rule, members > 2).
-                _gf = group_flags or {}
-                _is_group = bool(_gf.get(
-                    (str(obs["channel"]), str(obs["thread"])), False))
+                thread_key = str(obs["thread"] or "").lower()
+                key = (str(obs["channel"]), thread_key)
+                _is_group = key in group_keys
                 verdict = gate.gate_message(
                     clean, person=obs["sender"],
                     from_me=from_owner_flag(obs),
                     channel=obs["channel"], is_group=_is_group)
                 if not verdict:
                     gated_out += 1
-                # entity_for's `person` is the exchange counterpart: for
-                # owner turns the recipient (the thread partner), otherwise
-                # the author — so a conversation keys as ONE bundle (§8).
-                # The thread id is lowercased first: the corpus uses
-                # 'devon' vs 'Devon' for the same conversation across
-                # turns, and without normalization the bundle splits in
-                # two (observed 2026-09-22: person:Devon +
-                # thread:text:Devon instead of one entity). Case is not
-                # thread identity — the product lowercases handles for
-                # the same reason (identity.normalize).
                 sender = str(obs["sender"])
                 owner = from_owner_flag(obs) or sender.lower() == "me"
-                other = None if owner else sender
-                thread_key = str(obs["thread"] or "").lower()
                 row_id = archive.append(
                     conn, channel=obs["channel"], external_id=obs["source_id"],
                     ts=obs["written_at"], text=clean, thread=thread_key,
@@ -320,27 +345,44 @@ class MemcalAdapter(ProviderAdapter):
                 conn.commit()
                 if row_id is not None:
                     count += 1
-                    # Dream's work queue: live source ingesters spool every
-                    # gated line via gate.entity_for (sources/base.py); the
-                    # adapter previously archived without spooling, so
-                    # benchmark texts never reached distillation — the brief
-                    # stayed structurally empty (observed 2026-09-21).
-                    # entity_for ALSO needs the normalized thread: it keys
-                    # thread:{channel}:{thread} verbatim, so the raw-case
-                    # thread would re-split the just-unified bundle.
                     if verdict and archive.within_horizon(obs["written_at"]):
-                        archive.spool_add(
-                            conn, row_id, gate.entity_for(
-                                person=other, thread=thread_key,
-                                channel=obs["channel"], is_group=_is_group))
-                        conn.commit()
-                        spooled += 1
+                        queued.append((row_id, obs, thread_key))
+            # Resolve the full roster before queueing. Live sources use the
+            # counterpart for both directions of a direct conversation; an
+            # owner message seen first cannot know that counterpart yet.
+            counterparts = {
+                key: source_base.thread_person(conn, *key)
+                for key in {(str(obs["channel"]), thread) for _, obs, thread in queued}
+                if key not in group_keys
+            }
+            for row_id, obs, thread_key in queued:
+                channel = str(obs["channel"])
+                key = (channel, thread_key)
+                is_group = key in group_keys
+                counterpart = counterparts.get(key)
+                archive.spool_add(conn, row_id, gate.entity_for(
+                    person=counterpart, thread=thread_key,
+                    channel=channel, is_group=is_group))
+                spooled += 1
+            conn.commit()
             report = SimpleNamespace(channel="pacbench", read=len(evidence),
                                      archived=count, passed=spooled, muted=0,
                                      too_old=gated_out,
                                      error=None, notes=[f"pacbench ingest @ {collected_at}"],
                                      more=False)
             archive.record_source(conn, collection_id, report)
+            self._last_packets = []
+            for message in evidence:
+                row = conn.execute(
+                    "SELECT a.channel, a.external_id AS source_id, a.ts AS written_at,"
+                    " a.thread, a.handle, a.person, a.from_me, a.text, a.gated,"
+                    " a.gate_reason, s.entity FROM archive a"
+                    " LEFT JOIN spool s ON s.archive_id = a.id"
+                    " WHERE a.channel = ? AND a.external_id = ?",
+                    (message["channel"], message["source_id"]),
+                ).fetchone()
+                if row is not None:
+                    self._last_packets.append(dict(row))
         finally:
             if prev_pin is None:
                 os.environ.pop("MEMCAL_TODAY", None)
@@ -376,6 +418,16 @@ class MemcalAdapter(ProviderAdapter):
             archive, config, _, _ = _memcal()
             from memcal.dream import run as dream_run
             cfg = config.load(self.home)
+            if self.dream_model:
+                if not self.dream_base_url or not self.dream_api_key:
+                    raise RuntimeError("Memcal dream endpoint or key missing")
+                cfg.llm_provider = "openai-compatible"
+                cfg.openai_base_url = self.dream_base_url
+                cfg.env["OPENAI_COMPAT_API_KEY"] = self.dream_api_key
+                cfg.propose_model = self.dream_model
+                cfg.sweep_model = self.dream_model
+                cfg.match_model = self.dream_model
+                cfg.propose_output_floor = 16384
             conn = self._conn()
             try:
                 events: list[dict] = []
@@ -389,37 +441,49 @@ class MemcalAdapter(ProviderAdapter):
                                            progress=progress)
                 run_id = getattr(result, "run_id", None)
                 spent = read_run_usage(conn, run_id)
+                pending = conn.execute(
+                    "SELECT count(*) FROM spool WHERE processed_at IS NULL"
+                ).fetchone()[0]
                 if spent is None:
                     self._maintenance = {
-                        "state": "complete", "at": at,
+                        "state": "failed", "at": at,
                         "model": self.dream_model, "run_id": run_id,
                         "usage": "unreadable",
+                        "reason": "dream run-usage row unreadable",
+                        "pending_spool": pending,
                         "events": events[-20:]}
                     latency = round(time.monotonic() - started, 2)
                     self._latency_s += latency
                     return Usage(
                         model_calls=0, latency_s=latency,
-                        notes=("maintenance: complete but run-usage row "
+                        notes=("maintenance: failed; run-usage row "
                                "unreadable (tokens unknown)",))
                 calls = spent["requests"] if spent["requests"] is not None else 0
                 prompt, comp = spent["prompt_tokens"], spent["completion_tokens"]
                 self._model_calls += calls
                 self._input_tokens = (self._input_tokens or 0) + prompt
                 self._output_tokens = (self._output_tokens or 0) + comp
+                failure = spent["error"] or (
+                    f"{pending} queued line(s) remain after maintenance"
+                    if pending else "")
                 self._maintenance = {
-                    "state": "complete", "at": at,
+                    "state": "failed" if failure else "complete", "at": at,
                     "model": self.dream_model, "run_id": run_id,
-                    "usage": spent, "events": events[-20:]}
+                    "usage": spent, "pending_spool": pending,
+                    "reason": failure, "events": events[-20:]}
                 latency = round(time.monotonic() - started, 2)
                 self._latency_s += latency
                 unrecorded = (" (request count unrecorded)"
                               if spent["requests"] is None else "")
+                note = (f"maintenance: {self._maintenance['state']} "
+                        f"(run #{run_id}: {calls} provider requests{unrecorded}, "
+                        f"{prompt} in / {comp} out)")
+                if failure:
+                    note += f"; {failure}"
                 return Usage(
                     model_calls=calls, input_tokens=prompt,
                     output_tokens=comp, latency_s=latency,
-                    notes=(f"maintenance: complete (run #{run_id}: {calls} "
-                           f"provider requests{unrecorded}, {prompt} in / "
-                           f"{comp} out)",))
+                    notes=(note,))
             finally:
                 conn.close()
         except Exception as exc:
@@ -453,6 +517,10 @@ class MemcalAdapter(ProviderAdapter):
                 ready=False,
                 detail=f"dream pass skipped: "
                        f"{self._maintenance.get('reason', '')}")
+        if state == "failed":
+            return Readiness(
+                ready=False,
+                detail=f"dream pass failed: {self._maintenance.get('reason', '')}")
         return Readiness(ready=False, detail="dream pass has not run yet")
 
     # -- retrieval integration (§44 C; §28) ------------------------------------

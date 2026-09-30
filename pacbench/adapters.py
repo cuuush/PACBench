@@ -22,9 +22,8 @@ runner can treat systems uniformly without knowing their internals:
 Fairness rules (binding on later implementations, stated here so adapters are
 written against them from the start):
 
-- Adapters receive only :func:`pacbench.manifest.public_observations` output at
-  the declared collection times. Never future observations, never the rubric,
-  never the support manifest, never the answer key.
+- Adapters receive only the verified frozen observations at the declared
+  collection times. Never future observations or the private fact contract.
 - Adapters contain no scenario-specific interpretation, identity fixes, or
   answer-key-derived behavior.
 - Each provider's *native* lifecycle is exercised (ingestion, consolidation,

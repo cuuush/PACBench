@@ -33,6 +33,9 @@ def audit(root: Path) -> dict:
         if plan:
             check(plan['plan_hash'] == summary['followup_plan_hash'], 'summary follow-up plan mismatch')
         spec = read(root / 'resolved-spec.json')
+        if 'process_timezone' in summary:
+            check(summary['process_timezone'] == spec.get('timezone', ''),
+                  'process timezone differs from frozen scenario')
         digest = hashlib.sha256(json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
         check(digest == contract.evidence_hash == summary['input_hash'], 'exposure hash mismatch')
         check(contract.contract_hash == summary['contract_hash'], 'contract hash mismatch')
@@ -41,6 +44,9 @@ def audit(root: Path) -> dict:
         for result in summary['results']:
             arm = root / f"repeat-{result['repetition']}" / result['provider']
             label = str(arm.relative_to(root))
+            if 'process_timezone' in summary:
+                check(read(arm / 'simulation-clock.json')['process_timezone'] == summary['process_timezone'],
+                      f'{label}: inconsistent provider process timezone')
             check(result['state'] == 'diagnostic', f'{label}: incomplete arm')
             check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
             check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')

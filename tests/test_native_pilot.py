@@ -102,7 +102,8 @@ def test_real_local_native_read_only_seam(tmp_path, provider):
     if not ISOLATED_BIN.exists() or not MEMCAL_SRC.exists():
         pytest.skip("native Hermes or Memcal checkout unavailable; no simulated pass")
     root = tmp_path / provider
-    env = provision(root, provider)
+    env = provision(root, provider, local_timezone="America/New_York")
+    assert env["TZ"] == "America/New_York"
     capability = probe(root, provider, env, smoke=True)
     assert capability["available"] is True
     output = json.loads(capability["read_only_smoke"]["output"])

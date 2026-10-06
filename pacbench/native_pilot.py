@@ -63,7 +63,8 @@ def provider_names() -> list[str]:
     return names + ["memcal"]
 
 
-def provision(root: Path, provider: str, model: str = "unconfigured") -> dict:
+def provision(root: Path, provider: str, model: str = "unconfigured", *,
+              local_timezone: str = "") -> dict:
     home = root / "hermes-home"
     driver_url, client_key = client_settings(f"pacbench-{provider}-driver")
     harness.provision_home(
@@ -77,6 +78,10 @@ def provision(root: Path, provider: str, model: str = "unconfigured") -> dict:
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "0",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC), "HERMES_ENABLE_PROJECT_PLUGINS": "0"}
+    if local_timezone:
+        from zoneinfo import ZoneInfo
+        ZoneInfo(local_timezone)  # Reject invalid simulation zones before any live calls.
+        env["TZ"] = local_timezone
     env.update({"META": "", "META_API_KEY": client_key, "MODEL_API_KEY": client_key,
                 "META_MODEL_API_KEY": client_key, "META_BASE_URL": driver_url,
                 "OPENAI_API_KEY": client_key, "MEM0_API_KEY": "",
@@ -244,6 +249,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         report.update(input_hash=contract.evidence_hash, contract_hash=contract.contract_hash,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=str(source.resolve()))
+        report["process_timezone"] = resolved.get("timezone", "")
         judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
                             record_dir=output / "model-calls")
@@ -253,7 +259,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
-            env = provision(root, provider, driver.model_id if driver else "unconfigured")
+            env = provision(root, provider, driver.model_id if driver else "unconfigured",
+                            local_timezone=resolved.get("timezone", "") if resolved else "")
+            save(root / "simulation-clock.json", {"process_timezone": env.get("TZ", ""),
+                 "pin": "public simulated clock supplied to every turn"})
             capability = probe(root, provider, env, smoke=smoke or source is not None)
             if (smoke or source is not None) and provider in ISOLATED_PROVIDERS:
                 capability["wiring_verified"] = smoke_succeeded(capability)

@@ -69,3 +69,19 @@ def test_missing_native_exposure_cannot_pass(trace):
     root, arm = trace
     (arm / 'exposure-2026-09-08.json').unlink()
     assert audit(root)['state'] == 'fail'
+
+
+def test_provider_timezone_must_match_frozen_scenario(trace):
+    root, arm = trace
+    spec = json.loads((root / 'resolved-spec.json').read_text())
+    spec['timezone'] = 'America/New_York'
+    save(root / 'resolved-spec.json', spec)
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['process_timezone'] = 'America/New_York'
+    save(root / 'summary.json', summary)
+    save(arm / 'simulation-clock.json', {'process_timezone': 'America/New_York'})
+    assert audit(root)['state'] == 'pass'
+    save(arm / 'simulation-clock.json', {'process_timezone': 'UTC'})
+    result = audit(root)
+    assert result['state'] == 'fail'
+    assert any('inconsistent provider process timezone' in error for error in result['errors'])

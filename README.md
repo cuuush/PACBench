@@ -32,12 +32,16 @@ ordinary exchanges bounded to 18–22 messages each. It is an authoring spec,
 not generated dialogue. Investigate the small-case failure before expansion;
 +1000 remains deferred. See the [audit](docs/audit-2026-10-06.md).
 
-New runs ask **one neutral follow-up per initially missed or wrong fact**.
+New runs ask **one combined neutral follow-up for all initially missed or wrong facts**.
+Spark writes the message in isolation from the missing facts, with one brief
+review for answer leakage and coverage; there is
+at most one recovery turn total.
 The first-answer penalty remains; a correct recovery earns half credit.
 Archive or original-message fallback fails retention even if it finds the answer.
 Full tool arguments/results, call counts, latency and model cost windows are saved.
 The live Memcal follow-up recovered the street with one `memcal_open(E1)`:
-initial 4/5, recovery 4.5/5, no archive search. See [follow-up policy and traces](docs/followups.md).
+initial 4/5, recovery 4.5/5, no archive search. That earlier trial used the original per-fact policy; current runs use the combined message.
+See [follow-up policy and traces](docs/followups.md).
 
 ## Run Pizza Day
 

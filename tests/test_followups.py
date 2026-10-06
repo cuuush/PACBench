@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from pacbench.followups import (
-    audit_followups, cost_window, digest, freeze_questions, load_questions,
+    audit_followups, combined_plan, cost_window, digest, freeze_policy, load_questions,
     recovery_score, run_followups, tool_profile, turn_metrics,
 )
 from pacbench.harness import TurnResult
@@ -41,12 +41,18 @@ def grade(verdicts=('missed', 'misrepresented')):
 
 
 def judge(prompt):
-    # Single target only, so the follow-up cannot silently regrade other facts.
-    cid = 'date' if '"id": "date"' in prompt else 'time'
-    return json.dumps({'verdicts': [{'id': cid, 'verdict': 'correct', 'reason': 'Answered detail.'}]})
+    claims = json.loads(prompt.split('Claims (hidden from the assistant): ')[1])
+    return json.dumps({'verdicts': [{'id': c['id'], 'verdict': 'correct', 'reason': 'Answered detail.'}
+                                  for c in claims]})
 
 
-def test_exactly_one_try_per_failed_fact_preserves_penalty_and_session(tmp_path):
+def question_writer(prompt):
+    if prompt.startswith('Write '):
+        return json.dumps({'question': 'Which day and what time is it?'})
+    return json.dumps({'safe': True, 'covers_claim_ids': ['date', 'time'], 'reason': 'No expected values.'})
+
+
+def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_path):
     calls = []
     def runner(question, **kwargs):
         calls.append((question, kwargs))
@@ -54,12 +60,14 @@ def test_exactly_one_try_per_failed_fact_preserves_penalty_and_session(tmp_path)
     initial, original_grade = turn(), grade()
     report = run_followups(contract=contract(), plan=plan(), grade=original_grade, initial_turn=initial,
         output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
-        run_turn=runner, budget_snapshot=lambda: {'projects': []})
-    assert len(calls) == 2
-    assert [kwargs['session_id'] for _, kwargs in calls] == ['recall', 'recall']
+        run_turn=runner, budget_snapshot=lambda: {'projects': []}, question_model=question_writer)
+    assert len(calls) == 1
+    assert calls[0][0] == 'Which day and what time is it?'
+    assert calls[0][1]['session_id'] == 'recall'
+    assert report['attempts'][0]['claim_ids'] == ['date', 'time']
     assert original_grade.correct == 0  # no replacement of first-answer judgment
     assert report['score']['points'] == 1.0  # two half-credit recoveries, not two perfect answers
-    assert [a['metrics']['input_tokens'] for a in report['attempts']] == [30, 30]
+    assert [a['metrics']['input_tokens'] for a in report['attempts']] == [30]
     assert 'Friday' not in str(calls) and 'seven' not in str(calls)
     assert audit_followups(contract=contract(), plan=plan(), initial_turn=initial,
         initial_grade={'claims': [asdict(s) for s in original_grade.slots],
@@ -68,7 +76,7 @@ def test_exactly_one_try_per_failed_fact_preserves_penalty_and_session(tmp_path)
         run_followups(contract=contract(), plan=plan(), grade=original_grade, initial_turn=initial,
             output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
             run_turn=runner, budget_snapshot=lambda: {'projects': []})
-    assert len(calls) == 2
+    assert len(calls) == 1
     data = json.loads((tmp_path / 'recovery.json').read_text())
     data['attempts'].append(data['attempts'][0])
     (tmp_path / 'recovery.json').write_text(json.dumps(data))
@@ -88,7 +96,49 @@ def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_pa
     assert questions == ['What time is it?']
     assert report['state'] == 'incomplete'
     assert report['score']['points'] == 1.0
-    assert (tmp_path / 'fact-2/turn.json').exists()
+    assert (tmp_path / 'combined/turn.json').exists()
+
+
+def test_three_missing_facts_use_one_spark_message_and_independent_partial_credit(tmp_path):
+    c = contract()
+    c.claims += (SimpleNamespace(id='venue', statement='It is at the diner.', evidence=('m1',)),)
+    p = plan()
+    p['questions'].append({'claim_id': 'venue', 'question': 'Where is it?'})
+    p['reviews'].append({'claim_id': 'venue', 'safe': True, 'reason': 'No expected value.'})
+    p['plan_hash'] = digest({k: v for k, v in p.items() if k != 'plan_hash'})
+    g = Grade('test', slots=[GradedClaim(i, 'missed', 'Not stated.') for i in ('date', 'time', 'venue')], missed=3)
+    questions, writer_calls = [], []
+    def writer(prompt):
+        writer_calls.append(prompt)
+        return json.dumps({'question': 'Which day, what time, and where is it?'} if prompt.startswith('Write ')
+                          else {'safe': True, 'covers_claim_ids': ['date', 'time', 'venue'], 'reason': 'Neutral and complete.'})
+    def runner(question, **kwargs):
+        questions.append(question)
+        return turn(question, 'Day and place, but no time.')
+    def partial_judge(prompt):
+        return json.dumps({'verdicts': [{'id': i, 'verdict': v, 'reason': 'Details assessed separately.'}
+            for i, v in zip(('date', 'time', 'venue'), ('correct', 'missed', 'correct'))]})
+    report = run_followups(contract=c, plan=p, grade=g, initial_turn=turn(), output=tmp_path / 'a',
+        judge=partial_judge, home=tmp_path, allowlist='', extra_env={}, run_turn=runner,
+        budget_snapshot=lambda: {'projects': []}, question_model=writer, question_dir=tmp_path / 'shared')
+    assert questions == ['Which day, what time, and where is it?']
+    assert len(writer_calls) == 2  # one Spark author call and one independent safety review
+    assert report['score']['points'] == 1.0
+    assert [s['points'] for s in report['score']['claims']] == [.5, 0, .5]
+    second = run_followups(contract=c, plan=p, grade=g, initial_turn=turn(), output=tmp_path / 'b',
+        judge=partial_judge, home=tmp_path, allowlist='', extra_env={}, run_turn=runner,
+        budget_snapshot=lambda: {'projects': []}, question_model=writer, question_dir=tmp_path / 'shared')
+    assert len(writer_calls) == 2  # same failed set reuses the same frozen Spark question
+    assert second['attempts'][0]['question_hash'] == report['attempts'][0]['question_hash']
+
+
+def test_all_correct_facts_get_no_recovery_message(tmp_path):
+    def forbidden(*args, **kwargs):
+        raise AssertionError('No follow-up should run')
+    result = run_followups(contract=contract(), plan=plan(), grade=grade(('correct', 'correct')),
+        initial_turn=turn(), output=tmp_path, judge=forbidden, home=tmp_path, allowlist='', extra_env={},
+        run_turn=forbidden, budget_snapshot=forbidden, question_model=forbidden)
+    assert result['attempts'] == [] and result['score']['points'] == 2.0
 
 
 @pytest.mark.parametrize('name,arguments,category,points', [
@@ -133,11 +183,13 @@ def test_unknown_usage_is_not_zero_and_project_windows_do_not_claim_tool_prices(
 
 
 def test_leading_question_rejected_and_saved_plan_cannot_change(tmp_path):
-    outputs = iter([{'questions': plan()['questions']}, {'reviews': [
-        {'claim_id': i, 'safe': False, 'reason': 'Leading question.'} for i in ('date', 'time')]}])
-    with pytest.raises(ValueError, match='neutral-question review'):
-        freeze_questions(contract(), lambda _: json.dumps(next(outputs)), tmp_path / 'plan.json')
-    assert not (tmp_path / 'plan.json').exists()
+    policy = freeze_policy(contract(), tmp_path / 'policy.json')
+    outputs = iter([{'question': 'Friday at seven, right?'},
+                    {'safe': False, 'covers_claim_ids': ['date', 'time'], 'reason': 'Leading question.'}])
+    with pytest.raises(ValueError, match='neutral/complete coverage review'):
+        combined_plan(contract(), policy, list(contract().claims),
+                      lambda _: json.dumps(next(outputs)), tmp_path / 'combined')
+    assert list((tmp_path / 'combined').glob('*.rejected.json'))
     p = plan()
     (tmp_path / 'plan.json').write_text(json.dumps(p))
     assert load_questions(tmp_path / 'plan.json', contract()) == p

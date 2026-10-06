@@ -1,4 +1,4 @@
-"""One neutral recovery question per failed fact, with explicit retrieval effort."""
+"""One combined neutral recovery message for all failed facts, with retrieval effort."""
 from __future__ import annotations
 
 import hashlib
@@ -29,41 +29,13 @@ def model_json(model, prompt):
     return json.loads(response.text if isinstance(response, ModelOutput) else response)
 
 
-def freeze_questions(contract, model, path: Path) -> dict:
-    """Generate and independently check neutral questions before any provider runs."""
+def freeze_policy(contract, path: Path) -> dict:
+    """Bind the recovery policy before testing, without spending on unused questions."""
     if path.exists():
         return load_questions(path, contract)
-    claims = [{'claim_id': c.id, 'claim': c.statement} for c in contract.claims]
-    proposed = model_json(model,
-        'Create one short natural user follow-up question per hidden benchmark claim. '
-        'Ask only for that missing detail of the plan in the original user question. '
-        'Never reveal, suggest, confirm or enumerate the expected answer or any other '
-        'hidden detail. No values, leading yes/no questions, tools, provider names, '
-        'evidence IDs or requests to search messages. Use neutral references such as '
-        '"it" or "that plan". These same questions will be frozen for every provider '
-        'before any answer exists. Return ONLY JSON {"questions":[{"claim_id":"id",'
-        '"question":"neutral question"}]} in claim order.\n'
-        f'Original question: {contract.question}\nHidden claims: {json.dumps(claims)}')
-    questions = proposed['questions']
-    validate_questions(questions, [c.id for c in contract.claims])
-    reviewed = model_json(model,
-        'Independently review each proposed recovery question. It must ask for only '
-        'the corresponding claim detail using a neutral reference to the original '
-        'question, without revealing, suggesting or confirming an expected value or '
-        'another hidden detail. Reject leading questions, answer options, tool hints, '
-        'provider names or evidence IDs. A category such as date or location is '
-        'allowed; its expected value is not. Return ONLY JSON {"reviews":['
-        '{"claim_id":"id","safe":true,"reason":"explanation"}]} in claim order.\n'
-        f'Original question: {contract.question}\nHidden claims: {json.dumps(claims)}\n'
-        f'Proposed questions: {json.dumps(questions)}')
-    reviews = reviewed['reviews']
-    if (not isinstance(reviews, list) or len(reviews) != len(questions) or
-            any(not isinstance(r, dict) or r.get('claim_id') != q['claim_id'] or
-                r.get('safe') is not True or not isinstance(r.get('reason'), str) or
-                not r['reason'].strip() for r, q in zip(reviews, questions))):
-        save(path.with_suffix('.rejected.json'), {'questions': questions, 'review': reviewed})
-        raise ValueError('follow-up questions failed neutral-question review')
-    body = {'contract_hash': contract.contract_hash, 'questions': questions, 'reviews': reviews}
+    body = {'protocol_version': 3, 'contract_hash': contract.contract_hash,
+            'claim_ids': [c.id for c in contract.claims],
+            'policy': 'one combined Spark-authored message for all failed facts'}
     result = {**body, 'plan_hash': digest(body)}
     save(path, result)
     return result
@@ -83,6 +55,10 @@ def load_questions(path: Path, contract) -> dict:
     body = {k: v for k, v in plan.items() if k != 'plan_hash'}
     if plan.get('plan_hash') != digest(body) or plan.get('contract_hash') != contract.contract_hash:
         raise ValueError('follow-up plan hash/contract mismatch')
+    if plan.get('protocol_version') == 3:
+        if plan.get('claim_ids') != [c.id for c in contract.claims]:
+            raise ValueError('follow-up policy claim IDs mismatch')
+        return plan
     validate_questions(plan.get('questions'), [c.id for c in contract.claims])
     reviews = plan.get('reviews')
     if (not isinstance(reviews, list) or len(reviews) != len(contract.claims) or
@@ -188,7 +164,14 @@ def cost_window(before: dict, after: dict) -> dict:
 
 
 def recovery_score(grade, initial_metrics: dict, attempts: list[dict]) -> dict:
-    by_id = {a['claim_id']: a for a in attempts}
+    by_id = {}
+    for attempt in attempts:
+        if 'claim_ids' in attempt:
+            verdicts = {r['id']: r['verdict'] for r in attempt.get('verdicts', [])}
+            for claim_id in attempt['claim_ids']:
+                by_id[claim_id] = {**attempt, 'verdict': verdicts.get(claim_id)}
+        else:
+            by_id[attempt['claim_id']] = attempt  # saved protocol-1 trials
     points = []
     for slot in grade.slots:
         attempt = by_id.get(slot.id)
@@ -210,50 +193,105 @@ def recovery_score(grade, initial_metrics: dict, attempts: list[dict]) -> dict:
         'claims': points, 'calibrated': False}
 
 
+def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path) -> dict:
+    """Spark authors one message for an observed missing-fact set; reuse it across arms."""
+    claim_ids = [c.id for c in selected]
+    binding = {'contract_hash': contract.contract_hash, 'component_plan_hash': component_plan['plan_hash'],
+               'claim_ids': claim_ids}
+    path = directory / (digest(binding) + '.json')
+    if path.exists():
+        return load_combined_plan(path, binding)
+    components = [q for q in component_plan.get('questions', []) if q['claim_id'] in claim_ids]
+    if len(selected) == 1 and components:
+        question = components[0]['question']  # already authored and independently reviewed by Spark
+        review = {'safe': True, 'covers_claim_ids': claim_ids, 'reason': 'Uses the frozen reviewed single-fact question.'}
+        origin = 'frozen-spark-component'
+    else:
+        hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
+        authored = model_json(model,
+            'Write one short follow-up asking for these missing details without '
+            'supplying their answers or tool instructions. '
+            'Return ONLY JSON {"question":"one combined message"}.\n'
+            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
+        question = authored['question']
+        if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
+            raise ValueError('combined follow-up must be one bounded message')
+        review = model_json(model,
+            'Does this ask for every missing detail without supplying answers or '
+            'tool instructions? Return ONLY JSON '
+            '{"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
+            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
+            f'Proposed message: {question}')
+        origin = 'spark-combined-message'
+    if (review.get('safe') is not True or review.get('covers_claim_ids') != claim_ids or
+            not isinstance(review.get('reason'), str) or not review['reason'].strip()):
+        save(path.with_suffix('.rejected.json'), {'question': question, 'review': review})
+        raise ValueError('combined follow-up failed neutral/complete coverage review')
+    body = {**binding, 'question': question, 'review': review, 'origin': origin}
+    result = {**body, 'question_hash': digest(body)}
+    save(path, result)
+    return result
+
+
+def load_combined_plan(path: Path, binding: dict) -> dict:
+    plan = json.loads(path.read_text())
+    body = {k: v for k, v in plan.items() if k != 'question_hash'}
+    if (plan.get('question_hash') != digest(body) or
+            any(plan.get(k) != v for k, v in binding.items()) or
+            not isinstance(plan.get('question'), str) or not 1 <= len(plan['question'].strip()) <= 2000 or
+            plan.get('review', {}).get('safe') is not True or
+            plan.get('review', {}).get('covers_claim_ids') != binding['claim_ids']):
+        raise ValueError('combined follow-up hash/coverage/contract mismatch')
+    return plan
+
+
 def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
-                  source_tools=(), run_turn=None, budget_snapshot=None) -> dict:
-    """Continue the recall conversation once per initially failed claim; never retry it."""
+                  source_tools=(), run_turn=None, budget_snapshot=None,
+                  question_model=None, question_dir: Path | None = None) -> dict:
+    """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
     attempts = []
     initial_metrics = turn_metrics(initial_turn, source_tools=source_tools)
     report = {'state': 'running', 'plan_hash': plan['plan_hash'], 'attempts': attempts,
-              'initial_metrics': initial_metrics, 'policy': 'one follow-up per initially missed/misrepresented fact'}
+              'protocol_version': 3, 'initial_metrics': initial_metrics,
+              'policy': 'one combined follow-up for all initially missed/misrepresented facts'}
     output.mkdir(parents=True, exist_ok=True)
     # A restarted caller cannot ask the same questions again or replace a failed attempt.
     with (output / 'recovery.json').open('x') as record:
         record.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
-    claims = {c.id: c for c in contract.claims}
     slots = {s.id: s for s in grade.slots}
-    previous = initial_turn
-    for index, q in enumerate(plan['questions']):
-        if slots[q['claim_id']].verdict == 'correct':
-            continue
-        directory = output / f'fact-{index + 1}'
-        attempt = {'claim_id': q['claim_id'], 'question': q['question'], 'state': 'failed',
-                   'verdict': None, 'metrics': {'source_fallback_attempted': False, 'unclassified_operations': 0}}
+    selected = [c for c in contract.claims if slots[c.id].verdict != 'correct']
+    if selected:
+        directory = output / 'combined'
+        attempt = {'claim_ids': [c.id for c in selected], 'question': None, 'state': 'failed',
+                   'verdicts': [], 'metrics': {'source_fallback_attempted': False, 'unclassified_operations': 0}}
         attempts.append(attempt)
         # Save planned attempt first, so a crash cannot silently become an unattempted fact.
         save(output / 'recovery.json', report)
         try:
-            if not previous.session_id:
+            if not initial_turn.session_id:
                 raise ValueError('cannot follow up without the real recall session')
+            budget_snapshot()
+            authored = combined_plan(contract, plan, selected, question_model or judge,
+                                     question_dir or output / 'question-plans')
+            question = authored['question']
+            attempt.update(question=question, question_hash=authored['question_hash'])
+            save(directory / 'question-plan.json', authored)
             before = budget_snapshot()
-            turn = run_turn(q['question'], at=initial_turn.at, home=home, allowlist=allowlist,
-                            extra_env=extra_env, timeout_s=180, session_id=previous.session_id)
+            turn = run_turn(question, at=initial_turn.at, home=home, allowlist=allowlist,
+                            extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id)
             save(directory / 'turn.json', vars(turn))
-            attempt['metrics'] = turn_metrics(turn, previous, source_tools=source_tools)
+            attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools)
             attempt['gateway_window'] = cost_window(before, budget_snapshot())
-            if turn.session_id != previous.session_id or turn.returncode or turn.policy_blocks or not turn.answer.strip():
+            if turn.session_id != initial_turn.session_id or turn.returncode or turn.policy_blocks or not turn.answer.strip():
                 raise ValueError('follow-up turn failed, changed session, or was policy blocked')
-            previous = turn
-            claim = claims[q['claim_id']]
             followup_grade = grade_semantic(grade.checkpoint, turn.prompt, turn.answer,
-                (Claim(claim.id, claim.statement, claim.evidence),), judge,
+                tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
                 record_path=directory / 'judgment.json')
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots]})
-            attempt.update(state='graded', verdict=followup_grade.slots[0].verdict)
+            attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
         except Exception as exc:
             attempt['error'] = f'{type(exc).__name__}: {exc}'
             report['state'] = 'incomplete'
@@ -289,16 +327,33 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                       correct=initial_grade['correct'], missed=initial_grade['missed'],
                       misrepresented=initial_grade['misrepresented'])
         failed = [r['id'] for r in rows if r['verdict'] != 'correct']
-        check([a['claim_id'] for a in report['attempts']] == failed,
-              'expected exactly one follow-up per initially failed claim, in order')
-        check(len(list(output.glob('fact-*/turn.json'))) == len(failed), 'unexpected follow-up turn count')
+        grouped = report.get('protocol_version', 1) in {2, 3}
+        if grouped:
+            check(len(report['attempts']) == int(bool(failed)) and
+                  (not failed or report['attempts'][0]['claim_ids'] == failed),
+                  'expected exactly one combined follow-up covering all initially failed claims')
+            check(len(list(output.glob('*/turn.json'))) == int(bool(failed)), 'unexpected combined follow-up turn count')
+        else:
+            check([a['claim_id'] for a in report['attempts']] == failed,
+                  'expected exactly one follow-up per initially failed claim, in order')
+            check(len(list(output.glob('fact-*/turn.json'))) == len(failed), 'unexpected follow-up turn count')
         check(report['initial_metrics'] == turn_metrics(initial_turn), 'initial effort mismatch')
         previous = initial_turn
         for attempt in report['attempts']:
-            index = ids.index(attempt['claim_id'])
-            question = plan['questions'][index]['question']
+            if grouped:
+                directory = output / 'combined'
+                selected_ids = attempt['claim_ids']
+                frozen_question = load_combined_plan(directory / 'question-plan.json', {
+                    'contract_hash': contract.contract_hash, 'component_plan_hash': plan['plan_hash'],
+                    'claim_ids': failed})
+                check(attempt['question_hash'] == frozen_question['question_hash'], 'combined question hash mismatch')
+                question = frozen_question['question']
+            else:
+                index = ids.index(attempt['claim_id'])
+                selected_ids = [attempt['claim_id']]
+                directory = output / f'fact-{index + 1}'
+                question = plan['questions'][index]['question']
             check(attempt['question'] == question, 'follow-up question changed')
-            directory = output / f'fact-{index + 1}'
             turn = harness.TurnResult(**read(directory / 'turn.json'))
             expected_prompt = (f'[Simulated now: {initial_turn.at}. Treat this as the current date and '
                                f'time for everything in this turn.]\n\n{question}')
@@ -312,12 +367,13 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             judgments = read(directory / 'grade.json')['claims']
             check(json.loads(judgment['response'])['verdicts'] == judgments,
                   'follow-up grade differs from recorded judge response')
-            claim = contract.claims[index]
-            check(judgment['claims'] == [{'id': claim.id, 'description': claim.statement,
-                                         'evidence': list(claim.evidence)}],
+            selected = [c for c in contract.claims if c.id in selected_ids]
+            check(judgment['claims'] == [{'id': c.id, 'description': c.statement,
+                                         'evidence': list(c.evidence)} for c in selected],
                   'follow-up judge received a different claim')
-            check(len(judgments) == 1 and judgments[0]['id'] == attempt['claim_id'] and
-                  judgments[0]['verdict'] in VERDICTS and judgments[0]['verdict'] == attempt['verdict'],
+            check([r['id'] for r in judgments] == selected_ids and
+                  all(r['verdict'] in VERDICTS for r in judgments) and
+                  (judgments == attempt['verdicts'] if grouped else judgments[0]['verdict'] == attempt['verdict']),
                   'follow-up claim judgment mismatch')
             check(attempt['state'] == 'graded', 'follow-up ungraded')
             previous = turn

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Simplify follow-up authoring to one isolated Spark request only when facts are
+  missed, plus a brief review; remove unused upfront component authoring calls.
+- Remove scenario-specific question examples and scripted final-confirmation
+  ordering from generic authoring prompts, following a delegated prompt audit.
+
+- Change recovery to one combined Spark-authored follow-up message covering all
+  initially missed/wrong facts, with individual half-credit judgments. Freeze and
+  reuse neutral wording for matching missing-fact sets. Preserve legacy trials.
+
 - Add one frozen neutral follow-up per initially failed fact to native and semantic
   runs. Preserve first-answer grades; separately award half recovery credit and
   fail retention on archive/original-message fallback.

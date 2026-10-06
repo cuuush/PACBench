@@ -159,10 +159,7 @@ def build_contract(*, scene: str, test_intent: str,
         "well as what is coming up. If a plan changed, a natural question can "
         "ask what changed. "
         "Do not reveal any answer, person, venue, time, or other claim value. "
-        "Do not invent who performed an action or make an unsupported "
-        "ownership or commitment claim in the question. For tickets bought "
-        "by someone else, ask about the tickets we discussed, not tickets "
-        "I purchased. "
+        "Do not presuppose unsupported facts. "
         'Return only JSON: {"question":"..."}.\n\n'
         f"Test intent: {test_intent or 'Ask about all required facts.'}\n"
         f"Claims: {json.dumps([vars(c) for c in claims])}")
@@ -177,8 +174,7 @@ def build_contract(*, scene: str, test_intent: str,
         '{"safe":true,"faithful":true,"reason":"brief explanation"}. '
         "Safe means no answer is disclosed; faithful means the question has "
         "a useful scope and every factual presupposition is supported by the "
-        "dialogue. For example, 'tickets "
-        "I purchased' is unfaithful if a companion bought them.\n\n"
+        "dialogue.\n\n"
         f"Frozen dialogue:\n{dialogue}\nQuestion: {{question}}\nClaims: "
         f"{json.dumps([vars(c) for c in claims])}")
     question = None

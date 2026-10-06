@@ -30,11 +30,11 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Follow-up policy (user-authorized)
 
-- Freeze a model-authored, independently reviewed neutral question per claim before provider arms run. Bind it to the contract hash and reuse it across providers; no expected values or tool hints.
-- Ask exactly once for each initially missed or misrepresented fact, continuing the real recall conversation and fictional clock. Correct facts get no follow-up. Preserve the initial grade; separately award half credit for recovery.
+- Bind the recovery policy to the frozen contract before provider arms run. Do not author/review unused per-fact questions upfront. After grading, Spark writes ONE short message asking for ALL missing or wrong facts, in an isolated call given only the original question and those facts; one short independent review checks coverage and answer leakage. Freeze and reuse the wording for matching missing-fact sets across arms.
+- Ask at most one recovery message total, continuing the real recall conversation and fictional clock. Exclude correct facts; ask nothing if all are correct. Preserve the initial grade and award half credit separately per recovered fact.
 - Opening retained memory can recover a fact. Explicit archive/original-source/message-connector access fails retention even if the answer becomes correct. Log attempted and blocked fallbacks. Unknown tool operations need review and get no retention credit.
 - Log arguments/results, direct and nested call counts, discovery, repeated/failed operations, latency, reported token deltas and gateway project cost windows. Unknown usage/cost stays unknown; do not invent tool prices or simulate a connector.
-- Audit the one-attempt limit, session continuity, question hashes and recovery points. See [followups.md](docs/followups.md). Do not rewrite older runs or erase their first-answer penalties.
+- Audit the one-message-total limit, complete missing-fact coverage, session continuity, question hashes and recovery points. Legacy per-fact (protocol 1) and component-based combined (protocol 2) trials remain separately auditable; new runs use minimal isolated authoring (protocol 3). See [followups.md](docs/followups.md). Do not rewrite older runs or erase their first-answer penalties.
 
 ## Code and checks
 

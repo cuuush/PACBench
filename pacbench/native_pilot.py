@@ -17,7 +17,7 @@ from .semantic_contract import load_contract
 from .semantic_grade import Claim, grade_semantic
 from .semantic_experiment import daily_batches, save
 from .gateway_client import client_settings, require_live_cost_boundary
-from .followups import freeze_questions, run_followups
+from .followups import freeze_policy, run_followups
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
@@ -247,11 +247,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
                             record_dir=output / "model-calls")
-        if (source / "followup-plan.json").exists():
-            shutil.copyfile(source / "followup-plan.json", output / "followup-plan.json")
-        plan = freeze_questions(contract, judge, output / "followup-plan.json")
+        plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
-        report["followup_policy"] = "one per initially missed/misrepresented fact; half recovery credit; source fallback fails retention"
+        report["followup_policy"] = "one combined message for all initially failed facts; half recovery credit; source fallback fails retention"
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
@@ -308,9 +306,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     capability["live_verified"] = True
                     recovery = run_followups(contract=contract, plan=plan, grade=grade,
                         initial_turn=turn, output=root / "followups", judge=judge,
-                        home=root / "hermes-home", allowlist=allowlist, extra_env=env)
+                        home=root / "hermes-home", allowlist=allowlist, extra_env=env,
+                        question_dir=output / "combined-questions")
                     result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
-                        "attempts": [{"claim_id": a["claim_id"], "verdict": a["verdict"],
+                        "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
                                       "metrics": a["metrics"]} for a in recovery["attempts"]]}
                     if recovery["state"] != "complete":
                         result.update(state="invalid", reason="follow-up diagnostics incomplete")

@@ -51,19 +51,21 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 ## Current checkout evidence
 
 - Historical `runs/semantic-*` artifacts described below are absent from this environment; those entries are provenance, not revalidated results.
-- `runs/pizza-contributor-prepared-20261006` freezes 25 real model-authored messages and five claims. Its preparation audit passes. All subsequent native arms reuse that exact frozen input.
+- `runs/pizza-contributor-prepared-20261006` freezes 25 real model-authored messages and five claims. Its preparation audit passes. Earlier small native arms reuse that exact frozen input; later stages have separately frozen bundles.
 - `runs/pizza-native-holographic-mem0-20261006` completed actual native Holographic and local OSS Mem0 exposure/recall. Both recalled the plan using native tools. Preserve its old 4/5 grades: the judge lacked the public fictional clock, a harness bug fixed generically by giving it the exact question context Hermes received.
 - `runs/pizza-native-clock-context-20261006` repeats both arms in fresh homes. Holographic received 5/5 diagnostic judgments. Mem0 received 0/5: exposure made no explicit memory writes and later searches returned no plan. Native trace audit passes. A failed recall is still an authentic diagnostic result, never a green quality pass.
 - Mem0 uses the documented OSS route: `mem0ai`, local Qdrant, local Ollama `nomic-embed-text`, and Contributor extraction through the gateway. The pinned Hermes CLI rejects the plugin README's setup flags; preserve that failure and use the README manual configuration route via its native config builder. `sync_max_chars=6000` follows the README's recommendation for 8k embedders, disclosed consistently for all stages. No vendor code or extraction prompts are patched.
 - Investigate Mem0's native asynchronous sync: shutdown waits only five seconds; saved gateway extraction calls completed after the exposure process exited. Its second local history is empty. This suggests a lifecycle failure, not a proven extraction-quality diagnosis. Do not force writes, seed facts, extend only this provider's lifetime, or erase the failure.
 - Native runs retain Hermes's normal additive built-in memory in scratch homes. Session search is disabled, and recall starts a new session. Report Hermes-plus-provider behavior, never isolated provider quality. The older SDK/MCP semantic condition is separate.
 - Provider inventory covers all eight bundled plugins plus Memcal. Unconfigured hosted/back-end paths remain explicit blockers; never imply they were tested.
-- Latest usage-derived uncached upper bound: $0.1887835, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
-- Latest offline suite: 232 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
+- Latest usage-derived uncached upper bound: $0.4752186 including $0.1081344 in reservations at the three-day snapshot. Re-read the gateway ledger before further work; this is not an invoice total.
+- Latest offline suite: 233 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
 
 - `runs/pizza-native-one-followup-20261006`: fresh Memcal and Holographic arms, same 25 messages. Memcal missed the street initially, then recovered it with exactly one native `memcal_open(E1)` and no source search; initial 4/5, separate recovery 4.5/5. Holographic scored 5/5 initially and got no follow-up. Both trace audits pass. The recovery turn took 33.71s including two driver model calls, with a $0.002847 gateway cost upper bound.
 
 - Minimal isolated follow-up trials: Memcal 4/5 then 4.5/5 with one event open; Holographic 5/5; Mem0 varied between 5/5 and 0/5 with no recovery after three searches in each of two combined follow-ups. Final Mem0 repetition scored 5/5 and needed no follow-up. Full traces and policy-version distinctions are documented in [live test results](docs/followup-tests-2026-10-06.md).
+
+- User-requested staged tests: 25-message retest, 20 messages over two days, then 50 over three days with two independent outings and changes. After the direct Memcal clock fix (`523e76b`) and uniform Eastern process configuration, diagnostic verdicts were Memcal 15/15, Holographic 13/15, Mem0 15/15. Earlier source-read penalties and failed recalls remain preserved; Memcal also had a stale headline. See [staged results](docs/pizza-three-day-tests-2026-10-06.md). The historical follow-up coverage bug was fixed with a minimal semantic instruction and isolated live author/reviewer regression; old recovery questions were not replaced.
 
 ## Historical evidence (not present in this checkout)
 

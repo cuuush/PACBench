@@ -416,11 +416,12 @@ function providerPage(run, provider) {
 function effortDetails(ex) {
   const m = ex.metrics;
   if (!m) return "";
-  const path = m.source_fallback_attempted || m.inherited_source_fallback ? "Source lookup: retention failed" :
-    m.unclassified_operations || m.inherited_unclassified_operation ? "Unknown operation: retention uncredited" : "Retained-memory path";
+  const retention = ex.retention?.score;
+  const path = m.source_fallback_attempted || m.inherited_source_fallback || retention?.claims?.some(c => c.retention_failed) ? "Source lookup: retention failed" :
+    m.unclassified_operations || m.inherited_unclassified_operation || retention?.claims?.some(c => c.path_needs_review) ? "Unknown operation: retention uncredited" : "Retained-memory path";
   return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
     esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
-    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + '</p>' + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
 }
 function judgePage(run) {
   return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. A recovery attempt judges only the facts missed or wrong in the first answer.</p>' +

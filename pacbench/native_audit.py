@@ -56,6 +56,9 @@ def audit(root: Path) -> dict:
             check(result['state'] == 'diagnostic', f'{label}: incomplete arm')
             check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
             check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
+            if result['state'] != 'diagnostic':
+                # A blocked arm has no live trace; keep the failure and audit later arms.
+                continue
             exposure_sessions = []
             batches = exposure_batches(messages, spec)
             schedule = summary.get('exposure_schedule')

@@ -85,3 +85,19 @@ def test_provider_timezone_must_match_frozen_scenario(trace):
     result = audit(root)
     assert result['state'] == 'fail'
     assert any('inconsistent provider process timezone' in error for error in result['errors'])
+
+
+def test_blocked_arm_does_not_hide_later_trace_corruption(trace):
+    root, arm = trace
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['results'].insert(0, {'provider': 'unconfigured', 'repetition': 1,
+        'state': 'blocked', 'capability': {}})
+    save(root / 'summary.json', summary)
+    saved = json.loads((arm / 'judgment.json').read_text())
+    saved['question'] = 'wrong question'
+    save(arm / 'judgment.json', saved)
+    result = audit(root)
+    assert result['state'] == 'fail'
+    assert any('unconfigured: incomplete arm' in e for e in result['errors'])
+    assert any('judge lacks recall clock' in e for e in result['errors'])
+    assert not any('FileNotFoundError' in e for e in result['errors'])

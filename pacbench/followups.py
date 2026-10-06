@@ -34,7 +34,7 @@ def freeze_policy(contract, path: Path) -> dict:
     if path.exists():
         return load_questions(path, contract)
     body = {'protocol_version': 3, 'contract_hash': contract.contract_hash,
-            'authoring_revision': 'current-vs-historical-v1',
+            'authoring_revision': 'specific-missing-facts-v2',
             'claim_ids': [c.id for c in contract.claims],
             'policy': 'one combined Spark-authored message for all failed facts'}
     result = {**body, 'plan_hash': digest(body)}
@@ -219,6 +219,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
         hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
         authored = model_json(model,
             'Write one short message from the user to their assistant asking only for these missing facts. '
+            + ('Ask specifically for the missing detail, not a broader recap. ' if component_plan.get('authoring_revision') == 'specific-missing-facts-v2' else '') +
             'Preserve whether each fact is current or historical, without '
             'supplying their answers or tool instructions. '
             'Return ONLY JSON {"question":"one combined message"}.\n'
@@ -228,6 +229,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
             raise ValueError('combined follow-up must be one bounded message')
         review = model_json(model,
             'Does this message from the user to their assistant specifically ask for every missing fact, '
+            + ('Reject broad recaps that could be answered while omitting a missing detail. ' if component_plan.get('authoring_revision') == 'specific-missing-facts-v2' else '') +
             'preserving current versus historical meaning, without supplying answers or '
             'tool instructions? Return ONLY JSON '
             '{"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'

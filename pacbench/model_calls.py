@@ -32,7 +32,7 @@ class ModelClient:
                  cache_dir: Path | None = None,
                  reasoning_effort: str | None = None,
                  json_mode: bool = False,
-                 url: str = "https://api.meta.ai/v1/chat/completions"):
+                 url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"):
         self.key = key
         self.model = model
         self.record_dir = Path(record_dir)
@@ -158,7 +158,7 @@ class ResponsesWriter(ModelClient):
 
     def __init__(self, *, key: str, model: str, record_dir: Path,
                  temperature: float = 0.7, cache_dir: Path | None = None,
-                 url: str = "https://api.meta.ai/v1/responses"):
+                 url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses"):
         super().__init__(key=key, model=model, record_dir=record_dir,
                          temperature=temperature, cache_dir=cache_dir, url=url)
 

@@ -24,6 +24,7 @@ def calibrate(contract_path: Path, examples_path: Path, output_dir: Path) -> dic
     output_dir.mkdir(parents=True, exist_ok=True)
     driver = load_driver()
     judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
+                        url=driver.base_url + "/chat/completions",
                         record_dir=output_dir / "model-calls",
                         cache_dir=Path(__file__).resolve().parents[1] / "runs" / "model-cache")
     claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)

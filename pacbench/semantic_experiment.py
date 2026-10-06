@@ -21,6 +21,7 @@ from pacbench import harness  # noqa: E402
 from pacbench.adapters import Usage  # noqa: E402
 from pacbench.authoring import ScenePlan, build_scene_observations, realize_scene, scene_spec  # noqa: E402
 from pacbench.creds import load_driver  # noqa: E402
+from pacbench.gateway_client import client_settings  # noqa: E402
 from pacbench.daily_contract import freeze_daily_contracts  # noqa: E402
 from pacbench.frozen import bundle_hash, write_bundle  # noqa: E402
 from pacbench.model_calls import ModelClient, ResponsesWriter  # noqa: E402
@@ -318,6 +319,7 @@ def run_arm(provider: str, root: Path, observations: list[dict],
                 Path(seam["plugin_src"]) if seam.get("plugin_available") else None),
                 provider_name=provider, model=driver.model_id,
                 model_provider=driver.provider,
+                model_base_url=driver.base_url,
                 mcp_servers=[mcp_spec] if mcp_spec else None)
             if provider == "hindsight":
                 preflight = hindsight_preflight(adapter, hermes_home, at,
@@ -348,9 +350,12 @@ def run_arm(provider: str, root: Path, observations: list[dict],
         save(output / "turn.json", vars(turn))
         checkpoint["behavior"] = tool_behavior(provider, turn)
         checkpoint["retrieval_outcome"] = (
-            "used" if checkpoint["behavior"]["retrieval_called"] else
             "blocked" if checkpoint["behavior"]["blocked_provider_calls"] else
+            "used" if checkpoint["behavior"]["retrieval_called"] else
             "not_called")
+        if checkpoint["behavior"]["blocked_provider_calls"]:
+            checkpoint.update(state="invalid", reason="Hermes retrieval call blocked by harness policy")
+            return checkpoint
         if turn.returncode != 0 or not turn.answer.strip():
             checkpoint["reason"] = f"Hermes turn failed: {turn.returncode}"
             return checkpoint
@@ -363,7 +368,7 @@ def run_arm(provider: str, root: Path, observations: list[dict],
             return checkpoint
         claims = tuple(Claim(c.id, c.statement, c.evidence) for c in scored_contract.claims)
         try:
-            grade = grade_semantic(life_id, scored_contract.question, turn.answer,
+            grade = grade_semantic(life_id, turn.prompt, turn.answer,
                                    claims, judge,
                                    record_path=output / "judgment.json")
         except Exception as exc:
@@ -569,7 +574,9 @@ def resolve_spec(spec: dict, root: Path) -> tuple[list[ScenePlan], ScenePlan, di
             datetime.fromisoformat(question_at) <= datetime.fromisoformat(maintenance_at)):
         raise ValueError("maintenance must follow scenes; question must follow maintenance")
     providers = spec.get("providers", ["memcal", "hindsight"])
-    if not providers or any(p not in ("memcal", "hindsight") for p in providers):
+    if (not isinstance(providers, list) or not providers or
+            any(p not in ("memcal", "hindsight") for p in providers) or
+            len(set(providers)) != len(providers)):
         raise ValueError("unsupported provider selection")
     return scenes, target, {
         "id": life_id, "test_scene_id": target.id,
@@ -593,10 +600,13 @@ def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
     key = os.environ["META_API_KEY"]
     call_dir = root / "model-calls"
     writer = ResponsesWriter(key=key, model=driver.model_id, record_dir=call_dir,
+                             url=client_settings("pacbench-authoring")[0] + "/responses",
                              cache_dir=ROOT / "runs" / "model-cache")
     judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
                         cache_dir=ROOT / "runs" / "model-cache")
     daily_model = ModelClient(key=key, model=driver.model_id,
+                              url=client_settings("pacbench-judge")[0] + "/chat/completions",
                               record_dir=call_dir,
                               cache_dir=ROOT / "runs" / "model-cache",
                               reasoning_effort="low", json_mode=True)
@@ -706,7 +716,7 @@ def main() -> int:
     summary = run_experiment(spec, root)
     print(root)
     print(json.dumps(summary["results"], indent=2))
-    return 0 if all(r["state"] == "valid" for r in summary["results"]) else 1
+    return 0 if summary["state"] in ("complete", "prepared") else 1
 
 
 if __name__ == "__main__":

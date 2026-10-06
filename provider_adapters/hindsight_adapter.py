@@ -100,8 +100,8 @@ HINDSIGHT_MCP_TOOLS = (
 HINDSIGHT_TOOL_ALLOWLIST = ("tool_search", "tool_describe", "tool_call") + tuple(
     f"mcp__hindsight__{name}" for name in HINDSIGHT_MCP_TOOLS)
 
-META_GATEWAY_URL = "https://api.meta.ai/v1"
-DEFAULT_INTERNAL_MODEL = "muse-spark-1.3"
+META_GATEWAY_URL = "http://127.0.0.1:8099/p/hindsight-extraction/v1"
+DEFAULT_INTERNAL_MODEL = "muse-spark-1.3-contributor"
 
 #: Conversation-packet document identity (plan.md P0-2; P0-3 §§2-3).
 #: Stable logical document IDs derived solely from public source
@@ -291,16 +291,11 @@ class HindsightAdapter(ProviderAdapter):
 
     def _llm_config(self) -> SimpleNamespace:
         key = os.environ.get("HINDSIGHT_API_LLM_API_KEY", "").strip()
+        base_url = os.environ.get("HINDSIGHT_API_LLM_BASE_URL", "").strip()
         if not key:
-            # Repo credential precedent (cf. creds.load_driver): the PACBench
-            # .env META credential backs the internal LLM unless an explicit
-            # HINDSIGHT_API_LLM_API_KEY overrides it. Still fail-closed when
-            # no key exists anywhere.
             try:
-                from pacbench.creds import DEFAULT_ENV
-                from pacbench.generation import load_config
-                _, key = load_config(DEFAULT_ENV)
-                key = (key or "").strip()
+                from pacbench.gateway_client import client_settings
+                base_url, key = client_settings("hindsight-extraction")
             except Exception:
                 key = ""
         if not key:
@@ -313,8 +308,7 @@ class HindsightAdapter(ProviderAdapter):
         return SimpleNamespace(
             provider=os.environ.get("HINDSIGHT_API_LLM_PROVIDER", "openai"),
             api_key=key,
-            base_url=os.environ.get("HINDSIGHT_API_LLM_BASE_URL",
-                                    META_GATEWAY_URL),
+            base_url=base_url or META_GATEWAY_URL,
             model=os.environ.get("HINDSIGHT_API_LLM_MODEL", self.llm_model))
 
     def reset(self, namespace: str) -> None:
@@ -742,7 +736,8 @@ class HindsightAdapter(ProviderAdapter):
         return adapter_config()
 
     def env(self) -> dict:
+        llm = self._llm_config()
         return {"HINDSIGHT_HOME": str(self.home),
                 "HINDSIGHT_BANK": self._bank or "",
                 "HINDSIGHT_API_LLM_MODEL": self.llm_model,
-                "HINDSIGHT_API_LLM_BASE_URL": META_GATEWAY_URL}
+                "HINDSIGHT_API_LLM_BASE_URL": llm.base_url}

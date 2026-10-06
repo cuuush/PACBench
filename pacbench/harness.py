@@ -84,7 +84,9 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
                    provider_name: str, model: str = "grok-4.6",
                    model_provider: str = "xai-oauth",
                    live_home: Path | None = None,
-                   mcp_servers: list[dict] | None = None) -> dict:
+                   mcp_servers: list[dict] | None = None,
+                   builtin_memory: bool = False,
+                   model_base_url: str | None = None) -> dict:
     """Build a scratch HERMES_HOME: minimal config, provider plugin, no live auth.
 
     - ``provider_plugin_src`` is copied (never symlinked) to
@@ -137,10 +139,11 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
     base_url = {"xai-oauth": "https://api.x.ai/v1",
                 "openrouter": "https://openrouter.ai/api/v1",
                 "meta-ai": "https://api.meta.ai/v1"}.get(model_provider, "")
+    base_url = model_base_url or base_url
     config = {
         "model": {"default": model, "provider": model_provider,
                   "base_url": base_url},
-        "memory": {"memory_enabled": False, "user_profile_enabled": False,
+        "memory": {"memory_enabled": builtin_memory, "user_profile_enabled": builtin_memory,
                    "provider": provider_name},
         "agent": {"disabled_toolsets": [
             "browser", "clarify", "code_execution", "coding", "computer_use",

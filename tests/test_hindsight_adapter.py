@@ -162,7 +162,7 @@ class ResetFailClosed(unittest.TestCase):
         from pacbench.generation import GenerationError
         adapter, _ = _adapter()
         with _no_key(), mock.patch(
-                "pacbench.generation.load_config",
+                "pacbench.gateway_client.client_settings",
                 side_effect=GenerationError("no key")):
             with self.assertRaises(RuntimeError):
                 adapter.reset("ns1")

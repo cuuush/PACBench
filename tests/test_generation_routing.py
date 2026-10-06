@@ -17,7 +17,7 @@ from pathlib import Path
 from unittest import mock
 
 
-META_URL = "https://api.meta.ai/v1/chat/completions"
+META_URL = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"
 
 
 def _fake_response(payload: dict):
@@ -39,10 +39,10 @@ class GatewayIsMetaOnly(unittest.TestCase):
         self.assertEqual(generation.GATEWAY_URL, META_URL)
 
     def test_generation_gateway_matches_driver_base_url(self):
-        from pacbench import creds, generation
+        from pacbench import generation
         self.assertTrue(
-            generation.GATEWAY_URL.startswith(creds.BASE_URL.rstrip("/") + "/"),
-            f"{generation.GATEWAY_URL} should extend driver BASE_URL {creds.BASE_URL}")
+            generation.GATEWAY_URL.startswith("http://127.0.0.1:8099/p/"),
+            "generation must use the shared local spending boundary")
 
     def test_audited_calls_use_generation_gateway(self):
         from pacbench import generation

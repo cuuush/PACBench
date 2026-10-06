@@ -99,6 +99,9 @@ def load_driver(env_path: str | Path = DEFAULT_ENV) -> DriverConfig:
     fall back to another model or to live-profile credentials.
     """
     config, credential = load_config(env_path)
-    model_id = resolve_model_id(config.model, available_model_ids(credential))
-    os.environ[KEY_ENV_VAR] = credential
-    return DriverConfig(configured_model=config.model, model_id=model_id)
+    from .gateway_client import client_settings
+    base_url, client_key = client_settings("pacbench-driver")
+    model_id = resolve_model_id(config.model, available_model_ids(client_key, base_url))
+    os.environ[KEY_ENV_VAR] = client_key
+    os.environ["META_BASE_URL"] = base_url
+    return DriverConfig(configured_model=config.model, model_id=model_id, base_url=base_url)

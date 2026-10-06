@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Add native Hermes inventory and read-only local smoke checks, including
+  Holographic and run-isolated Mem0 wiring alongside Memcal. Record missing
+  provider setup honestly; use the shared $5/day, $10/task Contributor gateway.
+- Add native saved-trace auditing and pass public fictional clock context to
+  every answer judge. Preserve failed native recall repetitions as diagnostics.
+- Add a bounded roughly +100-message authoring stage without generating filler.
+- Fix successful CLI exits after failed audits and successful recall masking
+  a policy-blocked recall. Reject duplicate provider selections before generation.
+- Accept managed-runtime MODEL/META bindings, with explicit .env precedence.
+
 - Post-P0 validity spine + first audits (`e1743a3`): Hindsight
   one-item-per-packet joined-transcript transport (stable doc ids, append
   conversational / replace singleton) + packetized probe harnesses

@@ -28,7 +28,7 @@ from typing import Callable
 
 Generate = Callable[[str], str]
 
-GATEWAY_URL = "https://api.meta.ai/v1/chat/completions"
+GATEWAY_URL = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"
 
 
 class GenerationError(RuntimeError):
@@ -52,7 +52,9 @@ def load_config(env_path: str | Path = ".env") -> tuple[SparkConfig, str]:
     object so it cannot leak through logging. Raises :class:`GenerationError` if
     either value is missing.
     """
-    model, credential = None, None
+    # Managed runtimes bind these directly; never read a personal agent profile.
+    import os
+    model, credential = os.environ.get("MODEL"), os.environ.get("META")
     path = Path(env_path).expanduser()
     if path.exists():
         for raw in path.read_text().splitlines():

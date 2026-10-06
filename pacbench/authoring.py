@@ -53,8 +53,16 @@ class ScenePlan:
     window_start: str = ""
     window_end: str = ""
     timezone: str = ""
+    message_range: tuple[int, int] | None = None
 
     def __post_init__(self) -> None:
+        if self.message_range is not None:
+            bounds = self.message_range
+            if (not isinstance(bounds, (tuple, list)) or len(bounds) != 2 or
+                    any(type(n) is not int for n in bounds) or
+                    not 2 <= bounds[0] <= bounds[1] <= 50):
+                raise AuthoringError("message_range must be two integers between 2 and 50")
+            object.__setattr__(self, "message_range", tuple(bounds))
         if not self.scene.strip():
             raise AuthoringError("scene needs a description")
         if (not isinstance(self.facts, (list, tuple)) or
@@ -125,7 +133,8 @@ def scene_prompt(plan: ScenePlan,
         "Use natural date language in casual messages. 'Friday' is enough "
         "when this conversation date makes it unambiguous; avoid month, day "
         "number, or year unless a person would actually clarify it.\n\n"
-        "Choose the number of messages needed for a natural exchange. "
+        + (f"Write between {plan.message_range[0]} and {plan.message_range[1]} messages. "
+         if plan.message_range else "Choose the number of messages needed for a natural exchange. ") +
         "Write one message per line, as `Name: message` using consistent "
         "speaker names. No timestamps, headers, or narration inside the "
         "dialogue. Return only a JSON object with `dialogue` (one string "
@@ -156,6 +165,7 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         "window_start": plan.window_start,
         "window_end": plan.window_end,
         "timezone": plan.timezone,
+        "message_range": plan.message_range,
         "prompt_version": SCENE_PROMPT_VERSION,
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
     }
@@ -515,6 +525,8 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                 if not writer_note:
                     raise ValueError("render writer note is empty")
             lines = parse_scene_lines(dialogue, plan)
+            if plan.message_range and not plan.message_range[0] <= len(lines) <= plan.message_range[1]:
+                raise ValueError(f"message count {len(lines)} outside {plan.message_range}")
             record.writer_notes.append(writer_note)
         except (SceneRenderError, ValueError) as exc:
             failure = f"unparsable render: {exc.problem if isinstance(exc, SceneRenderError) else exc}"

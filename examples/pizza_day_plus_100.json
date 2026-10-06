@@ -1,0 +1,87 @@
+{
+  "id": "pizza-day-plus-100",
+  "timezone": "America/New_York",
+  "test_scene_id": "pizza-plan",
+  "maintenance_at": "2026-09-10T23:59:00",
+  "question_at": "2026-09-11T09:00:00",
+  "providers": [
+    "memcal",
+    "hindsight"
+  ],
+  "scenes": [
+    {
+      "id": "ordinary-01",
+      "channel": "imessage",
+      "thread": "maya",
+      "at": "2026-09-09T14:00:00-04:00",
+      "message_range": [
+        18,
+        22
+      ],
+      "scene": "Maya and the user compare their commutes, a delayed bus, and an ordinary rainy workday. Continue naturally from any earlier messages. Do not make new plans or restate the pizza plan; include normal topic drift."
+    },
+    {
+      "id": "ordinary-02",
+      "channel": "imessage",
+      "thread": "pizza-plan",
+      "at": "2026-09-09T15:00:00-04:00",
+      "message_range": [
+        18,
+        22
+      ],
+      "scene": "Devon and the user trade stories about a disappointing lunch and a temperamental coffee machine. Continue naturally from any earlier messages. Do not make new plans or restate the pizza plan; include normal topic drift."
+    },
+    {
+      "id": "ordinary-03",
+      "channel": "imessage",
+      "thread": "maya",
+      "at": "2026-09-09T16:00:00-04:00",
+      "message_range": [
+        18,
+        22
+      ],
+      "scene": "Maya and the user talk about a film they watched and disagree mildly about the ending. Continue naturally from any earlier messages. Do not make new plans or restate the pizza plan; include normal topic drift."
+    },
+    {
+      "id": "ordinary-04",
+      "channel": "imessage",
+      "thread": "pizza-plan",
+      "at": "2026-09-09T17:00:00-04:00",
+      "message_range": [
+        18,
+        22
+      ],
+      "scene": "Devon and the user discuss a laptop update, a slow download, and their afternoon at work. Continue naturally from any earlier messages. Do not make new plans or restate the pizza plan; include normal topic drift."
+    },
+    {
+      "id": "ordinary-05",
+      "channel": "imessage",
+      "thread": "maya",
+      "at": "2026-09-09T18:00:00-04:00",
+      "message_range": [
+        18,
+        22
+      ],
+      "scene": "Maya and the user swap stories about a neighbour's dog and an uneventful walk home. Continue naturally from any earlier messages. Do not make new plans or restate the pizza plan; include normal topic drift."
+    },
+    {
+      "id": "pizza-plan",
+      "channel": "imessage",
+      "at": "2026-09-10T18:00:00",
+      "scene": "Devon and the user chat, wander through some ordinary banter, and settle a pizza plan for Friday night.",
+      "facts": [
+        "Devon is the user's companion for the agreed plan.",
+        "The agreed restaurant is Luigi's.",
+        "The restaurant is on 5th.",
+        "The pizza plan is for Friday, September 11.",
+        "The agreed time is 7pm."
+      ]
+    },
+    {
+      "id": "ducks-side",
+      "channel": "imessage",
+      "at": "2026-09-10T18:30:00",
+      "scene": "Maya floats a Saturday morning ducks outing at the pond in a group chat with Devon and the user. Devon is keen and asks about timing; Maya proposes 9am; the user stays noncommittal."
+    }
+  ]
+}

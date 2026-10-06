@@ -21,6 +21,8 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Working rules
 
+- Latest user scope: benchmark only systems with a documented raw-document ingestion route. No Hermes source-message chat handoff for new trials and no Hermes-assisted extraction. Provider connectors transport raw documents; providers own extraction and updates; Hermes performs later recall only. Holographic is excluded. Message/session capture alone is insufficient evidence of document ingestion. Preserve previous runs as chat-handoff diagnostics. See [document-ingestion-provider-map.md](docs/document-ingestion-provider-map.md); its candidates are not yet verified working deployments. Memcal's native source route remains a separate requirement whose document eligibility needs verification.
+
 - Inspect `git status` and relevant diffs before editing. Preserve saved run artifacts and user changes; do not reset the tree.
 - Fix Memcal product bugs directly in `/workspace/memcal` and commit them in the Memcal repository, including future fixes. Keep benchmark code and its commits in PACBench. Do not hide provider bugs with provider-specific benchmark workarounds. Record provider code changes as a new test condition and preserve earlier traces.
 - Set every native provider process to the frozen scenario's named timezone (`TZ`); Eastern scenarios use `America/New_York`, with seasonal offsets rather than a permanent EST offset. Preserve explicit offsets in clock pins. Do not silently rewrite older source timestamps.

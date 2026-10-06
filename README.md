@@ -2,10 +2,7 @@
 
 PACBench tests whether a personal assistant can recall a plan from a fictional conversation. [Pizza Day](examples/pizza_day.json) is the current small example: the author describes a chat and lists five facts the assistant should remember. The writer adds natural side chatter and chooses the message count.
 
-Native **Holographic and local OSS Mem0** now run through Hermes's bundled
-plugins alongside Memcal. The pilot inventories all eight bundled providers,
-uses isolated homes with normal additive built-in memory, and records missing
-setup explicitly. Nothing substitutes fake retrieval or expected facts.
+New trials ingest raw daily text documents directly through each eligible provider's supported API. Hermes only answers later questions. Memcal uses its real native iMessage reader against a reusable synthetic Messages database and separate contacts source. No connector summarizes messages or seeds expected facts. Systems without document ingestion are excluded, including Holographic. See the [provider map](docs/document-ingestion-provider-map.md).
 
 Use **Spark Contributor** through the separate shared gateway at
 `/workspace/muse-gateway`: $5 per UTC day across projects and $10 total for this
@@ -15,11 +12,11 @@ See that repository's README for startup and accounting.
 
 ```sh
 python -m pacbench.semantic_experiment examples/pizza_day.json --prepare-only --output runs/pizza-prepared-new
-python -m pacbench.native_pilot --prepared runs/pizza-prepared-new --providers holographic mem0 memcal --output runs/pizza-native-new
+python -m pacbench.native_pilot --prepared runs/pizza-prepared-new --providers memcal mem0 hindsight --output runs/pizza-native-new
 python -m pacbench.native_audit runs/pizza-native-new
 ```
 
-Actual 25-message trials uncovered a missing-clock grading bug (fixed for every
+Historical chat-handoff 25-message trials uncovered a missing-clock grading bug (fixed for every
 provider) and inconsistent Mem0 persistence across fresh-session repetitions.
 Holographic recalled all five facts in the corrected-clock repetition; Mem0's
 first trial recalled the plan after native writes, while its second found no
@@ -57,7 +54,7 @@ Bind `MODEL=muse-spark-1.3-contributor` in the runtime. Start the shared gateway
 python -m pacbench.semantic_experiment examples/pizza_day.json --prepare-only
 ```
 
-Preparation generates the chats, checks each authored fact against the rendered messages, and freezes a question and evidence-cited contract. It stops before either memory provider runs. Remove `--prepare-only` to ingest the same frozen messages into Memcal and Hindsight and ask both the same question. Each provider arm records tool access, actual calls, the answer, and separate verdicts for each fact.
+Preparation generates the chats, checks each authored fact against the rendered messages, and freezes a question and evidence-cited contract. It stops before either memory provider runs. Pass that prepared directory to `native_pilot` to import the same frozen messages directly into providers and ask the same question. The older semantic adapter execution and explicit `--ingestion legacy-chat-handoff` are historical diagnostic conditions. Each provider arm records tool access, actual calls, the answer, and separate verdicts for each fact.
 
 The runner groups new messages by fictional day. Each provider ingests that day's messages once and runs its native maintenance before the next day. [The one-window correction](examples/pizza_day_correction.json) and [two-day correction](examples/pizza_day_two_days.json) test whether an old 6pm time stays distinct from the agreed 7pm plan. [Pizza Day week](examples/pizza_day_week.json) uses Monday–Sunday chats with human times. It freezes one evidence-cited claim and temporal state per authored fact for each day, then asks Hermes the following morning. Sunday has no new messages but still gets a checkpoint: earlier facts carry forward as history, while Tuesday's correction keeps the old 6pm time superseded. The examples specify `America/New_York`; each local time gets the offset for its own fictional day. Both providers receive the same frozen timestamp and text.
 
@@ -73,7 +70,7 @@ The scene writer uses Meta Responses and can replay saved encrypted reasoning wh
 python serve_explorer.py
 ```
 
-The WebUI opens a **Day by day** view: generated conversations on the left, and the selected memory provider's ingestion and Hermes chats on the right. Pick a simulated day and a provider to inspect delivered texts, actual memory tool writes/reads, parameters, results, replies, memory briefs and session details. Native delivery mappings must exactly match the saved prompt; an ingestion handoff is not proof of retained memory. Dates use the scenario timezone, and recall days appear even when no new texts were generated. Links preserve the run, day and provider; judge citations jump to the original text.
+The WebUI opens a **Day by day** view: generated conversations on the left, and the selected memory provider's ingestion and Hermes chats on the right. Pick a simulated day and a provider to inspect delivered texts, actual memory tool writes/reads, parameters, results, replies, memory briefs and session details. Document delivery must match the frozen bytes and saved hash; native processing completion is separate from retained facts. Earlier chat-handoff mappings must match their saved prompt. Dates use the scenario timezone, and recall days appear even when no new texts were generated. Links preserve the run, day and provider; judge citations jump to the original text.
 
 **Authoring** keeps writer prompts, notes and scene-verifier evidence; **Criteria & judges** shows frozen facts and per-answer verdicts, including recovery. The schema and timeline are generic for larger simulations. Encrypted reasoning stays private and credentials are never indexed. Obsolete provider-page duplication and pizza-only index filtering have been removed; saved runs and their original evidence remain intact.
 

@@ -1,4 +1,4 @@
-"""Bounded, native Hermes memory diagnostics; no SDK ingestion or oracle writes."""
+"""Bounded document ingestion followed by ordinary native Hermes recall."""
 from __future__ import annotations
 
 import argparse
@@ -24,7 +24,7 @@ from .usage import tracked_turn
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
-ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0"}
+ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking"}
 
 PROBE = '''
 import json, sys
@@ -48,9 +48,9 @@ from plugins.memory import load_memory_provider
 p = load_memory_provider(sys.argv[1], register_skills=False)
 p.initialize("pacbench-read-only-smoke", hermes_home=str(get_hermes_home()), platform="cli")
 try:
-    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search"}[p.name]
+    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search"}[p.name]
     args = ({"action": "list"} if p.name == "holographic" else
-            {"query": "native read-only capability check"} if p.name == "mem0" else {})
+            {"query": "native read-only capability check"} if p.name in {"mem0","hindsight","openviking"} else {})
     output = p.handle_tool_call(tool, args)
     print(json.dumps({"tool": tool, "arguments": args, "output": output}))
 finally:
@@ -63,7 +63,7 @@ def provider_names() -> list[str]:
     root = harness.ISOLATED_TREE / "plugins" / "memory"
     names = sorted(p.name for p in root.iterdir()
                    if p.is_dir() and (p / "plugin.yaml").is_file())
-    return names + ["memcal"]
+    return names + ["memori", "memcal"]
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
@@ -91,7 +91,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         env["TZ"] = local_timezone
     env.update({"META": "", "META_API_KEY": client_key, "MODEL_API_KEY": client_key,
                 "META_MODEL_API_KEY": client_key, "META_BASE_URL": driver_url,
-                "OPENAI_API_KEY": client_key, "MEM0_API_KEY": "",
+                "OPENAI_API_KEY": client_key, "OPENROUTER_API_KEY": "", "OPENROUTER_API_BASE": "", "MEM0_API_KEY": "",
                 "MEM0_MODE": "oss", "MEM0_HOST": "", "MEM0_TELEMETRY": "false",
                 "MEM0_DIR": str((root / "mem0-state").resolve())})
     if provider == "mem0":
@@ -141,6 +141,10 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         if actual_url != extraction_url:
             raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
         config["sync_max_chars"] = 6000
+        # Spark's reasoning counts against the output budget. The SDK default
+        # 2,000 exhausted that budget before emitting extraction JSON. Use the
+        # documented model config, not a prompt or extraction workaround.
+        config['oss']['llm']['config']['max_tokens']=16384
         save(home / "mem0.json", config)
         os.chmod(home / "mem0.json", 0o600)
         (home / ".env").write_text("OPENAI_API_KEY=" + client_key + "\n")
@@ -170,10 +174,49 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
                               env={**os.environ, **env}, capture_output=True, timeout=30)
         if proc.returncode:
             raise RuntimeError("Memcal native scratch-store bootstrap failed")
+    if provider == 'hindsight':
+        # README manual local_embedded setup; no starter memory or bank mission.
+        from .gateway_client import validate_route
+        base,key=client_settings(memory_project)
+        validate_route(base,key)
+        configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
+        folder=home/'hindsight'
+        folder.mkdir()
+        save(folder/'config.json',{'mode':'local_embedded','profile':'pacbench-'+run_id,
+            'bank_id':'pacbench-'+run_id,'llm_provider':'openai_compatible',
+            'llm_model':configured_model,'llm_base_url':base,'llm_api_key':key})
+        os.chmod(folder/'config.json',0o600)
+        env.update(HINDSIGHT_LLM_API_KEY=key,HINDSIGHT_API_LLM_API_KEY=key,
+                   HINDSIGHT_API_LLM_BASE_URL=base,HINDSIGHT_API_LLM_MODEL=configured_model,
+                   HINDSIGHT_API_LLM_PROVIDER='openai',HINDSIGHT_API_ENABLE_API_KEY_AUTH='false')
+        # Ordinary provisioning creates an empty bank, not starter memories or a
+        # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
+        bootstrap='''
+import json,sys
+from plugins.memory.hindsight import HindsightMemoryProvider
+p=HindsightMemoryProvider()
+p.initialize('setup',hermes_home=sys.argv[1],platform='cli')
+try:
+    result=p._get_client().create_bank(bank_id=sys.argv[2])
+    print(json.dumps(result.model_dump(mode='json')))
+finally:p.shutdown()
+'''
+        proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',bootstrap,
+                             str(home.resolve()),'pacbench-'+run_id],
+                            env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
+                            cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
+        save(root/'native-bank-setup.json',{'route':'Hindsight create_bank with defaults; no starter facts',
+             'returncode':proc.returncode,'stdout':proc.stdout.replace(key,'<gateway-token>'),
+             'stderr':proc.stderr.replace(key,'<gateway-token>')})
+        if proc.returncode:raise RuntimeError('Hindsight empty-bank setup failed; inspect native-bank-setup.json')
+    if provider=='openviking':
+        from provider_adapters.openviking_local import start
+        base,key=client_settings(memory_project)
+        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     return env
 
 
-def probe(root: Path, provider: str, env: dict, *, smoke: bool = False) -> dict:
+def probe(root: Path, provider: str, env: dict, *, smoke: bool = False, smoke_timeout_s: int = 30) -> dict:
     child_env = harness.turn_env("2026-09-11T09:00:00-04:00",
                                  root / "hermes-home", "", env)
     try:
@@ -196,7 +239,7 @@ def probe(root: Path, provider: str, env: dict, *, smoke: bool = False) -> dict:
             proc = subprocess.run(
                 [str(harness.ISOLATED_BIN.parent / "python"), "-c", READ_ONLY_SMOKE, provider],
                 cwd=harness.ISOLATED_TREE, env=child_env, text=True,
-                capture_output=True, timeout=30)
+                capture_output=True, timeout=smoke_timeout_s)
             if proc.returncode:
                 raise ValueError("native smoke failed")
             result["read_only_smoke"] = json.loads(proc.stdout.splitlines()[-1])
@@ -240,7 +283,11 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
-        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None) -> dict:
+        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
+        ingestion: str = 'documents') -> dict:
+    if ingestion not in {'documents','legacy-chat-handoff'}:
+        raise ValueError('Unknown ingestion mode')
+    from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 1200:
         raise ValueError("pilot limits: 1–3 repetitions, 1–1200 messages")
     selected = providers if providers is not None else provider_names()
@@ -250,7 +297,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     output.mkdir(parents=True, exist_ok=False)
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
-              "builtin_memory": True, "session_search": False}
+              "builtin_memory": True, "session_search": False,'ingestion_mode':ingestion}
     save(output / "summary.json", report)
     driver = None
     judge = plan = None
@@ -281,6 +328,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             'file': (f'exposures/{i + 1:03d}.json' if report['exposure_delivery'] == 'scenes' else f'exposure-{label}.json'),
             'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
             for i, (label, batch) in enumerate(batches)]
+        if ingestion=='documents':
+            report.pop('exposure_schedule')
+            report.update(exposure_context='not-applicable',exposure_delivery='daily-documents',
+                          ingestion_version='daily-source-documents-v1',
+                          ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
         if evaluation_plan:
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
@@ -294,11 +346,34 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
-            env = provision(root, provider, driver.model_id if driver else "unconfigured",
-                            local_timezone=resolved.get("timezone", "") if resolved else "")
+            if source and ingestion=='documents' and provider in BLOCKERS:
+                result={'provider':provider,'repetition':repetition,'state':'blocked','reason':BLOCKERS[provider],
+                        'input_hash':contract.evidence_hash,'capability':{'available':False,'reason':BLOCKERS[provider],
+                        'execution_blocker':BLOCKERS[provider],'wiring_verified':False,'tools':[]}}
+                results.append(result)
+                save(root/'status.json',result)
+                save(output/'summary.json',report)
+                continue
+            try:
+                env = provision(root, provider, driver.model_id if driver else "unconfigured",
+                                local_timezone=resolved.get("timezone", "") if resolved else "")
+            except (OSError,RuntimeError,subprocess.TimeoutExpired) as exc:
+                # Preserve native setup failures and continue independent arms.
+                _,key=client_settings('setup-check')
+                reason=f'Native setup failed: {type(exc).__name__}: {exc}'.replace(key,'<gateway-token>')
+                result={'provider':provider,'repetition':repetition,'state':'invalid','reason':reason,
+                        'failure_phase':'setup','capability':{'available':False,'reason':reason,
+                        'tools':[],'wiring_verified':False}}
+                results.append(result)
+                save(root/'status.json',result)
+                save(root/'simulation-clock.json',{'process_timezone':resolved.get('timezone','') if resolved else '',
+                     'pin':'setup attempt; no evaluation'})
+                save(output/'summary.json',report)
+                continue
             save(root / "simulation-clock.json", {"process_timezone": env.get("TZ", ""),
                  "pin": "public simulated clock supplied to every turn"})
-            capability = probe(root, provider, env, smoke=smoke or source is not None)
+            capability = probe(root, provider, env, smoke=smoke or source is not None,
+                               smoke_timeout_s=120 if ingestion=='documents' else 30)
             if (smoke or source is not None) and provider in ISOLATED_PROVIDERS:
                 capability["wiring_verified"] = smoke_succeeded(capability)
             save(root / "preflight.json", capability)
@@ -317,7 +392,15 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                  [n for n in capability["tools"] if n])
             failed = False
             exposure_session = None
-            for schedule, (day, batch) in zip(report['exposure_schedule'], batches):
+            if ingestion=='documents':
+                for schedule in report['ingestion_schedule']:
+                    record=ingest_day(provider,output/'sources'/schedule['id'],root,env,schedule['at'],report['process_timezone'] or 'America/New_York')
+                    save(root/schedule['file'],record)
+                    if record['state']!='ready':
+                        failed=True
+                        result['reason']='Native source ingestion/processing failed; inspect saved record'
+                        break
+            for schedule, (day, batch) in zip(report.get('exposure_schedule',[]), batches):
                 at = max(m["collected_at"] for m in batch)
                 turn = tracked_turn(harness.run_turn, exposure_prompt(batch), usage_path=root / (schedule["file"] + ".usage.json"), at=at,
                                         home=root / "hermes-home", allowlist=allowlist,
@@ -330,8 +413,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     break
                 exposure_session = turn.session_id
             if failed:
-                result.update(state="invalid", reason="exposure turn failed or policy blocked")
+                result.update(state="invalid", reason=result.get('reason') or "exposure turn failed or policy blocked")
             elif evaluations:
+                if ingestion=='documents':record_recall_isolation(root)
                 sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                       question_dir=output / 'combined-questions')
                 result.update(state=sequence['state'], checks=sequence['checks'], input_hash=contract.evidence_hash,
@@ -339,6 +423,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 capability['live_verified'] = sequence['state'] == 'diagnostic'
                 result['behavior'] = {'evaluation_context': evaluation_plan['context']}
             else:
+                if ingestion=='documents':record_recall_isolation(root)
                 # Deliberately omit --resume: recall must cross a real session boundary.
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
@@ -393,10 +478,12 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-messages", type=int, default=150)
     parser.add_argument("--repetitions", type=int, default=1)
-    parser.add_argument("--smoke", action="store_true", help="free native read-only local tool checks")
+    parser.add_argument("--smoke", action="store_true", help="bounded native read-only tool checks")
     parser.add_argument("--providers", nargs="+", help="select native arms; omitted inventories every provider")
+    parser.add_argument('--ingestion',choices=['documents','legacy-chat-handoff'],default='documents',
+                        help='Direct document/native-source imports. Legacy mode is only for historical handoff diagnostics.')
     args = parser.parse_args()
-    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers)
+    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers,ingestion=args.ingestion)
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))

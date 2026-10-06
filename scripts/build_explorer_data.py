@@ -6,6 +6,7 @@ private run artifacts and is redacted from the browser data.
 """
 
 import datetime
+import hashlib
 import json
 import re
 import sqlite3
@@ -116,6 +117,17 @@ def native_run(run_dir):
         else:
             append_exchange(arm, contract, 'recall', 'recall.json')
         exposures = []
+        if summary.get('ingestion_mode')=='documents':
+            for row in summary.get('ingestion_schedule',[]):
+                record=read_json(arm/row['file'])
+                if not record:continue
+                packet=[m for m in messages if m['source_id'] in row['source_ids']]
+                document=(run_dir/row['source_file']).read_text()
+                exposures.append({'label':row['id'],'at':record['at'],'delivery':record['delivery'],
+                    'record':record,'usage':record.get('usage'),'packet':packet,
+                    'document':document,
+                    'packet_verified':record['source_ids']==row['source_ids'] and
+                       hashlib.sha256(document.encode()).hexdigest()==record['document_sha256']})
         schedule = summary.get('exposure_schedule')
         if schedule:
             paths = [(row['id'], arm / row['file'], row) for row in schedule]

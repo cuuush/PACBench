@@ -4,8 +4,8 @@
 
 Evaluate every bundled memory provider in the pinned Hermes checkout, plus Memcal,
 through normal native Hermes behavior. Pizza Day is a wiring diagnostic, not the
-benchmark's destination. Add providers incrementally; Holographic and local OSS Mem0
-are now native paths alongside Memcal. Never substitute fake retrieval, seed expected facts,
+benchmark's destination. Add eligible document providers incrementally. Holographic is excluded from new
+trials; preserve its earlier chat-handoff diagnostics. Never substitute fake retrieval, seed expected facts,
 or silently skip a broken provider.
 
 The user set a **$10 total ceiling for this task**, with a shared **$5 per UTC
@@ -21,7 +21,8 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Working rules
 
-- Latest user scope: benchmark only systems with a documented raw-document ingestion route. No Hermes source-message chat handoff for new trials and no Hermes-assisted extraction. Provider connectors transport raw documents; providers own extraction and updates; Hermes performs later recall only. Holographic is excluded. Message/session capture alone is insufficient evidence of document ingestion. Preserve previous runs as chat-handoff diagnostics. See [document-ingestion-provider-map.md](docs/document-ingestion-provider-map.md); its candidates are not yet verified working deployments. Memcal's native source route remains a separate requirement whose document eligibility needs verification.
+- Latest user scope: benchmark only systems with a documented raw-document ingestion route. No Hermes source-message chat handoff for new trials and no Hermes-assisted extraction. Provider connectors transport raw documents; providers own extraction and updates; Hermes performs later recall only. Holographic is excluded. Message/session capture alone is insufficient evidence of document ingestion. Preserve previous runs as chat-handoff diagnostics. See [document-ingestion-provider-map.md](docs/document-ingestion-provider-map.md); its candidates are not yet verified working deployments. Memcal has the user-authorized native iMessage exception described below.
+- User explicitly authorizes Memcal's real native iMessage ingestion as an exception to document import. Build a provider-independent synthetic Apple Messages database from frozen public messages, with realistic source metadata and joins. Do not tailor the database schema, contacts, identity metadata or fields to Memcal, and do not write extracted facts. Preserve it as a reusable source fixture for future iMessage connectors. Other providers receive the same day's raw messages as a text document.
 
 - Inspect `git status` and relevant diffs before editing. Preserve saved run artifacts and user changes; do not reset the tree.
 - Fix Memcal product bugs directly in `/workspace/memcal` and commit them in the Memcal repository, including future fixes. Keep benchmark code and its commits in PACBench. Do not hide provider bugs with provider-specific benchmark workarounds. Record provider code changes as a new test condition and preserve earlier traces.
@@ -91,7 +92,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## New code
 
-- `pacbench/native_pilot.py`: native inventory, recommended isolated local setup, read-only preflight, uniform public transcript handoff and fresh-session recall.
+- `pacbench/native_pilot.py`: native inventory, recommended isolated local setup, read-only preflight, direct daily document/native-source import and fresh-session recall.
 - `pacbench/native_audit.py`: independent saved-trace integrity checks, including complete frozen input, clocks, session separation and judge context.
 - `pacbench/followups.py`: frozen neutral follow-up plans, one-attempt recovery, partial-credit scoring, source-fallback failures and full retrieval effort logs.
 - `pacbench/gateway_client.py`: shared authenticated spending boundary, no upstream fallback.

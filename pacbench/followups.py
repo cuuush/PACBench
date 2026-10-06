@@ -90,13 +90,24 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'memcal_open', 'memcal_open_page', 'memory'}:
         return 'memory_detail'
     if name in {'memcal_search_wiki', 'memcal_list_days', 'memcal_list_month',
-                'mem0_search', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
+                'mem0_search', 'hindsight_recall', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
         return 'memory_search'
+    if name=='hindsight_reflect':
+        return 'memory_reasoning'
+    if name in {'viking_search','viking_browse'}:
+        return 'memory_search'
+    if name=='viking_read':
+        uris=[arguments.get('uri',''),*(arguments.get('uris') or [])]
+        if any('/resources/' in str(uri) for uri in uris) and arguments.get('level','overview')=='full':
+            return 'source_evidence'
+        return 'memory_detail'
+    if name in {'viking_add_resource','viking_remember','viking_forget'}:
+        return 'memory_write'
     if name == 'fact_store':
         if arguments.get('action') in {'add', 'store', 'update', 'delete'}:
             return 'memory_write'
         return 'memory_search' if arguments.get('action') in {'list', 'search'} else 'memory_detail'
-    if name in {'mem0_add', 'mem0_update', 'mem0_delete', 'fact_feedback',
+    if name in {'mem0_add', 'mem0_update', 'mem0_delete', 'fact_feedback','hindsight_retain',
                 'memcal_add', 'memcal_update', 'memcal_note', 'memcal_reviewed'}:
         return 'memory_write'
     # New providers/connectors need a reviewed operation mapping; unknown is not cheap/free.

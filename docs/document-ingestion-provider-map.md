@@ -2,7 +2,7 @@
 
 The benchmark now requires a supported raw-document ingestion route. Hermes does not receive source messages as chat turns and does not extract facts during ingestion. A connector transports unmodified source material into the provider; the provider owns extraction, organization and updates. Hermes only answers later evaluation questions through its normal memory integration.
 
-This supersedes the earlier chat-handoff trials for new benchmark work. Preserve those trials as chat-handoff diagnostics, not document-ingestion results. No new live document trials have been run yet.
+This supersedes the earlier chat-handoff trials for new benchmark work. Preserve those trials as chat-handoff diagnostics, not document-ingestion results. The first direct-ingestion trials are being recorded separately from those historical runs.
 
 ## Inventory and evidence
 
@@ -15,11 +15,11 @@ The pinned [Hermes memory documentation](../vendor/hermes-isolated/website/docs/
 | Supermemory | SDK `documents.add(content=..., container_tags=..., custom_id=...)` | Document route present | Verify documented local deployment, extraction/ready state, isolated container and model-cost routing |
 | RetainDB | File upload followed by `/v1/files/{id}/ingest`; also session ingestion | Document route present | Account and measurable spending boundary; Hermes docs list $20/month, exceeding the task budget for a new subscription |
 | ByteRover | `brv curate -- <content>` invokes provider curation | Candidate; raw-document support must be confirmed | Verify CLI documentation for document/file input, preservation of complete text and gateway-only inference; do not equate fact curation with document import without evidence |
-| Mem0 | `add(messages, infer=True)` extracts facts; Hermes `mem0_add` uses `infer=False` and stores verbatim | Candidate; document support must be confirmed | Verify documented raw-text/document API or import workflow. Message ingestion alone does not meet the new document requirement. Do not repurpose Hermes turns or use verbatim fact writes as extraction |
+| Mem0 | `add(messages, infer=True)` extracts facts; Hermes `mem0_add` uses `infer=False` and stores verbatim | Raw-text document route confirmed in the installed SDK (`messages: str`, `infer=True`) | OSS Qdrant/local Ollama setup; direct synchronous string import. Record native extraction errors even when the SDK returns an empty result. No fake conversation or verbatim fact writes |
 | Honcho | Session/peer messages through `add_messages` | Not eligible on inspected evidence | Native message modeling is not established document ingestion; include only if upstream documentation establishes a document route |
 | Memori | Published `hermes-memori` 0.1.8 uses SDK `capture_agent_turn`; completed-turn augmentation | Not eligible on inspected evidence | Verify upstream document import separately; do not fabricate assistant replies, tool traces or completed agent turns to feed messages |
 | Holographic | Fact store; optional session-end regex extraction copies matching user text, capped at 400 chars | Excluded | No general document ingestion/extraction; do not add a benchmark-owned extractor |
-| Memcal | Native source ingestion archives raw lines and spools them for its normal processing pipeline | Separate native-source candidate; document route not yet established | Preserve the native-channel requirement and inspect supported transcript/document import. No typed fact seeding or Hermes chat handoff. Clarify eligibility before running if native source ingestion is the only route |
+| Memcal | Native source ingestion archives raw lines and spools them for its normal processing pipeline | Explicit user-authorized native iMessage exception | Real source reader and contacts import, then normal nightly processing. No archive writes by the benchmark or Hermes ingestion |
 
 Sources: each bundled provider's `vendor/hermes-isolated/plugins/memory/<provider>/README.md` and `__init__.py`; Honcho's `session.py`; Memcal's source/archive/dream code and agent guide. Memori evidence comes from the public PyPI package metadata and wheel source, inspected without installation or service calls: https://pypi.org/project/hermes-memori/ .
 

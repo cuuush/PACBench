@@ -1,4 +1,4 @@
-"""Offline integrity checks for native transcript-handoff trials, without scoring text."""
+"""Offline integrity checks for native ingestion/recall trials, without scoring text."""
 from __future__ import annotations
 
 import argparse
@@ -50,6 +50,11 @@ def audit(root: Path) -> dict:
         for result in summary['results']:
             arm = root / f"repeat-{result['repetition']}" / result['provider']
             label = str(arm.relative_to(root))
+            if summary.get('ingestion_mode')=='documents' and result['state']=='blocked':
+                from .document_ingestion import BLOCKERS
+                check(result['reason']==BLOCKERS.get(result['provider']),f'{label}: unverified blocked-provider reason')
+                check(not list((arm/'ingestion').glob('*.json')) and not (arm/'recall.json').exists(),f'{label}: blocked arm executed')
+                continue
             if 'process_timezone' in summary:
                 check(read(arm / 'simulation-clock.json')['process_timezone'] == summary['process_timezone'],
                       f'{label}: inconsistent provider process timezone')
@@ -60,36 +65,40 @@ def audit(root: Path) -> dict:
                 # A blocked arm has no live trace; keep the failure and audit later arms.
                 continue
             exposure_sessions = []
-            batches = exposure_batches(messages, spec)
-            schedule = summary.get('exposure_schedule')
-            if schedule is None:
-                schedule = [{'id': day, 'file': f'exposure-{day}.json', 'source_ids': [m['source_id'] for m in batch],
-                             'at': max(m['collected_at'] for m in batch)} for day, batch in batches]
-            expected_schedule = [{'id': day,
-                'file': (f'exposures/{i + 1:03d}.json' if spec.get('exposure_delivery') == 'scenes' else f'exposure-{day}.json'),
-                'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
-                for i, (day, batch) in enumerate(batches)]
-            check(schedule == expected_schedule, f'{label}: exposure schedule differs from frozen input')
-            recorded = list(arm.glob('exposure-*.json')) + list((arm / 'exposures').glob('*.json'))
-            usage_files = [p for p in recorded if p.name.endswith('.json.usage.json')]
-            check(all(str(p.relative_to(arm)) in {r['file'] + '.usage.json' for r in schedule}
-                      for p in usage_files), f'{label}: unexpected exposure usage files')
-            recorded = [p for p in recorded if p not in usage_files]
-            check(sorted(str(p.relative_to(arm)) for p in recorded) == sorted(r['file'] for r in schedule),
-                  f'{label}: unexpected exposure files')
-            for row, (day, batch) in zip(schedule, batches):
-                at = max(m['collected_at'] for m in batch)
-                public = 'Here are my recent messages. Catch up on them for me.\n\n' + '\n'.join(
-                    f"[{m['written_at']}] {m['channel']} / {m['thread']} / {m['sender']}: {m['text']}" for m in batch)
-                turn = read(arm / row['file'])
-                check(turn['at'] == at and turn['prompt'] == clock_prompt(at, public), f'{label}: exposure/clock mismatch')
-                check(not turn['returncode'] and not turn['policy_blocks'], f'{label}: exposure failure')
-                if spec.get('exposure_context', 'isolated') == 'shared' and exposure_sessions:
-                    check(turn['session_id'] == exposure_sessions[0], f'{label}: exposure lost shared conversation')
-                else:
-                    check(bool(turn['session_id']) and turn['session_id'] not in exposure_sessions,
-                          f'{label}: exposure session missing or unexpectedly reused')
-                exposure_sessions.append(turn['session_id'])
+            if summary.get('ingestion_mode')=='documents':
+                from .document_audit import audit_ingestion
+                errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))
+            else:
+                batches = exposure_batches(messages, spec)
+                schedule = summary.get('exposure_schedule')
+                if schedule is None:
+                    schedule = [{'id': day, 'file': f'exposure-{day}.json', 'source_ids': [m['source_id'] for m in batch],
+                                 'at': max(m['collected_at'] for m in batch)} for day, batch in batches]
+                expected_schedule = [{'id': day,
+                    'file': (f'exposures/{i + 1:03d}.json' if spec.get('exposure_delivery') == 'scenes' else f'exposure-{day}.json'),
+                    'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
+                    for i, (day, batch) in enumerate(batches)]
+                check(schedule == expected_schedule, f'{label}: exposure schedule differs from frozen input')
+                recorded = list(arm.glob('exposure-*.json')) + list((arm / 'exposures').glob('*.json'))
+                usage_files = [p for p in recorded if p.name.endswith('.json.usage.json')]
+                check(all(str(p.relative_to(arm)) in {r['file'] + '.usage.json' for r in schedule}
+                          for p in usage_files), f'{label}: unexpected exposure usage files')
+                recorded = [p for p in recorded if p not in usage_files]
+                check(sorted(str(p.relative_to(arm)) for p in recorded) == sorted(r['file'] for r in schedule),
+                      f'{label}: unexpected exposure files')
+                for row, (day, batch) in zip(schedule, batches):
+                    at = max(m['collected_at'] for m in batch)
+                    public = 'Here are my recent messages. Catch up on them for me.\n\n' + '\n'.join(
+                        f"[{m['written_at']}] {m['channel']} / {m['thread']} / {m['sender']}: {m['text']}" for m in batch)
+                    turn = read(arm / row['file'])
+                    check(turn['at'] == at and turn['prompt'] == clock_prompt(at, public), f'{label}: exposure/clock mismatch')
+                    check(not turn['returncode'] and not turn['policy_blocks'], f'{label}: exposure failure')
+                    if spec.get('exposure_context', 'isolated') == 'shared' and exposure_sessions:
+                        check(turn['session_id'] == exposure_sessions[0], f'{label}: exposure lost shared conversation')
+                    else:
+                        check(bool(turn['session_id']) and turn['session_id'] not in exposure_sessions,
+                              f'{label}: exposure session missing or unexpectedly reused')
+                    exposure_sessions.append(turn['session_id'])
             if evaluations:
                 errors.extend(f'{label}: {e}' for e in audit_checks(evaluations, evaluation_plan['context'], arm, exposure_sessions))
                 check(result['checks'] == read(arm / 'evaluation.json')['checks'], f'{label}: evaluation summary mismatch')

@@ -1,0 +1,68 @@
+"""Integrity checks for direct document/native-source ingestion, no answer scoring."""
+from __future__ import annotations
+import hashlib
+import json
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+from .document_ingestion import VERSION, daily_batches, document_text, processing_at
+
+
+def audit_ingestion(root, arm, messages, summary):
+    errors=[]
+    def check(ok,msg):
+        if not ok:errors.append(msg)
+    schedule=summary['ingestion_schedule']
+    batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
+    check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
+    cumulative=[]
+    for row,(day,batch) in zip(schedule,batches):
+        cumulative+=batch
+        source=root/'sources'/day
+        meta=json.loads((source/'source.json').read_text())
+        at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
+        ids=[m['source_id'] for m in batch]
+        text=document_text(batch,at)
+        check(row['id']==day and row['at']==at and row['source_ids']==ids,'source availability schedule mismatch')
+        check(row['file']==f'ingestion/{day}.json' and row['source_file']==f'sources/{day}/messages.txt','unsafe or unexpected ingestion path')
+        check(hashlib.sha256((source/'source.json').read_bytes()).hexdigest()==row['source_manifest_sha256'],'source manifest hash mismatch')
+        check(meta['version']==VERSION and meta['source_ids']==ids and meta['at']==at,'source manifest differs from frozen observations')
+        check((source/'messages.txt').read_text()==text and json.loads((source/'messages.json').read_text())==batch,'delivered source text differs from frozen observations')
+        check(hashlib.sha256(text.encode()).hexdigest()==meta['document_sha256'],'source document hash mismatch')
+        for name,sha in meta.get('fixture_hashes',{}).items():
+            check(Path(name).name==name,'unsafe fixture path')
+            check(hashlib.sha256((source/name).read_bytes()).hexdigest()==sha,'source fixture changed')
+        if meta.get('fixture'):
+            manifest=json.loads((source/'chat.fixture.json').read_text())
+            check(set(manifest['messages'])=={m['source_id'] for m in cumulative},'source fixture has missing/future messages')
+            with sqlite3.connect(f'file:{source/"chat.db"}?mode=ro',uri=True) as db:
+                check(db.execute('SELECT count(*) FROM message').fetchone()[0]==len(cumulative),'fixture message count mismatch')
+                for m in cumulative:
+                    recorded=manifest['messages'][m['source_id']]
+                    rowdata=db.execute('SELECT guid,text,is_from_me FROM message WHERE ROWID=?',(recorded['rowid'],)).fetchone()
+                    check(rowdata==(recorded['guid'],m['text'],int(m['from_owner'])),'fixture text/owner/GUID differs from source')
+                check(not db.execute('SELECT m.ROWID FROM message m LEFT JOIN chat_message_join j ON j.message_id=m.ROWID WHERE j.chat_id IS NULL').fetchall(),'orphan source messages')
+        record=json.loads((arm/row['file']).read_text())
+        check(record['provider']==arm.name and record['version']==VERSION and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
+        check(record['document_sha256']==meta['document_sha256'],'provider document hash mismatch')
+        check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')
+        check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
+        check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York'),'native processing clock mismatch')
+    check(not list((arm/'exposures').glob('*.json')) and not list(arm.glob('exposure-*.json')),'unexpected Hermes exposure records')
+    check(sorted(p.name for p in (arm/'ingestion').glob('*.json'))==sorted(Path(r['file']).name for r in schedule),'unexpected or missing ingestion records')
+    isolation=json.loads((arm/'pre-recall-isolation.json').read_text())
+    check(isolation['hermes_sessions_before_recall']==[] and
+          not any(v.strip() for v in isolation['builtin_memory_before_recall'].values()),
+          'Hermes source conversation or builtin facts existed before recall')
+    # Independently inspect actual native session messages. Saved declarations
+    # alone cannot establish that raw documents were kept out of Hermes chat.
+    turns=[]
+    for path in [arm/'recall.json',*(arm/'turns').glob('*/turn.json'),
+                 *(arm/'turns').glob('*/followups/combined/turn.json'),arm/'followups/combined/turn.json']:
+        if path.exists():turns.append(json.loads(path.read_text()))
+    expected={(t['session_id'],t['prompt']) for t in turns}
+    with sqlite3.connect(f'file:{arm/"hermes-home/state.db"}?mode=ro',uri=True) as db:
+        actual=db.execute("SELECT session_id,content FROM messages WHERE role='user' ORDER BY id").fetchall()
+        check(set(actual)==expected and len(actual)==len(expected),'Native Hermes user messages differ from evaluation questions')
+        check({r[0] for r in db.execute('SELECT id FROM sessions')}=={t['session_id'] for t in turns},'Unexpected Hermes ingestion or prior sessions')
+    return errors

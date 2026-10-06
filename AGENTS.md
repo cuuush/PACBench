@@ -48,8 +48,8 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Investigate Mem0's native asynchronous sync: shutdown waits only five seconds; saved gateway extraction calls completed after the exposure process exited. Its second local history is empty. This suggests a lifecycle failure, not a proven extraction-quality diagnosis. Do not force writes, seed facts, extend only this provider's lifetime, or erase the failure.
 - Native runs retain Hermes's normal additive built-in memory in scratch homes. Session search is disabled, and recall starts a new session. Report Hermes-plus-provider behavior, never isolated provider quality. The older SDK/MCP semantic condition is separate.
 - Provider inventory covers all eight bundled plugins plus Memcal. Unconfigured hosted/back-end paths remain explicit blockers; never imply they were tested.
-- Current usage-derived uncached upper bound: $0.0292289 before the Memcal trial, no outstanding reservations. Re-read the gateway ledger for the final amount; this is not an invoice total.
-- Offline suite: 212 passed, 2 skipped before adding native-audit regressions. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
+- Final usage-derived uncached upper bound: $0.0340668, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
+- Final offline suite: 218 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
 
 ## Historical evidence (not present in this checkout)
 
@@ -64,7 +64,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Next steps
 
-1. Finish the matched native Memcal Pizza Day trial; audit clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
+1. The matched native Memcal trial (`runs/pizza-native-memcal-20261006`) completed with 4/5 diagnostic judgments, omitting “on 5th”; its trace audit passes. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
 2. Investigate the native Mem0 background-sync lifecycle with a normal persistent Hermes session. Preserve immediate-CLI-exit failures; any lifecycle change must apply uniformly and define a separate disclosed condition. Do not increase volume to conceal an unresolved small-case failure.
 3. Repeat small cases after harness fixes. Then use the checked-in +100 spec (five distinct ordinary exchanges of 18–22 messages each), freezing once for every arm. The stage generator makes no calls and never pads/truncates dialogue. Defer +1000 until smaller trials are understood; never generate a 100k-line corpus.
 4. Add native Hindsight next using its bundled plugin, recommended backend setup and a run-owned namespace, then remaining providers whose real setup and costs can be bounded. Existing SDK ingestion is not evidence for that condition.

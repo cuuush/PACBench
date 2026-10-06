@@ -23,7 +23,9 @@ Actual 25-message trials uncovered a missing-clock grading bug (fixed for every
 provider) and inconsistent Mem0 persistence across fresh-session repetitions.
 Holographic recalled all five facts in the corrected-clock repetition; Mem0's
 first trial recalled the plan after native writes, while its second found no
-saved plan. These are diagnostic observations, not calibrated rankings.
+saved plan. Memcal recalled four of five facts, omitting the street. Total
+accounted upper bound was $0.0341. These are diagnostic observations, not
+calibrated rankings.
 
 [Pizza Day plus roughly 100 messages](examples/pizza_day_plus_100.json) adds five
 ordinary exchanges bounded to 18–22 messages each. It is an authoring spec,

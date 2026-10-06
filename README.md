@@ -69,7 +69,9 @@ The scene writer uses Meta Responses and can replay saved encrypted reasoning wh
 python serve_explorer.py
 ```
 
-The WebUI shows Pizza Day's authored facts, rendered texts, writer note and prompt, each scene-verifier decision with message citations, the frozen contract, and answer judgments. Provider views show the question, Memcal brief or recall calls, tool arguments and results, answer, and claim-level reasons. Encrypted reasoning is retained in the private run record and redacted from explorer data. Each run uses its own saved bundle and hash. Old run artifacts remain on disk, but the retired historical corpus and its browser are gone.
+The WebUI opens a **Day by day** view: generated conversations on the left, and the selected memory provider's ingestion and Hermes chats on the right. Pick a simulated day and a provider to inspect delivered texts, actual memory tool writes/reads, parameters, results, replies, memory briefs and session details. Native delivery mappings must exactly match the saved prompt; an ingestion handoff is not proof of retained memory. Dates use the scenario timezone, and recall days appear even when no new texts were generated. Links preserve the run, day and provider; judge citations jump to the original text.
+
+**Authoring** keeps writer prompts, notes and scene-verifier evidence; **Criteria & judges** shows frozen facts and per-answer verdicts, including recovery. The schema and timeline are generic for larger simulations. Encrypted reasoning stays private and credentials are never indexed. Obsolete provider-page duplication and pizza-only index filtering have been removed; saved runs and their original evidence remain intact.
 
 ## Calibrate and check
 
@@ -82,6 +84,7 @@ Each new run also writes `run-audit.json`. The audit checks frozen hashes and ci
 ```sh
 python -m pytest -q
 node --check explorer/dashboard.js
+node --check explorer/timeline.js
 python scripts/build_explorer_data.py
 ```
 

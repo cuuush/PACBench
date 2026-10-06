@@ -111,3 +111,11 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Final shared-context accounting snapshot: $0.5751122 cumulative upper bound including $0.1081344 held. The isolated specificity regression rejected the broad follow-up and approved a precise original-time question without another provider turn.
 
 - Zero-recall recovery gate verified: 244 passed, 2 skipped. All-missing, all-wrong and mixed zero-correct answers invoke no recovery model/provider calls; later planned shared questions still execute. Historical zero-recall protocol-3 trials and the shared-context trial retain passing audits under their original policies. No paid calls were needed for this policy change.
+
+## Simulation explorer
+
+- Default to the generic day-by-day timeline (`explorer/timeline.js`): source texts by written day, provider delivery and Hermes interactions by their actual turn day in the scenario timezone. Include days with evaluation but no new texts. Keep provider repetitions and blocked arms explicit.
+- Verify native delivered-text mapping against the saved exact prompt before displaying it as a packet (`scripts/build_explorer_data.py`). A mismatch remains inspectable and must not claim texts were delivered. Distinguish delivery from retained facts; actual write/read tool arguments and results are evidence. Legacy adapter packets remain a separate ingestion condition.
+- Keep exact prompts, per-turn briefs, session IDs, errors, tool calls/results, criteria and judge responses inspectable. Timeline criteria can collapse for readability; the judge page opens per-message verdicts. Preserve deep links and citation-to-source navigation. Never delete private run evidence as UI cleanup.
+- Removed duplicated whole-provider UI pages, obsolete provider-page styles, hidden tool classification and pizza-only semantic filtering. Generic authoring, judges and saved-file views remain.
+- Verified all 19 saved runs in Chromium, desktop/mobile day and provider navigation, actual packet texts, tool arguments/results, missed/wrong recovery verdicts, source links and reload persistence. No page errors or mobile overflow. Offline suite: 246 passed, 2 skipped. No paid model calls for this UI work.

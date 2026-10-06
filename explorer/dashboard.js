@@ -2,7 +2,7 @@
 
 let data = {runs: []};
 let current = "";
-let page = "story";
+let page = "timeline";
 const el = id => document.getElementById(id);
 const esc = value => String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const dump = value => "<pre>" + esc(JSON.stringify(value, null, 2)) + "</pre>";
@@ -27,7 +27,9 @@ function stateOf(run) {
   return arms.length && arms.every(arm => arm.status?.state === "valid") ? "complete" : "incomplete";
 }
 function titleOf(run) {
-  return run.spec?.id || run.life || idOf(run);
+  const name = run.spec?.id || run.life || idOf(run);
+  const words = String(name).replace(/[-_]+/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 function selected() {
   return data.runs.find(run => idOf(run) === current);
@@ -38,18 +40,28 @@ function renderRunPicker() {
     esc(stateOf(run)) + " · " + esc(idOf(run)) + "</option>").join("");
   el("run-select").value = current;
 }
-function choose(id, nextPage = "story") {
+function choose(id, nextPage = "timeline", scroll = true) {
+  const priorScroll = window.scrollY;
+  if (id !== current) { selectedDay = ""; selectedProvider = ""; }
   if (!data.runs.some(run => idOf(run) === id)) return;
   current = id;
   page = nextPage;
   renderRunPicker();
   render();
   history.replaceState(null, "", "?run=" + encodeURIComponent(id) +
-    (page === "story" ? "" : "&view=" + encodeURIComponent(page)));
-  window.scrollTo(0, 0);
+    (page === "timeline" ? "" : "&view=" + encodeURIComponent(page)) +
+    (selectedDay ? "&day=" + encodeURIComponent(selectedDay) : "") +
+    (selectedProvider ? "&provider=" + encodeURIComponent(selectedProvider) : ""));
+  const rail = document.querySelector(".day-navigation");
+  const active = rail?.querySelector('[aria-pressed="true"]');
+  if (active) {
+    const offset = active.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft;
+    rail.scrollLeft = Math.max(0, offset - (rail.clientWidth - active.clientWidth) / 2);
+  }
+  window.scrollTo(0, scroll ? 0 : priorScroll);
 }
 function nav(items) {
-  if (!items.some(item => item[0] === page)) page = "story";
+  if (!items.some(item => item[0] === page)) page = "timeline";
   return '<nav class="pages" aria-label="Run pages">' + items.map(item =>
     '<button type="button" data-page="' + esc(item[0]) + '" class="' +
     (page === item[0] ? "active" : "") + '">' + esc(item[1]) + "</button>").join("") + "</nav>";
@@ -308,15 +320,11 @@ function toolName(name) {
 function toolCards(run, arm, turn) {
   const calls = turn.tool_calls || [];
   if (!calls.length) return '<div class="quiet">No tool calls recorded for this answer.</div>';
-  const memory = [];
-  const other = [];
+  const cards = [];
   calls.forEach((call, index) => {
     const result = turn.tool_results?.[index];
     const blocked = result?.policy_blocked || String(result?.text || "").includes("PACBENCH-BLOCKED");
     const nested = Array.isArray(call.input?.calls) ? call.input.calls : [];
-    const memoryCall = (arm.preflight?.tools || []).includes(call.name) || call.name?.startsWith("mem0_") || call.name === "fact_store" || call.name?.startsWith("memory_") || call.name?.startsWith("memcal_") ||
-      call.name?.startsWith("mcp__hindsight__") || nested.some(c =>
-        c.name?.startsWith("memcal_") || c.name?.startsWith("mcp__hindsight__"));
     let error = false;
     try { error = Boolean(JSON.parse(result?.text || "{}").error); } catch (_) {}
     const failed = result?.success === false || error;
@@ -330,10 +338,9 @@ function toolCards(run, arm, turn) {
       '</small></span><span class="tool-state">' + (blocked ? "blocked" : failed ? "failed" : result?.success === true ? "returned" : "not captured") +
       '</span></summary><div class="tool-body"><h4>Arguments</h4>' + dump(call.input || {}) +
       '<h4>What came back</h4>' + resultBody(run, arm, result) + "</div></details>";
-    (memoryCall ? memory : other).push(card);
+    cards.push(card);
   });
-  return memory.join("") + (other.length ?
-    details("Tool setup and other calls · " + other.length, other.join("")) : "");
+  return cards.join("");
 }
 function score(ex) {
   if (ex.status?.state === "invalid") return ["Invalid checkpoint", "bad"];
@@ -349,7 +356,7 @@ function score(ex) {
     (missed === 1 ? "" : "s"), "warn"];
   return ["All facts correct", "ok"];
 }
-function scoreDetails(run, ex) {
+function scoreDetails(run, ex, expanded = true) {
   const [label, tone] = score(ex);
   const criteria = (ex.contract || run.contract)?.claims || [];
   const verdicts = ex.grade?.claims || criteria.map(c => ({id: c.id, verdict: "ungraded", reason: "Awaiting judge"}));
@@ -359,7 +366,7 @@ function scoreDetails(run, ex) {
       esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason) + '</p>' +
       (claim?.evidence || []).map(sourceLink).join(" ") + "</div></div>";
   }).join("");
-  return '<details open class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
+  return '<details ' + (expanded ? 'open ' : '') + 'class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
     '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
     (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
     (ex.judgment ? details("Answer judge prompt and response", '<p class="muted">Judge: ' + esc(modelCall(run, ex.judgment.model_call)?.model || "model not captured") + "</p>" + '<h4>Prompt</h4><pre>' +
@@ -373,45 +380,14 @@ function providerExchange(run, arm, ex, index) {
   const turn = ex.turn;
   if (!turn) return notice("Hermes turn " + (index + 1) + " not captured.");
   return '<section class="exchange"><div class="exchange-label">' + esc(ex.check_id || 'Question ' + (index + 1)) + (ex.kind === 'followup' ? ' · Recovery attempt' : '') +
-    " · " + esc(turn.at || "time not captured") + '</div>' +
+    " · " + esc(localClock(turn.at,run)) + " · " + esc(readableDay(dayKey(turn.at,run))) + '</div>' +
     '<div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
       esc(questionText(turn, ex)) + "</div></div></div>" +
-    effortDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
+    (turn.prefetch_context ? details("Memory brief visible for this turn", '<pre>' + esc(turn.prefetch_context) + "</pre>") : "") + effortDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
     '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message">' +
       '<div class="sender">Hermes</div><div class="bubble answer-bubble">' +
       esc(turn.answer || "Answer not captured.") + "</div>" +
-      scoreDetails(run, ex) + "</div></div></section>";
-}
-function providerPage(run, provider) {
-  const arm = run.arms?.[provider];
-  if (!arm) return notice("This provider did not run.");
-  const status = arm.status || {};
-  const access = status.capability?.available;
-  const used = status.behavior?.retrieval_called;
-  const blockedRetrieval = !used && (status.behavior?.blocked_provider_calls || []).length > 0;
-  const exchanges = arm.exchanges || (arm.turn ? [{turn: arm.turn, judgment: arm.judgment, grade: arm.grade}] : []);
-  const brief = arm.turn?.prefetch_context ? details("Memory brief visible to Hermes", '<pre>' + esc(arm.turn.prefetch_context) + "</pre>") : "";
-  const exposure = arm.exposures?.length ? details("Ingestion conversation · " + arm.exposures.length + " turns · " + (run.summary?.exposure_context || "isolated") + " context",
-    arm.exposures.map(item => '<h4>' + esc(item.label) + '</h4><p>Session: ' + esc(item.turn.session_id) +
-      '</p><pre>' + esc(item.turn.answer) + '</pre>' + toolCards(run, arm, item.turn)).join("")) : "";
-  return '<div class="provider-head"><h2>' + esc(arm.label || provider) +
-    '</h2><div class="provider-badges">' +
-    badge(access === true ? "Memory access verified" : access === false ? "Memory unavailable" : "Access not captured",
-      access === true ? "ok" : access === false ? "bad" : "neutral") +
-    badge(used === true ? "Hermes used memory" : blockedRetrieval ? "Retrieval blocked" :
-      used === false ? "Hermes did not retrieve" : "Use not captured",
-      used === true ? "ok" : blockedRetrieval ? "bad" : used === false ? "warn" : "neutral") + "</div></div>" +
-    (status.reason ? notice(status.reason) : "") +
-    (blockedRetrieval ? notice("Hermes attempted a memory tool, but the benchmark tool policy blocked it. The answer is diagnostic, not a provider-memory result.") : "") +
-    (run.audit?.valid_for_comparison === false ? notice("Excluded from comparison: " + run.audit.finding) : "") +
-    (run.audit?.state === "fail" ? notice("Run audit failed: " + run.audit.errors.join("; ")) : "") +
-    brief + exposure + (exchanges.length ? exchanges.map((ex, i) => providerExchange(run, arm, ex, i)).join("") :
-      notice("No assistant question or answer was saved for this provider.")) +
-    '<p class="muted calibration">Answer badges are diagnostic until the proposed calibration labels are human reviewed.</p>' +
-    details("Provider setup and saved files", '<h4>Ingestion</h4>' + dump(arm.ingestion) +
-      '<h4>Maintenance and readiness</h4>' + dump(arm.maintenance) +
-      '<h4>Tool discovery and preflight</h4>' + dump(arm.preflight) +
-      '<h4>Provider status</h4>' + dump(arm.status));
+      scoreDetails(run, ex, page === "judge") + "</div></div>" + turnRecord(turn) + "</section>";
 }
 function effortDetails(ex) {
   const m = ex.metrics;
@@ -431,7 +407,7 @@ function judgePage(run) {
       (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("");
 }
 function technicalPage(run) {
-  return '<section class="stage"><h2>Saved run files</h2><p class="muted">These records are here for debugging. The Story and provider pages show the readable path through the experiment.</p>' +
+  return '<section class="stage"><h2>Saved run files</h2><p class="muted">These records are here for debugging. The Timeline shows texts and provider activity by simulated day. Authoring and Judges show how the test was made and evaluated.</p>' +
     details("Original and resolved author spec", dump({author: run.spec, resolved: run.resolved_spec})) +
     details("Frozen bundle and contract", dump({bundle: run.bundle, contract: run.contract})) +
     details("Model requests and responses · " + (run.model_calls || []).length,
@@ -443,20 +419,20 @@ function technicalPage(run) {
 function render() {
   const run = selected();
   if (!run) { el("content").innerHTML = notice("No saved run selected."); return; }
-  const items = [["story", "Story"], ...Object.keys(run.arms || {}).map(name =>
-    [name, run.arms[name].label || name]), ["judge", "Criteria & judges"], ["details", "Saved files"]];
-  if (!items.some(item => item[0] === page)) page = "story";
+  const items = [["timeline", "Day by day"], ["story", "Authoring"], ["judge", "Criteria & judges"], ["details", "Saved files"]];
+  if (run.arms?.[page]) { selectedProvider = page; page = "timeline"; }
+  if (!items.some(item => item[0] === page)) page = "timeline";
   const status = stateOf(run);
   const alert = run.audit?.state === "fail" ?
-    '<div class="alert bad">Run audit failed: ' + esc(run.audit.errors.join("; ")) + "</div>" :
+    '<div class="alert bad"><strong>Run audit failed.</strong> Results need review.' + details('Audit findings', dump(run.audit.errors)) + '</div>' :
     run.audit?.valid_for_comparison === false ?
     '<div class="alert bad">Excluded: ' + esc(run.audit.finding) + "</div>" :
     run.summary?.error ? '<div class="alert bad">Stopped during ' +
       esc(run.summary.failed_stage || "experiment") + ": " + esc(run.summary.error) + "</div>" : "";
   const rerun = run.rerun_provenance ? '<div class="alert">Memcal was rerun from the frozen evidence in ' +
     esc(run.rerun_provenance.source_run) + '. The Hindsight trace was reused from that run.</div>' : "";
-  const body = page === "story" ? semanticStory(run) :
-    page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : providerPage(run, page);
+  const body = page === "timeline" ? dayTimeline(run) : page === "story" ? semanticStory(run) :
+    page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : dayTimeline(run);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
     "Experiment" + '</span><h1>' +
     esc(titleOf(run)) + '</h1><p>' + esc(idOf(run)) +
@@ -473,9 +449,14 @@ async function refresh() {
     data = await response.json();
     const params = new URLSearchParams(location.search);
     const requested = params.get("run") || current;
-    const run = data.runs.find(item => idOf(item) === requested) || data.runs[0];
+    const run = data.runs.find(item => idOf(item) === requested) || data.runs.find(item => Object.values(item.arms || {}).some(arm => arm.exchanges?.length)) || data.runs[0];
     el("data-time").textContent = data.generated_at ? "Updated " + data.generated_at : "";
-    if (run) choose(idOf(run), params.get("view") || page);
+    if (run) {
+      current = idOf(run);
+      selectedDay = params.get("day") || selectedDay;
+      selectedProvider = params.get("provider") || selectedProvider;
+      choose(current, params.get("view") || page);
+    }
     else el("content").innerHTML = notice("No saved runs found.");
   } catch (error) {
     el("content").innerHTML = '<div class="alert bad">Could not load runs: ' +
@@ -488,9 +469,15 @@ document.addEventListener("click", event => {
   const target = event.target;
   const pageButton = target.closest("[data-page]");
   if (pageButton) { page = pageButton.dataset.page; choose(current, page); return; }
+  const dayButton = target.closest("[data-day]");
+  if (dayButton) { selectedDay = dayButton.dataset.day; choose(current, "timeline", false); document.querySelector(".day-navigation")?.scrollIntoView({block:"start"}); return; }
+  const providerButton = target.closest("[data-provider]");
+  if (providerButton) { selectedProvider = providerButton.dataset.provider; choose(current, "timeline", false); return; }
   const sourceButton = target.closest("[data-jump]");
   if (sourceButton) {
-    if (page !== "story") choose(current, "story");
+    const sourceMessage = message(sourceButton.dataset.jump);
+    selectedDay = dayKey(sourceMessage?.written_at, selected());
+    choose(current, "timeline");
     const source = [...document.querySelectorAll("[data-message]")].find(
       node => node.dataset.message === sourceButton.dataset.jump);
     if (source) {

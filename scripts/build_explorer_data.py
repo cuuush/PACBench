@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Pizza Day explorer from saved semantic experiments.
+"""Build the simulation explorer from saved native and semantic experiments.
 
 Every run uses its own verified frozen bundle. Encrypted reasoning stays in
 private run artifacts and is redacted from the browser data.
@@ -21,7 +21,6 @@ from pacbench.harness import _recover_tool_results  # noqa: E402
 from pacbench.semantic_experiment import tool_behavior  # noqa: E402
 
 OUT = ROOT / "explorer" / "data"
-SCENE_FAMILY = "pizza-day"
 
 
 def model_record_for_dashboard(value):
@@ -37,6 +36,28 @@ def model_record_for_dashboard(value):
 
 def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def exposure_packet(turn, messages, row=None):
+    """Map delivered texts only when the saved prompt exactly verifies the mapping."""
+    at = turn.get('at', '')
+    if row is not None:
+        ids = row.get('source_ids', [])
+        by_id = {m['source_id']: m for m in messages}
+        packet = [by_id[i] for i in ids if i in by_id]
+        complete = len(packet) == len(ids) and len(set(ids)) == len(ids)
+    else:
+        packet = sorted([m for m in messages if m.get('collected_at', '')[:10] == at[:10]],
+                        key=lambda m: (m['collected_at'], m['source_id']))
+        ids = [m['source_id'] for m in packet]
+        complete = bool(packet)
+    public = 'Here are my recent messages. Catch up on them for me.\n\n' + '\n'.join(
+        f"[{m['written_at']}] {m['channel']} / {m['thread']} / {m['sender']}: {m['text']}" for m in packet)
+    expected = f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{public}"
+    verified = complete and turn.get('prompt') == expected
+    return {'source_ids': ids, 'packet_verified': verified,
+            'packet': packet if verified else [],
+            'packet_problem': '' if verified else 'Saved handoff does not verify the expected message mapping. Inspect its exact prompt.'}
 
 
 def native_run(run_dir):
@@ -58,6 +79,7 @@ def native_run(run_dir):
     evaluations = [{**row, 'contract': read_json(run_dir / 'evaluations' / row['id'] / 'contract.json')}
                    for row in (plan or {}).get('checks', [])]
     contract = read_json(run_dir / 'contract.json')
+    messages = messages_for(bundle, next(iter(bundle['lives'])))
     arms = {}
     for arm in sorted(run_dir.glob('repeat-*/*')):
         if not arm.is_dir() or not (arm / 'hermes-home').exists():
@@ -96,13 +118,14 @@ def native_run(run_dir):
         exposures = []
         schedule = summary.get('exposure_schedule')
         if schedule:
-            paths = [(row['id'], arm / row['file']) for row in schedule]
+            paths = [(row['id'], arm / row['file'], row) for row in schedule]
         else:
-            paths = [(p.stem, p) for p in sorted(arm.glob('exposure-*.json'))]
-        for label, path in paths:
+            paths = [(p.stem, p, None) for p in sorted(arm.glob('exposure-*.json'))]
+        for label, path, row in paths:
             turn = read_json(path)
             if turn:
-                exposures.append({'label': label, 'turn': turn})
+                exposures.append({'label': label, 'turn': turn, 'delivery': 'native',
+                                  **exposure_packet(turn, messages, row)})
         preflight = read_json(arm / 'preflight.json')
         status = read_json(arm / 'status.json') or {'state': 'running', 'capability': preflight}
         operations = [op for ex in exchanges for op in (ex.get('metrics') or {}).get('operations', [])]
@@ -119,7 +142,7 @@ def native_run(run_dir):
     return {'kind': 'native' if summary.get('mode') else 'prepared', 'id': run_dir.name,
         'spec': spec, 'resolved_spec': resolved, 'summary': summary,
         'audit': read_json(run_dir / 'native-audit.json') or read_json(run_dir / 'run-audit.json'),
-        'messages': messages_for(bundle, next(iter(bundle['lives']))), 'bundle': bundle,
+        'messages': messages, 'bundle': bundle,
         'bundle_hash': actual_hash, 'contract': contract, 'evaluation_plan': plan,
         'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
         'scenes': read_json(source / 'scenes.json'), 'arms': arms,
@@ -133,7 +156,7 @@ def main() -> None:
         if not run_dir.is_dir():
             continue
         spec = read_json(run_dir / "spec.json")
-        if not spec or not str(spec.get("id", "")).startswith(SCENE_FAMILY):
+        if not spec:
             continue
         bundle = read_json(run_dir / "bundle.json")
         provenance = read_json(run_dir / "bundle-provenance.json")
@@ -185,6 +208,17 @@ def main() -> None:
                 exchanges = [{name: arms[provider][name]
                               for name in ("turn", "judgment", "grade")}]
             arms[provider]["exchanges"] = exchanges
+            arms[provider]["label"] = provider.title()
+            arms[provider]["provider"] = provider
+            daily = sorted(arm.glob("ingestion-*.json"))
+            records = [read_json(p) for p in daily] if daily else []
+            if not records and arms[provider]["ingestion"]:
+                records = arms[provider]["ingestion"].get("daily_batches") or [arms[provider]["ingestion"]]
+            arms[provider]["exposures"] = [{"label": r.get("day", str(i + 1)),
+                "at": r.get("at"), "delivery": "adapter", "record": r,
+                "packet": r.get("packet") or [m for m in messages if m["source_id"] in r.get("source_ids", [])],
+                "source_ids": r.get("source_ids", []), "packet_verified": None}
+                for i, r in enumerate(records) if r]
             # Older semantic runs predate the separate capability/behavior
             # fields. Derive only what the saved trace actually demonstrates.
             old_status = arms[provider]["status"]
@@ -248,7 +282,7 @@ def main() -> None:
             native = native_run(run_dir)
             if native:
                 dashboard_runs.append(native)
-    dashboard_runs.sort(key=lambda r: r.get('sort_time', (ROOT / 'runs' / r['id'] / 'summary.json').stat().st_mtime), reverse=True)
+    dashboard_runs.sort(key=lambda r: r.get('sort_time') or (ROOT / 'runs' / r['id']).stat().st_mtime, reverse=True)
     (OUT / "dashboard.json").write_text(json.dumps({
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "runs": dashboard_runs}, ensure_ascii=False), encoding="utf-8")

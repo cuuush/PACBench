@@ -348,6 +348,10 @@ function score(ex) {
   const grade = ex.grade;
   if (!grade) return ["Ungraded", "neutral"];
   if (!grade.claims?.length) return ["Ungraded", "neutral"];
+  if (ex.retention?.protocol_version === 5) {
+    const terminal = {incorrect_answer:'Failed · wrong detail',admitted_retrieval_failure:'Failed · detail unavailable',explicit_request_failed:'Failed · explicitly requested detail missing',no_initial_correct_facts:'Failed · no facts recalled'};
+    if (terminal[ex.retention.skip_reason]) return [terminal[ex.retention.skip_reason], 'bad'];
+  }
   const wrong = grade.misrepresented ?? grade.claims.filter(c => c.verdict === "misrepresented").length;
   const missed = grade.missed ?? grade.claims.filter(c => c.verdict === "missed").length;
   if (wrong) return [wrong + " wrong detail" +
@@ -411,7 +415,7 @@ function usageDetails(ex) {
   const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
     (ex.question_authoring_reused ? 'Reused wording; these are the original authoring records, not fresh charges for this answer.' : 'Separate benchmark overhead, outside Hermes and the memory provider.') + '</p>' + dump(authoring) : '';
   return details('Model calls and token usage', rows ? '<div class="usage-table"><table><thead><tr><th>Who</th><th>LLM calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost upper bound</th></tr></thead><tbody>' + rows +
-    '</tbody></table></div><p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later.</p>' + details('Individual model requests and late settlements',dump(usage)) + benchmark :
+    '</tbody></table></div><p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later. Local embedding/model tokens are not captured in this gateway table.</p>' + details('Individual model requests and late settlements',dump(usage)) + benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
 function judgePage(run) {

@@ -71,6 +71,10 @@ def audit(root: Path) -> dict:
                 for i, (day, batch) in enumerate(batches)]
             check(schedule == expected_schedule, f'{label}: exposure schedule differs from frozen input')
             recorded = list(arm.glob('exposure-*.json')) + list((arm / 'exposures').glob('*.json'))
+            usage_files = [p for p in recorded if p.name.endswith('.json.usage.json')]
+            check(all(str(p.relative_to(arm)) in {r['file'] + '.usage.json' for r in schedule}
+                      for p in usage_files), f'{label}: unexpected exposure usage files')
+            recorded = [p for p in recorded if p not in usage_files]
             check(sorted(str(p.relative_to(arm)) for p in recorded) == sorted(r['file'] for r in schedule),
                   f'{label}: unexpected exposure files')
             for row, (day, batch) in zip(schedule, batches):

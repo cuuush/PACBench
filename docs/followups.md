@@ -1,8 +1,6 @@
 # One combined follow-up for all missing facts
 
-New native pilots and semantic experiments ask **one combined follow-up for ALL
-initially missed or wrong facts**. There is at most one recovery message total;
-correct facts are excluded. Both an all-correct answer and an answer with zero correct expected facts get no follow-up. Zero recall includes answers where every fact is missing or wrong; it skips question authoring, review, provider turns and recovery judging, recording `skip_reason: no_initial_correct_facts`. Eligibility is assessed separately for each evaluation question.
+New native pilots and semantic experiments ask **one combined natural clarification for silently omitted, implicitly requested facts**. The initial Spark judge distinguishes an implicit omission from an explicitly requested detail, a wrong value, and an admitted inability to find the fact. A wrong detail, admitted lookup failure or missed explicitly requested detail cancels recovery for the whole answer. Zero correct facts also gets none. Otherwise, correct facts are excluded and all eligible omissions are asked in one message; all-correct answers get none. See [natural-recovery.md](natural-recovery.md).
 
 The policy is bound to the frozen contract before testing. Questions are written
 only when needed. Spark receives just the original question and the missing
@@ -19,7 +17,7 @@ to the question writer. Hermes continues its actual recall session under the
 same fictional clock and chooses its own tools. No failed turn or judge is
 retried as a second recovery message.
 
-New reports use `protocol_version: 4`, with `minimum_initial_correct: 1`. Earlier per-fact (protocol 1), component-based combined (protocol 2), and minimal-authoring (protocol 3) trials remain unchanged and auditable under their recorded policies.
+New reports use `protocol_version: 5`, with natural-omission eligibility and the zero-recall gate. Earlier per-fact (1), component-based combined (2), minimal-authoring (3), and zero-recall-only (4) trials remain unchanged and auditable under their recorded policies.
 
 The original grade is immutable. The separate recovery score awards 1 point for
 an initially correct fact and 0.5 for a correct follow-up. An incorrect or
@@ -63,7 +61,7 @@ invoices. Tool prices are not guessed, and local lookup wall time is not confuse
 with model inference time. No arbitrary threshold labels an operation expensive;
 the saved counts, time and costs let you assess the work directly.
 
-Native and semantic saved-run audits check one message total covering every failed fact,
+Native and semantic saved-run audits check one message total covering every eligible omission,
 frozen questions, session continuation, clocks, tool/token metrics and recovery
 points. Older saved runs without follow-ups remain unchanged.
 

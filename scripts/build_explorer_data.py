@@ -134,7 +134,9 @@ def native_run(run_dir):
         arms[f'{provider}-{repetition}'] = {'provider': provider,
             'label': f'{provider.title()} · {repetition.replace("-", " ")}',
             'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
-            'model_usage': read_json(arm / 'model-usage.json'), 'turn': exchanges[0]['turn'] if exchanges else None}
+            'model_usage': read_json(arm / 'model-usage.json'),
+            'model_usage_after_settlement': read_json(arm / 'model-usage-after-settlement.json'),
+            'turn': exchanges[0]['turn'] if exchanges else None}
     records = {}
     for folder in (source, run_dir):
         for path in sorted((folder / 'model-calls').glob('*.json')):

@@ -48,6 +48,14 @@ def trace(tmp_path):
     return tmp_path, arm
 
 
+def test_usage_sidecars_are_not_dialogue_and_must_match_exposure(trace):
+    root, arm = trace
+    save(arm / 'exposure-2026-09-08.json.usage.json', {'state': 'captured'})
+    assert audit(root)['state'] == 'pass'
+    save(arm / 'exposure-2099-01-01.json.usage.json', {'state': 'captured'})
+    assert any('unexpected exposure usage files' in e for e in audit(root)['errors'])
+
+
 @pytest.mark.parametrize('file,key,value,error', [
     ('judgment.json', 'question', 'When is dinner?', 'judge lacks recall clock'),
     ('recall.json', 'session_id', 'exposure', 'reused exposure session'),

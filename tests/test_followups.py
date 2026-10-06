@@ -57,32 +57,38 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     def runner(question, **kwargs):
         calls.append((question, kwargs))
         return turn(question, 'Recovered answer', tokens=(100 + 30 * len(calls), 20 + 10 * len(calls)))
-    initial, original_grade = turn(), grade()
-    report = run_followups(contract=contract(), plan=plan(), grade=original_grade, initial_turn=initial,
+    c = contract()
+    c.claims += (SimpleNamespace(id='companion', statement='Devon is going.', evidence=('m1',)),)
+    original_grade = grade()
+    original_grade.slots.append(GradedClaim('companion', 'correct', 'Already recalled.'))
+    original_grade.correct = 1
+    p = freeze_policy(c, tmp_path / 'policy.json')
+    initial = turn()
+    report = run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
         output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
         run_turn=runner, budget_snapshot=lambda: {'projects': []}, question_model=question_writer)
     assert len(calls) == 1
     assert calls[0][0] == 'Which day and what time is it?'
     assert calls[0][1]['session_id'] == 'recall'
     assert report['attempts'][0]['claim_ids'] == ['date', 'time']
-    assert original_grade.correct == 0  # no replacement of first-answer judgment
-    assert report['score']['points'] == 1.0  # two half-credit recoveries, not two perfect answers
+    assert original_grade.correct == 1  # no replacement of first-answer judgment
+    assert report['score']['points'] == 2.0  # two half-credit recoveries, not two perfect answers
     assert [a['metrics']['input_tokens'] for a in report['attempts']] == [30]
     assert 'Friday' not in str(calls) and 'seven' not in str(calls)
-    assert audit_followups(contract=contract(), plan=plan(), initial_turn=initial,
+    assert audit_followups(contract=c, plan=p, initial_turn=initial,
         initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 0, 'missed': 1, 'misrepresented': 1}, output=tmp_path) == []
+                       'correct': 1, 'missed': 1, 'misrepresented': 1}, output=tmp_path) == []
     with pytest.raises(FileExistsError):
-        run_followups(contract=contract(), plan=plan(), grade=original_grade, initial_turn=initial,
+        run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
             output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
             run_turn=runner, budget_snapshot=lambda: {'projects': []})
     assert len(calls) == 1
     data = json.loads((tmp_path / 'recovery.json').read_text())
     data['attempts'].append(data['attempts'][0])
     (tmp_path / 'recovery.json').write_text(json.dumps(data))
-    assert any('exactly one' in e for e in audit_followups(contract=contract(), plan=plan(),
+    assert any('exactly one' in e for e in audit_followups(contract=c, plan=p,
         initial_turn=initial, initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 0, 'missed': 1, 'misrepresented': 1}, output=tmp_path))
+                       'correct': 1, 'missed': 1, 'misrepresented': 1}, output=tmp_path))
 
 
 def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_path):
@@ -106,7 +112,10 @@ def test_three_missing_facts_use_one_spark_message_and_independent_partial_credi
     p['questions'].append({'claim_id': 'venue', 'question': 'Where is it?'})
     p['reviews'].append({'claim_id': 'venue', 'safe': True, 'reason': 'No expected value.'})
     p['plan_hash'] = digest({k: v for k, v in p.items() if k != 'plan_hash'})
-    g = Grade('test', slots=[GradedClaim(i, 'missed', 'Not stated.') for i in ('date', 'time', 'venue')], missed=3)
+    c.claims += (SimpleNamespace(id='companion', statement='Devon is going.', evidence=('m1',)),)
+    p = freeze_policy(c, tmp_path / 'policy.json')
+    g = Grade('test', slots=[GradedClaim(i, 'missed', 'Not stated.') for i in ('date', 'time', 'venue')] +
+              [GradedClaim('companion', 'correct', 'Already recalled.')], correct=1, missed=3)
     questions, writer_calls = [], []
     def writer(prompt):
         writer_calls.append(prompt)
@@ -123,8 +132,8 @@ def test_three_missing_facts_use_one_spark_message_and_independent_partial_credi
         budget_snapshot=lambda: {'projects': []}, question_model=writer, question_dir=tmp_path / 'shared')
     assert questions == ['Which day, what time, and where is it?']
     assert len(writer_calls) == 2  # one Spark author call and one independent safety review
-    assert report['score']['points'] == 1.0
-    assert [s['points'] for s in report['score']['claims']] == [.5, 0, .5]
+    assert report['score']['points'] == 2.0
+    assert [s['points'] for s in report['score']['claims']] == [.5, 0, .5, 1]
     second = run_followups(contract=c, plan=p, grade=g, initial_turn=turn(), output=tmp_path / 'b',
         judge=partial_judge, home=tmp_path, allowlist='', extra_env={}, run_turn=runner,
         budget_snapshot=lambda: {'projects': []}, question_model=writer, question_dir=tmp_path / 'shared')
@@ -227,3 +236,27 @@ def test_timeout_preserves_tool_attempts_and_errors(tmp_path, monkeypatch):
     assert t.tool_calls[0]['name'] == 'memcal_search_archive'
     assert turn_metrics(t)['source_fallback_attempted'] is True
     assert t.session_input_tokens is None
+
+
+@pytest.mark.parametrize('verdicts', [('missed', 'missed'), ('misrepresented', 'misrepresented'), ('missed', 'misrepresented')])
+def test_zero_correct_facts_skip_all_recovery_work_and_are_auditable(tmp_path, verdicts):
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Zero recall must not author, judge, budget, or run a recovery turn')
+    c, initial, g = contract(), turn(), grade(verdicts)
+    p = freeze_policy(c, tmp_path / 'policy.json')
+    output = tmp_path / 'followups'
+    result = run_followups(contract=c, plan=p, grade=g, initial_turn=initial,
+        output=output, judge=forbidden, home=tmp_path, allowlist='', extra_env={},
+        run_turn=forbidden, question_model=forbidden, budget_snapshot=forbidden)
+    assert result['state'] == 'complete'
+    assert result['skip_reason'] == 'no_initial_correct_facts'
+    assert result['attempts'] == [] and result['score']['points'] == 0
+    assert not (output / 'combined').exists() and not (output / 'question-plans').exists()
+    initial_grade = {'claims': [asdict(s) for s in g.slots], 'correct': g.correct,
+                     'missed': g.missed, 'misrepresented': g.misrepresented}
+    assert audit_followups(contract=c, plan=p, initial_turn=initial,
+        initial_grade=initial_grade, output=output) == []
+    result['skip_reason'] = 'all_correct'
+    (output / 'recovery.json').write_text(json.dumps(result))
+    assert any('skip reason' in e for e in audit_followups(contract=c, plan=p,
+        initial_turn=initial, initial_grade=initial_grade, output=output))

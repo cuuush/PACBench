@@ -35,6 +35,7 @@ def freeze_policy(contract, path: Path) -> dict:
         return load_questions(path, contract)
     body = {'protocol_version': 3, 'contract_hash': contract.contract_hash,
             'authoring_revision': 'specific-missing-facts-v2',
+            'minimum_initial_correct': 1,
             'claim_ids': [c.id for c in contract.claims],
             'policy': 'one combined Spark-authored message for all failed facts'}
     result = {**body, 'plan_hash': digest(body)}
@@ -269,15 +270,17 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
     attempts = []
     initial_metrics = initial_effort(initial_turn, previous_turn, source_tools=source_tools, inherited_path=inherited_path)
     report = {'state': 'running', 'plan_hash': plan['plan_hash'], 'attempts': attempts,
-              'protocol_version': 3, 'initial_metrics': initial_metrics,
-              'policy': 'one combined follow-up for all initially missed/misrepresented facts'}
+              'protocol_version': 4, 'minimum_initial_correct': 1, 'initial_metrics': initial_metrics,
+              'policy': 'one combined follow-up for failed facts only after at least one initially correct fact'}
     output.mkdir(parents=True, exist_ok=True)
     # A restarted caller cannot ask the same questions again or replace a failed attempt.
     with (output / 'recovery.json').open('x') as record:
         record.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
     slots = {s.id: s for s in grade.slots}
     selected = [c for c in contract.claims if slots[c.id].verdict != 'correct']
-    if selected:
+    if selected and grade.correct == 0:
+        report['skip_reason'] = 'no_initial_correct_facts'
+    if selected and grade.correct > 0:
         directory = output / 'combined'
         attempt = {'claim_ids': [c.id for c in selected], 'question': None, 'state': 'failed',
                    'verdicts': [], 'metrics': {'source_fallback_attempted': False, 'unclassified_operations': 0}}
@@ -343,12 +346,18 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                       correct=initial_grade['correct'], missed=initial_grade['missed'],
                       misrepresented=initial_grade['misrepresented'])
         failed = [r['id'] for r in rows if r['verdict'] != 'correct']
-        grouped = report.get('protocol_version', 1) in {2, 3}
+        protocol = report.get('protocol_version', 1)
+        grouped = protocol in {2, 3, 4}
+        eligible = bool(failed) and (protocol != 4 or grade.correct > 0)
+        if protocol == 4:
+            check(report.get('minimum_initial_correct') == 1, 'follow-up eligibility threshold mismatch')
+            check(report.get('skip_reason') == ('no_initial_correct_facts' if failed and grade.correct == 0 else None),
+                  'follow-up skip reason mismatch')
         if grouped:
-            check(len(report['attempts']) == int(bool(failed)) and
-                  (not failed or report['attempts'][0]['claim_ids'] == failed),
+            check(len(report['attempts']) == int(eligible) and
+                  (not eligible or report['attempts'][0]['claim_ids'] == failed),
                   'expected exactly one combined follow-up covering all initially failed claims')
-            check(len(list(output.glob('*/turn.json'))) == int(bool(failed)), 'unexpected combined follow-up turn count')
+            check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
         else:
             check([a['claim_id'] for a in report['attempts']] == failed,
                   'expected exactly one follow-up per initially failed claim, in order')

@@ -421,10 +421,10 @@ function effortDetails(ex) {
     m.unclassified_operations || m.inherited_unclassified_operation || retention?.claims?.some(c => c.path_needs_review) ? "Unknown operation: retention uncredited" : "Retained-memory path";
   return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
     esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
-    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + (ex.retention?.skip_reason === 'no_initial_correct_facts' ? notice('Recovery skipped: no expected facts recalled in the first answer.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
 }
 function judgePage(run) {
-  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. A recovery attempt judges only the facts missed or wrong in the first answer.</p>' +
+  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Recovery requires at least one correct fact in the first answer and judges only its missing or wrong facts. Zero recall gets no follow-up.</p>' +
     '<p class="muted">Questions: ' + esc(run.evaluation_plan?.context || "isolated") + ' context. Earlier answers can resolve references; they do not earn credit for an omitted fact in a later answer.</p>' +
     renderContract(run) + '</section>' + Object.values(run.arms || {}).map(arm =>
       '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +

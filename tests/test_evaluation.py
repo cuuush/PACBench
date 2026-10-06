@@ -109,3 +109,28 @@ def test_scene_delivery_covers_exactly_once_and_cannot_omit_evidence():
     resolved['scenes'].pop()
     with pytest.raises(ValueError, match='exactly once'):
         exposure_batches(messages, resolved)
+
+
+def test_zero_recall_skips_recovery_but_continues_planned_shared_questions(tmp_path):
+    checks, turns, judge_calls = checkpoints(tmp_path), [], []
+    def runner(prompt, **kwargs):
+        turns.append(kwargs)
+        return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
+            at=kwargs['at'], answer='Synthetic answer.', tool_calls=[], tool_results=[], policy_blocks=0,
+            latency_s=1, returncode=0, stderr_tail='', raw_events=0,
+            session_id=kwargs['session_id'] or 'evaluation-session',
+            session_input_tokens=100 * len(turns), session_output_tokens=20 * len(turns))
+    def judge(prompt):
+        judge_calls.append(prompt)
+        if len(judge_calls) == 1:
+            return json.dumps({'verdicts':[{'id':'fact-1','verdict':'missed','reason':'Synthetic zero recall.'}]})
+        assert len(judge_calls) == 2  # no Spark follow-up author/reviewer or recovery judge
+        return correct_judge(prompt)
+    root = tmp_path / 'arm'
+    report = run_checks(checks, 'shared', root, judge, '', {},
+        question_dir=tmp_path / 'questions', run_turn=runner, budget_snapshot=lambda: {'projects': []})
+    assert report['state'] == 'diagnostic' and len(turns) == len(judge_calls) == 2
+    assert turns[1]['session_id'] == 'evaluation-session'
+    skipped = json.loads((root / 'turns/event-1/followups/recovery.json').read_text())
+    assert skipped['skip_reason'] == 'no_initial_correct_facts' and skipped['attempts'] == []
+    assert audit_checks(checks, 'shared', root, ['ingestion-session']) == []

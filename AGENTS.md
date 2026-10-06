@@ -33,10 +33,11 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 ## Follow-up policy (user-authorized)
 
 - Bind the recovery policy to the frozen contract before provider arms run. Do not author/review unused per-fact questions upfront. After grading, Spark writes ONE short message asking for ALL missing or wrong facts, in an isolated call given only the original question and those facts; one short independent review checks coverage and answer leakage. Freeze and reuse the wording for matching missing-fact sets across arms.
-- Ask at most one recovery message total, continuing the real recall conversation and fictional clock. Exclude correct facts; ask nothing if all are correct. Preserve the initial grade and award half credit separately per recovered fact.
+- If zero expected facts are correct in the initial answer, skip recovery entirely: no question authoring/review, Hermes turn or recovery judge. Record `no_initial_correct_facts`, keep the zero score and continue any separately planned evaluation questions. New recovery reports use protocol 4; audit historical protocols using their original rules.
+- Otherwise ask at most one recovery message total, continuing the real recall conversation and fictional clock. Exclude correct facts; ask nothing if all are correct. Preserve the initial grade and award half credit separately per recovered fact.
 - Opening retained memory can recover a fact. Explicit archive/original-source/message-connector access fails retention even if the answer becomes correct. Log attempted and blocked fallbacks. Unknown tool operations need review and get no retention credit.
 - Log arguments/results, direct and nested call counts, discovery, repeated/failed operations, latency, reported token deltas and gateway project cost windows. Unknown usage/cost stays unknown; do not invent tool prices or simulate a connector.
-- Audit the one-message-total limit, complete missing-fact coverage, session continuity, question hashes and recovery points. Legacy per-fact (protocol 1) and component-based combined (protocol 2) trials remain separately auditable; new runs use minimal isolated authoring (protocol 3). See [followups.md](docs/followups.md). Do not rewrite older runs or erase their first-answer penalties.
+- Audit the one-message-total limit, complete missing-fact coverage, session continuity, question hashes and recovery points. Legacy per-fact (protocol 1) and component-based combined (protocol 2) trials remain separately auditable; protocol 3 retains historical minimal isolated authoring, while new reports use protocol 4 with the zero-recall gate. See [followups.md](docs/followups.md). Do not rewrite older runs or erase their first-answer penalties.
 
 ## Code and checks
 
@@ -108,3 +109,5 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Latest offline suite: 240 passed, 2 skipped. Live Chromium checks verify per-message criteria, missed/wrong recovery verdicts, tool logs and source-retention failure visibility. A new-prompt preparation against the unchanged 49-message bundle also passed its live review/audit.
 
 - Final shared-context accounting snapshot: $0.5751122 cumulative upper bound including $0.1081344 held. The isolated specificity regression rejected the broad follow-up and approved a precise original-time question without another provider turn.
+
+- Zero-recall recovery gate verified: 244 passed, 2 skipped. All-missing, all-wrong and mixed zero-correct answers invoke no recovery model/provider calls; later planned shared questions still execute. Historical zero-recall protocol-3 trials and the shared-context trial retain passing audits under their original policies. No paid calls were needed for this policy change.

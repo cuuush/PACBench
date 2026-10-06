@@ -364,7 +364,7 @@ function scoreDetails(run, ex, expanded = true) {
     const claim = (ex.contract || run.contract)?.claims?.find(c => c.id === item.id);
     return '<div class="verdict-row">' + badge(item.verdict === "correct" ? "Passed" : item.verdict === "missed" ? "Failed · missed" : item.verdict === "misrepresented" ? "Failed · wrong" : "Ungraded", item.verdict === "correct" ? "ok" : item.verdict === "missed" ? "warn" : item.verdict === "ungraded" ? "neutral" : "bad") + '<div><strong>' +
       esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason) + '</p>' +
-      (claim?.evidence || []).map(sourceLink).join(" ") + "</div></div>";
+      (claim?.evidence || []).map(sourceLink).join(" ") + (ex.grade?.recovery?.find(r => r.id === item.id) ? '<p>Follow-up assessment: ' + esc(ex.grade.recovery.find(r => r.id === item.id).kind.replaceAll('_',' ')) + ' · ' + esc(ex.grade.recovery.find(r => r.id === item.id).reason) + '</p>' : '') + "</div></div>";
   }).join("");
   return '<details ' + (expanded ? 'open ' : '') + 'class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
     '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
@@ -383,7 +383,7 @@ function providerExchange(run, arm, ex, index) {
     " · " + esc(localClock(turn.at,run)) + " · " + esc(readableDay(dayKey(turn.at,run))) + '</div>' +
     '<div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
       esc(questionText(turn, ex)) + "</div></div></div>" +
-    (turn.prefetch_context ? details("Memory brief visible for this turn", '<pre>' + esc(turn.prefetch_context) + "</pre>") : "") + effortDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
+    (turn.prefetch_context ? details("Memory brief visible for this turn", '<pre>' + esc(turn.prefetch_context) + "</pre>") : "") + effortDetails(ex) + usageDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
     '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message">' +
       '<div class="sender">Hermes</div><div class="bubble answer-bubble">' +
       esc(turn.answer || "Answer not captured.") + "</div>" +
@@ -397,10 +397,25 @@ function effortDetails(ex) {
     m.unclassified_operations || m.inherited_unclassified_operation || retention?.claims?.some(c => c.path_needs_review) ? "Unknown operation: retention uncredited" : "Retained-memory path";
   return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
     esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
-    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + (ex.retention?.skip_reason === 'no_initial_correct_facts' ? notice('Recovery skipped: no expected facts recalled in the first answer.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+}
+function usageDetails(ex) {
+  const usage = ex.usage;
+  let rows = "";
+  if (usage?.state === 'captured') {
+    rows = Object.entries(usage.roles || {}).map(([role,total]) => '<tr><td>' + (role === 'hermes' ? 'Hermes' : 'Memory provider') +
+      '</td><td>' + esc(total.model_calls) + '</td><td>' + esc(total.input_tokens ?? 'unknown') + '</td><td>' + esc(total.output_tokens ?? 'unknown') +
+      '</td><td>$' + esc(Number(total.accounted_upper_bound_usd).toFixed(6)) + (total.unsettled_calls ? ' · includes reservations' : '') + '</td></tr>').join('');
+  }
+  const authoring = ex.question_plan?.authoring_calls;
+  const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
+    (ex.question_authoring_reused ? 'Reused wording; these are the original authoring records, not fresh charges for this answer.' : 'Separate benchmark overhead, outside Hermes and the memory provider.') + '</p>' + dump(authoring) : '';
+  return details('Model calls and token usage', rows ? '<div class="usage-table"><table><thead><tr><th>Who</th><th>LLM calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost upper bound</th></tr></thead><tbody>' + rows +
+    '</tbody></table></div><p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later.</p>' + details('Individual model requests and late settlements',dump(usage)) + benchmark :
+    notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
 function judgePage(run) {
-  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Recovery requires at least one correct fact in the first answer and judges only its missing or wrong facts. Zero recall gets no follow-up.</p>' +
+  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Recovery asks only for a silent omission from a broad request. Wrong answers, admitted lookup failures, missed explicitly requested details, and zero recall get no follow-up.</p>' +
     '<p class="muted">Questions: ' + esc(run.evaluation_plan?.context || "isolated") + ' context. Earlier answers can resolve references; they do not earn credit for an omitted fact in a later answer.</p>' +
     renderContract(run) + '</section>' + Object.values(run.arms || {}).map(arm =>
       '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +

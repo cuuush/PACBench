@@ -257,14 +257,22 @@ class MemcalAdapterTmpHome(unittest.TestCase):
         self.adapter.cleanup("w3-tmp-skipped")
 
     def test_dream_error_is_not_ready_and_uses_explicit_endpoint(self):
+        import pacbench.gateway_client as gateway_client
+        gateway_state = self.home.parent / 'gateway'
+        gateway_state.mkdir(parents=True)
+        (gateway_state / 'client-token').write_text('test-key')
+        (gateway_state / 'address.json').write_text('{"base":"http://127.0.0.1:8099"}')
+        state_patch = mock.patch.object(gateway_client, 'STATE', gateway_state)
+        state_patch.start()
+        self.addCleanup(state_patch.stop)
         adapter = MemcalAdapter(
             self.home, dream_model="test-model",
-            dream_base_url="https://example.test/v1", dream_api_key="test-key")
+            dream_base_url="http://127.0.0.1:8099/p/pacbench-memory/v1", dream_api_key="test-key")
         adapter.reset("w3-dream-error")
 
         def failed_dream(conn, cfg, **_kwargs):
             self.assertEqual(cfg.llm_provider, "openai-compatible")
-            self.assertEqual(cfg.openai_base_url, "https://example.test/v1")
+            self.assertEqual(cfg.openai_base_url, "http://127.0.0.1:8099/p/pacbench-memory/v1")
             self.assertEqual(cfg.openai_api_key, "test-key")
             self.assertEqual((cfg.propose_model, cfg.sweep_model, cfg.match_model),
                              ("test-model",) * 3)

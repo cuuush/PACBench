@@ -78,7 +78,7 @@ function ingestionExchange(run, arm, item) {
     '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message"><div class="sender">Hermes</div>' +
     '<div class="bubble answer-bubble">' + esc(turn.answer || 'No answer captured.') + '</div></div></div>' +
     (turn.prefetch_context ? details("Memory brief visible for this turn",'<pre>' + esc(turn.prefetch_context) + '</pre>') : '') +
-    turnRecord(turn) + '</section>';
+    usageDetails(item) + turnRecord(turn) + '</section>';
 }
 function dayTimeline(run) {
   const days = simulationDays(run);
@@ -110,6 +110,6 @@ function dayTimeline(run) {
     '</div>' + (arm ? '<p class="muted">' + (run.kind==='native' ? 'Catch-up delivers texts to Hermes. The tool calls and results show provider writes and reads; delivery alone is not proof of retention.' : 'Provider packets and acknowledgements show ingestion separately from Hermes recall.') + '</p>' : '') +
     (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
     (!events.length && planned.length ? details('Planned questions and criteria',renderContract({...run,evaluations:planned})) : '') +
-    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,exposure_context:run.summary?.exposure_context,evaluation_context:run.summary?.evaluation_context})) : '') +
+    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,model_usage:arm.model_usage,exposure_context:run.summary?.exposure_context,evaluation_context:run.summary?.evaluation_context})) : '') +
     '</section></div>';
 }

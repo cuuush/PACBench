@@ -35,7 +35,7 @@ def turn(question='What is the plan?', answer='Not sure.', calls=(), results=(),
 
 
 def grade(verdicts=('missed', 'misrepresented')):
-    return Grade('checkpoint', slots=[GradedClaim(i, v, 'reason') for i, v in zip(('date', 'time'), verdicts)],
+    return Grade('checkpoint', recovery=[{'id':i,'kind':'provided' if v=='correct' else 'incorrect' if v=='misrepresented' else 'implicit_omission','reason':'Synthetic eligibility.'} for i,v in zip(('date','time'),verdicts)], slots=[GradedClaim(i, v, 'reason') for i, v in zip(('date', 'time'), verdicts)],
                  correct=verdicts.count('correct'), missed=verdicts.count('missed'),
                  misrepresented=verdicts.count('misrepresented'))
 
@@ -59,9 +59,10 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
         return turn(question, 'Recovered answer', tokens=(100 + 30 * len(calls), 20 + 10 * len(calls)))
     c = contract()
     c.claims += (SimpleNamespace(id='companion', statement='Devon is going.', evidence=('m1',)),)
-    original_grade = grade()
+    original_grade = grade(('missed', 'missed'))
     original_grade.slots.append(GradedClaim('companion', 'correct', 'Already recalled.'))
     original_grade.correct = 1
+    original_grade.recovery.append({'id':'companion','kind':'provided','reason':'Already recalled.'})
     p = freeze_policy(c, tmp_path / 'policy.json')
     initial = turn()
     report = run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
@@ -77,7 +78,7 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     assert 'Friday' not in str(calls) and 'seven' not in str(calls)
     assert audit_followups(contract=c, plan=p, initial_turn=initial,
         initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 1, 'missed': 1, 'misrepresented': 1}, output=tmp_path) == []
+                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path) == []
     with pytest.raises(FileExistsError):
         run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
             output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
@@ -88,7 +89,7 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     (tmp_path / 'recovery.json').write_text(json.dumps(data))
     assert any('exactly one' in e for e in audit_followups(contract=c, plan=p,
         initial_turn=initial, initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 1, 'missed': 1, 'misrepresented': 1}, output=tmp_path))
+                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path))
 
 
 def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_path):
@@ -116,6 +117,7 @@ def test_three_missing_facts_use_one_spark_message_and_independent_partial_credi
     p = freeze_policy(c, tmp_path / 'policy.json')
     g = Grade('test', slots=[GradedClaim(i, 'missed', 'Not stated.') for i in ('date', 'time', 'venue')] +
               [GradedClaim('companion', 'correct', 'Already recalled.')], correct=1, missed=3)
+    g.recovery = [{'id':slot.id,'kind':'provided' if slot.verdict=='correct' else 'implicit_omission','reason':'Synthetic eligibility.'} for slot in g.slots]
     questions, writer_calls = [], []
     def writer(prompt):
         writer_calls.append(prompt)
@@ -253,7 +255,7 @@ def test_zero_correct_facts_skip_all_recovery_work_and_are_auditable(tmp_path, v
     assert result['attempts'] == [] and result['score']['points'] == 0
     assert not (output / 'combined').exists() and not (output / 'question-plans').exists()
     initial_grade = {'claims': [asdict(s) for s in g.slots], 'correct': g.correct,
-                     'missed': g.missed, 'misrepresented': g.misrepresented}
+                     'missed': g.missed, 'misrepresented': g.misrepresented, 'recovery': g.recovery}
     assert audit_followups(contract=c, plan=p, initial_turn=initial,
         initial_grade=initial_grade, output=output) == []
     result['skip_reason'] = 'all_correct'

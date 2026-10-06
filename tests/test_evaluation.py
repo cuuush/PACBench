@@ -23,7 +23,7 @@ def checkpoints(tmp_path):
 
 def correct_judge(prompt):
     claims = json.loads(prompt.split('Claims (hidden from the assistant): ')[-1])
-    return json.dumps({'verdicts': [{'id': c['id'], 'verdict': 'correct', 'reason': 'Synthetic harness judgment.'} for c in claims]})
+    return json.dumps({'verdicts': [{'id': c['id'], 'verdict': 'correct', 'reason': 'Synthetic harness judgment.'} for c in claims], 'recovery':[{'id':c['id'],'kind':'provided','reason':'Synthetic classification.'} for c in claims]})
 
 
 @pytest.mark.parametrize('context', ['shared', 'isolated'])
@@ -123,7 +123,7 @@ def test_zero_recall_skips_recovery_but_continues_planned_shared_questions(tmp_p
     def judge(prompt):
         judge_calls.append(prompt)
         if len(judge_calls) == 1:
-            return json.dumps({'verdicts':[{'id':'fact-1','verdict':'missed','reason':'Synthetic zero recall.'}]})
+            return json.dumps({'verdicts':[{'id':'fact-1','verdict':'missed','reason':'Synthetic zero recall.'}], 'recovery':[{'id':'fact-1','kind':'implicit_omission','reason':'Synthetic omission.'}]})
         assert len(judge_calls) == 2  # no Spark follow-up author/reviewer or recovery judge
         return correct_judge(prompt)
     root = tmp_path / 'arm'

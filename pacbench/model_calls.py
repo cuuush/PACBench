@@ -91,6 +91,8 @@ class ModelClient:
             error = ""
             transient = False
             try:
+                from .gateway_client import validate_route
+                validate_route(self.url, self.key)
                 req = urllib.request.Request(
                     self.url, data=canonical.encode(),
                     headers={"Authorization": f"Bearer {self.key}",

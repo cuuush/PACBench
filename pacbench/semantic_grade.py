@@ -39,12 +39,13 @@ class Grade:
     misrepresented: int = 0
     claim_coverage: float = 0.0
     all_claims_correct: bool = False
+    recovery: list[dict] | None = None
 
 
 VERDICTS = {"correct", "missed", "misrepresented"}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=()) -> str:
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False) -> str:
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
@@ -61,6 +62,12 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "Return ONLY one JSON object with 'verdicts', an array in the same "
         "order, each containing id, verdict (correct/missed/misrepresented), "
         "and a short reason grounded in the answer.\n\n"
+        + ('Also return "recovery", an array in claim order, each with id, kind and reason. '
+           'kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. '
+           'Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer '
+           'says it cannot find or does not know the detail, use unavailable; otherwise if the user '
+           'specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. '
+           'A broad request for a recap or details is not an explicit request for each detail.\n' if assess_recovery else '')
         + ("Use the prior conversation only to resolve references in the latest answer. "
          "Do not award a fact merely because it appeared in an earlier answer.\n"
          f"Prior public conversation: {json.dumps(conversation, ensure_ascii=False)}\n" if conversation else "") +
@@ -71,11 +78,11 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None, conversation=()) -> Grade:
+                   *, record_path: Path | None = None, conversation=(), assess_recovery=False) -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
-    prompt = judge_prompt(question, answer, claims, conversation=conversation)
+    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery)
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
@@ -99,7 +106,10 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
         raise ValueError(f"unusable semantic judge response: {output[:200]!r}") from exc
     if not valid:
         raise ValueError(f"unusable semantic judge verdicts: {output[:200]!r}")
-    result = Grade(checkpoint=checkpoint_id)
+    recovery = parsed.get('recovery') if assess_recovery else None
+    if assess_recovery:
+        validate_recovery(recovery, rows)
+    result = Grade(checkpoint=checkpoint_id, recovery=recovery)
     result.slots = [GradedClaim(r["id"], r["verdict"], r["reason"]) for r in rows]
     result.correct = sum(r.verdict == "correct" for r in result.slots)
     result.missed = sum(r.verdict == "missed" for r in result.slots)
@@ -107,3 +117,14 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
     result.claim_coverage = result.correct / len(claims)
     result.all_claims_correct = result.correct == len(claims)
     return result
+
+
+def validate_recovery(recovery, rows):
+    if (not isinstance(recovery, list) or len(recovery) != len(rows) or
+        any(not isinstance(r, dict) or r.get('id') != row['id'] or
+            r.get('kind') not in ({'provided'} if row['verdict'] == 'correct' else
+                                 {'incorrect'} if row['verdict'] == 'misrepresented' else
+                                 {'explicitly_requested', 'unavailable', 'implicit_omission'}) or
+            not isinstance(r.get('reason'), str) or not r['reason'].strip()
+            for r, row in zip(recovery, rows))):
+        raise ValueError('unusable recovery eligibility judgment')

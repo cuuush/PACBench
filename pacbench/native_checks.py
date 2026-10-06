@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from . import harness
+from .usage import tracked_turn
 from .followups import audit_followups, run_followups, save, tool_profile
 from .semantic_grade import Claim, grade_semantic
 
@@ -36,7 +37,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                 'state': 'invalid', 'reason': 'turn not complete'}
         report['checks'].append(item)
         save(root / 'evaluation.json', report)
-        turn = run_turn(contract.question, at=row['at'], home=root / 'hermes-home',
+        turn = tracked_turn(run_turn, contract.question, usage_path=directory / "usage.json", at=row['at'], home=root / 'hermes-home',
             allowlist=allowlist, extra_env=env, timeout_s=180,
             session_id=session if shared else None)
         save(directory / 'turn.json', vars(turn))
@@ -47,9 +48,9 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
         prior = history if shared else []
         grade = grade_semantic(row['id'], turn.prompt, turn.answer,
             tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims), judge,
-            record_path=directory / 'judgment.json', conversation=prior)
+            record_path=directory / 'judgment.json', conversation=prior, assess_recovery=True)
         save(directory / 'grade.json', {'correct': grade.correct, 'missed': grade.missed,
-            'misrepresented': grade.misrepresented, 'claims': [vars(c) for c in grade.slots]})
+            'misrepresented': grade.misrepresented, 'claims': [vars(c) for c in grade.slots], 'recovery': grade.recovery})
         recovery = run_followups(contract=contract, plan=policy, grade=grade, initial_turn=turn,
             output=directory / 'followups', judge=judge, home=root / 'hermes-home',
             allowlist=allowlist, extra_env=env, question_dir=question_dir,
@@ -108,6 +109,8 @@ def audit_checks(checks, context, root, exposure_sessions):
             judgment, grade = read(directory / 'judgment.json'), read(directory / 'grade.json')
             check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer and
                   judgment.get('conversation') == prior, f"{row['id']}: judge conversation mismatch")
+            if read(directory / 'followups/recovery.json').get('protocol_version') == 5:
+                check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f"{row['id']}: recovery eligibility differs from judge")
             check(json.loads(judgment['response'])['verdicts'] == grade['claims'], f"{row['id']}: grade differs from judge")
             check(judgment['claims'] == [{'id': c.id, 'description': c.statement, 'evidence': list(c.evidence)} for c in contract.claims],
                   f"{row['id']}: judge received different criteria")

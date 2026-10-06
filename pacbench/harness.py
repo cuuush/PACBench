@@ -140,6 +140,10 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
                 "openrouter": "https://openrouter.ai/api/v1",
                 "meta-ai": "https://api.meta.ai/v1"}.get(model_provider, "")
     base_url = model_base_url or base_url
+    if model_provider == "meta-ai":
+        from .gateway_client import client_settings, validate_route
+        base_url = model_base_url or client_settings("pacbench-driver")[0]
+        validate_route(base_url)
     config = {
         "model": {"default": model, "provider": model_provider,
                   "base_url": base_url},

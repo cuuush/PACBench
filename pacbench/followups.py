@@ -24,8 +24,10 @@ def digest(value) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
-def model_json(model, prompt):
+def model_json(model, prompt, records=None):
     response = model(prompt)
+    if records is not None:
+        records.append({"model": response.model, "usage": response.usage, "record_path": response.record_path} if isinstance(response, ModelOutput) else {"model":None,"usage":None,"record_path":None})
     return json.loads(response.text if isinstance(response, ModelOutput) else response)
 
 
@@ -36,6 +38,7 @@ def freeze_policy(contract, path: Path) -> dict:
     body = {'protocol_version': 3, 'contract_hash': contract.contract_hash,
             'authoring_revision': 'specific-missing-facts-v2',
             'minimum_initial_correct': 1,
+            'eligibility_policy': 'natural-omissions-v1',
             'claim_ids': [c.id for c in contract.claims],
             'policy': 'one combined Spark-authored message for all failed facts'}
     result = {**body, 'plan_hash': digest(body)}
@@ -165,9 +168,13 @@ def initial_effort(turn, previous=None, *, source_tools=(), inherited_path=None)
 
 def cost_window(before: dict, after: dict) -> dict:
     prior = {p['project']: p for p in before.get('projects', [])}
-    fields = ('calls', 'settled_upper_bound_usd', 'held_usd')
+    fields = ('calls', 'settled_upper_bound_usd', 'held_usd', 'input_tokens', 'output_tokens')
+    def delta(p, field):
+        current = p.get(field)
+        previous = prior[p['project']].get(field) if p['project'] in prior else 0
+        return current - previous if isinstance(current, (int, float)) and isinstance(previous, (int, float)) else None
     return {'projects': [{ 'project': p['project'], **{
-        field + '_delta': p.get(field, 0) - prior.get(p['project'], {}).get(field, 0)
+        field + '_delta': delta(p, field)
         for field in fields}} for p in after.get('projects', [])
         if any(p.get(f, 0) != prior.get(p['project'], {}).get(f, 0) for f in fields)],
         'scope': 'gateway project activity during this turn; asynchronous work may settle later; not tool prices'}
@@ -211,6 +218,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     path = directory / (digest(binding) + '.json')
     if path.exists():
         return load_combined_plan(path, binding)
+    authoring_calls = []
     components = [q for q in component_plan.get('questions', []) if q['claim_id'] in claim_ids]
     if len(selected) == 1 and components:
         question = components[0]['question']  # already authored and independently reviewed by Spark
@@ -224,7 +232,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
             'Preserve whether each fact is current or historical, without '
             'supplying their answers or tool instructions. '
             'Return ONLY JSON {"question":"one combined message"}.\n'
-            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
+            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}', records=authoring_calls)
         question = authored['question']
         if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
             raise ValueError('combined follow-up must be one bounded message')
@@ -235,13 +243,13 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
             'tool instructions? Return ONLY JSON '
             '{"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
             f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
-            f'Proposed message: {question}')
+            f'Proposed message: {question}', records=authoring_calls)
         origin = 'spark-combined-message'
     if (review.get('safe') is not True or review.get('covers_claim_ids') != claim_ids or
             not isinstance(review.get('reason'), str) or not review['reason'].strip()):
         save(path.with_suffix('.rejected.json'), {'question': question, 'review': review})
         raise ValueError('combined follow-up failed neutral/complete coverage review')
-    body = {**binding, 'question': question, 'review': review, 'origin': origin}
+    body = {**binding, 'question': question, 'review': review, 'origin': origin, 'authoring_calls': authoring_calls}
     result = {**body, 'question_hash': digest(body)}
     save(path, result)
     return result
@@ -259,6 +267,23 @@ def load_combined_plan(path: Path, binding: dict) -> dict:
     return plan
 
 
+def natural_eligibility(grade):
+    if grade.correct == 0:
+        return [], 'no_initial_correct_facts'
+    if grade.misrepresented:
+        return [], 'incorrect_answer'
+    if not grade.missed:
+        return [], None
+    from .semantic_grade import validate_recovery
+    validate_recovery(grade.recovery, [vars(s) for s in grade.slots])
+    kinds = {r['kind'] for r in grade.recovery}
+    if 'unavailable' in kinds:
+        return [], 'admitted_retrieval_failure'
+    if 'explicitly_requested' in kinds:
+        return [], 'explicit_request_failed'
+    return [r['id'] for r in grade.recovery if r['kind'] == 'implicit_omission'], None
+
+
 def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
@@ -270,17 +295,20 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
     attempts = []
     initial_metrics = initial_effort(initial_turn, previous_turn, source_tools=source_tools, inherited_path=inherited_path)
     report = {'state': 'running', 'plan_hash': plan['plan_hash'], 'attempts': attempts,
-              'protocol_version': 4, 'minimum_initial_correct': 1, 'initial_metrics': initial_metrics,
-              'policy': 'one combined follow-up for failed facts only after at least one initially correct fact'}
+              'protocol_version': 5, 'minimum_initial_correct': 1, 'initial_metrics': initial_metrics,
+              'policy': 'one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final'}
     output.mkdir(parents=True, exist_ok=True)
     # A restarted caller cannot ask the same questions again or replace a failed attempt.
     with (output / 'recovery.json').open('x') as record:
         record.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
     slots = {s.id: s for s in grade.slots}
-    selected = [c for c in contract.claims if slots[c.id].verdict != 'correct']
-    if selected and grade.correct == 0:
-        report['skip_reason'] = 'no_initial_correct_facts'
-    if selected and grade.correct > 0:
+    selected_ids, skip_reason = natural_eligibility(grade)
+    report['eligibility'] = grade.recovery
+    report['eligible_claim_ids'] = selected_ids
+    if skip_reason:
+        report['skip_reason'] = skip_reason
+    selected = [c for c in contract.claims if c.id in selected_ids]
+    if selected:
         directory = output / 'combined'
         attempt = {'claim_ids': [c.id for c in selected], 'question': None, 'state': 'failed',
                    'verdicts': [], 'metrics': {'source_fallback_attempted': False, 'unclassified_operations': 0}}
@@ -291,13 +319,16 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             if not initial_turn.session_id:
                 raise ValueError('cannot follow up without the real recall session')
             budget_snapshot()
-            authored = combined_plan(contract, plan, selected, question_model or judge,
-                                     question_dir or output / 'question-plans')
+            question_root = question_dir or output / 'question-plans'
+            binding = {'contract_hash':contract.contract_hash, 'component_plan_hash':plan['plan_hash'], 'claim_ids':[c.id for c in selected]}
+            attempt['question_authoring_reused'] = (question_root / (digest(binding) + '.json')).exists()
+            authored = combined_plan(contract, plan, selected, question_model or judge, question_root)
             question = authored['question']
             attempt.update(question=question, question_hash=authored['question_hash'])
             save(directory / 'question-plan.json', authored)
             before = budget_snapshot()
-            turn = run_turn(question, at=initial_turn.at, home=home, allowlist=allowlist,
+            from .usage import tracked_turn
+            turn = tracked_turn(run_turn, question, usage_path=directory / "usage.json", at=initial_turn.at, home=home, allowlist=allowlist,
                             extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id)
             save(directory / 'turn.json', vars(turn))
             attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools)
@@ -347,8 +378,15 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                       misrepresented=initial_grade['misrepresented'])
         failed = [r['id'] for r in rows if r['verdict'] != 'correct']
         protocol = report.get('protocol_version', 1)
-        grouped = protocol in {2, 3, 4}
+        grouped = protocol in {2, 3, 4, 5}
         eligible = bool(failed) and (protocol != 4 or grade.correct > 0)
+        if protocol == 5:
+            grade.recovery = initial_grade.get('recovery')
+            eligible_ids, skip = natural_eligibility(grade)
+            eligible = bool(eligible_ids)
+            check(report.get('eligibility') == grade.recovery and report.get('eligible_claim_ids') == eligible_ids, 'recovery eligibility mismatch')
+            check(report.get('skip_reason') == skip, 'follow-up skip reason mismatch')
+            failed = eligible_ids
         if protocol == 4:
             check(report.get('minimum_initial_correct') == 1, 'follow-up eligibility threshold mismatch')
             check(report.get('skip_reason') == ('no_initial_correct_facts' if failed and grade.correct == 0 else None),

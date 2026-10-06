@@ -94,7 +94,7 @@ def native_run(run_dir):
             recovery = read_json(directory / 'followups/recovery.json')
             exchanges.append({'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
                 'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
-                'check_id': check_id, 'kind': 'initial', 'status': read_json(directory / 'status.json'),
+                'check_id': check_id, 'kind': 'initial', 'usage': read_json(directory / 'usage.json'), 'status': read_json(directory / 'status.json'),
                 'retention': recovery, 'metrics': (recovery or {}).get('initial_metrics')})
             for attempt in (recovery or {}).get('attempts', []):
                 combined = 'claim_ids' in attempt
@@ -108,8 +108,8 @@ def native_run(run_dir):
                 subset = {**(checkpoint_contract or {}), 'claims': [c for c in (checkpoint_contract or {}).get('claims', []) if c['id'] in selected]}
                 exchanges.append({'turn': follow_turn, 'judgment': read_json(follow / 'judgment.json'),
                     'grade': read_json(follow / 'grade.json'), 'contract': subset, 'check_id': check_id,
-                    'kind': 'followup', 'metrics': attempt.get('metrics'), 'retention': recovery,
-                    'question_plan': read_json(follow / 'question-plan.json')})
+                    'kind': 'followup', 'question_authoring_reused': attempt.get('question_authoring_reused'), 'metrics': attempt.get('metrics'), 'retention': recovery,
+                    'usage': read_json(follow / 'usage.json'), 'question_plan': read_json(follow / 'question-plan.json')})
         if evaluations:
             for row in evaluations:
                 append_exchange(arm / 'turns' / row['id'], row['contract'], row['id'], 'turn.json')
@@ -124,7 +124,7 @@ def native_run(run_dir):
         for label, path, row in paths:
             turn = read_json(path)
             if turn:
-                exposures.append({'label': label, 'turn': turn, 'delivery': 'native',
+                exposures.append({'label': label, 'turn': turn, 'delivery': 'native', 'usage': read_json(Path(str(path) + '.usage.json')),
                                   **exposure_packet(turn, messages, row)})
         preflight = read_json(arm / 'preflight.json')
         status = read_json(arm / 'status.json') or {'state': 'running', 'capability': preflight}
@@ -134,7 +134,7 @@ def native_run(run_dir):
         arms[f'{provider}-{repetition}'] = {'provider': provider,
             'label': f'{provider.title()} · {repetition.replace("-", " ")}',
             'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
-            'turn': exchanges[0]['turn'] if exchanges else None}
+            'model_usage': read_json(arm / 'model-usage.json'), 'turn': exchanges[0]['turn'] if exchanges else None}
     records = {}
     for folder in (source, run_dir):
         for path in sorted((folder / 'model-calls').glob('*.json')):

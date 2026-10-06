@@ -276,6 +276,9 @@ def audit_run(root: Path) -> dict:
                         plan = load_questions(plan_path, frozen_contract)
                         if judgment.get("question") != turn.get("prompt"):
                             errors.append(f"{provider}: judge lacks public clock: {day}")
+                        if (_read(turn_dir / "followups/recovery.json") or {}).get("protocol_version") == 5:
+                            if json.loads(judgment["response"]).get("recovery") != grade.get("recovery"):
+                                errors.append(f"{provider}: {day}: recovery eligibility differs from judge")
                         errors.extend(f"{provider}: {day}: {e}" for e in audit_followups(
                             contract=frozen_contract, plan=plan, initial_turn=TurnResult(**turn),
                             initial_grade=grade, output=turn_dir / "followups"))

@@ -421,6 +421,8 @@ class MemcalAdapter(ProviderAdapter):
             if self.dream_model:
                 if not self.dream_base_url or not self.dream_api_key:
                     raise RuntimeError("Memcal dream endpoint or key missing")
+                from pacbench.gateway_client import validate_route
+                validate_route(self.dream_base_url, self.dream_api_key)
                 cfg.llm_provider = "openai-compatible"
                 cfg.openai_base_url = self.dream_base_url
                 cfg.env["OPENAI_COMPAT_API_KEY"] = self.dream_api_key
@@ -428,6 +430,10 @@ class MemcalAdapter(ProviderAdapter):
                 cfg.sweep_model = self.dream_model
                 cfg.match_model = self.dream_model
                 cfg.propose_output_floor = 16384
+            from pacbench.gateway_client import validate_route
+            if cfg.llm_provider != "openai-compatible":
+                raise RuntimeError("Memcal model calls must use the shared gateway")
+            validate_route(cfg.openai_base_url, cfg.openai_api_key)
             conn = self._conn()
             try:
                 events: list[dict] = []

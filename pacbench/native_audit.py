@@ -101,6 +101,8 @@ def audit(root: Path) -> dict:
             grade = read(arm / 'grade.json')
             check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
             if plan:
+                if read(arm / 'followups/recovery.json').get('protocol_version') == 5:
+                    check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f'{label}: recovery eligibility differs from judge')
                 check(json.loads(judgment['response'])['verdicts'] == grade['claims'],
                       f'{label}: initial grade differs from recorded judge response')
                 errors.extend(f'{label}: {e}' for e in audit_followups(contract=contract, plan=plan,

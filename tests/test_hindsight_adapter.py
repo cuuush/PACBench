@@ -138,7 +138,7 @@ class NoSemanticRetry(unittest.TestCase):
 class LlmConfigFallback(unittest.TestCase):
     """Internal LLM key falls back to the repo .env (driver precedent)."""
 
-    def test_explicit_key_wins(self):
+    def test_upstream_key_cannot_override_gateway(self):
         from provider_adapters.hindsight_adapter import HindsightAdapter
         home = Path(tempfile.mkdtemp(prefix="hs-test-"))
         adapter = HindsightAdapter(
@@ -146,7 +146,8 @@ class LlmConfigFallback(unittest.TestCase):
             pg_factory=FakePG)
         with mock.patch.dict(os.environ,
                              {"HINDSIGHT_API_LLM_API_KEY": "explicit"}):
-            self.assertEqual(adapter._llm_config().api_key, "explicit")
+            self.assertNotEqual(adapter._llm_config().api_key, "explicit")
+            self.assertIn("/p/hindsight-extraction/v1", adapter._llm_config().base_url)
 
 
 class ScratchGuard(unittest.TestCase):

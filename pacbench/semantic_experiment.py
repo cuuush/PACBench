@@ -371,14 +371,14 @@ def run_arm(provider: str, root: Path, observations: list[dict],
         try:
             grade = grade_semantic(life_id, turn.prompt, turn.answer,
                                    claims, judge,
-                                   record_path=output / "judgment.json")
+                                   record_path=output / "judgment.json", assess_recovery=True)
         except Exception as exc:
             checkpoint["reason"] = f"semantic judgment failed: {exc}"
             return checkpoint
         save(output / "grade.json", {"correct": grade.correct,
                                       "missed": grade.missed,
                                       "misrepresented": grade.misrepresented,
-                                      "claims": [vars(s) for s in grade.slots]})
+                                      "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery})
         if followup_plans is not None:
             recovery = run_followups(contract=scored_contract,
                 plan=followup_plans[scored_contract.contract_hash], grade=grade,

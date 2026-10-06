@@ -1,20 +1,6 @@
-"""Spark credentials and a small prompt-to-text gateway helper.
-
-Scene generation and audit records live in `pacbench.authoring` and
-`pacbench.model_calls`. This module retains the shared credential loader used
-by the driver and provider setup.
-
-Configuration comes from the repo `.env` (never committed, never printed):
-
-- ``MODEL`` — the Spark model id (v0.1: ``muse-spark-1.3-contributor``).
-- ``META`` — the bearer credential for Meta's Model API
-  (``https://api.meta.ai/v1``), which serves the Spark family natively.
-  Treated as a secret: loaders never include it in reprs, logs, or errors.
-  This is the same file and credential ``pacbench.creds.load_driver`` uses
-  for the scored-run driver — one gateway, one credential.
-
-If the gateway call fails, the error is reported to the caller. The model is never
-silently swapped: a failed generation aborts the rendering it was asked for.
+"""Spark configuration and generation through the authenticated spending gateway.
+The legacy MODEL/META loader remains compatible with managed bindings, but the
+transport always uses the local gateway token and rejects external endpoints.
 """
 
 from __future__ import annotations
@@ -83,6 +69,10 @@ def spark_generator(config: SparkConfig, credential: str, *,
     the ``META`` credential as a Bearer header. The credential never appears
     in errors or logs; failures raise :class:`GenerationError` naming only
     the model."""
+
+    from .gateway_client import client_settings, validate_route
+    _, credential = client_settings("pacbench-authoring")
+    validate_route(gateway_url, credential)
 
     def generate(prompt: str) -> str:
         body = json.dumps({

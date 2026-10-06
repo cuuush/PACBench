@@ -20,6 +20,7 @@ from .gateway_client import client_settings, require_live_cost_boundary
 from .followups import freeze_policy, run_followups
 from .evaluation import exposure_batches, load_evaluations
 from .native_checks import run_checks
+from .usage import tracked_turn
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
@@ -68,7 +69,10 @@ def provider_names() -> list[str]:
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
               local_timezone: str = "") -> dict:
     home = root / "hermes-home"
-    driver_url, client_key = client_settings(f"pacbench-{provider}-driver")
+    run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
+    driver_project = f"pacbench-{run_id}-{provider}-driver"
+    memory_project = f"pacbench-{run_id}-{provider}-memory"
+    driver_url, client_key = client_settings(driver_project)
     harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
@@ -79,7 +83,8 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     fallback.mkdir()
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "0",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
-           "MEMCAL_SRC": str(MEMCAL_SRC), "HERMES_ENABLE_PROJECT_PLUGINS": "0"}
+           "MEMCAL_SRC": str(MEMCAL_SRC),
+           "PACBENCH_USAGE_ROLES": json.dumps({driver_project:"hermes",memory_project:"memory_provider"}), "HERMES_ENABLE_PROJECT_PLUGINS": "0"}
     if local_timezone:
         from zoneinfo import ZoneInfo
         ZoneInfo(local_timezone)  # Reject invalid simulation zones before any live calls.
@@ -91,7 +96,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
                 "MEM0_DIR": str((root / "mem0-state").resolve())})
     if provider == "mem0":
         identity = "pacbench-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
-        extraction_url, _ = client_settings("mem0-local-extraction")
+        extraction_url, _ = client_settings(memory_project)
         configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
         # Invoke the documented agent-driven OSS setup, not a custom SDK shim.
         command = [str(harness.ISOLATED_BIN), "memory", "setup", "mem0", "--mode", "oss",
@@ -130,22 +135,35 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
                 raise RuntimeError("documented manual Mem0 setup failed; see native-manual-setup.json")
         config = json.loads((home / "mem0.json").read_text())
         # README recommends 6000 characters for 8k-context embedders.
+        from .gateway_client import validate_route
+        actual_url = config["oss"]["llm"]["config"]["openai_base_url"]
+        validate_route(actual_url, client_key)
+        if actual_url != extraction_url:
+            raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
         config["sync_max_chars"] = 6000
         save(home / "mem0.json", config)
         os.chmod(home / "mem0.json", 0o600)
         (home / ".env").write_text("OPENAI_API_KEY=" + client_key + "\n")
         os.chmod(home / ".env", 0o600)
     if provider == "memcal":
-        memcal_url, _ = client_settings("memcal-models")
+        memcal_url, _ = client_settings(memory_project)
         configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
         env.update({"MEMCAL_LLM_PROVIDER": "openai-compatible", "MEMCAL_OPENAI_BASE_URL": memcal_url,
                     "OPENAI_COMPAT_API_KEY": client_key, "MEMCAL_PROPOSE_MODEL": configured_model,
                     "MEMCAL_SWEEP_MODEL": configured_model, "MEMCAL_MATCH_MODEL": configured_model})
+        # Recommended store-scoped configuration overrides project .env fallbacks.
+        memcal_home = root / "memcal-home"
+        memcal_home.mkdir(parents=True, exist_ok=True)
+        routed = {key:value for key,value in env.items() if key.startswith('MEMCAL_') and key not in {'MEMCAL_HOME','MEMCAL_SRC'}}
+        routed['OPENAI_COMPAT_API_KEY'] = client_key
+        (memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
+        os.chmod(memcal_home / '.env', 0o600)
         # Native first-install bootstrap, with no facts seeded into the store.
         bootstrap = (
             "import sys; sys.path.insert(0, sys.argv[1]); "
             "from memcal import config, db, brief; "
-            "cfg=config.load(); cfg.ensure_dirs(); "
+            "import os; cfg=config.load(); "
+            "assert cfg.llm_provider == 'openai-compatible' and cfg.openai_base_url == os.environ['MEMCAL_OPENAI_BASE_URL'] and cfg.openai_api_key == os.environ['OPENAI_COMPAT_API_KEY'], 'Memcal model routing must use the shared gateway'; cfg.ensure_dirs(); "
             "conn=db.open_db(cfg.db_path); brief.write(conn,cfg); conn.close()")
         proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
                                bootstrap, str(MEMCAL_SRC)],
@@ -272,7 +290,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                             record_dir=output / "model-calls")
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
-        report["followup_policy"] = "one combined message for failed facts only after at least one initially correct fact; half recovery credit; source fallback fails retention"
+        report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback fails retention"
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
@@ -301,7 +319,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             exposure_session = None
             for schedule, (day, batch) in zip(report['exposure_schedule'], batches):
                 at = max(m["collected_at"] for m in batch)
-                turn = harness.run_turn(exposure_prompt(batch), at=at,
+                turn = tracked_turn(harness.run_turn, exposure_prompt(batch), usage_path=root / (schedule["file"] + ".usage.json"), at=at,
                                         home=root / "hermes-home", allowlist=allowlist,
                                         extra_env=env, timeout_s=180,
                                         session_id=exposure_session if report['exposure_context'] == 'shared' else None)
@@ -322,7 +340,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 result['behavior'] = {'evaluation_context': evaluation_plan['context']}
             else:
                 # Deliberately omit --resume: recall must cross a real session boundary.
-                turn = harness.run_turn(contract.question, at=resolved["question_at"],
+                turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
                                         extra_env=env, timeout_s=180)
                 save(root / "recall.json", vars(turn))
@@ -335,10 +353,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     grade = grade_semantic(resolved["id"], turn.prompt, turn.answer,
                                            tuple(Claim(c.id, c.statement, c.evidence)
                                                  for c in contract.claims), judge,
-                                           record_path=root / "judgment.json")
+                                           record_path=root / "judgment.json", assess_recovery=True)
                     save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
                                               "misrepresented": grade.misrepresented,
-                                              "claims": [vars(s) for s in grade.slots]})
+                                              "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery})
                     result.update(state="diagnostic", reason="", input_hash=contract.evidence_hash)
                     capability["live_verified"] = True
                     recovery = run_followups(contract=contract, plan=plan, grade=grade,
@@ -350,6 +368,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                       "metrics": a["metrics"]} for a in recovery["attempts"]]}
                     if recovery["state"] != "complete":
                         result.update(state="invalid", reason="follow-up diagnostics incomplete")
+            from .usage import snapshot
+            save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)
     report["state"] = ("diagnostic" if all(r["state"] == "diagnostic" for r in results)

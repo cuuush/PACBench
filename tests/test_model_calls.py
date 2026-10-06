@@ -134,3 +134,14 @@ def test_incomplete_responses_writer_call_keeps_failed_audit(tmp_path):
     saved = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert saved["status"] == "failed"
     assert saved["response"] == raw
+
+
+import pytest as _pytest
+@_pytest.fixture(autouse=True)
+def fake_gateway_identity(tmp_path, monkeypatch):
+    from pacbench import gateway_client
+    state = tmp_path / 'gateway'
+    state.mkdir()
+    (state / 'client-token').write_text('test' if __name__.endswith('test_model_calls') else 'TEST-GATEWAY')
+    (state / 'address.json').write_text(json.dumps({'base':'http://127.0.0.1:8099'}))
+    monkeypatch.setattr(gateway_client, 'STATE', state)

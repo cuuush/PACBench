@@ -290,23 +290,15 @@ class HindsightAdapter(ProviderAdapter):
         self._maintenance: dict = {"state": "not-run"}
 
     def _llm_config(self) -> SimpleNamespace:
-        key = os.environ.get("HINDSIGHT_API_LLM_API_KEY", "").strip()
-        base_url = os.environ.get("HINDSIGHT_API_LLM_BASE_URL", "").strip()
-        if not key:
-            try:
-                from pacbench.gateway_client import client_settings
-                base_url, key = client_settings("hindsight-extraction")
-            except Exception:
-                key = ""
-        if not key:
-            raise RuntimeError(
-                "HINDSIGHT_API_LLM_API_KEY is not set. Point it at an "
-                "OpenAI-compatible chat endpoint (dev: the META credential) "
-                "with HINDSIGHT_API_LLM_BASE_URL "
-                f"(default {META_GATEWAY_URL}) and HINDSIGHT_API_LLM_MODEL "
-                f"(default {DEFAULT_INTERNAL_MODEL}).")
+        # Task-owned gateway identity only; never accept an upstream env override.
+        from pacbench.gateway_client import client_settings, validate_route
+        try:
+            base_url, key = client_settings("hindsight-extraction")
+            validate_route(base_url, key)
+        except Exception as exc:
+            raise RuntimeError("shared spending gateway unavailable for Hindsight model calls") from exc
         return SimpleNamespace(
-            provider=os.environ.get("HINDSIGHT_API_LLM_PROVIDER", "openai"),
+            provider="openai",
             api_key=key,
             base_url=base_url or META_GATEWAY_URL,
             model=os.environ.get("HINDSIGHT_API_LLM_MODEL", self.llm_model))

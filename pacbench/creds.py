@@ -1,19 +1,6 @@
-"""PACBench-owned driver configuration (W5 isolation fix).
-
-Scored runs must not read or copy auth/config from the user's live Hermes
-profile (contract §§42, 45.19). The driver model and credential come only from
-PACBench-owned ``.env`` (``MODEL`` + ``META``), the same file that configures
-Spark generation:
-
-- ``META`` is a bearer credential for Meta's Model API
-  (``https://api.meta.ai/v1``), which serves the Spark family natively.
-- ``MODEL`` names the driver model (v0.1: ``muse-spark-1.3-contributor``). It
-  is validated against the API's live model list: the exact configured value
-  must be served. Anything else fails clearly — never silently swapped.
-
-The credential is installed into the process environment as ``META_API_KEY``
-(the env var the isolated Hermes ``meta-ai`` provider plugin reads) and never
-printed, logged, or persisted into artifacts.
+"""Task-owned Spark driver configuration. The configured Contributor model is
+resolved through the shared gateway. Clients receive only the gateway token;
+upstream credential files never become inference credentials or fallbacks.
 """
 
 from __future__ import annotations
@@ -30,7 +17,7 @@ REPO = Path(__file__).resolve().parents[1]
 DEFAULT_ENV = REPO / ".env"
 
 PROVIDER = "meta-ai"
-BASE_URL = "https://api.meta.ai/v1"
+BASE_URL = ""
 KEY_ENV_VAR = "META_API_KEY"
 
 
@@ -55,6 +42,9 @@ def available_model_ids(credential: str, base_url: str = BASE_URL,
     Bounded retries (3) cover transient gateway blips during setup resolution.
     Scored turns never retry — see live.run_life.
     """
+    from .gateway_client import client_settings, validate_route
+    base_url = base_url or client_settings("pacbench-driver")[0]
+    validate_route(base_url, credential)
     request = urllib.request.Request(
         base_url.rstrip("/") + "/models",
         headers={"Authorization": f"Bearer {credential}"})

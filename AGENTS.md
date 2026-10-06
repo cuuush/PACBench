@@ -38,7 +38,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Code and checks
 
-- Examples: `examples/pizza_day.json` and its one-window and two-day correction variants. The retired hand-built corpus, lexical adapter, and old browser were removed.
+- Examples: `examples/pizza_day.json` and its one-window and two-day correction variants. New bounded stages: `examples/pizza_two_day_stage.json` (one time change over two days) and `examples/pizza_two_trips_three_days.json` (two companions, independent threads, time/venue changes over three days). Score explicit commitment status and preserve older contracts. The retired hand-built corpus, lexical adapter, and old browser were removed.
 - Scene generation and verification: `pacbench/authoring.py`; audited model calls: `pacbench/model_calls.py`.
 - Frozen claims and question: `pacbench/semantic_contract.py`; semantic verdicts: `pacbench/semantic_grade.py`.
 - Generic runner and retrieval preflight: `pacbench/semantic_experiment.py`; provider seams: `provider_adapters/`.
@@ -78,7 +78,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 1. The one-combined-follow-up policy has been exercised in repeated small native trials; see [results](docs/followup-tests-2026-10-06.md). Add explicit commitment-status coverage in a new frozen contract before increasing complexity; Memcal volunteered a wrong tentative status outside the original five claims. Preserve old grades. Continue testing the one-follow-up policy. Distinguish retained-detail opens from archive/message fallback, preserving first-answer misses and recovery effort. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
 2. Investigate the native Mem0 background-sync lifecycle with a normal persistent Hermes session. Preserve immediate-CLI-exit failures; any lifecycle change must apply uniformly and define a separate disclosed condition. Do not increase volume to conceal an unresolved small-case failure.
-3. Repeat small cases after harness fixes. Then use the checked-in +100 spec (five distinct ordinary exchanges of 18–22 messages each), freezing once for every arm. The stage generator makes no calls and never pads/truncates dialogue. Defer +1000 until smaller trials are understood; never generate a 100k-line corpus.
+3. Run the user-requested two-day and two-trip/three-day stages before increasing unrelated volume. Freeze and verify each once, then give every native arm the same messages and contract. Preserve the shared opening conversations through the writer cache, checking their realized text rather than assuming cache identity. Repeat small cases after harness fixes. Then use the checked-in +100 spec (five distinct ordinary exchanges of 18–22 messages each), freezing once for every arm. The stage generator makes no calls and never pads/truncates dialogue. Defer +1000 until smaller trials are understood; never generate a 100k-line corpus.
 4. Add native Hindsight next using its bundled plugin, recommended backend setup and a run-owned namespace, then remaining providers whose real setup and costs can be bounded. Existing SDK ingestion is not evidence for that condition.
 5. Review calibration labels before comparative scores. Keep capability, actual tool use, answer judgment, policy failures and cost separate. Successful wiring does not guarantee persistence or recall.
 

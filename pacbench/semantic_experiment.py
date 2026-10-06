@@ -28,6 +28,7 @@ from pacbench.model_calls import ModelClient, ResponsesWriter  # noqa: E402
 from pacbench.run_audit import audit_run  # noqa: E402
 from pacbench.semantic_contract import build_contract  # noqa: E402
 from pacbench.semantic_grade import Claim, grade_semantic  # noqa: E402
+from pacbench.followups import freeze_questions, run_followups  # noqa: E402
 
 
 RETRIEVAL_TOOLS = {
@@ -286,7 +287,7 @@ def run_arm(provider: str, root: Path, observations: list[dict],
             contract, driver, judge: ModelClient, *, question_at: str,
             maintenance_at: str, life_id: str, local_timezone: str = "",
             daily_contracts: dict | None = None,
-            daily_check_time: str = "8 a.m.") -> dict:
+            daily_check_time: str = "8 a.m.", followup_plans: dict | None = None) -> dict:
     arm = root / provider
     arm.mkdir(parents=True)
     if provider == "memcal":
@@ -378,6 +379,15 @@ def run_arm(provider: str, root: Path, observations: list[dict],
                                       "missed": grade.missed,
                                       "misrepresented": grade.misrepresented,
                                       "claims": [vars(s) for s in grade.slots]})
+        if followup_plans is not None:
+            recovery = run_followups(contract=scored_contract,
+                plan=followup_plans[scored_contract.contract_hash], grade=grade,
+                initial_turn=turn, output=output / "followups", judge=judge,
+                home=hermes_home, allowlist=",".join(seam["tool_allowlist"]), extra_env=seam.get("env"))
+            checkpoint["recovery"] = recovery
+            if recovery["state"] != "complete":
+                checkpoint.update(state="incomplete", reason="follow-up diagnostics incomplete")
+                return checkpoint
         if checkpoint["retrieval_outcome"] == "blocked":
             checkpoint.update(state="invalid", reason="Hermes retrieval call blocked by harness policy")
             return checkpoint
@@ -649,6 +659,11 @@ def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
             observations=observations, generate=judge, verify=judge,
             question_generate=judge, output_path=root / "contract.json")
     progress["contract_frozen_at"] = datetime.now(timezone.utc).isoformat()
+    followup_plans = {}
+    for day, frozen_contract in (daily_contracts or {"final": contract}).items():
+        plan_path = (root / "followup-plan.json" if not daily_contracts else
+                     root / "followup-plans" / f"{day}.json")
+        followup_plans[frozen_contract.contract_hash] = freeze_questions(frozen_contract, judge, plan_path)
     progress["stage"] = "provider arms"
     save(root / "experiment-status.json", progress)
     if spec.get("prepare_only") is True:
@@ -663,7 +678,7 @@ def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
                        question_at=question_at, maintenance_at=maintenance_at,
                        life_id=life_id, local_timezone=resolved["timezone"],
                        daily_contracts=daily_contracts,
-                       daily_check_time=resolved["check_time"])
+                       daily_check_time=resolved["check_time"], followup_plans=followup_plans)
                for p in providers]
     state = "complete" if all(r["state"] == "valid" for r in results) else "incomplete"
     summary = {"state": state, "results": results,

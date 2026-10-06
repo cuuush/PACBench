@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Add one frozen neutral follow-up per initially failed fact to native and semantic
+  runs. Preserve first-answer grades; separately award half recovery credit and
+  fail retention on archive/original-message fallback.
+- Log recovery tool dispatches/results, discovery, failures/repeats, latency,
+  token deltas and gateway cost windows; audit question/session/attempt limits.
+- Preserve partial tool traces on timeouts and full tool results on resumed turns.
+
 - Add native Hermes inventory and read-only local smoke checks, including
   Holographic and run-isolated Mem0 wiring alongside Memcal. Record missing
   provider setup honestly; use the shared $5/day, $10/task Contributor gateway.

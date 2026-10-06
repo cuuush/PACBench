@@ -24,13 +24,20 @@ provider) and inconsistent Mem0 persistence across fresh-session repetitions.
 Holographic recalled all five facts in the corrected-clock repetition; Mem0's
 first trial recalled the plan after native writes, while its second found no
 saved plan. Memcal recalled four of five facts, omitting the street. Total
-accounted upper bound was $0.0341. These are diagnostic observations, not
+accounted upper bound before follow-up testing was $0.0341. These are diagnostic observations, not
 calibrated rankings.
 
 [Pizza Day plus roughly 100 messages](examples/pizza_day_plus_100.json) adds five
 ordinary exchanges bounded to 18–22 messages each. It is an authoring spec,
 not generated dialogue. Investigate the small-case failure before expansion;
 +1000 remains deferred. See the [audit](docs/audit-2026-10-06.md).
+
+New runs ask **one neutral follow-up per initially missed or wrong fact**.
+The first-answer penalty remains; a correct recovery earns half credit.
+Archive or original-message fallback fails retention even if it finds the answer.
+Full tool arguments/results, call counts, latency and model cost windows are saved.
+The live Memcal follow-up recovered the street with one `memcal_open(E1)`:
+initial 4/5, recovery 4.5/5, no archive search. See [follow-up policy and traces](docs/followups.md).
 
 ## Run Pizza Day
 

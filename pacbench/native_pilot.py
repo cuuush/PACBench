@@ -17,6 +17,7 @@ from .semantic_contract import load_contract
 from .semantic_grade import Claim, grade_semantic
 from .semantic_experiment import daily_batches, save
 from .gateway_client import client_settings, require_live_cost_boundary
+from .followups import freeze_questions, run_followups
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
@@ -227,6 +228,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
               "builtin_memory": True, "session_search": False}
     save(output / "summary.json", report)
     driver = None
+    judge = plan = None
     messages = contract = resolved = None
     if source:
         messages, contract, resolved = read_prepared(source, max_messages)
@@ -242,6 +244,14 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         report.update(input_hash=contract.evidence_hash, contract_hash=contract.contract_hash,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=str(source.resolve()))
+        judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
+                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                            record_dir=output / "model-calls")
+        if (source / "followup-plan.json").exists():
+            shutil.copyfile(source / "followup-plan.json", output / "followup-plan.json")
+        plan = freeze_questions(contract, judge, output / "followup-plan.json")
+        report["followup_plan_hash"] = plan["plan_hash"]
+        report["followup_policy"] = "one per initially missed/misrepresented fact; half recovery credit; source fallback fails retention"
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
@@ -287,9 +297,6 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     "prefetch_context_present": bool(turn.prefetch_context)}
                 result.update(state="invalid", reason="recall turn failed or policy blocked")
                 if not turn.returncode and turn.answer.strip() and not turn.policy_blocks:
-                    judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
-                                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                                        record_dir=output / "model-calls")
                     grade = grade_semantic(resolved["id"], turn.prompt, turn.answer,
                                            tuple(Claim(c.id, c.statement, c.evidence)
                                                  for c in contract.claims), judge,
@@ -299,6 +306,14 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                               "claims": [vars(s) for s in grade.slots]})
                     result.update(state="diagnostic", reason="", input_hash=contract.evidence_hash)
                     capability["live_verified"] = True
+                    recovery = run_followups(contract=contract, plan=plan, grade=grade,
+                        initial_turn=turn, output=root / "followups", judge=judge,
+                        home=root / "hermes-home", allowlist=allowlist, extra_env=env)
+                    result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
+                        "attempts": [{"claim_id": a["claim_id"], "verdict": a["verdict"],
+                                      "metrics": a["metrics"]} for a in recovery["attempts"]]}
+                    if recovery["state"] != "complete":
+                        result.update(state="invalid", reason="follow-up diagnostics incomplete")
             save(root / "status.json", result)
             save(output / "summary.json", report)
     report["state"] = ("diagnostic" if all(r["state"] == "diagnostic" for r in results)

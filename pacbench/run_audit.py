@@ -231,7 +231,7 @@ def audit_run(root: Path) -> dict:
                         errors.append(f"memcal: missing or stale brief: {day}")
                 if (turn.get("at") != checkpoint_at or
                         not str(turn.get("prompt") or "").endswith(question) or
-                        judgment.get("question") != question or
+                        judgment.get("question") not in {question, turn.get("prompt")} or
                         judgment.get("answer") != turn.get("answer") or
                         [c.get("id") for c in judged_claims] != claim_ids):
                     errors.append(f"{provider}: question, answer, or judge input mismatch: {day}")
@@ -254,6 +254,24 @@ def audit_run(root: Path) -> dict:
                         errors.append(f"{provider}: grade differs from judge response: {day}")
                 if not _full_tool_trace(turn, arm / "hermes-home" / "state.db"):
                     warnings.append(f"{provider}: full tool result unavailable: {day}")
+                plan_path = (root / "followup-plan.json" if day == "single" else
+                             root / "followup-plans" / f"{day}.json")
+                if plan_path.exists() or checkpoint.get("recovery") is not None:
+                    from .followups import load_questions, audit_followups
+                    from .semantic_contract import load_contract
+                    from .harness import TurnResult
+                    try:
+                        contract_path = (root / "contract.json" if day == "single" else
+                                         root / "contracts" / f"{day}.json")
+                        frozen_contract = load_contract(contract_path)
+                        plan = load_questions(plan_path, frozen_contract)
+                        if judgment.get("question") != turn.get("prompt"):
+                            errors.append(f"{provider}: judge lacks public clock: {day}")
+                        errors.extend(f"{provider}: {day}: {e}" for e in audit_followups(
+                            contract=frozen_contract, plan=plan, initial_turn=TurnResult(**turn),
+                            initial_grade=grade, output=turn_dir / "followups"))
+                    except (OSError, ValueError, KeyError, TypeError) as exc:
+                        errors.append(f"{provider}: invalid follow-up record: {day}: {exc}")
                 day_reports.append({"day": day, "state": checkpoint.get("state"),
                                     "claims": len(claim_ids),
                                     "correct": grade.get("correct"),

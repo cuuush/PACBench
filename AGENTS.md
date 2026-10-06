@@ -4,8 +4,8 @@
 
 Evaluate every bundled memory provider in the pinned Hermes checkout, plus Memcal,
 through normal native Hermes behavior. Pizza Day is a wiring diagnostic, not the
-benchmark's destination. Add providers incrementally; currently Holographic and
-Mem0 are the next two paths. Never substitute fake retrieval, seed expected facts,
+benchmark's destination. Add providers incrementally; Holographic and local OSS Mem0
+are now native paths alongside Memcal. Never substitute fake retrieval, seed expected facts,
 or silently skip a broken provider.
 
 The user set a **$10 total ceiling for this task**, with a shared **$5 per UTC
@@ -28,6 +28,14 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Treat retrieval capability and Hermes behavior separately. Hindsight needs isolated SDK import, MCP connection, namespaced discovery and allowlist access, and a successful read-only bank recall. Record whether Hermes actually called recall. Pin Memcal maintenance and prefetch to the fictional clock.
 - Preserve saved run artifacts and their original hashes. Do not attach an old run to an edited fixture by source ID alone.
 
+## Follow-up policy (user-authorized)
+
+- Freeze a model-authored, independently reviewed neutral question per claim before provider arms run. Bind it to the contract hash and reuse it across providers; no expected values or tool hints.
+- Ask exactly once for each initially missed or misrepresented fact, continuing the real recall conversation and fictional clock. Correct facts get no follow-up. Preserve the initial grade; separately award half credit for recovery.
+- Opening retained memory can recover a fact. Explicit archive/original-source/message-connector access fails retention even if the answer becomes correct. Log attempted and blocked fallbacks. Unknown tool operations need review and get no retention credit.
+- Log arguments/results, direct and nested call counts, discovery, repeated/failed operations, latency, reported token deltas and gateway project cost windows. Unknown usage/cost stays unknown; do not invent tool prices or simulate a connector.
+- Audit the one-attempt limit, session continuity, question hashes and recovery points. See [followups.md](docs/followups.md). Do not rewrite older runs or erase their first-answer penalties.
+
 ## Code and checks
 
 - Examples: `examples/pizza_day.json` and its one-window and two-day correction variants. The retired hand-built corpus, lexical adapter, and old browser were removed.
@@ -35,7 +43,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Frozen claims and question: `pacbench/semantic_contract.py`; semantic verdicts: `pacbench/semantic_grade.py`.
 - Generic runner and retrieval preflight: `pacbench/semantic_experiment.py`; provider seams: `provider_adapters/`.
 - Explorer: `scripts/build_explorer_data.py`, `explorer/`, `serve_explorer.py`.
-- Run `/usr/local/bin/python3 -m pytest -q`, `node --check explorer/dashboard.js`, and the explorer data builder after relevant changes. MCP seam tests need loopback access. For live integration, use a bounded spec, inspect its saved JSON, and run `python3 -m pacbench.run_audit runs/<run-id>`; mocked tests alone do not establish provider behavior.
+- Run `/workspace/pacbench-venv/bin/python -m pytest -q`, `node --check explorer/dashboard.js`, and the explorer data builder after relevant changes. MCP seam tests need loopback access. For live integration, use a bounded spec, inspect its saved JSON, and run `python3 -m pacbench.run_audit runs/<run-id>`; mocked tests alone do not establish provider behavior.
 - Keep full model request, response, model identity, token usage, and reported cost in private run artifacts. The scene writer uses Meta Responses with stateless encrypted reasoning replay on revisions; the verifier and answer judge remain single-turn. Explorer data must redact `encrypted_content`. If the API omits a dollar charge, record it as unavailable.
 
 ## Current checkout evidence
@@ -48,8 +56,10 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Investigate Mem0's native asynchronous sync: shutdown waits only five seconds; saved gateway extraction calls completed after the exposure process exited. Its second local history is empty. This suggests a lifecycle failure, not a proven extraction-quality diagnosis. Do not force writes, seed facts, extend only this provider's lifetime, or erase the failure.
 - Native runs retain Hermes's normal additive built-in memory in scratch homes. Session search is disabled, and recall starts a new session. Report Hermes-plus-provider behavior, never isolated provider quality. The older SDK/MCP semantic condition is separate.
 - Provider inventory covers all eight bundled plugins plus Memcal. Unconfigured hosted/back-end paths remain explicit blockers; never imply they were tested.
-- Final usage-derived uncached upper bound: $0.0340668, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
-- Final offline suite: 218 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
+- Latest usage-derived uncached upper bound: $0.047903, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
+- Latest offline suite: 230 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
+
+- `runs/pizza-native-one-followup-20261006`: fresh Memcal and Holographic arms, same 25 messages. Memcal missed the street initially, then recovered it with exactly one native `memcal_open(E1)` and no source search; initial 4/5, separate recovery 4.5/5. Holographic scored 5/5 initially and got no follow-up. Both trace audits pass. The recovery turn took 33.71s including two driver model calls, with a $0.002847 gateway cost upper bound.
 
 ## Historical evidence (not present in this checkout)
 
@@ -64,7 +74,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Next steps
 
-1. The matched native Memcal trial (`runs/pizza-native-memcal-20261006`) completed with 4/5 diagnostic judgments, omitting “on 5th”; its trace audit passes. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
+1. Use the one-follow-up policy in repeated small native trials. Distinguish retained-detail opens from archive/message fallback, preserving first-answer misses and recovery effort. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
 2. Investigate the native Mem0 background-sync lifecycle with a normal persistent Hermes session. Preserve immediate-CLI-exit failures; any lifecycle change must apply uniformly and define a separate disclosed condition. Do not increase volume to conceal an unresolved small-case failure.
 3. Repeat small cases after harness fixes. Then use the checked-in +100 spec (five distinct ordinary exchanges of 18–22 messages each), freezing once for every arm. The stage generator makes no calls and never pads/truncates dialogue. Defer +1000 until smaller trials are understood; never generate a 100k-line corpus.
 4. Add native Hindsight next using its bundled plugin, recommended backend setup and a run-owned namespace, then remaining providers whose real setup and costs can be bounded. Existing SDK ingestion is not evidence for that condition.
@@ -74,6 +84,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 - `pacbench/native_pilot.py`: native inventory, recommended isolated local setup, read-only preflight, uniform public transcript handoff and fresh-session recall.
 - `pacbench/native_audit.py`: independent saved-trace integrity checks, including complete frozen input, clocks, session separation and judge context.
+- `pacbench/followups.py`: frozen neutral follow-up plans, one-attempt recovery, partial-credit scoring, source-fallback failures and full retrieval effort logs.
 - `pacbench/gateway_client.py`: shared authenticated spending boundary, no upstream fallback.
 - `pacbench/stages.py`: bounded incremental authoring specs without filler.
 - Generic validity fixes: failed audits produce failed CLI exits; any blocked recall invalidates an arm; provider duplicates fail before paid generation; answer judges receive the public clock; managed MODEL/META bindings support runtime configuration with explicit .env precedence.

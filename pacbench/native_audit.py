@@ -9,6 +9,8 @@ from pathlib import Path
 
 from .frozen import load_bundle, messages_for
 from .semantic_contract import load_contract
+from .followups import load_questions, audit_followups
+from .harness import TurnResult
 
 
 def audit(root: Path) -> dict:
@@ -26,6 +28,10 @@ def audit(root: Path) -> dict:
         check(len(bundle['lives']) == 1, 'expected one life')
         messages = messages_for(bundle, next(iter(bundle['lives'])))
         contract = load_contract(root / 'contract.json')
+        plan = (load_questions(root / 'followup-plan.json', contract)
+                if summary.get('followup_plan_hash') or (root / 'followup-plan.json').exists() else None)
+        if plan:
+            check(plan['plan_hash'] == summary['followup_plan_hash'], 'summary follow-up plan mismatch')
         spec = read(root / 'resolved-spec.json')
         digest = hashlib.sha256(json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
         check(digest == contract.evidence_hash == summary['input_hash'], 'exposure hash mismatch')
@@ -61,6 +67,11 @@ def audit(root: Path) -> dict:
             check(judgment['answer'] == recall['answer'], f'{label}: judge answer mismatch')
             grade = read(arm / 'grade.json')
             check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
+            if plan:
+                check(json.loads(judgment['response'])['verdicts'] == grade['claims'],
+                      f'{label}: initial grade differs from recorded judge response')
+                errors.extend(f'{label}: {e}' for e in audit_followups(contract=contract, plan=plan,
+                    initial_turn=TurnResult(**recall), initial_grade=grade, output=arm / 'followups'))
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
         errors.append(f'{type(exc).__name__}: {exc}')
     return {'state': 'pass' if not errors else 'fail', 'errors': errors,

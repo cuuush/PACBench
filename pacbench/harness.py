@@ -259,18 +259,14 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         latency = time.monotonic() - started
         note = (f"Hermes turn timed out after {timeout_s}s "
                 f"(cmd: {' '.join(str(c) for c in cmd)})")
-        part_out = str(exc.stdout or "")
-        part_err = str(exc.stderr or "")
-        return TurnResult(
-            prompt=prompt, at=at, answer="",
-            tool_calls=[], tool_results=[], policy_blocks=0,
-            latency_s=round(latency, 2), returncode=-1,
-            stderr_tail=note,
-            stderr_full=(note + (f"\n--- partial stderr ---\n{part_err}"
-                                 if part_err else "")),
-            stdout_tail="\n".join(
-                [ln for ln in part_out.splitlines() if ln.strip()][-60:]),
-            raw_events=0, session_id=None)
+        def decode(value):
+            return value.decode(errors="replace") if isinstance(value, bytes) else value or ""
+        part_out, part_err = decode(exc.stdout), decode(exc.stderr)
+        partial = subprocess.CompletedProcess(cmd, -1, part_out, note + "\n" + part_err)
+        result = _parse_turn(prompt, at, partial, latency)
+        result.stderr_tail = note
+        _recover_tool_results(result, home / "state.db")
+        return result
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
     _recover_tool_results(result, home / "state.db")
@@ -295,6 +291,9 @@ def _recover_tool_results(turn: TurnResult, state_db: Path) -> None:
                 "AND role = 'tool' ORDER BY id", (turn.session_id,)).fetchall()
     except sqlite3.Error:
         return
+    # A resumed session also contains prior turns' results. Recover only this
+    # turn's trailing messages; do not discard full outputs after a follow-up.
+    rows = rows[-len(turn.tool_results):]
     if (len(rows) != len(turn.tool_results) or
             any(name != result["tool"] or not isinstance(content, str)
                 for result, (name, content) in zip(turn.tool_results, rows))):

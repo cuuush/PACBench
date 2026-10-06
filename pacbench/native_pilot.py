@@ -15,9 +15,11 @@ from .frozen import load_bundle, messages_for
 from .model_calls import ModelClient
 from .semantic_contract import load_contract
 from .semantic_grade import Claim, grade_semantic
-from .semantic_experiment import daily_batches, save
+from .semantic_experiment import save
 from .gateway_client import client_settings, require_live_cost_boundary
 from .followups import freeze_policy, run_followups
+from .evaluation import exposure_batches, load_evaluations
+from .native_checks import run_checks
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
@@ -235,8 +237,13 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     driver = None
     judge = plan = None
     messages = contract = resolved = None
+    evaluations = []
     if source:
         messages, contract, resolved = read_prepared(source, max_messages)
+        batches = exposure_batches(messages, resolved)
+        evaluation_plan = None
+        if (source / 'evaluation-plan.json').exists():
+            evaluation_plan, evaluations = load_evaluations(source, messages, resolved)
         try:
             report["gateway_before"] = require_live_cost_boundary()
         except RuntimeError as exc:
@@ -250,6 +257,16 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=str(source.resolve()))
         report["process_timezone"] = resolved.get("timezone", "")
+        report.update(exposure_context=resolved.get('exposure_context', 'isolated'),
+                      exposure_delivery=resolved.get('exposure_delivery', 'days'))
+        report['exposure_schedule'] = [{'id': label,
+            'file': (f'exposures/{i + 1:03d}.json' if report['exposure_delivery'] == 'scenes' else f'exposure-{label}.json'),
+            'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
+            for i, (label, batch) in enumerate(batches)]
+        if evaluation_plan:
+            shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
+            shutil.copytree(source / 'evaluations', output / 'evaluations')
+            report.update(evaluation_plan_hash=evaluation_plan['plan_hash'], evaluation_context=evaluation_plan['context'])
         judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
                             record_dir=output / "model-calls")
@@ -281,17 +298,28 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             allowlist = ",".join(["memory", "tool_search", "tool_describe", "tool_call"] +
                                  [n for n in capability["tools"] if n])
             failed = False
-            for day, batch in daily_batches(messages):
+            exposure_session = None
+            for schedule, (day, batch) in zip(report['exposure_schedule'], batches):
                 at = max(m["collected_at"] for m in batch)
                 turn = harness.run_turn(exposure_prompt(batch), at=at,
                                         home=root / "hermes-home", allowlist=allowlist,
-                                        extra_env=env, timeout_s=180)
-                save(root / f"exposure-{day}.json", vars(turn))
-                if turn.returncode or not turn.answer.strip() or turn.policy_blocks:
+                                        extra_env=env, timeout_s=180,
+                                        session_id=exposure_session if report['exposure_context'] == 'shared' else None)
+                save(root / schedule['file'], vars(turn))
+                if (turn.returncode or not turn.answer.strip() or turn.policy_blocks or not turn.session_id or
+                        report['exposure_context'] == 'shared' and exposure_session and turn.session_id != exposure_session):
                     failed = True
                     break
+                exposure_session = turn.session_id
             if failed:
                 result.update(state="invalid", reason="exposure turn failed or policy blocked")
+            elif evaluations:
+                sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
+                                      question_dir=output / 'combined-questions')
+                result.update(state=sequence['state'], checks=sequence['checks'], input_hash=contract.evidence_hash,
+                              reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
+                capability['live_verified'] = sequence['state'] == 'diagnostic'
+                result['behavior'] = {'evaluation_context': evaluation_plan['context']}
             else:
                 # Deliberately omit --resume: recall must cross a real session boundary.
                 turn = harness.run_turn(contract.question, at=resolved["question_at"],

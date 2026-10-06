@@ -62,7 +62,9 @@ def build_contract(*, scene: str, test_intent: str,
                    observations: list[dict], generate: Callable,
                    verify: Callable, question_generate: Callable,
                    output_path: Path,
-                   author_facts: tuple[str, ...] = ()) -> EvaluationContract:
+                   author_facts: tuple[str, ...] = (),
+                   user_question: str | None = None,
+                   question_at: str = "") -> EvaluationContract:
     """Derive, independently verify, and freeze claims before either arm runs."""
     if not observations:
         raise ValueError("contract needs frozen dialogue")
@@ -180,7 +182,21 @@ def build_contract(*, scene: str, test_intent: str,
     question = None
     question_review = None
     correction = ""
-    for _ in range(2):
+    if user_question is not None:
+        if not isinstance(user_question, str) or not 1 <= len(user_question.strip()) <= 4000:
+            raise ValueError("supplied evaluation prompt must be bounded nonempty text")
+        question = user_question.strip()
+        question_review = _call_json(verify,
+            "Check this evaluation prompt against the dialogue and expected facts. "
+            "Does it reasonably invite every expected fact, without supplying their answers "
+            "or presupposing unsupported details? Respect current versus historical meaning. "
+            "A topic or time scope does not itself establish which events belong in it. "
+            'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
+            f"Question time: {question_at}\nPrompt: {question}\n"
+            f"Expected facts: {json.dumps([vars(c) for c in claims])}\nDialogue:\n{dialogue}")
+        if any(question_review.get(k) is not True for k in ("safe", "faithful", "elicits_all")):
+            raise ValueError(f"supplied prompt cannot fairly elicit its facts: {question_review}")
+    for _ in range(0 if user_question is not None else 2):
         question_doc = _call_json(question_generate, question_prompt + correction)
         question = question_doc.get("question")
         if not isinstance(question, str) or not question.strip().endswith("?"):
@@ -199,6 +215,8 @@ def build_contract(*, scene: str, test_intent: str,
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,
             "author_fact_count": len(author_facts)}
+    if user_question is not None:
+        body.update(question_source="supplied", question_at=question_at)
     contract_hash = hashlib.sha256(json.dumps(body, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
     body["contract_hash"] = contract_hash

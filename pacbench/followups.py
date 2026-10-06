@@ -154,6 +154,14 @@ def turn_metrics(turn, previous=None, *, source_tools=()) -> dict:
         'policy_blocks': turn.policy_blocks, 'returncode': turn.returncode}
 
 
+def initial_effort(turn, previous=None, *, source_tools=(), inherited_path=None):
+    metrics = turn_metrics(turn, previous, source_tools=source_tools)
+    if inherited_path is not None:
+        metrics.update(inherited_source_fallback=bool(inherited_path.get('source_fallback')),
+                       inherited_unclassified=bool(inherited_path.get('unclassified')))
+    return metrics
+
+
 def cost_window(before: dict, after: dict) -> dict:
     prior = {p['project']: p for p in before.get('projects', [])}
     fields = ('calls', 'settled_upper_bound_usd', 'held_usd')
@@ -176,8 +184,8 @@ def recovery_score(grade, initial_metrics: dict, attempts: list[dict]) -> dict:
     points = []
     for slot in grade.slots:
         attempt = by_id.get(slot.id)
-        initial_failure = initial_metrics['source_fallback_attempted']
-        unknown = bool(initial_metrics['unclassified_operations'])
+        initial_failure = initial_metrics['source_fallback_attempted'] or initial_metrics.get('inherited_source_fallback', False)
+        unknown = bool(initial_metrics['unclassified_operations'] or initial_metrics.get('inherited_unclassified', False))
         failed_retention = initial_failure or bool(attempt and attempt['metrics']['source_fallback_attempted'])
         unknown = unknown or bool(attempt and attempt['metrics']['unclassified_operations'])
         recovered = bool(attempt and attempt.get('verdict') == 'correct')
@@ -251,12 +259,13 @@ def load_combined_plan(path: Path, binding: dict) -> dict:
 def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
-                  question_model=None, question_dir: Path | None = None) -> dict:
+                  question_model=None, question_dir: Path | None = None,
+                  previous_turn=None, conversation=(), inherited_path=None) -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
     attempts = []
-    initial_metrics = turn_metrics(initial_turn, source_tools=source_tools)
+    initial_metrics = initial_effort(initial_turn, previous_turn, source_tools=source_tools, inherited_path=inherited_path)
     report = {'state': 'running', 'plan_hash': plan['plan_hash'], 'attempts': attempts,
               'protocol_version': 3, 'initial_metrics': initial_metrics,
               'policy': 'one combined follow-up for all initially missed/misrepresented facts'}
@@ -292,7 +301,9 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                 raise ValueError('follow-up turn failed, changed session, or was policy blocked')
             followup_grade = grade_semantic(grade.checkpoint, turn.prompt, turn.answer,
                 tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
-                record_path=directory / 'judgment.json')
+                record_path=directory / 'judgment.json', conversation=tuple(conversation) + (
+                    {'role': 'user', 'content': initial_turn.prompt},
+                    {'role': 'assistant', 'content': initial_turn.answer}))
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots]})
             attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
         except Exception as exc:
@@ -308,7 +319,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path) -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None) -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -340,7 +351,8 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             check([a['claim_id'] for a in report['attempts']] == failed,
                   'expected exactly one follow-up per initially failed claim, in order')
             check(len(list(output.glob('fact-*/turn.json'))) == len(failed), 'unexpected follow-up turn count')
-        check(report['initial_metrics'] == turn_metrics(initial_turn), 'initial effort mismatch')
+        effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path)
+        check(report['initial_metrics'] == effort, 'initial effort mismatch')
         previous = initial_turn
         for attempt in report['attempts']:
             if grouped:
@@ -367,6 +379,10 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             judgment = read(directory / 'judgment.json')
             check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer,
                   'follow-up judgment context mismatch')
+            if 'conversation' in judgment:
+                check(judgment['conversation'] == list(conversation) + [
+                    {'role': 'user', 'content': initial_turn.prompt},
+                    {'role': 'assistant', 'content': initial_turn.answer}], 'follow-up prior conversation mismatch')
             judgments = read(directory / 'grade.json')['claims']
             check(json.loads(judgment['response'])['verdicts'] == judgments,
                   'follow-up grade differs from recorded judge response')
@@ -380,7 +396,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                   'follow-up claim judgment mismatch')
             check(attempt['state'] == 'graded', 'follow-up ungraded')
             previous = turn
-        check(report['score'] == recovery_score(grade, turn_metrics(initial_turn), report['attempts']),
+        check(report['score'] == recovery_score(grade, effort, report['attempts']),
               'recovery score mismatch or first-answer penalty erased')
     except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
         errors.append(f'follow-up audit failed: {type(exc).__name__}: {exc}')

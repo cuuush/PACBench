@@ -44,7 +44,7 @@ class Grade:
 VERDICTS = {"correct", "missed", "misrepresented"}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...]) -> str:
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=()) -> str:
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
@@ -61,6 +61,9 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...]) -> str:
         "Return ONLY one JSON object with 'verdicts', an array in the same "
         "order, each containing id, verdict (correct/missed/misrepresented), "
         "and a short reason grounded in the answer.\n\n"
+        + ("Use the prior conversation only to resolve references in the latest answer. "
+         "Do not award a fact merely because it appeared in an earlier answer.\n"
+         f"Prior public conversation: {json.dumps(conversation, ensure_ascii=False)}\n" if conversation else "") +
         f"Question: {question}\nAnswer: {answer}\n"
         f"Claims (hidden from the assistant): {json.dumps(spec, ensure_ascii=False)}"
     )
@@ -68,11 +71,11 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...]) -> str:
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None) -> Grade:
+                   *, record_path: Path | None = None, conversation=()) -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
-    prompt = judge_prompt(question, answer, claims)
+    prompt = judge_prompt(question, answer, claims, conversation=conversation)
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
@@ -81,6 +84,7 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
             "checkpoint": checkpoint_id, "question": question,
             "answer": answer, "claims": [vars(c) for c in claims],
             "prompt": prompt, "response": output,
+            "conversation": list(conversation),
             "model_call": (response.record_path if isinstance(response, ModelOutput)
                            else None)}, indent=2, ensure_ascii=False) + "\n")
     try:

@@ -94,3 +94,11 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - `pacbench/gateway_client.py`: shared authenticated spending boundary, no upstream fallback.
 - `pacbench/stages.py`: bounded incremental authoring specs without filler.
 - Generic validity fixes: failed audits produce failed CLI exits; any blocked recall invalidates an arm; provider duplicates fail before paid generation; answer judges receive the public clock; managed MODEL/META bindings support runtime configuration with explicit .env precedence.
+
+## Flexible checks and shared Hermes sessions
+
+- Use `checks: [{id, prompt, facts, at?}]` for user-supplied questions and expected facts. Freeze each contract against the verified dialogue and review prompt elicitation before native arms run. Preserve the supplied wording; failed truth or elicitation review blocks execution. Keep the schema topic-independent. See [flexible-checks.md](docs/flexible-checks.md).
+- `exposure_context` and `evaluation_context` independently select `shared` or `isolated`; `exposure_delivery: scenes` delivers one scene per ingestion turn. Evaluation starts fresh after ingestion and resumes its actual session for later checks/recovery. Prior public answers resolve references only, never substitute for facts missing in the latest answer. Audit clocks, session IDs, token deltas and each message's judge criteria.
+- In a shared evaluation context, prior source/archive/message reads or unknown operations also invalidate later retention credit. Preserve the original answer grades and log inherited failure explicitly.
+- `python -m pacbench.evaluation --prepared ... --spec ... --output ...` freezes new checks against unchanged source dialogue. Preserve original artifacts; record a separate condition and input provenance.
+- Explorer must include native runs, planned checks, each message's expected facts/verdicts, exact judge prompt/response/model and actual tool calls. Never export credentials, provider home files or encrypted reasoning.

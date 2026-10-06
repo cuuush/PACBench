@@ -173,13 +173,16 @@ function renderSceneReview(run, scene) {
   }).join("");
 }
 function renderContract(run) {
-  if (!run.contract) return notice("Claim contract was not frozen.");
-  return '<div class="contract-question"><span class="eyebrow">Question for both providers</span><p>' +
-    esc(run.contract.question) + "</p></div>" +
-    (run.contract.claims || []).map(claim => '<div class="contract-fact"><span>' +
-      esc(claim.statement) + '</span><span>' +
-      (claim.evidence || []).map(sourceLink).join(" ") + "</span></div>").join("") +
-    details("Contract review and hashes", dump(run.contract));
+  const evaluations = run.evaluations?.length ? run.evaluations : [{id: "recall", contract: run.contract}];
+  return evaluations.map(check => {
+    const contract = check.contract;
+    if (!contract) return notice("Criteria not frozen yet.");
+    return '<div class="contract-question"><span class="eyebrow">' + esc(check.id) +
+      (check.at ? " · " + esc(check.at) : "") + '</span><p>' + esc(contract.question) + "</p></div>" +
+      (contract.claims || []).map(claim => '<div class="contract-fact"><span>' +
+        esc(claim.statement) + '</span><span>' + (claim.evidence || []).map(sourceLink).join(" ") +
+        "</span></div>").join("") + details("Criteria review and hashes", dump(contract));
+  }).join("");
 }
 function calibrationChecks(run) {
   const reports = run.calibrations || [];
@@ -311,7 +314,7 @@ function toolCards(run, arm, turn) {
     const result = turn.tool_results?.[index];
     const blocked = result?.policy_blocked || String(result?.text || "").includes("PACBENCH-BLOCKED");
     const nested = Array.isArray(call.input?.calls) ? call.input.calls : [];
-    const memoryCall = call.name?.startsWith("memcal_") ||
+    const memoryCall = (arm.preflight?.tools || []).includes(call.name) || call.name?.startsWith("mem0_") || call.name === "fact_store" || call.name?.startsWith("memory_") || call.name?.startsWith("memcal_") ||
       call.name?.startsWith("mcp__hindsight__") || nested.some(c =>
         c.name?.startsWith("memcal_") || c.name?.startsWith("mcp__hindsight__"));
     let error = false;
@@ -337,40 +340,43 @@ function score(ex) {
   if (ex.status?.state === "incomplete") return ["Incomplete checkpoint", "warn"];
   const grade = ex.grade;
   if (!grade) return ["Ungraded", "neutral"];
-  if (grade.misrepresented) return [grade.misrepresented + " wrong detail" +
-    (grade.misrepresented === 1 ? "" : "s"), "bad"];
-  if (grade.missed) return [grade.missed + " missed detail" +
-    (grade.missed === 1 ? "" : "s"), "warn"];
+  if (!grade.claims?.length) return ["Ungraded", "neutral"];
+  const wrong = grade.misrepresented ?? grade.claims.filter(c => c.verdict === "misrepresented").length;
+  const missed = grade.missed ?? grade.claims.filter(c => c.verdict === "missed").length;
+  if (wrong) return [wrong + " wrong detail" +
+    (wrong === 1 ? "" : "s"), "bad"];
+  if (missed) return [missed + " missed detail" +
+    (missed === 1 ? "" : "s"), "warn"];
   return ["All facts correct", "ok"];
 }
 function scoreDetails(run, ex) {
   const [label, tone] = score(ex);
-  const rows = (ex.grade?.claims || []).map(item => {
+  const criteria = (ex.contract || run.contract)?.claims || [];
+  const verdicts = ex.grade?.claims || criteria.map(c => ({id: c.id, verdict: "ungraded", reason: "Awaiting judge"}));
+  const rows = verdicts.map(item => {
     const claim = (ex.contract || run.contract)?.claims?.find(c => c.id === item.id);
-    return '<div class="verdict-row">' + badge(item.verdict, item.verdict === "correct" ? "ok" :
-      item.verdict === "missed" ? "warn" : "bad") + '<div><strong>' +
+    return '<div class="verdict-row">' + badge(item.verdict === "correct" ? "Passed" : item.verdict === "missed" ? "Failed · missed" : item.verdict === "misrepresented" ? "Failed · wrong" : "Ungraded", item.verdict === "correct" ? "ok" : item.verdict === "missed" ? "warn" : item.verdict === "ungraded" ? "neutral" : "bad") + '<div><strong>' +
       esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason) + '</p>' +
       (claim?.evidence || []).map(sourceLink).join(" ") + "</div></div>";
   }).join("");
-  return '<details class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
-    '<span>See why</span></summary><div class="fold-body">' +
+  return '<details open class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
+    '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
     (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
-    (ex.judgment ? details("Answer judge prompt and response", '<h4>Prompt</h4><pre>' +
+    (ex.judgment ? details("Answer judge prompt and response", '<p class="muted">Judge: ' + esc(modelCall(run, ex.judgment.model_call)?.model || "model not captured") + "</p>" + '<h4>Prompt</h4><pre>' +
       esc(ex.judgment.prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
       esc(ex.judgment.response || "not captured") + "</pre>") : "") + "</div></details>";
 }
 function questionText(turn, ex) {
-  return ex.judgment?.question ||
-    String(turn.prompt || "").replace(/^\[Simulated now:[^\n]+\]\n\n/, "");
+  return String(ex.judgment?.question || turn.prompt || "").replace(/^\[Simulated now:[^\n]+\]\n\n/, "");
 }
 function providerExchange(run, arm, ex, index) {
   const turn = ex.turn;
   if (!turn) return notice("Hermes turn " + (index + 1) + " not captured.");
-  return '<section class="exchange"><div class="exchange-label">Question ' + (index + 1) +
+  return '<section class="exchange"><div class="exchange-label">' + esc(ex.check_id || 'Question ' + (index + 1)) + (ex.kind === 'followup' ? ' · Recovery attempt' : '') +
     " · " + esc(turn.at || "time not captured") + '</div>' +
     '<div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
       esc(questionText(turn, ex)) + "</div></div></div>" +
-    '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
+    effortDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
     '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message">' +
       '<div class="sender">Hermes</div><div class="bubble answer-bubble">' +
       esc(turn.answer || "Answer not captured.") + "</div>" +
@@ -384,12 +390,11 @@ function providerPage(run, provider) {
   const used = status.behavior?.retrieval_called;
   const blockedRetrieval = !used && (status.behavior?.blocked_provider_calls || []).length > 0;
   const exchanges = arm.exchanges || (arm.turn ? [{turn: arm.turn, judgment: arm.judgment, grade: arm.grade}] : []);
-  const brief = provider === "memcal" ?
-    '<section class="brief"><strong>Memory brief visible to Hermes</strong>' +
-      (arm.turn?.prefetch_context != null ? '<pre>' + esc(arm.turn.prefetch_context) + "</pre>" :
-        notice("Brief not captured.")) + "</section>" :
-    '<p class="muted">Hindsight provided no automatic brief. Recall results appear between the question and answer below.</p>';
-  return '<div class="provider-head"><h2>' + esc(provider === "memcal" ? "Memcal" : "Hindsight") +
+  const brief = arm.turn?.prefetch_context ? details("Memory brief visible to Hermes", '<pre>' + esc(arm.turn.prefetch_context) + "</pre>") : "";
+  const exposure = arm.exposures?.length ? details("Ingestion conversation · " + arm.exposures.length + " turns · " + (run.summary?.exposure_context || "isolated") + " context",
+    arm.exposures.map(item => '<h4>' + esc(item.label) + '</h4><p>Session: ' + esc(item.turn.session_id) +
+      '</p><pre>' + esc(item.turn.answer) + '</pre>' + toolCards(run, arm, item.turn)).join("")) : "";
+  return '<div class="provider-head"><h2>' + esc(arm.label || provider) +
     '</h2><div class="provider-badges">' +
     badge(access === true ? "Memory access verified" : access === false ? "Memory unavailable" : "Access not captured",
       access === true ? "ok" : access === false ? "bad" : "neutral") +
@@ -400,13 +405,29 @@ function providerPage(run, provider) {
     (blockedRetrieval ? notice("Hermes attempted a memory tool, but the benchmark tool policy blocked it. The answer is diagnostic, not a provider-memory result.") : "") +
     (run.audit?.valid_for_comparison === false ? notice("Excluded from comparison: " + run.audit.finding) : "") +
     (run.audit?.state === "fail" ? notice("Run audit failed: " + run.audit.errors.join("; ")) : "") +
-    brief + (exchanges.length ? exchanges.map((ex, i) => providerExchange(run, arm, ex, i)).join("") :
+    brief + exposure + (exchanges.length ? exchanges.map((ex, i) => providerExchange(run, arm, ex, i)).join("") :
       notice("No assistant question or answer was saved for this provider.")) +
     '<p class="muted calibration">Answer badges are diagnostic until the proposed calibration labels are human reviewed.</p>' +
     details("Provider setup and saved files", '<h4>Ingestion</h4>' + dump(arm.ingestion) +
       '<h4>Maintenance and readiness</h4>' + dump(arm.maintenance) +
       '<h4>Tool discovery and preflight</h4>' + dump(arm.preflight) +
       '<h4>Provider status</h4>' + dump(arm.status));
+}
+function effortDetails(ex) {
+  const m = ex.metrics;
+  if (!m) return "";
+  const path = m.source_fallback_attempted || m.inherited_source_fallback ? "Source lookup: retention failed" :
+    m.unclassified_operations || m.inherited_unclassified_operation ? "Unknown operation: retention uncredited" : "Retained-memory path";
+  return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
+    esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + '</p>' + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+}
+function judgePage(run) {
+  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. A recovery attempt judges only the facts missed or wrong in the first answer.</p>' +
+    '<p class="muted">Questions: ' + esc(run.evaluation_plan?.context || "isolated") + ' context. Earlier answers can resolve references; they do not earn credit for an omitted fact in a later answer.</p>' +
+    renderContract(run) + '</section>' + Object.values(run.arms || {}).map(arm =>
+      '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +
+      (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("");
 }
 function technicalPage(run) {
   return '<section class="stage"><h2>Saved run files</h2><p class="muted">These records are here for debugging. The Story and provider pages show the readable path through the experiment.</p>' +
@@ -422,7 +443,7 @@ function render() {
   const run = selected();
   if (!run) { el("content").innerHTML = notice("No saved run selected."); return; }
   const items = [["story", "Story"], ...Object.keys(run.arms || {}).map(name =>
-    [name, name === "memcal" ? "Memcal" : "Hindsight"]), ["details", "Saved files"]];
+    [name, run.arms[name].label || name]), ["judge", "Criteria & judges"], ["details", "Saved files"]];
   if (!items.some(item => item[0] === page)) page = "story";
   const status = stateOf(run);
   const alert = run.audit?.state === "fail" ?
@@ -434,7 +455,7 @@ function render() {
   const rerun = run.rerun_provenance ? '<div class="alert">Memcal was rerun from the frozen evidence in ' +
     esc(run.rerun_provenance.source_run) + '. The Hindsight trace was reused from that run.</div>' : "";
   const body = page === "story" ? semanticStory(run) :
-    page === "details" ? technicalPage(run) : providerPage(run, page);
+    page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : providerPage(run, page);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
     "Experiment" + '</span><h1>' +
     esc(titleOf(run)) + '</h1><p>' + esc(idOf(run)) +

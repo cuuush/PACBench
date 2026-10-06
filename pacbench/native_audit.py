@@ -11,6 +11,8 @@ from .frozen import load_bundle, messages_for
 from .semantic_contract import load_contract
 from .followups import load_questions, audit_followups
 from .harness import TurnResult
+from .evaluation import exposure_batches, load_evaluations
+from .native_checks import audit_checks
 
 
 def audit(root: Path) -> dict:
@@ -33,6 +35,10 @@ def audit(root: Path) -> dict:
         if plan:
             check(plan['plan_hash'] == summary['followup_plan_hash'], 'summary follow-up plan mismatch')
         spec = read(root / 'resolved-spec.json')
+        evaluations = []
+        if (root / 'evaluation-plan.json').exists():
+            evaluation_plan, evaluations = load_evaluations(root, messages, spec)
+            check(evaluation_plan['plan_hash'] == summary.get('evaluation_plan_hash'), 'evaluation plan summary mismatch')
         if 'process_timezone' in summary:
             check(summary['process_timezone'] == spec.get('timezone', ''),
                   'process timezone differs from frozen scenario')
@@ -51,18 +57,36 @@ def audit(root: Path) -> dict:
             check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
             check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
             exposure_sessions = []
-            days = sorted({datetime.fromisoformat(m['collected_at']).date().isoformat() for m in messages})
-            check(len(list(arm.glob('exposure-*.json'))) == len(days), f'{label}: unexpected exposure count')
-            for day in days:
-                batch = sorted([m for m in messages if datetime.fromisoformat(m['collected_at']).date().isoformat() == day],
-                               key=lambda m: (m['collected_at'], m['source_id']))
+            batches = exposure_batches(messages, spec)
+            schedule = summary.get('exposure_schedule')
+            if schedule is None:
+                schedule = [{'id': day, 'file': f'exposure-{day}.json', 'source_ids': [m['source_id'] for m in batch],
+                             'at': max(m['collected_at'] for m in batch)} for day, batch in batches]
+            expected_schedule = [{'id': day,
+                'file': (f'exposures/{i + 1:03d}.json' if spec.get('exposure_delivery') == 'scenes' else f'exposure-{day}.json'),
+                'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
+                for i, (day, batch) in enumerate(batches)]
+            check(schedule == expected_schedule, f'{label}: exposure schedule differs from frozen input')
+            recorded = list(arm.glob('exposure-*.json')) + list((arm / 'exposures').glob('*.json'))
+            check(sorted(str(p.relative_to(arm)) for p in recorded) == sorted(r['file'] for r in schedule),
+                  f'{label}: unexpected exposure files')
+            for row, (day, batch) in zip(schedule, batches):
                 at = max(m['collected_at'] for m in batch)
                 public = 'Here are my recent messages. Catch up on them for me.\n\n' + '\n'.join(
                     f"[{m['written_at']}] {m['channel']} / {m['thread']} / {m['sender']}: {m['text']}" for m in batch)
-                turn = read(arm / f'exposure-{day}.json')
+                turn = read(arm / row['file'])
                 check(turn['at'] == at and turn['prompt'] == clock_prompt(at, public), f'{label}: exposure/clock mismatch')
                 check(not turn['returncode'] and not turn['policy_blocks'], f'{label}: exposure failure')
+                if spec.get('exposure_context', 'isolated') == 'shared' and exposure_sessions:
+                    check(turn['session_id'] == exposure_sessions[0], f'{label}: exposure lost shared conversation')
+                else:
+                    check(bool(turn['session_id']) and turn['session_id'] not in exposure_sessions,
+                          f'{label}: exposure session missing or unexpectedly reused')
                 exposure_sessions.append(turn['session_id'])
+            if evaluations:
+                errors.extend(f'{label}: {e}' for e in audit_checks(evaluations, evaluation_plan['context'], arm, exposure_sessions))
+                check(result['checks'] == read(arm / 'evaluation.json')['checks'], f'{label}: evaluation summary mismatch')
+                continue
             recall = read(arm / 'recall.json')
             check(recall['prompt'] == clock_prompt(spec['question_at'], contract.question), f'{label}: recall/clock mismatch')
             check(recall['at'] == spec['question_at'], f'{label}: recall time mismatch')

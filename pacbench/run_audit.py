@@ -137,6 +137,15 @@ def audit_run(root: Path) -> dict:
     if summary.get("state") == "prepared":
         if summary.get("results"):
             errors.append("prepared run has provider results")
+        if (root / 'evaluation-plan.json').exists():
+            try:
+                from .evaluation import load_evaluations
+                resolved = _read(root / 'resolved-spec.json')
+                plan, _ = load_evaluations(root, messages, resolved)
+                if plan['plan_hash'] != summary.get('evaluation_plan_hash'):
+                    errors.append('summary evaluation plan hash mismatch')
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                errors.append(f'evaluation plan: {exc}')
     else:
         reported = summary.get("results") or []
         if ([item.get("provider") for item in reported if isinstance(item, dict)] !=

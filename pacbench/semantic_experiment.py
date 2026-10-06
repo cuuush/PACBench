@@ -26,7 +26,7 @@ from pacbench.daily_contract import freeze_daily_contracts  # noqa: E402
 from pacbench.frozen import bundle_hash, write_bundle  # noqa: E402
 from pacbench.model_calls import ModelClient, ResponsesWriter  # noqa: E402
 from pacbench.run_audit import audit_run  # noqa: E402
-from pacbench.semantic_contract import build_contract  # noqa: E402
+from pacbench.semantic_contract import build_contract, load_contract  # noqa: E402
 from pacbench.semantic_grade import Claim, grade_semantic  # noqa: E402
 from pacbench.followups import freeze_policy, run_followups  # noqa: E402
 
@@ -589,17 +589,21 @@ def resolve_spec(spec: dict, root: Path) -> tuple[list[ScenePlan], ScenePlan, di
             any(p not in ("memcal", "hindsight") for p in providers) or
             len(set(providers)) != len(providers)):
         raise ValueError("unsupported provider selection")
+    from .evaluation import resolve_checks
     return scenes, target, {
         "id": life_id, "test_scene_id": target.id,
         "week_of": spec.get("week_of"),
         "check_time": spec.get("check_time", "8 a.m."),
         "timezone": timezone_name,
         "question_at": question_at, "maintenance_at": maintenance_at,
-        "providers": providers, "scenes": [scene_spec(s) for s in scenes]}
+        "providers": providers, "scenes": [scene_spec(s) for s in scenes],
+        **resolve_checks(spec, question_at, timezone_name)}
 
 
 def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
     scenes, target, resolved = resolve_spec(spec, root)
+    if resolved['checks'] and not spec.get('prepare_only'):
+        raise ValueError('multi-turn checks use --prepare-only followed by native_pilot')
     save(root / "resolved-spec.json", resolved)
     life_id = resolved["id"]
     question_at = resolved["question_at"]
@@ -645,7 +649,16 @@ def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
     progress["stage"] = "contract generation and review"
     save(root / "experiment-status.json", progress)
     daily_contracts = None
-    if resolved["week_of"]:
+    evaluation_plan = None
+    if resolved['checks']:
+        if resolved['week_of']:
+            raise ValueError('use explicit checks or weekly checkpoints, not both')
+        from .evaluation import freeze_evaluations
+        evaluation_plan = freeze_evaluations(resolved, observations, target, judge, root)
+        first = evaluation_plan['checks'][0]['id']
+        (root / 'contract.json').write_bytes((root / 'evaluations' / first / 'contract.json').read_bytes())
+        contract = load_contract(root / 'contract.json')
+    elif resolved["week_of"]:
         daily_contracts = freeze_daily_contracts(
             monday=datetime.fromisoformat(resolved["week_of"]).date(),
             scenes=scenes, messages=observations, model=daily_model, root=root,
@@ -673,6 +686,8 @@ def _run_experiment_body(spec: dict, root: Path, progress: dict) -> dict:
                    "daily_contract_hashes": ({day: c.contract_hash for day, c in
                                              daily_contracts.items()} if daily_contracts else None),
                    "bundle_hash": bundle_hash(bundle)}
+        if evaluation_plan:
+            summary['evaluation_plan_hash'] = evaluation_plan['plan_hash']
         save(root / "summary.json", summary)
         return summary
     results = [run_arm(p, root, json.loads(json.dumps(observations)), contract, driver, judge,

@@ -1,0 +1,174 @@
+"""Generic prompt/fact sequences and public exposure batches, without event slots."""
+from __future__ import annotations
+
+import json
+import re
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from .followups import digest, freeze_policy, load_questions, save
+from .semantic_contract import build_contract, load_contract
+
+
+def resolve_checks(spec, question_at, timezone):
+    checks = spec.get('checks')
+    modes = {key: spec.get(key, default) for key, default in (
+        ('evaluation_context', 'shared'), ('exposure_context', 'isolated'),
+        ('exposure_delivery', 'days'))}
+    if any(modes[k] not in ('shared', 'isolated') for k in ('evaluation_context', 'exposure_context')):
+        raise ValueError('context must be shared or isolated')
+    if modes['exposure_delivery'] not in ('days', 'scenes'):
+        raise ValueError('exposure_delivery must be days or scenes')
+    if checks is None:
+        return {**modes, 'checks': []}
+    if not isinstance(checks, list) or not 1 <= len(checks) <= 8:
+        raise ValueError('checks must contain 1–8 bounded evaluation turns')
+    result, ids = [], set()
+    previous = datetime.fromisoformat(question_at)
+    for row in checks:
+        if not isinstance(row, dict):
+            raise ValueError('each check must be an object')
+        cid, prompt, facts = row.get('id'), row.get('prompt'), row.get('facts')
+        if (not isinstance(cid, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', cid) or cid in ids or
+                not isinstance(prompt, str) or not 1 <= len(prompt.strip()) <= 4000 or
+                not isinstance(facts, list) or not 1 <= len(facts) <= 50 or
+                any(not isinstance(f, str) or not f.strip() for f in facts)):
+            raise ValueError('check needs a unique safe id, prompt, and expected fact list')
+        at = datetime.fromisoformat(row.get('at') or question_at)
+        if timezone and at.tzinfo is None:
+            at = at.replace(tzinfo=ZoneInfo(timezone))
+        if at < previous:
+            raise ValueError('evaluation turns must follow the first question in time order')
+        previous = at
+        ids.add(cid)
+        result.append({'id': cid, 'prompt': prompt.strip(), 'facts': facts,
+                       'at': at.isoformat(timespec='seconds')})
+    return {**modes, 'checks': result}
+
+
+def freeze_evaluations(resolved, messages, target, model, root):
+    rows = []
+    for check in resolved['checks']:
+        path = root / 'evaluations' / check['id']
+        contract = build_contract(scene=target.scene, test_intent=check['prompt'],
+            observations=messages, author_facts=tuple(check['facts']), generate=model,
+            verify=model, question_generate=model, output_path=path / 'contract.json',
+            user_question=check['prompt'], question_at=check['at'])
+        policy = freeze_policy(contract, path / 'followup-plan.json')
+        rows.append({'id': check['id'], 'at': check['at'], 'contract_hash': contract.contract_hash,
+                     'policy_hash': policy['plan_hash']})
+    body = {'version': 1, 'context': resolved['evaluation_context'], 'checks': rows}
+    plan = {**body, 'plan_hash': digest(body)}
+    save(root / 'evaluation-plan.json', plan)
+    return plan
+
+
+def load_evaluations(root, messages, resolved):
+    validated = resolve_checks(resolved, resolved['question_at'], resolved.get('timezone', ''))
+    if validated['checks'] != resolved['checks']:
+        raise ValueError('evaluation spec not normalized')
+    plan = json.loads((root / 'evaluation-plan.json').read_text())
+    if plan.get('version') != 1 or plan.get('plan_hash') != digest({k:v for k,v in plan.items() if k != 'plan_hash'}):
+        raise ValueError('evaluation plan hash/version mismatch')
+    if (plan['context'] != resolved['evaluation_context'] or
+            [r['id'] for r in plan['checks']] != [r['id'] for r in resolved['checks']]):
+        raise ValueError('evaluation plan differs from frozen spec')
+    loaded = []
+    for row, spec in zip(plan['checks'], resolved['checks']):
+        directory = root / 'evaluations' / row['id']
+        c = load_contract(directory / 'contract.json')
+        policy = load_questions(directory / 'followup-plan.json', c)
+        document = json.loads((directory / 'contract.json').read_text())
+        if (c.contract_hash != row['contract_hash'] or c.evidence_hash != digest(messages) or
+                policy['plan_hash'] != row['policy_hash'] or row['at'] != spec['at'] or
+                c.question != spec['prompt'] or [x.statement for x in c.claims] != spec['facts'] or
+                document.get('question_at') != row['at'] or document.get('question_review', {}).get('elicits_all') is not True):
+            raise ValueError('evaluation contract, prompt, facts, clock or review mismatch')
+        visible = {m['source_id'] for m in messages}
+        if any(not c.evidence or any(e not in visible for e in c.evidence) for c in c.claims):
+            raise ValueError('evaluation cites unavailable evidence')
+        loaded.append((row, c, policy))
+    return plan, loaded
+
+
+def exposure_batches(messages, resolved):
+    """Partition the real frozen messages exactly once, by day or scene window."""
+    if resolved.get('exposure_delivery', 'days') == 'scenes':
+        batches = [(scene['id'], [m for m in messages
+            if m['channel'] == scene['channel'] and m['thread'] == scene['thread'] and
+            datetime.fromisoformat(scene['window_start']) <= datetime.fromisoformat(m['written_at']) <=
+            datetime.fromisoformat(scene['window_end'])]) for scene in resolved['scenes']]
+    else:
+        groups = {}
+        for m in messages:
+            groups.setdefault(datetime.fromisoformat(m['collected_at']).date().isoformat(), []).append(m)
+        batches = sorted(groups.items())
+    flattened = [m['source_id'] for _, batch in batches for m in batch]
+    if any(not batch for _, batch in batches) or sorted(flattened) != sorted(m['source_id'] for m in messages):
+        raise ValueError('exposure batches must cover each frozen message exactly once')
+    return [(label, sorted(batch, key=lambda m:(m['collected_at'],m['source_id']))) for label,batch in batches]
+
+
+def prepare_existing(source, spec, output, model):
+    """Freeze new questions against unchanged, previously verified dialogue."""
+    import shutil
+    from .native_pilot import read_prepared
+    from .semantic_experiment import resolve_spec
+    from .run_audit import audit_run
+    messages, _, _ = read_prepared(source, 1200)
+    if set(spec) - {'checks', 'question_at', 'maintenance_at', 'evaluation_context', 'exposure_context', 'exposure_delivery'}:
+        raise ValueError('recheck spec may change only questions, clocks and context modes')
+    original = json.loads((source / 'spec.json').read_text())
+    authored = {**original, **spec, 'prepare_only': True}
+    _, target, resolved = resolve_spec(authored, output)
+    if not resolved['checks'] or resolved.get('week_of'):
+        raise ValueError('recheck requires checks and a non-weekly source')
+    output.mkdir(parents=True, exist_ok=False)
+    for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json'):
+        if (source / name).exists():
+            shutil.copyfile(source / name, output / name)
+    for name in ('scene-verifications', 'model-calls'):
+        if (source / name).exists():
+            shutil.copytree(source / name, output / name)
+    save(output / 'spec.json', authored)
+    save(output / 'resolved-spec.json', resolved)
+    save(output / 'recheck-provenance.json', {'source': str(source.resolve()),
+         'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
+         'original_contract_hash': json.loads((source / 'contract.json').read_text())['contract_hash']})
+    plan = freeze_evaluations(resolved, messages, target, model, output)
+    first = output / 'evaluations' / plan['checks'][0]['id']
+    for name in ('contract.json', 'followup-plan.json'):
+        shutil.copyfile(first / name, output / name)
+    summary = {'state': 'prepared', 'results': [], 'evaluation_plan_hash': plan['plan_hash'],
+        'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
+        'contract_hash': plan['checks'][0]['contract_hash']}
+    save(output / 'summary.json', summary)
+    report = audit_run(output)
+    save(output / 'run-audit.json', report)
+    if report['state'] != 'pass':
+        raise ValueError('new evaluation failed audit: ' + str(report['errors']))
+    return summary
+
+
+def main():
+    import argparse
+    from .creds import load_driver
+    from .gateway_client import client_settings, require_live_cost_boundary
+    from .model_calls import ModelClient
+    parser = argparse.ArgumentParser(description='Freeze new prompt/fact checks against existing verified dialogue.')
+    parser.add_argument('--prepared', type=Path, required=True)
+    parser.add_argument('--spec', type=Path, required=True)
+    parser.add_argument('--output', type=Path, required=True)
+    args = parser.parse_args()
+    require_live_cost_boundary()
+    driver = load_driver()
+    base, key = client_settings('pacbench-judge')
+    judge = ModelClient(key=key, model=driver.model_id, url=base + '/chat/completions',
+                        record_dir=args.output / 'model-calls')
+    prepare_existing(args.prepared, json.loads(args.spec.read_text()), args.output, judge)
+    print(args.output)
+
+
+if __name__ == '__main__':
+    main()

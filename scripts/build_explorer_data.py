@@ -16,6 +16,7 @@ from types import SimpleNamespace
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from pacbench.frozen import bundle_hash  # noqa: E402
+from pacbench.frozen import messages_for  # noqa: E402
 from pacbench.harness import _recover_tool_results  # noqa: E402
 from pacbench.semantic_experiment import tool_behavior  # noqa: E402
 
@@ -36,6 +37,94 @@ def model_record_for_dashboard(value):
 
 def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def native_run(run_dir):
+    summary = read_json(run_dir / 'summary.json') or {}
+    if summary.get('mode') != 'native-hermes' and summary.get('state') != 'prepared':
+        return None
+    bundle = read_json(run_dir / 'bundle.json')
+    if not bundle:
+        return None
+    actual_hash = bundle_hash(bundle)
+    if bundle.get('bundle_hash') != actual_hash or summary.get('bundle_hash', actual_hash) != actual_hash:
+        raise SystemExit(f'ABORT native bundle mismatch: {run_dir}')
+    resolved = read_json(run_dir / 'resolved-spec.json') or {}
+    source = Path(summary.get('source', run_dir)).resolve()
+    if not source.is_relative_to((ROOT / 'runs').resolve()):
+        source = run_dir
+    spec = read_json(source / 'spec.json') or resolved
+    plan = read_json(run_dir / 'evaluation-plan.json')
+    evaluations = [{**row, 'contract': read_json(run_dir / 'evaluations' / row['id'] / 'contract.json')}
+                   for row in (plan or {}).get('checks', [])]
+    contract = read_json(run_dir / 'contract.json')
+    arms = {}
+    for arm in sorted(run_dir.glob('repeat-*/*')):
+        if not arm.is_dir() or not (arm / 'hermes-home').exists():
+            continue
+        repetition = arm.parent.name
+        provider = arm.name
+        exchanges = []
+        def append_exchange(directory, checkpoint_contract, check_id, turn_file):
+            turn = read_json(directory / turn_file)
+            if not turn:
+                return
+            recovery = read_json(directory / 'followups/recovery.json')
+            exchanges.append({'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
+                'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
+                'check_id': check_id, 'kind': 'initial', 'status': read_json(directory / 'status.json'),
+                'retention': recovery, 'metrics': (recovery or {}).get('initial_metrics')})
+            for attempt in (recovery or {}).get('attempts', []):
+                combined = 'claim_ids' in attempt
+                selected = attempt.get('claim_ids', [attempt.get('claim_id')])
+                ids = [c['id'] for c in (checkpoint_contract or {}).get('claims', [])]
+                folder = 'combined' if combined else f"fact-{ids.index(selected[0]) + 1}"
+                follow = directory / 'followups' / folder
+                follow_turn = read_json(follow / 'turn.json')
+                if not follow_turn:
+                    continue
+                subset = {**(checkpoint_contract or {}), 'claims': [c for c in (checkpoint_contract or {}).get('claims', []) if c['id'] in selected]}
+                exchanges.append({'turn': follow_turn, 'judgment': read_json(follow / 'judgment.json'),
+                    'grade': read_json(follow / 'grade.json'), 'contract': subset, 'check_id': check_id,
+                    'kind': 'followup', 'metrics': attempt.get('metrics'), 'retention': recovery,
+                    'question_plan': read_json(follow / 'question-plan.json')})
+        if evaluations:
+            for row in evaluations:
+                append_exchange(arm / 'turns' / row['id'], row['contract'], row['id'], 'turn.json')
+        else:
+            append_exchange(arm, contract, 'recall', 'recall.json')
+        exposures = []
+        schedule = summary.get('exposure_schedule')
+        if schedule:
+            paths = [(row['id'], arm / row['file']) for row in schedule]
+        else:
+            paths = [(p.stem, p) for p in sorted(arm.glob('exposure-*.json'))]
+        for label, path in paths:
+            turn = read_json(path)
+            if turn:
+                exposures.append({'label': label, 'turn': turn})
+        preflight = read_json(arm / 'preflight.json')
+        status = read_json(arm / 'status.json') or {'state': 'running', 'capability': preflight}
+        operations = [op for ex in exchanges for op in (ex.get('metrics') or {}).get('operations', [])]
+        status['behavior'] = {**status.get('behavior', {}),
+            'retrieval_called': any(op.get('category') in ('memory_detail', 'memory_search', 'archive_search', 'source_evidence', 'source_messages') for op in operations)}
+        arms[f'{provider}-{repetition}'] = {'provider': provider,
+            'label': f'{provider.title()} · {repetition.replace("-", " ")}',
+            'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
+            'turn': exchanges[0]['turn'] if exchanges else None}
+    records = {}
+    for folder in (source, run_dir):
+        for path in sorted((folder / 'model-calls').glob('*.json')):
+            records[path.name] = {'file': path.name, 'record': model_record_for_dashboard(read_json(path))}
+    return {'kind': 'native' if summary.get('mode') else 'prepared', 'id': run_dir.name,
+        'spec': spec, 'resolved_spec': resolved, 'summary': summary,
+        'audit': read_json(run_dir / 'native-audit.json') or read_json(run_dir / 'run-audit.json'),
+        'messages': messages_for(bundle, next(iter(bundle['lives']))), 'bundle': bundle,
+        'bundle_hash': actual_hash, 'contract': contract, 'evaluation_plan': plan,
+        'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
+        'scenes': read_json(source / 'scenes.json'), 'arms': arms,
+        'verifications': [{'file': p.name, 'record': read_json(p)} for p in sorted((source / 'scene-verifications').glob('*.json'))],
+        'model_calls': list(records.values()), 'sort_time': (run_dir / 'summary.json').stat().st_mtime}
 
 
 def main() -> None:
@@ -153,6 +242,13 @@ def main() -> None:
                                "calibrations": calibrations,
                                "arms": arms})
     OUT.mkdir(parents=True, exist_ok=True)
+    indexed = {r['id'] for r in dashboard_runs}
+    for run_dir in (ROOT / 'runs').iterdir():
+        if run_dir.is_dir() and run_dir.name not in indexed:
+            native = native_run(run_dir)
+            if native:
+                dashboard_runs.append(native)
+    dashboard_runs.sort(key=lambda r: r.get('sort_time', (ROOT / 'runs' / r['id'] / 'summary.json').stat().st_mtime), reverse=True)
     (OUT / "dashboard.json").write_text(json.dumps({
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "runs": dashboard_runs}, ensure_ascii=False), encoding="utf-8")

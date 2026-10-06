@@ -56,10 +56,12 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 - Investigate Mem0's native asynchronous sync: shutdown waits only five seconds; saved gateway extraction calls completed after the exposure process exited. Its second local history is empty. This suggests a lifecycle failure, not a proven extraction-quality diagnosis. Do not force writes, seed facts, extend only this provider's lifetime, or erase the failure.
 - Native runs retain Hermes's normal additive built-in memory in scratch homes. Session search is disabled, and recall starts a new session. Report Hermes-plus-provider behavior, never isolated provider quality. The older SDK/MCP semantic condition is separate.
 - Provider inventory covers all eight bundled plugins plus Memcal. Unconfigured hosted/back-end paths remain explicit blockers; never imply they were tested.
-- Latest usage-derived uncached upper bound: $0.047903, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
-- Latest offline suite: 230 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
+- Latest usage-derived uncached upper bound: $0.1887835, no outstanding reservations. Re-read the gateway ledger before further work; this is not an invoice total.
+- Latest offline suite: 232 passed, 2 skipped; gateway suite: 17 passed. Use `/workspace/pacbench-venv/bin/python` here; `/usr/local/bin/python3` is absent.
 
 - `runs/pizza-native-one-followup-20261006`: fresh Memcal and Holographic arms, same 25 messages. Memcal missed the street initially, then recovered it with exactly one native `memcal_open(E1)` and no source search; initial 4/5, separate recovery 4.5/5. Holographic scored 5/5 initially and got no follow-up. Both trace audits pass. The recovery turn took 33.71s including two driver model calls, with a $0.002847 gateway cost upper bound.
+
+- Minimal isolated follow-up trials: Memcal 4/5 then 4.5/5 with one event open; Holographic 5/5; Mem0 varied between 5/5 and 0/5 with no recovery after three searches in each of two combined follow-ups. Final Mem0 repetition scored 5/5 and needed no follow-up. Full traces and policy-version distinctions are documented in [live test results](docs/followup-tests-2026-10-06.md).
 
 ## Historical evidence (not present in this checkout)
 
@@ -74,7 +76,7 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Next steps
 
-1. Use the one-follow-up policy in repeated small native trials. Distinguish retained-detail opens from archive/message fallback, preserving first-answer misses and recovery effort. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
+1. The one-combined-follow-up policy has been exercised in repeated small native trials; see [results](docs/followup-tests-2026-10-06.md). Add explicit commitment-status coverage in a new frozen contract before increasing complexity; Memcal volunteered a wrong tentative status outside the original five claims. Preserve old grades. Continue testing the one-follow-up policy. Distinguish retained-detail opens from archive/message fallback, preserving first-answer misses and recovery effort. Recheck clocks, exact exposures, session boundaries and judge context with `python -m pacbench.native_audit runs/<native-run>`. Native audit does not grade answer strings or establish comparative quality.
 2. Investigate the native Mem0 background-sync lifecycle with a normal persistent Hermes session. Preserve immediate-CLI-exit failures; any lifecycle change must apply uniformly and define a separate disclosed condition. Do not increase volume to conceal an unresolved small-case failure.
 3. Repeat small cases after harness fixes. Then use the checked-in +100 spec (five distinct ordinary exchanges of 18–22 messages each), freezing once for every arm. The stage generator makes no calls and never pads/truncates dialogue. Defer +1000 until smaller trials are understood; never generate a 100k-line corpus.
 4. Add native Hindsight next using its bundled plugin, recommended backend setup and a run-owned namespace, then remaining providers whose real setup and costs can be bounded. Existing SDK ingestion is not evidence for that condition.

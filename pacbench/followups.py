@@ -209,7 +209,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     else:
         hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
         authored = model_json(model,
-            'Write one short follow-up asking for these missing details without '
+            'Write one short message from the user to their assistant, asking for these missing details without '
             'supplying their answers or tool instructions. '
             'Return ONLY JSON {"question":"one combined message"}.\n'
             f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
@@ -217,7 +217,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
         if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
             raise ValueError('combined follow-up must be one bounded message')
         review = model_json(model,
-            'Does this ask for every missing detail without supplying answers or '
+            'Does this message from the user to their assistant ask for every missing detail without supplying answers or '
             'tool instructions? Return ONLY JSON '
             '{"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
             f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'

@@ -1,19 +1,29 @@
 {
-  "id": "pizza-week-low",
+  "id": "pizza-week-twists-low",
   "timezone": "America/New_York",
   "noise": "low",
   "channels": {
     "devon": {
       "type": "imessage",
-      "participants": ["Me", "Devon"]
+      "participants": [
+        "Me",
+        "Devon"
+      ]
     },
     "maya": {
       "type": "imessage",
-      "participants": ["Me", "Maya"]
+      "participants": [
+        "Me",
+        "Maya"
+      ]
     },
     "friday-crew": {
       "type": "imessage",
-      "participants": ["Me", "Maya", "Leo"],
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
       "name": "Friday crew"
     }
   },
@@ -69,9 +79,31 @@
           "id": "group-venue-update",
           "channel": "friday-crew",
           "time": "6:25 pm",
-          "scene": "The group changes its pizza restaurant. Leo does not take part in the restaurant decision.",
+          "scene": "The group changes the pizza restaurant. Maya rejects the user's suggestion of Domino's on Elm Street because it is too far, and they settle on Mario's instead. Leo is silent during this decision. They do not restate the meeting time.",
           "facts": [
-            "The user and Maya agree to Mario's on Pine Street instead. The day, time and attendees are unchanged."
+            "The user and Maya agree to Mario's on Pine Street for their existing Friday pizza outing.",
+            "Domino's on Elm Street was suggested and rejected; it is not the agreed venue."
+          ]
+        },
+        {
+          "id": "leo-drops-out",
+          "channel": "friday-crew",
+          "time": "7 pm",
+          "scene": "Leo catches up with the group and says a last-minute work shift means he can't come tomorrow. Maya and the user are still going together.",
+          "facts": [
+            "Leo says he cannot join Friday's group pizza outing because of a work shift.",
+            "Maya and the user are still going; the outing itself is not cancelled."
+          ]
+        },
+        {
+          "id": "leo-back-in",
+          "channel": "friday-crew",
+          "time": "8:30 pm",
+          "scene": "Leo found someone to cover his shift and is back in. Since he missed the restaurant decision, Maya catches him up naturally, including the earlier time change arranged in her DM with the user.",
+          "facts": [
+            "Leo found cover for his shift and confirms he is joining Maya and the user after all.",
+            "Their existing Friday outing is at 5 pm.",
+            "The agreed venue is Mario's on Pine Street."
           ]
         }
       ],
@@ -132,6 +164,11 @@
               "depends_on": "cancel-devon",
               "prompt": "Where do things stand with pizza today?",
               "expect": "I am still not going with Devon. Maya's outing is today at 5 pm at Mario's on Pine Street, with Leo. The time update in Maya's DM and restaurant update in the group belong to the same outing."
+            },
+            {
+              "id": "leo-change-history",
+              "prompt": "And what changed with Leo?",
+              "expect": "Leo initially said he couldn't come because of a work shift, then found cover and confirmed he was joining Maya and me after all."
             }
           ]
         },
@@ -154,7 +191,8 @@
             {
               "id": "final-two-plans",
               "prompt": "What have I got for pizza today?",
-              "expect": "I am going to both Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 5 pm at Mario's on Pine Street with Leo. Keep the two plans distinct."
+              "expect": "I am going to both Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 5 pm at Mario's on Pine Street with Leo. Keep the two plans distinct.",
+              "depends_on": "going-again"
             }
           ]
         }

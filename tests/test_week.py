@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==5 and len(resolved['checks'])==8
+    assert len(scenes)==7 and len(resolved['checks'])==9
     assert scenes[2].participants==('Me','Maya','Leo')
     assert scenes[4].participants==scenes[2].participants
     assert resolved['checks'][0]['at']=='2026-09-10T09:00:00-04:00'
@@ -139,6 +139,24 @@ def test_frozen_week_rejects_changed_content_before_execution(tmp_path):
     changed=json.loads(file.read_text());changed['files']['spec.json']['noise']='high';file.write_text(json.dumps(changed))
     with pytest.raises(ValueError,match='hash/version'):import_week(file,tmp_path/'preparation')
     assert not (tmp_path/'preparation').exists()
+
+
+def test_frozen_week_preserves_readable_calls_without_private_replay(tmp_path, monkeypatch):
+    import pacbench.prepare as preparation
+    from pacbench.model_calls import ENCRYPTED_REDACTION
+    monkeypatch.setattr(preparation, 'audit_prepared', lambda _: {'state':'pass'})
+    root=tmp_path/'authoring';(root/'model-calls/private').mkdir(parents=True)
+    record={'text':'Synthetic draft','response':{'encrypted_content':'opaque-replay'}}
+    (root/'model-calls/call.json').write_text(json.dumps(record))
+    (root/'model-calls/private/call.json').write_text(json.dumps(record))
+    frozen=tmp_path/'week.json';preparation.export_week(root,frozen)
+    payload=json.loads(frozen.read_text())
+    assert 'opaque-replay' not in frozen.read_text()
+    assert not any('/private/' in name for name in payload['files'])
+    imported=import_week(frozen,tmp_path/'imported')
+    call=json.loads((imported/'model-calls/call.json').read_text())
+    assert call['text']=='Synthetic draft'
+    assert call['response']['encrypted_content']==ENCRYPTED_REDACTION
 
 
 def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_path):

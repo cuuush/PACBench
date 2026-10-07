@@ -10,7 +10,7 @@ from .authoring import ScenePlan, SceneRecord, SceneRealization, build_scene_obs
 from .creds import load_driver
 from .gateway_client import client_settings
 from .frozen import bundle_hash, write_bundle
-from .model_calls import ModelClient, ResponsesWriter
+from .model_calls import ModelClient, ResponsesWriter, public_record
 from .semantic_contract import build_contract, load_contract
 from .followups import freeze_policy, save
 from .preparation_audit import audit_prepared
@@ -312,9 +312,12 @@ def export_week(root, destination):
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json',
            'contract.json','followup-plan.json','summary.json','evaluation-plan.json']
     files={name:json.loads((root/name).read_text()) for name in names if (root/name).exists()}
-    for folder in ('evaluations','scene-verifications'):
-        for path in (root/folder).rglob('*.json'):
-            files[str(path.relative_to(root))]=json.loads(path.read_text())
+    for folder in ('evaluations','scene-verifications','model-calls'):
+        paths = ((root/folder).glob('*.json') if folder == 'model-calls'
+                 else (root/folder).rglob('*.json'))
+        for path in paths:
+            value = json.loads(path.read_text())
+            files[str(path.relative_to(root))] = public_record(value) if folder == 'model-calls' else value
     body={'version':1,'files':files}
     save(destination,{**body,'corpus_hash':digest(body)})
 

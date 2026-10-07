@@ -197,7 +197,7 @@ function renderContract(run) {
   }).join("");
 }
 function semanticStory(run) {
-  const plans = run.spec?.scenes || [];
+  const plans = run.spec?.scenes || run.resolved_spec?.scenes || [];
   const made = run.scenes?.scenes || [];
   const instructions = plans.map((plan, index) =>
     '<div class="scene-intent"><span class="eyebrow">' +

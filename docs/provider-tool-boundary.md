@@ -18,7 +18,9 @@ retention under the existing source-fallback rule.
 
 `tool-policy.json` records the exact tool grant. `context.jsonl.tools.jsonl`
 records the schemas exposed each turn. The native audit independently checks both
-and every saved initial/follow-up call. Older trials retain their original policy.
+and every saved initial/follow-up call. Development results are disposable;
+older trials impose no compatibility requirement. Regenerate results when the
+implementation or test contract changes.
 
 This is an agent tool boundary, not OS isolation. Provider implementations may use
 files, subprocesses and model calls internally as part of normal operation. Their

@@ -2,7 +2,7 @@
 
 The benchmark now requires a supported raw-document ingestion route. Hermes does not receive source messages as chat turns and does not extract facts during ingestion. A connector transports unmodified source material into the provider; the provider owns extraction, organization and updates. Hermes only answers later evaluation questions through its normal memory integration.
 
-This supersedes the earlier chat-handoff trials for new benchmark work. Preserve those trials as chat-handoff diagnostics, not document-ingestion results. The first direct-ingestion trials are being recorded separately from those historical runs.
+Document/native-source ingestion is the current benchmark path. Development results may be regenerated or removed; earlier chat-handoff results do not constrain this implementation.
 
 ## Inventory and evidence
 

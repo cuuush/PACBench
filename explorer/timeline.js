@@ -30,7 +30,7 @@ function localClock(value, run) {
   }
   return String(value).slice(11,16) || "Time not captured";
 }
-function exposureAt(item) { return item.turn?.at || item.at || item.record?.at || ""; }
+function exposureAt(item) { return item.at || item.record?.at || ""; }
 function simulationDays(run) {
   const days = new Set(sources(run).map(m => dayKey(m.written_at, run)).filter(Boolean));
   Object.values(run.arms || {}).forEach(arm => {
@@ -56,32 +56,21 @@ function turnRecord(turn) {
   return details("Exact prompt, clock and session", '<h4>Prompt sent to Hermes</h4><pre>' + esc(turn.prompt || "not captured") +
     '</pre><h4>Session and execution</h4>' + dump({at:turn.at,session_id:turn.session_id,
       latency_s:turn.latency_s,returncode:turn.returncode,policy_blocks:turn.policy_blocks,
+      context_isolation:turn.context_isolation,
       session_input_tokens:turn.session_input_tokens,session_output_tokens:turn.session_output_tokens}) +
     (turn.returncode ? details("Execution errors", '<pre>' + esc(turn.stderr_full || turn.stderr_tail || "not captured") + '</pre>') : ""));
 }
 function ingestionExchange(run, arm, item) {
-  const turn = item.turn;
   const packet = item.packet || [];
   const delivered = packet.length;
   const packetChat = packet.length ? conversations({...run,messages:packet,observations:[]}) : notice(item.packet_problem || "Delivered texts were not captured.");
-  if (!turn) return '<section class="exchange ingestion-exchange"><div class="exchange-label">Provider ingestion · ' +
+  return '<section class="exchange ingestion-exchange"><div class="exchange-label">Provider ingestion · ' +
     esc(localClock(exposureAt(item),run)) + '</div><h3>' + delivered + ' messages in the ingestion packet for ' + esc(arm.label || arm.provider) + '</h3>' +
     (item.record?.ready===false ? notice('Native ingestion or processing failed. Hermes recall was not run.') : '') +
-    (item.delivery==='native-imessage' ? '<p>Native Apple Messages database and separate contacts fixture → provider reader → normal processing.</p>' : item.delivery==='native-messages' ? '<p>Real source speakers, threads and timestamps → native message-batch API. No fabricated assistant turns.</p>' : item.delivery==='document' ? '<p>Raw daily document → provider ingestion API. No Hermes ingestion turn.</p>' : '<p>Historical adapter ingestion. Inspect the saved packet and acknowledgement for its delivery method.</p>') +
+    (item.delivery==='native-imessage' ? '<p>Native Apple Messages database and separate contacts fixture → provider reader → normal processing.</p>' : item.delivery==='native-messages' ? '<p>Real source speakers, threads and timestamps → native message-batch API. No fabricated assistant turns.</p>' : item.delivery==='document' ? '<p>Raw daily document → provider ingestion API. No Hermes ingestion turn.</p>' : '<p>Inspect the saved source packet and native acknowledgement.</p>') +
     details("Delivered texts",packetChat) + (item.document ? details(item.delivery==='native-messages' ? 'Exact source batch before transport' : 'Exact raw source document','<pre>'+esc(item.document)+'</pre>') : '') +
     usageDetails(item) + details("Provider packets, acknowledgement and parameters",dump(item.record)) + '</section>';
-  const failed = turn.returncode || turn.policy_blocks?.length || (typeof turn.policy_blocks === "number" && turn.policy_blocks > 0);
-  return '<section class="exchange ingestion-exchange"><div class="exchange-label">Catch-up · ' + esc(localClock(turn.at,run)) +
-    ' · ' + esc(item.label) + '</div><div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
-    esc(item.packet_verified ? 'Here are my recent messages. Catch up on them for me.' : questionText(turn,{})) +
-    (item.packet_verified ? '<div class="attachment">' + delivered + ' delivered texts</div>' : '') +
-    '</div></div></div>' + (failed ? notice('This ingestion turn failed or was blocked. Delivery does not establish retention.') : '') +
-    details("Texts delivered in this turn · " + (item.packet_verified ? delivered : "unverified"),packetChat) +
-    '<div class="tool-sequence">' + toolCards(run,arm,turn) + '</div>' +
-    '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message"><div class="sender">Hermes</div>' +
-    '<div class="bubble answer-bubble">' + esc(turn.answer || 'No answer captured.') + '</div></div></div>' +
-    (turn.prefetch_context ? details("Memory brief visible for this turn",'<pre>' + esc(turn.prefetch_context) + '</pre>') : '') +
-    usageDetails(item) + turnRecord(turn) + '</section>';
+
 }
 function dayTimeline(run) {
   const days = simulationDays(run);
@@ -110,9 +99,9 @@ function dayTimeline(run) {
     '<div class="timeline-links"><a href="#generated-texts">Generated texts</a><a href="#hermes-activity">Memory & Hermes</a></div><div class="day-layout"><section id="generated-texts" class="day-texts"><div class="pane-head"><h3>Generated texts</h3>' + badge(messages.length + ' messages') +
     '</div><p class="muted">The original conversations, grouped by the day they were written.</p>' + texts + '</section>' +
     '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' turns') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
-    '</div>' + (arm ? '<p class="muted">' + (run.summary?.ingestion_mode==='documents' ? 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' : run.kind==='native' ? 'Historical chat-handoff diagnostic: catch-up delivers texts to Hermes. Delivery alone is not proof of retention.' : 'Provider packets and acknowledgements show ingestion separately from Hermes recall.') + '</p>' : '') +
+    '</div>' + (arm ? '<p class="muted">' + 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' + '</p>' : '') +
     (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
     (!events.length && planned.length ? details('Planned questions and criteria',renderContract({...run,evaluations:planned})) : '') +
-    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,exposure_context:run.summary?.exposure_context,evaluation_context:run.summary?.evaluation_context})) : '') +
+    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,evaluation_context:run.summary?.evaluation_context})) : '') +
     '</section></div>';
 }

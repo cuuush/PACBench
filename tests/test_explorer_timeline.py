@@ -15,7 +15,7 @@ const assert = require('node:assert/strict');
 const sources = run => run.messages;
 const run = {resolved_spec:{timezone:'America/New_York'},messages:[
   {written_at:'2026-09-11T01:30:00Z'}], arms:{memory:{
-  exposures:[{turn:{at:'2026-09-11T05:00:00Z'},label:'catch-up'}],
+  exposures:[{at:'2026-09-11T05:00:00Z',delivery:'document',label:'native import'}],
   exchanges:[{turn:{at:'2026-09-12T13:00:00Z'},kind:'initial'},
              {turn:{at:'2026-09-12T09:00:00-04:00'},kind:'followup'}]}}};
 assert.equal(dayKey(run.messages[0].written_at,run),'2026-09-10');

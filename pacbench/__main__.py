@@ -1,6 +1,6 @@
-"""Run a prose scene through the semantic experiment."""
+"""Prepare source messages and contracts without running memory providers."""
 
-from .semantic_experiment import main
+from .prepare import main
 
 
 if __name__ == "__main__":

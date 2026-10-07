@@ -1,4 +1,4 @@
-"""Generic prompt/fact sequences and public exposure batches, without event slots."""
+"""Generic prompt/fact sequences, without event slots."""
 from __future__ import annotations
 
 import json
@@ -13,13 +13,9 @@ from .semantic_contract import build_contract, load_contract
 
 def resolve_checks(spec, question_at, timezone):
     checks = spec.get('checks')
-    modes = {key: spec.get(key, default) for key, default in (
-        ('evaluation_context', 'shared'), ('exposure_context', 'isolated'),
-        ('exposure_delivery', 'days'))}
-    if any(modes[k] not in ('shared', 'isolated') for k in ('evaluation_context', 'exposure_context')):
+    modes = {'evaluation_context': spec.get('evaluation_context', 'shared')}
+    if modes['evaluation_context'] not in ('shared', 'isolated'):
         raise ValueError('context must be shared or isolated')
-    if modes['exposure_delivery'] not in ('days', 'scenes'):
-        raise ValueError('exposure_delivery must be days or scenes')
     if checks is None:
         return {**modes, 'checks': []}
     if not isinstance(checks, list) or not 1 <= len(checks) <= 8:
@@ -35,9 +31,10 @@ def resolve_checks(spec, question_at, timezone):
                 not isinstance(facts, list) or not 1 <= len(facts) <= 50 or
                 any(not isinstance(f, str) or not f.strip() for f in facts)):
             raise ValueError('check needs a unique safe id, prompt, and expected fact list')
-        at = datetime.fromisoformat(row.get('at') or question_at)
-        if timezone and at.tzinfo is None:
-            at = at.replace(tzinfo=ZoneInfo(timezone))
+        from .prepare import local_clock
+        at = local_clock(row.get('at') or question_at, ZoneInfo(timezone) if timezone else None)
+        if at.utcoffset() is None:
+            raise ValueError('Evaluation clocks require a timezone')
         if at < previous:
             raise ValueError('evaluation turns must follow the first question in time order')
         previous = at
@@ -92,38 +89,23 @@ def load_evaluations(root, messages, resolved):
     return plan, loaded
 
 
-def exposure_batches(messages, resolved):
-    """Partition the real frozen messages exactly once, by day or scene window."""
-    if resolved.get('exposure_delivery', 'days') == 'scenes':
-        batches = [(scene['id'], [m for m in messages
-            if m['channel'] == scene['channel'] and m['thread'] == scene['thread'] and
-            datetime.fromisoformat(scene['window_start']) <= datetime.fromisoformat(m['written_at']) <=
-            datetime.fromisoformat(scene['window_end'])]) for scene in resolved['scenes']]
-    else:
-        groups = {}
-        for m in messages:
-            groups.setdefault(datetime.fromisoformat(m['collected_at']).date().isoformat(), []).append(m)
-        batches = sorted(groups.items())
-    flattened = [m['source_id'] for _, batch in batches for m in batch]
-    if any(not batch for _, batch in batches) or sorted(flattened) != sorted(m['source_id'] for m in messages):
-        raise ValueError('exposure batches must cover each frozen message exactly once')
-    return [(label, sorted(batch, key=lambda m:(m['collected_at'],m['source_id']))) for label,batch in batches]
-
 
 def prepare_existing(source, spec, output, model):
     """Freeze new questions against unchanged, previously verified dialogue."""
     import shutil
     from .native_pilot import read_prepared
-    from .semantic_experiment import resolve_spec
-    from .run_audit import audit_run
+    from .prepare import resolve_spec
+    from .preparation_audit import audit_prepared
     messages, _, _ = read_prepared(source, 1200)
-    if set(spec) - {'checks', 'question_at', 'maintenance_at', 'evaluation_context', 'exposure_context', 'exposure_delivery'}:
+    if set(spec) - {'checks', 'question_at', 'evaluation_context'}:
         raise ValueError('recheck spec may change only questions, clocks and context modes')
     original = json.loads((source / 'spec.json').read_text())
-    authored = {**original, **spec, 'prepare_only': True}
+    authored = {**original, **spec}
+    for old in ('providers', 'prepare_only', 'exposure_context', 'exposure_delivery', 'maintenance_at'):
+        authored.pop(old, None)
     _, target, resolved = resolve_spec(authored, output)
-    if not resolved['checks'] or resolved.get('week_of'):
-        raise ValueError('recheck requires checks and a non-weekly source')
+    if not resolved['checks']:
+        raise ValueError('recheck requires checks')
     output.mkdir(parents=True, exist_ok=False)
     for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json'):
         if (source / name).exists():
@@ -144,7 +126,7 @@ def prepare_existing(source, spec, output, model):
         'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
         'contract_hash': plan['checks'][0]['contract_hash']}
     save(output / 'summary.json', summary)
-    report = audit_run(output)
+    report = audit_prepared(output)
     save(output / 'run-audit.json', report)
     if report['state'] != 'pass':
         raise ValueError('new evaluation failed audit: ' + str(report['errors']))

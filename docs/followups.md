@@ -1,86 +1,13 @@
-# One combined follow-up for all missing facts
+# Natural recovery and cost
 
-New native pilots and semantic experiments ask **one combined natural clarification for silently omitted, implicitly requested facts**. The initial Spark judge distinguishes an implicit omission from an explicitly requested detail, a wrong value, and an admitted inability to find the fact. A wrong detail, admitted lookup failure or missed explicitly requested detail cancels recovery for the whole answer. Zero correct facts also gets none. Otherwise, correct facts are excluded and all eligible omissions are asked in one message; all-correct answers get none. See [natural-recovery.md](natural-recovery.md).
+The initial semantic judge classifies each fact as provided, silently omitted, explicitly requested but absent, incorrect, or unavailable after a failed lookup. Any wrong detail, admitted lookup failure or missing explicit request cancels recovery for that answer. Zero correct facts also gets no recovery. Otherwise, ask once for all silent implicit omissions; all-correct answers receive none.
 
-The policy is bound to the frozen contract before testing. Questions are written
-only when needed. Spark receives just the original question and the missing
-facts in a stateless call, with this short instruction:
+Freeze the eligibility policy with the contract before testing. When needed, Spark receives only the original question and eligible missing facts in a stateless call. It writes one short message asking for their values, preserving current versus historical meaning, without answers or tool instructions. One independent brief review checks coverage and leakage. Freeze and reuse wording for matching fact sets across provider arms. No up-front per-fact questions or old recovery protocol compatibility remain.
 
-> Write one short follow-up asking for these missing details without supplying
-> their answers or tool instructions.
+Hermes continues its actual recall session at the same fictional clock. A failed follow-up or malformed judge is not retried. The original grade remains unchanged. Separate diagnostic retention points give one point per initially correct fact and half a point per recovered fact; wrong or ungraded recovery gives zero. These points are uncalibrated and establish no ranking.
 
-The API also requests a JSON question field. One brief independent Spark review
-checks coverage and leakage. The reviewed message is hashed and reused across
-providers missing the same fact set. Expected fact values never go to Hermes.
-No provider names, tools, trace history or instructions to try harder are given
-to the question writer. Hermes continues its actual recall session under the
-same fictional clock and chooses its own tools. No failed turn or judge is
-retried as a second recovery message.
+Opening retained event/page detail may recover a fact. Explicit archive, original-source or message-connector lookup fails retention even if the answer is correct. Attempted source access counts even if blocked. Initial source fallback disqualifies the answer's retention; follow-up fallback disqualifies all targeted facts. Unknown operations require review and receive no retention credit. Normal evidence returned with a retained event does not automatically mean source fallback.
 
-New reports use `protocol_version: 5`, with natural-omission eligibility and the zero-recall gate. Earlier per-fact (1), component-based combined (2), minimal-authoring (3), and zero-recall-only (4) trials remain unchanged and auditable under their recorded policies.
+`followups/recovery.json` records eligibility, skip reason, initial effort, the single attempt and score. `followups/combined/` stores the question plan, actual turn, judgment and grade. Log arguments/results, top-level and nested operations, failures, repeats, latency and reported session token deltas. Saved native session data supplies full tool outputs, including resumed turns.
 
-The original grade is immutable. The separate recovery score awards 1 point for
-an initially correct fact and 0.5 for a correct follow-up. An incorrect or
-ungraded follow-up earns zero. These are uncalibrated diagnostic points, not a
-provider ranking.
-
-## Retention and retrieval effort
-
-An event/page open accesses retained memory. Normal evidence bundled with that
-open does not automatically make it a source fallback. Memory searches and tool
-discovery remain visible as additional effort. Explicit archive searches,
-original-evidence reads, conversation reads or message-connector access fail
-retention even if the subsequent answer is correct: recovered answer and
-retained fact are reported separately, with zero recovery credit for that path.
-An attempted source access also counts, including when policy blocks it.
-
-The initial answer's source fallback conservatively disqualifies all facts in
-that answer; the benchmark does not pretend to know which fact came from which
-source without provenance. For a combined follow-up, fallback conservatively disqualifies all targeted
-facts, since this trace does not assign each fact to a particular tool result. Unknown tool operations need a reviewed classification and receive no
-retention credit. New providers must add documented operation mappings, not
-invent SDK behavior. External message connectors are not configured in these
-local trials; no connector result is simulated. Native Memcal archive tools are
-available under the same ordinary provider allowlist.
-
-Each arm writes `followups/recovery.json`, with the initial effort and every
-attempt's operation log, including arguments, results, failures, repeated
-operations, discovery and nested tool dispatches. Top-level calls and total tool
-operations are separate: dispatch wrappers and nested requested operations both
-count toward the latter. `followups/combined/turn.json`, `question-plan.json`, `judgment.json` and
-`grade.json` preserve the full trace and semantic decision. A timeout retains any
-partial tool events. Resumed turns recover their full tool outputs from the
-actual Hermes session DB.
-
-Per-turn latency includes model inference, tools and process startup. Token
-counts use differences of reported session totals; missing, reset or inconsistent
-counters remain unknown. Gateway project activity during each recovery turn
-records model call counts, settled uncached cost bounds and changes in holds.
-Background calls can settle later, so these windows are not exact per-tool
-invoices. Tool prices are not guessed, and local lookup wall time is not confused
-with model inference time. No arbitrary threshold labels an operation expensive;
-the saved counts, time and costs let you assess the work directly.
-
-Native and semantic saved-run audits check one message total covering every eligible omission,
-frozen questions, session continuation, clocks, tool/token metrics and recovery
-points. Older saved runs without follow-ups remain unchanged.
-
-## Earlier per-fact Pizza Day trial (preserved)
-
-`runs/pizza-native-one-followup-20261006` reused the original frozen 25-message
-Contributor dialogue, with fresh native Memcal and Holographic homes.
-
-Memcal initially answered four of five facts, omitting the street. Its sole
-follow-up was **“What street is it on?”**. Hermes chose
-`memcal_open({"ref":"E1"})` and answered **“On 5th — Luigi's on 5th.”** It used
-one tool operation, no discovery, no repeated/failed calls, no archive search
-and no message connector. First-answer score remains 4/5; recovery score is
-4.5/5. The turn took 33.71 seconds including model inference; its gateway window
-recorded two driver model calls and a $0.002847 uncached cost upper bound.
-The reported output-token delta was unavailable and remains unknown.
-
-Holographic initially answered all five facts and received no follow-up. Both
-arms passed the native trace audit. Final cumulative task accounting was
-$0.047903 with no holds, well below the $10 task cap and $5/UTC-day cap. Only the
-native Memcal event-open path was exercised live; source-fallback policy is
-covered by offline regressions, not claimed as a live connector test.
+Gateway windows separate agent inference, provider inference and benchmark overhead. Background work may settle later. Missing/reset token counters stay unknown; per-tool token prices and causal attribution are not invented. Native provider internal traces are shown separately when available, including prefetch. Audits verify eligibility, one-message coverage, question hashes, continuity, clocks, tool/token metrics and preserved initial penalties.

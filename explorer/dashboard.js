@@ -196,34 +196,8 @@ function renderContract(run) {
         "</span></div>").join("") + details("Criteria review and hashes", dump(contract));
   }).join("");
 }
-function calibrationChecks(run) {
-  const reports = run.calibrations || [];
-  if (!reports.length) return "";
-  const groups = reports.map(group => {
-    const rows = group.report?.results || [];
-    const matches = rows.filter(row => row.agree === true).length;
-    const cases = rows.map(row => {
-      const saved = group.cases?.[row.id];
-      let verdicts = [];
-      try { verdicts = JSON.parse(saved?.response || "{}").verdicts || []; } catch { /* show saved text below */ }
-      return details(row.id.replaceAll("_", " ") + " · " +
-        (row.error ? "ungraded" : row.agree === true ? "matches proposal" : "review needed"),
-        '<p><strong>Sample answer</strong><br>' + esc(saved?.answer || "not captured") + "</p>" +
-        (verdicts.length ? verdicts.map(item => '<div class="verdict-row">' +
-          badge(item.verdict, item.verdict === "correct" ? "ok" :
-            item.verdict === "missed" ? "warn" : "bad") + '<div><strong>' +
-          esc(item.id) + '</strong><p>' + esc(item.reason || "reason not captured") +
-          "</p></div></div>").join("") : notice(row.error || "Judgment not captured.")) +
-        details("Exact judge prompt and response", dump(saved)));
-    }).join("");
-    return details(group.name + " · " + matches + "/" + rows.length + " match proposed labels",
-      '<p class="muted">Proposed labels await human review.</p>' + cases);
-  }).join("");
-  return '<section class="stage"><h2>Answer judge checks</h2>' + groups + "</section>";
-}
 function semanticStory(run) {
-  const plans = run.spec?.scenes || Object.entries(run.spec?.days || {}).flatMap(
-    ([day, rows]) => rows.map(row => ({...row, day})));
+  const plans = run.spec?.scenes || [];
   const made = run.scenes?.scenes || [];
   const instructions = plans.map((plan, index) =>
     '<div class="scene-intent"><span class="eyebrow">' +
@@ -248,23 +222,12 @@ function semanticStory(run) {
         renderModelCall(modelCall(run, path)))).join("") +
       renderSceneReview(run, scene) + "</section>";
   }).join("");
-  const daily = Object.entries(run.daily_facts || {}).map(([day, ledger]) =>
-    details(day + ' · next morning facts',
-      (ledger.claims || []).map(claim => '<div class="verdict-row"><div><strong>' +
-        esc(claim.statement) + '</strong><p>' +
-        (claim.evidence || []).map(sourceLink).join(' ') + '</p></div></div>').join('') +
-      details('Semantic carryover review', dump({statuses: ledger.statuses,
-        review: ledger.review, proposal_prompt: ledger.proposal_prompt,
-        proposal_response: ledger.proposal_response,
-        review_prompt: ledger.review_prompt,
-        review_response: ledger.review_response})))).join('');
   return '<section class="stage"><h2>What the author asked for</h2>' + instructions + "</section>" +
     '<section class="stage"><h2>Rendered conversation</h2>' + conversations(run) +
       details("Exact frozen bundle", run.bundle ? dump(run.bundle) : notice("Full bundle not captured.")) +
     "</section>" + renderAudit +
-    (daily ? '<section class="stage"><h2>Day by day facts</h2>' + daily + '</section>' : '') +
     '<section class="stage"><h2>Facts ready for recall</h2><p class="muted">These claims were reviewed against the recall goal and cited dialogue, then frozen before either assistant answered.</p>' +
-    renderContract(run) + "</section>" + calibrationChecks(run);
+    renderContract(run) + "</section>";
 }
 function parseResult(result) {
   let value = result?.text;
@@ -285,11 +248,6 @@ function parseResult(result) {
 function resultSources(run, arm, result) {
   const text = String(result?.text || "");
   const ids = sources(run).filter(item => text.includes(item.source_id)).map(item => item.source_id);
-  const parsed = parseResult(result);
-  for (const hit of parsed?.results || []) {
-    const id = arm?.archive_sources?.[String(hit.line_id)];
-    if (id && !ids.includes(id)) ids.push(id);
-  }
   return ids.map(sourceLink).join(" ");
 }
 function resultBody(run, arm, result) {
@@ -450,8 +408,6 @@ function render() {
     '<div class="alert bad">Excluded: ' + esc(run.audit.finding) + "</div>" :
     run.summary?.error ? '<div class="alert bad">Stopped during ' +
       esc(run.summary.failed_stage || "experiment") + ": " + esc(run.summary.error) + "</div>" : "";
-  const rerun = run.rerun_provenance ? '<div class="alert">Memcal was rerun from the frozen evidence in ' +
-    esc(run.rerun_provenance.source_run) + '. The Hindsight trace was reused from that run.</div>' : "";
   const body = page === "timeline" ? dayTimeline(run) : page === "story" ? semanticStory(run) :
     page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : dayTimeline(run);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
@@ -460,7 +416,7 @@ function render() {
     '</p></div>' + (run.audit?.state === "pass" ? badge("Trace audited", "ok") : "") +
     badge(status, status === "complete" ? "ok" :
       status === "excluded" || status === "incomplete" ? "bad" : "neutral") +
-    "</div>" + alert + rerun + nav(items) + '<div class="page-body">' + body + "</div>";
+    "</div>" + alert + nav(items) + '<div class="page-body">' + body + "</div>";
 }
 async function refresh() {
   el("refresh").disabled = true;

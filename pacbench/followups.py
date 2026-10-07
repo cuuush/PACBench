@@ -46,30 +46,17 @@ def freeze_policy(contract, path: Path) -> dict:
     return result
 
 
-def validate_questions(questions, claim_ids):
-    if (not isinstance(questions, list) or len(questions) != len(claim_ids) or
-            any(not isinstance(q, dict) or set(q) != {'claim_id', 'question'} or
-                q.get('claim_id') != cid or not isinstance(q.get('question'), str) or
-                not 1 <= len(q['question'].strip()) <= 500
-                for q, cid in zip(questions, claim_ids))):
-        raise ValueError('follow-up plan must contain one bounded question per claim')
-
-
 def load_questions(path: Path, contract) -> dict:
     plan = json.loads(path.read_text())
     body = {k: v for k, v in plan.items() if k != 'plan_hash'}
     if plan.get('plan_hash') != digest(body) or plan.get('contract_hash') != contract.contract_hash:
         raise ValueError('follow-up plan hash/contract mismatch')
-    if plan.get('protocol_version') == 3:
-        if plan.get('claim_ids') != [c.id for c in contract.claims]:
-            raise ValueError('follow-up policy claim IDs mismatch')
-        return plan
-    validate_questions(plan.get('questions'), [c.id for c in contract.claims])
-    reviews = plan.get('reviews')
-    if (not isinstance(reviews, list) or len(reviews) != len(contract.claims) or
-            any(not isinstance(r, dict) or r.get('claim_id') != c.id or r.get('safe') is not True
-                for r, c in zip(reviews, contract.claims))):
-        raise ValueError('follow-up plan lacks successful neutral-question review')
+    if (plan.get('protocol_version') != 3 or
+            plan.get('authoring_revision') != 'specific-missing-facts-v3' or
+            plan.get('minimum_initial_correct') != 1 or
+            plan.get('eligibility_policy') != 'natural-omissions-v1' or
+            plan.get('claim_ids') != [c.id for c in contract.claims]):
+        raise ValueError('follow-up policy version, eligibility or claim IDs mismatch')
     return plan
 
 
@@ -205,12 +192,9 @@ def cost_window(before: dict, after: dict) -> dict:
 def recovery_score(grade, initial_metrics: dict, attempts: list[dict]) -> dict:
     by_id = {}
     for attempt in attempts:
-        if 'claim_ids' in attempt:
-            verdicts = {r['id']: r['verdict'] for r in attempt.get('verdicts', [])}
-            for claim_id in attempt['claim_ids']:
-                by_id[claim_id] = {**attempt, 'verdict': verdicts.get(claim_id)}
-        else:
-            by_id[attempt['claim_id']] = attempt  # saved protocol-1 trials
+        verdicts = {r['id']: r['verdict'] for r in attempt.get('verdicts', [])}
+        for claim_id in attempt['claim_ids']:
+            by_id[claim_id] = {**attempt, 'verdict': verdicts.get(claim_id)}
     points = []
     for slot in grade.slots:
         attempt = by_id.get(slot.id)
@@ -241,34 +225,22 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     if path.exists():
         return load_combined_plan(path, binding)
     authoring_calls = []
-    components = [q for q in component_plan.get('questions', []) if q['claim_id'] in claim_ids]
-    if len(selected) == 1 and components:
-        question = components[0]['question']  # already authored and independently reviewed by Spark
-        review = {'safe': True, 'covers_claim_ids': claim_ids, 'reason': 'Uses the frozen reviewed single-fact question.'}
-        origin = 'frozen-spark-component'
-    else:
-        hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
-        authored = model_json(model,
-            'Write one short message from the user to their assistant asking only for these missing facts. '
-            + ('Ask specifically for the missing detail, not a broader recap. ' if component_plan.get('authoring_revision') in {'specific-missing-facts-v2', 'specific-missing-facts-v3'} else '') +
-            ('Ask for the missing value itself; a yes/no confirmation is insufficient. ' if component_plan.get('authoring_revision') == 'specific-missing-facts-v3' else '') +
-            'Preserve whether each fact is current or historical, without '
-            'supplying their answers or tool instructions. '
-            'Return ONLY JSON {"question":"one combined message"}.\n'
-            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}', records=authoring_calls)
-        question = authored['question']
-        if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
-            raise ValueError('combined follow-up must be one bounded message')
-        review = model_json(model,
-            'Does this message from the user to their assistant specifically ask for every missing fact, '
-            + ('Reject broad recaps that could be answered while omitting a missing detail. ' if component_plan.get('authoring_revision') in {'specific-missing-facts-v2', 'specific-missing-facts-v3'} else '') +
-            ('Reject yes/no questions when the missing fact requires a value. ' if component_plan.get('authoring_revision') == 'specific-missing-facts-v3' else '') +
-            'preserving current versus historical meaning, without supplying answers or '
-            'tool instructions? Return ONLY JSON '
-            '{"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
-            f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
-            f'Proposed message: {question}', records=authoring_calls)
-        origin = 'spark-combined-message'
+    hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
+    authored = model_json(model,
+        'Write one short user message asking for each missing detail. Ask for its value, '
+        'preserving current versus historical meaning. Do not supply answers or tool instructions. '
+        'Return ONLY JSON {"question":"message"}.\n'
+        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}', records=authoring_calls)
+    question = authored['question']
+    if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
+        raise ValueError('combined follow-up must be one bounded message')
+    review = model_json(model,
+        'Does this message ask for every missing value without supplying answers or tool instructions, '
+        'preserving current versus historical meaning? Reject broad recaps and yes/no confirmations. '
+        'Return ONLY JSON {"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
+        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
+        f'Proposed message: {question}', records=authoring_calls)
+    origin = 'spark-combined-message'
     if (review.get('safe') is not True or review.get('covers_claim_ids') != claim_ids or
             not isinstance(review.get('reason'), str) or not review['reason'].strip()):
         save(path.with_suffix('.rejected.json'), {'question': question, 'review': review})
@@ -400,47 +372,29 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
         grade = Grade(checkpoint='audit', slots=[GradedClaim(**r) for r in rows],
                       correct=initial_grade['correct'], missed=initial_grade['missed'],
                       misrepresented=initial_grade['misrepresented'])
-        failed = [r['id'] for r in rows if r['verdict'] != 'correct']
-        protocol = report.get('protocol_version', 1)
-        grouped = protocol in {2, 3, 4, 5}
-        eligible = bool(failed) and (protocol != 4 or grade.correct > 0)
-        if protocol == 5:
-            grade.recovery = initial_grade.get('recovery')
-            eligible_ids, skip = natural_eligibility(grade)
-            eligible = bool(eligible_ids)
-            check(report.get('eligibility') == grade.recovery and report.get('eligible_claim_ids') == eligible_ids, 'recovery eligibility mismatch')
-            check(report.get('skip_reason') == skip, 'follow-up skip reason mismatch')
-            failed = eligible_ids
-        if protocol == 4:
-            check(report.get('minimum_initial_correct') == 1, 'follow-up eligibility threshold mismatch')
-            check(report.get('skip_reason') == ('no_initial_correct_facts' if failed and grade.correct == 0 else None),
-                  'follow-up skip reason mismatch')
-        if grouped:
-            check(len(report['attempts']) == int(eligible) and
-                  (not eligible or report['attempts'][0]['claim_ids'] == failed),
-                  'expected exactly one combined follow-up covering all initially failed claims')
-            check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
-        else:
-            check([a['claim_id'] for a in report['attempts']] == failed,
-                  'expected exactly one follow-up per initially failed claim, in order')
-            check(len(list(output.glob('fact-*/turn.json'))) == len(failed), 'unexpected follow-up turn count')
+        check(report.get('protocol_version') == 5, 'unsupported recovery protocol')
+        check(report.get('minimum_initial_correct') == 1, 'follow-up eligibility threshold mismatch')
+        grade.recovery = initial_grade.get('recovery')
+        failed, skip = natural_eligibility(grade)
+        eligible = bool(failed)
+        check(report.get('eligibility') == grade.recovery and report.get('eligible_claim_ids') == failed,
+              'recovery eligibility mismatch')
+        check(report.get('skip_reason') == skip, 'follow-up skip reason mismatch')
+        check(len(report['attempts']) == int(eligible) and
+              (not eligible or report['attempts'][0]['claim_ids'] == failed),
+              'expected exactly one combined follow-up covering all eligible omissions')
+        check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
         effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path)
         check(report['initial_metrics'] == effort, 'initial effort mismatch')
         previous = initial_turn
         for attempt in report['attempts']:
-            if grouped:
-                directory = output / 'combined'
-                selected_ids = attempt['claim_ids']
-                frozen_question = load_combined_plan(directory / 'question-plan.json', {
-                    'contract_hash': contract.contract_hash, 'component_plan_hash': plan['plan_hash'],
-                    'claim_ids': failed})
-                check(attempt['question_hash'] == frozen_question['question_hash'], 'combined question hash mismatch')
-                question = frozen_question['question']
-            else:
-                index = ids.index(attempt['claim_id'])
-                selected_ids = [attempt['claim_id']]
-                directory = output / f'fact-{index + 1}'
-                question = plan['questions'][index]['question']
+            directory = output / 'combined'
+            selected_ids = attempt['claim_ids']
+            frozen_question = load_combined_plan(directory / 'question-plan.json', {
+                'contract_hash': contract.contract_hash, 'component_plan_hash': plan['plan_hash'],
+                'claim_ids': failed})
+            check(attempt['question_hash'] == frozen_question['question_hash'], 'combined question hash mismatch')
+            question = frozen_question['question']
             check(attempt['question'] == question, 'follow-up question changed')
             turn = harness.TurnResult(**read(directory / 'turn.json'))
             expected_prompt = (f'[Simulated now: {initial_turn.at}. Treat this as the current date and '
@@ -465,7 +419,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                   'follow-up judge received a different claim')
             check([r['id'] for r in judgments] == selected_ids and
                   all(r['verdict'] in VERDICTS for r in judgments) and
-                  (judgments == attempt['verdicts'] if grouped else judgments[0]['verdict'] == attempt['verdict']),
+                  judgments == attempt['verdicts'],
                   'follow-up claim judgment mismatch')
             check(attempt['state'] == 'graded', 'follow-up ungraded')
             previous = turn

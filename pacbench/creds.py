@@ -40,7 +40,7 @@ def available_model_ids(credential: str, base_url: str = BASE_URL,
     """Model ids the Meta API currently serves (credential kept out of errors).
 
     Bounded retries (3) cover transient gateway blips during setup resolution.
-    Scored turns never retry — see live.run_life.
+    Scored native turns never retry.
     """
     from .gateway_client import client_settings, validate_route
     base_url = base_url or client_settings("pacbench-driver")[0]

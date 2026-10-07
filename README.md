@@ -1,86 +1,21 @@
 # PACBench
 
-PACBench tests whether a personal assistant can recall a plan from a fictional conversation. [Pizza Day](examples/pizza_day.json) is the current small example: the author describes a chat and lists five facts the assistant should remember. The writer adds natural side chatter and chooses the message count.
+PACBench measures whether Hermes can answer questions using a local memory provider after authentic ingestion of daily messages. Pizza Day is the small development test. Every provider receives the same frozen raw text through its documented document or message API; Memcal uses its real iMessage reader against a reusable synthetic Apple Messages database. The provider performs extraction. Hermes starts afterward and may call only that provider's shipped tools.
 
-New trials ingest raw daily text through each eligible local provider's supported document or message-batch API. Hermes only answers later questions using that provider's shipped tools. Memcal uses its real native iMessage reader against a reusable synthetic Messages database and separate contacts source. No connector summarizes messages, invents agent turns or seeds expected facts. Cloud-only systems and systems without practical automatic source ingestion are excluded. See the [provider map](docs/document-ingestion-provider-map.md) and [latest local diagnostic](docs/local-provider-diagnostic-2026-10-07.md).
-
-Use **Spark Contributor** through the separate shared gateway at
-`/workspace/muse-gateway`: $5 per UTC day across projects and $10 total for this
-task. It tracks authoring, judging, Hermes and memory-provider inference separately.
-Clients use its local credential; upstream credentials stay in the service.
-See that repository's README for startup and accounting.
+Use Spark Contributor through `/workspace/muse-gateway`. All authoring, judging, agent and provider inference share a $10 task cap and $5 per UTC day cap. Unknown charges remain reserved. Never route around the gateway.
 
 ```sh
-python -m pacbench.semantic_experiment examples/pizza_day.json --prepare-only --output runs/pizza-prepared-new
-python -m pacbench.native_pilot --prepared runs/pizza-prepared-new --providers memcal mem0 hindsight --output runs/pizza-native-new
-python -m pacbench.native_audit runs/pizza-native-new
-```
-
-Historical chat-handoff 25-message trials uncovered a missing-clock grading bug (fixed for every
-provider) and inconsistent Mem0 persistence across fresh-session repetitions.
-Holographic recalled all five facts in the corrected-clock repetition; Mem0's
-first trial recalled the plan after native writes, while its second found no
-saved plan. Memcal recalled four of five facts, omitting the street. Total
-accounted upper bound before follow-up testing was $0.0341. These are diagnostic observations, not
-calibrated rankings.
-
-[Pizza Day plus roughly 100 messages](examples/pizza_day_plus_100.json) adds five
-ordinary exchanges bounded to 18–22 messages each. It is an authoring spec,
-not generated dialogue. Investigate the small-case failure before expansion;
-+1000 remains deferred. See the [audit](docs/audit-2026-10-06.md).
-
-New runs ask **one combined natural follow-up only for silent implicit omissions**.
-Wrong answers, admitted inability to find a fact, missed explicitly requested
-details and zero recall get no follow-up. Spark writes the message in isolation
-from the missing facts, with one brief review for answer leakage and coverage;
-there is at most one recovery turn total.
-The first-answer penalty remains; a correct recovery earns half credit.
-Archive or original-message fallback fails retention even if it finds the answer.
-Full tool arguments/results, call counts, latency and model cost windows are saved.
-The web UI separates Hermes and provider model calls/tokens, with follow-up
-authoring overhead recorded separately. Per-tool token attribution remains unknown.
-The live Memcal follow-up recovered the street with one `memcal_open(E1)`:
-initial 4/5, recovery 4.5/5, no archive search. That earlier trial used the original per-fact policy; current runs use the combined message.
-See [follow-up policy and traces](docs/followups.md).
-See [natural recovery and gateway routing](docs/natural-recovery.md).
-
-## Run Pizza Day
-
-See [PIZZA_DAY.md](PIZZA_DAY.md) for the complete setup, live command, artifact checks, and findings from the latest run.
-
-Bind `MODEL=muse-spark-1.3-contributor` in the runtime. Start the shared gateway with the upstream `META` credential. PACBench resolves a local gateway credential and project URL, and does not use a personal Hermes profile.
-
-```sh
-python -m pacbench.semantic_experiment examples/pizza_day.json --prepare-only
-```
-
-Preparation generates the chats, checks each authored fact against the rendered messages, and freezes a question and evidence-cited contract. It stops before either memory provider runs. Pass that prepared directory to `native_pilot` to import the same frozen messages directly into providers and ask the same question. The older semantic adapter execution and explicit `--ingestion legacy-chat-handoff` are historical diagnostic conditions. Each provider arm records tool access, actual calls, the answer, and separate verdicts for each fact.
-
-The runner groups new messages by fictional day. Each provider ingests that day's messages once and runs its native maintenance before the next day. [The one-window correction](examples/pizza_day_correction.json) and [two-day correction](examples/pizza_day_two_days.json) test whether an old 6pm time stays distinct from the agreed 7pm plan. [Pizza Day week](examples/pizza_day_week.json) uses Monday–Sunday chats with human times. It freezes one evidence-cited claim and temporal state per authored fact for each day, then asks Hermes the following morning. Sunday has no new messages but still gets a checkpoint: earlier facts carry forward as history, while Tuesday's correction keeps the old 6pm time superseded. The examples specify `America/New_York`; each local time gets the offset for its own fictional day. Both providers receive the same frozen timestamp and text.
-
-The five Pizza Day facts cover Devon, Luigi's, 5th, Friday September 11, and 7pm. The date fact does not require the year in an assistant answer. For fact-authored scenes, the contract keeps the author's wording exactly; a model supplies dialogue citations and independently reviews support and ambiguity. An unsupported fact stops preparation. The scoring judge sees the frozen claims, the exact public question including fictional clock context, and the answer, never the private scene description.
-
-The generic runner also accepts `scene` plus `test_intent` prose and derives claims from verified dialogue. Pizza Day uses the clearer authored fact list. [Authoring options](docs/authoring-options.md) explains the choice.
-
-The scene writer uses Meta Responses and can replay saved encrypted reasoning when revising a rejected draft. The verifier and answer judge use single-turn calls. Each model call saves its request, response, model, tokens, and any reported dollar charge in the private run directory. An unavailable charge is recorded as unavailable. Incomplete or malformed judgments leave a run ungraded.
-
-## Inspect a run
-
-```sh
+python -m pacbench.prepare examples/pizza_day.json --output runs/pizza-prepared
+python -m pacbench.native_pilot --prepared runs/pizza-prepared --providers mem0 --output runs/pizza-current
+python -m pacbench.native_audit runs/pizza-current
 python serve_explorer.py
 ```
 
-The WebUI opens a **Day by day** view: generated conversations on the left, and the selected memory provider's ingestion and Hermes chats on the right. Pick a simulated day and a provider to inspect delivered texts, actual memory tool writes/reads, parameters, results, replies, memory briefs and session details. Document delivery must match the frozen bytes and saved hash; native processing completion is separate from retained facts. Earlier chat-handoff mappings must match their saved prompt. Dates use the scenario timezone, and recall days appear even when no new texts were generated. Links preserve the run, day and provider; judge citations jump to the original text.
+[Pizza Day](PIZZA_DAY.md) describes the latest clean result. The explorer shows source messages, daily ingestion, actual memory tools, expected facts and the judge's per-answer decisions. Credentials, provider homes and encrypted reasoning stay private. Development artifacts are disposable; retain only the current trial and its necessary source evidence.
 
-**Authoring** keeps writer prompts, notes and scene-verifier evidence; **Criteria & judges** shows frozen facts and per-answer verdicts, including recovery. The schema and timeline are generic for larger simulations. Encrypted reasoning stays private and credentials are never indexed. Obsolete provider-page duplication and pizza-only index filtering have been removed; saved runs and their original evidence remain intact.
+Questions and expected facts are plain-language lists, with no pizza-specific slots. Multiple questions can share one real evaluation session. One natural follow-up can recover silently omitted implicit details for half credit; wrong answers, admitted lookup failures, missed explicit requests and zero recall get no follow-up. Source/archive fallback fails retention even when the answer is correct. [Judging and recovery](docs/followups.md) explains the policy.
 
-## Calibrate and check
-
-The [nine Pizza Day answers](calibration/pizza_answers.json) cover a full answer, omissions, wrong details, uncertainty, and a venue mentioned only as history. `runs/semantic-20260923T140000Z/calibration-facts/report.json` contains nine real judge results matching nine **proposed** labels. A person still needs to review those labels before using the scores to compare providers. Calibration input is bound to one contract hash; use the run's saved `calibration-proposed.json` with that run's contract.
-
-The first live seven-day diagnostic is `runs/semantic-pizza-week-live-v15-20260928/`: 116 messages, one quiet day, seven valid morning checkpoints per provider, matched input hashes, and observed memory-tool use in both arms. [PIZZA_DAY.md](PIZZA_DAY.md) records the verdicts and remaining grading questions.
-
-Each new run also writes `run-audit.json`. The audit checks frozen hashes and citations, exactly-once daily input, matched provider packets, fictional clocks, preflight access, and complete claim judgments. Run it again on a saved result with `python3 -m pacbench.run_audit runs/<run-id>`. A passing trace audit establishes experiment integrity; human-reviewed calibration is still required before interpreting answer scores comparatively.
+[The provider map](docs/document-ingestion-provider-map.md) lists eligible local integrations and practical blockers. [Authoring](docs/authoring-options.md) and [shared questions](docs/flexible-checks.md) describe the flexible schema. Start small, then corrections over two days, two plans across three days, and roughly 100 extra messages; defer 1000 until those stages work.
 
 ```sh
 python -m pytest -q
@@ -89,4 +24,4 @@ node --check explorer/timeline.js
 python scripts/build_explorer_data.py
 ```
 
-MCP seam tests need loopback access. Pizza Day is a diagnostic case; proposed calibration labels need human review before comparative scores. [AGENTS.md](AGENTS.md) records the current evidence and next work.
+Offline tests establish harness integrity, not provider accuracy. A passing saved-run audit also does not establish a ranking. See [AGENTS.md](AGENTS.md) for operating rules.

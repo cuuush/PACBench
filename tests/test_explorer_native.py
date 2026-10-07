@@ -35,24 +35,3 @@ def test_native_judges_followup_subset_and_private_files(tmp_path, monkeypatch):
     save(root / 'summary.json', {'mode':'native-hermes','bundle_hash':'tampered'})
     with pytest.raises(SystemExit, match='bundle mismatch'):
         explorer.native_run(root)
-
-
-def test_delivery_mapping_verifies_actual_prompt_and_keeps_mismatches_inspectable():
-    messages = [{'source_id':'late-text','written_at':'2026-09-10T23:58:00-04:00',
-        'collected_at':'2026-09-11T00:03:00-04:00', 'channel':'text','thread':'plans',
-        'sender':'Maya','text':'Lunch moved to one.'}]
-    at = '2026-09-11T00:03:00-04:00'
-    prompt = (f'[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n'
-              'Here are my recent messages. Catch up on them for me.\n\n'
-              '[2026-09-10T23:58:00-04:00] text / plans / Maya: Lunch moved to one.')
-    turn = {'at':at,'prompt':prompt}
-    row = {'source_ids':['late-text']}
-    for schedule in (row, None):
-        packet = explorer.exposure_packet(turn,messages,schedule)
-        assert packet['packet_verified'] and packet['packet'] == messages
-    changed = {**turn,'prompt':prompt.replace('one.', 'two.')}
-    packet = explorer.exposure_packet(changed,messages,row)
-    assert packet['packet_verified'] is False and packet['packet'] == []
-    assert packet['packet_problem'] and changed['prompt'].endswith('two.')
-    assert not explorer.exposure_packet(turn,messages,{'source_ids':['unknown']})['packet_verified']
-    assert not explorer.exposure_packet(turn,messages,{'source_ids':['late-text','late-text']})['packet_verified']

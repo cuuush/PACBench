@@ -5,10 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from pacbench.native_pilot import exposure_prompt, provision, read_prepared, run
+from pacbench.native_pilot import provision, read_prepared, run
 from pacbench.stages import build_stage
 from pacbench.authoring import AuthoringError, ScenePlan, scene_prompt
-from pacbench.semantic_experiment import main, resolve_spec
+from pacbench.prepare import main, resolve_spec
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -35,16 +35,6 @@ def test_writer_has_size_constraint_not_oracle_padding():
     for bounds in ([1, 10], [22, 18], [18, 1000], [True, 10]):
         with pytest.raises(AuthoringError):
             ScenePlan(scene="chat", message_range=bounds)
-
-
-def test_native_exposure_only_contains_public_messages():
-    message = {"written_at": "2026-09-10T18:00:00", "channel": "imessage",
-               "thread": "devon", "sender": "Devon", "text": "See you Friday!",
-               "expected": "PRIVATE ANSWER KEY"}
-    prompt = exposure_prompt([message])
-    assert "See you Friday!" in prompt
-    assert "PRIVATE ANSWER KEY" not in prompt
-    assert "remember" not in prompt
 
 
 def test_mem0_uses_distinct_native_profile_identities(tmp_path):
@@ -83,8 +73,8 @@ def test_live_budget_block_happens_before_any_model_call(tmp_path):
 def test_cli_audit_failure_cannot_be_success(tmp_path):
     path = tmp_path / "spec.json"
     path.write_text("{}")
-    with patch("sys.argv", ["runner", str(path)]), \
-         patch("pacbench.semantic_experiment.run_experiment", return_value={
+    with patch("sys.argv", ["runner", str(path), "--output", str(tmp_path / "out")]), \
+         patch("pacbench.prepare.prepare", return_value={
              "state": "incomplete", "results": [{"state": "valid"}]}):
         assert main() == 1
 
@@ -92,7 +82,7 @@ def test_cli_audit_failure_cannot_be_success(tmp_path):
 def test_provider_duplicates_rejected_before_paid_generation():
     spec = base()
     spec["providers"] = ["memcal", "memcal"]
-    with pytest.raises(ValueError, match="unsupported provider"):
+    with pytest.raises(ValueError, match="select providers"):
         resolve_spec(spec, Path("scratch"))
 
 

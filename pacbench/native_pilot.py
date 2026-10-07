@@ -15,10 +15,10 @@ from .frozen import load_bundle, messages_for
 from .model_calls import ModelClient
 from .semantic_contract import load_contract
 from .semantic_grade import Claim, grade_semantic
-from .semantic_experiment import save
+from .followups import save
 from .gateway_client import client_settings, require_live_cost_boundary
 from .followups import freeze_policy, run_followups
-from .evaluation import exposure_batches, load_evaluations
+from .evaluation import load_evaluations
 from .native_checks import run_checks
 from .usage import tracked_turn
 
@@ -82,7 +82,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
         provider_name=provider, model=model, model_provider="meta-ai",
-        builtin_memory=False, model_base_url=driver_url)
+        model_base_url=driver_url)
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir()
@@ -280,12 +280,6 @@ def probe(root: Path, provider: str, env: dict, *, smoke: bool = False, smoke_ti
     return result
 
 
-def exposure_prompt(messages: list[dict]) -> str:
-    """The same ordinary transcript handoff for every provider, without private facts."""
-    return ("Here are my recent messages. Catch up on them for me.\n\n" +
-            "\n".join(f"[{m['written_at']}] {m['channel']} / {m['thread']} / "
-                      f"{m['sender']}: {m['text']}" for m in messages))
-
 
 def smoke_succeeded(capability: dict) -> bool:
     try:
@@ -309,16 +303,11 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
     if evidence_hash != contract.evidence_hash or contract.contract_hash != summary["contract_hash"]:
         raise ValueError("frozen contract does not match exposure")
     resolved = json.loads((source / "resolved-spec.json").read_text())
-    if resolved.get("week_of"):
-        raise ValueError("native pilot currently supports one final question; use a scene spec")
     return messages, contract, resolved
 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
-        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
-        ingestion: str = 'documents') -> dict:
-    if ingestion not in {'documents','legacy-chat-handoff'}:
-        raise ValueError('Unknown ingestion mode')
+        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None) -> dict:
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 1200:
         raise ValueError("pilot limits: 1–3 repetitions, 1–1200 messages")
@@ -334,7 +323,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     atexit.register(cleanup_run_processes, output)
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
-              "builtin_memory": False, "tool_policy": "provider-only-v1", "session_search": False,'ingestion_mode':ingestion}
+              "builtin_memory": False, "tool_policy": "provider-only-v1", "session_search": False,'ingestion_mode':'documents'}
     save(output / "summary.json", report)
     driver = None
     judge = plan = None
@@ -342,7 +331,6 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     evaluations = []
     if source:
         messages, contract, resolved = read_prepared(source, max_messages)
-        batches = exposure_batches(messages, resolved)
         evaluation_plan = None
         if (source / 'evaluation-plan.json').exists():
             evaluation_plan, evaluations = load_evaluations(source, messages, resolved)
@@ -359,21 +347,12 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=str(source.resolve()))
         report["process_timezone"] = resolved.get("timezone", "")
-        report.update(exposure_context=resolved.get('exposure_context', 'isolated'),
-                      exposure_delivery=resolved.get('exposure_delivery', 'days'))
-        report['exposure_schedule'] = [{'id': label,
-            'file': (f'exposures/{i + 1:03d}.json' if report['exposure_delivery'] == 'scenes' else f'exposure-{label}.json'),
-            'source_ids': [m['source_id'] for m in batch], 'at': max(m['collected_at'] for m in batch)}
-            for i, (label, batch) in enumerate(batches)]
-        if ingestion=='documents':
-            report.pop('exposure_schedule')
-            report.update(exposure_context='not-applicable',exposure_delivery='daily-documents',
-                          ingestion_version='daily-source-documents-v1',
-                          document_provider_blockers=dict(BLOCKERS),
-                          ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
-            validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],
-                [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
-                report['process_timezone'] or 'America/New_York')
+        report.update(ingestion_version='daily-source-documents-v1',
+                      document_provider_blockers=dict(BLOCKERS),
+                      ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
+        validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],
+            [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
+            report['process_timezone'] or 'America/New_York')
         if evaluation_plan:
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
@@ -387,7 +366,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider
-            if source and ingestion=='documents' and provider in BLOCKERS:
+            if source and provider in BLOCKERS:
                 result={'provider':provider,'repetition':repetition,'state':'blocked','reason':BLOCKERS[provider],
                         'input_hash':contract.evidence_hash,'capability':{'available':False,'reason':BLOCKERS[provider],
                         'execution_blocker':BLOCKERS[provider],'wiring_verified':False,'tools':[]}}
@@ -414,7 +393,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             save(root / "simulation-clock.json", {"process_timezone": env.get("TZ", ""),
                  "pin": "public simulated clock supplied to every turn"})
             capability = probe(root, provider, env, smoke=smoke or source is not None,
-                               smoke_timeout_s=120 if ingestion=='documents' else 30)
+                               smoke_timeout_s=120)
             if (smoke or source is not None) and provider in ISOLATED_PROVIDERS:
                 capability["wiring_verified"] = smoke_succeeded(capability)
             save(root / "preflight.json", capability)
@@ -439,31 +418,17 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 "provider": provider, "allowed_tools": allowlist.split(","),
                 "builtin_memory": False, "os_sandbox": False})
             failed = False
-            exposure_session = None
-            if ingestion=='documents':
-                for schedule in report['ingestion_schedule']:
-                    record=ingest_day(provider,output/'sources'/schedule['id'],root,env,schedule['at'],report['process_timezone'] or 'America/New_York')
-                    save(root/schedule['file'],record)
-                    if record['state']!='ready':
-                        failed=True
-                        result['reason']='Native source ingestion/processing failed; inspect saved record'
-                        break
-            for schedule, (day, batch) in zip(report.get('exposure_schedule',[]), batches):
-                at = max(m["collected_at"] for m in batch)
-                turn = tracked_turn(harness.run_turn, exposure_prompt(batch), usage_path=root / (schedule["file"] + ".usage.json"), at=at,
-                                        home=root / "hermes-home", allowlist=allowlist,
-                                        extra_env=env, timeout_s=180,
-                                        session_id=exposure_session if report['exposure_context'] == 'shared' else None)
-                save(root / schedule['file'], vars(turn))
-                if (turn.returncode or not turn.answer.strip() or turn.policy_blocks or not turn.session_id or
-                        report['exposure_context'] == 'shared' and exposure_session and turn.session_id != exposure_session):
-                    failed = True
+            for schedule in report['ingestion_schedule']:
+                record=ingest_day(provider,output/'sources'/schedule['id'],root,env,schedule['at'],report['process_timezone'] or 'America/New_York')
+                save(root/schedule['file'],record)
+                if record['state']!='ready':
+                    failed=True
+                    result['reason']='Native source ingestion/processing failed; inspect saved record'
                     break
-                exposure_session = turn.session_id
             if failed:
-                result.update(state="invalid", reason=result.get('reason') or "exposure turn failed or policy blocked")
+                result.update(state="invalid", reason=result.get('reason') or "native source ingestion failed or policy blocked")
             elif evaluations:
-                if ingestion=='documents':record_recall_isolation(root)
+                record_recall_isolation(root)
                 sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                       question_dir=output / 'combined-questions')
                 result.update(state=sequence['state'], checks=sequence['checks'], input_hash=contract.evidence_hash,
@@ -471,7 +436,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 capability['live_verified'] = sequence['state'] == 'diagnostic'
                 result['behavior'] = {'evaluation_context': evaluation_plan['context']}
             else:
-                if ingestion=='documents':record_recall_isolation(root)
+                record_recall_isolation(root)
                 # Deliberately omit --resume: recall must cross a real session boundary.
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
@@ -528,10 +493,8 @@ def main() -> int:
     parser.add_argument("--repetitions", type=int, default=1)
     parser.add_argument("--smoke", action="store_true", help="bounded native read-only tool checks")
     parser.add_argument("--providers", nargs="+", help="select native arms; omitted inventories every provider")
-    parser.add_argument('--ingestion',choices=['documents','legacy-chat-handoff'],default='documents',
-                        help='Direct document/native-source imports. Legacy mode is only for historical handoff diagnostics.')
     args = parser.parse_args()
-    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers,ingestion=args.ingestion)
+    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers)
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))

@@ -79,7 +79,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     return report
 
 
-def audit_checks(checks, context, root, exposure_sessions):
+def audit_checks(checks, context, root):
     errors = []
     def check(ok, text):
         if not ok:
@@ -93,7 +93,7 @@ def audit_checks(checks, context, root, exposure_sessions):
         check(report['state'] == 'diagnostic' and report['context'] == context, 'incomplete evaluation sequence')
         check([r['id'] for r in report['checks']] == [r['id'] for r, _, _ in checks], 'evaluation checks differ from frozen plan')
         check(sorted(p.name for p in (root / 'turns').iterdir()) == sorted(r['id'] for r, _, _ in checks), 'unexpected evaluation folders')
-        seen = set(exposure_sessions)
+        seen = set()
         for (row, contract, policy), item in zip(checks, report['checks']):
             directory = root / 'turns' / row['id']
             turn = harness.TurnResult(**read(directory / 'turn.json'))
@@ -103,14 +103,13 @@ def audit_checks(checks, context, root, exposure_sessions):
             if context == 'shared' and session:
                 check(turn.session_id == session, f"{row['id']}: shared conversation changed")
             else:
-                check(bool(turn.session_id) and turn.session_id not in seen, f"{row['id']}: evaluation reused prior/exposure session")
+                check(bool(turn.session_id) and turn.session_id not in seen, f"{row['id']}: evaluation reused an isolated session")
             seen.add(turn.session_id)
             prior = history if context == 'shared' else []
             judgment, grade = read(directory / 'judgment.json'), read(directory / 'grade.json')
             check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer and
                   judgment.get('conversation') == prior, f"{row['id']}: judge conversation mismatch")
-            if read(directory / 'followups/recovery.json').get('protocol_version') == 5:
-                check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f"{row['id']}: recovery eligibility differs from judge")
+            check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f"{row['id']}: recovery eligibility differs from judge")
             check(json.loads(judgment['response'])['verdicts'] == grade['claims'], f"{row['id']}: grade differs from judge")
             check(judgment['claims'] == [{'id': c.id, 'description': c.statement, 'evidence': list(c.evidence)} for c in contract.claims],
                   f"{row['id']}: judge received different criteria")

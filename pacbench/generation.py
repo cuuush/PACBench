@@ -1,6 +1,6 @@
 """Spark configuration and generation through the authenticated spending gateway.
-The legacy MODEL/META loader remains compatible with managed bindings, but the
-transport always uses the local gateway token and rejects external endpoints.
+MODEL/META can come from task-owned files or managed environment bindings.
+Inference always uses the local gateway token and rejects external endpoints.
 """
 
 from __future__ import annotations
@@ -65,8 +65,8 @@ def spark_generator(config: SparkConfig, credential: str, *,
                     temperature: float = 0.8, timeout: float = 60.0) -> Generate:
     """Build a `generate(prompt) -> text` bound to the configured Spark model.
 
-    Posts to Meta's Model API (``gateway_url``, default ``GATEWAY_URL``) with
-    the ``META`` credential as a Bearer header. The credential never appears
+    Posts through the spending gateway (``gateway_url``, default ``GATEWAY_URL``)
+    with its local credential as a Bearer header. The credential never appears
     in errors or logs; failures raise :class:`GenerationError` naming only
     the model."""
 

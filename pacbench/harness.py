@@ -68,6 +68,7 @@ class TurnResult:
     session_output_tokens: int | None = None
     provider_traces: list[dict] = dataclasses.field(default_factory=list)
     prefetch_context: str | None = None
+    context_isolation: dict | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -82,35 +83,17 @@ def _check_paths(home: Path) -> None:
 
 
 def provision_home(home: Path, *, provider_plugin_src: Path | None,
-                   provider_name: str, model: str = "grok-4.6",
-                   model_provider: str = "xai-oauth",
-                   live_home: Path | None = None,
-                   mcp_servers: list[dict] | None = None,
-                   builtin_memory: bool = False,
+                   provider_name: str, model: str = "muse-spark-1.3-contributor",
+                   model_provider: str = "meta-ai",
                    model_base_url: str | None = None) -> dict:
-    """Build a scratch HERMES_HOME: minimal config, provider plugin, no live auth.
+    """Build a private provider home, with gateway inference and no live auth.
 
-    - ``provider_plugin_src`` is copied (never symlinked) to
-      ``<home>/plugins/<provider_name>/``.
-    - ``mcp_servers`` (provider-blind): [{name, url?, command?, args?,
-      env?}] written as enabled entries under ``mcp_servers:`` in the
-      isolated config — how MCP-native providers (Hindsight) expose
-      memory tools to scored turns. No secrets: env values here land in
-      the isolated config file, so callers pass only non-secret env
-      (ports, bank paths, model names); credentials stay in process env.
-    - Driver auth comes from PACBench-owned ``.env`` (``MODEL`` + ``META`` via
-      ``pacbench.creds.load_driver``, exported as ``META_API_KEY``) and flows
-      through the process environment into ``harness.run_turn``. This function
-      never copies live-profile ``auth.json``: ``live_home`` is a fail-closed
-      legacy parameter — any non-None value raises (§45.19, §42).
-    - Built-in memory stays off; every toolset except ``memory`` is disabled in
-      config (the dispatch patch in the clone enforces the rest).
-    Returns a record of what was provisioned (no secrets).
+    Copy the selected plugin rather than symlinking a personal profile. The
+    provider process receives only task-owned gateway credentials. Native
+    dispatch enforces the exact provider allowlist; built-in memory stays off.
     """
-    if live_home is not None:
-        raise RuntimeError(
-            "live-profile auth copy disabled (§45.19): driver credential comes "
-            "from PACBench .env only via pacbench.creds.load_driver")
+    if model_provider != 'meta-ai':
+        raise ValueError('Only gateway-routed Spark inference is supported')
     _check_paths(home)
     if home.exists():
         shutil.rmtree(home)
@@ -126,29 +109,13 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
         record["plugin_copied"] = True
         record["plugin_files"] = sum(1 for _ in dest.rglob("*") if _.is_file())
 
-    if live_home is not None:
-        src_auth = Path(live_home) / "auth.json"
-        if src_auth.exists():
-            dest_auth = home / "auth.json"
-            shutil.copyfile(src_auth, dest_auth)
-            os.chmod(dest_auth, 0o600)
-            record["auth_copied"] = True
-
-    # Canonical base URLs per provider: some runtime env-key rungs only send a
-    # key to its authoritative host, so an empty base_url would leave the key
-    # unsent (401). Same table every provider resolves against.
-    base_url = {"xai-oauth": "https://api.x.ai/v1",
-                "openrouter": "https://openrouter.ai/api/v1",
-                "meta-ai": "https://api.meta.ai/v1"}.get(model_provider, "")
-    base_url = model_base_url or base_url
-    if model_provider == "meta-ai":
-        from .gateway_client import client_settings, validate_route
-        base_url = model_base_url or client_settings("pacbench-driver")[0]
-        validate_route(base_url)
+    from .gateway_client import client_settings, validate_route
+    base_url = model_base_url or client_settings("pacbench-driver")[0]
+    validate_route(base_url)
     config = {
         "model": {"default": model, "provider": model_provider,
                   "base_url": base_url},
-        "memory": {"memory_enabled": builtin_memory, "user_profile_enabled": builtin_memory,
+        "memory": {"memory_enabled": False, "user_profile_enabled": False,
                    "provider": provider_name},
         "agent": {"disabled_toolsets": [
             "browser", "clarify", "code_execution", "coding", "computer_use",
@@ -159,25 +126,8 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
             "tts", "video", "video_gen", "vision", "web", "x_search",
         ]},
     }
-    if mcp_servers:
-        entries = {}
-        for spec in mcp_servers:
-            name = spec["name"]
-            entry: dict = {"enabled": True}
-            if spec.get("url"):
-                entry["url"] = spec["url"]
-            if spec.get("command"):
-                entry["command"] = spec["command"]
-            if spec.get("args"):
-                entry["args"] = list(spec["args"])
-            if spec.get("env"):
-                entry["env"] = dict(spec["env"])
-            entries[name] = entry
-        config["mcp_servers"] = entries
     _write_yaml(home / "config.yaml", config)
     record["config_written"] = True
-    record["mcp_servers"] = sorted(
-        s["name"] for s in (mcp_servers or []))
     return record
 
 
@@ -245,10 +195,14 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     the host date under a fictional clock. The prefix is recorded in the
     turn artifact, never hidden.
     """
+    home = home.resolve()
     _check_paths(home)
     prompt = (f"[Simulated now: {at}. Treat this as the current date and "
               f"time for everything in this turn.]\n\n{prompt}")
     env = turn_env(at, home, allowlist, extra_env)
+    from .context_isolation import actual_context, workspace_for
+    workspace = workspace_for(home)
+    env['TERMINAL_CWD'] = str(workspace)
     cmd = [str(ISOLATED_BIN), "chat", "-q", prompt, "-Q", "--format", "stream-json"]
     if session_id:
         cmd += ["--resume", session_id]
@@ -256,7 +210,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     started = time.monotonic()
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=timeout_s, env=env, cwd=str(REPO))
+                              timeout=timeout_s, env=env, cwd=str(workspace))
     except subprocess.TimeoutExpired as exc:
         # A timeout is a failed turn, not a missing one (§41: failures are
         # required artifacts). Synthesize the same diagnostic TurnResult a
@@ -271,12 +225,16 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         partial = subprocess.CompletedProcess(cmd, -1, part_out, note + "\n" + part_err)
         result = _parse_turn(prompt, at, partial, latency)
         result.stderr_tail = note
+        result.context_isolation = actual_context(home, result.session_id, workspace)
         _recover_tool_results(result, home / "state.db")
         capture_provider_traces(result, env, provider_before)
         enforce_provider_tools(result, env)
         return result
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
+    result.context_isolation = actual_context(home, result.session_id, workspace)
+    if result.context_isolation['state'] != 'pass':
+        result.policy_blocks += 1
     _recover_tool_results(result, home / "state.db")
     trace = home.parent / "context.jsonl"
     if trace.exists():

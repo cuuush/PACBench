@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from pacbench.evaluation import exposure_batches, resolve_checks
+from pacbench.evaluation import resolve_checks
 from pacbench.followups import freeze_policy
 from pacbench.harness import TurnResult
 from pacbench.native_checks import audit_checks, run_checks
@@ -52,14 +52,14 @@ def test_sequence_continuity_and_source_access_cannot_be_laundered(tmp_path, con
     judgment = json.loads((tmp_path / 'arm/turns/event-2/judgment.json').read_text())
     assert len(judgment['conversation']) == (2 if context == 'shared' else 0)
     assert 'Do not award a fact merely because' in judgment['prompt'] if context == 'shared' else True
-    assert audit_checks(checks, context, tmp_path / 'arm', ['exposure-session']) == []
+    assert audit_checks(checks, context, tmp_path / 'arm') == []
     with pytest.raises(FileExistsError):
         run_checks(checks, context, tmp_path / 'arm', correct_judge, '', {},
             question_dir=tmp_path / 'questions', run_turn=runner)
     path = tmp_path / 'arm/turns/event-2/judgment.json'
     judgment['conversation'] = [{'role': 'assistant', 'content': 'Invented history'}]
     path.write_text(json.dumps(judgment))
-    assert any('judge conversation mismatch' in e for e in audit_checks(checks, context, tmp_path / 'arm', ['exposure-session']))
+    assert any('judge conversation mismatch' in e for e in audit_checks(checks, context, tmp_path / 'arm'))
 
 
 def test_supplied_prompt_is_not_rewritten_and_nonelicitable_facts_fail_closed(tmp_path):
@@ -100,17 +100,6 @@ def test_arbitrary_prompt_fact_schema_rejects_unsafe_ids_and_backwards_clocks():
         resolve_checks(spec, '2026-09-11T09:00:00-04:00', 'America/New_York')
 
 
-def test_scene_delivery_covers_exactly_once_and_cannot_omit_evidence():
-    messages = [{'source_id': f'm{i}', 'channel': 'text', 'thread': 'same-thread',
-        'written_at': f'2026-09-10T1{i}:00:00-04:00', 'collected_at': f'2026-09-10T1{i}:00:00-04:00'} for i in (1,2)]
-    resolved = {'exposure_delivery': 'scenes', 'scenes': [{'id': f's{i}', 'channel': 'text', 'thread': 'same-thread',
-        'window_start': m['written_at'], 'window_end': m['written_at']} for i,m in enumerate(messages)]}
-    assert [len(batch) for _,batch in exposure_batches(messages, resolved)] == [1,1]
-    resolved['scenes'].pop()
-    with pytest.raises(ValueError, match='exactly once'):
-        exposure_batches(messages, resolved)
-
-
 def test_zero_recall_skips_recovery_but_continues_planned_shared_questions(tmp_path):
     checks, turns, judge_calls = checkpoints(tmp_path), [], []
     def runner(prompt, **kwargs):
@@ -133,4 +122,16 @@ def test_zero_recall_skips_recovery_but_continues_planned_shared_questions(tmp_p
     assert turns[1]['session_id'] == 'evaluation-session'
     skipped = json.loads((root / 'turns/event-1/followups/recovery.json').read_text())
     assert skipped['skip_reason'] == 'no_initial_correct_facts' and skipped['attempts'] == []
-    assert audit_checks(checks, 'shared', root, ['ingestion-session']) == []
+    assert audit_checks(checks, 'shared', root) == []
+
+
+def test_evaluation_clock_obeys_eastern_dst_and_rejects_ambiguous_wall_time():
+    spec = {'checks': [{'id':'event', 'prompt':'What is the plan?',
+        'facts':['The outing is confirmed.'], 'at':'2026-11-01T01:30:00'}]}
+    with pytest.raises(ValueError, match='ambiguous local time'):
+        resolve_checks(spec, '2026-10-31T09:00:00-04:00', 'America/New_York')
+    spec['checks'][0]['at'] = '2026-11-01T01:30:00-05:00'
+    assert resolve_checks(spec, '2026-10-31T09:00:00-04:00', 'America/New_York')['checks'][0]['at'] == spec['checks'][0]['at']
+    spec['checks'][0]['at'] = '2026-11-02T09:00:00-04:00'
+    with pytest.raises(ValueError, match='offset conflicts'):
+        resolve_checks(spec, '2026-10-31T09:00:00-04:00', 'America/New_York')

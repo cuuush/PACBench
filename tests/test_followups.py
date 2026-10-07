@@ -20,10 +20,10 @@ def contract():
 
 
 def plan():
-    body = {'contract_hash': 'bound-contract', 'questions': [
-        {'claim_id': 'date', 'question': 'Which day is it?'},
-        {'claim_id': 'time', 'question': 'What time is it?'}],
-        'reviews': [{'claim_id': i, 'safe': True, 'reason': 'No answer values.'} for i in ('date', 'time')]}
+    body = {'protocol_version': 3, 'contract_hash': 'bound-contract',
+            'authoring_revision': 'specific-missing-facts-v3', 'minimum_initial_correct': 1,
+            'eligibility_policy': 'natural-omissions-v1', 'claim_ids': ['date', 'time'],
+            'policy': 'one combined Spark-authored clarification for silent implicit omissions only'}
     return {**body, 'plan_hash': digest(body)}
 
 
@@ -99,7 +99,9 @@ def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_pa
         return turn(question, '')
     report = run_followups(contract=contract(), plan=plan(), grade=grade(('correct', 'missed')),
         initial_turn=turn(), output=tmp_path, judge=judge, home=tmp_path, allowlist='',
-        extra_env={}, run_turn=runner, budget_snapshot=lambda: {'projects': []})
+        extra_env={}, run_turn=runner, budget_snapshot=lambda: {'projects': []},
+        question_model=lambda prompt: json.dumps({'question':'What time is it?'} if prompt.startswith('Write ') else
+            {'safe':True,'covers_claim_ids':['time'],'reason':'Asks for the missing time.'}))
     assert questions == ['What time is it?']
     assert report['state'] == 'incomplete'
     assert report['score']['points'] == 1.0
@@ -109,10 +111,6 @@ def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_pa
 def test_three_missing_facts_use_one_spark_message_and_independent_partial_credit(tmp_path):
     c = contract()
     c.claims += (SimpleNamespace(id='venue', statement='It is at the diner.', evidence=('m1',)),)
-    p = plan()
-    p['questions'].append({'claim_id': 'venue', 'question': 'Where is it?'})
-    p['reviews'].append({'claim_id': 'venue', 'safe': True, 'reason': 'No expected value.'})
-    p['plan_hash'] = digest({k: v for k, v in p.items() if k != 'plan_hash'})
     c.claims += (SimpleNamespace(id='companion', statement='Devon is going.', evidence=('m1',)),)
     p = freeze_policy(c, tmp_path / 'policy.json')
     g = Grade('test', slots=[GradedClaim(i, 'missed', 'Not stated.') for i in ('date', 'time', 'venue')] +
@@ -163,7 +161,7 @@ def test_correct_answer_from_source_fallback_still_fails_retention(name, argumen
     metrics = turn_metrics(turn(calls=[{'name': name, 'input': arguments}]))
     assert metrics['categories'] == {category: 1}
     result = recovery_score(grade(('correct', 'missed')), turn_metrics(turn()), [
-        {'claim_id': 'time', 'state': 'graded', 'verdict': 'correct', 'metrics': metrics}])
+        {'claim_ids': ['time'], 'state': 'graded', 'verdicts':[{'id':'time','verdict':'correct'}], 'metrics': metrics}])
     assert result['claims'][1]['points'] == points
     assert result['claims'][1]['recovered_answer'] is True
     assert result['claims'][1]['retention_failed'] is (category in {'archive_search', 'source_evidence', 'source_messages'})
@@ -204,7 +202,7 @@ def test_leading_question_rejected_and_saved_plan_cannot_change(tmp_path):
     p = plan()
     (tmp_path / 'plan.json').write_text(json.dumps(p))
     assert load_questions(tmp_path / 'plan.json', contract()) == p
-    p['questions'][0]['question'] = 'Friday, right?'
+    p['claim_ids'][0] = 'changed'
     (tmp_path / 'plan.json').write_text(json.dumps(p))
     with pytest.raises(ValueError, match='hash/contract'):
         load_questions(tmp_path / 'plan.json', contract())

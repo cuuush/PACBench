@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from .semantic_experiment import resolve_spec
+from .prepare import resolve_spec
 
 TOPICS = (
     "Maya and the user compare their commutes, a delayed bus, and an ordinary rainy workday.",

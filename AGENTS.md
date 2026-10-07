@@ -56,6 +56,8 @@ never commit private credentials, run homes, stores or encrypted artifacts.
 
 ## Current checkout evidence
 
+- `runs/pizza-provider-only-memcal-20261007`: same 25-message frozen Pizza Day input, native iMessage ingestion and normal processing, exact provider-only schemas, built-in memory disabled. Initial 5/5 with one `memcal_open`, no follow-up, retention 5/5; native trace/tool-policy audit passes.
+
 - `runs/pizza-provider-only-20261007`: fresh Mem0 native document import, 25 frozen Pizza Day messages, built-in memory disabled, exact provider-only tool schemas. Initial 5/5 with one `mem0_search`, no follow-up, retention 5/5; native trace/tool-policy audit passes. This is a tool boundary, not an OS sandbox. Offline suite: 277 passed, 2 skipped. Gateway cumulative accounted upper bound at this checkpoint: $1.7207841 including reservations; re-read before further work.
 
 - Historical `runs/semantic-*` artifacts described below are absent from this environment; those entries are provenance, not revalidated results.

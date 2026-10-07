@@ -35,3 +35,23 @@ def test_native_judges_followup_subset_and_private_files(tmp_path, monkeypatch):
     save(root / 'summary.json', {'mode':'native-hermes','bundle_hash':'tampered'})
     with pytest.raises(SystemExit, match='bundle mismatch'):
         explorer.native_run(root)
+
+
+def test_fresh_checkout_displays_shipped_result_without_private_runs(tmp_path, monkeypatch):
+    monkeypatch.setattr(explorer, 'ROOT', tmp_path)
+    monkeypatch.setattr(explorer, 'OUT', tmp_path / 'explorer/data')
+    snapshot = tmp_path / 'explorer/latest-run.json'; snapshot.parent.mkdir()
+    snapshot.write_text(json.dumps({'generated_at':'original', 'runs':[{'id':'latest-pizza','sort_time':2}]}))
+    explorer.main()
+    built = json.loads((explorer.OUT / 'dashboard.json').read_text())
+    assert [r['id'] for r in built['runs']] == ['latest-pizza']
+    # Older local artifacts must not hide the shipped current result.
+    old = tmp_path / 'runs/old'; old.mkdir(parents=True)
+    monkeypatch.setattr(explorer, 'native_run', lambda _: {'id':'old-pizza','sort_time':1})
+    explorer.main()
+    built = json.loads((explorer.OUT / 'dashboard.json').read_text())
+    assert [r['id'] for r in built['runs']] == ['latest-pizza', 'old-pizza']
+    monkeypatch.setattr(explorer, 'native_run', lambda _: {'id':'latest-pizza','sort_time':3,'local':True})
+    explorer.main()
+    built = json.loads((explorer.OUT / 'dashboard.json').read_text())
+    assert len(built['runs']) == 1 and built['runs'][0]['local'] is True

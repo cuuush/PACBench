@@ -11,7 +11,7 @@ python -m pacbench.native_audit runs/pizza-current
 python serve_explorer.py
 ```
 
-[Pizza Day](PIZZA_DAY.md) describes the latest clean result. The explorer shows source messages, daily ingestion, actual memory tools, expected facts and the judge's per-answer decisions. Credentials, provider homes and encrypted reasoning stay private. Development artifacts are disposable; retain only the current trial and its necessary source evidence.
+[Pizza Day](PIZZA_DAY.md) describes the latest clean result. The explorer shows source messages, daily ingestion, actual memory tools, expected facts and the judge's per-answer decisions. A sanitized latest-run snapshot ships with Git, so a fresh checkout can display results without private run directories. Credentials, provider homes and encrypted reasoning stay private. Development artifacts are disposable; retain only the current trial and its necessary source evidence.
 
 Questions and expected facts are plain-language lists, with no pizza-specific slots. Multiple questions can share one real evaluation session. One natural follow-up can recover silently omitted implicit details for half credit; wrong answers, admitted lookup failures, missed explicit requests and zero recall get no follow-up. Source/archive fallback fails retention even when the answer is correct. [Judging and recovery](docs/followups.md) explains the policy.
 
@@ -23,5 +23,7 @@ node --check explorer/dashboard.js
 node --check explorer/timeline.js
 python scripts/build_explorer_data.py
 ```
+
+To push the latest browser-ready result, run `python scripts/build_explorer_data.py --snapshot` and commit `explorer/latest-run.json`. Raw run homes and databases stay outside Git.
 
 Offline tests establish harness integrity, not provider accuracy. A passing saved-run audit also does not establish a ranking. See [AGENTS.md](AGENTS.md) for operating rules.

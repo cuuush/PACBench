@@ -124,15 +124,29 @@ def native_run(run_dir):
         'model_calls': list(records.values()), 'sort_time': (run_dir / 'summary.json').stat().st_mtime}
 
 
-def main() -> None:
+def main(*, publish_snapshot: bool = False) -> None:
     dashboard_runs = []
+    snapshot = read_json(ROOT / "explorer" / "latest-run.json")
     OUT.mkdir(parents=True, exist_ok=True)
-    for run_dir in (ROOT / 'runs').iterdir():
+    for run_dir in ((ROOT / 'runs').iterdir() if (ROOT / 'runs').exists() else []):
         if run_dir.is_dir():
             native = native_run(run_dir)
             if native:
                 dashboard_runs.append(native)
     dashboard_runs.sort(key=lambda r: r.get('sort_time') or (ROOT / 'runs' / r['id']).stat().st_mtime, reverse=True)
+    # The portable snapshot is generated explicitly, never from private homes.
+    # Include it when a checkout has no copy of the latest run artifacts.
+    if snapshot:
+        local_ids = {r['id'] for r in dashboard_runs}
+        dashboard_runs.extend(r for r in snapshot['runs'] if r['id'] not in local_ids)
+        dashboard_runs.sort(key=lambda r: r.get('sort_time', 0), reverse=True)
+    if publish_snapshot:
+        latest = next((r for r in dashboard_runs if r.get('kind') == 'native'), None)
+        if latest is None:
+            raise SystemExit('No native result available to publish')
+        portable = {'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+                    'runs': [latest]}
+        (ROOT / 'explorer/latest-run.json').write_text(json.dumps(portable, ensure_ascii=False), encoding='utf-8')
     (OUT / "dashboard.json").write_text(json.dumps({
         "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "runs": dashboard_runs}, ensure_ascii=False), encoding="utf-8")
@@ -140,4 +154,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--snapshot', action='store_true', help='Export only the latest native browser result for Git')
+    main(publish_snapshot=parser.parse_args().snapshot)

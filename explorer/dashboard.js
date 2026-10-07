@@ -421,7 +421,8 @@ function render() {
 async function refresh() {
   el("refresh").disabled = true;
   try {
-    const response = await fetch("data/dashboard.json?at=" + Date.now());
+    let response = await fetch("data/dashboard.json?at=" + Date.now(), {cache:"no-store"});
+    if (response.status === 404) response = await fetch("latest-run.json", {cache:"no-store"});
     if (!response.ok) throw Error("HTTP " + response.status);
     data = await response.json();
     const params = new URLSearchParams(location.search);

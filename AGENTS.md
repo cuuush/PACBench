@@ -46,6 +46,6 @@ node --check explorer/timeline.js
 python scripts/build_explorer_data.py
 ```
 
-Offline harness tests do not establish provider accuracy; a native integrity audit does not establish quality. The explorer shows source messages, native daily ingestion, actual Hermes turns, expected criteria and per-answer judge decisions. Show provider-internal tools separately when observable. Redact credentials/encrypted reasoning and never index private provider homes. Verify relevant changes in desktop/mobile Chromium. Keep current docs concise; do not append historical reports.
+Offline harness tests do not establish provider accuracy; a native integrity audit does not establish quality. The explorer shows source messages, native daily ingestion, actual Hermes turns, expected criteria and per-answer judge decisions. Show provider-internal tools separately when observable. Redact credentials/encrypted reasoning and never index private provider homes. Use `python scripts/build_explorer_data.py --snapshot` to keep `explorer/latest-run.json` updated with only the latest browser-ready result when pushing results; fresh checkouts use this portable snapshot without private run directories. Verify relevant changes in desktop/mobile Chromium. Keep current docs concise; do not append historical reports.
 
-Current verification: 149 offline tests pass; preparation and native trace audits pass. The one-run explorer was checked in Chromium on desktop and mobile, including source ingestion, memory calls, prompt isolation and per-answer judges.
+Current verification: 150 offline tests pass; preparation and native trace audits pass. The one-run explorer was checked in Chromium on desktop and mobile, including source ingestion, memory calls, prompt isolation and per-answer judges.

@@ -24,6 +24,10 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT / "explorer"), **kwargs)
 
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def do_GET(self):
         if urlsplit(self.path).path == "/data/dashboard.json":
             with BUILD_LOCK:

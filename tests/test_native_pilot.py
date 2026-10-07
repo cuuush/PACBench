@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def base():
-    return json.loads((ROOT / "examples/pizza_day.json").read_text())
+    return json.loads((ROOT / "weeks/pizza_day.json").read_text())
 
 
 def test_add_100_is_bounded_prose_without_changing_pizza_facts():

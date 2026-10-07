@@ -1,13 +1,13 @@
 """Failed model attempts remain separately inspectable after a retry."""
 
 import json
+from pathlib import Path
 from unittest import mock
 
 import pytest
 
 from pacbench.authoring import AuthoringError, ScenePlan, realize_scene
-from pacbench.model_calls import ModelClient, ResponsesWriter
-from scripts.build_explorer_data import model_record_for_dashboard
+from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
 
 
 def test_same_request_retry_preserves_each_failed_call(tmp_path):
@@ -105,17 +105,35 @@ def test_rejected_pizza_draft_replays_encrypted_reasoning(tmp_path):
     assert requests[0]["include"] == ["reasoning.encrypted_content"]
     assert requests[1]["input"][1]["encrypted_content"] == "sealed-first"
     assert "not agreed" in requests[1]["input"][-1]["content"][0]["text"]
-    saved = [json.loads(path.read_text()) for path in tmp_path.glob("*.json")]
+    saved = [json.loads(path.read_text()) for path in (tmp_path / "private").glob("*.json")]
     assert any(row["response"]["output"][0]["encrypted_content"] == "sealed-first"
                for row in saved)
-    assert all(path.stat().st_mode & 0o077 == 0 for path in tmp_path.glob("*.json"))
+    assert all(path.stat().st_mode & 0o077 == 0 for path in tmp_path.rglob("*.json"))
+    public = [path.read_text() for path in tmp_path.glob("*.json")]
+    assert all("sealed-first" not in row and "sealed-second" not in row for row in public)
+    # The existing public request still reuses its private record without a call.
+    with mock.patch("pacbench.model_calls.urllib.request.urlopen") as call:
+        replay = writer(requests[0]["input"][0]["content"][0]["text"])
+        call.assert_not_called()
+    assert replay.record_path == realized.record.generation_paths[0]
+    with mock.patch("pacbench.model_calls.urllib.request.urlopen") as call:
+        repaired = writer.continue_from(replay, requests[0]["input"][0]["content"][0]["text"],
+                                       requests[1]["input"][-1]["content"][0]["text"])
+        call.assert_not_called()
+    assert repaired.record_path == realized.record.generation_paths[1]
+    # A portable checkout must not send the redacted placeholder upstream.
+    (tmp_path / "private" / Path(replay.record_path).name).unlink()
+    with mock.patch("pacbench.model_calls.urllib.request.urlopen") as call:
+        with pytest.raises(ValueError, match="requires private encrypted reasoning"):
+            writer.continue_from(replay, "Initial prompt", "Try again")
+        call.assert_not_called()
 
 
 def test_explorer_projection_hides_replay_blob():
     raw = {"request": {"input": [{"encrypted_content": "prior-opaque"}]},
            "response": {"output": [{"encrypted_content": "new-opaque",
                                     "summary": [{"text": "A short summary."}]}]}}
-    projected = model_record_for_dashboard(raw)
+    projected = public_record(raw)
     assert "prior-opaque" not in json.dumps(projected)
     assert "new-opaque" not in json.dumps(projected)
     assert projected["response"]["output"][0]["summary"][0]["text"] == "A short summary."

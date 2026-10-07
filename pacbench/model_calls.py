@@ -15,6 +15,22 @@ from typing import Any
 
 
 MODEL_TIMEOUT_S = 180
+ENCRYPTED_REDACTION = "<encrypted reasoning retained in private run artifact>"
+
+
+def public_record(value: Any) -> Any:
+    """Keep readable prompts, answers and usage; exclude encrypted replay blobs."""
+    if isinstance(value, dict):
+        return {key: (ENCRYPTED_REDACTION if key == "encrypted_content" and item
+                      else public_record(item)) for key, item in value.items()}
+    if isinstance(value, list):
+        return [public_record(item) for item in value]
+    return value
+
+
+def _read_record(path: Path) -> dict:
+    private = path.parent / "private" / path.name
+    return json.loads((private if private.exists() else path).read_text(encoding="utf-8"))
 
 
 @dataclass(frozen=True)
@@ -64,7 +80,7 @@ class ModelClient:
         for path in prior:
             if not path.exists():
                 continue
-            saved = json.loads(path.read_text())
+            saved = _read_record(path)
             if (saved.get("status") == "ok" and saved.get("request") == request_body
                     and saved.get("url") == self.url):
                 return ModelOutput(saved["text"], saved["model"],
@@ -77,7 +93,7 @@ class ModelClient:
         if self.cache_dir is not None:
             cached = self.cache_dir / f"{key}.json"
             if cached.exists():
-                saved = json.loads(cached.read_text())
+                saved = _read_record(cached)
                 if (saved.get("status") == "ok" and saved.get("request") == request_body
                         and saved.get("url") == self.url):
                     saved["cache_hit"] = True
@@ -140,6 +156,15 @@ class ModelClient:
 
 
 def _write_record(path: Path, record: dict) -> None:
+    projected = public_record(record)
+    if projected != record:
+        private = path.parent / "private" / path.name
+        private.parent.mkdir(exist_ok=True)
+        _write_json(private, record)
+    _write_json(path, projected)
+
+
+def _write_json(path: Path, record: dict) -> None:
     data = json.dumps(record, ensure_ascii=False, indent=2) + "\n"
     fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as stream:
@@ -156,7 +181,7 @@ def _response_text(raw: dict) -> str:
 
 
 class ResponsesWriter(ModelClient):
-    """Stateless Spark writer whose saved turns retain encrypted reasoning."""
+    """Stateless Spark writer with public traces and private encrypted replay."""
 
     def __init__(self, *, key: str, model: str, record_dir: Path,
                  temperature: float = 0.7, cache_dir: Path | None = None,
@@ -173,15 +198,16 @@ class ResponsesWriter(ModelClient):
         path = Path(prior.record_path).resolve()
         if not path.is_relative_to(self.record_dir.resolve()):
             raise ValueError("writer continuation must use this run's model record")
-        saved = json.loads(path.read_text(encoding="utf-8"))
+        saved = _read_record(path)
         if (saved.get("status") != "ok" or saved.get("protocol") != "responses" or
                 saved.get("model") != self.model or saved.get("url") != self.url):
             raise ValueError("writer continuation record does not match this model")
         output = saved["response"].get("output")
         if (not isinstance(output, list) or not any(
                 isinstance(item, dict) and item.get("type") == "reasoning" and
-                item.get("encrypted_content") for item in output)):
-            raise ValueError("writer continuation has no encrypted reasoning")
+                item.get("encrypted_content") and item["encrypted_content"] != ENCRYPTED_REDACTION
+                for item in output)):
+            raise ValueError("writer continuation requires private encrypted reasoning")
         return self._responses([
             {"role": "user", "content": [{"type": "input_text", "text": initial_prompt}]},
             *output,

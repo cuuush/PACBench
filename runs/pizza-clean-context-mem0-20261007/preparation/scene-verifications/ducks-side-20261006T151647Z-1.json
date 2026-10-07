@@ -1,0 +1,65 @@
+{
+  "scene_id": "ducks-side",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-06T15:16:47+00:00",
+  "spec": {
+    "id": "ducks-side",
+    "channel": "imessage",
+    "thread": "ducks-side",
+    "scene": "Maya floats a Saturday morning ducks outing at the pond in a group chat with Devon and the user. Devon is keen and asks about timing; Maya proposes 9am; the user stays noncommittal.",
+    "test_intent": "",
+    "facts": [],
+    "at": "2026-09-10T18:30:00-04:00",
+    "window_start": "2026-09-10T18:30:00-04:00",
+    "window_end": "2026-09-10T18:50:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": null,
+    "prompt_version": "scene-v13",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Maya: ugh traffic getting home tonight was the worst",
+    "Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?",
+    "Devon: ohh yes I haven't done that in forever",
+    "Devon: what time were you thinking?",
+    "Me: hmm maybe, my Saturday is kind of up in the air rn",
+    "Maya: I was thinking like 9am before it gets too hot?",
+    "Devon: yeah that works for me",
+    "Me: 9 is early lol I'll have to see, don't plan around me",
+    "Maya: haha no worries just lmk",
+    "Devon: did your guys power flicker earlier or was that just my building"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that for a group plan, every named participant whose attendance is asserted accepts the final plan after its date, time, and place are set. 'Should be', 'maybe', silence, or an earlier expression of interest is not final acceptance. Cite each participant's acceptance or reject the scenario. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-10. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:30 and 18:50 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Maya floats a Saturday morning ducks outing at the pond in a group chat with Devon and the user. Devon is keen and asks about timing; Maya proposes 9am; the user stays noncommittal.\n\nNew messages:\n1. Maya: ugh traffic getting home tonight was the worst\n2. Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n3. Devon: ohh yes I haven't done that in forever\n4. Devon: what time were you thinking?\n5. Me: hmm maybe, my Saturday is kind of up in the air rn\n6. Maya: I was thinking like 9am before it gets too hot?\n7. Devon: yeah that works for me\n8. Me: 9 is early lol I'll have to see, don't plan around me\n9. Maya: haha no worries just lmk\n10. Devon: did your guys power flicker earlier or was that just my building",
+  "judge_response": "{\"supported\": true, \"evidence\": [2,3,4,5,6,7,8], \"problem\": \"\"}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "problem": ""
+  },
+  "prompt_chars": 1786,
+  "response_chars": 63,
+  "model_call": "runs/pizza-contributor-prepared-20261006/model-calls/62e43878fbdb271954e1c5cdb00b1251ae3989556ef56e5918cdf1ed893f89da.json",
+  "usage": {
+    "completion_tokens": 2148,
+    "prompt_tokens": 407,
+    "total_tokens": 2555,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2110
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

@@ -1,6 +1,6 @@
 # Writing a week
 
-[Pizza Week](../examples/pizza_week.json) is the readable author file. It contains `noise`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. Empty days are `{}`.
+[Pizza Week](../weeks/pizza_week.json) is the readable author file. It contains `noise`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. Empty days are `{}`.
 
 Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
 
@@ -28,11 +28,11 @@ This fragment belongs in a complete seven-day week. Facts stay next to the scene
 Concrete dates are assigned during preparation. `--week-start` selects a Monday; without it, preparation uses the current week in the configured timezone. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
 ```sh
-python -m pacbench.prepare examples/pizza_week.json --week-start 2026-10-05 --output runs/pizza-prepared
+python -m pacbench.prepare weeks/pizza_week.json --week-start 2026-10-05 --output runs/pizza-prepared
 python -m pacbench.preparation_audit runs/pizza-prepared
 python -m pacbench.native_pilot --prepared runs/pizza-prepared/week.json --providers memcal --output runs/pizza-current
 ```
 
 Preparation writes one portable `week.json`, containing generated messages, verification records, questions and evidence-cited judging contracts. Provider execution imports that file without authoring or verifying the messages again. Keep it to reuse across providers and runs. `--resume` reuses unchanged verified scenes when fixing an interrupted preparation; changed scene requirements need new verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
 
-The minimal [Pizza Day](../examples/pizza_day.json) scene format remains useful for smoke tests. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.
+The minimal [Pizza Day](../weeks/pizza_day.json) scene format remains useful for smoke tests. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.

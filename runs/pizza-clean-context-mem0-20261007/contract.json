@@ -1,0 +1,95 @@
+{
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Devon is the user's companion for the agreed plan.",
+      "evidence": [
+        "pizza-day/pizza-plan-06",
+        "pizza-day/pizza-plan-09",
+        "pizza-day/pizza-plan-12"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The agreed restaurant is Luigi's.",
+      "evidence": [
+        "pizza-day/pizza-plan-06",
+        "pizza-day/pizza-plan-09"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The restaurant is on 5th.",
+      "evidence": [
+        "pizza-day/pizza-plan-07",
+        "pizza-day/pizza-plan-08"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The pizza plan is for Friday, September 11.",
+      "evidence": [
+        "pizza-day/pizza-plan-06",
+        "pizza-day/pizza-plan-09"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "The agreed time is 7pm.",
+      "evidence": [
+        "pizza-day/pizza-plan-10",
+        "pizza-day/pizza-plan-11"
+      ]
+    }
+  ],
+  "question": "Hey, can you give me a quick recap on our pizza plan?",
+  "evidence_hash": "62153788eaee6207430d5726c97967a09f1d653530e865435bb3252f0b3e2b21",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All 5 required details are covered by separate independent claims with no merging or omission.",
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes plan in 06 and confirms meeting in 12, Me accepts in 09, establishing companionship."
+      },
+      {
+        "id": "fact-2",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Luigi's proposed in 06 and accepted in 09, establishing agreed restaurant."
+      },
+      {
+        "id": "fact-3",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Me clarifies one on 5th in 07 and Devon confirms in 08."
+      },
+      {
+        "id": "fact-4",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Friday proposed in 06 and accepted in 09; written timestamp 2026-09-10 makes Friday September 11."
+      },
+      {
+        "id": "fact-5",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "7pm proposed in 10 and accepted in 11, establishing agreed time."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "reason": "Scopes to 'pizza plan' established in dialogue and discloses no details; presupposes only existence of a plan involving user, which dialogue supports."
+  },
+  "author_fact_count": 5,
+  "contract_hash": "6e3613f6275437fdccb22aca01d20e1408889e89f8b259b33bed70f9d79a8cfb"
+}

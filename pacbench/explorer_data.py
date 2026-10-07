@@ -1,40 +1,20 @@
-#!/usr/bin/env python3
-"""Build the simulation explorer from current native trials.
-
-Every run uses its own verified frozen bundle. Encrypted reasoning stays in
-private run artifacts and is redacted from the browser data.
-"""
+"""Read browser-visible evidence directly from runs/, without a snapshot or cache."""
+from __future__ import annotations
 
 import datetime
 import hashlib
 import json
-import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from pacbench.frozen import bundle_hash  # noqa: E402
-from pacbench.frozen import messages_for  # noqa: E402
-
-OUT = ROOT / "explorer" / "data"
-
-
-def model_record_for_dashboard(value):
-    if isinstance(value, dict):
-        return {key: ("<encrypted reasoning retained in private run artifact>"
-                      if key == "encrypted_content" and item else
-                      model_record_for_dashboard(item))
-                for key, item in value.items()}
-    if isinstance(value, list):
-        return [model_record_for_dashboard(item) for item in value]
-    return value
+from .frozen import bundle_hash, messages_for
+from .model_calls import public_record
 
 
 def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
-def native_run(run_dir):
+def native_run(run_dir: Path, runs_dir: Path):
     summary = read_json(run_dir / 'summary.json') or {}
     if summary.get('mode') != 'native-hermes' and summary.get('state') != 'prepared':
         return None
@@ -43,11 +23,11 @@ def native_run(run_dir):
         return None
     actual_hash = bundle_hash(bundle)
     if bundle.get('bundle_hash') != actual_hash or summary.get('bundle_hash', actual_hash) != actual_hash:
-        raise SystemExit(f'ABORT native bundle mismatch: {run_dir}')
+        raise ValueError(f'native bundle mismatch: {run_dir.name}')
     resolved = read_json(run_dir / 'resolved-spec.json') or {}
-    source = Path(summary.get('source', run_dir)).resolve()
-    if not source.is_relative_to((ROOT / 'runs').resolve()):
-        source = run_dir
+    source = (run_dir / summary.get('source', '.')).resolve()
+    if not source.is_relative_to(runs_dir.resolve()):
+        raise ValueError('preparation source must stay inside runs/')
     spec = read_json(source / 'spec.json') or resolved
     plan = read_json(run_dir / 'evaluation-plan.json')
     evaluations = [{**row, 'contract': read_json(run_dir / 'evaluations' / row['id'] / 'contract.json')}
@@ -56,7 +36,7 @@ def native_run(run_dir):
     messages = messages_for(bundle, next(iter(bundle['lives'])))
     arms = {}
     for arm in sorted(run_dir.glob('repeat-*/*')):
-        if not arm.is_dir() or not (arm / 'hermes-home').exists():
+        if not arm.is_dir():
             continue
         repetition = arm.parent.name
         provider = arm.name
@@ -116,7 +96,7 @@ def native_run(run_dir):
     records = {}
     for folder in (source, run_dir):
         for path in sorted((folder / 'model-calls').glob('*.json')):
-            records[path.name] = {'file': path.name, 'record': model_record_for_dashboard(read_json(path))}
+            records[path.name] = {'file': path.name, 'record': public_record(read_json(path))}
     return {'kind': 'native' if summary.get('mode') else 'prepared', 'id': run_dir.name,
         'spec': spec, 'resolved_spec': resolved, 'summary': summary,
         'audit': read_json(run_dir / 'native-audit.json') or read_json(run_dir / 'run-audit.json'),
@@ -128,37 +108,20 @@ def native_run(run_dir):
         'model_calls': list(records.values()), 'sort_time': (run_dir / 'summary.json').stat().st_mtime}
 
 
-def main(*, publish_snapshot: bool = False) -> None:
-    dashboard_runs = []
-    snapshot = read_json(ROOT / "explorer" / "latest-run.json")
-    OUT.mkdir(parents=True, exist_ok=True)
-    for run_dir in ((ROOT / 'runs').iterdir() if (ROOT / 'runs').exists() else []):
-        if run_dir.is_dir():
-            native = native_run(run_dir)
-            if native:
-                dashboard_runs.append(native)
-    dashboard_runs.sort(key=lambda r: r.get('sort_time') or (ROOT / 'runs' / r['id']).stat().st_mtime, reverse=True)
-    # The portable snapshot is generated explicitly, never from private homes.
-    # Include it when a checkout has no copy of the latest run artifacts.
-    if snapshot:
-        local_ids = {r['id'] for r in dashboard_runs}
-        dashboard_runs.extend(r for r in snapshot['runs'] if r['id'] not in local_ids)
-        dashboard_runs.sort(key=lambda r: r.get('sort_time', 0), reverse=True)
-    if publish_snapshot:
-        latest = next((r for r in dashboard_runs if r.get('kind') == 'native'), None)
-        if latest is None:
-            raise SystemExit('No native result available to publish')
-        portable = {'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
-                    'runs': [latest]}
-        (ROOT / 'explorer/latest-run.json').write_text(json.dumps(portable, ensure_ascii=False), encoding='utf-8')
-    (OUT / "dashboard.json").write_text(json.dumps({
-        "generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-        "runs": dashboard_runs}, ensure_ascii=False), encoding="utf-8")
-    print(f"wrote {OUT / 'dashboard.json'} ({len(dashboard_runs)} runs)")
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--snapshot', action='store_true', help='Export only the latest native browser result for Git')
-    main(publish_snapshot=parser.parse_args().snapshot)
+def load_runs(root: Path) -> dict:
+    runs_dir = root / 'runs'
+    runs = []
+    errors = []
+    for run_dir in (runs_dir.iterdir() if runs_dir.is_dir() else []):
+        if not run_dir.is_dir() or run_dir.is_symlink():
+            continue
+        try:
+            run = native_run(run_dir, runs_dir)
+            if run:
+                runs.append(run)
+        except (OSError, ValueError, KeyError, TypeError, RuntimeError, StopIteration) as exc:
+            # A partial or malformed run must not hide the other saved results.
+            errors.append({'run': run_dir.name, 'error': str(exc)})
+    runs.sort(key=lambda run: run['sort_time'], reverse=True)
+    return {'generated_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+            'runs': runs, 'errors': errors}

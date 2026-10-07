@@ -421,8 +421,7 @@ function render() {
 async function refresh() {
   el("refresh").disabled = true;
   try {
-    let response = await fetch("data/dashboard.json?at=" + Date.now(), {cache:"no-store"});
-    if (response.status === 404) response = await fetch("latest-run.json", {cache:"no-store"});
+    const response = await fetch("/runs?at=" + Date.now(), {cache:"no-store"});
     if (!response.ok) throw Error("HTTP " + response.status);
     data = await response.json();
     const params = new URLSearchParams(location.search);
@@ -435,7 +434,13 @@ async function refresh() {
       selectedProvider = params.get("provider") || selectedProvider;
       choose(current, params.get("view") || page);
     }
-    else el("content").innerHTML = notice("No saved runs found.");
+    else {
+      current = "";
+      renderRunPicker();
+      el("content").innerHTML = notice("No saved runs found.");
+    }
+    if (data.errors?.length) el("content").insertAdjacentHTML("afterbegin",
+      '<div class="alert bad">Could not read ' + esc(data.errors.map(item => item.run + ": " + item.error).join("; ")) + '</div>');
   } catch (error) {
     el("content").innerHTML = '<div class="alert bad">Could not load runs: ' +
       esc(error.message) + "</div>";

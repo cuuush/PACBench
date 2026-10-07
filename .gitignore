@@ -15,11 +15,26 @@ build/
 /vendor/venv-hermes-isolated/
 /hermes-homes/
 /artifacts/
-/runs/
-# generated artifact (rebuild via scripts/build_explorer_data.py)
+# Track run evidence, but keep credentials, native stores and raw reasoning private.
+/runs/**/hermes-home/
+/runs/**/fallback-home/
+/runs/**/memcal-home/
+/runs/**/mem0-state/
+/runs/**/qdrant/
+/runs/**/openviking-data/
+/runs/**/honcho-db/
+/runs/**/supermemory-data/
+/runs/**/tokenizer-cache/
+/runs/**/model-cache/
+/runs/**/model-calls/private/
+/runs/**/ov.conf
+/runs/**/*.db*
+/runs/**/*.abcddb*
+/runs/**/*.log
+/runs/**/*.private.*
+/runs/**/honcho-reasoning-traces.jsonl
+# Generated artifact.
 docs/corpus-explorer.html
-# Rebuilt from saved bundles and runs when the explorer loads.
-/explorer/data/
 
 # Locally installed provider runtime dependencies.
 /vendor/byterover-local/

@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-06T15:16:04.336975+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-driver/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that for a group plan, every named participant whose attendance is asserted accepts the final plan after its date, time, and place are set. 'Should be', 'maybe', silence, or an earlier expression of interest is not final acceptance. Cite each participant's acceptance or reject the scenario. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-10. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:00 and 18:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Devon and the user chat, wander through some ordinary banter, and settle a pizza plan for Friday night.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Devon is the user's companion for the agreed plan.\n2. The agreed restaurant is Luigi's.\n3. The restaurant is on 5th.\n4. The pizza plan is for Friday, September 11.\n5. The agreed time is 7pm.\n\nNew messages:\n1. Me: just walked in the door ugh\n2. Devon: same, my bus was late again\n3. Me: did you at least get lunch today?\n4. Devon: yeah just a sad sandwich lol\n5. Devon: hey are you still in a pizza mood?\n6. Me: always, why\n7. Devon: wanna get pizza at Luigi's on Friday?\n8. Me: oh you mean the one on 5th?\n9. Devon: yeah that's the one\n10. Me: yes I'm down, what time were you thinking?\n11. Devon: 7pm?\n12. Me: yeah that works\n13. Devon: cool I'll meet you there\n14. Me: perfect, I'm gonna be a couch potato tonight\n15. Devon: same honestly, see you tomorrow"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a111c9-4035-73c5-815f-acf54ac46ec4",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [7, 8, 9, 10, 11, 12, 13], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [7, 10, 13], \"problem\": \"\"}, {\"index\": 2, \"supported\": true, \"evidence\": [7, 9, 10], \"problem\": \"\"}, {\"index\": 3, \"supported\": true, \"evidence\": [8, 9], \"problem\": \"\"}, {\"index\": 4, \"supported\": true, \"evidence\": [7], \"problem\": \"\"}, {\"index\": 5, \"supported\": true, \"evidence\": [11, 12, 13], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791299764,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2374,
+      "prompt_tokens": 538,
+      "total_tokens": 2912,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2197
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [7, 8, 9, 10, 11, 12, 13], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [7, 10, 13], \"problem\": \"\"}, {\"index\": 2, \"supported\": true, \"evidence\": [7, 9, 10], \"problem\": \"\"}, {\"index\": 3, \"supported\": true, \"evidence\": [8, 9], \"problem\": \"\"}, {\"index\": 4, \"supported\": true, \"evidence\": [7], \"problem\": \"\"}, {\"index\": 5, \"supported\": true, \"evidence\": [11, 12, 13], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 2374,
+    "prompt_tokens": 538,
+    "total_tokens": 2912,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2197
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

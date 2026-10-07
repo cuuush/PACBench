@@ -14,7 +14,7 @@ from tests.test_document_ingestion import message
 
 
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
-    spec=json.loads(Path('examples/pizza_week.json').read_text())
+    spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
     assert len(scenes)==5 and len(resolved['checks'])==8
     assert scenes[2].participants==('Me','Maya','Leo')
@@ -33,7 +33,7 @@ def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
 
 
 def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
-    spec=json.loads(Path('examples/pizza_week.json').read_text());spec['noise']='high'
+    spec=json.loads(Path('weeks/pizza_week.json').read_text());spec['noise']='high'
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
     assert resolved['noise']=='high'
     assert scenes[0].message_range==(1200,1600)
@@ -150,7 +150,7 @@ def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_p
     assert clock_on_day(date(2026,10,5),'8 pm').endswith('T20:00:00')
     for value in ('25 pm','0 am','7:90 am','2026-09-09T08:00:00'):
         with pytest.raises(ValueError,match='Invalid human time'):clock_on_day(date(2026,10,5),value)
-    spec=json.loads(Path('examples/pizza_week.json').read_text());original=json.dumps(spec)
+    spec=json.loads(Path('weeks/pizza_week.json').read_text());original=json.dumps(spec)
     spec['days']['sunday']={'conversations':[{'id':'sunday-fresh','time':'9 am','turns':[
         {'id':'sunday-recap','prompt':'What happened with pizza Friday?','expect':'Recap both Friday outings.'}]}]}
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-10-26')

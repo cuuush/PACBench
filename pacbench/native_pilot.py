@@ -351,7 +351,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             shutil.copyfile(source / name, output / name)
         report.update(input_hash=hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest(), contract_hash=contract.contract_hash,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
-                      message_count=len(messages), source=str(source.resolve()))
+                      message_count=len(messages), source=os.path.relpath(source.resolve(), output))
         report["process_timezone"] = resolved.get("timezone", "")
         report.update(ingestion_version='daily-source-documents-v1',
                       document_provider_blockers=dict(BLOCKERS),

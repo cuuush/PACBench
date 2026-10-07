@@ -31,9 +31,9 @@ Development results are disposable. Keep only the most recent Pizza Day trial an
 
 ## Current code and evidence
 
-Preparation: `pacbench/prepare.py`; frozen dialogue/claims: `frozen.py`, `semantic_contract.py`; direct ingestion: `document_ingestion.py`, `provider_adapters/document_connector.py`; native execution: `native_pilot.py`, `harness.py`; saved native context: `context_isolation.py`; judgment/recovery: `semantic_grade.py`, `followups.py`, `native_checks.py`. The old SDK runner and Hermes chat ingestion route are removed.
+Preparation: `pacbench/prepare.py`; frozen dialogue/claims: `frozen.py`, `semantic_contract.py`; direct ingestion: `document_ingestion.py`, `provider_adapters/document_connector.py`; native execution: `native_pilot.py`, `harness.py`; direct explorer reader: `explorer_data.py`; saved native context: `context_isolation.py`; judgment/recovery: `semantic_grade.py`, `followups.py`, `native_checks.py`. The old SDK runner and Hermes chat ingestion route are removed.
 
-Current private trial: `runs/pizza-clean-context-mem0-20261007`, with source preparation nested in `preparation/`. The frozen 25-message input yielded 5/5 initial facts and 5/5 retention through one native Mem0 search, no follow-up. Its actual saved prompt contains no project context. Other provider connectors are implemented but no clean recall score is asserted for them. Honcho processing and ByteRover's native query timeout remain practical blockers. [PIZZA_DAY.md](PIZZA_DAY.md) records current evidence.
+Current tracked trial: `runs/pizza-clean-context-mem0-20261007`, with source preparation nested in `preparation/`. The frozen 25-message input yielded 5/5 initial facts and 5/5 retention through one native Mem0 search, no follow-up. Its actual saved prompt contains no project context. Other provider connectors are implemented but no clean recall score is asserted for them. Honcho processing and ByteRover's native query timeout remain practical blockers. [PIZZA_DAY.md](PIZZA_DAY.md) records current evidence.
 
 The cumulative accounted upper bound was **$3.2486826**, including reservations. Re-read the ledger before any new live work. Cleanup and offline checks need no paid traffic. Do not rerun every provider once one works without a concrete fix or unresolved concern. Advance complexity gradually and inspect actual traces; no comparative ranking without human-reviewed calibration.
 
@@ -45,11 +45,11 @@ python -m pacbench.preparation_audit runs/<current>/preparation
 python -m pacbench.native_audit runs/<current>
 node --check explorer/dashboard.js
 node --check explorer/timeline.js
-python scripts/build_explorer_data.py
+python serve_explorer.py
 ```
 
-Offline harness tests do not establish provider accuracy; a native integrity audit does not establish quality. The explorer shows source messages, native daily ingestion, actual Hermes turns, expected criteria and per-answer judge decisions. Show provider-internal tools separately when observable. Redact credentials/encrypted reasoning and never index private provider homes. Use `python scripts/build_explorer_data.py --snapshot` to keep `explorer/latest-run.json` updated with only the latest browser-ready result when pushing results; fresh checkouts use this portable snapshot without private run directories. Verify relevant changes in desktop/mobile Chromium. Keep current docs concise; do not append historical reports.
+Offline harness tests do not establish provider accuracy; a native integrity audit does not establish quality. The explorer shows source messages, native daily ingestion, actual Hermes turns, expected criteria and per-answer judge decisions. Show provider-internal tools separately when observable. Redact credentials/encrypted reasoning and never index private provider homes. The Web UI reads `runs/` directly through the local server on every refresh. Track public source, model-call, judge and audit artifacts there; keep private provider homes, databases, caches and encrypted replay files ignored. Save encrypted writer reasoning under `model-calls/private/`, with readable sanitized records beside it. Use relative preparation paths so checkouts are portable. Do not introduce a dashboard export or separate result snapshot. Authoring inputs live in `weeks/`; obsolete examples and calibration code are removed. Verify relevant changes in desktop/mobile Chromium. Keep current docs concise; do not append historical reports.
 
-Current verification: 164 offline tests pass; preparation and native trace audits pass. The existing one-run explorer was checked in Chromium on desktop and mobile, including source ingestion, memory calls, prompt isolation and per-answer judges.
+Current verification: 168 offline tests pass; preparation and native trace audits pass locally. The direct-run explorer was checked in Chromium on desktop and mobile, including source ingestion, memory calls, prompt isolation and per-answer judges. A fresh checkout displays the tracked run without private runtime files or a dashboard snapshot.
 
-The weekday Pizza Week implementation is covered offline. Live authoring was stopped during the requested schema simplification; no new Memcal week accuracy is asserted. The latest clean Mem0 result remains the published snapshot.
+The weekday Pizza Week implementation is covered offline. Live authoring was stopped during the requested schema simplification; no new Memcal week accuracy is asserted. The latest clean Mem0 result is tracked under `runs/`.

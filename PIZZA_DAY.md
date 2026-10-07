@@ -1,6 +1,6 @@
 # Current Pizza Day test
 
-The current run is `runs/pizza-clean-context-mem0-20261007`. Its preparation evidence is inside `preparation/`; the input has 25 verified messages and five facts. Both are private generated artifacts, outside Git. Old trials and caches were deleted during development cleanup.
+The current run is [runs/pizza-clean-context-mem0-20261007](runs/pizza-clean-context-mem0-20261007/summary.json). Its preparation evidence is inside `preparation/`; the input has 25 verified messages and five facts. Public source, model-call and judgment artifacts are tracked in Git. Private provider homes, databases and encrypted reasoning stay local. Old trials and the stopped obsolete authoring draft were deleted during development cleanup.
 
 Mem0 OSS ingested the raw daily transcript with its native extraction, using local Qdrant and Ollama embeddings. A fresh Hermes session called `mem0_search` once and answered:
 
@@ -13,10 +13,9 @@ Recall launches from an empty temporary directory outside the repository. The au
 ```sh
 python -m pacbench.preparation_audit runs/pizza-clean-context-mem0-20261007/preparation
 python -m pacbench.native_audit runs/pizza-clean-context-mem0-20261007
-python scripts/build_explorer_data.py
 python serve_explorer.py
 ```
 
-Both integrity audits pass. The frozen input hash is `62153788eaee6207430d5726c97967a09f1d653530e865435bb3252f0b3e2b21`. Task spending was $3.2266252 as an accounted upper bound including reservations, not an invoice. Cleanup and offline verification need no new paid calls.
+Both integrity audits pass locally. Full native re-auditing requires the private runtime files; a fresh checkout can inspect the saved audit, judge and public traces in the explorer. The frozen input hash is `62153788eaee6207430d5726c97967a09f1d653530e865435bb3252f0b3e2b21`. Task spending was $3.2486826 as an accounted upper bound including reservations, not an invoice. Cleanup and offline verification need no new paid calls.
 
-The next development case is [Pizza Week](examples/pizza_week.json): two outings, DM/group updates, an ambiguous cancellation, and fresh-session persistence checks. Its weekday author format is implemented and covered offline; its live authoring was paused during the schema revision, so no new provider accuracy is asserted. Start with low noise, inspect small-case failures, then increase message counts.
+The next development case is [Pizza Week](weeks/pizza_week.json): two outings, DM/group updates, an ambiguous cancellation, and fresh-session persistence checks. Its weekday author format is implemented and covered offline; its live authoring was paused during the schema revision, so no new provider accuracy is asserted. Start with low noise, inspect small-case failures, then increase message counts.

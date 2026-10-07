@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-06T15:18:31.364195+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-driver/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Check the proposed user question against the frozen dialogue and claims. Does it give a useful topic or time scope without being a checklist? A question with no identifiable scope, such as 'where do things stand?', should be rejected. Does it reveal an answer to a claim? Does it assert or presuppose anything the dialogue does not establish, including who bought, booked, chose, or agreed to something? Return only JSON: {\"safe\":true,\"faithful\":true,\"reason\":\"brief explanation\"}. Safe means no answer is disclosed; faithful means the question has a useful scope and every factual presupposition is supported by the dialogue. For example, 'tickets I purchased' is unfaithful if a companion bought them.\n\nFrozen dialogue:\npizza-day/pizza-plan-00 | written 2026-09-10T18:00:00-04:00 | Me: just walked in the door ugh\npizza-day/pizza-plan-01 | written 2026-09-10T18:01:25-04:00 | Devon: same, my bus was late again\npizza-day/pizza-plan-02 | written 2026-09-10T18:02:51-04:00 | Me: did you at least get lunch today?\npizza-day/pizza-plan-03 | written 2026-09-10T18:04:17-04:00 | Devon: yeah just a sad sandwich lol\npizza-day/pizza-plan-04 | written 2026-09-10T18:05:42-04:00 | Devon: hey are you still in a pizza mood?\npizza-day/pizza-plan-05 | written 2026-09-10T18:07:08-04:00 | Me: always, why\npizza-day/pizza-plan-06 | written 2026-09-10T18:08:34-04:00 | Devon: wanna get pizza at Luigi's on Friday?\npizza-day/pizza-plan-07 | written 2026-09-10T18:10:00-04:00 | Me: oh you mean the one on 5th?\npizza-day/pizza-plan-08 | written 2026-09-10T18:11:25-04:00 | Devon: yeah that's the one\npizza-day/pizza-plan-09 | written 2026-09-10T18:12:51-04:00 | Me: yes I'm down, what time were you thinking?\npizza-day/pizza-plan-10 | written 2026-09-10T18:14:17-04:00 | Devon: 7pm?\npizza-day/pizza-plan-11 | written 2026-09-10T18:15:42-04:00 | Me: yeah that works\npizza-day/pizza-plan-12 | written 2026-09-10T18:17:08-04:00 | Devon: cool I'll meet you there\npizza-day/pizza-plan-13 | written 2026-09-10T18:18:34-04:00 | Me: perfect, I'm gonna be a couch potato tonight\npizza-day/pizza-plan-14 | written 2026-09-10T18:20:00-04:00 | Devon: same honestly, see you tomorrow\npizza-day/ducks-side-00 | written 2026-09-10T18:30:00-04:00 | Maya: ugh traffic getting home tonight was the worst\npizza-day/ducks-side-01 | written 2026-09-10T18:32:13-04:00 | Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\npizza-day/ducks-side-02 | written 2026-09-10T18:34:26-04:00 | Devon: ohh yes I haven't done that in forever\npizza-day/ducks-side-03 | written 2026-09-10T18:36:39-04:00 | Devon: what time were you thinking?\npizza-day/ducks-side-04 | written 2026-09-10T18:38:53-04:00 | Me: hmm maybe, my Saturday is kind of up in the air rn\npizza-day/ducks-side-05 | written 2026-09-10T18:41:06-04:00 | Maya: I was thinking like 9am before it gets too hot?\npizza-day/ducks-side-06 | written 2026-09-10T18:43:19-04:00 | Devon: yeah that works for me\npizza-day/ducks-side-07 | written 2026-09-10T18:45:33-04:00 | Me: 9 is early lol I'll have to see, don't plan around me\npizza-day/ducks-side-08 | written 2026-09-10T18:47:46-04:00 | Maya: haha no worries just lmk\npizza-day/ducks-side-09 | written 2026-09-10T18:50:00-04:00 | Devon: did your guys power flicker earlier or was that just my building\nQuestion: Hey, can you give me a quick recap on our pizza plan?\nClaims: [{\"id\": \"fact-1\", \"statement\": \"Devon is the user's companion for the agreed plan.\", \"evidence\": [\"pizza-day/pizza-plan-06\", \"pizza-day/pizza-plan-09\", \"pizza-day/pizza-plan-12\"]}, {\"id\": \"fact-2\", \"statement\": \"The agreed restaurant is Luigi's.\", \"evidence\": [\"pizza-day/pizza-plan-06\", \"pizza-day/pizza-plan-09\"]}, {\"id\": \"fact-3\", \"statement\": \"The restaurant is on 5th.\", \"evidence\": [\"pizza-day/pizza-plan-07\", \"pizza-day/pizza-plan-08\"]}, {\"id\": \"fact-4\", \"statement\": \"The pizza plan is for Friday, September 11.\", \"evidence\": [\"pizza-day/pizza-plan-06\", \"pizza-day/pizza-plan-09\"]}, {\"id\": \"fact-5\", \"statement\": \"The agreed time is 7pm.\", \"evidence\": [\"pizza-day/pizza-plan-10\", \"pizza-day/pizza-plan-11\"]}]"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a111cb-7e5f-718d-a857-d3dd3e3f3476",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"safe\":true,\"faithful\":true,\"reason\":\"Scopes to 'pizza plan' established in dialogue and discloses no details; presupposes only existence of a plan involving user, which dialogue supports.\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791299911,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 786,
+      "prompt_tokens": 1344,
+      "total_tokens": 2130,
+      "completion_tokens_details": {
+        "reasoning_tokens": 734
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"safe\":true,\"faithful\":true,\"reason\":\"Scopes to 'pizza plan' established in dialogue and discloses no details; presupposes only existence of a plan involving user, which dialogue supports.\"}",
+  "usage": {
+    "completion_tokens": 786,
+    "prompt_tokens": 1344,
+    "total_tokens": 2130,
+    "completion_tokens_details": {
+      "reasoning_tokens": 734
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

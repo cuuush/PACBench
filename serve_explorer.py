@@ -6,20 +6,19 @@ Serves explorer/ on 127.0.0.1 and opens the browser. Stdlib only.
 """
 
 import http.server
-import subprocess
+import json
 import sys
-import threading
 import webbrowser
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from pacbench.explorer_data import load_runs
+
 ROOT = Path(__file__).resolve().parent
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8137
-BUILD_LOCK = threading.Lock()
 
 
 class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
-    """Refresh the local artifact index whenever the dashboard requests it."""
+    """Serve public run evidence; private homes are outside the static root."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT / "explorer"), **kwargs)
@@ -29,27 +28,29 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
-        if urlsplit(self.path).path == "/data/dashboard.json":
-            with BUILD_LOCK:
-                result = subprocess.run(
-                    [sys.executable, str(ROOT / "scripts" / "build_explorer_data.py")],
-                    cwd=ROOT, capture_output=True, text=True, timeout=60)
-            if result.returncode:
-                body = result.stderr or result.stdout or "artifact index build failed"
-                self.send_error(500, body[-1000:])
-                return
+        if urlsplit(self.path).path == "/runs":
+            body = json.dumps(load_runs(ROOT), ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         super().do_GET()
 
 
 def main() -> None:
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), ExplorerHandler)
-    url = f"http://127.0.0.1:{PORT}/index.html"
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8137
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), ExplorerHandler)
+    url = f"http://127.0.0.1:{port}/index.html"
     print(f"serving explorer/ at {url}")
     webbrowser.open(url)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        server.server_close()
 
 
 if __name__ == "__main__":

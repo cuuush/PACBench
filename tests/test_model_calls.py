@@ -5,7 +5,7 @@ from unittest import mock
 
 import pytest
 
-from pacbench.authoring import ScenePlan, realize_scene
+from pacbench.authoring import AuthoringError, ScenePlan, realize_scene
 from pacbench.model_calls import ModelClient, ResponsesWriter
 from scripts.build_explorer_data import model_record_for_dashboard
 
@@ -119,6 +119,28 @@ def test_explorer_projection_hides_replay_blob():
     assert "prior-opaque" not in json.dumps(projected)
     assert "new-opaque" not in json.dumps(projected)
     assert projected["response"]["output"][0]["summary"][0]["text"] == "A short summary."
+
+
+def test_two_rejected_drafts_stop_without_a_third_model_call(tmp_path):
+    prompts = []
+
+    def writer(prompt):
+        prompts.append(prompt)
+        return "Devon: Pizza Friday?\nMe: Maybe."
+
+    def verifier(_):
+        return json.dumps({"supported": False, "evidence": [1, 2],
+                           "problem": "not agreed"})
+
+    with pytest.raises(AuthoringError, match="failed after re-render"):
+        realize_scene(ScenePlan(scene="Devon and I agree on pizza Friday",
+                                at="2026-09-10T18:00:00"),
+                      writer, verifier, record_dir=tmp_path)
+    assert len(prompts) == 2
+    assert "not agreed" in prompts[1]
+    records = [json.loads(path.read_text()) for path in tmp_path.glob("*.json")]
+    assert len(records) == 2
+    assert all(record["passed"] is False for record in records)
 
 
 def test_incomplete_responses_writer_call_keeps_failed_audit(tmp_path):

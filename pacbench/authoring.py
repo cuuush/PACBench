@@ -500,9 +500,7 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                   judge_generate: Generate, *, model: str = "",
                   record_dir: str | Path | None = None,
                   prior_lines: tuple[tuple[str, ...], ...] = ()) -> SceneRealization:
-    """Render one scene and verify it with the narrow judge only — no
-    deterministic checks. One re-render with the failure quoted; then fail
-    loudly. Returns frozen lines plus provenance."""
+    """Render and verify a scene, with at most one revision after rejection."""
     if plan.message_range and plan.message_range[1] > 150:
         # Bounded authoring calls, with the same conversation carried forward.
         # Never duplicate, truncate or pad messages to reach a noise target.
@@ -547,8 +545,8 @@ def realize_scene(plan: ScenePlan, generate: Generate,
     previous_draft = ""
     previous_result: ModelOutput | None = None
     retry_feedback = ""
-    while True:
-        record.attempts += 1
+    for attempt in (1, 2):
+        record.attempts = attempt
         prompt = initial_prompt + note
         if record.attempts > 1 and previous_result is not None and hasattr(generate, "continue_from"):
             record.prompt_chars += len(initial_prompt) + len(retry_feedback)
@@ -622,12 +620,12 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                     return SceneRealization(
                         scene_id=plan.id, lines=tuple(lines),
                         record=record, verdict=verdict)
-        if record.attempts > 1:
-            raise AuthoringError(
-                f"scene {plan.id!r}: failed after re-render: {failure}")
-        previous_draft = out
-        retry_feedback = (f"The verifier rejected this draft: {failure}. "
-                          "Revise the same conversation, preserving good "
-                          "lines and fixing the failure.")
-        note = (f"\n\nYour previous draft was:\n{out}\n\n"
-                f"{retry_feedback}")
+        if attempt == 1:
+            previous_draft = out
+            retry_feedback = (f"The verifier rejected this draft: {failure}. "
+                              "Revise the same conversation, preserving good "
+                              "lines and fixing the failure.")
+            note = (f"\n\nYour previous draft was:\n{out}\n\n"
+                    f"{retry_feedback}")
+    raise AuthoringError(
+        f"scene {plan.id!r}: failed after re-render: {failure}")

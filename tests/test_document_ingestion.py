@@ -78,6 +78,16 @@ def test_unavailable_recipient_is_not_invented(tmp_path):
         append_messages(tmp_path/'chat.db',[message('sent','Me',True)])
 
 
+def test_evaluation_cannot_use_future_source_or_nightly_processing():
+    from pacbench.document_ingestion import validate_evaluation_clocks
+    schedule=[{'at':'2026-09-10T23:00:00-04:00'}]
+    validate_evaluation_clocks(schedule,['memcal','mem0'],['2026-09-11T09:00:00-04:00'],'America/New_York')
+    with pytest.raises(ValueError,match='source availability'):
+        validate_evaluation_clocks(schedule,['mem0'],['2026-09-10T22:00:00-04:00'],'America/New_York')
+    with pytest.raises(ValueError,match='native processing'):
+        validate_evaluation_clocks(schedule,['memcal'],['2026-09-11T01:00:00-04:00'],'America/New_York')
+
+
 def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch):
     from pacbench import document_ingestion as module
     schedule=prepare_sources(tmp_path,[message('one')],'America/New_York')

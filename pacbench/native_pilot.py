@@ -24,7 +24,7 @@ from .usage import tracked_turn
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
-ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking"}
+ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover"}
 
 PROBE = '''
 import json, sys
@@ -48,7 +48,7 @@ from plugins.memory import load_memory_provider
 p = load_memory_provider(sys.argv[1], register_skills=False)
 p.initialize("pacbench-read-only-smoke", hermes_home=str(get_hermes_home()), platform="cli")
 try:
-    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search"}[p.name]
+    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search", "byterover":"brv_status"}[p.name]
     args = ({"action": "list"} if p.name == "holographic" else
             {"query": "native read-only capability check"} if p.name in {"mem0","hindsight","openviking"} else {})
     output = p.handle_tool_call(tool, args)
@@ -77,11 +77,11 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
         provider_name=provider, model=model, model_provider="meta-ai",
-        builtin_memory=True, model_base_url=driver_url)
-    # Preserve the normal additive built-in memory, but isolate all HOME fallback paths.
+        builtin_memory=False, model_base_url=driver_url)
+    # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir()
-    env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "0",
+    env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),
            "PACBENCH_USAGE_ROLES": json.dumps({driver_project:"hermes",memory_project:"memory_provider"}), "HERMES_ENABLE_PROJECT_PLUGINS": "0"}
@@ -175,14 +175,16 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         if proc.returncode:
             raise RuntimeError("Memcal native scratch-store bootstrap failed")
     if provider == 'hindsight':
-        # README manual local_embedded setup; no starter memory or bank mission.
+        # README local_external setup with a run-owned self-hosted native server.
+        # Preserve failed embedded trials: the pinned plugin repeatedly restarts
+        # the newer SDK daemon when it adds native profile environment fields.
         from .gateway_client import validate_route
         base,key=client_settings(memory_project)
         validate_route(base,key)
         configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
         folder=home/'hindsight'
         folder.mkdir()
-        save(folder/'config.json',{'mode':'local_embedded','profile':'pacbench-'+run_id,
+        save(folder/'config.json',{'mode':'local_external','profile':'pacbench-'+run_id,
             'bank_id':'pacbench-'+run_id,'llm_provider':'openai_compatible',
             'llm_model':configured_model,'llm_base_url':base,'llm_api_key':key})
         os.chmod(folder/'config.json',0o600)
@@ -193,26 +195,43 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
         bootstrap='''
 import json,sys
-from plugins.memory.hindsight import HindsightMemoryProvider
-p=HindsightMemoryProvider()
-p.initialize('setup',hermes_home=sys.argv[1],platform='cli')
+from pathlib import Path
+from hindsight import HindsightEmbedded
+cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
+p=HindsightEmbedded(profile=cfg['profile'],llm_provider='openai',llm_model=cfg['llm_model'],
+    llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
-    result=p._get_client().create_bank(bank_id=sys.argv[2])
-    print(json.dumps(result.model_dump(mode='json')))
-finally:p.shutdown()
+    result=p.create_bank(bank_id=sys.argv[2])
+    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json')}))
+finally:p.close()
 '''
         proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',bootstrap,
                              str(home.resolve()),'pacbench-'+run_id],
                             env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
                             cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
-        save(root/'native-bank-setup.json',{'route':'Hindsight create_bank with defaults; no starter facts',
+        save(root/'native-bank-setup.json',{'route':'Self-hosted Hindsight native server; create_bank defaults; no starter facts',
              'returncode':proc.returncode,'stdout':proc.stdout.replace(key,'<gateway-token>'),
              'stderr':proc.stderr.replace(key,'<gateway-token>')})
         if proc.returncode:raise RuntimeError('Hindsight empty-bank setup failed; inspect native-bank-setup.json')
+        endpoint=json.loads(proc.stdout.splitlines()[-1])['endpoint']
+        cfg=json.loads((folder/'config.json').read_text())
+        cfg['api_url']=endpoint
+        save(folder/'config.json',cfg)
+        env.update(HINDSIGHT_MODE='local_external',HINDSIGHT_API_URL=endpoint,
+                   HINDSIGHT_BANK_ID='pacbench-'+run_id,HINDSIGHT_API_KEY='')
+        import atexit
+        stop_script="from hindsight_embed import get_embed_manager; get_embed_manager().stop(__import__('sys').argv[1])"
+        # Shutdown only this run-owned service, through the native manager.
+        atexit.register(lambda:subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',stop_script,'pacbench-'+run_id],
+            env={**os.environ,**env},cwd=harness.ISOLATED_TREE,capture_output=True,timeout=30))
     if provider=='openviking':
         from provider_adapters.openviking_local import start
         base,key=client_settings(memory_project)
         start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+    if provider=='byterover':
+        from provider_adapters.byterover_local import configure
+        base,key=client_settings(memory_project)
+        configure(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     return env
 
 
@@ -287,7 +306,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         ingestion: str = 'documents') -> dict:
     if ingestion not in {'documents','legacy-chat-handoff'}:
         raise ValueError('Unknown ingestion mode')
-    from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation
+    from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 1200:
         raise ValueError("pilot limits: 1–3 repetitions, 1–1200 messages")
     selected = providers if providers is not None else provider_names()
@@ -297,7 +316,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     output.mkdir(parents=True, exist_ok=False)
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
-              "builtin_memory": True, "session_search": False,'ingestion_mode':ingestion}
+              "builtin_memory": False, "tool_policy": "provider-only-v1", "session_search": False,'ingestion_mode':ingestion}
     save(output / "summary.json", report)
     driver = None
     judge = plan = None
@@ -332,7 +351,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             report.pop('exposure_schedule')
             report.update(exposure_context='not-applicable',exposure_delivery='daily-documents',
                           ingestion_version='daily-source-documents-v1',
+                          document_provider_blockers=dict(BLOCKERS),
                           ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
+            validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],
+                [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
+                report['process_timezone'] or 'America/New_York')
         if evaluation_plan:
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
@@ -378,6 +401,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 capability["wiring_verified"] = smoke_succeeded(capability)
             save(root / "preflight.json", capability)
             result = {"provider": provider, "repetition": repetition,
+                      'input_hash':contract.evidence_hash if source else None,
                       "capability": capability, "state": (
                           "available-unverified" if capability["available"] and
                           not capability.get("execution_blocker") else "blocked")}
@@ -388,8 +412,14 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     or result["state"] == "invalid"):
                 save(output / "summary.json", report)
                 continue
-            allowlist = ",".join(["memory", "tool_search", "tool_describe", "tool_call"] +
-                                 [n for n in capability["tools"] if n])
+            allowlist = ",".join(sorted(set(n for n in capability["tools"] if n)))
+            if not allowlist or any("*" in n for n in capability["tools"]):
+                result.update(state="invalid", reason="Provider supplied no exact native tool allowlist")
+                save(output / "summary.json", report)
+                continue
+            save(root / "tool-policy.json", {"version": "provider-only-v1",
+                "provider": provider, "allowed_tools": allowlist.split(","),
+                "builtin_memory": False, "os_sandbox": False})
             failed = False
             exposure_session = None
             if ingestion=='documents':

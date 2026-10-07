@@ -270,6 +270,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result = _parse_turn(prompt, at, partial, latency)
         result.stderr_tail = note
         _recover_tool_results(result, home / "state.db")
+        enforce_provider_tools(result, env)
         return result
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
@@ -281,7 +282,18 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
             result.prefetch_context = latest.get("prefetch")
         except (IndexError, ValueError, OSError):
             pass
+    enforce_provider_tools(result, env)
     return result
+
+
+def enforce_provider_tools(turn: TurnResult, env: dict) -> None:
+    """Fail any non-provider attempt, even if Hermes rejected it before dispatch."""
+    if env.get("PACBENCH_PROVIDER_ONLY") != "1":
+        return
+    allowed = {n.strip() for n in env.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
+               if n.strip() and "*" not in n}
+    forbidden = [c for c in turn.tool_calls if c.get("name") not in allowed]
+    turn.policy_blocks = max(turn.policy_blocks, len(forbidden))
 
 
 def _recover_tool_results(turn: TurnResult, state_db: Path) -> None:

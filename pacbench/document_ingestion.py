@@ -23,7 +23,6 @@ BLOCKERS = {
     'honcho':'Unsupported on verified evidence: peer/session message modeling, no documented document import.',
     'memori':'Unsupported on verified evidence: completed-agent-turn capture, no verified document import.',
     'retaindb':'Document API verified, but hosted account/cost boundary unavailable; documented $20/month subscription exceeds task budget.',
-    'byterover':'Document/CLI curation candidate; raw-file import and gateway-only inference not verified yet.',
     'supermemory':'Document API verified; run-owned local server and inference spending boundary not yet provisioned.',
 }
 WORKER = '''
@@ -94,6 +93,20 @@ def processing_at(at, provider, timezone):
         return at
     stamp=datetime.fromisoformat(at).astimezone(ZoneInfo(timezone))
     return datetime.combine(stamp.date()+timedelta(days=1),datetime.min.time(),ZoneInfo(timezone)).replace(hour=3).isoformat()
+
+
+def validate_evaluation_clocks(schedule,providers,question_times,timezone):
+    """Do not evaluate an earlier day against later source or processing state."""
+    questions=[datetime.fromisoformat(value) for value in question_times]
+    if not questions or any(value.utcoffset() is None for value in questions):
+        raise ValueError('Evaluation clocks require explicit timezone offsets')
+    earliest=min(questions)
+    for row in schedule:
+        if datetime.fromisoformat(row['at'])>earliest:
+            raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
+        for provider in providers:
+            if datetime.fromisoformat(processing_at(row['at'],provider,timezone))>earliest:
+                raise ValueError('Evaluation precedes native processing; do not use future memory state')
 
 
 def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=240):

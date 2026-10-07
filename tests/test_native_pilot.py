@@ -64,7 +64,8 @@ def test_mem0_uses_distinct_native_profile_identities(tmp_path):
     assert a["oss"]["embedder"]["provider"] == "ollama"
     assert a["oss"]["llm"]["config"]["model"].endswith("-contributor")
     assert env["HOME"] == str(first / "fallback-home")
-    assert env["PACBENCH_NO_BUILTIN_MEMORY"] == "0"
+    assert env["PACBENCH_NO_BUILTIN_MEMORY"] == "1"
+    assert env["PACBENCH_PROVIDER_ONLY"] == "1"
 
 
 def test_live_budget_block_happens_before_any_model_call(tmp_path):

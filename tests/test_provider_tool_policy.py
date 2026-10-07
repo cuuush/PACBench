@@ -1,0 +1,104 @@
+"""Exercise the actual patched dispatch guards without launching paid model calls."""
+import ast
+import json
+import os
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+from pacbench.harness import TurnResult, enforce_provider_tools
+
+TREE = Path(__file__).resolve().parents[1] / 'vendor/hermes-isolated'
+
+
+def guard(relative, name, stop):
+    tree = ast.parse((TREE / relative).read_text())
+    fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
+    # Keep the real guard; replace the remaining dispatch with an observable sentinel.
+    index = next(i for i, n in enumerate(fn.body) if stop(n))
+    fn.body = fn.body[:index] + ast.parse("return 'EXECUTED'").body
+    module = ast.Module(body=[fn], type_ignores=[])
+    namespace = {'os': os, 'json': json, 'Optional': lambda x: x,
+                 'InlineToolExecutor': object, '_ToolCallRef': object,
+                 '_SequentialDispatch': lambda callback: callback}
+    # Ignore annotations; this test needs only dispatch behavior.
+    fn.returns = None
+    for arg in fn.args.args:
+        arg.annotation = None
+    exec(compile(ast.fix_missing_locations(module), str(TREE / relative), 'exec'), namespace)
+    return namespace[name]
+
+
+@pytest.mark.parametrize('name', ['terminal', 'read_file', 'code_execution', 'tool_call',
+                                 'tool_search', 'memory', 'session_search', 'hindsight_fake'])
+def test_actual_inline_guard_blocks_non_provider_and_spoofed_names(monkeypatch, name):
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall,hindsight_reflect')
+    fn = guard('agent/inline_tool_executors.py', 'resolve_invoke_tool_executor',
+               lambda n: isinstance(n, ast.If) and 'INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES' in ast.unparse(n.test))
+    result = fn(None, name)(None, {}, None)
+    assert 'PACBENCH-BLOCKED' in json.loads(result)['error']
+    assert fn(None, 'hindsight_recall') == 'EXECUTED'
+
+
+@pytest.mark.parametrize('allowlist', ['', 'hindsight*'])
+def test_strict_mode_fails_closed_without_exact_tool_names(monkeypatch, allowlist):
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', allowlist)
+    fn = guard('agent/inline_tool_executors.py', 'resolve_invoke_tool_executor',
+               lambda n: isinstance(n, ast.If) and 'INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES' in ast.unparse(n.test))
+    assert 'PACBENCH-BLOCKED' in fn(None, 'hindsight_recall')(None, {}, None)
+
+
+def test_sequential_guard_blocks_before_executor_resolution(monkeypatch):
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall')
+    fn = guard('agent/tool_executor.py', '_resolve_sequential_dispatch',
+               lambda n: isinstance(n, ast.If) and 'INLINE_TOOL_EXECUTORS' in ast.unparse(n.test))
+    ref = SimpleNamespace(name='terminal', args={}, task_id=None, call_id=None, trace=[])
+    assert 'PACBENCH-BLOCKED' in fn(None, ref, [])({})
+    ref.name = 'hindsight_recall'
+    assert fn(None, ref, []) == 'EXECUTED'
+
+
+def test_attempt_fails_even_if_agent_answers_correctly():
+    turn = TurnResult(prompt='', at='', answer='Correct answer',
+                      tool_calls=[{'name': 'read_file'}], tool_results=[],
+                      policy_blocks=0, latency_s=0, returncode=0, stderr_tail='', raw_events=1)
+    enforce_provider_tools(turn, {'PACBENCH_PROVIDER_ONLY': '1',
+                                 'PACBENCH_TOOL_ALLOWLIST': 'hindsight_recall'})
+    assert turn.policy_blocks == 1
+
+
+def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_path):
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall,hindsight_reflect')
+    monkeypatch.setenv('PACBENCH_CONTEXT_TRACE', str(tmp_path / 'context.jsonl'))
+    tree = ast.parse((TREE / 'agent/turn_context.py').read_text())
+    fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'build_turn_context')
+    policy = next(n for n in fn.body if isinstance(n, ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
+    agent = SimpleNamespace(tools=[{'function': {'name': n}} for n in
+                            ('terminal', 'memory', 'tool_search', 'hindsight_recall', 'hindsight_fake')])
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[policy], type_ignores=[])),
+                 'actual_schema_filter', 'exec'), {'agent': agent, 'os': os, 'json': json})
+    assert agent.valid_tool_names == {'hindsight_recall'}
+    evidence = json.loads((tmp_path / 'context.jsonl.tools.jsonl').read_text())
+    assert evidence['offered_tools'] == ['hindsight_recall']
+
+
+def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall')
+    tree = ast.parse((TREE / 'model_tools.py').read_text())
+    fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'handle_function_call')
+    start = next(i for i, n in enumerate(fn.body) if isinstance(n, ast.Assign)
+                 and any(isinstance(t, ast.Name) and t.id == '_pacbench_allowlist' for t in n.targets))
+    fn.body = fn.body[start:start + 2] + ast.parse("return 'EXECUTED'").body
+    fn.returns = None
+    for arg in fn.args.args: arg.annotation = None
+    namespace = {'os': os, 'json': json}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])),
+                 'actual_registry_guard', 'exec'), namespace)
+    invoke = namespace['handle_function_call']
+    assert 'PACBENCH-BLOCKED' in invoke('terminal', {})
+    assert invoke('hindsight_recall', {}) == 'EXECUTED'

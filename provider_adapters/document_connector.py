@@ -4,7 +4,9 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
+import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -99,12 +101,29 @@ def hindsight(source,root,at,processing_at):
     try:
         # Use the native plugin's configured recommended embedded client and bank,
         # but its documented retain API directly; no conversation hooks or turn.
-        result=provider._get_client().retain(bank_id=cfg['bank_id'],content=(source/'messages.txt').read_text(),
+        client=provider._get_client()
+        result=provider._run_sync(client.aretain(bank_id=cfg['bank_id'],content=(source/'messages.txt').read_text(),
             timestamp=min(datetime.fromisoformat(m['written_at']) for m in json.loads((source/'messages.json').read_text())),
-            document_id=source.name,metadata={'source':'daily-transcript','collected_at':at},retain_async=False)
-        return {'ready':True,'interface':'Hindsight.retain(content,document_id,retain_async=False)',
+            document_id=source.name,metadata={'source':'daily-transcript','collected_at':at},retain_async=False))
+        # Retain completes fact extraction; normal observation consolidation is
+        # a separate queued operation. Observe its real status before recall.
+        # No retry of the source, extra Hermes turn, recall-type change or delay
+        # chosen from an answer. The shared ingestion deadline still applies.
+        deadline=time.monotonic()+180
+        statuses=[]
+        while True:
+            status=provider._run_sync(client.operations.list_operations(bank_id=cfg['bank_id'],type='consolidation',limit=100))
+            data=status.model_dump(mode='json');statuses.append(data)
+            operations=data['operations']
+            pending=any(o['status'] in {'pending','processing'} for o in operations)
+            failed=data['total']>len(operations) or any(
+                o['status'] not in {'pending','processing','completed'} for o in operations)
+            if failed or not pending or time.monotonic()>=deadline:break
+            time.sleep(1)
+        return {'ready':not failed and not pending,'interface':'Hindsight.retain(content,document_id,retain_async=False)',
                 'result':result.model_dump(mode='json') if hasattr(result,'model_dump') else str(result),
-                'readiness':'Synchronous native retain completion'}
+                'processing_status':statuses,
+                'readiness':'Native retain and observation consolidation completion via Operations API'}
     finally:provider.shutdown()
 
 
@@ -130,9 +149,29 @@ def openviking(source,root,at,processing_at):
     finally:p.shutdown()
 
 
+def byterover(source,root,at,processing_at):
+    from pacbench.gateway_client import validate_route
+    cfg=json.loads((Path(os.environ['XDG_CONFIG_HOME'])/'brv/providers.json').read_text())
+    active=cfg['providers'].get('openai-compatible',{})
+    if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!='muse-spark-1.3-contributor':
+        raise ValueError('ByteRover inference must use configured Contributor')
+    validate_route(active['baseUrl'],os.environ['OPENAI_COMPATIBLE_API_KEY'])
+    project=root/'hermes-home/byterover'
+    target=project/'imports'/source.name/'messages.txt';target.parent.mkdir(parents=True)
+    shutil.copyfile(source/'messages.txt',target)
+    # No curate prompt: use the CLI's documented raw-file input and its own
+    # ordinary curation. Do not auto-approve pending native reviews or cloud sync.
+    p=subprocess.run(['brv','curate','--files',str(target.relative_to(project)),'--format','json'],
+        cwd=project,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=220)
+    result=json.loads(p.stdout)
+    return {'ready':p.returncode==0 and result.get('success') is True and not result.get('data', {}).get('pendingReview'),
+            'interface':'brv curate --files (no custom prompt)',
+            'result':result,'stderr':p.stderr,'readiness':'Native curation completion; no pending review'}
+
+
 def main(args=None):
     provider,src,arm,at,processing_at=args or sys.argv[1:]
-    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking}
+    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover}
     result=dispatch[provider](Path(src),Path(arm),at,processing_at)
     print(json.dumps(result,ensure_ascii=False,default=lambda value:sorted(value) if isinstance(value,set) else str(value)))
     return 0 if result['ready'] else 1

@@ -30,7 +30,7 @@ index 246ab57..136440a 100644
                  _agent_cfg
              )
 diff --git a/agent/inline_tool_executors.py b/agent/inline_tool_executors.py
-index 2b5f5f7..4e4a818 100644
+index 2b5f5f7..889b399 100644
 --- a/agent/inline_tool_executors.py
 +++ b/agent/inline_tool_executors.py
 @@ -10,6 +10,7 @@ lazily at call time so ``patch("tools.x.y")`` in tests keeps working.
@@ -54,7 +54,7 @@ index 2b5f5f7..4e4a818 100644
      session_db = agent._get_session_db_for_recall()
      if not session_db:
          from hermes_state import format_session_db_unavailable
-@@ -231,6 +238,21 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
+@@ -231,6 +238,23 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
      Precedence: todo_list/session_search/memory, then memory-manager tools, then the
      remaining inline tools (``message_agent`` excluded).
      """
@@ -63,12 +63,14 @@ index 2b5f5f7..4e4a818 100644
 +    # sequential guard in tool_executor). Twin of the registry guard in
 +    # model_tools.handle_function_call.
 +    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
-+    if _pacbench_allowlist:
++    if _pacbench_allowlist or os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
 +        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
 +                     if t.strip() and not t.strip().endswith("*")}
 +        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
 +                             if t.strip().endswith("*") and len(t.strip()) > 1)
-+        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        _pb_ok = function_name in _pb_names or (
++            os.environ.get("PACBENCH_PROVIDER_ONLY") != "1" and
++            bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
 +        if not _pb_ok:
 +            return lambda agent, args, ctx, _fn=function_name: json.dumps(
 +                {"error": f"PACBENCH-BLOCKED: tool '{_fn}' is outside "
@@ -121,10 +123,10 @@ index 9d5c5e1..cd1ab03 100644
              block = agent._memory_store.format_for_system_prompt(kind) if enabled else None
              if block:
 diff --git a/agent/tool_executor.py b/agent/tool_executor.py
-index 4b55c1b..3be7bb6 100644
+index 4b55c1b..28d974e 100644
 --- a/agent/tool_executor.py
 +++ b/agent/tool_executor.py
-@@ -1554,6 +1554,21 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
+@@ -1554,6 +1554,23 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
      function_name, function_args, effective_task_id, tool_call_id, middleware_trace = (
          ref.name, ref.args, ref.task_id, ref.call_id, ref.trace,
      )
@@ -132,12 +134,14 @@ index 4b55c1b..3be7bb6 100644
 +    # enforced before every dispatch branch (inline, delegate, context-engine,
 +    # memory-provider, registry). See model_tools.handle_function_call for the twin.
 +    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
-+    if _pacbench_allowlist:
++    if _pacbench_allowlist or os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
 +        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
 +                     if t.strip() and not t.strip().endswith("*")}
 +        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
 +                             if t.strip().endswith("*") and len(t.strip()) > 1)
-+        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        _pb_ok = function_name in _pb_names or (
++            os.environ.get("PACBENCH_PROVIDER_ONLY") != "1" and
++            bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
 +        if not _pb_ok:
 +            return _SequentialDispatch(
 +                lambda next_args: json.dumps(
@@ -147,7 +151,7 @@ index 4b55c1b..3be7bb6 100644
          # Agent-level tools that need live AIAgent state; table shared with invoke_tool.
          inline_executor = INLINE_TOOL_EXECUTORS[function_name]
 diff --git a/agent/turn_context.py b/agent/turn_context.py
-index cc71fb4..723de71 100644
+index cc71fb4..61dd215 100644
 --- a/agent/turn_context.py
 +++ b/agent/turn_context.py
 @@ -9,11 +9,14 @@ returns a ``TurnContext`` with only the locals the loop reads back.
@@ -195,6 +199,27 @@ index cc71fb4..723de71 100644
      # Deterministic recall indicator via _emit_status so the model can't silently
      # drop injected memory.
      if ext_prefetch_cache:
+@@ -889,6 +908,20 @@ def build_turn_context(
+     Order matters: the DB session row is created only AFTER the system prompt is built
+     (else it persists system_prompt=NULL and costs a cache miss) and BEFORE preflight
+     compression."""
++    # PACBench provider-only condition: expose only exact native provider schemas.
++    # No extra prompting or provider-specific retrieval instructions.
++    if os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
++        allowed = {n.strip() for n in os.environ.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
++                   if n.strip() and "*" not in n}
++        agent.tools = [t for t in (agent.tools or [])
++                       if t.get("function", {}).get("name") in allowed]
++        agent.valid_tool_names = {t["function"]["name"] for t in agent.tools}
++        trace_path = os.environ.get("PACBENCH_CONTEXT_TRACE")
++        if trace_path:
++            with open(trace_path + ".tools.jsonl", "a", encoding="utf-8") as record:
++                record.write(json.dumps({"allowed_tools": sorted(allowed),
++                    "offered_tools": sorted(agent.valid_tool_names)}) + "\n")
++
+     from agent.turn_context_compaction import run_turn_start_compaction
+ 
+     # Guard stdio against OSError from broken pipes (systemd/headless/daemon).
 diff --git a/hermes_time.py b/hermes_time.py
 index a8cab27..e7c3226 100644
 --- a/hermes_time.py
@@ -215,10 +240,10 @@ index a8cab27..e7c3226 100644
      tz = get_timezone()
      return datetime.now(tz) if tz is not None else datetime.now().astimezone()
 diff --git a/model_tools.py b/model_tools.py
-index f0e56c1..5533ba9 100644
+index f0e56c1..aac50f0 100644
 --- a/model_tools.py
 +++ b/model_tools.py
-@@ -885,6 +885,19 @@ def handle_function_call(
+@@ -885,6 +885,21 @@ def handle_function_call(
          function_args = {}
      trace = list(tool_request_middleware_trace or [])
      function_name = _LEGACY_TOOL_ALIASES.get(function_name, function_name)
@@ -226,12 +251,14 @@ index f0e56c1..5533ba9 100644
 +    # When PACBENCH_TOOL_ALLOWLIST is set (comma-separated names, "prefix*" wildcards
 +    # allowed), any other tool fails closed here. Same harness for every provider.
 +    _pacbench_allowlist = os.environ.get("PACBENCH_TOOL_ALLOWLIST", "")
-+    if _pacbench_allowlist:
++    if _pacbench_allowlist or os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
 +        _pb_names = {t.strip() for t in _pacbench_allowlist.split(",")
 +                     if t.strip() and not t.strip().endswith("*")}
 +        _pb_prefixes = tuple(t.strip()[:-1] for t in _pacbench_allowlist.split(",")
 +                             if t.strip().endswith("*") and len(t.strip()) > 1)
-+        _pb_ok = function_name in _pb_names or (bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        _pb_ok = function_name in _pb_names or (
++            os.environ.get("PACBENCH_PROVIDER_ONLY") != "1" and
++            bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
 +        if not _pb_ok:
 +            return json.dumps({"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
 +                                        f"the benchmark memory-tool boundary and did not execute"})

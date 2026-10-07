@@ -23,7 +23,9 @@ def start(root,env,model,base,key):
          'embedding':{'dense':{'provider':'ollama','model':'nomic-embed-text',
              'api_base':'http://127.0.0.1:11435/v1','dimension':768,'input':'text'}},
          'vlm':{'provider':'openai','model':model,'api_base':base,'api_key':key,'max_tokens':16384},
-         'server':{'host':'127.0.0.1','port':port}}
+         'server':{'host':'127.0.0.1','port':port,'observability':{
+             'traces':{'enabled':True,'protocol':'local','local_path':str((root/'provider-api-calls.jsonl').resolve())},
+             'dump_body':{'enabled':True,'max_bytes':8_000_000}}}}
     path=root/'ov.conf';save(path,cfg);os.chmod(path,0o600)
     endpoint=f'http://127.0.0.1:{port}'
     env.update(OPENVIKING_ENDPOINT=endpoint,OPENVIKING_CONFIG_FILE=str(path.resolve()),

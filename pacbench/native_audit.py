@@ -52,7 +52,8 @@ def audit(root: Path) -> dict:
             label = str(arm.relative_to(root))
             if summary.get('ingestion_mode')=='documents' and result['state']=='blocked':
                 from .document_ingestion import BLOCKERS
-                check(result['reason']==BLOCKERS.get(result['provider']),f'{label}: unverified blocked-provider reason')
+                blockers=summary.get('document_provider_blockers',BLOCKERS)
+                check(result['reason']==blockers.get(result['provider']),f'{label}: unverified blocked-provider reason')
                 check(not list((arm/'ingestion').glob('*.json')) and not (arm/'recall.json').exists(),f'{label}: blocked arm executed')
                 continue
             if 'process_timezone' in summary:
@@ -64,6 +65,27 @@ def audit(root: Path) -> dict:
             if result['state'] != 'diagnostic':
                 # A blocked arm has no live trace; keep the failure and audit later arms.
                 continue
+            if summary.get('tool_policy') == 'provider-only-v1':
+                check(summary.get('builtin_memory') is False, f'{label}: built-in memory enabled')
+                allowed = sorted(set(result['capability']['tools']))
+                policy = read(arm / 'tool-policy.json')
+                check(policy == {'version': 'provider-only-v1', 'provider': result['provider'],
+                    'allowed_tools': allowed, 'builtin_memory': False, 'os_sandbox': False},
+                    f'{label}: provider tool policy mismatch')
+                check(bool(allowed) and all('*' not in n for n in allowed),
+                    f'{label}: missing exact provider tool names')
+                schemas = [json.loads(line) for line in
+                    (arm / 'context.jsonl.tools.jsonl').read_text().splitlines()]
+                check(bool(schemas), f'{label}: missing offered tool evidence')
+                check(all(row['allowed_tools'] == allowed and
+                    set(row['offered_tools']) <= set(allowed) for row in schemas),
+                    f'{label}: non-provider schema exposed')
+                for path in arm.rglob('*.json'):
+                    data = read(path)
+                    if isinstance(data, dict) and 'tool_calls' in data and 'prompt' in data:
+                        check(not data.get('policy_blocks') and all(
+                            c.get('name') in allowed for c in data['tool_calls']),
+                            f'{label}: non-provider tool attempted in {path.relative_to(arm)}')
             exposure_sessions = []
             if summary.get('ingestion_mode')=='documents':
                 from .document_audit import audit_ingestion

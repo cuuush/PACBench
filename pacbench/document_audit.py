@@ -5,7 +5,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from .document_ingestion import VERSION, daily_batches, document_text, processing_at
+from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks
 
 
 def audit_ingestion(root, arm, messages, summary):
@@ -61,6 +61,7 @@ def audit_ingestion(root, arm, messages, summary):
                  *(arm/'turns').glob('*/followups/combined/turn.json'),arm/'followups/combined/turn.json']:
         if path.exists():turns.append(json.loads(path.read_text()))
     expected={(t['session_id'],t['prompt']) for t in turns}
+    validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York')
     with sqlite3.connect(f'file:{arm/"hermes-home/state.db"}?mode=ro',uri=True) as db:
         actual=db.execute("SELECT session_id,content FROM messages WHERE role='user' ORDER BY id").fetchall()
         check(set(actual)==expected and len(actual)==len(expected),'Native Hermes user messages differ from evaluation questions')

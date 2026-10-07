@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta, time, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from .authoring import ScenePlan, build_scene_observations, realize_scene, scene_spec
+from .authoring import ScenePlan, SceneRecord, SceneRealization, build_scene_observations, realize_scene, scene_spec
 from .creds import load_driver
 from .gateway_client import client_settings
 from .frozen import bundle_hash, write_bundle
@@ -38,11 +38,15 @@ def local_clock(value: str, zone: ZoneInfo | None) -> datetime:
         raise ValueError(f"ambiguous local time: {value}")
     return clock
 
-def resolve_spec(spec: dict, root: Path) -> tuple[list[ScenePlan], ScenePlan, dict]:
+def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[ScenePlan], ScenePlan, dict]:
     """Fill operational clocks and identifiers without changing author prose."""
+    spec = normalize_week(spec,week_start)
     rows = spec.get("scenes")
     if not isinstance(rows, list) or not rows:
         raise ValueError("experiment needs at least one scene")
+    noise = spec.get('noise','low')
+    if noise not in ('low','medium','high'):
+        raise ValueError('noise must be low, medium or high')
     if "facts" in spec and (not isinstance(spec["facts"], list) or
                             not spec["facts"] or
                             any(not isinstance(f, str) or not f.strip()
@@ -58,8 +62,34 @@ def resolve_spec(spec: dict, root: Path) -> tuple[list[ScenePlan], ScenePlan, di
     seed = (local_clock(spec["question_at"], zone) - timedelta(days=1)
             if spec.get("question_at") else datetime.now(zone or timezone.utc))
     scenes = []
+    counts = {}
+    for row in rows:
+        key=(row.get('channel','text'),row.get('thread',row.get('id','')),str(row.get('at',row.get('window_start','')))[:10])
+        counts[key]=counts.get(key,0)+1
     for index, authored in enumerate(rows, 1):
         row = dict(authored)
+        row['noise']=noise
+        if 'message_range' not in row:
+            if noise=='low':row['message_range']=[4,12]
+            else:
+                if not row.get('participants'):raise ValueError('Chatty weeks require explicit chat participants')
+                key=(row.get('channel','text'),row.get('thread',row.get('id','')),str(row.get('at',row.get('window_start','')))[:10])
+                minimum,maximum=(20,40) if noise=='medium' else (600,800)
+                row['messages_per_person']=[max(1,minimum//counts[key]),max(1,maximum//counts[key])]
+                row['message_range']=[max(2,row['messages_per_person'][0]*len(row['participants'])),
+                                      row['messages_per_person'][1]*len(row['participants'])]
+                if noise=='high' and not row.get('window_end'):
+                    # A noise level describes the whole day's conversation,
+                    # not thousands of texts crammed into a 20 minute scene.
+                    date=str(row.get('at',row.get('window_start','')))[:10]
+                    if not date:raise ValueError('High noise needs an explicit source day')
+                    row['window_end']=f'{date}T23:59:00'
+                    # Respect authored clocks and the next scene in this chat.
+                    start=str(row.get('at',row.get('window_start','')))
+                    later=[r.get('at',r.get('window_start','')) for r in rows if
+                        r.get('channel','text')==key[0] and r.get('thread',r.get('id',''))==key[1] and
+                        str(r.get('at',r.get('window_start','')))[:10]==date and str(r.get('at',r.get('window_start','')))>start]
+                    if later:row['window_end']=min(later)
         row.setdefault("id", f"scene-{index:02d}")
         if not row.get("at") and not row.get("window_start"):
             row["at"] = (seed.replace(hour=18, minute=0, second=0,
@@ -102,19 +132,93 @@ def resolve_spec(spec: dict, root: Path) -> tuple[list[ScenePlan], ScenePlan, di
                             hour=9, minute=0, second=0, microsecond=0))
     question_at = local_clock(spec["question_at"], zone) if spec.get("question_at") else default_question
     question_at = question_at.isoformat(timespec="seconds")
-    if datetime.fromisoformat(question_at) <= latest:
+    if not spec.get("checks") and datetime.fromisoformat(question_at) <= latest:
         raise ValueError("evaluation must follow the source scenes")
     if any(key in spec for key in ('providers', 'prepare_only', 'exposure_context', 'exposure_delivery', 'week_of', 'days')):
         raise ValueError("authoring specs contain scenes and evaluation checks; select providers in native_pilot")
     from .evaluation import resolve_checks
+    checks = resolve_checks(spec, question_at, timezone_name)
+    if checks['checks'] and datetime.fromisoformat(checks['checks'][-1]['at']) <= latest:
+        raise ValueError('Final evaluation must follow all source scenes')
     return scenes, target, {
         "id": life_id, "test_scene_id": target.id,
         "timezone": timezone_name,
         "question_at": question_at, "scenes": [scene_spec(s) for s in scenes],
-        **resolve_checks(spec, question_at, timezone_name)}
+        "noise": noise, "week": bool(spec.get('week')), **({"week_start":spec["week_start"]} if "week_start" in spec else {}), **checks}
+
+
+WEEKDAYS=('monday','tuesday','wednesday','thursday','friday','saturday','sunday')
+
+
+def clock_on_day(day, value):
+    """Human wall clocks belong to their containing weekday."""
+    import re
+    if not isinstance(value,str):raise ValueError('Time must be human-readable, such as 7:30 am or 8 pm')
+    clock=re.sub(r'\s+','',value.lower())
+    for fmt in ('%I:%M%p','%I%p'):
+        try:return datetime.combine(day,datetime.strptime(clock,fmt).time()).isoformat(timespec='seconds')
+        except ValueError:pass
+    raise ValueError(f'Invalid human time: {value!r}; use 7:30 am or 8 pm')
+
+
+def normalize_week(spec, week_start=None):
+    """Expand readable weekdays and reusable channels only at preparation time."""
+    if 'days' not in spec:return spec
+    if any(k in spec for k in ('scenes','checks','facts')):
+        raise ValueError('Weeks use inline scene facts and turn expectations, without a top-level fact catalog')
+    days=spec['days'];channels=spec.get('channels')
+    if not isinstance(days,dict) or set(days)!=set(WEEKDAYS):
+        raise ValueError('Week days must be monday through sunday')
+    if not isinstance(channels,dict) or not channels:raise ValueError('Week needs reusable channel definitions')
+    allowed={'type','participants','name'}
+    for key,value in channels.items():
+        if not isinstance(value,dict) or set(value)-allowed or not value.get('type') or not value.get('participants'):
+            raise ValueError(f'Channel {key!r} needs type and participants, with an optional group name')
+    from datetime import date
+    monday=date.fromisoformat(week_start) if week_start else datetime.now(ZoneInfo(spec.get('timezone','America/New_York'))).date()
+    if week_start and monday.weekday()!=0:raise ValueError('week-start must be a Monday')
+    monday-=timedelta(days=monday.weekday())
+    scenes,checks=[],[]
+    for offset,weekday in enumerate(WEEKDAYS):
+        day=days[weekday];date=monday+timedelta(days=offset)
+        if not isinstance(day,dict) or set(day)-{'scenes','conversations'}:raise ValueError(f'Invalid {weekday} section')
+        for scene in day.get('scenes',[]):
+            row=dict(scene);channel_id=row.pop('channel',None)
+            if channel_id not in channels:raise ValueError(f'Unknown channel {channel_id!r}')
+            definition=channels[channel_id]
+            row.update(channel=definition['type'],thread=channel_id,participants=definition['participants'],
+                chat_name=definition.get('name',''),at=clock_on_day(date,row.pop('time')))
+            if 'until' in row:row['window_end']=clock_on_day(date,row.pop('until'))
+            if not isinstance(row.get('facts'),list) or any(not isinstance(f,str) or not f.strip() for f in row['facts']):
+                raise ValueError('Scene facts are inline English statements')
+            scenes.append(row)
+        for conversation in day.get('conversations',[]):
+            session=conversation['id'];clock=clock_on_day(date,conversation['time'])
+            for index,turn in enumerate(conversation['turns']):
+                row=dict(turn)
+                if 'facts' in row or 'criteria' in row:raise ValueError('Assistant turns use an English expect description')
+                if not isinstance(row.get('expect'),str) or not row['expect'].strip():raise ValueError('Assistant turn needs an English expect description')
+                row['at']=clock_on_day(date,row.pop('time')) if 'time' in row else (datetime.fromisoformat(clock)+timedelta(minutes=2*index)).isoformat()
+                row['session']=session
+                checks.append(row)
+    if not scenes or not checks:raise ValueError('Week requires sources and assistant turns')
+    return {**{k:v for k,v in spec.items() if k not in ('days','channels')},'week':True,
+        'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
+        'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
 
 def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
-    scenes, target, resolved = resolve_spec(spec, root)
+    scenes, target, resolved = resolve_spec(spec, root,week_start=progress.get("week_start"))
+    reusable={}
+    if progress.get('resume') and (root/'scenes.json').exists():
+        old=json.loads((root/'resolved-spec.json').read_text())
+        plans={p['id']:p for p in old['scenes']}
+        reusable={r['scene_id']:r for r in json.loads((root/'scenes.json').read_text())['scenes']
+                  if r['record']['status']=='ok' and r['verdict'].get('supported') is True and
+                  any(s.id==r['scene_id'] and scene_spec(s)==plans.get(s.id) for s in scenes)}
+        import shutil
+        shutil.rmtree(root/'evaluations',ignore_errors=True)
+        for name in ('evaluation-plan.json','evaluation-errors.json','contract.json','followup-plan.json','week.json','scene-errors.json'):
+            (root/name).unlink(missing_ok=True)
     save(root / "resolved-spec.json", resolved)
     life_id = resolved["id"]
     progress["stage"] = "scene generation and verification"
@@ -131,11 +235,26 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     observations = []
     scene_records = []
     thread_history: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
+    failures, blocked_threads = [], set()
     for plan in scenes:
         key = (plan.channel, plan.thread)
-        realized = realize_scene(plan, writer, judge, model=driver.model_id,
-                                 record_dir=root / "scene-verifications",
-                                 prior_lines=tuple(thread_history.get(key, ())))
+        if key in blocked_threads:
+            failures.append({'scene_id':plan.id,'state':'skipped','reason':'Earlier scene in this thread failed'})
+            continue
+        try:
+            if plan.id in reusable:
+                previous=reusable[plan.id]
+                realized=SceneRealization(plan.id,tuple(tuple(line) for line in previous['lines']),
+                    SceneRecord(**previous['record']),previous['verdict'])
+            else:
+                realized = realize_scene(plan, writer, judge, model=driver.model_id,
+                                     record_dir=root / "scene-verifications",
+                                     prior_lines=tuple(thread_history.get(key, ())))
+        except Exception as exc:
+            failures.append({'scene_id':plan.id,'state':'ungraded','reason':f'{type(exc).__name__}: {exc}'})
+            blocked_threads.add(key)
+            save(root/'scene-errors.json',failures)
+            continue
         new_messages = build_scene_observations(life_id, plan, list(realized.lines))
         thread_history.setdefault(key, []).extend(
             (o.written_at, o.sender, o.text) for o in new_messages)
@@ -149,13 +268,24 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     write_bundle(bundle, root / "bundle.json")
     save(root / "bundle-provenance.json", {"hash": bundle_hash(bundle),
                                            "source": "verified-scenes"})
+    if failures:
+        save(root/'scene-errors.json',failures)
+        summary={'state':'incomplete','results':[],'message_count':len(observations),
+                 'bundle_hash':bundle_hash(bundle),'errors':failures}
+        save(root/'summary.json',summary)
+        return summary
     progress["stage"] = "contract generation and review"
     save(root / "experiment-status.json", progress)
     evaluation_plan = None
     if resolved['checks']:
         from .evaluation import freeze_evaluations
         evaluation_plan = freeze_evaluations(resolved, observations, target, judge, root)
-        first = evaluation_plan['checks'][0]['id']
+        if evaluation_plan.get('errors'):
+            summary={'state':'incomplete','results':[],'bundle_hash':bundle_hash(bundle),
+                'message_count':len(observations),'errors':evaluation_plan['errors']}
+            save(root/'summary.json',summary)
+            return summary
+        first = evaluation_plan['checks'][-1]['id']
         (root / 'contract.json').write_bytes((root / 'evaluations' / first / 'contract.json').read_bytes())
         contract = load_contract(root / 'contract.json')
     else:
@@ -166,23 +296,53 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             question_generate=judge, output_path=root / "contract.json")
     progress["contract_frozen_at"] = datetime.now(timezone.utc).isoformat()
     freeze_policy(contract, root / "followup-plan.json")
-    summary = {"state": "prepared", "results": [],
+    summary = {"state": "prepared", "results": [], "message_count":len(observations),
+               "noise":resolved['noise'],
                "contract_hash": contract.contract_hash, "bundle_hash": bundle_hash(bundle)}
     if evaluation_plan:
         summary['evaluation_plan_hash'] = evaluation_plan['plan_hash']
     save(root / "summary.json", summary)
     return summary
 
-def prepare(spec: dict, root: Path) -> dict:
+
+def export_week(root, destination):
+    """One portable, hash-bound corpus; execution never calls its writer/checker."""
+    if audit_prepared(root)['state']!='pass':raise ValueError('Cannot freeze incomplete preparation')
+    from .followups import digest
+    names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json',
+           'contract.json','followup-plan.json','summary.json','evaluation-plan.json']
+    files={name:json.loads((root/name).read_text()) for name in names if (root/name).exists()}
+    for folder in ('evaluations','scene-verifications'):
+        for path in (root/folder).rglob('*.json'):
+            files[str(path.relative_to(root))]=json.loads(path.read_text())
+    body={'version':1,'files':files}
+    save(destination,{**body,'corpus_hash':digest(body)})
+
+
+def import_week(source, root):
+    from .followups import digest
+    body=json.loads(source.read_text());claimed=body.pop('corpus_hash')
+    if body.get('version')!=1 or digest(body)!=claimed:raise ValueError('Frozen week hash/version mismatch')
+    root.mkdir(parents=True,exist_ok=False)
+    for name,value in body['files'].items():
+        path=Path(name)
+        if path.is_absolute() or '..' in path.parts or path.suffix!='.json':raise ValueError('Unsafe frozen week path')
+        save(root/path,value)
+    report=audit_prepared(root)
+    if report['state']!='pass':raise ValueError('Frozen week failed preparation audit: '+str(report['errors']))
+    return root
+
+def prepare(spec: dict, root: Path, *, resume=False, week_start=None) -> dict:
     """Run once and leave a diagnosis even when authoring fails early."""
-    root.mkdir(parents=True, exist_ok=False)
+    if resume and not (root/'resolved-spec.json').exists():raise ValueError('Resume requires an existing authoring directory')
+    root.mkdir(parents=True, exist_ok=resume)
     save(root / "spec.json", spec)
     progress = {"state": "running", "stage": "spec validation",
-                "started_at": datetime.now(timezone.utc).isoformat()}
+                "started_at": datetime.now(timezone.utc).isoformat(), 'resume':resume,'week_start':week_start}
     save(root / "experiment-status.json", progress)
     try:
         summary = _prepare_body(spec, root, progress)
-        audit = audit_prepared(root)
+        audit = audit_prepared(root) if summary['state']=='prepared' else {'state':'fail','errors':summary.get('errors',[])}
         save(root / "run-audit.json", audit)
         if audit["state"] != "pass":
             summary["state"] = "incomplete"
@@ -198,14 +358,17 @@ def prepare(spec: dict, root: Path) -> dict:
     progress.update(state=summary["state"], stage="finished",
                     finished_at=datetime.now(timezone.utc).isoformat())
     save(root / "experiment-status.json", progress)
+    if summary['state']=='prepared':export_week(root,root/'week.json')
     return summary
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate, verify and freeze source messages; never run providers.")
     parser.add_argument("spec", type=Path, help="JSON scene and fact specification")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--week-start",help="Concrete Monday (YYYY-MM-DD) for compiling a weekday week; defaults to this week")
+    parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
     args = parser.parse_args()
-    result = prepare(json.loads(args.spec.read_text()), args.output.resolve())
+    result = prepare(json.loads(args.spec.read_text()), args.output.resolve(),resume=args.resume,week_start=args.week_start)
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

@@ -5,7 +5,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks
+from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
 def audit_ingestion(root, arm, messages, summary):
@@ -17,7 +17,7 @@ def audit_ingestion(root, arm, messages, summary):
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
     cumulative=[]
     for row,(day,batch) in zip(schedule,batches):
-        cumulative+=batch
+        cumulative+=[m for m in batch if m['channel']=='imessage']
         source=root/'sources'/day
         meta=json.loads((source/'source.json').read_text())
         at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
@@ -61,7 +61,30 @@ def audit_ingestion(root, arm, messages, summary):
                  *(arm/'turns').glob('*/followups/combined/turn.json'),arm/'followups/combined/turn.json']:
         if path.exists():turns.append(json.loads(path.read_text()))
     expected={(t['session_id'],t['prompt']) for t in turns}
-    validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York')
+    validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York',
+                               chronological=bool(summary.get('evaluation_plan_hash')))
+    if summary.get('evaluation_plan_hash'):
+        plan=json.loads((root/'evaluation-plan.json').read_text())
+        for row in plan['checks']:
+            directory=arm/'turns'/row['id']
+            if not (directory/'turn.json').exists():continue
+            state=json.loads((directory/'source-state.json').read_text())
+            due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York')
+            check(state=={'at':row['at'],'ingested_batches':[r['id'] for r in due],
+                         'source_ids':[sid for r in due for sid in r['source_ids']]},'Checkpoint source state has missing/future batches')
+            usage=json.loads((directory/'usage.json').read_text())
+            if usage.get('state')=='captured':
+                for batch in schedule:
+                    record=json.loads((arm/batch['file']).read_text())
+                    window=record.get('usage',{})
+                    check(window.get('state')=='captured','Missing ingestion chronology evidence')
+                    if window.get('state')=='captured':
+                        if batch in due:
+                            check(datetime.fromisoformat(window['finished'])<=datetime.fromisoformat(usage['started']),'Ingestion finished after its evaluation started')
+                        else:
+                            follow=directory/'followups/combined/usage.json'
+                            finished=json.loads(follow.read_text())['finished'] if follow.exists() else usage['finished']
+                            check(datetime.fromisoformat(window['started'])>=datetime.fromisoformat(finished),'Future ingestion began before earlier evaluation finished')
     with sqlite3.connect(f'file:{arm/"hermes-home/state.db"}?mode=ro',uri=True) as db:
         actual=db.execute("SELECT session_id,content FROM messages WHERE role='user' ORDER BY id").fetchall()
         check(set(actual)==expected and len(actual)==len(expected),'Native Hermes user messages differ from evaluation questions')

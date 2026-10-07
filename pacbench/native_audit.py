@@ -44,7 +44,7 @@ def audit(root: Path) -> dict:
             check(summary['process_timezone'] == spec.get('timezone', ''),
                   'process timezone differs from frozen scenario')
         digest = hashlib.sha256(json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        check(digest == contract.evidence_hash == summary['input_hash'], 'source hash mismatch')
+        check(digest == summary['input_hash'] and (bool(evaluations) or digest == contract.evidence_hash), 'source hash mismatch')
         check(contract.contract_hash == summary['contract_hash'], 'contract hash mismatch')
         check(len(messages) == summary['message_count'], 'message count mismatch')
         check(bool(summary['results']), 'no provider results')

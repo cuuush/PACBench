@@ -300,17 +300,20 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
     contract = load_contract(source / "contract.json")
     evidence_hash = hashlib.sha256(json.dumps(messages, sort_keys=True,
                                             ensure_ascii=False).encode()).hexdigest()
-    if evidence_hash != contract.evidence_hash or contract.contract_hash != summary["contract_hash"]:
+    if (not (source / "evaluation-plan.json").exists() and evidence_hash != contract.evidence_hash or contract.contract_hash != summary["contract_hash"]):
         raise ValueError("frozen contract does not match exposure")
     resolved = json.loads((source / "resolved-spec.json").read_text())
+    from .preparation_audit import audit_prepared
+    checked=audit_prepared(source)
+    if checked["state"]!="pass":raise ValueError("Preparation failed integrity audit: "+str(checked["errors"]))
     return messages, contract, resolved
 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None) -> dict:
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
-    if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 1200:
-        raise ValueError("pilot limits: 1–3 repetitions, 1–1200 messages")
+    if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 100000:
+        raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")
     selected = providers if providers is not None else provider_names()
     if not selected or len(set(selected)) != len(selected) or any(p not in provider_names() for p in selected):
         raise ValueError("invalid or duplicate provider selection")
@@ -330,6 +333,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     messages = contract = resolved = None
     evaluations = []
     if source:
+        if source.is_file():
+            from .prepare import import_week
+            source=import_week(source,output / "preparation")
         messages, contract, resolved = read_prepared(source, max_messages)
         evaluation_plan = None
         if (source / 'evaluation-plan.json').exists():
@@ -343,7 +349,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         driver = load_driver()
         for name in ("bundle.json", "contract.json", "resolved-spec.json"):
             shutil.copyfile(source / name, output / name)
-        report.update(input_hash=contract.evidence_hash, contract_hash=contract.contract_hash,
+        report.update(input_hash=hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest(), contract_hash=contract.contract_hash,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=str(source.resolve()))
         report["process_timezone"] = resolved.get("timezone", "")
@@ -352,7 +358,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                       ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
         validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],
             [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
-            report['process_timezone'] or 'America/New_York')
+            report['process_timezone'] or 'America/New_York', chronological=bool(evaluations))
         if evaluation_plan:
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
@@ -368,7 +374,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             root = output / f"repeat-{repetition}" / provider
             if source and provider in BLOCKERS:
                 result={'provider':provider,'repetition':repetition,'state':'blocked','reason':BLOCKERS[provider],
-                        'input_hash':contract.evidence_hash,'capability':{'available':False,'reason':BLOCKERS[provider],
+                        'input_hash':report['input_hash'],'capability':{'available':False,'reason':BLOCKERS[provider],
                         'execution_blocker':BLOCKERS[provider],'wiring_verified':False,'tools':[]}}
                 results.append(result)
                 save(root/'status.json',result)
@@ -398,7 +404,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 capability["wiring_verified"] = smoke_succeeded(capability)
             save(root / "preflight.json", capability)
             result = {"provider": provider, "repetition": repetition,
-                      'input_hash':contract.evidence_hash if source else None,
+                      'input_hash':report['input_hash'] if source else None,
                       "capability": capability, "state": (
                           "available-unverified" if capability["available"] and
                           not capability.get("execution_blocker") else "blocked")}
@@ -417,26 +423,40 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             save(root / "tool-policy.json", {"version": "provider-only-v1",
                 "provider": provider, "allowed_tools": allowlist.split(","),
                 "builtin_memory": False, "os_sandbox": False})
-            failed = False
-            for schedule in report['ingestion_schedule']:
-                record=ingest_day(provider,output/'sources'/schedule['id'],root,env,schedule['at'],report['process_timezone'] or 'America/New_York')
-                save(root/schedule['file'],record)
-                if record['state']!='ready':
-                    failed=True
-                    result['reason']='Native source ingestion/processing failed; inspect saved record'
-                    break
-            if failed:
-                result.update(state="invalid", reason=result.get('reason') or "native source ingestion failed or policy blocked")
-            elif evaluations:
-                record_recall_isolation(root)
-                sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
-                                      question_dir=output / 'combined-questions')
-                result.update(state=sequence['state'], checks=sequence['checks'], input_hash=contract.evidence_hash,
-                              reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
-                capability['live_verified'] = sequence['state'] == 'diagnostic'
-                result['behavior'] = {'evaluation_context': evaluation_plan['context']}
+            ingested=[]
+            failed_batches=set()
+            from .document_ingestion import ready_sources
+            def import_before_check(row, directory):
+                needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'] or 'America/New_York')
+                for batch in needed:
+                    if batch['id'] in ingested:continue
+                    if batch['id'] in failed_batches:raise RuntimeError('Earlier native import failed; source state unavailable')
+                    record=ingest_day(provider,output/'sources'/batch['id'],root,env,batch['at'],report['process_timezone'] or 'America/New_York')
+                    save(root/batch['file'],record)
+                    if record['state']!='ready':
+                        failed_batches.add(batch['id'])
+                        raise RuntimeError('Native source ingestion/processing failed; inspect saved record')
+                    ingested.append(batch['id'])
+                if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
+                save(directory/'source-state.json',{'at':row['at'],'ingested_batches':list(ingested),
+                    'source_ids':[sid for batch in needed for sid in batch['source_ids']]})
+            if evaluations:
+                try:
+                    sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
+                                          question_dir=output / 'combined-questions', before_check=import_before_check)
+                    result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
+                                  reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
+                    capability['live_verified'] = sequence['state'] == 'diagnostic'
+                    result['behavior'] = {'evaluation_context': evaluation_plan['context']}
+                except RuntimeError as exc:
+                    result.update(state='invalid',reason=str(exc))
             else:
-                record_recall_isolation(root)
+                try:
+                    import_before_check({'at':resolved['question_at']},root)
+                except RuntimeError as exc:
+                    result.update(state='invalid',reason=str(exc))
+                    save(root/'status.json',result);save(output/'summary.json',report)
+                    continue
                 # Deliberately omit --resume: recall must cross a real session boundary.
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
@@ -455,7 +475,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
                                               "misrepresented": grade.misrepresented,
                                               "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery})
-                    result.update(state="diagnostic", reason="", input_hash=contract.evidence_hash)
+                    result.update(state="diagnostic", reason="", input_hash=report['input_hash'])
                     capability["live_verified"] = True
                     recovery = run_followups(contract=contract, plan=plan, grade=grade,
                         initial_turn=turn, output=root / "followups", judge=judge,

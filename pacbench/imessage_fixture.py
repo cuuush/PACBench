@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = 'apple-messages-text-v2'
+VERSION = 'apple-messages-text-v3'
 APPLE_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 SCHEMA = (Path(__file__).parent/'source_schemas/apple_messages.sql').read_text()
 
@@ -59,22 +59,46 @@ def append_messages(path: Path, messages: list[dict]) -> dict:
     with sqlite3.connect(path) as conn:
         if not conn.execute("SELECT 1 FROM sqlite_master WHERE name='message'").fetchone():
             conn.executescript(SCHEMA)
-        for m in messages:
-            if not m['from_owner']:
-                contact = identity(m['sender'])
-                manifest['contacts'][m['sender']] = contact
+        groups = {}
+        for m in messages:groups.setdefault(m['thread'],[]).append(m)
+        for tid,batch in groups.items():
+            declared = [(m.get('structured') or {}).get('participants') for m in batch]
+            rosters = [list(r) for r in declared if r is not None]
+            prior_thread = manifest['threads'].get(tid)
+            if rosters:
+                roster = rosters[0]
+                if (len(rosters)!=len(batch) or any(r!=roster for r in rosters) or
+                    any(not isinstance(name,str) or not name.strip() for name in roster) or
+                    'Me' not in roster or len(roster)<2 or len(set(roster))!=len(roster) or
+                    any(m['sender'] not in roster for m in batch)):
+                    raise ValueError('Inconsistent source chat membership')
+            else:
+                roster = sorted(set((prior_thread or {}).get('participants',[])) |
+                                {'Me'} | {m['sender'] for m in batch if not m['from_owner']})
+            if len(roster)<2:
+                raise ValueError('Outgoing-only chat requires explicit recipient source metadata')
+            if prior_thread and rosters and prior_thread['participants'] != roster:
+                raise ValueError('Source membership changed without a modeled chat membership event')
+            labels = {(m.get('structured') or {}).get('chat_name','') for m in batch}
+            if len(labels)!=1:raise ValueError('Inconsistent source group name')
+            display = next(iter(labels))
+            if display and len(roster)<3:raise ValueError('Group name assigned to a direct chat')
+            members = []
+            for name in roster:
+                if name=='Me':continue
+                contact=identity(name);manifest['contacts'][name]=contact
                 conn.execute('INSERT OR IGNORE INTO handle(id,country,service,uncanonicalized_id,person_centric_id) VALUES(?,NULL,?,?,?)',
-                             (contact['handle'],'iMessage',contact['handle'],contact['uid']))
-                thread = manifest['threads'].get(m['thread'])
-                if thread is None:
-                    pending='chat'+uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-thread:'+m['thread']).hex
-                    cursor=conn.execute('INSERT INTO chat(guid,style,state,account_id,chat_identifier,service_name,account_login,last_addressed_handle) VALUES(?,45,3,?,?,?,?,?)',
-                        ('iMessage;+;'+pending,'iMessage:'+owner['handle'],pending,'iMessage',owner['handle'],owner['handle']))
-                    thread={'rowid':cursor.lastrowid}
-                    manifest['threads'][m['thread']]=thread
-                cid=thread['rowid']
-                hid=conn.execute('SELECT ROWID FROM handle WHERE id=?',(contact['handle'],)).fetchone()[0]
-                conn.execute('INSERT OR IGNORE INTO chat_handle_join VALUES(?,?)',(cid,hid))
+                    (contact['handle'],'iMessage',contact['handle'],contact['uid']))
+                members.append(conn.execute('SELECT ROWID FROM handle WHERE id=?',(contact['handle'],)).fetchone()[0])
+            if prior_thread is None:
+                pending='chat'+uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-thread:'+tid).hex
+                cursor=conn.execute('INSERT INTO chat(guid,style,state,account_id,chat_identifier,service_name,account_login,last_addressed_handle) VALUES(?,45,3,?,?,?,?,?)',
+                    ('iMessage;+;'+pending,'iMessage:'+owner['handle'],pending,'iMessage',owner['handle'],owner['handle']))
+                prior_thread={'rowid':cursor.lastrowid};manifest['threads'][tid]=prior_thread
+            prior_thread['participants']=roster
+            cid=prior_thread['rowid']
+            for hid in members:conn.execute('INSERT OR IGNORE INTO chat_handle_join VALUES(?,?)',(cid,hid))
+            conn.execute('UPDATE chat SET display_name=? WHERE ROWID=?',(display or None,cid))
         for m in sorted(messages,key=lambda x:(apple_ns(x['written_at']),x['source_id'])):
             guid = str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-message:'+m['source_id'])).upper()
             fingerprint = hashlib.sha256(json.dumps(m,sort_keys=True,ensure_ascii=False).encode()).hexdigest()

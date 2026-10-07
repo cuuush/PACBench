@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -54,15 +54,35 @@ class ScenePlan:
     window_end: str = ""
     timezone: str = ""
     message_range: tuple[int, int] | None = None
+    participants: tuple[str, ...] = ()
+    chat_name: str = ""
+    noise: str = "low"
+    messages_per_person: tuple[int, int] | None = None
 
     def __post_init__(self) -> None:
+        if self.participants:
+            if (not isinstance(self.participants,(list,tuple)) or len(self.participants)<2 or
+                    any(not isinstance(p,str) or not p.strip() for p in self.participants) or
+                    len(set(self.participants)) != len(self.participants) or 'Me' not in self.participants):
+                raise AuthoringError('participants must be distinct source contacts including Me')
+            object.__setattr__(self,'participants',tuple(self.participants))
+        if self.chat_name and (not isinstance(self.chat_name,str) or len(self.participants)<3):
+            raise AuthoringError('chat_name requires an explicit group roster')
         if self.message_range is not None:
             bounds = self.message_range
             if (not isinstance(bounds, (tuple, list)) or len(bounds) != 2 or
                     any(type(n) is not int for n in bounds) or
-                    not 2 <= bounds[0] <= bounds[1] <= 50):
-                raise AuthoringError("message_range must be two integers between 2 and 50")
+                    not 2 <= bounds[0] <= bounds[1] <= 30000):
+                raise AuthoringError("message_range must be two integers between 2 and 30000")
             object.__setattr__(self, "message_range", tuple(bounds))
+        if self.noise not in ('low', 'medium', 'high'):
+            raise AuthoringError('noise must be low, medium or high')
+        if self.messages_per_person is not None:
+            bounds = self.messages_per_person
+            if (not self.participants or not isinstance(bounds, (tuple,list)) or len(bounds)!=2 or
+                    any(type(n) is not int for n in bounds) or not 1<=bounds[0]<=bounds[1]<=800):
+                raise AuthoringError('messages_per_person needs a roster and positive bounds up to 800')
+            object.__setattr__(self,'messages_per_person',tuple(bounds))
         if not self.scene.strip():
             raise AuthoringError("scene needs a description")
         if (not isinstance(self.facts, (list, tuple)) or
@@ -85,7 +105,7 @@ class ScenePlan:
 
 
 #: Prompt version for scene-level authoring.
-SCENE_PROMPT_VERSION = "scene-v13"
+SCENE_PROMPT_VERSION = "scene-v14"
 
 
 def scene_prompt(plan: ScenePlan,
@@ -110,6 +130,8 @@ def scene_prompt(plan: ScenePlan,
         "Use `Me` exactly for the user's own messages and distinct names for "
         "other people. The user must speak at least once. Do not use `User`, "
         "`I`, or another alias for the user's speaker label.\n\n"
+        + (f"Chat members: {', '.join(plan.participants)}. Use only these speaker labels."+
+           (' Members can be silent.\n' if not plan.messages_per_person else '\n') if plan.participants else "") +
         f"Conversation date: {plan.window_start[:10]}. Relative dates in "
         "the conversation use this date as their reference.\n"
         f"These messages will be timestamped between {plan.window_start[11:16]} "
@@ -121,8 +143,9 @@ def scene_prompt(plan: ScenePlan,
         "day, drift into the main topic, and sometimes change subject. "
         "Some messages should have nothing to do with tested facts. Do not "
         "force a joke or use the same greeting pattern in every thread. "
-        "Ordinary side activities are fine; avoid inventing major new "
-        "commitments, addresses, durable preferences, or relationships. "
+        + {'low': 'Noise: low. Use the shortest natural exchange with a little incidental chatter. ',
+           'medium': 'Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. ',
+           'high': 'Noise: high. Make a very chatty day, with many unrelated topics, facts and other plans. ' }[plan.noise] +
         "Write only text messages: no bracketed stage directions, photo "
         "placeholders, or imaginary attachment markers.\n\n"
         "Make commitments clear, but never turn confirmations into a recital "
@@ -135,6 +158,7 @@ def scene_prompt(plan: ScenePlan,
         "number, or year unless a person would actually clarify it.\n\n"
         + (f"Write between {plan.message_range[0]} and {plan.message_range[1]} messages. "
          if plan.message_range else "Choose the number of messages needed for a natural exchange. ") +
+        (f"Each chat member should send {plan.messages_per_person[0]}–{plan.messages_per_person[1]} messages across this exchange. " if plan.messages_per_person else "") +
         "Write one message per line, as `Name: message` using consistent "
         "speaker names. No timestamps, headers, or narration inside the "
         "dialogue. Return only a JSON object with `dialogue` (one string "
@@ -166,6 +190,8 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         "window_end": plan.window_end,
         "timezone": plan.timezone,
         "message_range": plan.message_range,
+        "participants": list(plan.participants), "chat_name": plan.chat_name,
+        "noise": plan.noise, "messages_per_person": plan.messages_per_person,
         "prompt_version": SCENE_PROMPT_VERSION,
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
     }
@@ -247,6 +273,8 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
             f"scene {plan.id!r}: unknown channel {plan.channel!r}")
     seen: set[str] = set()
     for sender, text in lines:
+        if plan.participants and sender not in plan.participants:
+            raise AuthoringError(f'Unknown source participant {sender!r}')
         if sender != "Me" and sender.lower() in {"user", "owner", "i", "myself", "me"}:
             raise AuthoringError(f"scene {plan.id!r}: ambiguous owner label {sender!r}")
         if not text.strip():
@@ -262,7 +290,8 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
             source_id=f"{life_id}/{plan.id}-{i:02d}", channel=plan.channel,
             written_at=stamp, arrived_at=stamp, collected_at=stamp,
             sender=sender, thread=plan.thread, text=text,
-            from_owner=sender == "Me")
+            from_owner=sender == "Me", structured=(
+                {'participants':list(plan.participants),'chat_name':plan.chat_name} if plan.participants else None))
         for i, ((sender, text), stamp) in enumerate(zip(lines, stamps)))
 
 
@@ -474,6 +503,40 @@ def realize_scene(plan: ScenePlan, generate: Generate,
     """Render one scene and verify it with the narrow judge only — no
     deterministic checks. One re-render with the failure quoted; then fail
     loudly. Returns frozen lines plus provenance."""
+    if plan.message_range and plan.message_range[1] > 150:
+        # Bounded authoring calls, with the same conversation carried forward.
+        # Never duplicate, truncate or pad messages to reach a noise target.
+        target = sum(plan.message_range) // 2
+        count = (target + 119) // 120
+        size = target // count
+        lines, records = [], []
+        start, end = datetime.fromisoformat(plan.window_start), datetime.fromisoformat(plan.window_end)
+        for index in range(count):
+            chunk_start = start + (end-start) * index / count
+            chunk_end = start + (end-start) * (index+1) / count
+            quota = (f'Continue the chat. Remaining messages per member toward the daily target: '
+                     f'{ {p:max(0,target//len(plan.participants)-sum(s==p for s,_ in lines)) for p in plan.participants} }.'
+                     if plan.participants else 'Continue the chat.')
+            chunk = replace(plan, id=f'{plan.id}-part-{index+1}',
+                scene=plan.scene if index==0 else f'{plan.scene}\n{quota} The required discussion already happened earlier; continue unrelated daily topics without revising settled plans.',
+                facts=plan.facts if index==0 else (), messages_per_person=None,
+                at=chunk_start.isoformat(), window_start=chunk_start.isoformat(), window_end=chunk_end.isoformat(),
+                message_range=(max(2,size-5),size+5))
+            recent = prior_lines + tuple((s,t) for s,t in lines[-20:])
+            result = realize_scene(chunk,generate,judge_generate,model=model,record_dir=record_dir,prior_lines=recent)
+            lines.extend(result.lines); records.append(result.record)
+        if not plan.message_range[0]<=len(lines)<=plan.message_range[1]:
+            raise AuthoringError('Chunked conversation missed its message target; no padding permitted')
+        if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):
+            raise AuthoringError('Chunked conversation missed a member target; no padding permitted')
+        verdict,pc,rc,jpath=judge_scene(plan,lines,judge_generate,model=model,record_dir=record_dir,prior_lines=prior_lines)
+        record=SceneRecord(scene_id=plan.id,status='ok',attempts=sum(r.attempts for r in records),
+            judge_calls=1+sum(r.judge_calls for r in records),
+            prompt_chars=pc+sum(r.prompt_chars for r in records),response_chars=rc+sum(r.response_chars for r in records),
+            judgment_paths=[p for r in records for p in r.judgment_paths]+([jpath] if jpath else []),
+            generation_paths=[p for r in records for p in r.generation_paths],
+            writer_notes=[n for r in records for n in r.writer_notes])
+        return SceneRealization(plan.id,tuple(lines),record,verdict)
     if plan.channel not in CHANNELS or not plan.thread or plan.thread != norm_thread(plan.thread):
         raise AuthoringError(f"scene {plan.id!r}: invalid channel or thread metadata")
     spread_timestamps(plan, 2)
@@ -525,6 +588,8 @@ def realize_scene(plan: ScenePlan, generate: Generate,
             lines = parse_scene_lines(dialogue, plan)
             if plan.message_range and not plan.message_range[0] <= len(lines) <= plan.message_range[1]:
                 raise ValueError(f"message count {len(lines)} outside {plan.message_range}")
+            if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):
+                raise ValueError('Conversation missed a member message target')
             record.writer_notes.append(writer_note)
         except (SceneRenderError, ValueError) as exc:
             failure = f"unparsable render: {exc.problem if isinstance(exc, SceneRenderError) else exc}"

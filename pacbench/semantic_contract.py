@@ -64,7 +64,7 @@ def build_contract(*, scene: str, test_intent: str,
                    output_path: Path,
                    author_facts: tuple[str, ...] = (),
                    user_question: str | None = None,
-                   question_at: str = "") -> EvaluationContract:
+                   question_at: str = "", behavior: bool = False) -> EvaluationContract:
     """Derive, independently verify, and freeze claims before either arm runs."""
     if not observations:
         raise ValueError("contract needs frozen dialogue")
@@ -72,6 +72,39 @@ def build_contract(*, scene: str, test_intent: str,
     ids = {o["source_id"] for o in observations}
     if len(ids) != len(observations):
         raise ValueError("duplicate dialogue source ids")
+    if behavior:
+        if not author_facts:
+            draft=_call_json(generate,
+                'Turn the English expectation into independently assessable criteria for the assistant answer. '
+                'Describe observable answer behavior; acknowledgement alone does not prove persistence. '
+                'Use the expectation as written; do not add requirements. Return JSON {"criteria":["..."]}.\n'
+                f'User: {user_question}\nExpectation: {test_intent}')
+            criteria=draft.get('criteria')
+            if not isinstance(criteria,list) or not criteria or any(not isinstance(c,str) or not c.strip() for c in criteria):raise ValueError('No usable behavioral criteria')
+            author_facts=tuple(criteria)
+        reviewed = _call_json(verify,
+            'Review this scripted assistant interaction before running it. Expected criteria describe observable '
+            'answer behavior, not proof of external execution. Check each criterion is observable, objective, '
+            'fairly requested, and supported by the available source and scripted user instructions. '
+            'An acknowledgement does not prove persistence. Cite source IDs supporting each '
+            'expectation. Return JSON {"complete":true,"reviews":[{"id":"fact-1","supported":true,'
+            '"relevant":true,"unambiguous":true,"reason":"...","evidence":["source-id"]}]}.\n'
+            f'Question time: {question_at}\nUser: {user_question}\n'
+            f'Criteria: {json.dumps(author_facts)}\nAvailable source and planned user turns:\n{dialogue}')
+        reviews=reviewed.get('reviews',[])
+        if (reviewed.get('complete') is not True or len(reviews)!=len(author_facts) or
+            any(r.get('id')!=f'fact-{i}' or any(r.get(k) is not True for k in ('supported','relevant','unambiguous')) or
+                not r.get('reason') or not r.get('evidence') or set(r['evidence'])-ids for i,r in enumerate(reviews,1))):
+            raise ValueError(f'Behavior criteria rejected: {reviewed}')
+        claims=tuple(ContractClaim(r['id'],fact,tuple(r['evidence'])) for fact,r in zip(author_facts,reviews))
+        body={'claims':[vars(c) for c in claims],'question':user_question,
+            'evidence_hash':hashlib.sha256(json.dumps(observations,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
+            'review':reviewed,'question_review':{'safe':True,'faithful':True,'elicits_all':True,'reason':'Reviewed behavioral interaction'},
+            'author_fact_count':len(author_facts),'question_source':'supplied','question_at':question_at,'kind':'behavior','test_intent':test_intent}
+        hashed=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+        output_path.parent.mkdir(parents=True,exist_ok=True)
+        with output_path.open('x') as f:json.dump({**body,'contract_hash':hashed},f,indent=2,ensure_ascii=False)
+        return EvaluationContract(claims,user_question,body['evidence_hash'],hashed)
     fact_instruction = (
         "The author supplied the following required facts. Return one claim "
         "per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact "
@@ -88,7 +121,7 @@ def build_contract(*, scene: str, test_intent: str,
         "could get right or wrong independently, such as a date and a time, "
         "or a venue name and its street. Resolve relative days from each "
         "message's written timestamp where the dialogue makes that clear. "
-        "Cite exact dialogue source IDs for "
+        "Cite exact dialogue source IDs (including any assistant-user: prefix) for "
         "each. "
         "A proposed plan is different from an agreed plan. Do not include "
         "scenario details absent from the dialogue. Return only JSON: "
@@ -214,7 +247,7 @@ def build_contract(*, scene: str, test_intent: str,
     body = {"claims": [vars(c) for c in claims], "question": question.strip(),
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,
-            "author_fact_count": len(author_facts)}
+            "author_fact_count": len(author_facts),"test_intent":test_intent}
     if user_question is not None:
         body.update(question_source="supplied", question_at=question_at)
     contract_hash = hashlib.sha256(json.dumps(body, sort_keys=True,

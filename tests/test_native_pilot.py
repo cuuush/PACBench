@@ -32,7 +32,7 @@ def test_add_100_is_bounded_prose_without_changing_pizza_facts():
 def test_writer_has_size_constraint_not_oracle_padding():
     plan = ScenePlan(scene="A normal chat", message_range=[18, 22])
     assert "between 18 and 22 messages" in scene_prompt(plan)
-    for bounds in ([1, 10], [22, 18], [18, 1000], [True, 10]):
+    for bounds in ([1, 10], [22, 18], [18, 30001], [True, 10]):
         with pytest.raises(AuthoringError):
             ScenePlan(scene="chat", message_range=bounds)
 

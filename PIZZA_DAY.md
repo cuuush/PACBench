@@ -19,4 +19,4 @@ python serve_explorer.py
 
 Both integrity audits pass. The frozen input hash is `62153788eaee6207430d5726c97967a09f1d653530e865435bb3252f0b3e2b21`. Task spending was $3.2266252 as an accounted upper bound including reservations, not an invoice. Cleanup and offline verification need no new paid calls.
 
-Next development stages are [two days](examples/pizza_two_day_stage.json), [two plans over three days](examples/pizza_two_trips_three_days.json), and [roughly 100 additional messages](examples/pizza_day_plus_100.json). Advance only after understanding small-case failures; do not regenerate all providers without a concrete reason.
+The next development case is [Pizza Week](examples/pizza_week.json): two outings, DM/group updates, an ambiguous cancellation, and fresh-session persistence checks. Its weekday author format is implemented and covered offline; its live authoring was paused during the schema revision, so no new provider accuracy is asserted. Start with low noise, inspect small-case failures, then increase message counts.

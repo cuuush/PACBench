@@ -24,9 +24,10 @@ def audit_prepared(root: Path) -> dict:
             errors.append('Missing or duplicate source IDs')
         evidence_hash = hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         contract = load_contract(root / 'contract.json')
-        if contract.contract_hash != summary['contract_hash'] or contract.evidence_hash != evidence_hash:
+        has_checks=(root/'evaluation-plan.json').exists()
+        if contract.contract_hash != summary['contract_hash'] or not has_checks and contract.evidence_hash != evidence_hash:
             errors.append('Frozen contract differs from source messages or summary')
-        if any(not c.evidence or set(c.evidence) - set(ids) for c in contract.claims):
+        if not has_checks and any(not c.evidence or set(c.evidence) - set(ids) for c in contract.claims):
             errors.append('Claim cites unavailable source messages')
         load_questions(root / 'followup-plan.json', contract)
         resolved = json.loads((root / 'resolved-spec.json').read_text())
@@ -41,6 +42,8 @@ def audit_prepared(root: Path) -> dict:
             plan, _ = load_evaluations(root, messages, resolved)
             if plan['plan_hash'] != summary.get('evaluation_plan_hash'):
                 errors.append('Evaluation plan differs from summary')
+            if plan['checks'][-1]['contract_hash']!=contract.contract_hash:
+                errors.append('Root contract differs from final checkpoint')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
         errors.append(f'{type(exc).__name__}: {exc}')
     return {'state': 'pass' if not errors else 'fail', 'errors': errors,

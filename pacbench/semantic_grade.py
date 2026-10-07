@@ -40,12 +40,17 @@ class Grade:
     claim_coverage: float = 0.0
     all_claims_correct: bool = False
     recovery: list[dict] | None = None
+    interaction: str = 'answer'
+
+
+class BenchmarkContractError(ValueError):
+    """The script lacks information needed to judge a legitimate response."""
 
 
 VERDICTS = {"correct", "missed", "misrepresented"}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False) -> str:
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False) -> str:
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
@@ -68,6 +73,14 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
            'says it cannot find or does not know the detail, use unavailable; otherwise if the user '
            'specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. '
            'A broad request for a recap or details is not an explicit request for each detail.\n' if assess_recovery else '')
+        + ('Also return "interaction": "answer" or "clarification", and "benchmark_error": null. '
+           'Clarification means asking for information needed to satisfy this request or its expected behavior. '
+           'Optional offers of other actions are answers, not clarification. '
+           'Judge behavioral criteria against what the answer actually does. '
+           'For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. '
+           'Unnecessary clarification when the referent is clear is a failure. A cancellation acknowledgement proves only the acknowledgement. '
+           'If a legitimate clarification cannot be judged because the script omits necessary ground truth, '
+           'set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\n' if assess_interaction else '')
         + ("Use the prior conversation only to resolve references in the latest answer. "
          "Do not award a fact merely because it appeared in an earlier answer.\n"
          f"Prior public conversation: {json.dumps(conversation, ensure_ascii=False)}\n" if conversation else "") +
@@ -78,11 +91,11 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None, conversation=(), assess_recovery=False) -> Grade:
+                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False) -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
-    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery)
+    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction)
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
@@ -106,10 +119,16 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
         raise ValueError(f"unusable semantic judge response: {output[:200]!r}") from exc
     if not valid:
         raise ValueError(f"unusable semantic judge verdicts: {output[:200]!r}")
+    if assess_interaction:
+        if parsed.get('interaction') not in ('answer','clarification') or 'benchmark_error' not in parsed:
+            raise ValueError('Unusable interaction judgment')
+        if parsed['benchmark_error'] is not None:
+            if not isinstance(parsed['benchmark_error'],str) or not parsed['benchmark_error'].strip():raise ValueError('Malformed benchmark error')
+            raise BenchmarkContractError(parsed['benchmark_error'])
     recovery = parsed.get('recovery') if assess_recovery else None
     if assess_recovery:
         validate_recovery(recovery, rows)
-    result = Grade(checkpoint=checkpoint_id, recovery=recovery)
+    result = Grade(checkpoint=checkpoint_id, recovery=recovery,interaction=parsed.get('interaction','answer'))
     result.slots = [GradedClaim(r["id"], r["verdict"], r["reason"]) for r in rows]
     result.correct = sum(r.verdict == "correct" for r in result.slots)
     result.missed = sum(r.verdict == "missed" for r in result.slots)

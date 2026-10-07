@@ -70,11 +70,12 @@ def prepare_sources(output, messages, timezone):
         (root/'messages.txt').write_text(text)
         save(root/'messages.json',batch)
         fixture=None
-        if all(m['channel']=='imessage' for m in batch):
+        imessages=[m for m in batch if m['channel']=='imessage']
+        if imessages:
             if previous:
                 for src in previous.glob('chat.*'):
                     shutil.copyfile(src,root/src.name)
-            fixture=append_messages(root/'chat.db',batch)
+            fixture=append_messages(root/'chat.db',imessages)
             previous=root
         # Freeze the actual source format and availability separately from grading.
         save(root/'source.json',{'version':VERSION,'at':at,'source_ids':[m['source_id'] for m in batch],
@@ -93,18 +94,30 @@ def processing_at(at, provider, timezone):
     return datetime.combine(stamp.date()+timedelta(days=1),datetime.min.time(),ZoneInfo(timezone)).replace(hour=3).isoformat()
 
 
-def validate_evaluation_clocks(schedule,providers,question_times,timezone):
-    """Do not evaluate an earlier day against later source or processing state."""
+def ready_sources(schedule, provider, at, timezone):
+    clock=datetime.fromisoformat(at)
+    ready=[]
+    for row in schedule:
+        source_time=datetime.fromisoformat(row['at'])
+        finished=datetime.fromisoformat(processing_at(row['at'],provider,timezone))
+        if source_time<=clock<finished:
+            raise ValueError('Evaluation precedes native processing; do not use future memory state')
+        if finished<=clock:ready.append(row)
+    return ready
+
+
+def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, chronological=False):
+    """Only completed daily batches may precede a checkpoint; never import its future."""
     questions=[datetime.fromisoformat(value) for value in question_times]
     if not questions or any(value.utcoffset() is None for value in questions):
         raise ValueError('Evaluation clocks require explicit timezone offsets')
-    earliest=min(questions)
-    for row in schedule:
-        if datetime.fromisoformat(row['at'])>earliest:
-            raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
-        for provider in providers:
-            if datetime.fromisoformat(processing_at(row['at'],provider,timezone))>earliest:
-                raise ValueError('Evaluation precedes native processing; do not use future memory state')
+    for provider in providers:
+        for at in question_times:
+            ready=ready_sources(schedule,provider,at,timezone)
+            if not chronological and len(ready)!=len(schedule):
+                raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
+        if len(ready_sources(schedule,provider,max(questions).isoformat(),timezone))!=len(schedule):
+            raise ValueError('Final evaluation precedes source availability or native processing')
 
 
 def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=240):

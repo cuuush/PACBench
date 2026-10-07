@@ -1,32 +1,28 @@
-# Questions and shared conversations
+# Assistant conversations
 
-Add `checks` to a bounded scene spec. Each check contains an `id`, the exact public `prompt`, expected plain-language `facts`, and optional `at` clock. Up to eight questions and fifty facts per question are accepted; begin small.
+Put conversations under the weekday where they happen. Each has an `id`, a human-readable `time` and ordered `turns`. Every turn has an `id`, the public `prompt`, and an English `expect` description. No fact IDs or matching lists are needed.
 
 ```json
 {
-  "evaluation_context": "shared",
-  "checks": [
-    {"id": "plans", "prompt": "What's the deal with getting pizza today?",
-     "facts": ["The pizza outing with Maya is Friday September 11 at 1pm."],
-     "at": "2026-09-11T09:00:00-04:00"},
-    {"id": "changes", "prompt": "What changed from the original plan?",
-     "facts": ["The original outing with Maya was at noon."],
-     "at": "2026-09-11T09:02:00-04:00"}
+  "id": "morning",
+  "time": "9 am",
+  "turns": [
+    {"id": "plans", "prompt": "What's the deal with pizza tomorrow?",
+     "expect": "Two Friday outings: Devon at 6 pm at Luigi's, and Maya at 7 pm at Rosa's with Leo."},
+    {"id": "cancel", "kind": "behavior", "prompt": "Actually, cancel pizza tomorrow.",
+     "expect": "Ask which outing I mean, without claiming either is cancelled."},
+    {"id": "clarify", "kind": "behavior", "trigger": "clarification", "depends_on": "cancel",
+     "prompt": "The one with Devon.", "expect": "Acknowledge that I am not going with Devon."}
   ]
 }
 ```
 
-These fields belong in a complete scene spec; see `examples/pizza_shared_context.json`. Each check freezes its own verified facts, citations, prompt, clock and recovery policy. The question is reviewed for answer leakage and whether it should elicit its facts. Unsupported assertions or unfair questions block preparation. Public wording is preserved.
+Turns in the same conversation resume one actual Hermes session. A different conversation ID starts fresh while preserving the provider's memory. Reuse an ID on a later day to resume it. Each turn can override `time`; otherwise turns are two minutes apart. Planned story turns are distinct from omission-recovery follow-ups.
 
-`evaluation_context: shared` continues one actual evaluation session across questions and recovery. Its first question starts fresh after native source ingestion. `isolated` starts a new session per planned check. Built-in memory, session search and non-provider tools remain disabled. All source batches finish first; earlier checkpoints against later memory state are rejected.
+Preparation derives independently assessable criteria from each expectation, verifies them against available source and scripted user instructions, and reviews whether the public prompt fairly requests them. Expectations, scenes and private judging criteria never enter Hermes questions or source imports. Future source batches are ingested only when their native processing has completed by the simulated turn time.
 
-Each answer is judged independently. Prior public exchanges resolve references, but facts appearing only in an earlier answer earn no credit in the current one. Source fallback or unknown tool paths in shared history also affect later retention. [Recovery](followups.md) preserves initial penalties and allows at most one combined message for eligible implicit omissions per answer.
+`kind: behavior` grades an observable reply or clarification and gets no omission recovery. An acknowledgement does not prove a retained update or external calendar action. A later fresh conversation checks persistence. `trigger: clarification` sends its scripted reply only when the semantic judge identifies a clarification request; replies are not invented to rescue the agent. Use `depends_on` for later checks that require that reply. Contracts also bind conditional evidence dependencies, so an undelivered instruction cannot become assumed truth.
 
-New ideas can use existing verified dialogue without regenerating it:
+Each turn gets pass/fail for judged behavior. Malformed judges, missing script truth and execution errors remain ungraded with a reason. Independent conversations continue; unavailable dependent turns skip with a cause. A wrong answer remains a failure and does not stop unrelated checks. Review passes as well as failures while developing.
 
-```sh
-python -m pacbench.evaluation --prepared runs/<prepared> --spec new-checks.json --output runs/<new-prepared>
-python -m pacbench.native_pilot --prepared runs/<new-prepared> --providers mem0 --output runs/<current>
-```
-
-The recheck spec may contain only `checks`, `question_at` and `evaluation_context`. The explorer's **Criteria & judges** view shows planned criteria and separate initial/follow-up verdicts, cited source messages, exact judge prompt/response/model, actual tools and measured effort.
+[Omission recovery](followups.md) keeps its original policy: one combined question for silent implicit omissions, partial credit separately, and none for zero recall, incorrect details, explicit misses or admitted lookup failure. Tools, gateway cost windows, native provider work and actual session continuity remain logged. The explorer's **Criteria & judges** view shows the frozen criteria and decisions per answer.

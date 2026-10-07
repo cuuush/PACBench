@@ -66,10 +66,13 @@ def native_run(run_dir):
             if not turn:
                 return
             recovery = read_json(directory / 'followups/recovery.json')
+            behavior = read_json(directory / 'behavior.json')
             exchanges.append({'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
                 'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
                 'check_id': check_id, 'kind': 'initial', 'usage': read_json(directory / 'usage.json'), 'status': read_json(directory / 'status.json'),
-                'retention': recovery, 'metrics': (recovery or {}).get('initial_metrics')})
+                'retention': recovery, 'metrics': (recovery or behavior or {}).get('initial_metrics'),
+                'session': (read_json(directory / 'status.json') or {}).get('session'),
+                'source_state': read_json(directory / 'source-state.json')})
             for attempt in (recovery or {}).get('attempts', []):
                 selected = attempt['claim_ids']
                 follow = directory / 'followups' / 'combined'
@@ -109,6 +112,7 @@ def native_run(run_dir):
             'model_usage': read_json(arm / 'model-usage.json'),
             'model_usage_after_settlement': read_json(arm / 'model-usage-after-settlement.json'),
             'turn': exchanges[0]['turn'] if exchanges else None}
+        arms[f'{provider}-{repetition}']['evaluation'] = read_json(arm / 'evaluation.json')
     records = {}
     for folder in (source, run_dir):
         for path in sorted((folder / 'model-calls').glob('*.json')):

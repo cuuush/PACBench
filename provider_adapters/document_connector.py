@@ -61,6 +61,9 @@ def memcal(source, root, at, processing_at):
     from pacbench.gateway_client import validate_route
     if not (source/'chat.db').exists():
         raise ValueError('Native source fixture unavailable for this channel; no archive-write fallback')
+    messages=json.loads((source/'messages.json').read_text())
+    if any(m['channel']!='imessage' for m in messages):
+        raise ValueError('This Memcal connector supports iMessage capture only; mixed channels need a native source connector')
     # Normal filesystem locations under the isolated HOME; native contacts loader.
     target=Path.home()/'Library/Application Support/AddressBook/Sources/00000000-0000-0000-0000-000000000001/AddressBook-v22.abcddb'
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -78,14 +81,25 @@ def memcal(source, root, at, processing_at):
         collection=archive.open_collection(conn,mode='imessage')
         report=imessage.ingest(conn,collection_id=collection)  # actual native default path
         if report.error:raise RuntimeError(report.error)
-        expected=len(json.loads((source/'messages.json').read_text()))
+        expected=len(messages)
         if report.read!=expected:
             raise RuntimeError(f'Native reader consumed {report.read}/{expected} new messages')
         os.environ['MEMCAL_TODAY']=processing_at
         result=dream(conn,cfg)  # product defaults, ordinary nightly processing
         brief.write(conn,cfg)
+        # Read the product's own bundle/call records after processing. No
+        # monkeypatching the packer, extra extraction or inferred debug facts.
+        native_bundles=[dict(row) for row in conn.execute('SELECT * FROM run_bundles WHERE run_id=?',(result.run_id,))]
+        native_calls=[]
+        for path in sorted((cfg.home/'calls'/f'run-{result.run_id:04d}').glob('*.json')):
+            data=json.loads(path.read_text())
+            native_calls.append({k:v for k,v in data.items() if k not in ('reasoning','encrypted_content')})
+        folder=root/'ingestion-model-calls';folder.mkdir(exist_ok=True)
+        diagnostic=folder/(source.name+'.json')
+        diagnostic.write_text(json.dumps({'bundles':native_bundles,'calls':native_calls},ensure_ascii=False,indent=2)+'\n')
         return {'ready':not bool(result.errors),'interface':'native iMessage reader + native nightly dream',
                 'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),
+                'bundles':native_bundles,'model_call_record':str(diagnostic),
                 'processing':{'run_id':result.run_id,'errors':result.errors,'report':result.report()},
                 'readiness':'Native dream completion without errors'}
     finally:conn.close()

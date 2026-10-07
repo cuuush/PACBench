@@ -66,6 +66,7 @@ class TurnResult:
     # reported no token stats for this turn — unknown stays unknown, never zero.
     session_input_tokens: int | None = None
     session_output_tokens: int | None = None
+    provider_traces: list[dict] = dataclasses.field(default_factory=list)
     prefetch_context: str | None = None
 
 
@@ -251,6 +252,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     cmd = [str(ISOLATED_BIN), "chat", "-q", prompt, "-Q", "--format", "stream-json"]
     if session_id:
         cmd += ["--resume", session_id]
+    provider_before = provider_trace_snapshot(env)
     started = time.monotonic()
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
@@ -270,6 +272,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result = _parse_turn(prompt, at, partial, latency)
         result.stderr_tail = note
         _recover_tool_results(result, home / "state.db")
+        capture_provider_traces(result, env, provider_before)
         enforce_provider_tools(result, env)
         return result
     latency = time.monotonic() - started
@@ -282,8 +285,46 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
             result.prefetch_context = latest.get("prefetch")
         except (IndexError, ValueError, OSError):
             pass
+    capture_provider_traces(result, env, provider_before)
     enforce_provider_tools(result, env)
     return result
+
+
+
+def provider_trace_snapshot(env: dict) -> dict:
+    root = env.get('PACBENCH_PROVIDER_TRACE_ROOT')
+    if not root:
+        return {}
+    return {str(p): p.read_bytes() for p in Path(root).glob('projects/*/task-history/**/tsk-*.json')}
+
+
+def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
+    """Observe native provider task journals, including prefetch, without changing tools."""
+    for filename, content in provider_trace_snapshot(env).items():
+        if before.get(filename) == content:
+            continue
+        try:
+            text = content.decode()
+            for key in ('OPENAI_API_KEY', 'OPENAI_COMPATIBLE_API_KEY', 'SUPERMEMORY_API_KEY'):
+                token = env.get(key)
+                if token: text = text.replace(token, '<redacted>')
+            record = json.loads(text)
+            trace = {'file': filename, 'record': record}
+            project = next((p for p in Path(filename).parents if p.parent.name == 'projects'), None)
+            if project and record.get('type') == 'query':
+                query_records = []
+                for p in (project / 'query-log').glob('qry-*.json'):
+                    query_text = p.read_text()
+                    for key in ('OPENAI_API_KEY', 'OPENAI_COMPATIBLE_API_KEY', 'SUPERMEMORY_API_KEY'):
+                        token = env.get(key)
+                        if token: query_text = query_text.replace(token, '<redacted>')
+                    data = json.loads(query_text)
+                    if data.get('taskId') == record.get('taskId'):
+                        query_records.append(data)
+                trace['query_records'] = query_records
+            turn.provider_traces.append(trace)
+        except (ValueError, UnicodeError):
+            turn.provider_traces.append({'file': filename, 'error': 'Native task journal could not be decoded'})
 
 
 def enforce_provider_tools(turn: TurnResult, env: dict) -> None:
@@ -439,7 +480,7 @@ def _summarize_tool_result(event: dict, limit: int = 2000) -> dict:
     return {
         "tool": event.get("tool") or event.get("name") or "",
         "success": bool(event.get("success", event.get("error") is None))
-                   and not policy_blocked and not tool_error,
+                   and not event.get("is_error", False) and not policy_blocked and not tool_error,
         "policy_blocked": policy_blocked,
         "text": text[:limit],
         "truncated": truncated,

@@ -2,11 +2,11 @@
 
 PACBench tests whether a personal assistant can recall a plan from a fictional conversation. [Pizza Day](examples/pizza_day.json) is the current small example: the author describes a chat and lists five facts the assistant should remember. The writer adds natural side chatter and chooses the message count.
 
-New trials ingest raw daily text documents directly through each eligible provider's supported API. Hermes only answers later questions. Memcal uses its real native iMessage reader against a reusable synthetic Messages database and separate contacts source. No connector summarizes messages or seeds expected facts. Systems without document ingestion are excluded, including Holographic. See the [provider map](docs/document-ingestion-provider-map.md).
+New trials ingest raw daily text through each eligible local provider's supported document or message-batch API. Hermes only answers later questions using that provider's shipped tools. Memcal uses its real native iMessage reader against a reusable synthetic Messages database and separate contacts source. No connector summarizes messages, invents agent turns or seeds expected facts. Cloud-only systems and systems without practical automatic source ingestion are excluded. See the [provider map](docs/document-ingestion-provider-map.md) and [latest local diagnostic](docs/local-provider-diagnostic-2026-10-07.md).
 
 Use **Spark Contributor** through the separate shared gateway at
 `/workspace/muse-gateway`: $5 per UTC day across projects and $10 total for this
-task. It tracks authoring, judging, Hermes and Mem0 extraction separately.
+task. It tracks authoring, judging, Hermes and memory-provider inference separately.
 Clients use its local credential; upstream credentials stay in the service.
 See that repository's README for startup and accounting.
 

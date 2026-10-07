@@ -20,10 +20,8 @@ PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {
     'holographic':'Unsupported: fact storage and regex extraction do not provide document ingestion.',
-    'honcho':'Unsupported on verified evidence: peer/session message modeling, no documented document import.',
-    'memori':'Unsupported on verified evidence: completed-agent-turn capture, no verified document import.',
-    'retaindb':'Document API verified, but hosted account/cost boundary unavailable; documented $20/month subscription exceeds task budget.',
-    'supermemory':'Document API verified; run-owned local server and inference spending boundary not yet provisioned.',
+    'memori':'Excluded: Hermes documents Memori Cloud only; no local document-ingestion integration verified.',
+    'retaindb':'Excluded: Hermes documents hosted storage only; the benchmark requires local memory backends.',
 }
 WORKER = '''
 import sys
@@ -119,7 +117,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=240):
     record={'version':VERSION,'provider':provider,'at':at,'processing_at':native_at,
             'document_sha256':hashlib.sha256((source/'messages.txt').read_bytes()).hexdigest(),
             'source_ids':json.loads((source/'source.json').read_text())['source_ids'],
-            'delivery':'native-imessage' if provider=='memcal' else 'document',
+            'delivery':('native-imessage' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),
             'hermes_ingestion_turns':0,'state':'failed','ready':False}
     try:
         proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',WORKER,

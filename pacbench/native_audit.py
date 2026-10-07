@@ -80,7 +80,10 @@ def audit(root: Path) -> dict:
                 check(all(row['allowed_tools'] == allowed and
                     set(row['offered_tools']) <= set(allowed) for row in schemas),
                     f'{label}: non-provider schema exposed')
-                for path in arm.rglob('*.json'):
+                paths = [*arm.glob('recall.json'), *arm.glob('turns/*/turn.json'),
+                    *arm.glob('followups/*/turn.json'), *arm.glob('turns/*/followups/*/turn.json'),
+                    *arm.glob('exposure-*.json'), *arm.glob('exposures/*.json')]
+                for path in paths:
                     data = read(path)
                     if isinstance(data, dict) and 'tool_calls' in data and 'prompt' in data:
                         check(not data.get('policy_blocks') and all(

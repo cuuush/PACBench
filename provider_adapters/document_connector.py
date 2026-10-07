@@ -163,15 +163,92 @@ def byterover(source,root,at,processing_at):
     # ordinary curation. Do not auto-approve pending native reviews or cloud sync.
     p=subprocess.run(['brv','curate','--files',str(target.relative_to(project)),'--format','json'],
         cwd=project,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=220)
-    result=json.loads(p.stdout)
-    return {'ready':p.returncode==0 and result.get('success') is True and not result.get('data', {}).get('pendingReview'),
+    # The real CLI emits progress plus a final JSON record, not one JSON value.
+    decoder=json.JSONDecoder();remaining=p.stdout.strip();events=[]
+    while remaining:
+        record,end=decoder.raw_decode(remaining);events.append(record)
+        remaining=remaining[end:].lstrip()
+    finals=[e for e in events if e.get('command')=='curate' and
+            e.get('data',{}).get('status') in {'completed','error','cancelled'}]
+    result=finals[-1] if finals else {}
+    return {'ready':p.returncode==0 and result.get('success') is True and
+            result.get('data',{}).get('status')=='completed' and not result.get('data', {}).get('pendingReview'),
             'interface':'brv curate --files (no custom prompt)',
-            'result':result,'stderr':p.stderr,'readiness':'Native curation completion; no pending review'}
+            'result':result,'events':events,'stdout':p.stdout,'stderr':p.stderr,'readiness':'Native curation completion; no pending review'}
+
+
+def honcho(source,root,at,processing_at):
+    from honcho import Honcho
+    import hashlib
+    cfg=json.loads((root/'hermes-home/honcho.json').read_text())
+    if not cfg['baseUrl'].startswith('http://127.0.0.1:'):
+        raise ValueError('Honcho ingestion requires the run-owned local server')
+    host=cfg['hosts']['hermes']
+    client=Honcho(base_url=cfg['baseUrl'],workspace_id=host['workspace'],environment='local',max_retries=0,timeout=30)
+    messages=json.loads((source/'messages.json').read_text())
+    groups={}
+    for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
+    acknowledgments=[]
+    for identity,batch in groups.items():
+        session=client.session('source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24])
+        peers={}
+        for m in batch:
+            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            peers[peer_id]=client.peer(peer_id)
+        # Real source participants, not a fabricated user/assistant exchange.
+        session.add_peers(list(peers.values()))
+        pending=[]
+        for m in batch:
+            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            pending.append(peers[peer_id].message(m['text'],created_at=m['written_at'],
+                metadata={k:v for k,v in m.items() if k!='text'}))
+        response=session.add_messages(pending)
+        if len(response)!=len(batch):raise RuntimeError('Honcho did not acknowledge the full batch')
+        for actual,sent in zip(response,pending):
+            if (actual.peer_id!=sent.peer_id or actual.content!=sent.content or
+                actual.created_at!=sent.created_at or
+                any(actual.metadata.get(k)!=v for k,v in sent.metadata.items())):
+                raise RuntimeError('Honcho source acknowledgment differs from the submitted message')
+        acknowledgments.append({'session_id':session.id,'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
+            'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
+            'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
+    statuses=[];deadline=time.monotonic()+180
+    while True:
+        status=client.queue_status().model_dump(mode='json');statuses.append(status)
+        done=status['pending_work_units']==0 and status['in_progress_work_units']==0
+        if done or time.monotonic()>=deadline:break
+        time.sleep(1)
+    return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
+        'result':acknowledgments,'processing_status':statuses,
+        'readiness':('Native message acknowledgments and processing queue drained' if done
+                     else 'Native messages acknowledged; processing queue did not drain before deadline')}
+
+
+def supermemory(source,root,at,processing_at):
+    from supermemory import Supermemory
+    from plugins.memory.supermemory import _load_supermemory_config, _resolve_container_tag
+    cfg=_load_supermemory_config(str(root/'hermes-home'))
+    tag=_resolve_container_tag(cfg['container_tag'],'default')
+    if not cfg['base_url'].startswith('http://127.0.0.1:'):
+        raise ValueError('Supermemory document ingest requires the run-owned local server')
+    client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
+    result=client.documents.add(content=(source/'messages.txt').read_text(),
+        container_tags=[tag],custom_id=source.name,
+        metadata={'source':'daily-transcript','collected_at':at})
+    statuses=[];deadline=time.monotonic()+180
+    while True:
+        status=client.documents.get(result.id).model_dump(mode='json');statuses.append(status)
+        state=status.get('status')
+        if state in {'done','failed','error'} or time.monotonic()>=deadline:break
+        time.sleep(1)
+    return {'ready':state=='done','interface':'Supermemory SDK documents.add(raw content) + documents.get',
+            'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
+            'readiness':'Native document processing status done'}
 
 
 def main(args=None):
     provider,src,arm,at,processing_at=args or sys.argv[1:]
-    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover}
+    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover,'supermemory':supermemory,'honcho':honcho}
     result=dispatch[provider](Path(src),Path(arm),at,processing_at)
     print(json.dumps(result,ensure_ascii=False,default=lambda value:sorted(value) if isinstance(value,set) else str(value)))
     return 0 if result['ready'] else 1

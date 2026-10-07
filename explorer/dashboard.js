@@ -319,7 +319,8 @@ function toolName(name) {
 }
 function toolCards(run, arm, turn) {
   const calls = turn.tool_calls || [];
-  if (!calls.length) return '<div class="quiet">No tool calls recorded for this answer.</div>';
+  const traces = turn.provider_traces || [];
+  if (!calls.length && !traces.length) return '<div class="quiet">No tool calls recorded for this answer.</div>';
   const cards = [];
   calls.forEach((call, index) => {
     const result = turn.tool_results?.[index];
@@ -340,6 +341,7 @@ function toolCards(run, arm, turn) {
       '<h4>What came back</h4>' + resultBody(run, arm, result) + "</div></details>";
     cards.push(card);
   });
+  if (traces.length) cards.push(details("Provider internal tasks and tool calls", dump(traces)));
   return cards.join("");
 }
 function score(ex) {

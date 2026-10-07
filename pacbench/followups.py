@@ -92,6 +92,12 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'memcal_search_wiki', 'memcal_list_days', 'memcal_list_month',
                 'mem0_search', 'hindsight_recall', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
         return 'memory_search'
+    if name in {'supermemory-search','supermemory_search'}:
+        return 'memory_search'
+    if name in {'supermemory-profile','supermemory_profile','brv_status'}:
+        return 'memory_detail'
+    if name in {'supermemory-save','supermemory_store','supermemory-forget','supermemory_forget','brv_curate'}:
+        return 'memory_write'
     if name=='hindsight_reflect':
         return 'memory_reasoning'
     if name in {'viking_search','viking_browse'}:
@@ -148,7 +154,12 @@ def tool_profile(turn, *, source_tools=()) -> dict:
                     'policy_blocked': result.get('policy_blocked')})
     categories = dict(Counter(op['category'] for op in operations))
     signatures = Counter((op['name'], json.dumps(op['arguments'], sort_keys=True)) for op in operations)
+    traces = getattr(turn, 'provider_traces', []) or []
+    native_calls = [call for trace in traces for call in trace.get('record', {}).get('toolCalls', [])]
     return {'top_level_calls': len(turn.tool_calls), 'total_tool_operations': len(operations),
+        'provider_internal_tool_calls': len(native_calls) if traces and all(
+            'toolCalls' in trace.get('record', {}) for trace in traces) else None,
+        'provider_task_records': len(traces),
         'categories': categories, 'operations': operations,
         'failed_operations': sum(op.get('success') is False for op in operations),
         'repeated_operations': sum(count - 1 for count in signatures.values()),

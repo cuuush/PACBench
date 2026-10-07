@@ -16,6 +16,8 @@ def configure(root,env,model,base,key):
     env.update(PATH=str(binary.parent)+os.pathsep+os.environ.get('PATH',''),
         XDG_CONFIG_HOME=str((root/'fallback-home/.config').resolve()),
         XDG_DATA_HOME=str((root/'fallback-home/.local/share').resolve()),
+        BRV_DATA_DIR=str((root/'fallback-home/.local/share/brv').resolve()),
+        PACBENCH_PROVIDER_TRACE_ROOT=str((root/'fallback-home/.local/share/brv').resolve()),
         OPENAI_COMPATIBLE_API_KEY=key,BRV_API_KEY='')
     attempts=[]
     for args in [['vc','init'],['providers','connect','openai-compatible','--base-url',base,

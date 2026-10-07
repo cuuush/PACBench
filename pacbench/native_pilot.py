@@ -24,7 +24,7 @@ from .usage import tracked_turn
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
-ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover"}
+ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
 
 PROBE = '''
 import json, sys
@@ -47,8 +47,13 @@ from hermes_constants import get_hermes_home
 from plugins.memory import load_memory_provider
 p = load_memory_provider(sys.argv[1], register_skills=False)
 p.initialize("pacbench-read-only-smoke", hermes_home=str(get_hermes_home()), platform="cli")
+# A native async initializer must finish before the capability smoke dispatch.
+# Same bounded readiness check for any provider exposing an initialization thread.
+thread = getattr(p, "_init_thread", None)
+if thread is not None:
+    thread.join(timeout=30)
 try:
-    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search", "byterover":"brv_status"}[p.name]
+    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search", "byterover":"brv_status", "supermemory":"supermemory-profile", "honcho":"honcho_profile"}[p.name]
     args = ({"action": "list"} if p.name == "holographic" else
             {"query": "native read-only capability check"} if p.name in {"mem0","hindsight","openviking"} else {})
     output = p.handle_tool_call(tool, args)
@@ -232,6 +237,14 @@ finally:p.close()
         from provider_adapters.byterover_local import configure
         base,key=client_settings(memory_project)
         configure(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+    if provider=='honcho':
+        from provider_adapters.honcho_local import start
+        base,key=client_settings(memory_project)
+        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+    if provider=='supermemory':
+        from provider_adapters.supermemory_local import start
+        base,key=client_settings(memory_project)
+        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     return env
 
 
@@ -314,6 +327,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         raise ValueError("invalid or duplicate provider selection")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
+    # Registered first, so native server shutdown hooks run before this final
+    # fallback for CLI grandchildren left behind by timed-out provider tools.
+    import atexit
+    from .process_cleanup import cleanup_run_processes
+    atexit.register(cleanup_run_processes, output)
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
               "builtin_memory": False, "tool_policy": "provider-only-v1", "session_search": False,'ingestion_mode':ingestion}

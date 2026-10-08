@@ -43,14 +43,26 @@ function simulationDays(run) {
   return [...days].sort();
 }
 function eventsOnDay(arm, date, run) {
+  const captured = new Set((arm.exchanges || []).map(item => item.check_id));
   const events = [
     ...(arm.exposures || []).map((item,index) => ({kind:"ingestion",at:exposureAt(item),item,index})),
-    ...(arm.exchanges || []).map((item,index) => ({kind:"recall",at:item.turn?.at || item.day || "",item,index}))
+    ...(arm.exchanges || []).map((item,index) => ({kind:"recall",at:item.turn?.at || item.day || "",item,index})),
+    ...(arm.evaluation?.checks || []).filter(item => !captured.has(item.id))
+      .map(item => ({kind:"status",at:item.at,item}))
   ];
   return events.filter(event => dayKey(event.at,run)===date).sort((a,b) => {
     const left=Date.parse(a.at),right=Date.parse(b.at);
     return Number.isFinite(left) && Number.isFinite(right) ? left-right : String(a.at).localeCompare(String(b.at));
   });
+}
+function checkStatus(run, item) {
+  const planned = (run.evaluations || []).find(check => check.id === item.id);
+  return '<section class="exchange check-status"><div class="exchange-label">' + esc(item.id) + ' · ' +
+    esc(localClock(item.at,run)) + '</div>' + badge(item.state) +
+    (planned?.contract?.question ? '<p>' + esc(planned.contract.question) + '</p>' : '') +
+    '<p>' + esc(item.reason || 'No answer recorded.') +
+    (item.cause ? ' · Depends on ' + esc(item.cause) : '') + '</p>' +
+    (planned ? details('Planned question and criteria',renderContract({...run,evaluations:[planned]})) : '') + '</section>';
 }
 function turnRecord(turn) {
   return details("Exact prompt, clock and session", '<h4>Prompt sent to Hermes</h4><pre>' + esc(turn.prompt || "not captured") +
@@ -101,7 +113,7 @@ function dayTimeline(run) {
     '</div><p class="muted">The original conversations, grouped by the day they were written.</p>' + texts + '</section>' +
     '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' turns') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
     '</div>' + (arm ? '<p class="muted">' + 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' + '</p>' : '') +
-    (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
+    (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : event.kind==='status' ? checkStatus(run,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
     (!events.length && planned.length ? details('Planned questions and criteria',renderContract({...run,evaluations:planned})) : '') +
     (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,evaluation_context:run.summary?.evaluation_context})) : '') +
     '</section></div>';

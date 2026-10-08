@@ -369,6 +369,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
         report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback fails retention"
+        report["state"] = "running"
+        save(output / "summary.json", report)
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             root = output / f"repeat-{repetition}" / provider

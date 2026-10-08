@@ -119,3 +119,33 @@ def test_unfinished_arm_does_not_hide_later_trace_corruption(trace):
     assert result['state'] == 'fail'
     assert 'unconfigured: incomplete arm' in str(result['errors'])
     assert 'judge lacks recall clock' in str(result['errors'])
+
+
+@pytest.mark.parametrize('corrupt_tools,unfinished', [(False, False), (True, False), (False, True)])
+def test_partial_story_audits_skips_without_bypassing_tool_boundary(trace, monkeypatch, corrupt_tools, unfinished):
+    import pacbench.native_audit as native_audit
+    root, arm = trace
+    checks = [{'id': 'answer', 'state': 'diagnostic'},
+              {'id': 'reply', 'state': 'ungraded' if unfinished else 'skipped'}]
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['results'][0].update(state='partial', checks=checks)
+    summary['evaluation_plan_hash'] = 'test-plan'
+    save(root / 'summary.json', summary)
+    save(root / 'evaluation-plan.json', {'checks': checks})
+    save(arm / 'evaluation.json', {'checks': checks})
+    monkeypatch.setattr(native_audit, 'load_evaluations',
+        lambda *_: ({'plan_hash': 'test-plan', 'context': 'shared'}, [('answer', None, None)]))
+    inspected = []
+    monkeypatch.setattr(native_audit, 'audit_checks', lambda *args: inspected.append(args) or [])
+    if corrupt_tools:
+        (arm / 'context.jsonl.tools.jsonl').write_text(json.dumps(
+            {'allowed_tools': ['mem0_search'], 'offered_tools': ['terminal']}) + '\n')
+    result = audit(root)
+    if unfinished:
+        assert 'incomplete arm' in str(result['errors'])
+        assert not inspected
+    else:
+        assert inspected, result
+        assert result['state'] == ('fail' if corrupt_tools else 'pass')
+        if corrupt_tools:
+            assert 'non-provider schema exposed' in str(result['errors'])

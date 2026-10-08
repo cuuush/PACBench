@@ -60,10 +60,18 @@ def audit(root: Path) -> dict:
             if 'process_timezone' in summary:
                 check(read(arm / 'simulation-clock.json')['process_timezone'] == summary['process_timezone'],
                       f'{label}: inconsistent provider process timezone')
-            check(result['state'] == 'diagnostic', f'{label}: incomplete arm')
+            # A provider's missed clarification can legitimately leave later
+            # story branches undelivered. Audit their causes and all live traces;
+            # partial story coverage is separate from trace integrity.
+            partial_story = (bool(evaluations) and result['state'] == 'partial'
+                and bool(result.get('checks'))
+                and any(c['state'] == 'diagnostic' for c in result['checks'])
+                and all(c['state'] in ('diagnostic', 'skipped') for c in result['checks']))
+            reviewable = result['state'] == 'diagnostic' or partial_story
+            check(reviewable, f'{label}: incomplete arm')
             check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
             check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
-            if result['state'] != 'diagnostic':
+            if not reviewable:
                 # A blocked arm has no live trace; keep the failure and audit later arms.
                 continue
             if summary.get('tool_policy') == 'provider-only-v1':

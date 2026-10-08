@@ -1,0 +1,80 @@
+{
+  "correct": 6,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "not-devon",
+      "verdict": "missed",
+      "reason": "Answer never mentions Devon or a Devon cancellation; only lists Maya and Leo."
+    },
+    {
+      "id": "with-maya",
+      "verdict": "correct",
+      "reason": "Answer states still on for pizza at 5pm at Mario's with you, Maya, and Leo."
+    },
+    {
+      "id": "with-leo",
+      "verdict": "correct",
+      "reason": "Answer states still on for pizza with you, Maya, and Leo and that Leo is back in."
+    },
+    {
+      "id": "date-friday",
+      "verdict": "correct",
+      "reason": "Answer says the plan is today, which is Oct 9, 2026 in context."
+    },
+    {
+      "id": "time-5pm",
+      "verdict": "correct",
+      "reason": "Answer states time changed to 5pm and still on at 5pm."
+    },
+    {
+      "id": "venue-marios",
+      "verdict": "correct",
+      "reason": "Answer states venue changed to Mario's and still on at Mario's."
+    },
+    {
+      "id": "street-pine",
+      "verdict": "correct",
+      "reason": "Answer states Mario's on Pine Street twice."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "not-devon",
+      "kind": "implicit_omission",
+      "reason": "Broad recap request, not explicit for Devon, and answer omits Devon without saying unknown."
+    },
+    {
+      "id": "with-maya",
+      "kind": "provided",
+      "reason": "Fact correctly included as attendee."
+    },
+    {
+      "id": "with-leo",
+      "kind": "provided",
+      "reason": "Fact correctly included as attendee."
+    },
+    {
+      "id": "date-friday",
+      "kind": "provided",
+      "reason": "Fact correctly included as today."
+    },
+    {
+      "id": "time-5pm",
+      "kind": "provided",
+      "reason": "Fact correctly included as 5pm."
+    },
+    {
+      "id": "venue-marios",
+      "kind": "provided",
+      "reason": "Fact correctly included as Mario's."
+    },
+    {
+      "id": "street-pine",
+      "kind": "provided",
+      "reason": "Fact correctly included as Pine Street."
+    }
+  ],
+  "interaction": "answer"
+}

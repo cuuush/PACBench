@@ -1,0 +1,198 @@
+{
+  "state": "complete",
+  "plan_hash": "dd9e3fcfff56330147ff0123747685e54035cc12e2b1122498aad925bb4834ca",
+  "attempts": [
+    {
+      "claim_ids": [
+        "leo-joins-maya-me"
+      ],
+      "question": "Who was in the pizza plan Leo rejoined?",
+      "state": "graded",
+      "verdicts": [
+        {
+          "id": "leo-joins-maya-me",
+          "verdict": "correct",
+          "reason": "Answer states the plan was 'You and Maya', matching Maya and the user."
+        }
+      ],
+      "metrics": {
+        "top_level_calls": 0,
+        "total_tool_operations": 0,
+        "provider_internal_tool_calls": null,
+        "provider_task_records": 0,
+        "categories": {},
+        "operations": [],
+        "failed_operations": 0,
+        "repeated_operations": 0,
+        "unmatched_tool_results": [],
+        "source_fallback_attempted": false,
+        "unclassified_operations": 0,
+        "latency_s": 7.12,
+        "input_tokens": null,
+        "output_tokens": null,
+        "policy_blocks": 0,
+        "returncode": 0
+      },
+      "question_authoring_reused": false,
+      "question_hash": "064af81c950278590137711273943077a1835ac5dd434f0e004156dfccdf8415",
+      "gateway_window": {
+        "projects": [
+          {
+            "project": "pacbench-7053f7902a3b-memcal-driver",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.001106900000000001,
+            "held_usd_delta": 0.0,
+            "input_tokens_delta": 10239,
+            "output_tokens_delta": 415
+          }
+        ],
+        "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+      }
+    }
+  ],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E2"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791494790194,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E2  Pizza with Maya and Leo\n\nwhen: Friday 9 October 2026 at 17:00\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Leo, Maya\n\nsources (17 line(s); * = what the row was built from):\n  — Thu Oct 8, 2026 20:46 · iMessage with Friday crew —\n * [43] Friday crew · Thu 8 Oct 20:46 · Leo: yeah 5pm Friday works for me, been craving their garlic knots\n  — Thu Oct 8, 2026 09:00 · Hermes chat —\n * [19] hermes:20261008_172404_db2b0b (your own earlier turn) · Thu 8 Oct 09:00 · me: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.] Hey, what's the deal with getting pizza tomorrow?\n * [20] hermes:20261008_172404_db2b0b (your own earlier turn) · Thu 8 Oct 09:02 · me: [Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.] Actually, cancel pizza tomorrow. I don't feel like going.\n  — Thu Oct 8, 2026 18:33 · iMessage with Friday crew —\n   [28] Friday crew · Thu 8 Oct 18:33 · me: btw saw Rosa's is closed for renovations so we gotta pick a new spot for Friday\n   [29] Friday crew · Thu 8 Oct 18:37 · me: what about Domino's on Elm Street?\n * [30] Friday crew · Thu 8 Oct 18:41 · Maya: that's too far for me, what about Mario's on Pine Street for Friday instead?\n * [31] Friday crew · Thu 8 Oct 18:45 · me: yeah that works, I'm good with that\n   [32] Friday crew · Thu 8 Oct 19:00 · Leo: ugh finally home, what a day\n   [33] Friday crew · Thu 8 Oct 19:04 · Leo: just caught up - they stuck me with a closing shift tomorrow so I can't do pizza on Friday, I'm sorry guys\n   [36] Friday crew · Thu 8 Oct 19:16 · Maya: guess it's just me and you then Me?\n   [37] Friday crew · Thu 8 Oct 19:20 · me: yep we're still on, I'll eat Leo's share of knots lol\n * [38] Friday crew · Thu 8 Oct 20:30 · Leo: ok you guys will be happy, got Tyler to cover my closing shift tomorrow so I'm back in for Friday!\n  … 5 more; memcal_conversation reads around any [n] above\n\nchanges:\n  2026-10-08T09:00  title: '' -> 'Pizza with Maya and Leo' (by live:born)\n  2026-10-08T09:00  location: '' -> \"Rosa's on Oak Street\" (by live:born)\n  2026-10-08T09:00  status: '' -> 'confirmed' (by live:born)\n  2026-10-08T09:00  participants: '' -> '[\"Leo\", \"Maya\"]' (by live:born)\n  2026-10-08T09:02  status: 'confirmed' -> 'declined' (by live)\n  2026-10-09T03:00  time: '19:00' -> '17:00' (by dream:nightly)\n  2026-10-09T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-09T03:00  status: 'declined' -> 'confirmed' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.78,
+    "input_tokens": 16385,
+    "output_tokens": 445,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "leo-couldnt-come",
+      "kind": "provided",
+      "reason": "Fact conveyed as cancelled then back in."
+    },
+    {
+      "id": "leo-event-date",
+      "kind": "provided",
+      "reason": "Date conveyed via tonight relative to Oct 9 now."
+    },
+    {
+      "id": "leo-reason-shift",
+      "kind": "provided",
+      "reason": "Closing shift stated."
+    },
+    {
+      "id": "leo-cover-tyler",
+      "kind": "provided",
+      "reason": "Tyler cover stated."
+    },
+    {
+      "id": "leo-back-in-joining",
+      "kind": "provided",
+      "reason": "Back in for tonight stated."
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "kind": "implicit_omission",
+      "reason": "Participants omitted and not explicitly asked for in 'what changed with Leo?'"
+    }
+  ],
+  "eligible_claim_ids": [
+    "leo-joins-maya-me"
+  ],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 1,
+    "initial_misrepresented": 0,
+    "max_points": 6,
+    "points": 5.5,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "leo-couldnt-come",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-event-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-reason-shift",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-cover-tyler",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-back-in-joining",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-joins-maya-me",
+        "initial_verdict": "missed",
+        "followup_verdict": "correct",
+        "recovered_answer": true,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.5
+      }
+    ],
+    "calibrated": false
+  }
+}

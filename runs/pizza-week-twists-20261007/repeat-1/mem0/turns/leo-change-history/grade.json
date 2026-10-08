@@ -1,0 +1,70 @@
+{
+  "correct": 4,
+  "missed": 2,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "leo-couldnt-come",
+      "verdict": "correct",
+      "reason": "Answer says 'He was out' for the pizza plan, conveying he initially couldn't come."
+    },
+    {
+      "id": "leo-event-date",
+      "verdict": "missed",
+      "reason": "Answer says '5pm' but never states the date October 9, 2026."
+    },
+    {
+      "id": "leo-reason-shift",
+      "verdict": "correct",
+      "reason": "Answer states he 'was out for a closing shift'."
+    },
+    {
+      "id": "leo-cover-tyler",
+      "verdict": "correct",
+      "reason": "Answer states he 'got Tyler to cover' following the closing shift mention."
+    },
+    {
+      "id": "leo-back-in-joining",
+      "verdict": "correct",
+      "reason": "Answer states he 'is back in — confirmed 5pm works'."
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "verdict": "missed",
+      "reason": "Answer never mentions Maya and Me as the plan participants."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "leo-couldnt-come",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-event-date",
+      "kind": "implicit_omission",
+      "reason": "Broad 'what changed with Leo' request, date detail omitted without saying unknown."
+    },
+    {
+      "id": "leo-reason-shift",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-cover-tyler",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-back-in-joining",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "kind": "implicit_omission",
+      "reason": "Broad request, co-attendee detail omitted without saying unknown."
+    }
+  ],
+  "interaction": "answer"
+}

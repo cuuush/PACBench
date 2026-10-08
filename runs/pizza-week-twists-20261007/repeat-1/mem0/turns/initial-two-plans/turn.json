@@ -1,0 +1,81 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHey, what's the deal with getting pizza tomorrow?",
+  "at": "2026-10-08T09:00:00-04:00",
+  "answer": "You've double-booked tomorrow, Friday Oct 9:\n\n- 6pm at Luigi's on 5th with Devon\n- 7pm at Rosa's on Oak with Maya and Leo\n\nThose overlap — you need to move or cancel one.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "pizza plans Friday October 9",
+        "top_k": 10
+      },
+      "timestamp": 1791494892645
+    },
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "pizza with Devon Luigi's",
+        "top_k": 5
+      },
+      "timestamp": 1791494892687
+    },
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "pizza with Maya Leo Rosa's",
+        "top_k": 5
+      },
+      "timestamp": 1791494892730
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.4394015518058766}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.42644462159516405}, {\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.3923763335006443}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.3015148576805281}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.29329382494178735}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.5700215007005193}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.386234234603214}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.28653198270773783}, {\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.2836380874580126}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.27695797516077164}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.5556227517657586}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.4338156839827813}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.4244370174249565}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.3421896658772373}, {\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.2867227495090257}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 20.61,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261008_172801_96c7cf",
+  "raw_events": 17,
+  "session_id": "20261008_172801_96c7cf",
+  "stderr_full": "\nsession_id: 20261008_172801_96c7cf\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261008_172801_96c7cf\", \"timestamp\": 1791494881696}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Double-booked tomorrow — pulling your pizza plans to confirm.\", \"timestamp\": 1791494891875}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"pizza plans Friday October 9\", \"top_k\": 10}, \"timestamp\": 1791494892645}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\\\", \\\"memory\\\": \\\"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\\\", \\\"score\\\": 0.4394015518058766}, {\\\"id\\\": \\\"56b2185b-340d-49af-b6e3-eb96f0b4b92e\\\", \\\"memory\\\": \\\"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\\\", \\\"score\\\": 0.42644462159516405}, {\\\"id\\\": \\\"c7e26450-64e7-4143-8677-b16e888a07fe\\\", \\\"memory\\\": \\\"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\\\", \\\"score\\\": 0.3923763335006443}, {\\\"id\\\": \\\"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\\\", \\\"memory\\\": \\\"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\\\", \\\"score\\\": 0.3015148576805281}, {\\\"id\\\": \\\"19866025-1064-45a9-b114-40d931ac94e8\\\", \\\"memory\\\": \\\"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\\\", \\\"score\\\": 0.29329382494178735}], \\\"count\\\": 5}\", \"duration_ms\": 40, \"is_error\": false, \"timestamp\": 1791494892686}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"pizza with Devon Luigi's\", \"top_k\": 5}, \"timestamp\": 1791494892687}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"c7e26450-64e7-4143-8677-b16e888a07fe\\\", \\\"memory\\\": \\\"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\\\", \\\"score\\\": 0.5700215007005193}, {\\\"id\\\": \\\"19866025-1064-45a9-b114-40d931ac94e8\\\", \\\"memory\\\": \\\"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\\\", \\\"score\\\": 0.386234234603214}, {\\\"id\\\": \\\"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\\\", \\\"memory\\\": \\\"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\\\", \\\"score\\\": 0.28653198270773783}, {\\\"id\\\": \\\"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\\\", \\\"memory\\\": \\\"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\\\", \\\"score\\\": 0.2836380874580126}, {\\\"id\\\": \\\"56b2185b-340d-49af-b6e3-eb96f0b4b92e\\\", \\\"memory\\\": \\\"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\\\", \\\"score\\\": 0.27695797516077164}], \\\"count\\\": 5}\", \"duration_ms\": 37, \"is_error\": false, \"timestamp\": 1791494892728}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"pizza with Maya Leo Rosa's\", \"top_k\": 5}, \"timestamp\": 1791494892730}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\\\", \\\"memory\\\": \\\"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\\\", \\\"score\\\": 0.5556227517657586}, {\\\"id\\\": \\\"56b2185b-340d-49af-b6e3-eb96f0b4b92e\\\", \\\"memory\\\": \\\"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\\\", \\\"score\\\": 0.4338156839827813}, {\\\"id\\\": \\\"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\\\", \\\"memory\\\": \\\"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\\\", \\\"score\\\": 0.4244370174249565}, {\\\"id\\\": \\\"19866025-1064-45a9-b114-40d931ac94e8\\\", \\\"memory\\\": \\\"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\\\", \\\"score\\\": 0.3421896658772373}, {\\\"id\\\": \\\"c7e26450-64e7-4143-8677-b16e888a07fe\\\", \\\"memory\\\": \\\"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\\\", \\\"score\\\": 0.2867227495090257}], \\\"count\\\": 5}\", \"duration_ms\": 56, \"is_error\": false, \"timestamp\": 1791494892787}\n{\"type\": \"text\", \"text\": \"\\n\\nYou've double-booked\", \"timestamp\": 1791494895088}\n{\"type\": \"text\", \"text\": \" tomorrow, Friday Oct 9:\\n\\n- 6pm at\", \"timestamp\": 1791494895125}\n{\"type\": \"text\", \"text\": \" Luigi's on 5th with\", \"timestamp\": 1791494895155}\n{\"type\": \"text\", \"text\": \" Devon\\n- 7pm at Rosa's on Oak with Maya and Leo\\n\\n\", \"timestamp\": 1791494895187}\n{\"type\": \"text\", \"text\": \"Those overlap —\", \"timestamp\": 1791494895219}\n{\"type\": \"text\", \"text\": \" you\", \"timestamp\": 1791494895251}\n{\"type\": \"text\", \"text\": \" need to move\", \"timestamp\": 1791494895284}\n{\"type\": \"text\", \"text\": \" or cancel one.\", \"timestamp\": 1791494895316}\n{\"type\": \"result\", \"session_id\": \"20261008_172801_96c7cf\", \"exit_code\": 0, \"text\": \"You've double-booked tomorrow, Friday Oct 9:\\n\\n- 6pm at Luigi's on 5th with Devon\\n- 7pm at Rosa's on Oak with Maya and Leo\\n\\nThose overlap — you need to move or cancel one.\", \"tokens\": {\"input\": 8790, \"output\": 654, \"total\": 9444, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 13681, \"timestamp\": 1791494895377}",
+  "session_input_tokens": 8790,
+  "session_output_tokens": 654,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\n- User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\n- User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\n- User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\n- User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-hqi94x62",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-hqi94x62",
+    "system_prompt_sha256": "5d09edb9ceb055ee74190261122f96d15abe745f97676f59ecf1f367810c1158",
+    "reason": "No project context in native saved system prompt"
+  }
+}

@@ -1,21 +1,24 @@
-# Current Pizza Day test
+# Current Pizza Week diagnostic
 
-The current run is [runs/pizza-clean-context-mem0-20261007](runs/pizza-clean-context-mem0-20261007/summary.json). Its preparation evidence is inside `preparation/`; the input has 25 verified messages and five facts. Public source, model-call and judgment artifacts are tracked in Git. Private provider homes, databases and encrypted reasoning stay local. Old trials and the stopped obsolete authoring draft were deleted during development cleanup.
+The current run is [runs/pizza-week-twists-20261007](runs/pizza-week-twists-20261007/summary.json). It has 42 verified messages in seven low-noise scenes and nine planned assistant turns. Wednesday establishes two Friday outings; Thursday changes one outing's time and restaurant, rejects another restaurant, and has Leo drop out then return. Thursday and Friday assistant conversations test clarification, cancellation and fresh-session persistence.
 
-Mem0 OSS ingested the raw daily transcript with its native extraction, using local Qdrant and Ollama embeddings. A fresh Hermes session called `mem0_search` once and answered:
+The same frozen messages went to Memcal and Mem0. Memcal read the synthetic Apple Messages database and separate contacts through its native reader, then ran normal nightly processing at 03:00 Eastern. Mem0 OSS ingested the raw daily documents with native extraction, local Qdrant and Ollama embeddings. Hermes received only questions and each provider's normal context and shipped tools. All paid calls used Spark Contributor through the shared gateway.
 
-> You and Devon are getting pizza at Luigi's on 5th tonight — Friday at 7pm. He's meeting you there.
+## Findings to inspect
 
-The judge marked all five facts correct: companion, restaurant, street, date and time. Retention was 5/5, with no follow-up or source fallback. This is one small diagnostic, not a comparative result.
+- Memcal extraction proposed distinct Devon and Maya outings, but storage combined them. Hermes recovered the initial nine answer facts using 15 tool calls, including archive and conversation lookups: answer correctness was 9/9, retention was 0/9. The gateway recorded 16 Hermes requests, 184,791 input tokens and 6,097 output tokens for that turn. It then cancelled both outings instead of asking which one, so six dependent story turns were skipped. Independent Leo-history recall continued.
+- Mem0 recalled both outings and asked which one to cancel. Hermes cancelled Devon's outing with `mem0_delete`. It correctly recalled the changed Maya outing at 5 pm at Mario's on Pine Street with Leo. Later, when asked to restore Devon's outing in a fresh session, it asked for the missing date and place. Final recall named Devon again but lacked his original time and venue.
+- Preparation has a fairness bug: some frozen criteria require details beyond the English expectation, including a cancelled outing's old time/address and repeated group-plan details for each person. The generator and reviewer now explicitly limit future criteria to the expectation. This run's criteria and judgments remain unchanged for inspection; its numerical grades are diagnostic, not a fair comparison.
+- The answer judge accepted Memcal's incorrect “closing shift Thursday night” wording while grading the narrower work-shift criterion. Generated texts also occasionally address the owner as “Me.” Both need review before larger cases.
 
-Recall launches from an empty temporary directory outside the repository. The audit reads Hermes's actual saved system prompt and working directory, verifying that benchmark project instructions were not loaded. Provider context and normal memory hooks remain enabled; built-in memory and non-provider tools are disabled.
+The explorer shows source dialogue, processing clocks, tool arguments/results, model usage, per-turn criteria, judge prompts/responses, follow-ups and skipped-turn causes. It reads `runs/` directly; public evidence and the reusable frozen week ship with Git. Private provider homes, databases, credentials, caches and encrypted replay records remain local.
 
 ```sh
-python -m pacbench.preparation_audit runs/pizza-clean-context-mem0-20261007/preparation
-python -m pacbench.native_audit runs/pizza-clean-context-mem0-20261007
 python serve_explorer.py
+python -m pacbench.preparation_audit runs/pizza-week-twists-20261007/preparation
+python -m pacbench.native_audit runs/pizza-week-twists-20261007
 ```
 
-Both integrity audits pass locally. Full native re-auditing requires the private runtime files; a fresh checkout can inspect the saved audit, judge and public traces in the explorer. The frozen input hash is `62153788eaee6207430d5726c97967a09f1d653530e865435bb3252f0b3e2b21`. Task spending was $3.2486826 as an accounted upper bound including reservations, not an invoice. Cleanup and offline verification need no new paid calls.
+Native re-auditing requires private runtime files. A fresh checkout can inspect the saved audits and public evidence without them. The reusable corpus is `runs/pizza-week-twists-20261007/preparation/week.json`; repairing criteria should reuse these messages rather than regenerate them.
 
-The next development case is [Pizza Week](weeks/pizza_week.json): two outings, DM/group updates, an ambiguous cancellation, and fresh-session persistence checks. Its weekday author format is implemented and covered offline; its live authoring was paused during the schema revision, so no new provider accuracy is asserted. Start with low noise, inspect small-case failures, then increase message counts.
+Next: repair false event merges directly in the Memcal repository with lifecycle regressions; review criteria scope and the answer judge's handling of contradictions; give the owner a realistic display name; then rerun the same small corpus. Increase noise only after those checks are sound. Acknowledgements alone are not persistence evidence, and source fallback earns no retention credit.

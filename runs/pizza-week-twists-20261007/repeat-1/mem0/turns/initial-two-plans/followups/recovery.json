@@ -1,0 +1,231 @@
+{
+  "state": "complete",
+  "plan_hash": "f36a73827a79a1cfabef89f88158205feb627e87d1ee9702995d1d6e94d0983d",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 3
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza plans Friday October 9",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791494892645,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.4394015518058766}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.42644462159516405}, {\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.3923763335006443}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.3015148576805281}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.29329382494178735}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza with Devon Luigi's",
+          "top_k": 5
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791494892687,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.5700215007005193}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.386234234603214}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.28653198270773783}, {\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.2836380874580126}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.27695797516077164}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza with Maya Leo Rosa's",
+          "top_k": 5
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791494892730,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.5556227517657586}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.4338156839827813}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.4244370174249565}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.3421896658772373}, {\"id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\", \"memory\": \"User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\", \"score\": 0.2867227495090257}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 20.61,
+    "input_tokens": 8790,
+    "output_tokens": 654,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-date",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "maya-date",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "maya-time",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "maya-venue",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "maya-street",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    },
+    {
+      "id": "leo-joins",
+      "kind": "provided",
+      "reason": "Fact correctly stated."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 9,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 9,
+    "points": 9.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-joins",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

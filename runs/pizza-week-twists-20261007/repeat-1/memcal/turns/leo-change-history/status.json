@@ -1,0 +1,127 @@
+{
+  "id": "leo-change-history",
+  "at": "2026-10-09T09:02:00-04:00",
+  "session": "friday-morning",
+  "contract_hash": "253267d32ba5acaa5220208a4fd70455bbd27e88cd51e7600810a077c56d1058",
+  "state": "diagnostic",
+  "verdict": "fail",
+  "reason": "",
+  "interaction": "answer",
+  "recovery": {
+    "state": "complete",
+    "score": {
+      "initial_correct": 5,
+      "initial_missed": 1,
+      "initial_misrepresented": 0,
+      "max_points": 6,
+      "points": 5.5,
+      "recovery_weight": 0.5,
+      "claims": [
+        {
+          "claim_id": "leo-couldnt-come",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "leo-event-date",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "leo-reason-shift",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "leo-cover-tyler",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "leo-back-in-joining",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "leo-joins-maya-me",
+          "initial_verdict": "missed",
+          "followup_verdict": "correct",
+          "recovered_answer": true,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 0.5
+        }
+      ],
+      "calibrated": false
+    },
+    "attempts": [
+      {
+        "claim_ids": [
+          "leo-joins-maya-me"
+        ],
+        "question": "Who was in the pizza plan Leo rejoined?",
+        "state": "graded",
+        "verdicts": [
+          {
+            "id": "leo-joins-maya-me",
+            "verdict": "correct",
+            "reason": "Answer states the plan was 'You and Maya', matching Maya and the user."
+          }
+        ],
+        "metrics": {
+          "top_level_calls": 0,
+          "total_tool_operations": 0,
+          "provider_internal_tool_calls": null,
+          "provider_task_records": 0,
+          "categories": {},
+          "operations": [],
+          "failed_operations": 0,
+          "repeated_operations": 0,
+          "unmatched_tool_results": [],
+          "source_fallback_attempted": false,
+          "unclassified_operations": 0,
+          "latency_s": 7.12,
+          "input_tokens": null,
+          "output_tokens": null,
+          "policy_blocks": 0,
+          "returncode": 0
+        },
+        "question_authoring_reused": false,
+        "question_hash": "064af81c950278590137711273943077a1835ac5dd434f0e004156dfccdf8415",
+        "gateway_window": {
+          "projects": [
+            {
+              "project": "pacbench-7053f7902a3b-memcal-driver",
+              "calls_delta": 1,
+              "settled_upper_bound_usd_delta": 0.001106900000000001,
+              "held_usd_delta": 0.0,
+              "input_tokens_delta": 10239,
+              "output_tokens_delta": 415
+            }
+          ],
+          "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+        }
+      }
+    ]
+  }
+}

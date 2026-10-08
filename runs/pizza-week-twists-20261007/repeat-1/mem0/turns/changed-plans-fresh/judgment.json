@@ -1,0 +1,71 @@
+{
+  "checkpoint": "changed-plans-fresh",
+  "question": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with pizza, and what am I still doing today?",
+  "answer": "Time changed from 7pm to 5pm today, because Maya has something later and needs to be at her parents.\n\nVenue changed from Rosa's on Oak Street to Mario's on Pine Street, because Rosa's is closed for renovations. You suggested Domino's on Elm, Maya said too far and proposed Mario's, which you accepted.\n\nLeo dropped out over a closing shift, then got Tyler to cover and is back in.\n\nStill on for today: pizza at 5pm at Mario's on Pine Street with you, Maya, and Leo.",
+  "claims": [
+    {
+      "id": "not-devon",
+      "description": "Me is not going to the pizza plan with Devon.",
+      "evidence": [
+        "assistant-user:cancel-devon"
+      ]
+    },
+    {
+      "id": "with-maya",
+      "description": "Me is going to pizza with Maya.",
+      "evidence": [
+        "pizza-week-twists-low/leo-drops-out-04",
+        "pizza-week-twists-low/leo-drops-out-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    },
+    {
+      "id": "with-leo",
+      "description": "Me is going to pizza with Leo.",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "date-friday",
+      "description": "The Maya and Leo pizza plan is on Friday, October 9, 2026, which is today from the October 9 message.",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00",
+        "pizza-week-twists-low/leo-back-in-05",
+        "assistant-user:changed-plans-fresh"
+      ]
+    },
+    {
+      "id": "time-5pm",
+      "description": "The Maya and Leo pizza plan is at 5pm.",
+      "evidence": [
+        "pizza-week-twists-low/maya-time-update-02",
+        "pizza-week-twists-low/maya-time-update-03",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "venue-marios",
+      "description": "The Maya and Leo pizza venue is Mario's.",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    },
+    {
+      "id": "street-pine",
+      "description": "The Maya and Leo pizza venue is on Pine Street.",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. Judge behavioral criteria against what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. Unnecessary clarification when the referent is clear is a failure. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with pizza, and what am I still doing today?\nAnswer: Time changed from 7pm to 5pm today, because Maya has something later and needs to be at her parents.\n\nVenue changed from Rosa's on Oak Street to Mario's on Pine Street, because Rosa's is closed for renovations. You suggested Domino's on Elm, Maya said too far and proposed Mario's, which you accepted.\n\nLeo dropped out over a closing shift, then got Tyler to cover and is back in.\n\nStill on for today: pizza at 5pm at Mario's on Pine Street with you, Maya, and Leo.\nClaims (hidden from the assistant): [{\"id\": \"not-devon\", \"claim\": \"Me is not going to the pizza plan with Devon.\", \"evidence\": [\"assistant-user:cancel-devon\"]}, {\"id\": \"with-maya\", \"claim\": \"Me is going to pizza with Maya.\", \"evidence\": [\"pizza-week-twists-low/leo-drops-out-04\", \"pizza-week-twists-low/leo-drops-out-05\", \"pizza-week-twists-low/leo-back-in-02\"]}, {\"id\": \"with-leo\", \"claim\": \"Me is going to pizza with Leo.\", \"evidence\": [\"pizza-week-twists-low/leo-back-in-00\", \"pizza-week-twists-low/leo-back-in-05\"]}, {\"id\": \"date-friday\", \"claim\": \"The Maya and Leo pizza plan is on Friday, October 9, 2026, which is today from the October 9 message.\", \"evidence\": [\"pizza-week-twists-low/leo-back-in-00\", \"pizza-week-twists-low/leo-back-in-05\", \"assistant-user:changed-plans-fresh\"]}, {\"id\": \"time-5pm\", \"claim\": \"The Maya and Leo pizza plan is at 5pm.\", \"evidence\": [\"pizza-week-twists-low/maya-time-update-02\", \"pizza-week-twists-low/maya-time-update-03\", \"pizza-week-twists-low/leo-back-in-05\"]}, {\"id\": \"venue-marios\", \"claim\": \"The Maya and Leo pizza venue is Mario's.\", \"evidence\": [\"pizza-week-twists-low/group-venue-update-04\", \"pizza-week-twists-low/group-venue-update-05\", \"pizza-week-twists-low/leo-back-in-02\"]}, {\"id\": \"street-pine\", \"claim\": \"The Maya and Leo pizza venue is on Pine Street.\", \"evidence\": [\"pizza-week-twists-low/group-venue-update-04\", \"pizza-week-twists-low/group-venue-update-05\", \"pizza-week-twists-low/leo-back-in-02\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"not-devon\", \"verdict\": \"missed\", \"reason\": \"Answer never mentions Devon or a Devon cancellation; only lists Maya and Leo.\"}, {\"id\": \"with-maya\", \"verdict\": \"correct\", \"reason\": \"Answer states still on for pizza at 5pm at Mario's with you, Maya, and Leo.\"}, {\"id\": \"with-leo\", \"verdict\": \"correct\", \"reason\": \"Answer states still on for pizza with you, Maya, and Leo and that Leo is back in.\"}, {\"id\": \"date-friday\", \"verdict\": \"correct\", \"reason\": \"Answer says the plan is today, which is Oct 9, 2026 in context.\"}, {\"id\": \"time-5pm\", \"verdict\": \"correct\", \"reason\": \"Answer states time changed to 5pm and still on at 5pm.\"}, {\"id\": \"venue-marios\", \"verdict\": \"correct\", \"reason\": \"Answer states venue changed to Mario's and still on at Mario's.\"}, {\"id\": \"street-pine\", \"verdict\": \"correct\", \"reason\": \"Answer states Mario's on Pine Street twice.\"}], \"recovery\": [{\"id\": \"not-devon\", \"kind\": \"implicit_omission\", \"reason\": \"Broad recap request, not explicit for Devon, and answer omits Devon without saying unknown.\"}, {\"id\": \"with-maya\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as attendee.\"}, {\"id\": \"with-leo\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as attendee.\"}, {\"id\": \"date-friday\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as today.\"}, {\"id\": \"time-5pm\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as 5pm.\"}, {\"id\": \"venue-marios\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as Mario's.\"}, {\"id\": \"street-pine\", \"kind\": \"provided\", \"reason\": \"Fact correctly included as Pine Street.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/runs/pizza-week-twists-20261007/model-calls/2073e116f6cb8df2ef4069341aa1f2b77156de1fc997cdf011bf0de120223a6e.json"
+}

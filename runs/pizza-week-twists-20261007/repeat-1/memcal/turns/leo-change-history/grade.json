@@ -1,0 +1,70 @@
+{
+  "correct": 5,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "leo-couldnt-come",
+      "verdict": "correct",
+      "reason": "Answer states 'cancelled then un-cancelled' and 'back in for tonight at 5pm', conveying initial couldn't come for Friday event."
+    },
+    {
+      "id": "leo-event-date",
+      "verdict": "correct",
+      "reason": "With now Oct 9 morning, 'tonight at 5pm' conveys Friday Oct 9, 2026."
+    },
+    {
+      "id": "leo-reason-shift",
+      "verdict": "correct",
+      "reason": "Answer gives reason as 'closing shift'."
+    },
+    {
+      "id": "leo-cover-tyler",
+      "verdict": "correct",
+      "reason": "Answer states 'got Tyler to cover it' referring to closing shift."
+    },
+    {
+      "id": "leo-back-in-joining",
+      "verdict": "correct",
+      "reason": "Answer states \"he's back in for tonight at 5pm\" which is Friday."
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "verdict": "missed",
+      "reason": "Answer mentions back in for tonight but names no other participants like Maya and Me."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "leo-couldnt-come",
+      "kind": "provided",
+      "reason": "Fact conveyed as cancelled then back in."
+    },
+    {
+      "id": "leo-event-date",
+      "kind": "provided",
+      "reason": "Date conveyed via tonight relative to Oct 9 now."
+    },
+    {
+      "id": "leo-reason-shift",
+      "kind": "provided",
+      "reason": "Closing shift stated."
+    },
+    {
+      "id": "leo-cover-tyler",
+      "kind": "provided",
+      "reason": "Tyler cover stated."
+    },
+    {
+      "id": "leo-back-in-joining",
+      "kind": "provided",
+      "reason": "Back in for tonight stated."
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "kind": "implicit_omission",
+      "reason": "Participants omitted and not explicitly asked for in 'what changed with Leo?'"
+    }
+  ],
+  "interaction": "answer"
+}

@@ -1,0 +1,55 @@
+{
+  "contract_hash": "61e275138fe3a77de194695353323c5fa66d393ee7b286bc9d50a8e13e0d8780",
+  "component_plan_hash": "14f5f54bfb01be0d96adf78fe8244f2aace96f3bd1a252baeb246649f8b46a35",
+  "claim_ids": [
+    "devon-date",
+    "devon-time",
+    "devon-venue-name",
+    "devon-venue-street"
+  ],
+  "question": "What is my Devon pizza outing today - date, time, venue name, and street?",
+  "review": {
+    "safe": true,
+    "covers_claim_ids": [
+      "devon-date",
+      "devon-time",
+      "devon-venue-name",
+      "devon-venue-street"
+    ],
+    "reason": "Message explicitly asks for date, time, venue name, and street for today's Devon outing, covering all 4 missing facts without supplying answers or tool instructions and preserving today-current meaning."
+  },
+  "origin": "spark-combined-message",
+  "authoring_calls": [
+    {
+      "model": "muse-spark-1.3-contributor",
+      "usage": {
+        "completion_tokens": 2460,
+        "prompt_tokens": 166,
+        "total_tokens": 2626,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2427
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "record_path": "/workspace/PACBench/runs/pizza-week-twists-20261007/model-calls/9bcbd2bd215452595efdf4a31db4f52596dff1f76627bf0e8257f7d30e1f94f9.json"
+    },
+    {
+      "model": "muse-spark-1.3-contributor",
+      "usage": {
+        "completion_tokens": 1147,
+        "prompt_tokens": 202,
+        "total_tokens": 1349,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1068
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "record_path": "/workspace/PACBench/runs/pizza-week-twists-20261007/model-calls/761d0959b3054f16539d7347ae0b66013f4c6b55933d7c5ef0165a451ce62f72.json"
+    }
+  ],
+  "question_hash": "33f91b0e24b7e54f5703a5284e1fa04fa2893ba6ae12620f589b6812ae2c99e4"
+}

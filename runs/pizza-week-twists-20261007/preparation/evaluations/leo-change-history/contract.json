@@ -1,0 +1,109 @@
+{
+  "claims": [
+    {
+      "id": "leo-couldnt-come",
+      "statement": "Leo initially said he couldn't do pizza on Friday",
+      "evidence": [
+        "pizza-week-twists-low/leo-drops-out-01"
+      ]
+    },
+    {
+      "id": "leo-event-date",
+      "statement": "The Friday Leo referred to was October 9, 2026",
+      "evidence": [
+        "pizza-week-twists-low/leo-drops-out-01"
+      ]
+    },
+    {
+      "id": "leo-reason-shift",
+      "statement": "Leo said the reason was he had been stuck with a closing work shift",
+      "evidence": [
+        "pizza-week-twists-low/leo-drops-out-01"
+      ]
+    },
+    {
+      "id": "leo-cover-tyler",
+      "statement": "Leo later said he got Tyler to cover his closing shift",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00"
+      ]
+    },
+    {
+      "id": "leo-back-in-joining",
+      "statement": "Leo then confirmed he was back in for Friday",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00"
+      ]
+    },
+    {
+      "id": "leo-joins-maya-me",
+      "statement": "The pizza plan Leo rejoined was with Maya and Me",
+      "evidence": [
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-drops-out-04",
+        "pizza-week-twists-low/leo-back-in-00"
+      ]
+    }
+  ],
+  "question": "And what changed with Leo?",
+  "evidence_hash": "f8cc83122ee3c1a37765bb23fb31125bfbc5c67db5022cb713c53637646f7eed",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set covers initial inability due to closing shift, Tyler cover, and confirmed rejoin for Friday Oct 9 with Maya and Me.",
+    "reviews": [
+      {
+        "id": "leo-couldnt-come",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Directly states inability in cited message."
+      },
+      {
+        "id": "leo-event-date",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Tomorrow+Friday from Oct 8 timestamp resolves to Oct 9, 2026."
+      },
+      {
+        "id": "leo-reason-shift",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Cited message explicitly gives closing shift as reason."
+      },
+      {
+        "id": "leo-cover-tyler",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Later message explicitly says Tyler covered closing shift."
+      },
+      {
+        "id": "leo-back-in-joining",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Same later message explicitly confirms back in for Friday."
+      },
+      {
+        "id": "leo-joins-maya-me",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Join, dropout, and back-in context shows plan is with Maya and Me."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt 'And what changed with Leo?' supplies no answers and its presupposition of a change is supported by dropout then rejoin. As follow-up to pizza-change context on Friday 2026-10-09, it naturally invites the full history: initial can't for Friday/Oct 9 due to closing shift, Tyler cover, back-in, and which plan (Maya and Me)."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Leo initially said he couldn't come because of a work shift, then found cover and confirmed he was joining Maya and me after all.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T09:02:00-04:00",
+  "contract_hash": "253267d32ba5acaa5220208a4fd70455bbd27e88cd51e7600810a077c56d1058"
+}

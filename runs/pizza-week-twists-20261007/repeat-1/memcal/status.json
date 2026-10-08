@@ -1,0 +1,350 @@
+{
+  "provider": "memcal",
+  "repetition": 1,
+  "input_hash": "2c744ade17d9f3c4858e1b415e87f399c906e2ddd0ee0b5d2ab8b133fb191ce4",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "memcal_open",
+      "memcal_open_page",
+      "memcal_search_wiki",
+      "memcal_open_source",
+      "memcal_conversation",
+      "memcal_list_days",
+      "memcal_list_month",
+      "memcal_search_archive",
+      "memcal_activity",
+      "memcal_refresh",
+      "memcal_add",
+      "memcal_update",
+      "memcal_schedule",
+      "memcal_move_once",
+      "memcal_merge",
+      "memcal_drop",
+      "memcal_todo",
+      "memcal_answer",
+      "memcal_note",
+      "memcal_alias",
+      "memcal_reviewed"
+    ],
+    "provider": "memcal",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "memcal_list_days",
+      "arguments": {},
+      "output": "{\"from\": \"2026-09-11\", \"to\": \"2026-09-11\", \"weekday\": \"Friday\", \"rows\": [], \"free\": true}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "checks": [
+    {
+      "id": "initial-two-plans",
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "thursday-morning",
+      "contract_hash": "6b321cf1d9b1e14b0ebdd0c6758f00ce5592e7860e29c8545301bca9ec826e52",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 9,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 9,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "devon-date",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "devon-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "devon-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "devon-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "maya-date",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "maya-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "maya-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "maya-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "leo-joins",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": true,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "ambiguous-cancel",
+      "at": "2026-10-08T09:02:00-04:00",
+      "session": "thursday-morning",
+      "contract_hash": "739c983df25762bcf3a43dad28ba0968124092f1c0b25a66bf9d7028ae157dd0",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer"
+    },
+    {
+      "id": "cancel-devon",
+      "at": "2026-10-08T09:04:00-04:00",
+      "session": "thursday-morning",
+      "contract_hash": "83706788a137b0f695bc51e66d3118742794f2adaa5fd5bf41d36e0cd038cfaa",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Scripted clarification reply was not requested",
+      "cause": "ambiguous-cancel"
+    },
+    {
+      "id": "other-plan-same-session",
+      "at": "2026-10-08T09:06:00-04:00",
+      "session": "thursday-morning",
+      "contract_hash": "695ec70f60dad98134189b2a8a1b3999038259b01b200e2634dd7fbdfb5a792f",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "cancel-devon"
+    },
+    {
+      "id": "cancellation-fresh",
+      "at": "2026-10-08T11:00:00-04:00",
+      "session": "thursday-fresh",
+      "contract_hash": "2289f5cabd539d2de97392f3a33c0cf70f6a2695bebe88df763e0df56a058b37",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "cancel-devon"
+    },
+    {
+      "id": "changed-plans-fresh",
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "friday-morning",
+      "contract_hash": "91a58c41674e9b889c08eb22c823c6c2b088898d899e80083063718e162407be",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "cancel-devon"
+    },
+    {
+      "id": "leo-change-history",
+      "at": "2026-10-09T09:02:00-04:00",
+      "session": "friday-morning",
+      "contract_hash": "253267d32ba5acaa5220208a4fd70455bbd27e88cd51e7600810a077c56d1058",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 6,
+          "points": 5.5,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "leo-couldnt-come",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "leo-event-date",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "leo-reason-shift",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "leo-cover-tyler",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "leo-back-in-joining",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "leo-joins-maya-me",
+              "initial_verdict": "missed",
+              "followup_verdict": "correct",
+              "recovered_answer": true,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 0.5
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": [
+          {
+            "claim_ids": [
+              "leo-joins-maya-me"
+            ],
+            "question": "Who was in the pizza plan Leo rejoined?",
+            "state": "graded",
+            "verdicts": [
+              {
+                "id": "leo-joins-maya-me",
+                "verdict": "correct",
+                "reason": "Answer states the plan was 'You and Maya', matching Maya and the user."
+              }
+            ],
+            "metrics": {
+              "top_level_calls": 0,
+              "total_tool_operations": 0,
+              "provider_internal_tool_calls": null,
+              "provider_task_records": 0,
+              "categories": {},
+              "operations": [],
+              "failed_operations": 0,
+              "repeated_operations": 0,
+              "unmatched_tool_results": [],
+              "source_fallback_attempted": false,
+              "unclassified_operations": 0,
+              "latency_s": 7.12,
+              "input_tokens": null,
+              "output_tokens": null,
+              "policy_blocks": 0,
+              "returncode": 0
+            },
+            "question_authoring_reused": false,
+            "question_hash": "064af81c950278590137711273943077a1835ac5dd434f0e004156dfccdf8415",
+            "gateway_window": {
+              "projects": [
+                {
+                  "project": "pacbench-7053f7902a3b-memcal-driver",
+                  "calls_delta": 1,
+                  "settled_upper_bound_usd_delta": 0.001106900000000001,
+                  "held_usd_delta": 0.0,
+                  "input_tokens_delta": 10239,
+                  "output_tokens_delta": 415
+                }
+              ],
+              "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "going-again",
+      "at": "2026-10-09T11:00:00-04:00",
+      "session": "friday-recommit",
+      "contract_hash": "f2764536c59d958203ae5cc1551f457a5824042f149be45e580464ab5cf5fd5a",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "cancel-devon"
+    },
+    {
+      "id": "final-two-plans",
+      "at": "2026-10-09T12:00:00-04:00",
+      "session": "friday-final-fresh",
+      "contract_hash": "61e275138fe3a77de194695353323c5fa66d393ee7b286bc9d50a8e13e0d8780",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "going-again"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-08T21:28:25.383954+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. Judge behavioral criteria against what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. Unnecessary clarification when the referent is clear is a failure. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHey, what's the deal with getting pizza tomorrow?\nAnswer: You've double-booked tomorrow, Friday Oct 9:\n\n- 6pm at Luigi's on 5th with Devon\n- 7pm at Rosa's on Oak with Maya and Leo\n\nThose overlap — you need to move or cancel one.\nClaims (hidden from the assistant): [{\"id\": \"devon-date\", \"claim\": \"Me and Devon have an agreed pizza outing on Friday.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-time\", \"claim\": \"Me and Devon's agreed pizza outing is at 6 pm.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-venue\", \"claim\": \"Me and Devon's agreed pizza outing is at Luigi's.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"devon-street\", \"claim\": \"Me and Devon's agreed pizza outing is on 5th Street.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"maya-date\", \"claim\": \"Me and Maya have an agreed pizza outing on Friday.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\"]}, {\"id\": \"maya-time\", \"claim\": \"Me and Maya's agreed pizza outing is at 7 pm.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-05\"]}, {\"id\": \"maya-venue\", \"claim\": \"Me and Maya's agreed pizza outing is at Rosa's.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\"]}, {\"id\": \"maya-street\", \"claim\": \"Me and Maya's agreed pizza outing is on Oak Street.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\"]}, {\"id\": \"leo-joins\", \"claim\": \"Leo has agreed to join Me and Maya's pizza outing.\", \"evidence\": [\"pizza-week-twists-low/leo-joins-02\", \"pizza-week-twists-low/leo-joins-04\"]}]"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a11d6a-dde7-7103-bd64-9db3e02e4b56",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"verdicts\": [{\"id\": \"devon-date\", \"verdict\": \"correct\", \"reason\": \"Answer lists Friday Oct 9 outing with Devon.\"}, {\"id\": \"devon-time\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing at 6pm.\"}, {\"id\": \"devon-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing at Luigi's.\"}, {\"id\": \"devon-street\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing on 5th.\"}, {\"id\": \"maya-date\", \"verdict\": \"correct\", \"reason\": \"Answer lists Friday Oct 9 outing with Maya.\"}, {\"id\": \"maya-time\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing at 7pm.\"}, {\"id\": \"maya-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing at Rosa's.\"}, {\"id\": \"maya-street\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing on Oak.\"}, {\"id\": \"leo-joins\", \"verdict\": \"correct\", \"reason\": \"Answer lists Leo with Maya outing.\"}], \"recovery\": [{\"id\": \"devon-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"leo-joins\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791494905,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 1400,
+      "prompt_tokens": 1011,
+      "total_tokens": 2411,
+      "completion_tokens_details": {
+        "reasoning_tokens": 903
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"verdicts\": [{\"id\": \"devon-date\", \"verdict\": \"correct\", \"reason\": \"Answer lists Friday Oct 9 outing with Devon.\"}, {\"id\": \"devon-time\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing at 6pm.\"}, {\"id\": \"devon-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing at Luigi's.\"}, {\"id\": \"devon-street\", \"verdict\": \"correct\", \"reason\": \"Answer states Devon outing on 5th.\"}, {\"id\": \"maya-date\", \"verdict\": \"correct\", \"reason\": \"Answer lists Friday Oct 9 outing with Maya.\"}, {\"id\": \"maya-time\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing at 7pm.\"}, {\"id\": \"maya-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing at Rosa's.\"}, {\"id\": \"maya-street\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya outing on Oak.\"}, {\"id\": \"leo-joins\", \"verdict\": \"correct\", \"reason\": \"Answer lists Leo with Maya outing.\"}], \"recovery\": [{\"id\": \"devon-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"devon-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"maya-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}, {\"id\": \"leo-joins\", \"kind\": \"provided\", \"reason\": \"Fact correctly stated.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "usage": {
+    "completion_tokens": 1400,
+    "prompt_tokens": 1011,
+    "total_tokens": 2411,
+    "completion_tokens_details": {
+      "reasoning_tokens": 903
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

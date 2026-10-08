@@ -1,0 +1,80 @@
+{
+  "scene_id": "maya-time-update",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-07T20:47:44+00:00",
+  "spec": {
+    "id": "maya-time-update",
+    "channel": "imessage",
+    "thread": "maya",
+    "scene": "In the existing DM, Maya asks: about tomorrow, can we do 5 pm instead? They rely on their chat history.",
+    "test_intent": "",
+    "facts": [
+      "The user agrees to move the existing Maya outing to 5 pm; its day and restaurant stay the same."
+    ],
+    "at": "2026-10-08T18:00:00-04:00",
+    "window_start": "2026-10-08T18:00:00-04:00",
+    "window_end": "2026-10-08T18:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      4,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Maya"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v14",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Maya: finally home, today was chaos",
+    "Me: same, I'm wiped",
+    "Maya: btw about tomorrow, can we do 5pm instead? I have something later that night",
+    "Me: yeah 5 works for me",
+    "Maya: perfect thank youu"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-08. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:00 and 18:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: In the existing DM, Maya asks: about tomorrow, can we do 5 pm instead? They rely on their chat history.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. The user agrees to move the existing Maya outing to 5 pm; its day and restaurant stay the same.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-10-07 Me: ugh today dragged forever\n2026-10-07 Maya: tell me about it, I'm starving\n2026-10-07 Me: we still doing pizza Friday at 7pm?\n2026-10-07 Maya: yes please. Rosa's on Oak Street?\n2026-10-07 Me: yeah that works, their crust is the best\n2026-10-07 Maya: perfect, see you at 7 then\n\nNew messages:\n1. Maya: finally home, today was chaos\n2. Me: same, I'm wiped\n3. Maya: btw about tomorrow, can we do 5pm instead? I have something later that night\n4. Me: yeah 5 works for me\n5. Maya: perfect thank youu",
+  "judge_response": "{\"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      3,
+      4,
+      5
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          3,
+          4,
+          5
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2183,
+  "response_chars": 139,
+  "model_call": "/workspace/PACBench/runs/pizza-week-twists-prepared-20261007/model-calls/0e684e8fb85d0be51a91370291f122e744ceebca83b992aa0380adfc42c955ad.json",
+  "usage": {
+    "completion_tokens": 2400,
+    "prompt_tokens": 502,
+    "total_tokens": 2902,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2338
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

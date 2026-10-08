@@ -1,0 +1,217 @@
+{
+  "claims": [
+    {
+      "id": "devon-date",
+      "statement": "The Devon pizza outing is on Friday, October 9, 2026.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01"
+      ]
+    },
+    {
+      "id": "devon-time",
+      "statement": "The Devon pizza outing is at 6pm.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01"
+      ]
+    },
+    {
+      "id": "devon-venue-name",
+      "statement": "The Devon pizza outing is at Luigi's.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "devon-venue-street",
+      "statement": "Luigi's is on 5th Street.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03"
+      ]
+    },
+    {
+      "id": "devon-with-devon",
+      "statement": "The 6pm Luigi's outing is with Devon.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01"
+      ]
+    },
+    {
+      "id": "devon-me-going",
+      "statement": "Me is going to the Devon outing.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-02",
+        "assistant-user:going-again"
+      ]
+    },
+    {
+      "id": "maya-date",
+      "statement": "The Maya pizza outing is on Friday, October 9, 2026.",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-time-update-02",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "maya-time",
+      "statement": "The Maya pizza outing is at 5pm.",
+      "evidence": [
+        "pizza-week-twists-low/maya-time-update-02",
+        "pizza-week-twists-low/maya-time-update-03",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "maya-venue-name",
+      "statement": "The Maya pizza outing is at Mario's.",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    },
+    {
+      "id": "maya-venue-street",
+      "statement": "Mario's is on Pine Street.",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    },
+    {
+      "id": "maya-with-maya",
+      "statement": "The 5pm Mario's outing is with Maya.",
+      "evidence": [
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-drops-out-04"
+      ]
+    },
+    {
+      "id": "maya-with-leo",
+      "statement": "Leo is attending the Maya outing.",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "maya-me-going",
+      "statement": "Me is going to the Maya outing.",
+      "evidence": [
+        "pizza-week-twists-low/maya-time-update-03",
+        "pizza-week-twists-low/leo-drops-out-05"
+      ]
+    }
+  ],
+  "question": "What have I got for pizza today?",
+  "evidence_hash": "af15bec81f9440317c93ded93346cb3062982fab6663dd622292380e57272d93",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All intent details are covered with split claims: both Friday Oct 9 dates, 6pm vs 5pm times, Luigi's/5th St vs Mario's/Pine St venues, Devon vs Maya+Leo attendees, and Me going to both, keeping plans distinct.",
+    "reviews": [
+      {
+        "id": "devon-date",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Friday in 10-07 message resolves to Oct 9, 2026 via timestamp."
+      },
+      {
+        "id": "devon-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon invite explicitly states 6pm and never changed."
+      },
+      {
+        "id": "devon-venue-name",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes Luigi's and Me accepts."
+      },
+      {
+        "id": "devon-venue-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon message states Luigi's on 5th Street."
+      },
+      {
+        "id": "devon-with-devon",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon is inviter/host of 6pm Luigi's plan, distinct from Maya plan."
+      },
+      {
+        "id": "devon-me-going",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Initial yes plus final recommit after cancel puts Me back as going."
+      },
+      {
+        "id": "maya-date",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Friday/tomorrow messages on 10-07 and 10-08 resolve to Oct 9, 2026."
+      },
+      {
+        "id": "maya-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "5pm proposal accepted by Me and confirmed by Leo, superseding 7pm."
+      },
+      {
+        "id": "maya-venue-name",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Mario's proposal accepted by Me and later confirmed as doing Mario's."
+      },
+      {
+        "id": "maya-venue-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Messages state Mario's on Pine Street."
+      },
+      {
+        "id": "maya-with-maya",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya is organizer/participant of 5pm Mario's plan throughout."
+      },
+      {
+        "id": "maya-with-leo",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Leo got cover and confirmed back in for 5pm Friday."
+      },
+      {
+        "id": "maya-me-going",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Me accepted 5pm and confirmed still on for Maya plan."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Neutral current-state query 'What have I got for pizza today?' at Fri 2026-10-09 noon covers today=Oct 9. Both Devon 6pm Luigi's and Maya 5pm Mario's outings are Friday/current with Me going after recommit, so in scope. Supplies no answers and presupposes nothing false, and broadly invites date/time/venue/street/attendees for both."
+  },
+  "author_fact_count": 0,
+  "test_intent": "I am going to both Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 5 pm at Mario's on Pine Street with Leo. Keep the two plans distinct.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T12:00:00-04:00",
+  "contract_hash": "61e275138fe3a77de194695353323c5fa66d393ee7b286bc9d50a8e13e0d8780"
+}

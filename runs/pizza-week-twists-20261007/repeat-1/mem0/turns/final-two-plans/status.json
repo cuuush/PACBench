@@ -1,0 +1,259 @@
+{
+  "id": "final-two-plans",
+  "at": "2026-10-09T12:00:00-04:00",
+  "session": "friday-final-fresh",
+  "contract_hash": "61e275138fe3a77de194695353323c5fa66d393ee7b286bc9d50a8e13e0d8780",
+  "state": "diagnostic",
+  "verdict": "fail",
+  "reason": "",
+  "interaction": "answer",
+  "recovery": {
+    "state": "complete",
+    "score": {
+      "initial_correct": 9,
+      "initial_missed": 4,
+      "initial_misrepresented": 0,
+      "max_points": 13,
+      "points": 9.0,
+      "recovery_weight": 0.5,
+      "claims": [
+        {
+          "claim_id": "devon-date",
+          "initial_verdict": "missed",
+          "followup_verdict": "missed",
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 0.0
+        },
+        {
+          "claim_id": "devon-time",
+          "initial_verdict": "missed",
+          "followup_verdict": "missed",
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 0.0
+        },
+        {
+          "claim_id": "devon-venue-name",
+          "initial_verdict": "missed",
+          "followup_verdict": "missed",
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 0.0
+        },
+        {
+          "claim_id": "devon-venue-street",
+          "initial_verdict": "missed",
+          "followup_verdict": "missed",
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 0.0
+        },
+        {
+          "claim_id": "devon-with-devon",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "devon-me-going",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-date",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-time",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-venue-name",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-venue-street",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-with-maya",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-with-leo",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        },
+        {
+          "claim_id": "maya-me-going",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": false,
+          "points": 1.0
+        }
+      ],
+      "calibrated": false
+    },
+    "attempts": [
+      {
+        "claim_ids": [
+          "devon-date",
+          "devon-time",
+          "devon-venue-name",
+          "devon-venue-street"
+        ],
+        "question": "What is my Devon pizza outing today - date, time, venue name, and street?",
+        "state": "graded",
+        "verdicts": [
+          {
+            "id": "devon-date",
+            "verdict": "missed",
+            "reason": "Answer states it doesn't have the Devon outing's date saved, so Oct 9 date not conveyed."
+          },
+          {
+            "id": "devon-time",
+            "verdict": "missed",
+            "reason": "Answer states it doesn't have the time saved, so 6pm not conveyed."
+          },
+          {
+            "id": "devon-venue-name",
+            "verdict": "missed",
+            "reason": "Answer states venue not saved; only mentions Luigi's garlic knots came up, not that outing is at Luigi's."
+          },
+          {
+            "id": "devon-venue-street",
+            "verdict": "missed",
+            "reason": "Answer mentions no street and states street not saved, so 5th Street not conveyed."
+          }
+        ],
+        "metrics": {
+          "top_level_calls": 2,
+          "total_tool_operations": 2,
+          "provider_internal_tool_calls": null,
+          "provider_task_records": 0,
+          "categories": {
+            "memory_search": 2
+          },
+          "operations": [
+            {
+              "name": "mem0_search",
+              "arguments": {
+                "query": "Devon",
+                "top_k": 20
+              },
+              "category": "memory_search",
+              "dispatch_parent": null,
+              "success": true,
+              "policy_blocked": false,
+              "timestamp": 1791495408711,
+              "result": {
+                "tool": "mem0_search",
+                "success": true,
+                "policy_blocked": false,
+                "text": "{\"results\": [{\"id\": \"1406c66f-0d87-4db1-98fb-6420863a2b36\", \"memory\": \"User changed their mind and decided to go with Devon after all, requesting to be put back down as going as of October 9, 2026\", \"score\": 0.4870280548385906}, {\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.3471635699328205}, {\"id\": \"721726af-1482-446b-90c3-809dc977d082\", \"memory\": \"Leo initially said on October 8, 2026 he could not attend Friday pizza on October 9, 2026 due to a closing work shift, but later got Tyler to cover the shift and confirmed he is back in for pizza with User and Maya\", \"score\": 0.17589873734194011}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.17357593189055648}, {\"id\": \"89283c10-2636-452a-bb02-d74b0285ea41\", \"memory\": \"User and Maya agreed on October 8, 2026 to move Friday pizza from 7pm to 5pm on October 9, 2026 because Maya has something later that night and needs to be at her parents later; Leo later confirmed 5pm Friday works for him\", \"score\": 0.1676935735479721}, {\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.16348901829833287}, {\"id\": \"3e7b5774-a14a-4908-b333-32b688bc35fe\", \"memory\": \"Leo said on October 8, 2026 he has been craving garlic knots at Mario's on Pine Street ahead of the Friday, October 9, 2026 pizza with User and Maya\", \"score\": 0.16220024531303268}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.16032618579224275}, {\"id\": \"d4f3ee47-2d2a-4178-95f6-b94de0e8ee4c\", \"memory\": \"User's Friday, October 9, 2026 pizza venue changed from Rosa's on Oak Street to Mario's on Pine Street after User learned Rosa's is closed for renovations; User suggested Domino's on Elm Street, Maya said it was too far and proposed Mario's, which User accepted\", \"score\": 0.1566137721578794}], \"count\": 9}",
+                "truncated": false,
+                "capture": "hermes_session_db"
+              }
+            },
+            {
+              "name": "mem0_search",
+              "arguments": {
+                "query": "Luigi's pizza",
+                "top_k": 20
+              },
+              "category": "memory_search",
+              "dispatch_parent": null,
+              "success": true,
+              "policy_blocked": false,
+              "timestamp": 1791495408747,
+              "result": {
+                "tool": "mem0_search",
+                "success": true,
+                "policy_blocked": false,
+                "text": "{\"results\": [{\"id\": \"19866025-1064-45a9-b114-40d931ac94e8\", \"memory\": \"User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\", \"score\": 0.5174993076735301}, {\"id\": \"d4f3ee47-2d2a-4178-95f6-b94de0e8ee4c\", \"memory\": \"User's Friday, October 9, 2026 pizza venue changed from Rosa's on Oak Street to Mario's on Pine Street after User learned Rosa's is closed for renovations; User suggested Domino's on Elm Street, Maya said it was too far and proposed Mario's, which User accepted\", \"score\": 0.3407390273280584}, {\"id\": \"3e7b5774-a14a-4908-b333-32b688bc35fe\", \"memory\": \"Leo said on October 8, 2026 he has been craving garlic knots at Mario's on Pine Street ahead of the Friday, October 9, 2026 pizza with User and Maya\", \"score\": 0.33163292098389374}, {\"id\": \"721726af-1482-446b-90c3-809dc977d082\", \"memory\": \"Leo initially said on October 8, 2026 he could not attend Friday pizza on October 9, 2026 due to a closing work shift, but later got Tyler to cover the shift and confirmed he is back in for pizza with User and Maya\", \"score\": 0.3142027660476677}, {\"id\": \"22c11183-cc81-4e9e-8ea9-4f20b2c9bb10\", \"memory\": \"User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026\", \"score\": 0.31375780978236667}, {\"id\": \"a5da76c3-d8fc-4147-9ab8-39e4804b7f5e\", \"memory\": \"User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\", \"score\": 0.3075466315862182}, {\"id\": \"56b2185b-340d-49af-b6e3-eb96f0b4b92e\", \"memory\": \"User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\", \"score\": 0.2976420564545114}, {\"id\": \"89283c10-2636-452a-bb02-d74b0285ea41\", \"memory\": \"User and Maya agreed on October 8, 2026 to move Friday pizza from 7pm to 5pm on October 9, 2026 because Maya has something later that night and needs to be at her parents later; Leo later confirmed 5pm Friday works for him\", \"score\": 0.29724661732271174}, {\"id\": \"1406c66f-0d87-4db1-98fb-6420863a2b36\", \"memory\": \"User changed their mind and decided to go with Devon after all, requesting to be put back down as going as of October 9, 2026\", \"score\": 0.15937816194763707}], \"count\": 9}",
+                "truncated": false,
+                "capture": "hermes_session_db"
+              }
+            }
+          ],
+          "failed_operations": 0,
+          "repeated_operations": 0,
+          "unmatched_tool_results": [],
+          "source_fallback_attempted": false,
+          "unclassified_operations": 0,
+          "latency_s": 17.18,
+          "input_tokens": 8644,
+          "output_tokens": null,
+          "policy_blocks": 0,
+          "returncode": 0
+        },
+        "question_authoring_reused": false,
+        "question_hash": "33f91b0e24b7e54f5703a5284e1fa04fa2893ba6ae12620f589b6812ae2c99e4",
+        "gateway_window": {
+          "projects": [
+            {
+              "project": "pacbench-43197f08a429-mem0-driver",
+              "calls_delta": 2,
+              "settled_upper_bound_usd_delta": 0.0021785999999999993,
+              "held_usd_delta": 0.0,
+              "input_tokens_delta": 20016,
+              "output_tokens_delta": 885
+            },
+            {
+              "project": "pacbench-43197f08a429-mem0-memory",
+              "calls_delta": 1,
+              "settled_upper_bound_usd_delta": 0.0,
+              "held_usd_delta": 0.1081344,
+              "input_tokens_delta": 0,
+              "output_tokens_delta": 0
+            }
+          ],
+          "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+        }
+      }
+    ]
+  }
+}

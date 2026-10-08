@@ -1,0 +1,295 @@
+{
+  "id": "pizza-week-twists-low",
+  "test_scene_id": "leo-back-in",
+  "timezone": "America/New_York",
+  "question_at": "2026-10-08T09:00:00-04:00",
+  "scenes": [
+    {
+      "id": "devon-invite",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "A conversation about getting pizza.",
+      "test_intent": "",
+      "facts": [
+        "The user and Devon agree to get pizza on Friday at 6 pm.",
+        "They choose Luigi's on 5th Street."
+      ],
+      "at": "2026-10-07T18:00:00-04:00",
+      "window_start": "2026-10-07T18:00:00-04:00",
+      "window_end": "2026-10-07T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "maya-invite",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "A conversation about getting pizza.",
+      "test_intent": "",
+      "facts": [
+        "The user and Maya agree to get pizza on Friday at 7 pm.",
+        "They choose Rosa's on Oak Street."
+      ],
+      "at": "2026-10-07T18:25:00-04:00",
+      "window_start": "2026-10-07T18:25:00-04:00",
+      "window_end": "2026-10-07T18:45:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "leo-joins",
+      "channel": "imessage",
+      "thread": "friday-crew",
+      "scene": "Maya invites Leo to the pizza outing she already arranged with the user.",
+      "test_intent": "",
+      "facts": [
+        "This is the same Friday outing at Rosa's on Oak Street at 7 pm.",
+        "Leo agrees to join the user and Maya."
+      ],
+      "at": "2026-10-07T18:50:00-04:00",
+      "window_start": "2026-10-07T18:50:00-04:00",
+      "window_end": "2026-10-07T19:10:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "chat_name": "Friday crew",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "maya-time-update",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "In the existing DM, Maya asks: about tomorrow, can we do 5 pm instead? They rely on their chat history.",
+      "test_intent": "",
+      "facts": [
+        "The user agrees to move the existing Maya outing to 5 pm; its day and restaurant stay the same."
+      ],
+      "at": "2026-10-08T18:00:00-04:00",
+      "window_start": "2026-10-08T18:00:00-04:00",
+      "window_end": "2026-10-08T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "group-venue-update",
+      "channel": "imessage",
+      "thread": "friday-crew",
+      "scene": "The group changes the pizza restaurant. Maya rejects the user's suggestion of Domino's on Elm Street because it is too far, and they settle on Mario's instead. Leo is silent during this decision. They do not restate the meeting time.",
+      "test_intent": "",
+      "facts": [
+        "The user and Maya agree to Mario's on Pine Street for their existing Friday pizza outing.",
+        "Domino's on Elm Street was suggested and rejected; it is not the agreed venue."
+      ],
+      "at": "2026-10-08T18:25:00-04:00",
+      "window_start": "2026-10-08T18:25:00-04:00",
+      "window_end": "2026-10-08T18:45:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "chat_name": "Friday crew",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "leo-drops-out",
+      "channel": "imessage",
+      "thread": "friday-crew",
+      "scene": "Leo catches up with the group and says a last-minute work shift means he can't come tomorrow. Maya and the user are still going together.",
+      "test_intent": "",
+      "facts": [
+        "Leo says he cannot join Friday's group pizza outing because of a work shift.",
+        "Maya and the user are still going; the outing itself is not cancelled."
+      ],
+      "at": "2026-10-08T19:00:00-04:00",
+      "window_start": "2026-10-08T19:00:00-04:00",
+      "window_end": "2026-10-08T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "chat_name": "Friday crew",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    },
+    {
+      "id": "leo-back-in",
+      "channel": "imessage",
+      "thread": "friday-crew",
+      "scene": "Leo found someone to cover his shift and is back in. Since he missed the restaurant decision, Maya catches him up naturally, including the earlier time change arranged in her DM with the user.",
+      "test_intent": "",
+      "facts": [
+        "Leo found cover for his shift and confirms he is joining Maya and the user after all.",
+        "Their existing Friday outing is at 5 pm.",
+        "The agreed venue is Mario's on Pine Street."
+      ],
+      "at": "2026-10-08T20:30:00-04:00",
+      "window_start": "2026-10-08T20:30:00-04:00",
+      "window_end": "2026-10-08T20:50:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        4,
+        12
+      ],
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "chat_name": "Friday crew",
+      "noise": "low",
+      "messages_per_person": null,
+      "prompt_version": "scene-v14",
+      "judge_prompt_version": "scene-judge-v8"
+    }
+  ],
+  "noise": "low",
+  "week": true,
+  "week_start": "2026-10-05",
+  "evaluation_context": "shared",
+  "checks": [
+    {
+      "id": "initial-two-plans",
+      "prompt": "Hey, what's the deal with getting pizza tomorrow?",
+      "facts": [],
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "thursday-morning",
+      "expect": "Recap two separate Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 7 pm at Rosa's on Oak Street, with Leo joining Maya's outing."
+    },
+    {
+      "id": "ambiguous-cancel",
+      "prompt": "Actually, cancel pizza tomorrow. I don't feel like going.",
+      "facts": [],
+      "at": "2026-10-08T09:02:00-04:00",
+      "session": "thursday-morning",
+      "kind": "behavior",
+      "expect": "Ask which of the two outings I mean, without claiming either has been cancelled."
+    },
+    {
+      "id": "cancel-devon",
+      "prompt": "The one with Devon. I'm not going to that one.",
+      "facts": [],
+      "at": "2026-10-08T09:04:00-04:00",
+      "session": "thursday-morning",
+      "kind": "behavior",
+      "trigger": "clarification",
+      "depends_on": "ambiguous-cancel",
+      "expect": "Acknowledge that I am no longer going with Devon. Do not say Maya's outing is cancelled."
+    },
+    {
+      "id": "other-plan-same-session",
+      "prompt": "And what about the other pizza thing?",
+      "facts": [],
+      "at": "2026-10-08T09:06:00-04:00",
+      "session": "thursday-morning",
+      "depends_on": "cancel-devon",
+      "expect": "Maya's outing is still on: Friday at 7 pm at Rosa's on Oak Street, with Leo."
+    },
+    {
+      "id": "cancellation-fresh",
+      "prompt": "Am I still doing both pizza things tomorrow?",
+      "facts": [],
+      "at": "2026-10-08T11:00:00-04:00",
+      "session": "thursday-fresh",
+      "depends_on": "cancel-devon",
+      "expect": "I am no longer going with Devon. I am still going with Maya and Leo."
+    },
+    {
+      "id": "changed-plans-fresh",
+      "prompt": "What changed with pizza, and what am I still doing today?",
+      "facts": [],
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "friday-morning",
+      "depends_on": "cancel-devon",
+      "expect": "I am still not going with Devon. I am going with Maya and Leo today at 5 pm at Mario's on Pine Street."
+    },
+    {
+      "id": "leo-change-history",
+      "prompt": "And what changed with Leo?",
+      "facts": [],
+      "at": "2026-10-09T09:02:00-04:00",
+      "session": "friday-morning",
+      "expect": "Leo initially said he couldn't come because of a work shift, then found cover and confirmed he was joining Maya and me after all."
+    },
+    {
+      "id": "going-again",
+      "prompt": "Actually I do want to go with Devon after all. Put me back down as going.",
+      "facts": [],
+      "at": "2026-10-09T11:00:00-04:00",
+      "session": "friday-recommit",
+      "kind": "behavior",
+      "expect": "Acknowledge that I am going with Devon again."
+    },
+    {
+      "id": "final-two-plans",
+      "prompt": "What have I got for pizza today?",
+      "facts": [],
+      "at": "2026-10-09T12:00:00-04:00",
+      "session": "friday-final-fresh",
+      "depends_on": "going-again",
+      "expect": "I am going to both Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 5 pm at Mario's on Pine Street with Leo. Keep the two plans distinct."
+    }
+  ]
+}

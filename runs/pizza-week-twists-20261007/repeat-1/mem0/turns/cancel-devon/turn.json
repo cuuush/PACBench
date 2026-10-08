@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nThe one with Devon. I'm not going to that one.",
+  "at": "2026-10-08T09:04:00-04:00",
+  "answer": "Canceled the 6pm with Devon at Luigi's.\n\nStill on: 7pm at Rosa's with Maya and Leo tomorrow.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_delete",
+      "input": {
+        "memory_id": "c7e26450-64e7-4143-8677-b16e888a07fe"
+      },
+      "timestamp": 1791494955902
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_delete",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"Memory deleted.\", \"memory_id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 24.42,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261008_172801_96c7cf \"Arrange pizza for tomorrow\" (2 user messages, 8 total messages)\n\nsession_id: 20261008_172801_96c7cf",
+  "raw_events": 12,
+  "session_id": "20261008_172801_96c7cf",
+  "stderr_full": "↻ Resumed session 20261008_172801_96c7cf \"Arrange pizza for tomorrow\" (2 user messages, 8 total messages)\n\nsession_id: 20261008_172801_96c7cf\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261008_172801_96c7cf\", \"timestamp\": 1791494939872}\n{\"type\": \"text\", \"text\": \"Got it — canceling the one with Devon.\", \"timestamp\": 1791494955091}\n{\"type\": \"tool_use\", \"name\": \"mem0_delete\", \"input\": {\"memory_id\": \"c7e26450-64e7-4143-8677-b16e888a07fe\"}, \"timestamp\": 1791494955902}\n{\"type\": \"tool_result\", \"name\": \"mem0_delete\", \"output\": \"{\\\"result\\\": \\\"Memory deleted.\\\", \\\"memory_id\\\": \\\"c7e26450-64e7-4143-8677-b16e888a07fe\\\"}\", \"duration_ms\": 5, \"is_error\": false, \"timestamp\": 1791494955906}\n{\"type\": \"text\", \"text\": \"\\n\\nCanceled\", \"timestamp\": 1791494957312}\n{\"type\": \"text\", \"text\": \" the\", \"timestamp\": 1791494957343}\n{\"type\": \"text\", \"text\": \" 6pm with\", \"timestamp\": 1791494957368}\n{\"type\": \"text\", \"text\": \" Devon at Luigi's.\\n\\nStill\", \"timestamp\": 1791494957393}\n{\"type\": \"text\", \"text\": \" on:\", \"timestamp\": 1791494957418}\n{\"type\": \"text\", \"text\": \" 7pm at Rosa's with Maya\", \"timestamp\": 1791494957442}\n{\"type\": \"text\", \"text\": \" and Leo tomorrow.\", \"timestamp\": 1791494957471}\n{\"type\": \"result\", \"session_id\": \"20261008_172801_96c7cf\", \"exit_code\": 0, \"text\": \"Canceled the 6pm with Devon at Luigi's.\\n\\nStill on: 7pm at Rosa's with Maya and Leo tomorrow.\", \"tokens\": {\"input\": 12100, \"output\": 643, \"total\": 12743, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 17636, \"timestamp\": 1791494957509}",
+  "session_input_tokens": 12100,
+  "session_output_tokens": 643,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User agreed to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street after Devon invited them on October 7, 2026\n- User, Maya, and Leo plan to get pizza together at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, after Maya invited Leo to join in the 'Friday crew' group chat on October 7, 2026 and Leo accepted\n- User agreed to get pizza with Maya on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street after confirming plans on October 7, 2026\n- User loves garlic knots, mentioning craving Luigi's garlic knots when planning with Devon and joking in the 'Friday crew' group chat on October 7, 2026 that they need Leo as backup so Maya doesn't steal all their garlic knots\n- User considers the crust at Rosa's on Oak Street to be the best, as stated when confirming pizza plans with Maya on October 7, 2026",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-hqi94x62",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-hqi94x62",
+    "system_prompt_sha256": "5d09edb9ceb055ee74190261122f96d15abe745f97676f59ecf1f367810c1158",
+    "reason": "No project context in native saved system prompt"
+  }
+}

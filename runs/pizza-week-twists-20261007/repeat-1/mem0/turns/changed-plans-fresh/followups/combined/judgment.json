@@ -1,0 +1,27 @@
+{
+  "checkpoint": "changed-plans-fresh",
+  "question": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with the pizza plan with Devon, and what are you still doing today?",
+  "answer": "I don't have a pizza plan with Devon — only mention is you craving Luigi's garlic knots when planning with Devon, no time, venue, or change stored.\n\nStill on for today: 5pm at Mario's on Pine Street with Maya and Leo.",
+  "claims": [
+    {
+      "id": "not-devon",
+      "description": "Me is not going to the pizza plan with Devon.",
+      "evidence": [
+        "assistant-user:cancel-devon"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat changed with pizza, and what am I still doing today?\"}, {\"role\": \"assistant\", \"content\": \"Time changed from 7pm to 5pm today, because Maya has something later and needs to be at her parents.\\n\\nVenue changed from Rosa's on Oak Street to Mario's on Pine Street, because Rosa's is closed for renovations. You suggested Domino's on Elm, Maya said too far and proposed Mario's, which you accepted.\\n\\nLeo dropped out over a closing shift, then got Tyler to cover and is back in.\\n\\nStill on for today: pizza at 5pm at Mario's on Pine Street with you, Maya, and Leo.\"}]\nQuestion: [Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with the pizza plan with Devon, and what are you still doing today?\nAnswer: I don't have a pizza plan with Devon — only mention is you craving Luigi's garlic knots when planning with Devon, no time, venue, or change stored.\n\nStill on for today: 5pm at Mario's on Pine Street with Maya and Leo.\nClaims (hidden from the assistant): [{\"id\": \"not-devon\", \"claim\": \"Me is not going to the pizza plan with Devon.\", \"evidence\": [\"assistant-user:cancel-devon\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"not-devon\", \"verdict\": \"missed\", \"reason\": \"Answer denies any Devon pizza plan exists and never states Me is not going to it; attendance fact is absent.\"}]}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with pizza, and what am I still doing today?"
+    },
+    {
+      "role": "assistant",
+      "content": "Time changed from 7pm to 5pm today, because Maya has something later and needs to be at her parents.\n\nVenue changed from Rosa's on Oak Street to Mario's on Pine Street, because Rosa's is closed for renovations. You suggested Domino's on Elm, Maya said too far and proposed Mario's, which you accepted.\n\nLeo dropped out over a closing shift, then got Tyler to cover and is back in.\n\nStill on for today: pizza at 5pm at Mario's on Pine Street with you, Maya, and Leo."
+    }
+  ],
+  "model_call": "/workspace/PACBench/runs/pizza-week-twists-20261007/model-calls/c8f1f64e32e053780d98fbdc53fdf90c8356c25992fafd53b68e487757c33ec5.json"
+}

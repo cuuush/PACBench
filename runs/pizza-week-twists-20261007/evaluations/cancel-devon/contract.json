@@ -1,0 +1,67 @@
+{
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Answer acknowledges that the user is no longer going with Devon",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-03",
+        "assistant-user:cancel-devon"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "Answer does not say Maya's outing is cancelled",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/leo-joins-02",
+        "assistant-user:cancel-devon"
+      ]
+    }
+  ],
+  "question": "The one with Devon. I'm not going to that one.",
+  "evidence_hash": "4a976c3ccb08ee57574708f143d7856a177bf77376f93def2208495634f86d35",
+  "review": {
+    "complete": true,
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "User explicitly scopes non-attendance to Devon at question time. Acknowledgement is observable wording, objective, and directly requested, not a persistence claim.",
+        "evidence": [
+          "pizza-week-twists-low/devon-invite-01",
+          "pizza-week-twists-low/devon-invite-03",
+          "assistant-user:cancel-devon"
+        ]
+      },
+      {
+        "id": "fact-2",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya plan is separate Friday 7pm Rosa's outing still active; user limited cancellation to Devon only, so stating Maya cancelled would contradict sources. Absence is observable and objective.",
+        "evidence": [
+          "pizza-week-twists-low/maya-invite-02",
+          "pizza-week-twists-low/maya-invite-03",
+          "pizza-week-twists-low/leo-joins-02",
+          "assistant-user:cancel-devon"
+        ]
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Reviewed behavioral interaction"
+  },
+  "author_fact_count": 2,
+  "question_source": "supplied",
+  "question_at": "2026-10-08T09:04:00-04:00",
+  "kind": "behavior",
+  "test_intent": "Acknowledge that I am no longer going with Devon. Do not say Maya's outing is cancelled.",
+  "contract_hash": "83706788a137b0f695bc51e66d3118742794f2adaa5fd5bf41d36e0cd038cfaa"
+}

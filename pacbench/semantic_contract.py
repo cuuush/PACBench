@@ -117,7 +117,10 @@ def build_contract(*, scene: str, test_intent: str,
         if author_facts else "")
     proposed = _call_json(generate,
         "Identify independently assessable factual claims that cover every "
-        "detail required by the test intent. Separate details that an answer "
+        "detail required by the test intent, and nothing else. The test intent "
+        "is the complete expectation; dialogue supplies evidence, not extra "
+        "requirements. Do not require incidental names, dates, times, venues or "
+        "streets absent from the expectation. Separate details that an answer "
         "could get right or wrong independently, such as a date and a time, "
         "or a venue name and its street. Resolve relative days from each "
         "message's written timestamp where the dialogue makes that clear. "
@@ -154,6 +157,9 @@ def build_contract(*, scene: str, test_intent: str,
 
     reviewed = _call_json(verify,
         "Review each proposed claim against the dialogue and test intent. "
+        "Reject claims not required by the test intent even when supported by "
+        "the dialogue. Do not require the same outing detail again for each "
+        "participant. "
         "When required facts are supplied, verify that each matching claim "
         "faithfully covers exactly that one fact. Try answering one detail "
         "correctly while omitting another detail in the same claim: if this "

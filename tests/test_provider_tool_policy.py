@@ -174,8 +174,9 @@ READ_CASES=[
 ]
 
 
+@pytest.mark.parametrize('argument_field',['arguments','input'])
 @pytest.mark.parametrize('arguments,blocked',READ_CASES)
-def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,arguments,blocked):
+def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,arguments,blocked,argument_field):
     from pacbench.source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST','viking_read')
@@ -196,7 +197,7 @@ def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,argument
     assert ('PACBENCH-BLOCKED' in result)==blocked
     assert bool(executed)==(not blocked)
     assert native_source_guard()('viking_read',arguments,SOURCE_ARGUMENT_RULES)==source_read_blocked('viking_read',arguments,SOURCE_ARGUMENT_RULES)==blocked
-    turn=TurnResult(prompt='',at='',answer='Correct answer',tool_calls=[{'name':'viking_read','arguments':arguments}],tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=0)
+    turn=TurnResult(prompt='',at='',answer='Correct answer',tool_calls=[{'name':'viking_read',argument_field:arguments}],tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=0)
     enforce_provider_tools(turn,{'PACBENCH_PROVIDER_ONLY':'1','PACBENCH_TOOL_ALLOWLIST':'viking_read'})
     assert turn.policy_blocks==int(blocked)
 

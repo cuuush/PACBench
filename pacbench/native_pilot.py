@@ -191,12 +191,12 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         folder=home/'hindsight'
         folder.mkdir()
         save(folder/'config.json',{'mode':'local_external','profile':'pacbench-'+run_id,
-            'bank_id':'pacbench-'+run_id,'llm_provider':'openai_compatible',
+            'bank_id':'pacbench-'+run_id,'llm_provider':'meta',
             'llm_model':configured_model,'llm_base_url':base,'llm_api_key':key})
         os.chmod(folder/'config.json',0o600)
         env.update(HINDSIGHT_LLM_API_KEY=key,HINDSIGHT_API_LLM_API_KEY=key,
                    HINDSIGHT_API_LLM_BASE_URL=base,HINDSIGHT_API_LLM_MODEL=configured_model,
-                   HINDSIGHT_API_LLM_PROVIDER='openai',HINDSIGHT_API_ENABLE_API_KEY_AUTH='false')
+                   HINDSIGHT_API_LLM_PROVIDER='meta',HINDSIGHT_API_ENABLE_API_KEY_AUTH='false')
         # Ordinary provisioning creates an empty bank, not starter memories or a
         # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
         bootstrap='''
@@ -204,7 +204,7 @@ import json,sys
 from pathlib import Path
 from hindsight import HindsightEmbedded
 cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
-p=HindsightEmbedded(profile=cfg['profile'],llm_provider='openai',llm_model=cfg['llm_model'],
+p=HindsightEmbedded(profile=cfg['profile'],llm_provider=cfg['llm_provider'],llm_model=cfg['llm_model'],
     llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
     result=p.create_bank(bank_id=sys.argv[2])

@@ -112,7 +112,7 @@ def audit(root: Path) -> dict:
                               f'{label}: saved recall context receipt differs from native prompt')
                         check(not data.get('policy_blocks') and all(
                             c.get('name') in allowed and not source_read_blocked(
-                                c.get('name'),c.get('arguments',{}),SOURCE_ARGUMENT_RULES) for c in data['tool_calls']),
+                                c.get('name'),c.get('input',c.get('arguments',{})),SOURCE_ARGUMENT_RULES) for c in data['tool_calls']),
                             f'{label}: non-provider tool attempted in {path.relative_to(arm)}')
             from .document_audit import audit_ingestion
             errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))

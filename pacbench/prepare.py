@@ -170,7 +170,7 @@ def normalize_week(spec, week_start=None):
     if not isinstance(days,dict) or set(days)!=set(WEEKDAYS):
         raise ValueError('Week days must be monday through sunday')
     if not isinstance(channels,dict) or not channels:raise ValueError('Week needs reusable channel definitions')
-    allowed={'type','participants','name'}
+    allowed={'type','participants','name','subject'}
     for key,value in channels.items():
         if not isinstance(value,dict) or set(value)-allowed or not value.get('type') or not value.get('participants'):
             raise ValueError(f'Channel {key!r} needs type and participants, with an optional group name')
@@ -188,6 +188,8 @@ def normalize_week(spec, week_start=None):
             definition=channels[channel_id]
             row.update(channel=definition['type'],thread=channel_id,participants=definition['participants'],
                 chat_name=definition.get('name',''),at=clock_on_day(date,row.pop('time')))
+            if definition.get('subject'):
+                row['email_subject']=definition['subject']
             if 'until' in row:row['window_end']=clock_on_day(date,row.pop('until'))
             if not isinstance(row.get('facts'),list) or any(not isinstance(f,str) or not f.strip() for f in row['facts']):
                 raise ValueError('Scene facts are inline English statements')
@@ -249,7 +251,10 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             else:
                 realized = realize_scene(plan, writer, judge, model=driver.model_id,
                                      record_dir=root / "scene-verifications",
-                                     prior_lines=tuple(thread_history.get(key, ())))
+                                     prior_lines=tuple(thread_history.get(key, ())),
+                                     verification_lines=(tuple((m['written_at'],m['channel']+':'+m['thread'],m['sender'],m['text'])
+                                        for m in observations if datetime.fromisoformat(m['written_at'])<datetime.fromisoformat(plan.at))
+                                        if plan.channel=='email' else None))
         except Exception as exc:
             failures.append({'scene_id':plan.id,'state':'ungraded','reason':f'{type(exc).__name__}: {exc}'})
             blocked_threads.add(key)

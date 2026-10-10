@@ -56,6 +56,7 @@ class ScenePlan:
     message_range: tuple[int, int] | None = None
     participants: tuple[str, ...] = ()
     chat_name: str = ""
+    email_subject: str = ""
     noise: str = "low"
     messages_per_person: tuple[int, int] | None = None
 
@@ -68,6 +69,8 @@ class ScenePlan:
             object.__setattr__(self,'participants',tuple(self.participants))
         if self.chat_name and (not isinstance(self.chat_name,str) or len(self.participants)<3):
             raise AuthoringError('chat_name requires an explicit group roster')
+        if self.email_subject and (self.channel != 'email' or not isinstance(self.email_subject, str)):
+            raise AuthoringError('email_subject requires an email channel')
         if self.message_range is not None:
             bounds = self.message_range
             if (not isinstance(bounds, (tuple, list)) or len(bounds) != 2 or
@@ -125,6 +128,13 @@ def scene_prompt(plan: ScenePlan,
         "gap between those dates and today's date; don't reply as if an old "
         "message just arrived.\n\n"
         if prior_lines else "")
+    if plan.email_subject:
+        return (f"Write a natural short email exchange. Subject: {plan.email_subject}. "
+                f"Participants: {', '.join(plan.participants)}; Me labels the owner. "
+                f"Date: {plan.window_start[:10]}, local time {plan.window_start[11:16]}–{plan.window_end[11:16]}.\n"
+                f"{continuity}Scenario: {plan.scene}{required}\n"
+                f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
+                "Return JSON with dialogue (one Name: body line per email) and writer_note (a short description of the choices).")
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "
         "Use `Me` exactly for the user's own messages and distinct names for "
@@ -189,9 +199,10 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         "window_start": plan.window_start,
         "window_end": plan.window_end,
         "timezone": plan.timezone,
-        "message_range": plan.message_range,
+        "message_range": list(plan.message_range) if plan.message_range is not None else None,
         "participants": list(plan.participants), "chat_name": plan.chat_name,
-        "noise": plan.noise, "messages_per_person": plan.messages_per_person,
+        **({'email_subject':plan.email_subject} if plan.email_subject else {}),
+        "noise": plan.noise, "messages_per_person": list(plan.messages_per_person) if plan.messages_per_person is not None else None,
         "prompt_version": SCENE_PROMPT_VERSION,
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
     }
@@ -291,7 +302,8 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
             written_at=stamp, arrived_at=stamp, collected_at=stamp,
             sender=sender, thread=plan.thread, text=text,
             from_owner=sender == "Me", structured=(
-                {'participants':list(plan.participants),'chat_name':plan.chat_name} if plan.participants else None))
+                {'participants':list(plan.participants),'chat_name':plan.chat_name,
+                 **({'email_subject':plan.email_subject} if plan.email_subject else {})} if plan.participants else None))
         for i, ((sender, text), stamp) in enumerate(zip(lines, stamps)))
 
 
@@ -305,9 +317,11 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
     """Verify that the transcript establishes the authored scene."""
     transcript = "\n".join(f"{i + 1}. {s}: {t}"
                            for i, (s, t) in enumerate(lines))
-    prior = ("Earlier messages in this thread, for interpreting references "
+    cross_channel=any(len(row)==4 for row in prior_lines)
+    prior = (("Earlier source messages across channels" if cross_channel else "Earlier messages in this thread") + ", for interpreting references "
              "(cite only the numbered new messages below):\n" +
-             "\n".join((f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
+             "\n".join((f"{row[0]} [{row[1]}] {row[2]}: {row[3]}" if len(row)==4 else
+                        f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
                         else f"{row[0]}: {row[1]}") for row in prior_lines[-20:]) +
              "\n\n" if prior_lines else "")
     required = ("\n\nFor each numbered required fact, report whether the dialogue "
@@ -499,7 +513,8 @@ def _record(plan: ScenePlan, lines: list[tuple[str, str]], prompt: str,
 def realize_scene(plan: ScenePlan, generate: Generate,
                   judge_generate: Generate, *, model: str = "",
                   record_dir: str | Path | None = None,
-                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> SceneRealization:
+                  prior_lines: tuple[tuple[str, ...], ...] = (),
+                  verification_lines: tuple[tuple[str, ...], ...] | None = None) -> SceneRealization:
     """Render and verify a scene, with at most one revision after rejection."""
     if plan.message_range and plan.message_range[1] > 150:
         # Bounded authoring calls, with the same conversation carried forward.
@@ -521,13 +536,15 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                 at=chunk_start.isoformat(), window_start=chunk_start.isoformat(), window_end=chunk_end.isoformat(),
                 message_range=(max(2,size-5),size+5))
             recent = prior_lines + tuple((s,t) for s,t in lines[-20:])
-            result = realize_scene(chunk,generate,judge_generate,model=model,record_dir=record_dir,prior_lines=recent)
+            result = realize_scene(chunk,generate,judge_generate,model=model,record_dir=record_dir,prior_lines=recent,
+                                   verification_lines=verification_lines)
             lines.extend(result.lines); records.append(result.record)
         if not plan.message_range[0]<=len(lines)<=plan.message_range[1]:
             raise AuthoringError('Chunked conversation missed its message target; no padding permitted')
         if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):
             raise AuthoringError('Chunked conversation missed a member target; no padding permitted')
-        verdict,pc,rc,jpath=judge_scene(plan,lines,judge_generate,model=model,record_dir=record_dir,prior_lines=prior_lines)
+        verdict,pc,rc,jpath=judge_scene(plan,lines,judge_generate,model=model,record_dir=record_dir,
+            prior_lines=verification_lines if verification_lines is not None else prior_lines)
         record=SceneRecord(scene_id=plan.id,status='ok',attempts=sum(r.attempts for r in records),
             judge_calls=1+sum(r.judge_calls for r in records),
             prompt_chars=pc+sum(r.prompt_chars for r in records),response_chars=rc+sum(r.response_chars for r in records),
@@ -601,7 +618,7 @@ def realize_scene(plan: ScenePlan, generate: Generate,
                     verdict, pc, rc, jpath = judge_scene(
                         plan, lines, judge_generate, model=model,
                         record_dir=record_dir, attempt=record.attempts,
-                        prior_lines=prior_lines)
+                        prior_lines=verification_lines if verification_lines is not None else prior_lines)
                 except SceneJudgeError as exc:
                     record.judge_calls += 1
                     if exc.judgment_path is not None:

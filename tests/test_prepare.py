@@ -6,6 +6,29 @@ from pacbench.prepare import resolve_spec, prepare
 from pacbench.harness import _summarize_tool_result
 from pacbench.authoring import ScenePlan, judge_prompt, scene_prompt, spread_timestamps
 
+def test_saved_scene_bounds_compare_equal_for_resume():
+    from pacbench.authoring import scene_spec
+    plan=ScenePlan(scene='A chat',participants=('Me','Sam'),
+                   message_range=(4,12),messages_per_person=(2,6))
+    before=scene_spec(plan)
+    assert json.loads(json.dumps(before))==before
+
+def test_email_checker_can_verify_cross_channel_reference_without_writer_recap():
+    from pacbench.authoring import realize_scene,build_scene_observations
+    plan=ScenePlan(scene='Ben moves dinner over email.',channel='email',thread='ben-email',
+                   participants=('Me','Ben'),email_subject='Dinner',message_range=(2,4))
+    prior=(('2026-10-05T18:00:00-04:00','imessage:ben','Ben','Dinner Thursday at Juniper?'),)
+    def writer(prompt):
+        assert 'Dinner Thursday at Juniper?' not in prompt
+        assert 'Subject: Dinner' in prompt
+        return 'Ben: Can we move dinner to Saturday?\nMe: Saturday works.'
+    def checker(prompt):
+        assert '[imessage:ben] Ben: Dinner Thursday at Juniper?' in prompt
+        return json.dumps({'supported':True,'evidence':[1,2],'problem':''})
+    result=realize_scene(plan,writer,checker,verification_lines=prior)
+    messages=build_scene_observations('email-week',plan,list(result.lines))
+    assert messages[0].structured['email_subject']=='Dinner'
+
 def test_writer_and_verifier_see_the_local_message_window():
     plan = ScenePlan(scene="Make an evening plan.",
                      at="2026-09-08T19:00:00", id="evening")

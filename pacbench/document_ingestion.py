@@ -59,9 +59,11 @@ def document_text(batch, collected_at):
 
 def prepare_sources(output, messages, timezone):
     from .imessage_fixture import append_messages
+    from .email_fixture import append_emails
     batches=daily_batches(messages,timezone)
     schedule=[]
     previous=None
+    previous_mail=None
     for day,batch in batches:
         at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
         root=output/'sources'/day
@@ -71,16 +73,29 @@ def prepare_sources(output, messages, timezone):
         save(root/'messages.json',batch)
         fixture=None
         imessages=[m for m in batch if m['channel']=='imessage']
-        if imessages:
+        names=sorted({name for m in batch for name in (m.get('structured') or {}).get('participants',[])})
+        if imessages or any(m['channel']=='email' for m in batch):
             if previous:
                 for src in previous.glob('chat.*'):
                     shutil.copyfile(src,root/src.name)
-            fixture=append_messages(root/'chat.db',imessages)
+            fixture=append_messages(root/'chat.db',imessages,contacts=names)
             previous=root
+        elif previous:
+            for src in previous.glob('chat.*'):
+                shutil.copyfile(src,root/src.name)
+        emails=[m for m in batch if m['channel']=='email']
+        mailbox=None
+        if emails:
+            if previous_mail:
+                shutil.copyfile(previous_mail/'mailbox.json',root/'mailbox.json')
+            mailbox=append_emails(root/'mailbox.json',emails)
+            previous_mail=root
         # Freeze the actual source format and availability separately from grading.
         save(root/'source.json',{'version':VERSION,'at':at,'source_ids':[m['source_id'] for m in batch],
             'document_sha256':hashlib.sha256(text.encode()).hexdigest(),'fixture':fixture,
-            'fixture_hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in root.glob('chat.*')}})
+            **({'mailbox':mailbox} if mailbox else {}),
+            'fixture_hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in
+                              [*root.glob('chat.*'),*root.glob('mailbox.json')]}})
         schedule.append({'id':day,'at':at,'source_ids':[m['source_id'] for m in batch],
                          'source_file':f'sources/{day}/messages.txt','file':f'ingestion/{day}.json',
                          'source_manifest_sha256':hashlib.sha256((root/'source.json').read_bytes()).hexdigest()})
@@ -130,7 +145,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=240):
     record={'version':VERSION,'provider':provider,'at':at,'processing_at':native_at,
             'document_sha256':hashlib.sha256((source/'messages.txt').read_bytes()).hexdigest(),
             'source_ids':json.loads((source/'source.json').read_text())['source_ids'],
-            'delivery':('native-imessage' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),
+            'delivery':('native-sources' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),
             'hermes_ingestion_turns':0,'state':'failed','ready':False}
     try:
         proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',WORKER,

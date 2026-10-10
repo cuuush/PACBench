@@ -16,8 +16,10 @@ def audit_ingestion(root, arm, messages, summary):
     batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
     cumulative=[]
+    cumulative_mail=[]
     for row,(day,batch) in zip(schedule,batches):
         cumulative+=[m for m in batch if m['channel']=='imessage']
+        cumulative_mail+=[m for m in batch if m['channel']=='email']
         source=root/'sources'/day
         meta=json.loads((source/'source.json').read_text())
         at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
@@ -42,12 +44,33 @@ def audit_ingestion(root, arm, messages, summary):
                     rowdata=db.execute('SELECT guid,text,is_from_me FROM message WHERE ROWID=?',(recorded['rowid'],)).fetchone()
                     check(rowdata==(recorded['guid'],m['text'],int(m['from_owner'])),'fixture text/owner/GUID differs from source')
                 check(not db.execute('SELECT m.ROWID FROM message m LEFT JOIN chat_message_join j ON j.message_id=m.ROWID WHERE j.chat_id IS NULL').fetchall(),'orphan source messages')
+        if meta.get('mailbox'):
+            from email import message_from_string
+            from email.utils import parsedate_to_datetime,parseaddr
+            from .email_fixture import mail_address
+            mailbox=json.loads((source/'mailbox.json').read_text())
+            check([r['source'] for r in mailbox['messages']]==cumulative_mail,
+                  'mailbox has missing, changed or future source emails')
+            for item in mailbox['messages']:
+                m=item['source'];mail=message_from_string(item['rfc822'])
+                check(parseaddr(mail['From'])[1]==mail_address(m['sender']), 'email sender differs from source')
+                check(parsedate_to_datetime(mail['Date'])==datetime.fromisoformat(m['written_at']),
+                      'email date differs from source')
+                check(mail.get_payload(decode=True).decode(mail.get_content_charset()).strip()==m['text'].strip(),
+                      'email body differs from source')
+                check(item['folder']==('Sent' if m['from_owner'] else 'INBOX'), 'email ownership folder mismatch')
         record=json.loads((arm/row['file']).read_text())
         check(record['provider']==arm.name and record['version']==VERSION and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
         check(record['document_sha256']==meta['document_sha256'],'provider document hash mismatch')
         check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')
         check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York'),'native processing clock mismatch')
+        if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
+            result=record.get('result',{})
+            check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),
+                  'native email capture acknowledgement missing')
+            check(any(c['operation']=='FETCH' for c in result.get('email_transport',{}).get('commands',[])),
+                  'native email ingestion lacks real IMAP fetch evidence')
     check(not list((arm/'exposures').glob('*.json')) and not list(arm.glob('exposure-*.json')),'unexpected Hermes exposure records')
     check(sorted(p.name for p in (arm/'ingestion').glob('*.json'))==sorted(Path(r['file']).name for r in schedule),'unexpected or missing ingestion records')
     isolation=json.loads((arm/'pre-recall-isolation.json').read_text())

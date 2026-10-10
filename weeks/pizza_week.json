@@ -25,11 +25,124 @@
         "Leo"
       ],
       "name": "Friday crew"
+    },
+    "pond-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen",
+        "Alex"
+      ],
+      "name": "Park pals"
+    },
+    "jen": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen"
+      ]
+    },
+    "alex": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Alex"
+      ]
+    },
+    "ben": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Ben"
+      ]
+    },
+    "ben-email": {
+      "type": "email",
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "subject": "Thursday dinner"
     }
   },
   "days": {
-    "monday": {},
-    "tuesday": {},
+    "monday": {
+      "scenes": [
+        {
+          "id": "pond-invite",
+          "channel": "pond-crew",
+          "time": "5 pm",
+          "scene": "The group makes a plan to walk to the duck pond together tomorrow. A short normal group chat, with one little unrelated aside.",
+          "facts": [
+            "The user, Jen and Alex agree to meet Tuesday at 2 pm at the west entrance to the duck pond in Willow Park."
+          ]
+        },
+        {
+          "id": "jen-call",
+          "channel": "jen",
+          "time": "5:25 pm",
+          "scene": "A DM arranging a quick phone call tomorrow morning about a job application. This is separate from the group outing.",
+          "facts": [
+            "Jen and the user agree to a phone call on Tuesday at 10 am about her job application."
+          ]
+        },
+        {
+          "id": "alex-coffee",
+          "channel": "alex",
+          "time": "5:50 pm",
+          "scene": "A casual DM arranging coffee tomorrow before Alex goes to work.",
+          "facts": [
+            "Alex and the user agree to coffee Tuesday at 11 am at Birch Cafe."
+          ]
+        },
+        {
+          "id": "ben-dinner",
+          "channel": "ben",
+          "time": "6:15 pm",
+          "scene": "Ben and the user arrange dinner later this week in a casual DM.",
+          "facts": [
+            "The user and Ben agree to dinner Thursday at 7 pm at Juniper Cafe."
+          ]
+        }
+      ]
+    },
+    "tuesday": {
+      "scenes": [
+        {
+          "id": "ben-email-reschedule",
+          "channel": "ben-email",
+          "time": "6:45 am",
+          "until": "8 am",
+          "scene": "Ben emails casually to ask \"hey can we move our dinner to another day?\". The user suggests Saturday, Ben accepts at the same time, and the user agrees. These are friends writing brief casual emails, without formal salutations or sign-offs. They do not explain which app they previously used, and do not restate the restaurant or old day.",
+          "facts": [
+            "Ben and the user agree to move their existing dinner to Saturday at the same time, 7 pm.",
+            "The original restaurant, Juniper Cafe, is unchanged."
+          ]
+        },
+        {
+          "id": "pond-called-off",
+          "channel": "pond-crew",
+          "time": "7 am",
+          "scene": "In the existing group, Jen says exactly \"hey guys i can’t make it today\". Alex replies \"me too let’s just do this another day!\". The user agrees to leave it for another day, without choosing a new date. This is a brief exchange about postponing the group outing: nobody names the outing or location, and nobody discusses any other appointments. Context comes from yesterday in this group.",
+          "facts": [
+            "The three people call off their Tuesday group outing to the duck pond. No replacement day is agreed."
+          ]
+        }
+      ],
+      "conversations": [
+        {
+          "id": "tuesday-early",
+          "time": "6 am",
+          "turns": [
+            {
+              "id": "pond-initial",
+              "prompt": "What's the plan for the duck pond today?",
+              "expect": "The user is meeting Jen and Alex Tuesday at 2 pm at the west entrance to the duck pond in Willow Park."
+            }
+          ]
+        }
+      ]
+    },
     "wednesday": {
       "scenes": [
         {
@@ -60,6 +173,29 @@
           "facts": [
             "This is the same Friday outing at Rosa's on Oak Street at 7 pm.",
             "Leo agrees to join the user and Maya."
+          ]
+        }
+      ],
+      "conversations": [
+        {
+          "id": "wednesday-recap",
+          "time": "9 am",
+          "turns": [
+            {
+              "id": "pond-cancellation",
+              "prompt": "Did we end up calling off the duck pond yesterday?",
+              "expect": "Yes, Tuesday’s duck-pond outing with Jen and Alex was called off. They agreed to do it another day but did not settle a new date."
+            },
+            {
+              "id": "separate-appointments",
+              "prompt": "Did that change my call with Jen or coffee with Alex too?",
+              "expect": "No. The group cancellation only applied to the pond outing. The separately agreed Tuesday 10 am phone call with Jen about her job application and Tuesday 11 am coffee with Alex at Birch Cafe were not cancelled in the messages. Do not claim they actually happened; attendance is unknown."
+            },
+            {
+              "id": "ben-moved",
+              "prompt": "What's the latest plan for dinner with Ben?",
+              "expect": "The same dinner originally agreed for Thursday was moved to Saturday at 7 pm at Juniper Cafe. It is one dinner, not two."
+            }
           ]
         }
       ]
@@ -162,7 +298,21 @@
         }
       ]
     },
-    "saturday": {},
+    "saturday": {
+      "conversations": [
+        {
+          "id": "saturday-ben-fresh",
+          "time": "9 am",
+          "turns": [
+            {
+              "id": "ben-fresh",
+              "prompt": "Where and when am I meeting Ben tonight?",
+              "expect": "Today, Saturday, at 7 pm at Juniper Cafe."
+            }
+          ]
+        }
+      ]
+    },
     "sunday": {}
   }
 }

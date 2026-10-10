@@ -56,14 +56,14 @@ def mem0(source, root, at, processing_at):
 def memcal(source, root, at, processing_at):
     sys.path.insert(0,os.environ['MEMCAL_SRC'])
     from memcal import archive,brief,config,db,identity
-    from memcal.sources import imessage
+    from memcal.sources import imessage,proton
     from memcal.dream.run import dream
     from pacbench.gateway_client import validate_route
     if not (source/'chat.db').exists():
         raise ValueError('Native source fixture unavailable for this channel; no archive-write fallback')
     messages=json.loads((source/'messages.json').read_text())
-    if any(m['channel']!='imessage' for m in messages):
-        raise ValueError('This Memcal connector supports iMessage capture only; mixed channels need a native source connector')
+    if any(m['channel'] not in {'imessage','email'} for m in messages):
+        raise ValueError('No native fixture connector for this source channel')
     # Normal filesystem locations under the isolated HOME; native contacts loader.
     target=Path.home()/'Library/Application Support/AddressBook/Sources/00000000-0000-0000-0000-000000000001/AddressBook-v22.abcddb'
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -81,12 +81,31 @@ def memcal(source, root, at, processing_at):
         collection=archive.open_collection(conn,mode='imessage')
         report=imessage.ingest(conn,collection_id=collection)  # actual native default path
         if report.error:raise RuntimeError(report.error)
-        expected=len(messages)
+        expected=sum(m['channel']=='imessage' for m in messages)
         if report.read!=expected:
             raise RuntimeError(f'Native reader consumed {report.read}/{expected} new messages')
+        mail_report=None
+        mail_transport=None
+        if any(m['channel']=='email' for m in messages):
+            from pacbench.email_fixture import MailboxServer
+            # A native secure IMAP session against provider-independent RFC822
+            # source data. Do not substitute Bridge methods or base.deliver.
+            with MailboxServer(source/'mailbox.json') as mailbox:
+                cfg.env.update(PROTON_BRIDGE_HOST='127.0.0.1',PROTON_BRIDGE_PORT=str(mailbox.port),
+                               PROTON_BRIDGE_USER=mailbox.user,PROTON_BRIDGE_PASSWORD=mailbox.password)
+                mail_report=proton.ingest(conn,cfg)
+                mail_transport={'interface':'TLS IMAP4rev1 Inbox/Sent fixture',
+                                'commands':mailbox.commands,
+                                'account':mailbox.user}
+            if mail_report.error:raise RuntimeError(mail_report.error)
+            expected_mail=sum(m['channel']=='email' for m in messages)
+            if mail_report.read!=expected_mail:
+                raise RuntimeError(f'Native IMAP reader consumed {mail_report.read}/{expected_mail} new emails')
         os.environ['MEMCAL_TODAY']=processing_at
         result=dream(conn,cfg)  # product defaults, ordinary nightly processing
         brief.write(conn,cfg)
+        event_state=[dict(row) for row in conn.execute(
+            'SELECT key,date,time,title,location,status,participants,subject FROM events ORDER BY key')]
         # Read the product's own bundle/call records after processing. No
         # monkeypatching the packer, extra extraction or inferred debug facts.
         native_bundles=[dict(row) for row in conn.execute('SELECT * FROM run_bundles WHERE run_id=?',(result.run_id,))]
@@ -97,9 +116,11 @@ def memcal(source, root, at, processing_at):
         folder=root/'ingestion-model-calls';folder.mkdir(exist_ok=True)
         diagnostic=folder/(source.name+'.json')
         diagnostic.write_text(json.dumps({'bundles':native_bundles,'calls':native_calls},ensure_ascii=False,indent=2)+'\n')
-        return {'ready':not bool(result.errors),'interface':'native iMessage reader + native nightly dream',
+        return {'ready':not bool(result.errors),'interface':'native source readers + native nightly dream',
                 'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),
+                **({'email_ingest':asdict(mail_report),'email_transport':mail_transport} if mail_report else {}),
                 'bundles':native_bundles,'model_call_record':str(diagnostic),
+                'native_event_state':event_state,
                 'processing':{'run_id':result.run_id,'errors':result.errors,'report':result.report()},
                 'readiness':'Native dream completion without errors'}
     finally:conn.close()

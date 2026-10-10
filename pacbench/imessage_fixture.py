@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = 'apple-messages-text-v3'
+VERSION = 'apple-messages-text-v4'
 APPLE_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 SCHEMA = (Path(__file__).parent/'source_schemas/apple_messages.sql').read_text()
 
@@ -32,7 +32,7 @@ def identity(name: str) -> dict:
     return {'name':name, 'handle':f'{uid.hex[:16]}@example.test', 'uid':str(uid).upper()}
 
 
-def append_messages(path: Path, messages: list[dict]) -> dict:
+def append_messages(path: Path, messages: list[dict], *, contacts=()) -> dict:
     """Idempotently append available source messages; reject conflicting replay.
 
     Handles are synthetic Apple-ID email addresses in the reserved .test domain.
@@ -54,6 +54,9 @@ def append_messages(path: Path, messages: list[dict]) -> dict:
          'No attachments, reactions, attributed-only bodies or invented receipt timestamps']}
     if manifest['version'] != VERSION:
         raise ValueError('Incompatible source fixture version')
+    for name in contacts:
+        if name != 'Me':
+            manifest['contacts'][name]=identity(name)
     owner = identity('Me')
     added = 0
     with sqlite3.connect(path) as conn:
@@ -130,7 +133,8 @@ def append_messages(path: Path, messages: list[dict]) -> dict:
     vcards=[]
     for c in manifest['contacts'].values():
         name=c['name'].replace('\\','\\\\').replace('\n','\\n').replace(';','\\;').replace(',','\\,')
-        vcards.append(f"BEGIN:VCARD\nVERSION:3.0\nUID:{c['uid']}\nFN:{name}\nEMAIL;TYPE=INTERNET:{c['handle']}\nEND:VCARD")
+        email=c['uid'].lower()+'@mail.example.test'
+        vcards.append(f"BEGIN:VCARD\nVERSION:3.0\nUID:{c['uid']}\nFN:{name}\nEMAIL;TYPE=INTERNET:{c['handle']}\nEMAIL;TYPE=INTERNET:{email}\nEND:VCARD")
     path.with_suffix('.contacts.vcf').write_text('\n'.join(vcards)+'\n')
     # A separate, disclosed AddressBook schema subset allows native contact readers
     # to consume the same source roster, without provider-specific identity writes.
@@ -141,6 +145,8 @@ def append_messages(path: Path, messages: list[dict]) -> dict:
             db.execute('INSERT OR IGNORE INTO ZABCDRECORD(ZUNIQUEID,ZFIRSTNAME) VALUES(?,?)',(c['uid'],c['name']))
             pk=db.execute('SELECT Z_PK FROM ZABCDRECORD WHERE ZUNIQUEID=?',(c['uid'],)).fetchone()[0]
             db.execute('INSERT OR IGNORE INTO ZABCDEMAILADDRESS(ZOWNER,ZADDRESS) VALUES(?,?)',(pk,c['handle']))
+            db.execute('INSERT OR IGNORE INTO ZABCDEMAILADDRESS(ZOWNER,ZADDRESS) VALUES(?,?)',
+                       (pk,c['uid'].lower()+'@mail.example.test'))
     return {'version':VERSION,'added':added,'source_ids':[m['source_id'] for m in messages],
             'database':str(path),'metadata':str(sidecar),'contacts':str(path.with_suffix('.contacts.vcf')),
             'contacts_database':str(contacts_db)}

@@ -32,7 +32,10 @@ def workspace_for(home: Path) -> Path:
         data = json.loads(receipt.read_text())
         workspace = Path(data['workspace'])
         if data['version'] != VERSION or not outside_project(workspace) or not workspace.is_dir():
-            raise RuntimeError('Invalid or unavailable isolated recall workspace')
+            raise RuntimeError('Invalid or unavailable isolated recall workspace: '+json.dumps({
+                'workspace':str(workspace),'version':data.get('version'),
+                'directory_exists':workspace.is_dir(),
+                'git_ancestors':[str(p/'.git') for p in (workspace,*workspace.parents) if (p/'.git').exists()]}))
         return workspace
     workspace = Path(tempfile.mkdtemp(prefix='pacbench-chat-'))
     if not outside_project(workspace):

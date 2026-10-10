@@ -169,7 +169,9 @@ def turn_env(at: str, home: Path,
     brief. Accepts the full ISO `at` (memcal splits day + time).
     """
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    from .source_policy import SOURCE_ARGUMENT_RULES
     env.update({
+        "PACBENCH_SOURCE_ARGUMENT_RULES": json.dumps(SOURCE_ARGUMENT_RULES),
         "HERMES_HOME": str(home),
         "PACBENCH_NOW": at,
         "MEMCAL_TODAY": at,
@@ -291,7 +293,9 @@ def enforce_provider_tools(turn: TurnResult, env: dict) -> None:
         return
     allowed = {n.strip() for n in env.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
                if n.strip() and "*" not in n}
-    forbidden = [c for c in turn.tool_calls if c.get("name") not in allowed]
+    from .source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
+    forbidden = [c for c in turn.tool_calls if c.get("name") not in allowed or
+                 source_read_blocked(c.get("name"),c.get("arguments",{}),SOURCE_ARGUMENT_RULES)]
     turn.policy_blocks = max(turn.policy_blocks, len(forbidden))
 
 

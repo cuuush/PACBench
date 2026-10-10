@@ -1,7 +1,8 @@
 """Exact provider tools restricted to retained-memory retrieval, never source rescue."""
 from .followups import SOURCE_CATEGORIES, tool_category
+from .source_policy import SOURCE_ARGUMENT_RULES
 
-VERSION = 'retained-memory-only-v1'
+VERSION = 'retained-memory-only-v2'
 
 
 def retained_tools(native_tools):
@@ -9,9 +10,7 @@ def retained_tools(native_tools):
             not isinstance(n,str) or not n or '*' in n for n in native_tools):
         raise ValueError('Provider supplied no exact native tool allowlist')
     names = sorted(set(native_tools))
-    # A mixed memory/resource reader cannot be granted wholesale under a name-only
-    # boundary. Keep search/browse; exclude that reader until argument guards exist.
-    blocked = [n for n in names if tool_category(n,{}) in SOURCE_CATEGORIES or n=='viking_read']
+    blocked = [n for n in names if n not in SOURCE_ARGUMENT_RULES and tool_category(n,{}) in SOURCE_CATEGORIES]
     allowed = [n for n in names if n not in blocked]
     if not allowed:
         raise ValueError('Provider supplied no retained-memory tools')
@@ -21,4 +20,4 @@ def retained_tools(native_tools):
 def policy_record(provider, native_tools):
     allowed,blocked = retained_tools(native_tools)
     return {'version':VERSION,'provider':provider,'allowed_tools':allowed,
-        'blocked_source_tools':blocked,'builtin_memory':False,'os_sandbox':False}
+        'blocked_source_tools':blocked,'source_argument_rules':SOURCE_ARGUMENT_RULES,'builtin_memory':False,'os_sandbox':False}

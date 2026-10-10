@@ -70,6 +70,14 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
         return 'archive_search'
     if name in {'memcal_open_source', 'memcal_conversation', 'memcal_activity'}:
         return 'source_evidence'
+    if name in {'honcho_search', 'honcho_context'}:
+        return 'source_messages'
+    if name == 'honcho_profile':
+        return 'memory_detail'
+    if name == 'honcho_reasoning':
+        return 'memory_reasoning'
+    if name == 'honcho_conclude':
+        return 'memory_search' if arguments.get('list') else 'memory_write'
     if name in {'tool_search', 'tool_describe'}:
         return 'tool_discovery'
     if name == 'tool_call':
@@ -90,8 +98,8 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'viking_search','viking_browse'}:
         return 'memory_search'
     if name=='viking_read':
-        uris=[arguments.get('uri',''),*(arguments.get('uris') or [])]
-        if any('/resources/' in str(uri) for uri in uris) and arguments.get('level','overview')=='full':
+        from .source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
+        if source_read_blocked(name,arguments,SOURCE_ARGUMENT_RULES):
             return 'source_evidence'
         return 'memory_detail'
     if name in {'viking_add_resource','viking_remember','viking_forget'}:

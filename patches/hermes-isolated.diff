@@ -30,7 +30,7 @@ index 246ab57..136440a 100644
                  _agent_cfg
              )
 diff --git a/agent/inline_tool_executors.py b/agent/inline_tool_executors.py
-index 2b5f5f7..889b399 100644
+index 2b5f5f7..f244f41 100644
 --- a/agent/inline_tool_executors.py
 +++ b/agent/inline_tool_executors.py
 @@ -10,6 +10,7 @@ lazily at call time so ``patch("tools.x.y")`` in tests keeps working.
@@ -54,7 +54,7 @@ index 2b5f5f7..889b399 100644
      session_db = agent._get_session_db_for_recall()
      if not session_db:
          from hermes_state import format_session_db_unavailable
-@@ -231,6 +238,23 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
+@@ -231,6 +238,34 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
      Precedence: todo_list/session_search/memory, then memory-manager tools, then the
      remaining inline tools (``message_agent`` excluded).
      """
@@ -75,6 +75,17 @@ index 2b5f5f7..889b399 100644
 +            return lambda agent, args, ctx, _fn=function_name: json.dumps(
 +                {"error": f"PACBENCH-BLOCKED: tool '{_fn}' is outside "
 +                          f"the benchmark memory-tool boundary and did not execute"})
++    if os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
++        from hermes_time import source_read_blocked
++        _pb_rules = json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))
++        if function_name in _pb_rules:
++            # Mixed readers are provider tools; inspect their arguments at invocation,
++            # before consulting either the memory manager or registry dispatch.
++            def _pb_execute(agent, args, ctx):
++                if source_read_blocked(function_name, args, _pb_rules):
++                    return json.dumps({"error": "PACBENCH-BLOCKED: original-source read did not execute"})
++                return agent._memory_manager.handle_tool_call(function_name, args)
++            return _pb_execute
      if function_name in INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES:
          return INLINE_TOOL_EXECUTORS[function_name]
      memory_manager = agent._memory_manager
@@ -123,10 +134,10 @@ index 9d5c5e1..cd1ab03 100644
              block = agent._memory_store.format_for_system_prompt(kind) if enabled else None
              if block:
 diff --git a/agent/tool_executor.py b/agent/tool_executor.py
-index 4b55c1b..28d974e 100644
+index 4b55c1b..289b38e 100644
 --- a/agent/tool_executor.py
 +++ b/agent/tool_executor.py
-@@ -1554,6 +1554,23 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
+@@ -1554,6 +1554,32 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
      function_name, function_args, effective_task_id, tool_call_id, middleware_trace = (
          ref.name, ref.args, ref.task_id, ref.call_id, ref.trace,
      )
@@ -142,16 +153,25 @@ index 4b55c1b..28d974e 100644
 +        _pb_ok = function_name in _pb_names or (
 +            os.environ.get("PACBENCH_PROVIDER_ONLY") != "1" and
 +            bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        from hermes_time import source_read_blocked
++        _pb_rules = json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))
++        _pb_ok = _pb_ok and not source_read_blocked(function_name, function_args, _pb_rules)
 +        if not _pb_ok:
 +            return _SequentialDispatch(
 +                lambda next_args: json.dumps(
 +                    {"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
 +                              f"the benchmark memory-tool boundary and did not execute"}))
++    if os.environ.get("PACBENCH_PROVIDER_ONLY") == "1" and function_name in _pb_rules:
++        def _pb_execute(next_args):
++            if source_read_blocked(function_name, next_args, _pb_rules):
++                return json.dumps({"error": "PACBENCH-BLOCKED: original-source read did not execute"})
++            return agent._memory_manager.handle_tool_call(function_name, next_args)
++        return _SequentialDispatch(_pb_execute)
      if function_name != "delegate_task" and function_name in INLINE_TOOL_EXECUTORS:
          # Agent-level tools that need live AIAgent state; table shared with invoke_tool.
          inline_executor = INLINE_TOOL_EXECUTORS[function_name]
 diff --git a/agent/turn_context.py b/agent/turn_context.py
-index cc71fb4..61dd215 100644
+index cc71fb4..520574a 100644
 --- a/agent/turn_context.py
 +++ b/agent/turn_context.py
 @@ -9,11 +9,14 @@ returns a ``TurnContext`` with only the locals the loop reads back.
@@ -199,7 +219,7 @@ index cc71fb4..61dd215 100644
      # Deterministic recall indicator via _emit_status so the model can't silently
      # drop injected memory.
      if ext_prefetch_cache:
-@@ -889,6 +908,20 @@ def build_turn_context(
+@@ -889,6 +908,21 @@ def build_turn_context(
      Order matters: the DB session row is created only AFTER the system prompt is built
      (else it persists system_prompt=NULL and costs a cache miss) and BEFORE preflight
      compression."""
@@ -215,16 +235,17 @@ index cc71fb4..61dd215 100644
 +        if trace_path:
 +            with open(trace_path + ".tools.jsonl", "a", encoding="utf-8") as record:
 +                record.write(json.dumps({"allowed_tools": sorted(allowed),
-+                    "offered_tools": sorted(agent.valid_tool_names)}) + "\n")
++                    "offered_tools": sorted(agent.valid_tool_names),
++                    "source_argument_rules": json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))}) + "\n")
 +
      from agent.turn_context_compaction import run_turn_start_compaction
  
      # Guard stdio against OSError from broken pipes (systemd/headless/daemon).
 diff --git a/hermes_time.py b/hermes_time.py
-index a8cab27..e7c3226 100644
+index a8cab27..bcad634 100644
 --- a/hermes_time.py
 +++ b/hermes_time.py
-@@ -107,5 +107,14 @@ def reset_cache() -> None:
+@@ -107,5 +107,55 @@ def reset_cache() -> None:
  
  def now() -> datetime:
      """Current time as a tz-aware datetime: configured zone, else server-local."""
@@ -239,11 +260,52 @@ index a8cab27..e7c3226 100644
 +        return moment
      tz = get_timezone()
      return datetime.now(tz) if tz is not None else datetime.now().astimezone()
++
++
++# PACBench isolated-run shim: argument-aware memory-tool boundary.
++def source_read_blocked(name, arguments, rules):
++    """Fail closed on original reads; allow native memory and generated summaries.
++
++    Summary pseudo-files are safe because the native reader normalizes them to a
++    directory summary and cannot fall back to original file content. A plain file
++    with overview requested is not safe: native readers can fall back to full text.
++    """
++    import posixpath
++    from urllib.parse import unquote, urlsplit
++    rule = rules.get(name)
++    if rule is None:
++        return False
++    if not isinstance(arguments,dict):
++        return True
++    uri, uris = arguments.get('uri',''), arguments.get('uris',[])
++    values = (uris if isinstance(uris,list) and uris else
++              uri if isinstance(uri,list) else [uri])
++    level = arguments.get('level') or rule['default_level']
++    if not values or level not in ('abstract','overview','full'):
++        return True
++    for value in values:
++        if not isinstance(value,str) or not value.strip():
++            return True
++        value = value.strip()
++        try:
++            parsed = urlsplit(value)
++        except ValueError:
++            return True
++        if parsed.scheme != rule['scheme'] or parsed.query or parsed.fragment:
++            return True
++        path = posixpath.normpath('/'+unquote(parsed.netloc+parsed.path)).rstrip('/')+'/'
++        memory = (parsed.netloc in rule['memory_namespaces'] and
++                  rule['memory_path'] in path)
++        suffix = rule['summary_suffixes'].get(level)
++        summary = bool(suffix and value.endswith(suffix))
++        if not memory and not summary:
++            return True
++    return False
 diff --git a/model_tools.py b/model_tools.py
-index f0e56c1..aac50f0 100644
+index f0e56c1..b5619c7 100644
 --- a/model_tools.py
 +++ b/model_tools.py
-@@ -885,6 +885,21 @@ def handle_function_call(
+@@ -885,6 +885,24 @@ def handle_function_call(
          function_args = {}
      trace = list(tool_request_middleware_trace or [])
      function_name = _LEGACY_TOOL_ALIASES.get(function_name, function_name)
@@ -259,6 +321,9 @@ index f0e56c1..aac50f0 100644
 +        _pb_ok = function_name in _pb_names or (
 +            os.environ.get("PACBENCH_PROVIDER_ONLY") != "1" and
 +            bool(_pb_prefixes) and function_name.startswith(_pb_prefixes))
++        from hermes_time import source_read_blocked
++        _pb_rules = json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))
++        _pb_ok = _pb_ok and not source_read_blocked(function_name, function_args, _pb_rules)
 +        if not _pb_ok:
 +            return json.dumps({"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
 +                                        f"the benchmark memory-tool boundary and did not execute"})

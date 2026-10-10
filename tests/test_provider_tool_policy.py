@@ -2,6 +2,7 @@
 import ast
 import json
 import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -9,6 +10,20 @@ import pytest
 from pacbench.harness import TurnResult, enforce_provider_tools
 
 TREE = Path(__file__).resolve().parents[1] / 'vendor/hermes-isolated'
+
+
+def native_source_guard():
+    tree=ast.parse((TREE/'hermes_time.py').read_text())
+    fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='source_read_blocked')
+    namespace={}
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[fn],type_ignores=[])),
+                 'actual_native_source_guard','exec'),namespace)
+    return namespace['source_read_blocked']
+
+
+@pytest.fixture(autouse=True)
+def native_policy_import(monkeypatch):
+    monkeypatch.setitem(sys.modules,'hermes_time',SimpleNamespace(source_read_blocked=native_source_guard()))
 
 
 def guard(relative, name, stop):
@@ -127,9 +142,9 @@ def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name)
     assert fn(None,'memcal_open')=='EXECUTED'
 
 
-def test_mixed_source_reader_is_not_granted_wholesale():
+def test_mixed_reader_is_offered_with_argument_constraints():
     from pacbench.tool_policy import retained_tools
-    assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])
+    assert retained_tools(['viking_read','viking_search'])==(['viking_read','viking_search'],[])
 
 
 @pytest.mark.parametrize('names',[None,[],[None],['memcal_open',1],['memcal*'],'memcal_open'])
@@ -137,3 +152,62 @@ def test_malformed_native_schemas_fail_closed(names):
     from pacbench.tool_policy import retained_tools
     with pytest.raises(ValueError):
         retained_tools(names)
+
+
+READ_CASES=[
+ ({'uri':'viking://resources/day/messages.txt','level':'full'},True),
+ ({'uri':'viking://resources/day/messages.txt','level':'overview'},True),
+ ({'uri':'viking://resources/day'},True),
+ ({'uri':'viking://resources/day/.overview.md'},False),
+ ({'uri':'viking://resources/day/.abstract.md','level':'abstract'},False),
+ ({'uri':'viking://resources/day/.overview.md','level':'full'},True),
+ ({'uri':'viking://user/default/memories/plans.md','level':'full'},False),
+ ({'uri':'viking://~/memories/plans.md'},False),
+ ({'uri':'viking://resources/day/memories/raw.txt','level':'full'},True),
+ ({'uri':'viking://user/default/memories/../../sessions/raw.txt','level':'full'},True),
+ ({'uri':'viking://user/default/memories/%2e%2e/%2e%2e/sessions/raw.txt','level':'full'},True),
+ ({'uris':['viking://resources/day/.overview.md','viking://resources/day/messages.txt']},True),
+ ({'uri':['viking://user/default/memories/plans.md','viking://resources/day/messages.txt']},True),
+ ({'uri':'viking://resources/day/messages.txt?fake=/memories/','level':'full'},True),
+ ({'uri':'viking://user/default/sessions/messages.jsonl','level':'full'},True),
+ ({},True),
+]
+
+
+@pytest.mark.parametrize('arguments,blocked',READ_CASES)
+def test_actual_mixed_reader_guards_before_native_execution(monkeypatch,arguments,blocked):
+    from pacbench.source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST','viking_read')
+    monkeypatch.setenv('PACBENCH_SOURCE_ARGUMENT_RULES',json.dumps(SOURCE_ARGUMENT_RULES))
+    executed=[]
+    manager=SimpleNamespace(handle_tool_call=lambda name,args:executed.append((name,args)) or 'EXECUTED')
+    agent=SimpleNamespace(_memory_manager=manager)
+    inline=guard('agent/inline_tool_executors.py','resolve_invoke_tool_executor',
+        lambda n:isinstance(n,ast.If) and 'INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES' in ast.unparse(n.test))
+    result=inline(agent,'viking_read')(agent,arguments,None)
+    assert ('PACBENCH-BLOCKED' in result)==blocked
+    assert bool(executed)==(not blocked)
+    executed.clear()
+    sequential=guard('agent/tool_executor.py','_resolve_sequential_dispatch',
+        lambda n:isinstance(n,ast.If) and 'INLINE_TOOL_EXECUTORS' in ast.unparse(n.test))
+    ref=SimpleNamespace(name='viking_read',args=arguments,task_id=None,call_id=None,trace=[])
+    result=sequential(agent,ref,[])(arguments)
+    assert ('PACBENCH-BLOCKED' in result)==blocked
+    assert bool(executed)==(not blocked)
+    assert native_source_guard()('viking_read',arguments,SOURCE_ARGUMENT_RULES)==source_read_blocked('viking_read',arguments,SOURCE_ARGUMENT_RULES)==blocked
+    turn=TurnResult(prompt='',at='',answer='Correct answer',tool_calls=[{'name':'viking_read','arguments':arguments}],tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=0)
+    enforce_provider_tools(turn,{'PACBENCH_PROVIDER_ONLY':'1','PACBENCH_TOOL_ALLOWLIST':'viking_read'})
+    assert turn.policy_blocks==int(blocked)
+
+
+def test_honcho_original_messages_are_excluded_but_native_reasoning_remains():
+    from pacbench.tool_policy import retained_tools
+    from pacbench.followups import tool_category
+    assert retained_tools(['honcho_search','honcho_context','honcho_profile',
+                           'honcho_reasoning','honcho_conclude']) == (
+        ['honcho_conclude','honcho_profile','honcho_reasoning'],
+        ['honcho_context','honcho_search'])
+    assert tool_category('honcho_reasoning',{}) == 'memory_reasoning'
+    assert tool_category('honcho_conclude',{'list':True}) == 'memory_search'
+    assert tool_category('honcho_conclude',{'conclusion':'A fact'}) == 'memory_write'

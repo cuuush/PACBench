@@ -10,6 +10,7 @@ from pacbench.context_isolation import actual_context, workspace_for
 from pacbench.document_ingestion import VERSION, prepare_sources, record_recall_isolation
 from pacbench.frozen import write_bundle
 from pacbench.native_audit import audit
+from pacbench.source_policy import SOURCE_ARGUMENT_RULES
 
 
 def save(path, value):
@@ -33,7 +34,7 @@ def trace(tmp_path):
     prompt = f'[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{body["question"]}'
     save(tmp_path / 'resolved-spec.json', {'question_at': at, 'timezone': 'America/New_York'})
     schedule = prepare_sources(tmp_path, [message], 'America/New_York')
-    save(tmp_path / 'summary.json', {'ingestion_mode': 'documents', 'tool_policy': 'retained-memory-only-v1',
+    save(tmp_path / 'summary.json', {'ingestion_mode': 'documents', 'tool_policy': 'retained-memory-only-v2',
         'builtin_memory': False, 'process_timezone': 'America/New_York', 'ingestion_schedule': schedule,
         'bundle_hash': bundle_hash, 'input_hash': digest, 'contract_hash': contract_hash,
         'message_count': 1, 'results': [{'provider': 'mem0', 'repetition': 1, 'state': 'diagnostic',
@@ -56,9 +57,9 @@ def trace(tmp_path):
     save(arm / 'judgment.json', {'question': prompt, 'answer': 'At seven.'})
     save(arm / 'grade.json', {'claims': [{'id': 'fact-1', 'verdict': 'correct'}]})
     save(arm / 'simulation-clock.json', {'process_timezone': 'America/New_York'})
-    save(arm / 'tool-policy.json', {'version': 'retained-memory-only-v1', 'provider': 'mem0',
-        'allowed_tools': ['mem0_search'], 'blocked_source_tools': [], 'builtin_memory': False, 'os_sandbox': False})
-    (arm / 'context.jsonl.tools.jsonl').write_text(json.dumps({'allowed_tools':['mem0_search'], 'offered_tools':['mem0_search']})+'\n')
+    save(arm / 'tool-policy.json', {'version': 'retained-memory-only-v2', 'provider': 'mem0',
+        'allowed_tools': ['mem0_search'], 'blocked_source_tools': [], 'source_argument_rules': SOURCE_ARGUMENT_RULES, 'builtin_memory': False, 'os_sandbox': False})
+    (arm / 'context.jsonl.tools.jsonl').write_text(json.dumps({'allowed_tools':['mem0_search'], 'offered_tools':['mem0_search'], 'source_argument_rules': SOURCE_ARGUMENT_RULES})+'\n')
     row = schedule[0]; meta = json.loads((tmp_path / 'sources' / row['id'] / 'source.json').read_text())
     save(arm / row['file'], {'version': VERSION, 'provider': 'mem0', 'at': row['at'],
         'source_ids': row['source_ids'], 'document_sha256': meta['document_sha256'],

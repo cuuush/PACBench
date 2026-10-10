@@ -13,6 +13,7 @@ from .harness import TurnResult
 from .evaluation import load_evaluations
 from .native_checks import audit_checks
 from .tool_policy import VERSION as TOOL_POLICY, policy_record
+from .source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
 
 
 def audit(root: Path) -> dict:
@@ -94,7 +95,8 @@ def audit(root: Path) -> dict:
                     (arm / 'context.jsonl.tools.jsonl').read_text().splitlines()]
                 check(bool(schemas), f'{label}: missing offered tool evidence')
                 check(all(row['allowed_tools'] == allowed and
-                    set(row['offered_tools']) <= set(allowed) for row in schemas),
+                    set(row['offered_tools']) <= set(allowed) and
+                    row.get('source_argument_rules') == SOURCE_ARGUMENT_RULES for row in schemas),
                     f'{label}: non-provider schema exposed')
                 paths = [*arm.glob('recall.json'), *arm.glob('turns/*/turn.json'),
                     *arm.glob('followups/*/turn.json'), *arm.glob('turns/*/followups/*/turn.json')]
@@ -109,7 +111,8 @@ def audit(root: Path) -> dict:
                         check(data.get('context_isolation') == context,
                               f'{label}: saved recall context receipt differs from native prompt')
                         check(not data.get('policy_blocks') and all(
-                            c.get('name') in allowed for c in data['tool_calls']),
+                            c.get('name') in allowed and not source_read_blocked(
+                                c.get('name'),c.get('arguments',{}),SOURCE_ARGUMENT_RULES) for c in data['tool_calls']),
                             f'{label}: non-provider tool attempted in {path.relative_to(arm)}')
             from .document_audit import audit_ingestion
             errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))

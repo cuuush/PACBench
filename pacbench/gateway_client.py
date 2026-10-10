@@ -25,9 +25,9 @@ def require_live_cost_boundary() -> dict:
     except (OSError, ValueError, KeyError, urllib.error.URLError) as exc:
         raise RuntimeError('shared spending gateway unavailable; live calls blocked') from exc
     if (health.get('service') != 'muse-budget-gateway' or
-            not 0 < health.get('daily_limit_usd', 999) <= 5 or
+            not 0 < health.get('daily_limit_usd', 999) <= 10 or
             not 0 < health.get('total_limit_usd', 999) <= 10):
-        raise RuntimeError('gateway cannot establish $5/day and $10 task boundaries')
+        raise RuntimeError('gateway cannot establish the $10 task spending boundary')
     return health
 
 

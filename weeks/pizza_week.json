@@ -1,5 +1,5 @@
 {
-  "id": "pizza-week-twists-low",
+  "id": "pizza-week-natural-confounders-low",
   "timezone": "America/New_York",
   "noise": "low",
   "channels": {
@@ -146,6 +146,15 @@
     "wednesday": {
       "scenes": [
         {
+          "id": "alex-weekend-proposal",
+          "channel": "alex",
+          "time": "11 am",
+          "scene": "Alex suggests Sunday dinner at Juniper Cafe at 7. The user declines because evenings are awkward this weekend. Brief friendly exchange; they do not agree to dinner or pick an alternative yet.",
+          "facts": [
+            "Alex proposes Sunday dinner at 7 pm at Juniper Cafe, but the user declines. No dinner with Alex is agreed."
+          ]
+        },
+        {
           "id": "devon-invite",
           "channel": "devon",
           "time": "6 pm",
@@ -213,6 +222,15 @@
     },
     "thursday": {
       "scenes": [
+        {
+          "id": "alex-lunch-instead",
+          "channel": "alex",
+          "time": "12 pm",
+          "scene": "Alex follows up in the existing DM: lunch instead on Sunday? Noon at Birch? The user agrees. A casual alternative to yesterday’s declined dinner suggestion, without recapping other plans.",
+          "facts": [
+            "Alex and the user agree to lunch on Sunday at noon at Birch Cafe. This is lunch, not the declined dinner at Juniper."
+          ]
+        },
         {
           "id": "maya-time-update",
           "channel": "maya",
@@ -306,6 +324,33 @@
               "expect": "Luigi's on 5th Street."
             }
           ]
+        },
+        {
+          "id": "friday-alex-fresh",
+          "time": "12:15 pm",
+          "turns": [
+            {
+              "id": "alex-weekend-current",
+              "prompt": "What's the plan with Alex this weekend?",
+              "expect": "Lunch with Alex on Sunday at noon at Birch Cafe."
+            },
+            {
+              "id": "alex-declined-proposal",
+              "prompt": "Are we doing dinner at Juniper too?",
+              "expect": "No dinner with Alex at Juniper was agreed. Alex proposed Sunday dinner there, but the user declined; the agreed plan is lunch instead."
+            }
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "devon-key-favor",
+          "channel": "devon",
+          "time": "8:30 pm",
+          "scene": "Devon asks a small favor: he left his spare key with the bartender at Luigi’s on 5th Street and asks the user to collect it on Sunday. The user agrees to stop by at 11 am. Devon will not be there; this is a pickup for him, not another meal together. Do not say whether the earlier pizza outing happened.",
+          "facts": [
+            "The user agrees to collect Devon’s spare key on Sunday at 11 am from Luigi’s on 5th Street. Devon is not attending the pickup."
+          ]
         }
       ]
     },
@@ -321,9 +366,55 @@
               "expect": "Today, Saturday, at 7 pm at Juniper Cafe."
             }
           ]
+        },
+        {
+          "id": "saturday-key-fresh",
+          "time": "9:15 am",
+          "turns": [
+            {
+              "id": "key-pickup-before-cancellation",
+              "prompt": "What did I say I'd do for Devon tomorrow?",
+              "expect": "Collect his spare key from Luigi’s on 5th Street on Sunday at 11 am."
+            },
+            {
+              "id": "key-pickup-not-meal",
+              "prompt": "Is he meeting me there?",
+              "expect": "No. Devon is not coming to the key pickup; the user is collecting the key for him."
+            }
+          ]
+        }
+      ],
+      "scenes": [
+        {
+          "id": "devon-key-no-longer-needed",
+          "channel": "devon",
+          "time": "4 pm",
+          "scene": "Devon follows up in this DM: actually don’t worry about tomorrow, I got it back already. The user acknowledges naturally. They rely on the spare-key conversation from last night, without naming another outing.",
+          "facts": [
+            "Devon has already recovered the spare key, so the user no longer needs to collect it on Sunday."
+          ]
         }
       ]
     },
-    "sunday": {}
+    "sunday": {
+      "conversations": [
+        {
+          "id": "sunday-key-fresh",
+          "time": "9 am",
+          "turns": [
+            {
+              "id": "key-favor-cancelled",
+              "prompt": "Do I still need to stop by for Devon's key today?",
+              "expect": "No. Devon already got the key back, so the Sunday pickup is no longer needed."
+            },
+            {
+              "id": "sunday-lunch-still-on",
+              "prompt": "And what's the plan with Alex today?",
+              "expect": "Lunch with Alex today, Sunday, at noon at Birch Cafe. The key cancellation did not change this plan."
+            }
+          ]
+        }
+      ]
+    }
   }
 }

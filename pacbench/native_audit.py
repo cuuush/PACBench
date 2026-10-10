@@ -12,6 +12,7 @@ from .followups import load_questions, audit_followups
 from .harness import TurnResult
 from .evaluation import load_evaluations
 from .native_checks import audit_checks
+from .tool_policy import VERSION as TOOL_POLICY, policy_record
 
 
 def audit(root: Path) -> dict:
@@ -26,7 +27,7 @@ def audit(root: Path) -> dict:
     try:
         summary = read(root / 'summary.json')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
-        check(summary.get('tool_policy') == 'provider-only-v1', 'Provider-only tools required')
+        check(summary.get('tool_policy') in ('provider-only-v1', TOOL_POLICY), 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
         check(len(bundle['lives']) == 1, 'expected one life')
         messages = messages_for(bundle, next(iter(bundle['lives'])))
@@ -74,7 +75,7 @@ def audit(root: Path) -> dict:
             if not reviewable:
                 # A blocked arm has no live trace; keep the failure and audit later arms.
                 continue
-            if summary.get('tool_policy') == 'provider-only-v1':
+            if summary.get('tool_policy') in ('provider-only-v1', TOOL_POLICY):
                 from .context_isolation import actual_context, VERSION
                 workspace_file = arm / 'recall-workspace.json'
                 workspace_record = (read(workspace_file) if workspace_file.exists()
@@ -82,10 +83,14 @@ def audit(root: Path) -> dict:
                 check(workspace_record['version'] == VERSION,
                       f'{label}: unsupported recall context isolation')
                 check(summary.get('builtin_memory') is False, f'{label}: built-in memory enabled')
-                allowed = sorted(set(result['capability']['tools']))
+                expected_policy = (policy_record(result['provider'], result['capability']['tools'])
+                    if summary['tool_policy'] == TOOL_POLICY else
+                    {'version':'provider-only-v1','provider':result['provider'],
+                     'allowed_tools':sorted(set(result['capability']['tools'])),
+                     'builtin_memory':False,'os_sandbox':False})
+                allowed = expected_policy['allowed_tools']
                 policy = read(arm / 'tool-policy.json')
-                check(policy == {'version': 'provider-only-v1', 'provider': result['provider'],
-                    'allowed_tools': allowed, 'builtin_memory': False, 'os_sandbox': False},
+                check(policy == expected_policy,
                     f'{label}: provider tool policy mismatch')
                 check(bool(allowed) and all('*' not in n for n in allowed),
                     f'{label}: missing exact provider tool names')

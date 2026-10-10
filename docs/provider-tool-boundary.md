@@ -1,30 +1,29 @@
-# Provider-only recall
+# Retained-memory-only recall
 
-New native trials use `provider-only-v1`. Hermes remains the evaluation agent,
-using the provider's normal plugin, prefetch and tools. Switching agent runtimes
-would create a different benchmark condition.
+New trials use `retained-memory-only-v1`. Hermes uses the selected provider's
+normal plugin and prefetch, with an exact subset of its shipped tools.
 
-The runner discovers tool names from the selected provider's native schemas.
-Only those exact names are exposed to Hermes. Sequential, concurrent and registry
-dispatch block other tools before execution. Built-in memory, session search,
-generic tool discovery, shell, filesystem and browser tools are disabled. Empty
-allowlists fail closed; prefix wildcards are not supported in this condition.
+Dedicated archive search, original-source opening, conversation history and
+message activity readers are excluded. For Memcal this blocks
+`memcal_search_archive`, `memcal_open_source`, `memcal_conversation` and
+`memcal_activity`. Retained event/page opening and memory search remain available.
+Their native payloads, including attached citations, are unchanged. This condition
+measures retained memory and its attached evidence, rather than strictly facts-only
+storage. A mixed memory/resource reader such as `viking_read` is excluded wholesale
+until an argument-aware boundary can safely permit only memory reads.
 
-A disallowed attempt invalidates the trial even if the final answer is correct.
-The artifact retains the attempted call and the block. Missing/wrong answers made
-using only allowed tools receive their ordinary fact judgments. Reading original
-messages through a provider-shipped tool remains possible and visible, but fails
-retention under the existing source-fallback rule.
+Only exact allowed names are offered to Hermes. Existing sequential, concurrent
+and registry guards reject excluded tools before execution. Built-in memory,
+session search, generic discovery, shell, filesystem and browser remain disabled.
+Any disallowed attempt fails the check even if the final answer is correct.
+Independent conversations continue. Missing or wrong answers using allowed tools
+receive their normal fact judgments and natural omission recovery rules.
 
-`tool-policy.json` records the exact tool grant. `context.jsonl.tools.jsonl`
-records the schemas exposed each turn. The native audit independently checks both
-and every saved initial/follow-up call. Development results are disposable;
-older trials impose no compatibility requirement. Regenerate results when the
-implementation or test contract changes.
+`tool-policy.json` records allowed and blocked source tools.
+`context.jsonl.tools.jsonl` records actual schemas exposed each turn. The native
+audit verifies these against the provider's discovered schemas and saved calls.
+Older comparison runs retain their recorded `provider-only-v1` condition.
 
-This is an agent tool boundary, not OS isolation. Provider implementations may use
-files, subprocesses and model calls internally as part of normal operation. Their
-internal behavior must be recorded when observable; unknown nested work is not
-reported as free or as verified retention. Docker is not required for this
-benchmark rule. If protection against malicious provider code becomes necessary,
-add an OS sandbox as a separate, explicitly recorded condition.
+This is an agent tool boundary, not OS isolation. Native provider internals may
+read files, run subprocesses and call models. The gateway still meters inference;
+unknown nested work is not reported as free.

@@ -71,7 +71,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                     session_id=state['session'])
                 save(directory / 'turn.json', vars(turn))
                 if turn.policy_blocks:
-                    item.update(state='failed', verdict='fail', reason='Non-provider tool attempted')
+                    item.update(state='failed', verdict='fail', reason='Disallowed tool attempted')
                     state['failed'] = row['id']
                 elif (turn.returncode or not turn.answer.strip() or not turn.session_id or
                         state['session'] and turn.session_id != state['session']):

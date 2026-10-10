@@ -20,6 +20,7 @@ from .gateway_client import client_settings, require_live_cost_boundary
 from .followups import freeze_policy, run_followups
 from .evaluation import load_evaluations
 from .native_checks import run_checks
+from .tool_policy import VERSION as TOOL_POLICY, policy_record
 from .usage import tracked_turn
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
@@ -326,7 +327,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     atexit.register(cleanup_run_processes, output)
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
-              "builtin_memory": False, "tool_policy": "provider-only-v1", "session_search": False,'ingestion_mode':'documents'}
+              "builtin_memory": False, "tool_policy": TOOL_POLICY, "session_search": False,'ingestion_mode':'documents'}
     save(output / "summary.json", report)
     driver = None
     judge = plan = None
@@ -417,14 +418,14 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     or result["state"] == "invalid"):
                 save(output / "summary.json", report)
                 continue
-            allowlist = ",".join(sorted(set(n for n in capability["tools"] if n)))
-            if not allowlist or any("*" in n for n in capability["tools"]):
-                result.update(state="invalid", reason="Provider supplied no exact native tool allowlist")
+            try:
+                policy = policy_record(provider, capability["tools"])
+            except ValueError as exc:
+                result.update(state="invalid", reason=str(exc))
                 save(output / "summary.json", report)
                 continue
-            save(root / "tool-policy.json", {"version": "provider-only-v1",
-                "provider": provider, "allowed_tools": allowlist.split(","),
-                "builtin_memory": False, "os_sandbox": False})
+            allowlist = ",".join(policy["allowed_tools"])
+            save(root / "tool-policy.json", policy)
             ingested=[]
             failed_batches=set()
             from .document_ingestion import ready_sources

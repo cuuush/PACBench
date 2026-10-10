@@ -102,3 +102,31 @@ def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):
     invoke = namespace['handle_function_call']
     assert 'PACBENCH-BLOCKED' in invoke('terminal', {})
     assert invoke('hindsight_recall', {}) == 'EXECUTED'
+
+
+def test_retained_memory_policy_excludes_every_memcal_source_reader():
+    from pacbench.tool_policy import policy_record
+    from pacbench.followups import tool_category, SOURCE_CATEGORIES
+    tools=['memcal_open','memcal_search_wiki','memcal_activity','memcal_conversation',
+           'memcal_search_archive','memcal_open_source']
+    policy=policy_record('memcal',tools)
+    assert policy['allowed_tools']==['memcal_open','memcal_search_wiki']
+    assert len(policy['blocked_source_tools'])==4
+    assert all(tool_category(n,{}) in SOURCE_CATEGORIES for n in policy['blocked_source_tools'])
+
+
+@pytest.mark.parametrize('name',['memcal_activity','memcal_conversation','memcal_search_archive','memcal_open_source'])
+def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name):
+    from pacbench.tool_policy import retained_tools
+    allowed,_=retained_tools(['memcal_open',name])
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(allowed))
+    fn=guard('agent/inline_tool_executors.py','resolve_invoke_tool_executor',
+        lambda n:isinstance(n,ast.If) and 'INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES' in ast.unparse(n.test))
+    assert 'PACBENCH-BLOCKED' in fn(None,name)(None,{},None)
+    assert fn(None,'memcal_open')=='EXECUTED'
+
+
+def test_mixed_source_reader_is_not_granted_wholesale():
+    from pacbench.tool_policy import retained_tools
+    assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])

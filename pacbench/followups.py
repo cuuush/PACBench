@@ -68,7 +68,7 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
         return 'source_messages'
     if name == 'memcal_search_archive':
         return 'archive_search'
-    if name in {'memcal_open_source', 'memcal_conversation'}:
+    if name in {'memcal_open_source', 'memcal_conversation', 'memcal_activity'}:
         return 'source_evidence'
     if name in {'tool_search', 'tool_describe'}:
         return 'tool_discovery'

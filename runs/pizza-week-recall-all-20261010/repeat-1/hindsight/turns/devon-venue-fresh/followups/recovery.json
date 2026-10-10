@@ -1,0 +1,92 @@
+{
+  "state": "complete",
+  "plan_hash": "760d8f0c64d8a863224f9ef99adda821a879740f5a846a5f1adf730b4b969c02",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "meeting Devon tonight location"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791601304298,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n2. User plans to meet Devon at Luigi's on 5th Street at 6pm on October 9, 2026.\\n3. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n4. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\n5. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\n6. User plans to meet Maya and Leo at Mario's on Pine Street at 5pm on October 9, 2026, moved from Rosa's on Oak Street at 7pm.\\n7. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\n8. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\n9. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\n10. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\n11. Rosa's on Oak Street is closed for renovations.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 14.22,
+    "input_tokens": 3604,
+    "output_tokens": 341,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "venue-name",
+      "kind": "provided",
+      "reason": "Correct venue name conveyed in answer."
+    },
+    {
+      "id": "venue-street",
+      "kind": "provided",
+      "reason": "Correct street conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "venue-name",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

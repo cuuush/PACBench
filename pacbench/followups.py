@@ -79,7 +79,7 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'memcal_search_wiki', 'memcal_list_days', 'memcal_list_month',
                 'mem0_search', 'hindsight_recall', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
         return 'memory_search'
-    if name in {'supermemory-search','supermemory_search'}:
+    if name in {'supermemory-search','supermemory_search','brv_query'}:
         return 'memory_search'
     if name in {'supermemory-profile','supermemory_profile','brv_status'}:
         return 'memory_detail'

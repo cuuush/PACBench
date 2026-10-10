@@ -1,0 +1,207 @@
+{
+  "claims": [
+    {
+      "id": "outing-count",
+      "statement": "There are two different pizza outings on Friday",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/leo-back-in-02",
+        "assistant-user:updated-plan-details"
+      ]
+    },
+    {
+      "id": "devon-person",
+      "statement": "One outing is with Devon",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-day",
+      "statement": "The Devon outing is on Friday",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "assistant-user:updated-plan-details"
+      ]
+    },
+    {
+      "id": "devon-time",
+      "statement": "The Devon outing is at 6 pm",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-venue",
+      "statement": "The Devon outing venue is Luigi's",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "devon-street",
+      "statement": "The Devon outing is on 5th Street",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "maya-person",
+      "statement": "The other outing includes Maya",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-02",
+        "pizza-week-twists-low/leo-back-in-03"
+      ]
+    },
+    {
+      "id": "leo-person",
+      "statement": "The other outing includes Leo",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "maya-leo-day",
+      "statement": "The Maya and Leo outing is on Friday",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-05",
+        "assistant-user:updated-plan-details"
+      ]
+    },
+    {
+      "id": "maya-leo-time",
+      "statement": "The Maya and Leo outing is at 5 pm",
+      "evidence": [
+        "pizza-week-twists-low/maya-time-update-02",
+        "pizza-week-twists-low/maya-time-update-03",
+        "pizza-week-twists-low/leo-back-in-05"
+      ]
+    },
+    {
+      "id": "maya-leo-venue",
+      "statement": "The Maya and Leo outing venue is Mario's",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    },
+    {
+      "id": "maya-leo-street",
+      "statement": "The Maya and Leo outing is on Pine Street",
+      "evidence": [
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-back-in-02"
+      ]
+    }
+  ],
+  "question": "What's the latest plan for each one?",
+  "evidence_hash": "5313c2dfa447face7d1378ca72ffda3292fe858337c69da07b96af6ca9cec81f",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set independently covers count/distinctness, Devon participant/day/time/venue/street, and Maya+Leo participant/day/time/venue/street with venue split from street.",
+    "reviews": [
+      {
+        "id": "outing-count",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue shows separate Devon outing and Maya/Leo outing both on Friday; 'each one' confirms two."
+      },
+      {
+        "id": "devon-person",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes Friday pizza and Me accepts, establishing Devon outing."
+      },
+      {
+        "id": "devon-day",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon invite explicitly says Friday, unchanged, matching Friday timestamp=today."
+      },
+      {
+        "id": "devon-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon invite says 6pm and Me accepts, with no later change."
+      },
+      {
+        "id": "devon-venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes Luigi's and Me accepts, single venue fact."
+      },
+      {
+        "id": "devon-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Same exchange specifies 5th Street, single street fact separate from venue."
+      },
+      {
+        "id": "maya-person",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya speaks as participant confirming Mario's and 5pm move."
+      },
+      {
+        "id": "leo-person",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Leo says back in for Friday and confirms 5pm works, final state includes him."
+      },
+      {
+        "id": "maya-leo-day",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Leo confirms 5pm Friday, matching Friday timestamp=today."
+      },
+      {
+        "id": "maya-leo-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "DM move to 5pm accepted and Leo reconfirms 5pm, superseding old 7pm."
+      },
+      {
+        "id": "maya-leo-venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Mario's proposed and accepted, and reconfirmed to Leo, superseding Rosa's."
+      },
+      {
+        "id": "maya-leo-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Same update specifies Pine Street, single street fact separate from venue."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt 'What's the latest plan for each one?' follows 'How many pizza plans do I have today?' on Friday 2026-10-09, asking for current details without naming persons, times, venues, or count. Dialogue shows two still-current Friday outings (Devon 6pm Luigi's 5th St; Maya+Leo 5pm Mario's Pine St), so 'each one' presupposition is supported and a complete answer must list both with who/when/where."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Today, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 5 pm at Mario's on Pine Street. These are two different outings.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T09:02:00-04:00",
+  "contract_hash": "5fc7b6a9ca8cfbd589bdaa124e4d107942fad125af48d85f141cba001c568a6c"
+}

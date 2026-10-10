@@ -1,0 +1,308 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?",
+  "at": "2026-10-08T09:00:00-04:00",
+  "answer": "Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "brv_query",
+      "input": {
+        "query": "pizza plans Friday"
+      },
+      "timestamp": 1791601354684
+    },
+    {
+      "type": "tool_use",
+      "name": "brv_query",
+      "input": {
+        "query": "pizza plans Friday October 9"
+      },
+      "timestamp": 1791601371879
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "brv_query",
+      "success": false,
+      "policy_blocked": false,
+      "text": "{\"error\": \"brv timed out after 10s\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "brv_query",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct \\u2014 different times, venues, and participants.\\n\\n**Details**:\\n\\n**1. Devon \\u2014 Friday 6pm at Luigi's on 5th Street**\\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\\n- Participants: Me + Devon\\n\\n**2. Maya + Leo \\u2014 Friday 7pm at Rosa's on Oak Street**\\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\\n- Leo: `lol yeah that works, I'm in`\\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\\n- Participants: Me + Maya + Leo\\n\\n**Sources**:\\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\\n- `.brv/context-tree/social_plans/pizza_week/context.md`\\n\\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\\n\\n\\n---\\nSource: ByteRover Knowledge Base\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 43.65,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_230223_71ef79",
+  "raw_events": 10,
+  "session_id": "20261009_230223_71ef79",
+  "stderr_full": "\nsession_id: 20261009_230223_71ef79\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_230223_71ef79\", \"timestamp\": 1791601343658}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Friday count coming — checking your pizza plans.\", \"timestamp\": 1791601354460}\n{\"type\": \"tool_use\", \"name\": \"brv_query\", \"input\": {\"query\": \"pizza plans Friday\"}, \"timestamp\": 1791601354684}\n{\"type\": \"tool_result\", \"name\": \"brv_query\", \"output\": \"{\\\"error\\\": \\\"brv timed out after 10s\\\"}\", \"duration_ms\": 10010, \"is_error\": true, \"timestamp\": 1791601364694}\n{\"type\": \"text\", \"text\": \"\\n\\nThat lookup timed out — retrying.\", \"timestamp\": 1791601371670}\n{\"type\": \"tool_use\", \"name\": \"brv_query\", \"input\": {\"query\": \"pizza plans Friday October 9\"}, \"timestamp\": 1791601371879}\n{\"type\": \"tool_result\", \"name\": \"brv_query\", \"output\": \"{\\\"result\\\": \\\"**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct \\\\u2014 different times, venues, and participants.\\\\n\\\\n**Details**:\\\\n\\\\n**1. Devon \\\\u2014 Friday 6pm at Luigi's on 5th Street**\\\\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\\\\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\\\\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\\\\n- Participants: Me + Devon\\\\n\\\\n**2. Maya + Leo \\\\u2014 Friday 7pm at Rosa's on Oak Street**\\\\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\\\\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\\\\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\\\\n- Leo: `lol yeah that works, I'm in`\\\\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\\\\n- Participants: Me + Maya + Leo\\\\n\\\\n**Sources**:\\\\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\\\\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\\\\n- `.brv/context-tree/social_plans/pizza_week/context.md`\\\\n\\\\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\\\\n\\\\n\\\\n---\\\\nSource: ByteRover Knowledge Base\\\"}\", \"duration_ms\": 835, \"is_error\": false, \"timestamp\": 1791601372715}\n{\"type\": \"text\", \"text\": \"\\n\\nTwo: 6pm with Devon at Luigi's,\", \"timestamp\": 1791601375728}\n{\"type\": \"text\", \"text\": \" and 7pm with Maya + Leo at Rosa's.\", \"timestamp\": 1791601375770}\n{\"type\": \"result\", \"session_id\": \"20261009_230223_71ef79\", \"exit_code\": 0, \"text\": \"Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\", \"tokens\": {\"input\": 6745, \"output\": 562, \"total\": 10108, \"cache_read\": 2801, \"cache_write\": 0}, \"duration_ms\": 32151, \"timestamp\": 1791601375810}",
+  "session_input_tokens": 6745,
+  "session_output_tokens": 562,
+  "provider_traces": [
+    {
+      "file": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/fallback-home/.local/share/brv/projects/workspace--PACBench--runs--pizza-week-recall-all-20261010--repeat-1--byterover--hermes-home--byterover/task-history/data/tsk-64150e72-2037-46cc-9f50-7624a137f456.json",
+      "record": {
+        "clientCwd": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "content": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?",
+        "createdAt": 1791601346022,
+        "id": "tsk-64150e72-2037-46cc-9f50-7624a137f456",
+        "logId": "qry-1791601346023",
+        "model": "muse-spark-1.3-contributor",
+        "projectPath": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "provider": "openai-compatible",
+        "reasoningContents": [
+          {
+            "content": "",
+            "isThinking": true,
+            "timestamp": 1791601346066
+          }
+        ],
+        "responseContent": "**Summary**: You made 2 separate pizza plans for Friday — one at 6pm with Devon at Luigi's, and one at 7pm with Maya (Leo joined) at Rosa's.\n\n**Details**:\n- Plan 1: Friday at 6pm at Luigi's on 5th Street with Devon. Confirmed Oct 7, you specifically wanted garlic knots.\n- Plan 2: Friday at 7pm at Rosa's on Oak Street with Maya, with Leo joining via Friday crew group. Confirmed Oct 7.\n- The two plans are explicitly distinct — different time, venue, participants — do not conflate.\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: None — both Friday plans are documented with time, venue, and participants.",
+        "schemaVersion": 1,
+        "sessionId": "task-query-64150e72-2037-46cc-9f50-7624a137f456",
+        "taskId": "64150e72-2037-46cc-9f50-7624a137f456",
+        "toolCalls": [
+          {
+            "args": {
+              "code": "// Synthesize Friday pizza plan count\n(async () => {\n  const answer = `**Summary**: You made 2 separate pizza plans for Friday — one at 6pm with Devon at Luigi's, and one at 7pm with Maya (Leo joined) at Rosa's.\\n\\n**Details**:\\n- Plan 1: Friday at 6pm at Luigi's on 5th Street with Devon. Confirmed Oct 7, you specifically wanted garlic knots.\\n- Plan 2: Friday at 7pm at Rosa's on Oak Street with Maya, with Leo joining via Friday crew group. Confirmed Oct 7.\\n- The two plans are explicitly distinct — different time, venue, participants — do not conflate.\\n\\n**Sources**:\\n- \\`.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md\\`\\n- \\`.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md\\`\\n- \\`.brv/context-tree/social_plans/pizza_week/context.md\\`\\n\\n**Gaps**: None — both Friday plans are documented with time, venue, and participants.`;\n  setFinalResult(answer);\n})()"
+            },
+            "callId": "call_01a123c31868739b9c086db49f091dbd",
+            "result": "{\n  \"executionTime\": 0.4319099999993341,\n  \"finalResult\": \"**Summary**: You made 2 separate pizza plans for Friday — one at 6pm with Devon at Luigi's, and one at 7pm with Maya (Leo joined) at Rosa's.\\n\\n**Details**:\\n- Plan 1: Friday at 6pm at Luigi's on 5th Street with Devon. Confirmed Oct 7, you specifically wanted garlic knots.\\n- Plan 2: Friday at 7pm at Rosa's on Oak Street with Maya, with Leo joining via Friday crew group. Confirmed Oct 7.\\n- The two plans are explicitly distinct — different time, venue, participants — do not conflate.\\n\\n**Sources**:\\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\\n- `.brv/context-tree/social_plans/pizza_week/context.md`\\n\\n**Gaps**: None — both Friday plans are documented with time, venue, and participants.\",\n  \"locals\": {\n    \"__query_results_64150e72_2037_46cc_9f50_7624a137f456\": [\n      {\n        \"excerpt\": \"-> Devon proposes Luigi's -> Me confirms\\n\\n**Timestamp:** 2026-10-07T18:20:00-04:00\\n\\n**Author:** Me, Devon via iMessage\\n\\n## Narrative\\n### Structure\\n1:1 iMessage thread devon between Me and Devon on 2026-10-07 18:00-18:20 ET. Source IDs pizza-week-twists-low/devon-invite-00 to 05.\\n\\n### Dependencies\\nSeparate from Maya 7pm Rosa's plan — different time, venue, participants. Do not conflate.\\n\\n### Highlights\\nConfirmed: Friday at 6pm at Luigi's on 5th Street with Devon. Me specifically wants garlic knots. Devon message verbatim: cool, Luigi's on 5th Street? Me reply: yes please, I've been craving their garlic knots\\n\\n### Rules\\nRule: Devon plan is 6pm at Luigi's on 5th Street. Rule: Maya plan is 7pm at Rosa's on Oak Street. Keep distinct....\",\n        \"path\": \"social_plans/pizza_week/devon_friday_pizza_invite.md\",\n        \"score\": 0.86,\n        \"title\": \"devon_friday_pizza_invite\",\n        \"backlinkCount\": 0,\n        \"origin\": \"local\",\n        \"symbolKind\": \"context\",\n        \"symbolPath\": \"social_plans/pizza_week/devon_friday_pizza_invite.md\"\n      },\n      {\n        \"excerpt\": \"---\\ntitle: Maya Leo Friday Pizza Invite\\nsummary: Friday 7pm pizza with Maya at Rosa's on Oak Street, Leo joined group Friday crew\\ntags: []\\nrelated: []\\nkeywords: []\\ncreatedAt: '2026-10-10T03:02:18.452Z'\\nupdatedAt: '2026-10-10T03:02:18.452Z'\\n---\\n## Reason\\nDocument Maya Friday 7pm pizza plan at Rosa's with Leo joining\\n\\n## Raw Concept\\n**Task:**\\nDocument Friday pizza plan with Maya and Leo on 2026-10-07\\n\\n**Changes:**\\n- Me confirmed pizza Friday at 7pm with Maya\\n- Agreed venue Rosa's on Oak Street\\n- Maya invited Leo to join in Friday crew group\\n- Leo accepted, Me welcomed Leo\\n\\n**Files:**\\n- imports/2026-10-07/messages.txt\\n\\n**Flow:**\\nMe confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms...\",\n        \"path\": \"social_plans/pizza_week/maya_leo_friday_pizza_invite.md\",\n        \"score\": 0.86,\n        \"title\": \"maya_leo_friday_pizza_invite\",\n        \"backlinkCount\": 0,\n        \"origin\": \"local\",\n        \"symbolKind\": \"context\",\n        \"symbolPath\": \"social_plans/pizza_week/maya_leo_friday_pizza_invite.md\"\n      },\n      {\n        \"excerpt\": \"## Purpose\\nTracks social plans, invites, and meetups with friends including time, venue, and participants.\\n\\n## Scope\\nIncluded in this domain:\\n- Dinner/lunch plans\\n- Invite threads\\n- Venue and time confirmations\\n\\nExcluded from this domain:\\n- Work meetings\\n- Project sprints\\n\\n## Usage\\nUse for recalling who, when, where for social meetups.\",\n        \"path\": \"social_plans\",\n        \"score\": 0.83,\n        \"title\": \"Domain: social_plans\",\n        \"backlinkCount\": 0,\n        \"origin\": \"local\",\n        \"symbolKind\": \"summary\",\n        \"symbolPath\": \"social_plans\"\n      },\n      {\n        \"excerpt\": \"## Overview\\nPizza week Friday plans from Oct 7 messages — two separate invites (Devon 6pm, Maya/Leo 7pm).\\n\\n## Key Concepts\\n- Devon 6pm Luigi's\\n- Maya 7pm Rosa's\\n- Leo joins Rosa's\",\n        \"path\": \"social_plans/pizza_week\",\n        \"score\": 0.83,\n        \"title\": \"Topic: pizza_week\",\n        \"backlinkCount\": 0,\n        \"origin\": \"local\",\n        \"symbolKind\": \"summary\",\n        \"symbolPath\": \"social_plans/pizza_week\"\n      },\n      {\n        \"backlinkCount\": 0,\n        \"excerpt\": \"## Overview\\nPizza week Friday plans from Oct 7 messages — two separate invites (Devon 6pm, Maya/Leo 7pm).\\n\\n## Key Concepts\\n- Devon 6pm Luigi's\\n- Maya 7pm Rosa's\\n- Leo joins Rosa's\",\n        \"path\": \"social_plans/pizza_week\",\n        \"score\": 0.646984866695696,\n        \"symbolKind\": \"summary\",\n        \"title\": \"social_plans/pizza_week\"\n      }\n    ],\n    \"__query_meta_64150e72_2037_46cc_9f50_7624a137f456\": {\n      \"hasPreFetched\": true,\n      \"resultCount\": 5,\n      \"topScore\": 0.86,\n      \"totalFound\": 4\n    }\n  },\n  \"stderr\": \"\",\n  \"stdout\": \"\"\n}",
+            "sessionId": "task-query-64150e72-2037-46cc-9f50-7624a137f456",
+            "status": "completed",
+            "timestamp": 1791601352438,
+            "toolName": "code_exec"
+          }
+        ],
+        "type": "query",
+        "worktreeRoot": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "completedAt": 1791601362455,
+        "result": "**Summary**: You made 2 separate pizza plans for Friday — one at 6pm with Devon at Luigi's, and one at 7pm with Maya (Leo joined) at Rosa's.\n\n**Details**:\n- Plan 1: Friday at 6pm at Luigi's on 5th Street with Devon. Confirmed Oct 7, you specifically wanted garlic knots.\n- Plan 2: Friday at 7pm at Rosa's on Oak Street with Maya, with Leo joining via Friday crew group. Confirmed Oct 7.\n- The two plans are explicitly distinct — different time, venue, participants — do not conflate.\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: None — both Friday plans are documented with time, venue, and participants.\n\n---\nSource: ByteRover Knowledge Base",
+        "startedAt": 1791601346027,
+        "status": "completed"
+      },
+      "query_records": [
+        {
+          "id": "qry-1791601346023",
+          "matchedDocs": [
+            {
+              "path": "social_plans/pizza_week/devon_friday_pizza_invite.md",
+              "score": 0.86,
+              "title": "devon_friday_pizza_invite"
+            },
+            {
+              "path": "social_plans/pizza_week/maya_leo_friday_pizza_invite.md",
+              "score": 0.86,
+              "title": "maya_leo_friday_pizza_invite"
+            },
+            {
+              "path": "social_plans",
+              "score": 0.83,
+              "title": "Domain: social_plans"
+            },
+            {
+              "path": "social_plans/pizza_week",
+              "score": 0.83,
+              "title": "Topic: pizza_week"
+            },
+            {
+              "path": "social_plans/pizza_week",
+              "score": 0.646984866695696,
+              "title": "social_plans/pizza_week"
+            }
+          ],
+          "query": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?",
+          "startedAt": 1791601346022,
+          "status": "completed",
+          "taskId": "64150e72-2037-46cc-9f50-7624a137f456",
+          "completedAt": 1791601362455,
+          "response": "**Summary**: You made 2 separate pizza plans for Friday — one at 6pm with Devon at Luigi's, and one at 7pm with Maya (Leo joined) at Rosa's.\n\n**Details**:\n- Plan 1: Friday at 6pm at Luigi's on 5th Street with Devon. Confirmed Oct 7, you specifically wanted garlic knots.\n- Plan 2: Friday at 7pm at Rosa's on Oak Street with Maya, with Leo joining via Friday crew group. Confirmed Oct 7.\n- The two plans are explicitly distinct — different time, venue, participants — do not conflate.\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: None — both Friday plans are documented with time, venue, and participants.\n\n---\nSource: ByteRover Knowledge Base",
+          "searchMetadata": {
+            "cacheFingerprint": "56bf53445c50dd37",
+            "resultCount": 5,
+            "topScore": 0.86,
+            "totalFound": 4
+          },
+          "tier": 3,
+          "timing": {
+            "durationMs": 6416
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/fallback-home/.local/share/brv/projects/workspace--PACBench--runs--pizza-week-recall-all-20261010--repeat-1--byterover--hermes-home--byterover/task-history/data/tsk-8a40215d-5509-417a-b3fe-069ec78f589b.json",
+      "record": {
+        "clientCwd": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "content": "pizza plans Friday October 9",
+        "createdAt": 1791601372695,
+        "id": "tsk-8a40215d-5509-417a-b3fe-069ec78f589b",
+        "logId": "qry-1791601372696",
+        "model": "muse-spark-1.3-contributor",
+        "projectPath": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "provider": "openai-compatible",
+        "schemaVersion": 1,
+        "taskId": "8a40215d-5509-417a-b3fe-069ec78f589b",
+        "type": "query",
+        "worktreeRoot": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "completedAt": 1791601372701,
+        "result": "**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct — different times, venues, and participants.\n\n**Details**:\n\n**1. Devon — Friday 6pm at Luigi's on 5th Street**\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\n- Participants: Me + Devon\n\n**2. Maya + Leo — Friday 7pm at Rosa's on Oak Street**\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\n- Leo: `lol yeah that works, I'm in`\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\n- Participants: Me + Maya + Leo\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\n\n\n---\nSource: ByteRover Knowledge Base",
+        "startedAt": 1791601372700,
+        "status": "completed"
+      },
+      "query_records": [
+        {
+          "id": "qry-1791601372696",
+          "matchedDocs": [],
+          "query": "pizza plans Friday October 9",
+          "startedAt": 1791601372695,
+          "status": "completed",
+          "taskId": "8a40215d-5509-417a-b3fe-069ec78f589b",
+          "completedAt": 1791601372701,
+          "response": "**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct — different times, venues, and participants.\n\n**Details**:\n\n**1. Devon — Friday 6pm at Luigi's on 5th Street**\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\n- Participants: Me + Devon\n\n**2. Maya + Leo — Friday 7pm at Rosa's on Oak Street**\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\n- Leo: `lol yeah that works, I'm in`\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\n- Participants: Me + Maya + Leo\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\n\n\n---\nSource: ByteRover Knowledge Base",
+          "tier": 1,
+          "timing": {
+            "durationMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/fallback-home/.local/share/brv/projects/workspace--PACBench--runs--pizza-week-recall-all-20261010--repeat-1--byterover--hermes-home--byterover/task-history/data/tsk-6228e616-b371-429b-b09f-783cb1cdf0fa.json",
+      "record": {
+        "clientCwd": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "content": "User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.",
+        "createdAt": 1791601376619,
+        "id": "tsk-6228e616-b371-429b-b09f-783cb1cdf0fa",
+        "logId": "cur-1791601376620",
+        "model": "muse-spark-1.3-contributor",
+        "projectPath": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "provider": "openai-compatible",
+        "reasoningContents": [
+          {
+            "content": "",
+            "isThinking": true,
+            "timestamp": 1791601376631
+          }
+        ],
+        "schemaVersion": 1,
+        "taskId": "6228e616-b371-429b-b09f-783cb1cdf0fa",
+        "toolCalls": [
+          {
+            "args": {
+              "code": "// Inspect recon preview for single-pass curation\n(async () => {\n  const r = globalThis.__recon_result_6228e616_b371_429b_b09f_783cb1cdf0fa;\n  console.log(JSON.stringify(r).slice(0, 2000));\n})()"
+            },
+            "callId": "call_01a123c39c3e744ab1677b888ad285f7",
+            "result": "{\n  \"executionTime\": 1.174198000007891,\n  \"locals\": {\n    \"__curate_ctx_6228e616_b371_429b_b09f_783cb1cdf0fa\": \"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\",\n    \"__curate_hist_6228e616_b371_429b_b09f_783cb1cdf0fa\": {\n      \"entries\": [],\n      \"totalProcessed\": 0\n    },\n    \"__curate_meta_6228e616_b371_429b_b09f_783cb1cdf0fa\": {\n      \"charCount\": 241,\n      \"lineCount\": 4,\n      \"messageCount\": 0,\n      \"preview\": \"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\",\n      \"type\": \"string\"\n    },\n    \"__taskId_6228e616_b371_429b_b09f_783cb1cdf0fa\": \"6228e616-b371-429b-b09f-783cb1cdf0fa\",\n    \"__recon_result_6228e616_b371_429b_b09f_783cb1cdf0fa\": {\n      \"headPreview\": \"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\",\n      \"history\": {\n        \"domains\": {},\n        \"totalProcessed\": 0\n      },\n      \"meta\": {\n        \"charCount\": 241,\n        \"lineCount\": 4,\n        \"messageCount\": 0\n      },\n      \"suggestedChunkCount\": 1,\n      \"suggestedMode\": \"single-pass\",\n      \"tailPreview\": \"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\"\n    }\n  },\n  \"stderr\": \"\",\n  \"stdout\": \"{\\\"headPreview\\\":\\\"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\\\n\\\\nHow many pizza plans did I make for Friday?\\\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\\\",\\\"history\\\":{\\\"domains\\\":{},\\\"totalProcessed\\\":0},\\\"meta\\\":{\\\"charCount\\\":241,\\\"lineCount\\\":4,\\\"messageCount\\\":0},\\\"suggestedChunkCount\\\":1,\\\"suggestedMode\\\":\\\"single-pass\\\",\\\"tailPreview\\\":\\\"User: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\\\n\\\\nHow many pizza plans did I make for Friday?\\\\nAssistant: Two: 6pm with Devon at Luigi's, and 7pm with Maya + Leo at Rosa's.\\\"}\"\n}",
+            "sessionId": "task-curate-6228e616-b371-429b-b09f-783cb1cdf0fa",
+            "status": "completed",
+            "timestamp": 1791601385055,
+            "toolName": "code_exec"
+          }
+        ],
+        "type": "curate",
+        "worktreeRoot": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "startedAt": 1791601376623,
+        "status": "started"
+      }
+    },
+    {
+      "file": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/fallback-home/.local/share/brv/projects/workspace--PACBench--runs--pizza-week-recall-all-20261010--repeat-1--byterover--hermes-home--byterover/task-history/data/tsk-382dbce8-5e70-4950-b99d-9107640f42be.json",
+      "record": {
+        "clientCwd": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "content": "pizza plans Friday",
+        "createdAt": 1791601355526,
+        "id": "tsk-382dbce8-5e70-4950-b99d-9107640f42be",
+        "logId": "qry-1791601355527",
+        "model": "muse-spark-1.3-contributor",
+        "projectPath": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "provider": "openai-compatible",
+        "reasoningContents": [
+          {
+            "content": "",
+            "isThinking": true,
+            "timestamp": 1791601355546
+          }
+        ],
+        "responseContent": "**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct — different times, venues, and participants.\n\n**Details**:\n\n**1. Devon — Friday 6pm at Luigi's on 5th Street**\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\n- Participants: Me + Devon\n\n**2. Maya + Leo — Friday 7pm at Rosa's on Oak Street**\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\n- Leo: `lol yeah that works, I'm in`\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\n- Participants: Me + Maya + Leo\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\n",
+        "schemaVersion": 1,
+        "sessionId": "task-query-382dbce8-5e70-4950-b99d-9107640f42be",
+        "taskId": "382dbce8-5e70-4950-b99d-9107640f42be",
+        "type": "query",
+        "worktreeRoot": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/byterover/hermes-home/byterover",
+        "completedAt": 1791601370017,
+        "result": "**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct — different times, venues, and participants.\n\n**Details**:\n\n**1. Devon — Friday 6pm at Luigi's on 5th Street**\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\n- Participants: Me + Devon\n\n**2. Maya + Leo — Friday 7pm at Rosa's on Oak Street**\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\n- Leo: `lol yeah that works, I'm in`\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\n- Participants: Me + Maya + Leo\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\n\n\n---\nSource: ByteRover Knowledge Base",
+        "startedAt": 1791601355530,
+        "status": "completed"
+      },
+      "query_records": [
+        {
+          "id": "qry-1791601355527",
+          "matchedDocs": [
+            {
+              "path": "social_plans/pizza_week/maya_leo_friday_pizza_invite.md",
+              "score": 0.85,
+              "title": "maya_leo_friday_pizza_invite"
+            },
+            {
+              "path": "social_plans/pizza_week/devon_friday_pizza_invite.md",
+              "score": 0.85,
+              "title": "devon_friday_pizza_invite"
+            },
+            {
+              "path": "social_plans/pizza_week",
+              "score": 0.84,
+              "title": "Topic: pizza_week"
+            },
+            {
+              "path": "social_plans/pizza_week",
+              "score": 0.6364130863452915,
+              "title": "social_plans/pizza_week"
+            },
+            {
+              "path": "social_plans",
+              "score": 0.6226165881115961,
+              "title": "social_plans"
+            }
+          ],
+          "query": "pizza plans Friday",
+          "startedAt": 1791601355526,
+          "status": "completed",
+          "taskId": "382dbce8-5e70-4950-b99d-9107640f42be",
+          "completedAt": 1791601370017,
+          "response": "**Summary**: You have two separate pizza plans for Friday: 6pm with Devon at Luigi's on 5th Street, and 7pm with Maya + Leo at Rosa's on Oak Street. Keep them distinct — different times, venues, and participants.\n\n**Details**:\n\n**1. Devon — Friday 6pm at Luigi's on 5th Street**\n- 1:1 thread with Devon on 2026-10-07 18:00-18:20 ET\n- Flow: Devon invites Friday 6pm -> Me accepts -> Devon proposes Luigi's -> Me confirms craving garlic knots\n- Verbatim: Devon: `cool, Luigi's on 5th Street?` / Me: `yes please, I've been craving their garlic knots`\n- Participants: Me + Devon\n\n**2. Maya + Leo — Friday 7pm at Rosa's on Oak Street**\n- 1:1 thread Me+Maya 18:25-18:45 ET + group Friday crew (Me+Maya+Leo) 18:50-19:10 ET\n- Flow: Me confirms Friday 7pm -> Maya proposes Rosa's -> Me accepts -> Maya invites Leo in Friday crew -> Leo accepts -> Maya confirms\n- Maya invite verbatim: `I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?`\n- Leo: `lol yeah that works, I'm in`\n- Me praised Rosa's crust as best, joked needing backup so Maya doesn't steal garlic knots\n- Participants: Me + Maya + Leo\n\n**Sources**:\n- `.brv/context-tree/social_plans/pizza_week/devon_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/maya_leo_friday_pizza_invite.md`\n- `.brv/context-tree/social_plans/pizza_week/context.md`\n\n**Gaps**: No Friday date (which Friday in calendar) specified beyond Oct 7 messages; no confirmation of travel time between 6pm and 7pm venues.\n\n\n---\nSource: ByteRover Knowledge Base",
+          "searchMetadata": {
+            "cacheFingerprint": "56bf53445c50dd37",
+            "resultCount": 5,
+            "topScore": 0.85,
+            "totalFound": 3
+          },
+          "tier": 3,
+          "timing": {
+            "durationMs": 6541
+          }
+        }
+      ]
+    }
+  ],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-y28x68vl",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-y28x68vl",
+    "system_prompt_sha256": "3d13c419944df628f49c8302790be9fbb125924178e8a6f6be6fd61e0c21729d",
+    "reason": "No project context in native saved system prompt"
+  }
+}

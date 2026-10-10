@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?",
+  "at": "2026-10-08T09:02:00-04:00",
+  "answer": "1. Devon — Luigi's on 5th Street — Friday 6pm\n2. Maya + Leo — Rosa's on Oak Street — Friday 7pm",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 12.05,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261009_224816_bead4b \"Count Friday pizza plans\" (1 user message, 6 total messages)\n\nsession_id: 20261009_224816_bead4b",
+  "raw_events": 6,
+  "session_id": "20261009_224816_bead4b",
+  "stderr_full": "↻ Resumed session 20261009_224816_bead4b \"Count Friday pizza plans\" (1 user message, 6 total messages)\n\nsession_id: 20261009_224816_bead4b\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_224816_bead4b\", \"timestamp\": 1791600523049}\n{\"type\": \"text\", \"text\": \"1\", \"timestamp\": 1791600533261}\n{\"type\": \"text\", \"text\": \". Devon — Luigi's on 5th Street —\", \"timestamp\": 1791600533297}\n{\"type\": \"text\", \"text\": \" Friday 6pm\\n2. Maya +\", \"timestamp\": 1791600533338}\n{\"type\": \"text\", \"text\": \" Leo — Rosa's on Oak Street — Friday 7pm\", \"timestamp\": 1791600533377}\n{\"type\": \"result\", \"session_id\": \"20261009_224816_bead4b\", \"exit_code\": 0, \"text\": \"1. Devon — Luigi's on 5th Street — Friday 6pm\\n2. Maya + Leo — Rosa's on Oak Street — Friday 7pm\", \"tokens\": {\"input\": 245, \"output\": 545, \"total\": 8583, \"cache_read\": 7793, \"cache_write\": 0}, \"duration_ms\": 10619, \"timestamp\": 1791600533668}",
+  "session_input_tokens": 245,
+  "session_output_tokens": 545,
+  "provider_traces": [],
+  "prefetch_context": "## OpenViking Context\n- [memory]\n  <uri>viking://user/default/memories/.abstract.md</uri>\n  User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-67ss83jm",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-67ss83jm",
+    "system_prompt_sha256": "d4d6347469d3cb844edfe953c641c3e22cdfd5c762f945111a999da7e8366973",
+    "reason": "No project context in native saved system prompt"
+  }
+}

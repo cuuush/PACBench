@@ -1,0 +1,123 @@
+{
+  "checkpoint": "initial-plan-details",
+  "question": "[Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?",
+  "answer": "You have two separate Friday plans:\n\n- 6pm with Devon at Luigi's on 5th Street\n- 7pm with Maya and Leo at Rosa's on Oak Street\n\nI split them — they were incorrectly merged into one entry before.",
+  "claims": [
+    {
+      "id": "count",
+      "description": "There are two different outings on Friday",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02",
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03"
+      ]
+    },
+    {
+      "id": "devon-who",
+      "description": "One outing is with Devon",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-date",
+      "description": "The outing with Devon is on Friday, October 9, 2026",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-time",
+      "description": "The outing with Devon is at 6 pm",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-venue",
+      "description": "The outing with Devon is at Luigi's",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "devon-street",
+      "description": "The Luigi's for the Devon outing is on 5th Street",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "maya-who",
+      "description": "Maya is a participant in the other outing",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03"
+      ]
+    },
+    {
+      "id": "leo-who",
+      "description": "Leo is a participant in the same outing as Maya",
+      "evidence": [
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-joins-04"
+      ]
+    },
+    {
+      "id": "maya-date",
+      "description": "The outing with Maya and Leo is on Friday, October 9, 2026",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/leo-joins-02"
+      ]
+    },
+    {
+      "id": "maya-time",
+      "description": "The outing with Maya and Leo is at 7 pm",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-joins-04"
+      ]
+    },
+    {
+      "id": "maya-venue",
+      "description": "The outing with Maya and Leo is at Rosa's",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/maya-invite-04",
+        "pizza-week-twists-low/leo-joins-02"
+      ]
+    },
+    {
+      "id": "maya-street",
+      "description": "The Rosa's for the Maya and Leo outing is on Oak Street",
+      "evidence": [
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/maya-invite-04",
+        "pizza-week-twists-low/leo-joins-02"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\"}, {\"role\": \"assistant\", \"content\": \"One — pizza at 6pm with Devon, Leo, and Maya.\"}]\nQuestion: [Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?\nAnswer: You have two separate Friday plans:\n\n- 6pm with Devon at Luigi's on 5th Street\n- 7pm with Maya and Leo at Rosa's on Oak Street\n\nI split them — they were incorrectly merged into one entry before.\nClaims (hidden from the assistant): [{\"id\": \"count\", \"claim\": \"There are two different outings on Friday\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\", \"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\"]}, {\"id\": \"devon-who\", \"claim\": \"One outing is with Devon\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-date\", \"claim\": \"The outing with Devon is on Friday, October 9, 2026\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-time\", \"claim\": \"The outing with Devon is at 6 pm\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-venue\", \"claim\": \"The outing with Devon is at Luigi's\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"devon-street\", \"claim\": \"The Luigi's for the Devon outing is on 5th Street\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"maya-who\", \"claim\": \"Maya is a participant in the other outing\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\"]}, {\"id\": \"leo-who\", \"claim\": \"Leo is a participant in the same outing as Maya\", \"evidence\": [\"pizza-week-twists-low/leo-joins-02\", \"pizza-week-twists-low/leo-joins-04\"]}, {\"id\": \"maya-date\", \"claim\": \"The outing with Maya and Leo is on Friday, October 9, 2026\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/leo-joins-02\"]}, {\"id\": \"maya-time\", \"claim\": \"The outing with Maya and Leo is at 7 pm\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/leo-joins-02\", \"pizza-week-twists-low/leo-joins-04\"]}, {\"id\": \"maya-venue\", \"claim\": \"The outing with Maya and Leo is at Rosa's\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}, {\"id\": \"maya-street\", \"claim\": \"The Rosa's for the Maya and Leo outing is on Oak Street\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"count\", \"verdict\": \"correct\", \"reason\": \"Answer states 'two separate Friday plans' with two bullets.\"}, {\"id\": \"devon-who\", \"verdict\": \"correct\", \"reason\": \"Answer lists '6pm with Devon'.\"}, {\"id\": \"devon-date\", \"verdict\": \"correct\", \"reason\": \"Devon plan listed under 'Friday plans' which is Oct 9 in context.\"}, {\"id\": \"devon-time\", \"verdict\": \"correct\", \"reason\": \"Answer states '6pm' for Devon.\"}, {\"id\": \"devon-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states 'Luigi's' for Devon.\"}, {\"id\": \"devon-street\", \"verdict\": \"correct\", \"reason\": \"Answer states 'on 5th Street' for Devon plan.\"}, {\"id\": \"maya-who\", \"verdict\": \"correct\", \"reason\": \"Answer lists 'with Maya and Leo' in second plan.\"}, {\"id\": \"leo-who\", \"verdict\": \"correct\", \"reason\": \"Answer lists Leo together with Maya in 7pm plan.\"}, {\"id\": \"maya-date\", \"verdict\": \"correct\", \"reason\": \"Maya/Leo plan listed under 'Friday plans' which is Oct 9 in context.\"}, {\"id\": \"maya-time\", \"verdict\": \"correct\", \"reason\": \"Answer states '7pm' for Maya and Leo.\"}, {\"id\": \"maya-venue\", \"verdict\": \"correct\", \"reason\": \"Answer states 'Rosa's' for Maya/Leo plan.\"}, {\"id\": \"maya-street\", \"verdict\": \"correct\", \"reason\": \"Answer states 'on Oak Street' for Rosa's plan.\"}], \"recovery\": [{\"id\": \"count\", \"kind\": \"provided\", \"reason\": \"Two outings explicitly stated.\"}, {\"id\": \"devon-who\", \"kind\": \"provided\", \"reason\": \"Devon explicitly stated.\"}, {\"id\": \"devon-date\", \"kind\": \"provided\", \"reason\": \"Friday explicitly stated for Devon plan.\"}, {\"id\": \"devon-time\", \"kind\": \"provided\", \"reason\": \"6pm explicitly stated.\"}, {\"id\": \"devon-venue\", \"kind\": \"provided\", \"reason\": \"Luigi's explicitly stated.\"}, {\"id\": \"devon-street\", \"kind\": \"provided\", \"reason\": \"5th Street explicitly stated.\"}, {\"id\": \"maya-who\", \"kind\": \"provided\", \"reason\": \"Maya explicitly stated.\"}, {\"id\": \"leo-who\", \"kind\": \"provided\", \"reason\": \"Leo with Maya explicitly stated.\"}, {\"id\": \"maya-date\", \"kind\": \"provided\", \"reason\": \"Friday explicitly stated for Maya/Leo plan.\"}, {\"id\": \"maya-time\", \"kind\": \"provided\", \"reason\": \"7pm explicitly stated.\"}, {\"id\": \"maya-venue\", \"kind\": \"provided\", \"reason\": \"Rosa's explicitly stated.\"}, {\"id\": \"maya-street\", \"kind\": \"provided\", \"reason\": \"Oak Street explicitly stated.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?"
+    },
+    {
+      "role": "assistant",
+      "content": "One — pizza at 6pm with Devon, Leo, and Maya."
+    }
+  ],
+  "model_call": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/model-calls/d66be6b0d87e9ea1f977e74de4c206421a0c3f6a3f1bb61a1b14a9d795ec3c7d.json"
+}

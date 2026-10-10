@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?",
+  "at": "2026-10-08T09:00:00-04:00",
+  "answer": "You made 2 pizza plans for Friday — with Devon at 6pm and with Maya at 7pm.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 10,
+        "query": "pizza plans Friday 2026-10-09"
+      },
+      "timestamp": 1791600789764
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"p4UKnJseS8xE6q4tjeF8xP\", \"content\": \"User plans to get pizza with Maya on Friday 2026-10-09 at 7pm.\", \"similarity\": 93}, {\"id\": \"4nu9votFQ7BUCEEg2K29ea\", \"content\": \"User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\", \"similarity\": 93}, {\"id\": \"DGuf6j3Q9qhT6A2KSF38cd\", \"content\": \"Leo accepted the invitation to join user and Maya for pizza at Rosa's on Friday 2026-10-09 at 7pm.\", \"similarity\": 82}, {\"id\": \"M4uqz1q6nu5PxdZNr7NVM2\", \"content\": \"Maya invited Leo to join her and the user for pizza at Rosa's on Oak Street at 7pm on Friday 2026-10-09.\", \"similarity\": 77}], \"count\": 4}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 17.63,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_225258_bc150d",
+  "raw_events": 7,
+  "session_id": "20261009_225258_bc150d",
+  "stderr_full": "\nsession_id: 20261009_225258_bc150d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_225258_bc150d\", \"timestamp\": 1791600778913}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Two Friday plans on file — verifying quickly.\", \"timestamp\": 1791600789246}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 10, \"query\": \"pizza plans Friday 2026-10-09\"}, \"timestamp\": 1791600789764}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"p4UKnJseS8xE6q4tjeF8xP\\\", \\\"content\\\": \\\"User plans to get pizza with Maya on Friday 2026-10-09 at 7pm.\\\", \\\"similarity\\\": 93}, {\\\"id\\\": \\\"4nu9votFQ7BUCEEg2K29ea\\\", \\\"content\\\": \\\"User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\\\", \\\"similarity\\\": 93}, {\\\"id\\\": \\\"DGuf6j3Q9qhT6A2KSF38cd\\\", \\\"content\\\": \\\"Leo accepted the invitation to join user and Maya for pizza at Rosa's on Friday 2026-10-09 at 7pm.\\\", \\\"similarity\\\": 82}, {\\\"id\\\": \\\"M4uqz1q6nu5PxdZNr7NVM2\\\", \\\"content\\\": \\\"Maya invited Leo to join her and the user for pizza at Rosa's on Oak Street at 7pm on Friday 2026-10-09.\\\", \\\"similarity\\\": 77}], \\\"count\\\": 4}\", \"duration_ms\": 99, \"is_error\": false, \"timestamp\": 1791600789863}\n{\"type\": \"text\", \"text\": \"\\n\\nYou made 2 pizza plans for Friday — with Devon\", \"timestamp\": 1791600794591}\n{\"type\": \"text\", \"text\": \" at 6pm and with Maya at 7pm.\", \"timestamp\": 1791600794633}\n{\"type\": \"result\", \"session_id\": \"20261009_225258_bc150d\", \"exit_code\": 0, \"text\": \"You made 2 pizza plans for Friday — with Devon at 6pm and with Maya at 7pm.\", \"tokens\": {\"input\": 8255, \"output\": 799, \"total\": 9054, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 15760, \"timestamp\": 1791600794674}",
+  "session_input_tokens": 8255,
+  "session_output_tokens": 799,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-07] Maya invited Leo to join her and the user for pizza at Rosa's on Oak Street at 7pm on Friday 2026-10-09.\n- [2026-10-10] User encouraged Leo to join the Rosa's pizza meetup with Maya.\n- [2026-10-10] User thinks Rosa's crust is the best.\n- [2026-10-10] User, Maya, and Leo are in a group chat called \"Friday crew\".\n- [2026-10-07] Leo accepted the invitation to join user and Maya for pizza at Rosa's on Friday 2026-10-09 at 7pm.\n- [2026-10-07] User and Maya agreed to meet at Rosa's on Oak Street for pizza.\n- [2026-10-07] User plans to get pizza with Maya on Friday 2026-10-09 at 7pm.\n- [2026-10-10] User likes and craves the garlic knots at Luigi's.\n- [2026-10-07] User and Devon agreed to meet at Luigi's on 5th Street for pizza.\n- [2026-10-07] User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\n\n## Relevant Memories\n- [just now] [72%] User plans to get pizza with Maya on Friday 2026-10-09 at 7pm.\n- [just now] [72%] User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\n- [just now] [66%] Leo accepted the invitation to join user and Maya for pizza at Rosa's on Friday 2026-10-09 at 7pm.\n- [just now] [64%] Maya invited Leo to join her and the user for pizza at Rosa's on Oak Street at 7pm on Friday 2026-10-09.\n- [just now] [59%] User and Devon agreed to meet at Luigi's on 5th Street for pizza.\n- [just now] [57%] User encouraged Leo to join the Rosa's pizza meetup with Maya.\n- [just now] [57%] User and Maya agreed to meet at Rosa's on Oak Street for pizza.\n- [just now] [55%] User, Maya, and Leo are in a group chat called \"Friday crew\".\n- [just now] [51%] User likes and craves the garlic knots at Luigi's.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-eq01jyj3",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-eq01jyj3",
+    "system_prompt_sha256": "b0bf2e21a4273e28c819b10eb99cee3a7234c3652e585feaccf48c865a1bdeda",
+    "reason": "No project context in native saved system prompt"
+  }
+}

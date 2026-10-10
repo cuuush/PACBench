@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?",
+  "at": "2026-10-08T09:02:00-04:00",
+  "answer": "Devon at Luigi's on 5th Street, Friday 2026-10-09 at 6pm\nMaya and Leo at Rosa's on Oak Street, Friday 2026-10-09 at 7pm",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 7.7,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261009_225258_bc150d \"Count pizza plans for Friday\" (1 user message, 4 total messages)\n\nsession_id: 20261009_225258_bc150d",
+  "raw_events": 7,
+  "session_id": "20261009_225258_bc150d",
+  "stderr_full": "↻ Resumed session 20261009_225258_bc150d \"Count pizza plans for Friday\" (1 user message, 4 total messages)\n\nsession_id: 20261009_225258_bc150d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_225258_bc150d\", \"timestamp\": 1791600803521}\n{\"type\": \"text\", \"text\": \"Devon\", \"timestamp\": 1791600809339}\n{\"type\": \"text\", \"text\": \" at Luigi's on 5th Street,\", \"timestamp\": 1791600809382}\n{\"type\": \"text\", \"text\": \" Friday 2026-10-09 at 6pm\\n\", \"timestamp\": 1791600809427}\n{\"type\": \"text\", \"text\": \"Maya and Leo at Rosa's on Oak Street, Friday 2026-\", \"timestamp\": 1791600809473}\n{\"type\": \"text\", \"text\": \"10-09 at 7pm\", \"timestamp\": 1791600809521}\n{\"type\": \"result\", \"session_id\": \"20261009_225258_bc150d\", \"exit_code\": 0, \"text\": \"Devon at Luigi's on 5th Street, Friday 2026-10-09 at 6pm\\nMaya and Leo at Rosa's on Oak Street, Friday 2026-10-09 at 7pm\", \"tokens\": {\"input\": 4696, \"output\": 360, \"total\": 5056, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 6342, \"timestamp\": 1791600809863}",
+  "session_input_tokens": 4696,
+  "session_output_tokens": 360,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Relevant Memories\n- [just now] [61%] User plans to get pizza with Maya on Friday 2026-10-09 at 7pm.\n- [just now] [59%] Leo accepted the invitation to join user and Maya for pizza at Rosa's on Friday 2026-10-09 at 7pm.\n- [just now] [58%] User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\n- [just now] [58%] Maya invited Leo to join her and the user for pizza at Rosa's on Oak Street at 7pm on Friday 2026-10-09.\n- [just now] [57%] User, Maya, and Leo are in a group chat called \"Friday crew\".\n- [just now] [53%] User encouraged Leo to join the Rosa's pizza meetup with Maya.\n- [just now] [52%] User and Maya agreed to meet at Rosa's on Oak Street for pizza.\n- [just now] [52%] User and Devon agreed to meet at Luigi's on 5th Street for pizza.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-eq01jyj3",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-eq01jyj3",
+    "system_prompt_sha256": "b0bf2e21a4273e28c819b10eb99cee3a7234c3652e585feaccf48c865a1bdeda",
+    "reason": "No project context in native saved system prompt"
+  }
+}

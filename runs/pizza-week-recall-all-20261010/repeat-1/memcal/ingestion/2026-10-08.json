@@ -1,0 +1,191 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "memcal",
+  "at": "2026-10-08T20:50:00-04:00",
+  "processing_at": "2026-10-09T03:00:00-04:00",
+  "document_sha256": "c8a90138f8464c65421a78ccedbd039bb8acc868ed0d9302b74e671c649a915b",
+  "source_ids": [
+    "pizza-week-twists-low/maya-time-update-00",
+    "pizza-week-twists-low/maya-time-update-01",
+    "pizza-week-twists-low/maya-time-update-02",
+    "pizza-week-twists-low/maya-time-update-03",
+    "pizza-week-twists-low/maya-time-update-04",
+    "pizza-week-twists-low/group-venue-update-00",
+    "pizza-week-twists-low/group-venue-update-01",
+    "pizza-week-twists-low/group-venue-update-02",
+    "pizza-week-twists-low/group-venue-update-03",
+    "pizza-week-twists-low/group-venue-update-04",
+    "pizza-week-twists-low/group-venue-update-05",
+    "pizza-week-twists-low/leo-drops-out-00",
+    "pizza-week-twists-low/leo-drops-out-01",
+    "pizza-week-twists-low/leo-drops-out-02",
+    "pizza-week-twists-low/leo-drops-out-03",
+    "pizza-week-twists-low/leo-drops-out-04",
+    "pizza-week-twists-low/leo-drops-out-05",
+    "pizza-week-twists-low/leo-back-in-00",
+    "pizza-week-twists-low/leo-back-in-01",
+    "pizza-week-twists-low/leo-back-in-02",
+    "pizza-week-twists-low/leo-back-in-03",
+    "pizza-week-twists-low/leo-back-in-04",
+    "pizza-week-twists-low/leo-back-in-05",
+    "pizza-week-twists-low/leo-back-in-06"
+  ],
+  "delivery": "native-imessage",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"native iMessage reader + native nightly dream\", \"contacts\": {\"linked\": 3, \"report\": \"linked 3 handles from 1 source(s)\"}, \"ingest\": {\"channel\": \"imessage\", \"read\": 24, \"archived\": 24, \"passed\": 24, \"error\": null, \"notes\": [], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null, \"last_rowid\": 42, \"floor\": \"2026-10-07T19:10:00-04:00\"}, \"bundles\": [{\"run_id\": 2, \"entity\": \"person:Maya\", \"bundle_id\": \"aff481\", \"label\": \"Maya\", \"kind\": \"person\", \"lines\": 5, \"state\": \"reading\", \"updated_at\": \"2026-10-09T03:00:00-04:00\"}, {\"run_id\": 2, \"entity\": \"person:me\", \"bundle_id\": \"a2dc4e\", \"label\": \"me\", \"kind\": \"person\", \"lines\": 2, \"state\": \"reading\", \"updated_at\": \"2026-10-09T03:00:00-04:00\"}, {\"run_id\": 2, \"entity\": \"thread:imessage:Friday crew\", \"bundle_id\": \"84c3ba\", \"label\": \"Friday crew\", \"kind\": \"thread\", \"lines\": 19, \"state\": \"reading\", \"updated_at\": \"2026-10-09T03:00:00-04:00\"}], \"model_call_record\": \"/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/memcal/ingestion-model-calls/2026-10-08.json\", \"processing\": {\"run_id\": 2, \"errors\": [], \"report\": \"dream run #2 — 3 bundles, 26 items, 1 writes\\n  updated   2026-10-09 pizza [pizza@2026-10-09]\\n  merged: merged 2 mentions of 'pizza' (person:Maya, thread:imessage:Friday crew) — SOURCES 30, 41 and 43 in the Friday-crew thread settled the date as Friday 2026-10-09 because the arrangers stated Friday directly in their own plan, outweighing the vague tomorrow in SOURCE 23.\\n  note: asked again about 1 bundle(s) the gate or event graph read as plans and the model said nothing about (me)\\n  usage: 4 calls · 11271 in (0 cached) · 12256 out · cost not reported\"}, \"readiness\": \"Native dream completion without errors\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native iMessage reader + native nightly dream",
+    "contacts": {
+      "linked": 3,
+      "report": "linked 3 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 24,
+      "archived": 24,
+      "passed": 24,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 42,
+      "floor": "2026-10-07T19:10:00-04:00"
+    },
+    "bundles": [
+      {
+        "run_id": 2,
+        "entity": "person:Maya",
+        "bundle_id": "aff481",
+        "label": "Maya",
+        "kind": "person",
+        "lines": 5,
+        "state": "reading",
+        "updated_at": "2026-10-09T03:00:00-04:00"
+      },
+      {
+        "run_id": 2,
+        "entity": "person:me",
+        "bundle_id": "a2dc4e",
+        "label": "me",
+        "kind": "person",
+        "lines": 2,
+        "state": "reading",
+        "updated_at": "2026-10-09T03:00:00-04:00"
+      },
+      {
+        "run_id": 2,
+        "entity": "thread:imessage:Friday crew",
+        "bundle_id": "84c3ba",
+        "label": "Friday crew",
+        "kind": "thread",
+        "lines": 19,
+        "state": "reading",
+        "updated_at": "2026-10-09T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/runs/pizza-week-recall-all-20261010/repeat-1/memcal/ingestion-model-calls/2026-10-08.json",
+    "processing": {
+      "run_id": 2,
+      "errors": [],
+      "report": "dream run #2 — 3 bundles, 26 items, 1 writes\n  updated   2026-10-09 pizza [pizza@2026-10-09]\n  merged: merged 2 mentions of 'pizza' (person:Maya, thread:imessage:Friday crew) — SOURCES 30, 41 and 43 in the Friday-crew thread settled the date as Friday 2026-10-09 because the arrangers stated Friday directly in their own plan, outweighing the vague tomorrow in SOURCE 23.\n  note: asked again about 1 bundle(s) the gate or event graph read as plans and the model said nothing about (me)\n  usage: 4 calls · 11271 in (0 cached) · 12256 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "latency_s": 128.62,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-10T02:37:49.211883+00:00",
+    "finished": "2026-10-10T02:39:57.832630+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 4,
+        "input_tokens": 11271,
+        "output_tokens": 12256,
+        "accounted_upper_bound_usd": 0.0035783,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "0b1455ca85a34f50a65dc9509d539ce5",
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T02:37:49.409698+00:00",
+        "finished": "2026-10-10T02:38:56.066827+00:00",
+        "state": "settled",
+        "input_tokens": 5273,
+        "output_tokens": 6864,
+        "accounted": 1900100,
+        "reserved": 108211600,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0019001
+      },
+      {
+        "id": "49f4518257204f4f9c25a02549d10e4b",
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T02:38:56.078501+00:00",
+        "finished": "2026-10-10T02:39:03.490737+00:00",
+        "state": "settled",
+        "input_tokens": 3887,
+        "output_tokens": 522,
+        "accounted": 493100,
+        "reserved": 108088400,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0004931
+      },
+      {
+        "id": "cb5f183c20274a019098f4fb2b8dccbe",
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T02:39:03.499521+00:00",
+        "finished": "2026-10-10T02:39:42.546080+00:00",
+        "state": "settled",
+        "input_tokens": 1438,
+        "output_tokens": 3792,
+        "accounted": 902200,
+        "reserved": 108134400,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0009022
+      },
+      {
+        "id": "2cbd4b11311d401caf93bfa72fafe0e3",
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T02:39:42.569503+00:00",
+        "finished": "2026-10-10T02:39:57.765335+00:00",
+        "state": "settled",
+        "input_tokens": 673,
+        "output_tokens": 1078,
+        "accounted": 282900,
+        "reserved": 108099000,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0002829
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

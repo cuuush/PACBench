@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?",
+  "at": "2026-10-09T09:00:00-04:00",
+  "answer": "You have 2 pizza plans today.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "pizza plans today October 9 2026"
+      },
+      "timestamp": 1791601229033
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\n2. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\n3. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n4. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\n5. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n6. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\n7. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\n8. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 8.86,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_230025_a85843",
+  "raw_events": 6,
+  "session_id": "20261009_230025_a85843",
+  "stderr_full": "\nsession_id: 20261009_230025_a85843\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_230025_a85843\", \"timestamp\": 1791601225124}\n{\"type\": \"text\", \"text\": \"Checking your pizza plans for today.\", \"timestamp\": 1791601228444}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"pizza plans today October 9 2026\"}, \"timestamp\": 1791601229033}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\\\n2. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\\\n3. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\\n4. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\\\n5. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\\n6. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\\\n7. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\\\n8. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\\"}\", \"duration_ms\": 763, \"is_error\": false, \"timestamp\": 1791601229796}\n{\"type\": \"text\", \"text\": \"\\n\\nYou have 2 pizza plans today.\", \"timestamp\": 1791601232153}\n{\"type\": \"result\", \"session_id\": \"20261009_230025_a85843\", \"exit_code\": 0, \"text\": \"You have 2 pizza plans today.\", \"tokens\": {\"input\": 6585, \"output\": 418, \"total\": 7003, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 7132, \"timestamp\": 1791601232256}",
+  "session_input_tokens": 6585,
+  "session_output_tokens": 418,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-z_i9qtw1",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-z_i9qtw1",
+    "system_prompt_sha256": "a0c40b34490bc8f811f9e8bb0ceb48949185e0920212efb49a08004f9485c576",
+    "reason": "No project context in native saved system prompt"
+  }
+}

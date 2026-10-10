@@ -49,6 +49,7 @@ def native_run(run_dir: Path, runs_dir: Path):
             behavior = read_json(directory / 'behavior.json')
             exchanges.append({'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
                 'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
+                'judge_review': read_json(run_dir / 'judge-scope-review' / f'{provider}-{check_id}.json'),
                 'check_id': check_id, 'kind': 'initial', 'usage': read_json(directory / 'usage.json'), 'status': read_json(directory / 'status.json'),
                 'retention': recovery, 'metrics': (recovery or behavior or {}).get('initial_metrics'),
                 'session': (read_json(directory / 'status.json') or {}).get('session'),
@@ -94,7 +95,7 @@ def native_run(run_dir: Path, runs_dir: Path):
             'turn': exchanges[0]['turn'] if exchanges else None}
         arms[f'{provider}-{repetition}']['evaluation'] = read_json(arm / 'evaluation.json')
     records = {}
-    for folder in (source, run_dir):
+    for folder in (source, run_dir, run_dir / 'judge-scope-review'):
         for path in sorted((folder / 'model-calls').glob('*.json')):
             records[path.name] = {'file': path.name, 'record': public_record(read_json(path))}
     return {'kind': 'native' if summary.get('mode') else 'prepared', 'id': run_dir.name,

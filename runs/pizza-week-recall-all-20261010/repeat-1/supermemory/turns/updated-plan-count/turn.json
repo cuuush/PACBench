@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?",
+  "at": "2026-10-09T09:00:00-04:00",
+  "answer": "You have 1 pizza plan today: Mario's on Pine Street at 5pm with Maya and Leo.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 10.53,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_225540_387031",
+  "raw_events": 4,
+  "session_id": "20261009_225540_387031",
+  "stderr_full": "\nsession_id: 20261009_225540_387031\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_225540_387031\", \"timestamp\": 1791600940847}\n{\"type\": \"text\", \"text\": \"You have 1 pizza plan today: Mario\", \"timestamp\": 1791600949181}\n{\"type\": \"text\", \"text\": \"'s on Pine Street at 5pm with Maya and Leo.\", \"timestamp\": 1791600949214}\n{\"type\": \"result\", \"session_id\": \"20261009_225540_387031\", \"exit_code\": 0, \"text\": \"You have 1 pizza plan today: Mario's on Pine Street at 5pm with Maya and Leo.\", \"tokens\": {\"input\": 3711, \"output\": 520, \"total\": 4231, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 8650, \"timestamp\": 1791600949498}",
+  "session_input_tokens": 3711,
+  "session_output_tokens": 520,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-10] Leo likes/craves the garlic knots at Mario's.\n- [2026-10-08] Maya has to be at her parents later on Friday night 2026-10-09, which is why Friday pizza moved to 5pm.\n- [2026-10-08] Tyler agreed to cover Leo's closing shift so Leo is back in for Friday pizza on 2026-10-09.\n- [2026-10-08] Leo was assigned a closing shift and initially said on 2026-10-08 he could not join Friday pizza.\n- [2026-10-08] Maya said Domino's on Elm Street is too far for her and counter-proposed Mario's on Pine Street for Friday on 2026-10-08.\n- [2026-10-08] User suggested Domino's on Elm Street for Friday pizza on 2026-10-08.\n- [2026-10-08] Rosa's is closed for renovations as of 2026-10-08, so Friday pizza needed a new spot.\n- [2026-10-08] User and Maya agreed in DMs to move Friday pizza to 5pm on 2026-10-09, confirmed with Leo in group chat.\n- [2026-10-08] User, Maya, and Leo plan to have Friday pizza at Mario's on Pine Street on 2026-10-09.\n- [2026-10-10] User encouraged Leo to join the Rosa's pizza meetup with Maya.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-eq01jyj3",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-eq01jyj3",
+    "system_prompt_sha256": "ef3dfc5d8a08fae1ff6b9f80056b0aa8e502ad04ffc5a715db2bd0414ea53558",
+    "reason": "No project context in native saved system prompt"
+  }
+}

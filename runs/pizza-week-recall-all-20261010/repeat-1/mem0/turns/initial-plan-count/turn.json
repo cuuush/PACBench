@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?",
+  "at": "2026-10-08T09:00:00-04:00",
+  "answer": "Two — Luigi's at 6pm with Devon, and Rosa's at 7pm with Maya (Leo joining).",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "pizza plans Friday",
+        "top_k": 10
+      },
+      "timestamp": 1791600151396
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"6702785d-d7f3-48f7-b9d8-c3a6659a5cb3\", \"memory\": \"User, Maya, and Leo planned in the 'Friday crew' group chat for Leo to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, with User joking Leo is backup so Maya doesn't steal all the garlic knots.\", \"score\": 0.4069981702600284}, {\"id\": \"b88a447b-a21a-451d-87bc-d484bfbb4d54\", \"memory\": \"User made plans with Devon to get pizza at Luigi's on 5th Street at 6pm on Friday, October 9, 2026.\", \"score\": 0.40134849174604287}, {\"id\": \"78b03855-533b-435f-b5dc-f9af2a1cce21\", \"memory\": \"User made plans with Maya to get pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, and said Rosa's crust is the best.\", \"score\": 0.3837587825108126}, {\"id\": \"fef51710-63d4-4b02-9b64-5578e00412d0\", \"memory\": \"User has been craving garlic knots at Luigi's on 5th Street and agreed to Luigi's for pizza with Devon.\", \"score\": 0.29677691934939127}], \"count\": 4}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 25.66,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_224222_d8dd63",
+  "raw_events": 7,
+  "session_id": "20261009_224222_d8dd63",
+  "stderr_full": "\nsession_id: 20261009_224222_d8dd63\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_224222_d8dd63\", \"timestamp\": 1791600142398}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Two Friday pizza plans on file — pulling the details to confirm.\", \"timestamp\": 1791600150882}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"pizza plans Friday\", \"top_k\": 10}, \"timestamp\": 1791600151396}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"6702785d-d7f3-48f7-b9d8-c3a6659a5cb3\\\", \\\"memory\\\": \\\"User, Maya, and Leo planned in the 'Friday crew' group chat for Leo to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, with User joking Leo is backup so Maya doesn't steal all the garlic knots.\\\", \\\"score\\\": 0.4069981702600284}, {\\\"id\\\": \\\"b88a447b-a21a-451d-87bc-d484bfbb4d54\\\", \\\"memory\\\": \\\"User made plans with Devon to get pizza at Luigi's on 5th Street at 6pm on Friday, October 9, 2026.\\\", \\\"score\\\": 0.40134849174604287}, {\\\"id\\\": \\\"78b03855-533b-435f-b5dc-f9af2a1cce21\\\", \\\"memory\\\": \\\"User made plans with Maya to get pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, and said Rosa's crust is the best.\\\", \\\"score\\\": 0.3837587825108126}, {\\\"id\\\": \\\"fef51710-63d4-4b02-9b64-5578e00412d0\\\", \\\"memory\\\": \\\"User has been craving garlic knots at Luigi's on 5th Street and agreed to Luigi's for pizza with Devon.\\\", \\\"score\\\": 0.29677691934939127}], \\\"count\\\": 4}\", \"duration_ms\": 28, \"is_error\": false, \"timestamp\": 1791600151424}\n{\"type\": \"text\", \"text\": \"\\n\\nTwo — Luigi's at 6pm with Devon\", \"timestamp\": 1791600161216}\n{\"type\": \"text\", \"text\": \", and Rosa's at 7pm with Maya (Leo joining).\", \"timestamp\": 1791600161259}\n{\"type\": \"result\", \"session_id\": \"20261009_224222_d8dd63\", \"exit_code\": 0, \"text\": \"Two — Luigi's at 6pm with Devon, and Rosa's at 7pm with Maya (Leo joining).\", \"tokens\": {\"input\": 4094, \"output\": 1150, \"total\": 8685, \"cache_read\": 3441, \"cache_write\": 0}, \"duration_ms\": 18896, \"timestamp\": 1791600161295}",
+  "session_input_tokens": 4094,
+  "session_output_tokens": 1150,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User made plans with Devon to get pizza at Luigi's on 5th Street at 6pm on Friday, October 9, 2026.\n- User, Maya, and Leo planned in the 'Friday crew' group chat for Leo to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, with User joking Leo is backup so Maya doesn't steal all the garlic knots.\n- User made plans with Maya to get pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026, and said Rosa's crust is the best.\n- User has been craving garlic knots at Luigi's on 5th Street and agreed to Luigi's for pizza with Devon.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-5t7xbu3s",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-5t7xbu3s",
+    "system_prompt_sha256": "541b82bd0426444bc4b6dc67a32d0c76cac4f505767d02f884561d7ea9ade5e1",
+    "reason": "No project context in native saved system prompt"
+  }
+}

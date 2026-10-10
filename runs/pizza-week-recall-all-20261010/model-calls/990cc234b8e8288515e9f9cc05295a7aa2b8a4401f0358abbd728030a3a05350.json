@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-10T02:43:25.237908+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans did I make for Friday?\"}, {\"role\": \"assistant\", \"content\": \"Two — Luigi's at 6pm with Devon, and Rosa's at 7pm with Maya (Leo joining).\"}]\nQuestion: [Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?\nAnswer: 1. Devon — Luigi's on 5th Street — 6pm Friday, October 9, 2026.\n2. Maya and Leo — Rosa's on Oak Street — 7pm Friday, October 9, 2026.\nClaims (hidden from the assistant): [{\"id\": \"count\", \"claim\": \"There are two different outings on Friday\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\", \"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\"]}, {\"id\": \"devon-who\", \"claim\": \"One outing is with Devon\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-date\", \"claim\": \"The outing with Devon is on Friday, October 9, 2026\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-time\", \"claim\": \"The outing with Devon is at 6 pm\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"devon-venue\", \"claim\": \"The outing with Devon is at Luigi's\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"devon-street\", \"claim\": \"The Luigi's for the Devon outing is on 5th Street\", \"evidence\": [\"pizza-week-twists-low/devon-invite-03\", \"pizza-week-twists-low/devon-invite-04\"]}, {\"id\": \"maya-who\", \"claim\": \"Maya is a participant in the other outing\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\"]}, {\"id\": \"leo-who\", \"claim\": \"Leo is a participant in the same outing as Maya\", \"evidence\": [\"pizza-week-twists-low/leo-joins-02\", \"pizza-week-twists-low/leo-joins-04\"]}, {\"id\": \"maya-date\", \"claim\": \"The outing with Maya and Leo is on Friday, October 9, 2026\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/leo-joins-02\"]}, {\"id\": \"maya-time\", \"claim\": \"The outing with Maya and Leo is at 7 pm\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/leo-joins-02\", \"pizza-week-twists-low/leo-joins-04\"]}, {\"id\": \"maya-venue\", \"claim\": \"The outing with Maya and Leo is at Rosa's\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}, {\"id\": \"maya-street\", \"claim\": \"The Rosa's for the Maya and Leo outing is on Oak Street\", \"evidence\": [\"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}]"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a123b1-9d8d-70fc-90f8-15d2cb3a3e0e",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"verdicts\": [{\"id\": \"count\", \"verdict\": \"correct\", \"reason\": \"Answer lists 1. and 2. both as Friday outings.\"}, {\"id\": \"devon-who\", \"verdict\": \"correct\", \"reason\": \"Item 1 names Devon as participant.\"}, {\"id\": \"devon-date\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Friday, October 9, 2026 for Devon.\"}, {\"id\": \"devon-time\", \"verdict\": \"correct\", \"reason\": \"Item 1 states 6pm for Devon outing.\"}, {\"id\": \"devon-venue\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Luigi's for Devon outing.\"}, {\"id\": \"devon-street\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Luigi's on 5th Street.\"}, {\"id\": \"maya-who\", \"verdict\": \"correct\", \"reason\": \"Item 2 names Maya as participant.\"}, {\"id\": \"leo-who\", \"verdict\": \"correct\", \"reason\": \"Item 2 names Maya and Leo together.\"}, {\"id\": \"maya-date\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Friday, October 9, 2026 for Maya and Leo.\"}, {\"id\": \"maya-time\", \"verdict\": \"correct\", \"reason\": \"Item 2 states 7pm for Maya and Leo outing.\"}, {\"id\": \"maya-venue\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Rosa's for Maya and Leo outing.\"}, {\"id\": \"maya-street\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Rosa's on Oak Street.\"}], \"recovery\": [{\"id\": \"count\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"leo-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791600205,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 1536,
+      "prompt_tokens": 1405,
+      "total_tokens": 2941,
+      "completion_tokens_details": {
+        "reasoning_tokens": 825
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"verdicts\": [{\"id\": \"count\", \"verdict\": \"correct\", \"reason\": \"Answer lists 1. and 2. both as Friday outings.\"}, {\"id\": \"devon-who\", \"verdict\": \"correct\", \"reason\": \"Item 1 names Devon as participant.\"}, {\"id\": \"devon-date\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Friday, October 9, 2026 for Devon.\"}, {\"id\": \"devon-time\", \"verdict\": \"correct\", \"reason\": \"Item 1 states 6pm for Devon outing.\"}, {\"id\": \"devon-venue\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Luigi's for Devon outing.\"}, {\"id\": \"devon-street\", \"verdict\": \"correct\", \"reason\": \"Item 1 states Luigi's on 5th Street.\"}, {\"id\": \"maya-who\", \"verdict\": \"correct\", \"reason\": \"Item 2 names Maya as participant.\"}, {\"id\": \"leo-who\", \"verdict\": \"correct\", \"reason\": \"Item 2 names Maya and Leo together.\"}, {\"id\": \"maya-date\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Friday, October 9, 2026 for Maya and Leo.\"}, {\"id\": \"maya-time\", \"verdict\": \"correct\", \"reason\": \"Item 2 states 7pm for Maya and Leo outing.\"}, {\"id\": \"maya-venue\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Rosa's for Maya and Leo outing.\"}, {\"id\": \"maya-street\", \"verdict\": \"correct\", \"reason\": \"Item 2 states Rosa's on Oak Street.\"}], \"recovery\": [{\"id\": \"count\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"devon-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"leo-who\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-date\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-time\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-venue\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"maya-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "usage": {
+    "completion_tokens": 1536,
+    "prompt_tokens": 1405,
+    "total_tokens": 2941,
+    "completion_tokens_details": {
+      "reasoning_tokens": 825
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

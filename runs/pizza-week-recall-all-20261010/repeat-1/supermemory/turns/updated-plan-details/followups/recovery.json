@@ -1,0 +1,273 @@
+{
+  "state": "complete",
+  "plan_hash": "b55a26f8c5a1aca6c88558aec0b518c00126116388c68f002532edf6e22cef5d",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 3
+    },
+    "operations": [
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 10,
+          "query": "pizza plans Friday 2026-10-09"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791600970084,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"4nu9votFQ7BUCEEg2K29ea\", \"content\": \"User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\", \"similarity\": 93}, {\"id\": \"p6AdGqDFxbPZWvdwwoY4hu\", \"content\": \"User, Maya, and Leo plan to have Friday pizza at Mario's on Pine Street on 2026-10-09.\", \"similarity\": 89}, {\"id\": \"c1o3kjQTh7Gzae4XpYDC3v\", \"content\": \"User and Maya agreed in DMs to move Friday pizza to 5pm on 2026-10-09, confirmed with Leo in group chat.\", \"similarity\": 88}, {\"id\": \"9mXhZeZanRp65smq1qLvMU\", \"content\": \"Maya has to be at her parents later on Friday night 2026-10-09, which is why Friday pizza moved to 5pm.\", \"similarity\": 84}, {\"id\": \"7R1pyHAXW3zMoZi92CsGwW\", \"content\": \"Tyler agreed to cover Leo's closing shift so Leo is back in for Friday pizza on 2026-10-09.\", \"similarity\": 82}, {\"id\": \"S8VcTGNWab6yQrJKhkupCP\", \"content\": \"Leo was assigned a closing shift and initially said on 2026-10-08 he could not join Friday pizza.\", \"similarity\": 79}], \"count\": 6}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 10,
+          "query": "pizza with Devon"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791600970170,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"4nu9votFQ7BUCEEg2K29ea\", \"content\": \"User plans to get pizza with Devon on Friday 2026-10-09 at 6pm.\", \"similarity\": 90}, {\"id\": \"864QaCe8zLnuT16erba9oY\", \"content\": \"User and Devon agreed to meet at Luigi's on 5th Street for pizza.\", \"similarity\": 88}, {\"id\": \"5T64okAXGchPgRC3ZqWGQW\", \"content\": \"\", \"similarity\": 63}], \"count\": 3}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 10,
+          "query": "Mario's Maya Leo Friday pizza time place"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791600970264,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"p6AdGqDFxbPZWvdwwoY4hu\", \"content\": \"User, Maya, and Leo plan to have Friday pizza at Mario's on Pine Street on 2026-10-09.\", \"similarity\": 96}, {\"id\": \"c1o3kjQTh7Gzae4XpYDC3v\", \"content\": \"User and Maya agreed in DMs to move Friday pizza to 5pm on 2026-10-09, confirmed with Leo in group chat.\", \"similarity\": 88}, {\"id\": \"9mXhZeZanRp65smq1qLvMU\", \"content\": \"Maya has to be at her parents later on Friday night 2026-10-09, which is why Friday pizza moved to 5pm.\", \"similarity\": 88}, {\"id\": \"gs2eUBVnT5SBxtAwVE94WP\", \"content\": \"User encouraged Leo to join the Rosa's pizza meetup with Maya.\", \"similarity\": 79}, {\"id\": \"7R1pyHAXW3zMoZi92CsGwW\", \"content\": \"Tyler agreed to cover Leo's closing shift so Leo is back in for Friday pizza on 2026-10-09.\", \"similarity\": 79}, {\"id\": \"S8VcTGNWab6yQrJKhkupCP\", \"content\": \"Leo was assigned a closing shift and initially said on 2026-10-08 he could not join Friday pizza.\", \"similarity\": 79}, {\"id\": \"72YP18gkWnBuTMrgUHhHVL\", \"content\": \"Rosa's is closed for renovations as of 2026-10-08, so Friday pizza needed a new spot.\", \"similarity\": 78}, {\"id\": \"GEzvggPgvR474NJC4C6XJ1\", \"content\": \"User suggested Domino's on Elm Street for Friday pizza on 2026-10-08.\", \"similarity\": 78}, {\"id\": \"F3s3eXdNpbAEJdkqagchBA\", \"content\": \"Leo likes/craves the garlic knots at Mario's.\", \"similarity\": 76}, {\"id\": \"ZKjcjw1cNdpHpoSa8wapN8\", \"content\": \"User, Maya, and Leo are in a group chat called \\\"Friday crew\\\".\", \"similarity\": 75}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.24,
+    "input_tokens": 2215,
+    "output_tokens": 406,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "outing-count",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-person",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via 'today' = Friday."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "maya-person",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-person",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "maya-leo-day",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via 'today' = Friday."
+    },
+    {
+      "id": "maya-leo-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "maya-leo-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "maya-leo-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 12,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 12,
+    "points": 12.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "outing-count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

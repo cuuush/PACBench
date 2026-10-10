@@ -1,0 +1,94 @@
+{
+  "scope": "Judge regression review only; original trial grades and recovery traces are unchanged",
+  "results": [
+    {
+      "provider": "mem0",
+      "check": "updated-plan-details",
+      "correct": 12,
+      "missed": 0,
+      "misrepresented": 0,
+      "claims": [
+        {
+          "id": "outing-count",
+          "verdict": "correct",
+          "reason": "Answer lists two distinct outings (Mario's and Luigi's) inheriting today=Friday scope from prior turn."
+        },
+        {
+          "id": "devon-person",
+          "verdict": "correct",
+          "reason": "Answer states Luigi's plan is 'with Devon'."
+        },
+        {
+          "id": "devon-day",
+          "verdict": "correct",
+          "reason": "Devon plan given under inherited today=Friday scope with no other day stated."
+        },
+        {
+          "id": "devon-time",
+          "verdict": "correct",
+          "reason": "Answer states Luigi's/Devon plan 'at 6pm'."
+        },
+        {
+          "id": "devon-venue",
+          "verdict": "correct",
+          "reason": "Answer states Devon plan venue is 'Luigi's'."
+        },
+        {
+          "id": "devon-street",
+          "verdict": "correct",
+          "reason": "Answer states Devon plan is 'on 5th Street'."
+        },
+        {
+          "id": "maya-person",
+          "verdict": "correct",
+          "reason": "Answer states Mario's plan is 'with Maya and Leo'."
+        },
+        {
+          "id": "leo-person",
+          "verdict": "correct",
+          "reason": "Answer states Mario's plan is 'with Maya and Leo'."
+        },
+        {
+          "id": "maya-leo-day",
+          "verdict": "correct",
+          "reason": "Maya-Leo plan given under inherited today=Friday scope with no other day stated."
+        },
+        {
+          "id": "maya-leo-time",
+          "verdict": "correct",
+          "reason": "Answer states Mario's/Maya-Leo plan 'at 5pm'."
+        },
+        {
+          "id": "maya-leo-venue",
+          "verdict": "correct",
+          "reason": "Answer states Maya-Leo plan venue is \"Mario's\"."
+        },
+        {
+          "id": "maya-leo-street",
+          "verdict": "correct",
+          "reason": "Answer states Maya-Leo plan is 'on Pine Street'."
+        }
+      ],
+      "expected": "all_correct",
+      "original_judgment": "repeat-1/mem0/turns/updated-plan-details/judgment.json",
+      "passed": true
+    },
+    {
+      "provider": "memcal",
+      "check": "initial-plan-count",
+      "correct": 0,
+      "missed": 0,
+      "misrepresented": 1,
+      "claims": [
+        {
+          "id": "two-outings",
+          "verdict": "misrepresented",
+          "reason": "Answer states 'One' pizza plan, contradicting claim of two separate outings."
+        }
+      ],
+      "expected": "incorrect_count",
+      "original_judgment": "repeat-1/memcal/turns/initial-plan-count/judgment.json",
+      "passed": true
+    }
+  ]
+}

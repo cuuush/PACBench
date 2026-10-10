@@ -1,0 +1,42 @@
+{
+  "claims": [
+    {
+      "id": "two-outings",
+      "statement": "There are 2 distinct pizza outings",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02",
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/maya-invite-04",
+        "pizza-week-twists-low/leo-drops-out-05"
+      ]
+    }
+  ],
+  "question": "How many pizza plans do I have today?",
+  "evidence_hash": "3db2212e7f477b22855efa40950a3a1043c368386a6c060526b88e05c68546d5",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Dialogue establishes two separate Friday outings (Devon and Maya) and the single count claim covers the intent-required number.",
+    "reviews": [
+      {
+        "id": "two-outings",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Evidence shows distinct Devon and Maya Friday pizza agreements still on, supporting count of 2 as required by intent."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks neutral count for 'today' (2026-10-09 = Friday) without stating the answer or assuming details; both Devon Friday 6pm and Maya Friday 5pm plans fall on that day, so asking 'How many' reasonably elicits the expected 2-outings fact."
+  },
+  "author_fact_count": 0,
+  "test_intent": "A count of two distinct pizza outings. Only the number of outings is being judged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T09:00:00-04:00",
+  "contract_hash": "f7a9340807c1c8550d5282375de6c3b85b1c36829e6c07ad665fbf010aba37bf"
+}

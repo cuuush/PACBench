@@ -1,0 +1,48 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?",
+  "at": "2026-10-09T09:04:00-04:00",
+  "answer": "Yes - he got Tyler to cover his closing shift and is back in for 5pm at Mario's.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "viking_search",
+      "input": {
+        "limit": 5,
+        "query": "Leo closing shift Tyler cover",
+        "scope": "viking://resources/"
+      },
+      "timestamp": 1791600689342
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "viking_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"uri\": \"viking://resources/2026-10-08/2026-10-08_3.md\", \"type\": \"resource\", \"score\": 0.714, \"abstract\": \"This document records an iMessage conversation in the Friday crew thread among Me, Maya and Leo on October 8 2026. It contains timestamped message entries with metadata including arrived_at, collected_at, channel, sender, from_owner, source_id, structured chat name and participants, text, thread and written_at. Topics covered include reaction to a last minute change, confirmation that Me and Maya are still on and mention of Leo's share of knots, Leo rejoining for Friday after getting Tyler to cover a closing shift, and a catch-up noting the venue as Mario's on Pine Street and a move of Friday to 5pm because of a commitment at parents. Key takeaways are Leo is back in and the plan is Mario's on Pine Street at 5pm pending Leo's confirmation. The file serves as a chat log archive useful for reviewing conversation history and event planning details, with keywords Friday crew, iMessage, Mario's on Pine Street, 5pm, closing shift.\"}, {\"uri\": \"viking://resources/2026-10-08/.abstract.md\", \"type\": \"resource\", \"score\": 0.712, \"abstract\": \"This directory preserves structured iMessage chat logs from October 8, 2026, covering personal coordination and group event planning. It includes a one-to-one exchange with Maya and group conversations in the Friday crew thread with Me, Maya, and Leo.\"}, {\"uri\": \"viking://resources/2026-10-08/2026-10-08_2.md\", \"type\": \"resource\", \"score\": 0.699, \"abstract\": \"This document logs an iMessage group chat among Me, Maya, and Leo in the Friday crew thread on 2026-10-08 about planning pizza on Friday. It contains timestamped message records with channel, sender, text, and structured chat metadata, including source identifiers for venue updates and Leo dropping out. Topics covered include Rosa's closure for renovations, a proposal for Domino's on Elm Street, a counter-proposal for Mario's on Pine Street, agreement on that venue, and Leo's notice that a closing shift prevents his attendance on Friday. Key takeaways are the venue change from Rosa's to Mario's on Pine Street and Leo's inability to attend Friday pizza. The intended audience appears to be participants or reviewers needing a record of group planning decisions and schedule changes, with keywords Friday crew, pizza, renovations, closing shift.\"}, {\"uri\": \"viking://resources/2026-10-07/.abstract.md\", \"type\": \"resource\", \"score\": 0.695, \"abstract\": \"This directory contains structured iMessage conversation logs collected on October 7, 2026, focused on coordinating pizza plans for Friday.\"}], \"total\": 4}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 15.03,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261009_225002_a78d46 \"Count pizza plans for today\" (2 user messages, 19 total messages)\n\nsession_id: 20261009_225002_a78d46",
+  "raw_events": 9,
+  "session_id": "20261009_225002_a78d46",
+  "stderr_full": "↻ Resumed session 20261009_225002_a78d46 \"Count pizza plans for today\" (2 user messages, 19 total messages)\n\nsession_id: 20261009_225002_a78d46\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_225002_a78d46\", \"timestamp\": 1791600678047}\n{\"type\": \"text\", \"text\": \"Checking Leo's shift status.\", \"timestamp\": 1791600688463}\n{\"type\": \"tool_use\", \"name\": \"viking_search\", \"input\": {\"limit\": 5, \"query\": \"Leo closing shift Tyler cover\", \"scope\": \"viking://resources/\"}, \"timestamp\": 1791600689342}\n{\"type\": \"tool_result\", \"name\": \"viking_search\", \"output\": \"{\\\"results\\\": [{\\\"uri\\\": \\\"viking://resources/2026-10-08/2026-10-08_3.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.714, \\\"abstract\\\": \\\"This document records an iMessage conversation in the Friday crew thread among Me, Maya and Leo on October 8 2026. It contains timestamped message entries with metadata including arrived_at, collected_at, channel, sender, from_owner, source_id, structured chat name and participants, text, thread and written_at. Topics covered include reaction to a last minute change, confirmation that Me and Maya are still on and mention of Leo's share of knots, Leo rejoining for Friday after getting Tyler to cover a closing shift, and a catch-up noting the venue as Mario's on Pine Street and a move of Friday to 5pm because of a commitment at parents. Key takeaways are Leo is back in and the plan is Mario's on Pine Street at 5pm pending Leo's confirmation. The file serves as a chat log archive useful for reviewing conversation history and event planning details, with keywords Friday crew, iMessage, Mario's on Pine Street, 5pm, closing shift.\\\"}, {\\\"uri\\\": \\\"viking://resources/2026-10-08/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.712, \\\"abstract\\\": \\\"This directory preserves structured iMessage chat logs from October 8, 2026, covering personal coordination and group event planning. It includes a one-to-one exchange with Maya and group conversations in the Friday crew thread with Me, Maya, and Leo.\\\"}, {\\\"uri\\\": \\\"viking://resources/2026-10-08/2026-10-08_2.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.699, \\\"abstract\\\": \\\"This document logs an iMessage group chat among Me, Maya, and Leo in the Friday crew thread on 2026-10-08 about planning pizza on Friday. It contains timestamped message records with channel, sender, text, and structured chat metadata, including source identifiers for venue updates and Leo dropping out. Topics covered include Rosa's closure for renovations, a proposal for Domino's on Elm Street, a counter-proposal for Mario's on Pine Street, agreement on that venue, and Leo's notice that a closing shift prevents his attendance on Friday. Key takeaways are the venue change from Rosa's to Mario's on Pine Street and Leo's inability to attend Friday pizza. The intended audience appears to be participants or reviewers needing a record of group planning decisions and schedule changes, with keywords Friday crew, pizza, renovations, closing shift.\\\"}, {\\\"uri\\\": \\\"viking://resources/2026-10-07/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.695, \\\"abstract\\\": \\\"This directory contains structured iMessage conversation logs collected on October 7, 2026, focused on coordinating pizza plans for Friday.\\\"}], \\\"total\\\": 4}\", \"duration_ms\": 65, \"is_error\": false, \"timestamp\": 1791600689408}\n{\"type\": \"text\", \"text\": \"\\n\\nYes -\", \"timestamp\": 1791600691431}\n{\"type\": \"text\", \"text\": \" he got Tyler to cover his closing shift and\", \"timestamp\": 1791600691482}\n{\"type\": \"text\", \"text\": \" is back in for \", \"timestamp\": 1791600691501}\n{\"type\": \"text\", \"text\": \"5pm at Mario's.\", \"timestamp\": 1791600691546}\n{\"type\": \"result\", \"session_id\": \"20261009_225002_a78d46\", \"exit_code\": 0, \"text\": \"Yes - he got Tyler to cover his closing shift and is back in for 5pm at Mario's.\", \"tokens\": {\"input\": 1027, \"output\": 318, \"total\": 47907, \"cache_read\": 46562, \"cache_write\": 0}, \"duration_ms\": 13539, \"timestamp\": 1791600691586}",
+  "session_input_tokens": 1027,
+  "session_output_tokens": 318,
+  "provider_traces": [],
+  "prefetch_context": "## OpenViking Context\n- [memory]\n  <uri>viking://user/default/memories/.abstract.md</uri>\n  User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-67ss83jm",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-67ss83jm",
+    "system_prompt_sha256": "6e09e2662df252e66766614b27f7a5d3812092e19545e1c8c9fc39ec6c6bb68d",
+    "reason": "No project context in native saved system prompt"
+  }
+}

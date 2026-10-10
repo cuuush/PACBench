@@ -1,0 +1,94 @@
+{
+  "scene_id": "group-venue-update",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-10T02:32:22+00:00",
+  "spec": {
+    "id": "group-venue-update",
+    "channel": "imessage",
+    "thread": "friday-crew",
+    "scene": "The group changes the pizza restaurant. Maya rejects the user's suggestion of Domino's on Elm Street because it is too far, and they settle on Mario's instead. Leo is silent during this decision. They do not restate the meeting time.",
+    "test_intent": "",
+    "facts": [
+      "The user and Maya agree to Mario's on Pine Street for their existing Friday pizza outing.",
+      "Domino's on Elm Street was suggested and rejected; it is not the agreed venue."
+    ],
+    "at": "2026-10-08T18:25:00-04:00",
+    "window_start": "2026-10-08T18:25:00-04:00",
+    "window_end": "2026-10-08T18:45:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      4,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Maya",
+      "Leo"
+    ],
+    "chat_name": "Friday crew",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v14",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Me: just got home my feet are dead lol",
+    "Maya: same, today dragged forever",
+    "Me: btw saw Rosa's is closed for renovations so we gotta pick a new spot for Friday",
+    "Me: what about Domino's on Elm Street?",
+    "Maya: that's too far for me, what about Mario's on Pine Street for Friday instead?",
+    "Me: yeah that works, I'm good with that"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-08. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:25 and 18:45 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: The group changes the pizza restaurant. Maya rejects the user's suggestion of Domino's on Elm Street because it is too far, and they settle on Mario's instead. Leo is silent during this decision. They do not restate the meeting time.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. The user and Maya agree to Mario's on Pine Street for their existing Friday pizza outing.\n2. Domino's on Elm Street was suggested and rejected; it is not the agreed venue.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-10-07 Maya: hey Leo are you free Friday?\n2026-10-07 Leo: hey! yeah I should be free, what's going on\n2026-10-07 Maya: I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?\n2026-10-07 Me: yes come! I need backup so Maya doesn't steal all my garlic knots lol\n2026-10-07 Leo: lol yeah that works, I'm in\n2026-10-07 Maya: yesss perfect, it's been such a long day I need pizza already\n\nNew messages:\n1. Me: just got home my feet are dead lol\n2. Maya: same, today dragged forever\n3. Me: btw saw Rosa's is closed for renovations so we gotta pick a new spot for Friday\n4. Me: what about Domino's on Elm Street?\n5. Maya: that's too far for me, what about Mario's on Pine Street for Friday instead?\n6. Me: yeah that works, I'm good with that",
+  "judge_response": "{\"supported\": true, \"evidence\": [3, 4, 5, 6], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 5, 6], \"problem\": \"\"}, {\"index\": 2, \"supported\": true, \"evidence\": [4, 5, 6], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      3,
+      4,
+      5,
+      6
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          3,
+          5,
+          6
+        ],
+        "problem": ""
+      },
+      {
+        "index": 2,
+        "supported": true,
+        "evidence": [
+          4,
+          5,
+          6
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2656,
+  "response_chars": 213,
+  "model_call": "/workspace/PACBench/runs/pizza-week-recall-prepared-20261010/model-calls/da3baa085411581ed92546260736f7a0294a3b6e04b73479b0738fc49cd057f4.json",
+  "usage": {
+    "completion_tokens": 2045,
+    "prompt_tokens": 598,
+    "total_tokens": 2643,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1952
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

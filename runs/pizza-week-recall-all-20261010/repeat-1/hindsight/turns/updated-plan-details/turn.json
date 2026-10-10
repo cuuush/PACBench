@@ -1,0 +1,62 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the latest plan for each one?",
+  "at": "2026-10-09T09:02:00-04:00",
+  "answer": "1. Luigi's on 5th Street with Devon at 6pm.\n2. Mario's on Pine Street with Maya and Leo at 5pm — moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "Devon Luigi's pizza plan time"
+      },
+      "timestamp": 1791601247524
+    },
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "Maya Leo Mario's pizza plan time"
+      },
+      "timestamp": 1791601248353
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\n2. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n3. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n4. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\n5. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\n6. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\n7. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\n8. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\n2. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\n3. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\n4. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\n5. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\n6. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\n7. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\n8. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 14.54,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261009_230025_a85843 \"Count pizza plans today\" (1 user message, 4 total messages)\n\nsession_id: 20261009_230025_a85843",
+  "raw_events": 12,
+  "session_id": "20261009_230025_a85843",
+  "stderr_full": "↻ Resumed session 20261009_230025_a85843 \"Count pizza plans today\" (1 user message, 4 total messages)\n\nsession_id: 20261009_230025_a85843\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_230025_a85843\", \"timestamp\": 1791601238375}\n{\"type\": \"text\", \"text\": \"Pulling the latest details for both plans.\", \"timestamp\": 1791601246861}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"Devon Luigi's pizza plan time\"}, \"timestamp\": 1791601247524}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\\\n2. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\\n3. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\\n4. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\\\n5. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\\\n6. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\\\n7. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\\\n8. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\\"}\", \"duration_ms\": 828, \"is_error\": false, \"timestamp\": 1791601248352}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"Maya Leo Mario's pizza plan time\"}, \"timestamp\": 1791601248353}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User and Maya plan to meet for pizza at Mario's on Pine Street on October 9, 2026 at 5pm with Leo joining, moved from Rosa's on Oak Street at 7pm due to renovations closure.\\\\n2. User has 2 pizza plans for Friday, October 9, 2026: Luigi's with Devon and Mario's on Pine Street with Maya and Leo at 5pm, changed from Rosa's which is closed for renovations.\\\\n3. User, Maya and Leo are meeting at Mario's on Pine Street on October 9, 2026 at 5pm, moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations and Maya has to be at her parents later that night.\\\\n4. Rosa's is closed for renovations, so the October 9, 2026 gathering was moved to Mario's on Pine Street; Domino's on Elm Street was rejected as too far for Maya.\\\\n5. User and Devon plan to get pizza at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\\n6. Maya has to be at her parents later on the night of October 9, 2026, which is why the Friday meetup was moved to 5pm.\\\\n7. Leo rejoined the Friday crew gathering on October 9, 2026 after getting Tyler to cover his closing shift; he had briefly dropped out due to being assigned the closing shift.\\\\n8. User is meeting Devon at Luigi's on 5th Street on October 9, 2026 at 6pm.\\\"}\", \"duration_ms\": 196, \"is_error\": false, \"timestamp\": 1791601248551}\n{\"type\": \"text\", \"text\": \"\\n\\n1. Luigi's on 5th Street\", \"timestamp\": 1791601250777}\n{\"type\": \"text\", \"text\": \" with Devon at 6pm.\\n2. Mario's on Pine Street with Maya\", \"timestamp\": 1791601250818}\n{\"type\": \"text\", \"text\": \" and Leo at 5pm —\", \"timestamp\": 1791601250860}\n{\"type\": \"text\", \"text\": \" moved from Rosa's on Oak Street at 7pm because\", \"timestamp\": 1791601250902}\n{\"type\": \"text\", \"text\": \" Rosa's is closed for renovations.\", \"timestamp\": 1791601250946}\n{\"type\": \"result\", \"session_id\": \"20261009_230025_a85843\", \"exit_code\": 0, \"text\": \"1. Luigi's on 5th Street with Devon at 6pm.\\n2. Mario's on Pine Street with Maya and Leo at 5pm — moved from Rosa's on Oak Street at 7pm because Rosa's is closed for renovations.\", \"tokens\": {\"input\": 4579, \"output\": 527, \"total\": 8547, \"cache_read\": 3441, \"cache_write\": 0}, \"duration_ms\": 12629, \"timestamp\": 1791601251005}",
+  "session_input_tokens": 4579,
+  "session_output_tokens": 527,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-z_i9qtw1",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-z_i9qtw1",
+    "system_prompt_sha256": "a0c40b34490bc8f811f9e8bb0ceb48949185e0920212efb49a08004f9485c576",
+    "reason": "No project context in native saved system prompt"
+  }
+}

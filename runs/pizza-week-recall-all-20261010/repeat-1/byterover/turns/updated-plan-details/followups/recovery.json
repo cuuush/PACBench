@@ -1,0 +1,210 @@
+{
+  "state": "complete",
+  "plan_hash": "b55a26f8c5a1aca6c88558aec0b518c00126116388c68f002532edf6e22cef5d",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 0,
+    "total_tool_operations": 0,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 3,
+    "categories": {},
+    "operations": [],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 19.32,
+    "input_tokens": 2484,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "outing-count",
+      "kind": "provided",
+      "reason": "Two Friday outings correctly conveyed."
+    },
+    {
+      "id": "devon-person",
+      "kind": "provided",
+      "reason": "Devon outing correctly conveyed."
+    },
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Friday day correctly conveyed via today."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "6pm correctly conveyed."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Luigi's correctly conveyed."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "5th Street correctly conveyed."
+    },
+    {
+      "id": "maya-person",
+      "kind": "provided",
+      "reason": "Maya inclusion correctly conveyed."
+    },
+    {
+      "id": "leo-person",
+      "kind": "provided",
+      "reason": "Leo inclusion correctly conveyed."
+    },
+    {
+      "id": "maya-leo-day",
+      "kind": "provided",
+      "reason": "Friday day correctly conveyed via today."
+    },
+    {
+      "id": "maya-leo-time",
+      "kind": "provided",
+      "reason": "5pm correctly conveyed."
+    },
+    {
+      "id": "maya-leo-venue",
+      "kind": "provided",
+      "reason": "Mario's correctly conveyed."
+    },
+    {
+      "id": "maya-leo-street",
+      "kind": "provided",
+      "reason": "Pine Street correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 12,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 12,
+    "points": 12.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "outing-count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-leo-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

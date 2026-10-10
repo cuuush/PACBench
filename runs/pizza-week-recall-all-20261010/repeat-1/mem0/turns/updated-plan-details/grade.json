@@ -1,0 +1,130 @@
+{
+  "correct": 9,
+  "missed": 3,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "outing-count",
+      "verdict": "missed",
+      "reason": "Answer lists two outings but never states Friday."
+    },
+    {
+      "id": "devon-person",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's outing with Devon."
+    },
+    {
+      "id": "devon-day",
+      "verdict": "missed",
+      "reason": "Answer gives time/venue for Devon but no day."
+    },
+    {
+      "id": "devon-time",
+      "verdict": "correct",
+      "reason": "Answer states 6pm with Devon."
+    },
+    {
+      "id": "devon-venue",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's for Devon outing."
+    },
+    {
+      "id": "devon-street",
+      "verdict": "correct",
+      "reason": "Answer states 5th Street for Devon outing."
+    },
+    {
+      "id": "maya-person",
+      "verdict": "correct",
+      "reason": "Answer states Mario's outing with Maya and Leo."
+    },
+    {
+      "id": "leo-person",
+      "verdict": "correct",
+      "reason": "Answer states Mario's outing with Maya and Leo."
+    },
+    {
+      "id": "maya-leo-day",
+      "verdict": "missed",
+      "reason": "Answer gives time/venue for Maya-Leo but no day."
+    },
+    {
+      "id": "maya-leo-time",
+      "verdict": "correct",
+      "reason": "Answer states 5pm for Maya-Leo outing."
+    },
+    {
+      "id": "maya-leo-venue",
+      "verdict": "correct",
+      "reason": "Answer states Mario's for Maya-Leo outing."
+    },
+    {
+      "id": "maya-leo-street",
+      "verdict": "correct",
+      "reason": "Answer states Pine Street for Maya-Leo outing."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "outing-count",
+      "kind": "implicit_omission",
+      "reason": "Two outings listed but Friday day omitted; broad latest-plan request not explicit for day."
+    },
+    {
+      "id": "devon-person",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "devon-day",
+      "kind": "implicit_omission",
+      "reason": "Day not mentioned; broad request not explicit for day."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "maya-person",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "leo-person",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "maya-leo-day",
+      "kind": "implicit_omission",
+      "reason": "Day not mentioned; broad request not explicit for day."
+    },
+    {
+      "id": "maya-leo-time",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "maya-leo-venue",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "maya-leo-street",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    }
+  ],
+  "interaction": "answer"
+}

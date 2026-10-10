@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?",
+  "at": "2026-10-09T09:00:00-04:00",
+  "answer": "2 — pizza at 5pm with Leo and Maya, and pizza with Devon at 6pm.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 6.92,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261009_223958_cdadb0",
+  "raw_events": 7,
+  "session_id": "20261009_223958_cdadb0",
+  "stderr_full": "\nsession_id: 20261009_223958_cdadb0\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261009_223958_cdadb0\", \"timestamp\": 1791599998846}\n{\"type\": \"text\", \"text\": \"2\", \"timestamp\": 1791600003708}\n{\"type\": \"text\", \"text\": \" —\", \"timestamp\": 1791600003742}\n{\"type\": \"text\", \"text\": \" pizza\", \"timestamp\": 1791600003780}\n{\"type\": \"text\", \"text\": \" at 5pm with Leo and Maya\", \"timestamp\": 1791600003818}\n{\"type\": \"text\", \"text\": \", and pizza with Devon at 6pm.\", \"timestamp\": 1791600003857}\n{\"type\": \"result\", \"session_id\": \"20261009_223958_cdadb0\", \"exit_code\": 0, \"text\": \"2 — pizza at 5pm with Leo and Maya, and pizza with Devon at 6pm.\", \"tokens\": {\"input\": 6474, \"output\": 273, \"total\": 9292, \"cache_read\": 2545, \"cache_write\": 0}, \"duration_ms\": 5433, \"timestamp\": 1791600004280}",
+  "session_input_tokens": 6474,
+  "session_output_tokens": 273,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-09T09:00:00-04:00 [id=b8679de97f5dcc5f076c355c6b68ac3e9f6a9425] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Friday 9 October 2026)\n〔E1〕 Fri Oct 9  \"pizza\", 5pm — confirmed · with Leo, Maya\n〔E2〕 Fri Oct 9  \"pizza with Devon\", 6pm — confirmed · with Devon\n[complete for 2026-10-06 – 2026-11-08; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-xxc9ee87",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-xxc9ee87",
+    "system_prompt_sha256": "d7d478d15b70463c377bfe00bd499dff904b67c989ea65151dfee24ef5094dad",
+    "reason": "No project context in native saved system prompt"
+  }
+}

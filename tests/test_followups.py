@@ -152,6 +152,7 @@ def test_all_correct_facts_get_no_recovery_message(tmp_path):
 
 @pytest.mark.parametrize('name,arguments,category,points', [
     ('memcal_open', {'ref': 'E1'}, 'memory_detail', .5),
+    ('brv_query', {'query': 'dinner'}, 'memory_search', .5),
     ('memcal_search_archive', {'query': 'dinner'}, 'archive_search', 0),
     ('memcal_open_source', {'source': 'E1'}, 'source_evidence', 0),
     ('mcp__imessage__search', {'query': 'dinner'}, 'source_messages', 0),

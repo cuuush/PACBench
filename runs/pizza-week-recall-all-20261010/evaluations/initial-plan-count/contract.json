@@ -1,0 +1,42 @@
+{
+  "claims": [
+    {
+      "id": "two-outings",
+      "statement": "There are two separate agreed pizza outings.",
+      "evidence": [
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02",
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-joins-04"
+      ]
+    }
+  ],
+  "question": "How many pizza plans did I make for Friday?",
+  "evidence_hash": "97664ae77fe49faa1f832759bf150d6263d182f262718ae43eeef2bd579d579f",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Dialogue establishes exactly two Friday agreements and the single count claim covers that intent-required number.",
+    "reviews": [
+      {
+        "id": "two-outings",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon 6pm Luigi's agreed and Maya 7pm Rosa's agreed with Leo joining Maya's outing supports two separate agreements."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt neutrally asks for count of Friday pizza plans, which requires identifying Devon 6pm Luigi's outing vs Maya 7pm Rosa's outing with Leo joining same event, without stating the answer (2) or adding unsupported details."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Two separate pizza outings.",
+  "question_source": "supplied",
+  "question_at": "2026-10-08T09:00:00-04:00",
+  "contract_hash": "89c1b47b82e233a58a03a6853067c397063528d1a04cff4a251aad7e1c5f8afe"
+}

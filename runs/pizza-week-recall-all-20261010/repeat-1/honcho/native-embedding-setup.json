@@ -1,0 +1,6 @@
+{
+  "route": "Documented configure_embeddings.py bootstrap",
+  "returncode": 0,
+  "stdout": "target dim: 768\ncurrent:    public.documents.embedding=1536, public.message_embeddings.embedding=1536\nplanned operations (single transaction):\n  - LOCK TABLE public.documents IN ACCESS EXCLUSIVE MODE\n  - LOCK TABLE public.message_embeddings IN ACCESS EXCLUSIVE MODE\n  - refuse if any non-null embeddings exist\n  - DROP existing HNSW indices on the embedding columns\n  - ALTER COLUMN embedding TYPE vector(768) USING NULL on both tables\n  - CREATE HNSW indices from snapshotted definitions\n\npgvector schema is now at dim 768\n",
+  "stderr": "dropping HNSW index ix_documents_embedding_hnsw\ndropping HNSW index ix_message_embeddings_embedding_hnsw\naltering public.documents.embedding to vector(768)\naltering public.message_embeddings.embedding to vector(768)\nrecreating HNSW index ix_documents_embedding_hnsw\nrecreating HNSW index ix_message_embeddings_embedding_hnsw\n"
+}

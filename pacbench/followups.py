@@ -243,7 +243,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     review = model_json(model,
         'Does this message ask for every missing value without supplying answers or tool instructions, '
         'preserving current versus historical meaning? Reject broad recaps and yes/no confirmations. '
-        'Return ONLY JSON {"safe":true,"covers_claim_ids":["ids in order"],"reason":"explanation"}.\n'
+        'Return ONLY JSON {"safe":true,"covers_claim_ids":["covered IDs"],"reason":"explanation"}.\n'
         f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
         f'Proposed message: {question}', records=authoring_calls)
     origin = 'spark-combined-message'

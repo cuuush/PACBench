@@ -64,7 +64,8 @@ def build_contract(*, scene: str, test_intent: str,
                    output_path: Path,
                    author_facts: tuple[str, ...] = (),
                    user_question: str | None = None,
-                   question_at: str = "", behavior: bool = False) -> EvaluationContract:
+                   question_at: str = "", behavior: bool = False,
+                   _claim_feedback: dict | None = None) -> EvaluationContract:
     """Derive, independently verify, and freeze claims before either arm runs."""
     if not observations:
         raise ValueError("contract needs frozen dialogue")
@@ -132,7 +133,10 @@ def build_contract(*, scene: str, test_intent: str,
         '"evidence":["source-id"]}]}.\n\n'
         f"Private scenario: {scene}\nTest intent: {test_intent}\n"
         f"{fact_instruction}"
-        f"Frozen dialogue:\n{dialogue}")
+        f"Frozen dialogue:\n{dialogue}" +
+        ("\nRevise the rejected draft using this independent review. Keep the original "
+         "expectation and evidence; do not invent support or add requirements.\n" +
+         json.dumps(_claim_feedback) if _claim_feedback is not None else ""))
     rows = proposed.get("claims")
     if not isinstance(rows, list) or not rows:
         raise ValueError("contract generator returned no claims")
@@ -188,6 +192,19 @@ def build_contract(*, scene: str, test_intent: str,
                     ("supported", "relevant", "unambiguous")) or
                 not isinstance(r.get("reason"), str)
                 for r, c in zip(reviews, claims))):
+        # One corrective draft, then a new independent review. Resume otherwise
+        # replays the identical cached rejection forever. Authored exact facts
+        # cannot be dropped or rewritten by this repair.
+        if (not author_facts and _claim_feedback is None and
+                type(reviewed.get('complete')) is bool and isinstance(reviews,list) and
+                len(reviews)==len(claims) and all(isinstance(r,dict) and r.get('id')==c.id and
+                    all(type(r.get(k)) is bool for k in ('supported','relevant','unambiguous')) and
+                    isinstance(r.get('reason'),str) for r,c in zip(reviews,claims))):
+            return build_contract(scene=scene,test_intent=test_intent,observations=observations,
+                generate=generate,verify=verify,question_generate=question_generate,
+                output_path=output_path,author_facts=author_facts,user_question=user_question,
+                question_at=question_at,behavior=behavior,
+                _claim_feedback={'claims':proposed['claims'],'review':reviewed})
         raise ValueError(f"contract review rejected claims: {reviewed}")
 
     question_prompt = (

@@ -166,3 +166,36 @@ def test_evaluation_clock_obeys_eastern_dst_and_rejects_ambiguous_wall_time():
     spec['checks'][0]['at'] = '2026-11-02T09:00:00-04:00'
     with pytest.raises(ValueError, match='offset conflicts'):
         resolve_checks(spec, '2026-10-31T09:00:00-04:00', 'America/New_York')
+
+
+@pytest.mark.parametrize('repair_succeeds',[True,False])
+def test_rejected_english_criteria_get_one_independently_reviewed_repair(tmp_path,repair_succeeds):
+    observations=[{'source_id':'m1','written_at':'2026-09-10T18:00:00-04:00',
+                  'sender':'Me','text':'The outing is cancelled; another day, not picked yet.'}]
+    calls=[];reviews=[]
+    def generate(prompt):
+        calls.append(prompt)
+        if len(calls)==2:
+            assert 'Revise the rejected draft' in prompt
+            assert 'Irrelevant detail' in prompt
+        ids=['cancelled'] if len(calls)==2 and repair_succeeds else ['cancelled','incidental']
+        return json.dumps({'claims':[{'id':i,'statement':i,'evidence':['m1']} for i in ids]})
+    def verify(prompt):
+        if 'Check this evaluation prompt' in prompt:
+            return json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'Question unchanged.'})
+        rows=json.loads(prompt.split('Proposed claims: ',1)[1]);reviews.append(rows)
+        return json.dumps({'complete':True,'reviews':[{'id':r['id'],'supported':True,
+          'relevant':r['id']!='incidental','unambiguous':True,
+          'reason':'Irrelevant detail' if r['id']=='incidental' else 'Supported required outcome'} for r in rows]})
+    def run():
+        return build_contract(scene='An outing',test_intent='The outing was cancelled.',
+            observations=observations,generate=generate,verify=verify,
+            question_generate=lambda _:pytest.fail('Public question must stay unchanged'),
+            user_question='What happened with our outing?',output_path=tmp_path/'contract.json')
+    if repair_succeeds:
+        result=run();assert [c.id for c in result.claims]==['cancelled']
+        assert result.question=='What happened with our outing?'
+    else:
+        with pytest.raises(ValueError,match='review rejected'):run()
+        assert not (tmp_path/'contract.json').exists()
+    assert len(calls)==len(reviews)==2

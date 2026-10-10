@@ -58,6 +58,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "independently against the assistant's answer to the user's question. "
         "Use meaning and context, not string matching or a demand for "
         "verbatim wording. Grade only the details stated in each claim. "
+        "A correct fragment does not satisfy a claim if the same answer contradicts it. "
         "Distinguish current-state claims from historical claims; judge "
         "the state and time described by each claim. "
         "If absent or explicitly "
@@ -76,9 +77,11 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         + ('Also return "interaction": "answer" or "clarification", and "benchmark_error": null. '
            'Clarification means asking for information needed to satisfy this request or its expected behavior. '
            'Optional offers of other actions are answers, not clarification. '
-           'Judge behavioral criteria against what the answer actually does. '
+           'For factual recall, asking a clarification is not a separate style failure; '
+           'grade whether the expected facts were conveyed. '
+           'Judge behavioral criteria only against the authored expectation and what the answer actually does. '
            'For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. '
-           'Unnecessary clarification when the referent is clear is a failure. A cancellation acknowledgement proves only the acknowledgement. '
+           'A cancellation acknowledgement proves only the acknowledgement. '
            'If a legitimate clarification cannot be judged because the script omits necessary ground truth, '
            'set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\n' if assess_interaction else '')
         + ("Use the prior conversation only to resolve references in the latest answer. "

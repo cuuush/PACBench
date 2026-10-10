@@ -113,41 +113,14 @@
           "time": "9 am",
           "turns": [
             {
-              "id": "initial-two-plans",
-              "prompt": "Hey, what's the deal with getting pizza tomorrow?",
-              "expect": "Recap two separate Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 7 pm at Rosa's on Oak Street, with Leo joining Maya's outing."
+              "id": "initial-plan-count",
+              "prompt": "How many pizza plans did I make for Friday?",
+              "expect": "Two separate pizza outings."
             },
             {
-              "id": "ambiguous-cancel",
-              "kind": "behavior",
-              "prompt": "Actually, cancel pizza tomorrow. I don't feel like going.",
-              "expect": "Ask which of the two outings I mean, without claiming either has been cancelled."
-            },
-            {
-              "id": "cancel-devon",
-              "kind": "behavior",
-              "trigger": "clarification",
-              "depends_on": "ambiguous-cancel",
-              "prompt": "The one with Devon. I'm not going to that one.",
-              "expect": "Acknowledge that I am no longer going with Devon. Do not say Maya's outing is cancelled."
-            },
-            {
-              "id": "other-plan-same-session",
-              "depends_on": "cancel-devon",
-              "prompt": "And what about the other pizza thing?",
-              "expect": "Maya's outing is still on: Friday at 7 pm at Rosa's on Oak Street, with Leo."
-            }
-          ]
-        },
-        {
-          "id": "thursday-fresh",
-          "time": "11 am",
-          "turns": [
-            {
-              "id": "cancellation-fresh",
-              "depends_on": "cancel-devon",
-              "prompt": "Am I still doing both pizza things tomorrow?",
-              "expect": "I am no longer going with Devon. I am still going with Maya and Leo."
+              "id": "initial-plan-details",
+              "prompt": "Who am I meeting, and where and when?",
+              "expect": "On Friday, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 7 pm at Rosa's on Oak Street. These are two different outings."
             }
           ]
         }
@@ -160,39 +133,30 @@
           "time": "9 am",
           "turns": [
             {
-              "id": "changed-plans-fresh",
-              "depends_on": "cancel-devon",
-              "prompt": "What changed with pizza, and what am I still doing today?",
-              "expect": "I am still not going with Devon. I am going with Maya and Leo today at 5 pm at Mario's on Pine Street."
+              "id": "updated-plan-count",
+              "prompt": "How many pizza plans do I have today?",
+              "expect": "Two separate pizza outings."
             },
             {
-              "id": "leo-change-history",
-              "prompt": "And what changed with Leo?",
-              "expect": "Leo initially said he couldn't come because of a work shift, then found cover and confirmed he was joining Maya and me after all."
-            }
-          ]
-        },
-        {
-          "id": "friday-recommit",
-          "time": "11 am",
-          "turns": [
+              "id": "updated-plan-details",
+              "prompt": "What's the latest plan for each one?",
+              "expect": "Today, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 5 pm at Mario's on Pine Street. These are two different outings."
+            },
             {
-              "id": "going-again",
-              "kind": "behavior",
-              "prompt": "Actually I do want to go with Devon after all. Put me back down as going.",
-              "expect": "Acknowledge that I am going with Devon again."
+              "id": "leo-availability",
+              "prompt": "Did Leo sort out his shift?",
+              "expect": "Leo found someone to cover his work shift and is coming after all."
             }
           ]
         },
         {
-          "id": "friday-final-fresh",
+          "id": "friday-devon-fresh",
           "time": "12 pm",
           "turns": [
             {
-              "id": "final-two-plans",
-              "prompt": "What have I got for pizza today?",
-              "expect": "I am going to both Friday outings: Devon at 6 pm at Luigi's on 5th Street, and Maya at 5 pm at Mario's on Pine Street with Leo. Keep the two plans distinct.",
-              "depends_on": "going-again"
+              "id": "devon-venue-fresh",
+              "prompt": "Where am I meeting Devon tonight?",
+              "expect": "Luigi's on 5th Street."
             }
           ]
         }

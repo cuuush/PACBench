@@ -16,17 +16,19 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==7 and len(resolved['checks'])==9
+    assert len(scenes)==7 and len(resolved['checks'])==6
     assert scenes[2].participants==('Me','Maya','Leo')
     assert scenes[4].participants==scenes[2].participants
     assert resolved['checks'][0]['at']=='2026-09-10T09:00:00-04:00'
-    assert [r['session'] for r in resolved['checks'][:4]]==['thursday-morning']*4
-    assert resolved['checks'][4]['session']=='thursday-fresh'
-    assert resolved['checks'][4]['depends_on']=='cancel-devon'
+    assert [r['session'] for r in resolved['checks'][:2]]==['thursday-morning']*2
+    assert [r['session'] for r in resolved['checks'][2:5]]==['friday-morning']*3
+    assert resolved['checks'][5]['session']=='friday-devon-fresh'
+    assert all(r.get('kind','recall')=='recall' and not r.get('requires') and
+               not r.get('depends_on') and not r.get('trigger') for r in resolved['checks'])
     rows=[message('old',stamp='2026-09-09T18:00:00-04:00'),message('future')]
     rows[0]['collected_at']='2026-09-09T18:00:00-04:00'
     evidence=contract_evidence(rows,resolved['checks'],resolved['checks'][0])
-    assert {r['source_id'] for r in evidence}=={'old','assistant-user:initial-two-plans'}
+    assert {r['source_id'] for r in evidence}=={'old','assistant-user:initial-plan-count'}
     assert 'cancel' not in json.dumps(evidence).lower()
     bad=json.loads(json.dumps(spec));bad['days']['wednesday']['scenes'][0]['channel']='missing'
     with pytest.raises(ValueError,match='Unknown channel'):normalize_week(bad,'2026-09-07')

@@ -133,8 +133,9 @@ def scene_prompt(plan: ScenePlan,
                 f"Participants: {', '.join(plan.participants)}; Me labels the owner. "
                 f"Date: {plan.window_start[:10]}, local time {plan.window_start[11:16]}–{plan.window_end[11:16]}.\n"
                 f"{continuity}Scenario: {plan.scene}{required}\n"
-                f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
-                "Return JSON with dialogue (one Name: body line per email) and writer_note (a short description of the choices).")
+                + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
+                   if plan.message_range else "Use a short exchange. ") +
+                "Return only valid JSON with dialogue (a string with one Name: body line per email) and writer_note (a short string about the choices). No prose or Markdown fences outside the JSON.")
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "
         "Use `Me` exactly for the user's own messages and distinct names for "

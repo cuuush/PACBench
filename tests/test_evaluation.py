@@ -11,6 +11,37 @@ from pacbench.native_checks import audit_checks, run_checks
 from pacbench.semantic_contract import ContractClaim, EvaluationContract, build_contract
 
 
+@pytest.mark.parametrize('change', ['unchanged', 'source', 'prompt', 'expect', 'at', 'facts', 'corruption'])
+def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
+    from pacbench.evaluation import freeze_evaluations
+    observations = [{'source_id':'m1', 'written_at':'2026-09-10T18:00:00-04:00',
+                     'collected_at':'2026-09-10T18:00:00-04:00', 'sender':'Me', 'text':'Breakfast at the cafe.'}]
+    check = {'id':'breakfast', 'at':'2026-09-11T09:00:00-04:00',
+             'prompt':'What about breakfast?', 'expect':'Breakfast is at the cafe.', 'facts':[]}
+    resolved = {'checks':[check], 'evaluation_context':'shared'}
+    calls = []
+    def model(prompt):
+        calls.append(prompt)
+        if 'Check this evaluation prompt' in prompt:
+            return '{"safe":true,"faithful":true,"elicits_all":true,"reason":"Synthetic review"}'
+        if 'Review each proposed claim' in prompt:
+            return '{"complete":true,"reviews":[{"id":"fact-1","supported":true,"relevant":true,"unambiguous":true,"reason":"Synthetic review"}]}'
+        return '{"claims":[{"id":"fact-1","statement":"Breakfast is at the cafe.","evidence":["m1"]}]}'
+    first = freeze_evaluations(resolved, observations, None, model, tmp_path)
+    assert not first.get('errors') and len(calls)==3
+    if change=='source': observations[0]['text']+=' Bring a sweater.'
+    elif change in ('prompt','expect'): check[change]+=' Please.'
+    elif change=='at': check['at']='2026-09-11T10:00:00-04:00'
+    elif change=='facts': check['facts']=['Breakfast is at the cafe.']
+    elif change=='corruption':
+        path=tmp_path/'evaluations/breakfast/contract.json'
+        path.write_text(path.read_text().replace('Breakfast is', 'Lunch is'))
+    calls.clear()
+    second = freeze_evaluations(resolved, observations, None, model, tmp_path, resume=True)
+    assert not second.get('errors')
+    assert len(calls)==(0 if change=='unchanged' else 3)
+
+
 def checkpoints(tmp_path):
     result = []
     for i in (1, 2):

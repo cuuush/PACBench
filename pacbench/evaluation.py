@@ -68,17 +68,38 @@ def contract_evidence(messages, checks, current):
     return available
 
 
-def freeze_evaluations(resolved, messages, target, model, root):
+def freeze_evaluations(resolved, messages, target, model, root, *, resume=False):
     rows,errors = [],[]
     for check in resolved['checks']:
         path = root / 'evaluations' / check['id']
         available = contract_evidence(messages,resolved['checks'],check)
         if not available:raise ValueError('Evaluation has no available source messages')
         try:
-            contract = build_contract(scene='Available source dialogue', test_intent=check.get('expect') or check['prompt'],
-                observations=available, author_facts=tuple(check['facts']), generate=model,
-                verify=model, question_generate=model, output_path=path / 'contract.json',
-                user_question=check['prompt'], question_at=check['at'],behavior=check.get('kind')=='behavior')
+            contract = None
+            contract_path = path / 'contract.json'
+            if resume and contract_path.exists():
+                try:
+                    cached = load_contract(contract_path)
+                    document = json.loads(contract_path.read_text())
+                    if (cached.evidence_hash == digest(available) and
+                            cached.question == check['prompt'] and
+                            document.get('question_at') == check['at'] and
+                            document.get('test_intent') == (check.get('expect') or check['prompt']) and
+                            document.get('kind', 'recall') == check.get('kind', 'recall') and
+                            document.get('author_fact_count') == len(check['facts']) and
+                            (not check['facts'] or [c.statement for c in cached.claims] == check['facts']) and
+                            all(document.get('question_review', {}).get(k) is True
+                                for k in ('safe', 'faithful', 'elicits_all'))):
+                        contract = cached
+                except (ValueError, KeyError, TypeError):
+                    pass  # Invalid cached contracts are reviewed again, never accepted.
+            if contract is None:
+                contract_path.unlink(missing_ok=True)
+                (path / 'followup-plan.json').unlink(missing_ok=True)
+                contract = build_contract(scene='Available source dialogue', test_intent=check.get('expect') or check['prompt'],
+                    observations=available, author_facts=tuple(check['facts']), generate=model,
+                    verify=model, question_generate=model, output_path=contract_path,
+                    user_question=check['prompt'], question_at=check['at'],behavior=check.get('kind')=='behavior')
         except Exception as exc:
             errors.append({'id':check['id'],'reason':f'{type(exc).__name__}: {exc}'})
             save(root/'evaluation-errors.json',errors)

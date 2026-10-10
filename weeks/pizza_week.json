@@ -62,7 +62,7 @@
         "Me",
         "Ben"
       ],
-      "subject": "Thursday dinner"
+      "subject": "Dinner"
     }
   },
   "days": {
@@ -115,8 +115,8 @@
           "until": "8 am",
           "scene": "Ben emails casually to ask \"hey can we move our dinner to another day?\". The user suggests Saturday, Ben accepts at the same time, and the user agrees. These are friends writing brief casual emails, without formal salutations or sign-offs. They do not explain which app they previously used, and do not restate the restaurant or old day.",
           "facts": [
-            "Ben and the user agree to move their existing dinner to Saturday at the same time, 7 pm.",
-            "The original restaurant, Juniper Cafe, is unchanged."
+            "Ben and the user agree to move their existing dinner to Saturday at the same time.",
+            "The dinner’s venue is unchanged."
           ]
         },
         {
@@ -189,7 +189,7 @@
             {
               "id": "separate-appointments",
               "prompt": "Did that change my call with Jen or coffee with Alex too?",
-              "expect": "Only the group pond outing was called off. The messages did not cancel the separately arranged call with Jen or coffee with Alex; those appointments remained as arranged."
+              "expect": "The messages did not cancel the separately arranged call with Jen or coffee with Alex; those appointments remained as arranged."
             }
           ]
         },
@@ -262,7 +262,7 @@
             {
               "id": "initial-plan-count",
               "prompt": "How many pizza plans did I make for Friday?",
-              "expect": "Two separate pizza outings."
+              "expect": "A count of two distinct pizza outings. Only the number of outings is being judged."
             },
             {
               "id": "initial-plan-details",

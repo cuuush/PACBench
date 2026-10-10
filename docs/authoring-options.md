@@ -25,6 +25,8 @@ Email channels use `type: "email"` and a `subject`. Each generated entry becomes
 
 This fragment belongs in a complete seven-day week. Facts stay next to the scene; there is no top-level fact catalog or fact-ID matching. Assistant turns have their own English `expect` descriptions; see [conversations](flexible-checks.md).
 
+For an update scene, describe what changes. Use “same time” or “venue unchanged” when people rely on prior context; listing the old restaurant as a new scene fact encourages an unnatural recap. Inspect generated dialogue for added reminders that would weaken the intended test. Expectations should judge facts the question naturally invites, rather than requiring unrelated details in a yes/no answer.
+
 `noise` is `low`, `medium` or `high`. Low is the shortest natural exchange (normally 4–12 messages). Medium targets 20–40 messages per person per conversation per day. High targets 600–800 per person, including unrelated topics, facts and side plans. Multiple scenes in the same chat/day share that target. Larger exchanges use bounded chunks; messages are never padded, copied or truncated to meet a count. Start with low. An optional `until` sets the scene's ending wall time; high otherwise continues through the rest of its day, respecting the next scene in that chat. Authored start times remain unchanged.
 
 Concrete dates are assigned during preparation. `--week-start` selects a Monday; without it, preparation uses the current week in the configured timezone. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
@@ -35,6 +37,6 @@ python -m pacbench.preparation_audit runs/pizza-prepared
 python -m pacbench.native_pilot --prepared runs/pizza-prepared/week.json --providers memcal --output runs/pizza-current
 ```
 
-Preparation writes one portable `week.json`, containing generated messages, verification records, questions and evidence-cited judging contracts. Provider execution imports that file without authoring or verifying the messages again. Keep it to reuse across providers and runs. `--resume` reuses unchanged verified scenes when fixing an interrupted preparation; changed scene requirements need new verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
+Preparation writes one portable `week.json`, containing generated messages, verification records, questions and evidence-cited judging contracts. Provider execution imports that file without authoring or verifying the messages again. Keep it to reuse across providers and runs. `--resume` reuses unchanged verified scenes and accepted contracts when fixing an interrupted preparation. Changed sources, questions, expectations or clocks require fresh contract review; a changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
 
 The minimal [Pizza Day](../weeks/pizza_day.json) scene format remains useful for smoke tests. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.

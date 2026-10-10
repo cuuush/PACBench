@@ -65,6 +65,11 @@ def test_email_daily_snapshot_has_no_future_messages_and_shared_contact(tmp_path
         assert identity('Ben')['handle'] in vcf and mail_address('Ben') in vcf
 
 
+def test_mailbox_rejects_inconsistent_owner_metadata(tmp_path):
+    with pytest.raises(ValueError,match='ownership'):
+        append_emails(tmp_path/'mailbox.json',[{**exchange()[0],'from_owner':True}])
+
+
 def test_native_memcal_imap_reader_and_contacts_resolve_two_accounts(tmp_path):
     repo=Path(__file__).resolve().parents[2]/'memcal'
     python=Path(__file__).resolve().parents[1]/'vendor/venv-hermes-isolated/bin/python'

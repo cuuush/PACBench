@@ -44,7 +44,9 @@ def append_emails(path, messages):
         roster = metadata.get('participants', [])
         subject = metadata.get('email_subject')
         if ('Me' not in roster or source['sender'] not in roster or len(roster) < 2
-                or not subject or not isinstance(source['from_owner'], bool)):
+                or len(set(roster)) != len(roster) or not subject
+                or not isinstance(source['from_owner'], bool)
+                or source['from_owner'] != (source['sender']=='Me')):
             raise ValueError('Email needs declared recipients, subject and ownership')
         earlier = [row for row in mailbox['messages'] if row['source']['thread'] == source['thread']]
         own_id = '<' + str(uuid.uuid5(uuid.NAMESPACE_URL, source['source_id'])) + '@mail.example.test>'
@@ -106,8 +108,12 @@ class _Handler(socketserver.StreamRequestHandler):
                 subcommand = args[0].upper()
                 rows = [r for r in self.server.messages if r['folder'] == folder]
                 if subcommand == 'SEARCH':
-                    criteria = ' '.join(args[1:])
-                    match = re.search(r'UID (\d+):\*', criteria, re.I)
+                    criteria = ' '.join(args[1:]).strip('()')
+                    match = re.fullmatch(r'UID (\d+):\*(?: SINCE \d{2}-[A-Za-z]{3}-\d{4})?', criteria, re.I)
+                    if not match and criteria.upper()!='ALL':
+                        self.wfile.write(f'{tag} BAD Unsupported search criteria\r\n'.encode())
+                        self.server.commands.append({'command':command,'operation':'SEARCH','folder':folder,'status':'BAD'})
+                        continue
                     if match:
                         rows = [r for r in rows if r['uid'] >= int(match[1])]
                     since = re.search(r'SINCE (\d{2}-[A-Za-z]{3}-\d{4})', criteria, re.I)

@@ -229,6 +229,8 @@ def build_contract(*, scene: str, test_intent: str,
             "Check this evaluation prompt against the dialogue and expected facts. "
             "Does it reasonably invite every expected fact, without supplying their answers "
             "or presupposing unsupported details? Respect current versus historical meaning. "
+            "Resolve references using earlier public questions in the same tagged assistant session; "
+            "questions in other sessions do not supply conversational scope. "
             "A topic or time scope does not itself establish which events belong in it. "
             'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
             f"Question time: {question_at}\nPrompt: {question}\n"

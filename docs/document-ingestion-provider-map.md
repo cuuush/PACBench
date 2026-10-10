@@ -6,17 +6,19 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 
 | Provider | Native daily delivery | Local setup / current status |
 | --- | --- | --- |
-| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings, gateway inference. Latest six-question week: answers correct; one judge-induced incomplete check, reviewed separately. |
-| Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank. Latest week: 6/6 answer passes. |
-| OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Latest week: 6/6 answer passes; original-document access fails retention. |
-| ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Latest week: 6/6 answer passes; first query timed out, second succeeded. |
-| Supermemory | `documents.add` with raw content, canonical container tags and custom ID; poll status | Published local server and native SDK, Ollama embeddings. Native namespace resolver; latest week: 5/6, missed Devon in updated count. |
-| Honcho | Real source peers and original timestamps through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Latest week: native processing completed 9/18 units before the bounded deadline; recall blocked. |
-| Memcal | Native Messages SQLite reader, separate contacts, normal nightly processing | Provider-independent Apple schema fixture; nightly processing at 03:00 scenario-local time. Version 0.8.2; latest week: 5/6, initial outings merged; source fallback needed for details. |
+| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings, gateway inference. |
+| Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank. |
+| OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Original-document access fails retention. |
+| ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. |
+| Supermemory | `documents.add` with raw content, canonical container tags and custom ID; poll status | Published local server and native SDK, Ollama embeddings. Native namespace resolver. |
+| Honcho | Real source peers and original timestamps through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Accepted messages must finish processing before recall. |
+| Memcal | Native Messages SQLite and TLS IMAP readers, separate contacts, normal nightly processing | Provider-independent Apple schema and RFC 5322 fixtures; nightly processing at 03:00 scenario-local time. Version 0.8.2 with product fixes on `main`. |
 | Holographic | Fact storage and regex extraction | Excluded: no practical general automatic source ingestion. |
 | RetainDB | Hosted storage/import | Excluded: Hermes documents no verified local backend. |
 | Memori | Documented Hermes plugin uses cloud service | Excluded: no verified local Hermes integration for this condition. |
 
 Every connector gets the same frozen public message records; daily documents are lossless JSON lines. Memcal's source database preserves realistic GUIDs, Apple-epoch timestamps, sender handles, service fields, chat membership and joins. Names live in a separate contacts fixture. No provider-specific facts or extraction hints are inserted. Future iMessage connectors can use that same source fixture.
 
-Run-owned namespaces and stores prevent cross-trial state. Configure each system from its project instructions; retain version/setup receipts. Failed readiness blocks recall. Internal native tools, queues and cost are captured where available; missing observability stays unknown. Current evidence is `runs/pizza-week-recall-all-20261010`; inspect answer, retention and harness issues separately. These development grades are not calibrated rankings.
+Memcal email delivery uses a real local TLS IMAP server with Inbox/Sent folders, reply references and separate account addresses linked by standard Contacts cards. This is a text-message fixture implementing the commands used by the native reader, not a Proton Bridge installation or a full mailbox server. No reader methods are replaced. The connector waits for native ingestion and processing before Hermes starts.
+
+Run-owned namespaces and stores prevent cross-trial state. Configure each system from its project instructions; retain version/setup receipts. Failed readiness blocks recall. Internal native tools, queues and cost are captured where available; missing observability stays unknown. [Current findings](../PIZZA_DAY.md) cover the Memcal development checks; the other configured connectors remain available. Inspect answer, retention and harness issues separately. These development grades are not calibrated rankings.

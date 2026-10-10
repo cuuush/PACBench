@@ -217,8 +217,6 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
         reusable={r['scene_id']:r for r in json.loads((root/'scenes.json').read_text())['scenes']
                   if r['record']['status']=='ok' and r['verdict'].get('supported') is True and
                   any(s.id==r['scene_id'] and scene_spec(s)==plans.get(s.id) for s in scenes)}
-        import shutil
-        shutil.rmtree(root/'evaluations',ignore_errors=True)
         for name in ('evaluation-plan.json','evaluation-errors.json','contract.json','followup-plan.json','week.json','scene-errors.json'):
             (root/name).unlink(missing_ok=True)
     save(root / "resolved-spec.json", resolved)
@@ -284,7 +282,8 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     evaluation_plan = None
     if resolved['checks']:
         from .evaluation import freeze_evaluations
-        evaluation_plan = freeze_evaluations(resolved, observations, target, judge, root)
+        evaluation_plan = freeze_evaluations(resolved, observations, target, judge, root,
+                                            resume=bool(progress.get('resume')))
         if evaluation_plan.get('errors'):
             summary={'state':'incomplete','results':[],'bundle_hash':bundle_hash(bundle),
                 'message_count':len(observations),'errors':evaluation_plan['errors']}

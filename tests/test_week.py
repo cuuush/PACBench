@@ -21,7 +21,7 @@ def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     check_by_id={c['id']:c for c in resolved['checks']}
     assert scene_by_id['leo-joins'].participants==('Me','Maya','Leo')
     assert scene_by_id['group-venue-update'].participants==scene_by_id['leo-joins'].participants
-    assert scene_by_id['ben-email-reschedule'].email_subject=='Thursday dinner'
+    assert scene_by_id['ben-email-reschedule'].email_subject=='Dinner'
     assert check_by_id['initial-plan-count']['at']=='2026-09-10T09:00:00-04:00'
     assert {check_by_id[k]['session'] for k in ('initial-plan-count','initial-plan-details')}=={'thursday-morning'}
     assert {check_by_id[k]['session'] for k in ('updated-plan-count','updated-plan-details','leo-availability')}=={'friday-morning'}

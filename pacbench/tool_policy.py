@@ -5,9 +5,10 @@ VERSION = 'retained-memory-only-v1'
 
 
 def retained_tools(native_tools):
-    names = sorted(set(native_tools))
-    if not names or any(not isinstance(n,str) or not n or '*' in n for n in names):
+    if not isinstance(native_tools,(list,tuple)) or not native_tools or any(
+            not isinstance(n,str) or not n or '*' in n for n in native_tools):
         raise ValueError('Provider supplied no exact native tool allowlist')
+    names = sorted(set(native_tools))
     # A mixed memory/resource reader cannot be granted wholesale under a name-only
     # boundary. Keep search/browse; exclude that reader until argument guards exist.
     blocked = [n for n in names if tool_category(n,{}) in SOURCE_CATEGORIES or n=='viking_read']

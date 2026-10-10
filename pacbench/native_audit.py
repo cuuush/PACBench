@@ -27,7 +27,7 @@ def audit(root: Path) -> dict:
     try:
         summary = read(root / 'summary.json')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
-        check(summary.get('tool_policy') in ('provider-only-v1', TOOL_POLICY), 'Provider tool boundary required')
+        check(summary.get('tool_policy') == TOOL_POLICY, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
         check(len(bundle['lives']) == 1, 'expected one life')
         messages = messages_for(bundle, next(iter(bundle['lives'])))
@@ -75,7 +75,7 @@ def audit(root: Path) -> dict:
             if not reviewable:
                 # A blocked arm has no live trace; keep the failure and audit later arms.
                 continue
-            if summary.get('tool_policy') in ('provider-only-v1', TOOL_POLICY):
+            if summary.get('tool_policy') == TOOL_POLICY:
                 from .context_isolation import actual_context, VERSION
                 workspace_file = arm / 'recall-workspace.json'
                 workspace_record = (read(workspace_file) if workspace_file.exists()
@@ -83,11 +83,7 @@ def audit(root: Path) -> dict:
                 check(workspace_record['version'] == VERSION,
                       f'{label}: unsupported recall context isolation')
                 check(summary.get('builtin_memory') is False, f'{label}: built-in memory enabled')
-                expected_policy = (policy_record(result['provider'], result['capability']['tools'])
-                    if summary['tool_policy'] == TOOL_POLICY else
-                    {'version':'provider-only-v1','provider':result['provider'],
-                     'allowed_tools':sorted(set(result['capability']['tools'])),
-                     'builtin_memory':False,'os_sandbox':False})
+                expected_policy = policy_record(result['provider'], result['capability']['tools'])
                 allowed = expected_policy['allowed_tools']
                 policy = read(arm / 'tool-policy.json')
                 check(policy == expected_policy,

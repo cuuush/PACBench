@@ -26,3 +26,7 @@ node --check explorer/timeline.js
 Commit public artifacts under `runs/` with the code. There is no generated dashboard or separate result snapshot. Model-call JSON includes readable prompts, responses and usage; encrypted reasoning is retained separately under ignored `model-calls/private/` for local writer retries. `weeks/` contains the authoring inputs. Inspect staged artifacts for credentials before pushing.
 
 Offline tests establish harness integrity, not provider accuracy. A passing saved-run audit also does not establish a ranking. See [AGENTS.md](AGENTS.md) for operating rules.
+
+Recall uses only allowed native memory tools. Dedicated archive and original-message
+readers are disabled; attempts fail the check. Native event/page citations remain
+available. See [the tool boundary](docs/provider-tool-boundary.md).

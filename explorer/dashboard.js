@@ -396,6 +396,7 @@ function technicalPage(run) {
     details("Model requests and responses · " + (run.model_calls || []).length,
       (run.model_calls || []).map(call => details(call.record?.model + " · " + call.file.slice(0, 12),
         renderModelCall(call.record))).join("")) +
+    details("Allowed and blocked recall tools", dump(Object.fromEntries(Object.entries(run.arms || {}).map(([key,arm]) => [key,arm.tool_policy])))) +
     details("Experiment status and run audit", dump({status: run.experiment_status,
       summary: run.summary, audit: run.audit})) + "</section>";
 }

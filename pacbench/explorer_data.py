@@ -90,6 +90,7 @@ def native_run(run_dir: Path, runs_dir: Path):
         arms[f'{provider}-{repetition}'] = {'provider': provider,
             'label': f'{provider.title()} · {repetition.replace("-", " ")}',
             'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
+            'tool_policy': read_json(arm / 'tool-policy.json'),
             'model_usage': read_json(arm / 'model-usage.json'),
             'model_usage_after_settlement': read_json(arm / 'model-usage-after-settlement.json'),
             'turn': exchanges[0]['turn'] if exchanges else None}

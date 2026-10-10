@@ -1,0 +1,385 @@
+{
+  "bundles": [
+    {
+      "run_id": 1,
+      "entity": "person:Alex",
+      "bundle_id": "c1547d",
+      "label": "Alex",
+      "kind": "person",
+      "lines": 6,
+      "state": "reading",
+      "updated_at": "2026-10-06T03:00:00-04:00"
+    },
+    {
+      "run_id": 1,
+      "entity": "person:Ben",
+      "bundle_id": "0644b3",
+      "label": "Ben",
+      "kind": "person",
+      "lines": 5,
+      "state": "reading",
+      "updated_at": "2026-10-06T03:00:00-04:00"
+    },
+    {
+      "run_id": 1,
+      "entity": "person:Jen",
+      "bundle_id": "4f9c3a",
+      "label": "Jen",
+      "kind": "person",
+      "lines": 5,
+      "state": "reading",
+      "updated_at": "2026-10-06T03:00:00-04:00"
+    },
+    {
+      "run_id": 1,
+      "entity": "thread:imessage:Park pals",
+      "bundle_id": "2f07a7",
+      "label": "Park pals",
+      "kind": "thread",
+      "lines": 6,
+      "state": "reading",
+      "updated_at": "2026-10-06T03:00:00-04:00"
+    }
+  ],
+  "calls": [
+    {
+      "generation_id": "chatcmpl-01a125fc-d8a9-7010-845f-9484d377addd",
+      "run_id": 1,
+      "stage": "propose",
+      "label": "thread:imessage:Park pals, person:Alex, person:Jen, person:Ben",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-06T03:00:00-04:00",
+      "max_tokens": 16440,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 4259,
+        "completion_tokens": 3363,
+        "cached_tokens": 0,
+        "reasoning_tokens": 2543,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "2f07a7",
+          "entity": "thread:imessage:Park pals",
+          "label": "Park pals",
+          "lines": 6
+        },
+        {
+          "id": "c1547d",
+          "entity": "person:Alex",
+          "label": "Alex",
+          "lines": 6
+        },
+        {
+          "id": "4f9c3a",
+          "entity": "person:Jen",
+          "label": "Jen",
+          "lines": 5
+        },
+        {
+          "id": "0644b3",
+          "entity": "person:Ben",
+          "label": "Ben",
+          "lines": 5
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho actually joined or spoke as participants, not an entire room roster.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Tuesday 2026-10-06.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Mon 5 Oct · Tue 6 Oct (TODAY) · Wed 7 Oct · Thu 8 Oct · Fri 9 Oct · Sat 10 Oct · Sun 11 Oct · Mon 12 Oct · Tue 13 Oct · Wed 14 Oct · Thu 15 Oct · Fri 16 Oct · Sat 17 Oct · Sun 18 Oct · Mon 19 Oct · Tue 20 Oct · Wed 21 Oct · Thu 22 Oct\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  (empty)\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Alex, Ben, Jen\n\nWIKI PAGES: (none yet)",
+      "suffix": "4 bundle(s) follow:\n  2f07a7  Park pals\n  c1547d  Alex\n  4f9c3a  Jen\n  0644b3  Ben\nList all 4 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID 2f07a7   (Park pals)\ngroup chat on imessage · 6 lines\n-- Mon 2026-10-05 --\n  L1 17:00 (imessage) me: anyone want to walk to the duck pond tomorrow?\n  L2 17:04 (imessage) Alex: yes please, I'm going stir crazy in here\n  L3 17:08 (imessage) Jen: lol same, I ate way too much at lunch\n  L4 17:12 (imessage) Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\n  L5 17:16 (imessage) me: yeah that works for me\n  L6 17:20 (imessage) Jen: yeah that works, I'll bring coffee\nNO PAGE YET FOR: Alex, Jen — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID c1547d   (Alex)\none-to-one on imessage · 6 lines\n-- Mon 2026-10-05 --\n  L1 17:50 (imessage) me: monday absolutely wiped me out\n  L2 17:54 (imessage) Alex: same just got home and I'm starving\n  L3 17:58 (imessage) Alex: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am?\n  L4 18:02 (imessage) me: yeah that works, I was craving their latte anyway\n  L5 18:06 (imessage) Alex: same lol. see you Tuesday then?\n  L6 18:10 (imessage) me: yep see you then\nNO PAGE YET FOR: Alex — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID 4f9c3a   (Jen)\none-to-one on imessage · 5 lines\n-- Mon 2026-10-05 --\n  L1 17:25 (imessage) me: ugh finally home, today was endless\n  L2 17:30 (imessage) Jen: same, I'm just throwing dinner together\n  L3 17:35 (imessage) me: can we do a quick phone call Tuesday at 10 am to go over your job application?\n  L4 17:40 (imessage) Jen: yeah that works, thank you!\n  L5 17:45 (imessage) me: perfect, talk then\nNO PAGE YET FOR: Jen — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID 0644b3   (Ben)\none-to-one on imessage · 5 lines\n-- Mon 2026-10-05 --\n  L1 18:15 (imessage) me: ugh finally home, today just dragged\n  L2 18:20 (imessage) Ben: same, I literally just left the office\n  L3 18:25 (imessage) me: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm?\n  L4 18:30 (imessage) Ben: yeah that works for me\n  L5 18:35 (imessage) me: perfect, see you there\nNO PAGE YET FOR: Ben — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\"diffs\": [{\"bundle\": \"2f07a7\", \"events\": [{\"cites\": [\"L1\", \"L4\", \"L5\", \"L6\"], \"date\": \"2026-10-06\", \"field_cites\": {\"date\": [\"L1\", \"L4\"], \"location\": [\"L4\"], \"participants\": [\"L2\", \"L6\"], \"status\": [\"L5\", \"L6\"], \"time\": [\"L4\"], \"title\": [\"L1\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": \"west entrance to the duck pond in Willow Park\", \"note\": null, \"participants\": [\"Alex\", \"Jen\"], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"14:00\", \"title\": \"Walk to the duck pond\", \"until\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"c1547d\", \"events\": [{\"cites\": [\"L3\", \"L4\", \"L6\"], \"date\": \"2026-10-06\", \"field_cites\": {\"date\": [\"L3\"], \"location\": [\"L3\"], \"participants\": [\"L3\"], \"status\": [\"L4\", \"L6\"], \"time\": [\"L3\"], \"title\": [\"L3\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": \"Birch Cafe\", \"note\": null, \"participants\": [\"Alex\"], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"11:00\", \"title\": \"Coffee\", \"until\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"4f9c3a\", \"events\": [{\"cites\": [\"L3\", \"L4\"], \"date\": \"2026-10-06\", \"field_cites\": {\"date\": [\"L3\"], \"note\": [\"L3\"], \"participants\": [\"L4\"], \"status\": [\"L4\"], \"time\": [\"L3\"], \"title\": [\"L3\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": null, \"note\": \"to go over Jen's job application\", \"participants\": [\"Jen\"], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"10:00\", \"title\": \"Phone call\", \"until\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"0644b3\", \"events\": [{\"cites\": [\"L3\", \"L4\"], \"date\": \"2026-10-08\", \"field_cites\": {\"date\": [\"L3\"], \"location\": [\"L3\"], \"participants\": [\"L4\"], \"status\": [\"L4\"], \"time\": [\"L3\"], \"title\": [\"L3\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": \"Juniper Cafe\", \"note\": null, \"participants\": [\"Ben\"], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"19:00\", \"title\": \"Dinner\", \"until\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}], \"reviewed\": [\"2f07a7\", \"c1547d\", \"4f9c3a\", \"0644b3\"]}",
+      "parsed": {
+        "diffs": [
+          {
+            "bundle": "2f07a7",
+            "events": [
+              {
+                "cites": [
+                  "L1",
+                  "L4",
+                  "L5",
+                  "L6"
+                ],
+                "date": "2026-10-06",
+                "field_cites": {
+                  "date": [
+                    "L1",
+                    "L4"
+                  ],
+                  "location": [
+                    "L4"
+                  ],
+                  "participants": [
+                    "L2",
+                    "L6"
+                  ],
+                  "status": [
+                    "L5",
+                    "L6"
+                  ],
+                  "time": [
+                    "L4"
+                  ],
+                  "title": [
+                    "L1"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": "west entrance to the duck pond in Willow Park",
+                "note": null,
+                "participants": [
+                  "Alex",
+                  "Jen"
+                ],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "14:00",
+                "title": "Walk to the duck pond",
+                "until": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "c1547d",
+            "events": [
+              {
+                "cites": [
+                  "L3",
+                  "L4",
+                  "L6"
+                ],
+                "date": "2026-10-06",
+                "field_cites": {
+                  "date": [
+                    "L3"
+                  ],
+                  "location": [
+                    "L3"
+                  ],
+                  "participants": [
+                    "L3"
+                  ],
+                  "status": [
+                    "L4",
+                    "L6"
+                  ],
+                  "time": [
+                    "L3"
+                  ],
+                  "title": [
+                    "L3"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": "Birch Cafe",
+                "note": null,
+                "participants": [
+                  "Alex"
+                ],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "11:00",
+                "title": "Coffee",
+                "until": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "4f9c3a",
+            "events": [
+              {
+                "cites": [
+                  "L3",
+                  "L4"
+                ],
+                "date": "2026-10-06",
+                "field_cites": {
+                  "date": [
+                    "L3"
+                  ],
+                  "note": [
+                    "L3"
+                  ],
+                  "participants": [
+                    "L4"
+                  ],
+                  "status": [
+                    "L4"
+                  ],
+                  "time": [
+                    "L3"
+                  ],
+                  "title": [
+                    "L3"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": null,
+                "note": "to go over Jen's job application",
+                "participants": [
+                  "Jen"
+                ],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "10:00",
+                "title": "Phone call",
+                "until": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "0644b3",
+            "events": [
+              {
+                "cites": [
+                  "L3",
+                  "L4"
+                ],
+                "date": "2026-10-08",
+                "field_cites": {
+                  "date": [
+                    "L3"
+                  ],
+                  "location": [
+                    "L3"
+                  ],
+                  "participants": [
+                    "L4"
+                  ],
+                  "status": [
+                    "L4"
+                  ],
+                  "time": [
+                    "L3"
+                  ],
+                  "title": [
+                    "L3"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": "Juniper Cafe",
+                "note": null,
+                "participants": [
+                  "Ben"
+                ],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "19:00",
+                "title": "Dinner",
+                "until": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          }
+        ],
+        "reviewed": [
+          "2f07a7",
+          "c1547d",
+          "4f9c3a",
+          "0644b3"
+        ]
+      },
+      "echoed": [
+        "2f07a7",
+        "c1547d",
+        "4f9c3a",
+        "0644b3"
+      ],
+      "routed": [
+        {
+          "id": "2f07a7",
+          "entity": "thread:imessage:Park pals",
+          "label": "Park pals",
+          "lines": 6
+        },
+        {
+          "id": "c1547d",
+          "entity": "person:Alex",
+          "label": "Alex",
+          "lines": 6
+        },
+        {
+          "id": "4f9c3a",
+          "entity": "person:Jen",
+          "label": "Jen",
+          "lines": 5
+        },
+        {
+          "id": "0644b3",
+          "entity": "person:Ben",
+          "label": "Ben",
+          "lines": 5
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "chatcmpl-01a125fc-e716-73e9-bdc7-4251f4854835",
+      "run_id": 1,
+      "stage": "sweep",
+      "label": "state review",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-06T03:00:00-04:00",
+      "max_tokens": 16411,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 822,
+        "completion_tokens": 847,
+        "cached_tokens": 0,
+        "reasoning_tokens": 826,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "You are reviewing the state of a personal memory system right after a batch of writes.\nYou are not adding anything new. You are looking for damage:\n\n  duplicate    two rows that are plainly the same event -> drop the worse-worded one\n  junk         a row or fact that should never have been stored (banter, affection,\n               newsletter events, facts about software, other people's opinions)\n  contradiction  two rows that cannot both be true -> raise a question\n\nA booking that was really made and then called off is a `declined` row, not a duplicate\nor junk. Both rows stay. This summary has no source evidence, so it cannot authorize a\nstatus correction. Leave corrections to Merge and Apply, which can compare source lines.\n\nKEYS ARE OPAQUE\nA row's key is an identifier, not data. It is minted once from the title and the date\nthe row was first seen, and it never changes afterwards — so a row that moved to a new\ndate keeps its original suffix, and `beer-garden@2026-08-01` dated 2026-08-02 is a row\nthat moved, working exactly as intended. The date field is the truth; the key is a\nname. Never raise a question about a key disagreeing with a date.\n\nQUESTIONS ARE FOR THE USER\nEvery question you raise is shown to a person and costs them a reply. Ask only about\ntheir life — never about this system's bookkeeping, formatting, or internal\nconsistency. If the only person who could act on the answer is the system itself, it\nis not a question.\n\nBe conservative. Deleting a real row is worse than leaving a slightly awkward one.\nReturn empty arrays when the state looks fine, which is the common case.\n",
+      "suffix": "MEMCAL AFTER THIS RUN\n  phone-call@2026-10-06 | 2026-10-06 | commitment/confirmed | Phone call | 10:00 | with Jen\n  coffee@2026-10-06 | 2026-10-06 | commitment/confirmed | Coffee | 11:00 | Birch Cafe | with Alex\n  walk-to-the-duck-pond@2026-10-06 | 2026-10-06 | commitment/confirmed | Walk to the duck pond | 14:00 | west entrance to the duck pond in Willow Park | with Alex, Jen\n  dinner@2026-10-08 | 2026-10-08 | commitment/confirmed | Dinner | 19:00 | Juniper Cafe | with Ben\n\nOPEN TO-DOS\n  (none)\n\nQUESTIONS ALREADY OPEN — do not ask any of these again\n  (none)\n\nWRITES IN THIS RUN\n  inserted  2026-10-06 Walk to the duck pond [walk-to-the-duck-pond@2026-10-06]\n  inserted  2026-10-06 Coffee [coffee@2026-10-06]\n  inserted  2026-10-06 Phone call [phone-call@2026-10-06]\n  inserted  2026-10-08 Dinner [dinner@2026-10-08]\n\nReview this state.",
+      "completion": "{\"drop_events\":[],\"drop_todos\":[],\"questions\":[]}",
+      "parsed": {
+        "drop_events": [],
+        "drop_todos": [],
+        "questions": []
+      }
+    }
+  ]
+}

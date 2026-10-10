@@ -130,3 +130,10 @@ def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name)
 def test_mixed_source_reader_is_not_granted_wholesale():
     from pacbench.tool_policy import retained_tools
     assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])
+
+
+@pytest.mark.parametrize('names',[None,[],[None],['memcal_open',1],['memcal*'],'memcal_open'])
+def test_malformed_native_schemas_fail_closed(names):
+    from pacbench.tool_policy import retained_tools
+    with pytest.raises(ValueError):
+        retained_tools(names)

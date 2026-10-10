@@ -1,0 +1,106 @@
+{
+  "state": "complete",
+  "plan_hash": "577344490a7363e929dda71d9d1408d1b65460b33a8d0aae2c5dbe1098013dd0",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E1"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791638753719,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E1  Walk to the duck pond\n\nwhen: Tuesday 6 October 2026 at 14:00\nstate: You're not going\nwhere: west entrance to the duck pond in Willow Park\nwho: Alex, Jen\nsource: thread:imessage:Park pals\n\nsources (10 line(s); * = what the row was built from):\n  — Tue Oct 6, 2026 07:20 · iMessage with Park pals —\n * [27] Park pals · Tue 6 Oct 07:20 · me: all good, yeah let's just leave it for another day\n  — Mon Oct 5, 2026 17:00 · iMessage with Park pals · -1 days later —\n * [1] Park pals · Mon 5 Oct 17:00 · me: anyone want to walk to the duck pond tomorrow?\n   [2] Park pals · Mon 5 Oct 17:04 · Alex: yes please, I'm going stir crazy in here\n   [3] Park pals · Mon 5 Oct 17:08 · Jen: lol same, I ate way too much at lunch\n * [4] Park pals · Mon 5 Oct 17:12 · Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\n * [5] Park pals · Mon 5 Oct 17:16 · me: yeah that works for me\n * [6] Park pals · Mon 5 Oct 17:20 · Jen: yeah that works, I'll bring coffee\n  — Tue Oct 6, 2026 07:00 · iMessage with Park pals · 1 day later —\n   [24] Park pals · Tue 6 Oct 07:00 · me: ugh so groggy this morning\n * [25] Park pals · Tue 6 Oct 07:06 · Jen: hey guys i can’t make it today\n * [26] Park pals · Tue 6 Oct 07:13 · Alex: me too let’s just do this another day!\n\nchanges:\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Walk to the duck pond' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'west entrance to the duck pond in Willow Park' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\", \"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\n  2026-10-07T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.89,
+    "input_tokens": 6417,
+    "output_tokens": 508,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "tuesday-cancelled",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "agreed-another-day",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "no-replacement-date",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "tuesday-cancelled",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "agreed-another-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "no-replacement-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

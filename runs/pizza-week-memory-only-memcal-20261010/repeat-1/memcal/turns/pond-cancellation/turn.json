@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-07T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat happened with the duck pond yesterday, and did we pick another day?",
+  "at": "2026-10-07T09:00:00-04:00",
+  "answer": "Yesterday's 2pm walk to the duck pond didn't happen — Jen said at 7:06am she couldn't make it, Alex said at 7:13am same, and you agreed to leave it for another day.\n\nNo new day was picked.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E1"
+      },
+      "timestamp": 1791638753719
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E1  Walk to the duck pond\n\nwhen: Tuesday 6 October 2026 at 14:00\nstate: You're not going\nwhere: west entrance to the duck pond in Willow Park\nwho: Alex, Jen\nsource: thread:imessage:Park pals\n\nsources (10 line(s); * = what the row was built from):\n  — Tue Oct 6, 2026 07:20 · iMessage with Park pals —\n * [27] Park pals · Tue 6 Oct 07:20 · me: all good, yeah let's just leave it for another day\n  — Mon Oct 5, 2026 17:00 · iMessage with Park pals · -1 days later —\n * [1] Park pals · Mon 5 Oct 17:00 · me: anyone want to walk to the duck pond tomorrow?\n   [2] Park pals · Mon 5 Oct 17:04 · Alex: yes please, I'm going stir crazy in here\n   [3] Park pals · Mon 5 Oct 17:08 · Jen: lol same, I ate way too much at lunch\n * [4] Park pals · Mon 5 Oct 17:12 · Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\n * [5] Park pals · Mon 5 Oct 17:16 · me: yeah that works for me\n * [6] Park pals · Mon 5 Oct 17:20 · Jen: yeah that works, I'll bring coffee\n  — Tue Oct 6, 2026 07:00 · iMessage with Park pals · 1 day later —\n   [24] Park pals · Tue 6 Oct 07:00 · me: ugh so groggy this morning\n * [25] Park pals · Tue 6 Oct 07:06 · Jen: hey guys i can’t make it today\n * [26] Park pals · Tue 6 Oct 07:13 · Alex: me too let’s just do this another day!\n\nchanges:\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Walk to the duck pond' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'west entrance to the duck pond in Willow Park' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\", \"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\n  2026-10-07T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 8.89,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_092550_d716b3",
+  "raw_events": 15,
+  "session_id": "20261010_092550_d716b3",
+  "stderr_full": "\nsession_id: 20261010_092550_d716b3\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_092550_d716b3\", \"timestamp\": 1791638750034}\n{\"type\": \"text\", \"text\": \"Yesterday's pond walk status — pulling the details.\", \"timestamp\": 1791638752722}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E1\"}, \"timestamp\": 1791638753719}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E1  Walk to the duck pond\\n\\nwhen: Tuesday 6 October 2026 at 14:00\\nstate: You're not going\\nwhere: west entrance to the duck pond in Willow Park\\nwho: Alex, Jen\\nsource: thread:imessage:Park pals\\n\\nsources (10 line(s); * = what the row was built from):\\n  — Tue Oct 6, 2026 07:20 · iMessage with Park pals —\\n * [27] Park pals · Tue 6 Oct 07:20 · me: all good, yeah let's just leave it for another day\\n  — Mon Oct 5, 2026 17:00 · iMessage with Park pals · -1 days later —\\n * [1] Park pals · Mon 5 Oct 17:00 · me: anyone want to walk to the duck pond tomorrow?\\n   [2] Park pals · Mon 5 Oct 17:04 · Alex: yes please, I'm going stir crazy in here\\n   [3] Park pals · Mon 5 Oct 17:08 · Jen: lol same, I ate way too much at lunch\\n * [4] Park pals · Mon 5 Oct 17:12 · Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\\n * [5] Park pals · Mon 5 Oct 17:16 · me: yeah that works for me\\n * [6] Park pals · Mon 5 Oct 17:20 · Jen: yeah that works, I'll bring coffee\\n  — Tue Oct 6, 2026 07:00 · iMessage with Park pals · 1 day later —\\n   [24] Park pals · Tue 6 Oct 07:00 · me: ugh so groggy this morning\\n * [25] Park pals · Tue 6 Oct 07:06 · Jen: hey guys i can’t make it today\\n * [26] Park pals · Tue 6 Oct 07:13 · Alex: me too let’s just do this another day!\\n\\nchanges:\\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-06T03:00  title: '' -> 'Walk to the duck pond' (by dream:nightly:born)\\n  2026-10-06T03:00  location: '' -> 'west entrance to the duck pond in Willow Park' (by dream:nightly:born)\\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\\n  2026-10-06T03:00  participants: '' -> '[\\\"Alex\\\", \\\"Jen\\\"]' (by dream:nightly:born)\\n  2026-10-06T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\\n  2026-10-07T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\\n\", \"duration_ms\": 12, \"is_error\": false, \"timestamp\": 1791638753730}\n{\"type\": \"text\", \"text\": \"\\n\\nYesterday's 2pm walk to\", \"timestamp\": 1791638756981}\n{\"type\": \"text\", \"text\": \" the duck pond didn't\", \"timestamp\": 1791638757005}\n{\"type\": \"text\", \"text\": \" happen —\", \"timestamp\": 1791638757030}\n{\"type\": \"text\", \"text\": \" Jen said at\", \"timestamp\": 1791638757057}\n{\"type\": \"text\", \"text\": \" 7:06am\", \"timestamp\": 1791638757083}\n{\"type\": \"text\", \"text\": \" she couldn't make it, Alex said\", \"timestamp\": 1791638757108}\n{\"type\": \"text\", \"text\": \" at 7:13am same\", \"timestamp\": 1791638757137}\n{\"type\": \"text\", \"text\": \", and\", \"timestamp\": 1791638757161}\n{\"type\": \"text\", \"text\": \" you agreed\", \"timestamp\": 1791638757186}\n{\"type\": \"text\", \"text\": \" to leave it for another day.\\n\\nNo new day was picked.\\n\", \"timestamp\": 1791638757216}\n{\"type\": \"result\", \"session_id\": \"20261010_092550_d716b3\", \"exit_code\": 0, \"text\": \"Yesterday's 2pm walk to the duck pond didn't happen — Jen said at 7:06am she couldn't make it, Alex said at 7:13am same, and you agreed to leave it for another day.\\n\\nNo new day was picked.\", \"tokens\": {\"input\": 6417, \"output\": 508, \"total\": 17519, \"cache_read\": 10594, \"cache_write\": 0}, \"duration_ms\": 7250, \"timestamp\": 1791638757284}",
+  "session_input_tokens": 6417,
+  "session_output_tokens": 508,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-07T09:00:00-04:00 [id=47f39126e26588d992ad0a9a943191260a6c331b] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Wednesday 7 October 2026)\n〔E3〕 · Tue Oct 6  \"Phone call\", 10am — was planned; attendance unknown · with Jen\n〔E2〕 · Tue Oct 6  \"Coffee\", 11am — was planned; attendance unknown · with Alex\n〔E1〕 · Tue Oct 6  \"Walk to the duck pond\", 2pm — not going · with Alex, Jen\n〔E4〕 Sat Oct 10  \"Dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-04 – 2026-11-06; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-0om8jt8_",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-0om8jt8_",
+    "system_prompt_sha256": "682a412a46b181ee0e188daf107aa7120eb87780e486d18cab7df442e98fb3be",
+    "reason": "No project context in native saved system prompt"
+  }
+}

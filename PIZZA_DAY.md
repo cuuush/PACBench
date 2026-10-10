@@ -1,58 +1,60 @@
 # Current Pizza Week diagnostic
 
-The latest run is [pizza-week-context-memcal-verified-20261010](runs/pizza-week-context-memcal-verified-20261010/summary.json): 72 messages, 13 low-noise scenes and 12 factual questions, using Memcal 0.8.2 plus product fixes on `main`. All twelve answers pass. Retention is **39/46 points**, with **19 Hermes tool calls**. Preparation and native trace audits pass. These are development diagnostics, not calibrated rankings.
+Latest run: [pizza-week-memory-only-memcal-20261010](runs/pizza-week-memory-only-memcal-20261010/summary.json). The frozen week has **72 messages, 13 scenes and 12 checks**. Memcal passes **11/12**, earns **44/46 retention points**, and makes **14 Hermes tool calls**. No archive/source-reader attempts or follow-ups occur. Preparation and native integrity audits pass.
 
 | Check | Answer | Retention | Hermes tools |
 | --- | --- | ---: | ---: |
-| Initial duck-pond plan | Pass | 7/7 | 2 |
-| Unnamed group cancellation | Pass | 0/3 | 5 |
-| Separate Jen call and Alex coffee | Pass | 0/2 | 2 |
+| Initial duck-pond plan | Pass | 7/7 | 1 |
+| Unnamed group cancellation | Pass | 3/3 | 1 |
+| Separate Jen call and Alex coffee | Pass | 2/2 | 2 |
 | Ben dinner count | Pass | 1/1 | 0 |
 | Ben dinner after email reschedule | Pass | 3/3 | 1 |
 | Initial pizza count | Pass | 1/1 | 0 |
-| Initial pizza details | Pass | 10/10 | 2 |
+| Initial pizza details | Pass | 10/10 | 3 |
 | Updated pizza count | Pass | 1/1 | 0 |
 | Updated pizza details | Pass | 11/11 | 2 |
-| Leo shift cover | Pass | 0/2 | 3 |
+| Leo shift cover | Fail | 0/2 | 2 |
 | Fresh-session Devon venue | Pass | 2/2 | 1 |
 | Fresh-session Ben dinner | Pass | 3/3 | 1 |
 
-Source fallback loses retention credit even when the answer is right. The pond cancellation used archive search and a conversation read. The appointment question shares that assistant session and inherits its source access. Leo's shift-cover explanation also used original-message tools. No follow-up was needed in the final run. Only the provider's exact shipped tools were offered; no built-in filesystem, shell, browser or session-search tools were available.
+## What changed
 
-## Native state and realism review
+Memcal product commit [495452d](https://github.com/cuuush/memcal/commit/495452d), pushed to `main`, removes the clock-only inference that elapsed confirmed or tentative appointments happened. Past plans retain their agreed status and say attendance is unconfirmed. Person encounter counts also require occurrence evidence. The nightly pass repairs older changes specifically attributed to `code:past` when no later status evidence supersedes them; explicit observations and attendance confirmations remain intact. Unsupported older rows without attributable history are not rewritten.
 
-Monday creates four separate events: the pond outing, Jen's phone call, Alex's coffee and Ben's dinner. Tuesday's group messages say only “hey guys i can’t make it today” and “me too let’s just do this another day!”, followed by the owner's agreement. They name neither the outing nor the separate appointments. Native processing cancels only the pond outing, without inventing a replacement date.
+The native Tuesday snapshot now leaves Jen's 10 am call and Alex's 11 am coffee `confirmed`, while declining only the pond outing. Hermes says they “still show as planned, with nothing about them being cancelled.” It no longer claims they happened.
 
-Ben's iMessage plan is dinner Thursday at 7 pm at Juniper Cafe. His email asks “hey can we move our dinner to another day?”; the replies settle Saturday, “same time” and “same place”. The native reader associates two distinct accounts using a standard Contacts card. Before Hermes answers, one event has moved to Saturday while retaining 7 pm and Juniper Cafe. A fresh Saturday session recalls that plan correctly. The two Friday pizza outings also remain separate, and the Maya/Leo time and venue corrections survive.
+Recall uses `retained-memory-only-v1`: only an exact subset of provider-shipped tools is offered. Archive search, source opening, conversation history and message activity are disabled. Dispatch blocks excluded tools before execution, and an attempt fails the check even if the answer is right. Native event/page payloads are unchanged and may include attached source citations. This measures retained memory and its attached evidence; it is not a facts-only storage test. The UI shows the grant and excluded tools.
 
-The source messages do not establish attendance at the call or coffee. Memcal automatically ages past appointments to `happened`; Hermes says they “show as happened”. This test judges whether they were cancelled, not whether they actually occurred. Keep that distinction when inspecting the output. The corpus is a small synthetic stress test with minimal chatter, not a claim of full real-world coverage.
+## Why Leo still fails
 
-Messages use a provider-independent Apple Messages SQLite fixture, realistic sender/thread/time metadata and a separate Contacts source. Email uses RFC 5322 messages, Inbox/Sent folders and real TLS IMAP against Memcal's native reader. The IMAP fixture implements the text-reading protocol needed here; it is not Proton Bridge or a full email server. No reader methods are replaced, no facts are seeded, and Hermes does no ingestion. Normal nightly processing runs at 03:00 America/New_York; questions never see future batches. Named assistant conversations share context, with separate fresh sessions for later checks.
+Hermes answers: “I don't see anything about Leo's shift — nothing stored on that.” It calls `memcal_search_wiki` and `memcal_open`, with no archive fallback. Neither expected claim appears in the answer, so the check fails without a follow-up.
 
-Before benchmarking, source review caught drafts that repeated the restaurant or added explicit appointment reminders to the group cancellation. Those drafts were replaced. The final frozen corpus preserves contextual references. Preparation also rejected overbroad count and yes/no grading requirements; expectations now match the questions' natural scope.
+The real reader ingested the messages. Extraction saved the pizza plan and its updates, but left notes/wiki empty and omitted the shift-cover explanation from the event evidence exposed to Hermes. Leo remains in the event's participant list; that fact was retained, even though this answer does not restate it. The missing cover explanation is a retention/extraction problem, rather than a source-delivery failure.
 
-## Fixes, control and costs
+The pond cancellation is different: one ordinary event open exposes the declined state and attached cancellation evidence. Hermes answers it correctly without archive search. Its earlier fallback was unnecessary.
 
-Memcal commits [`98f1a8e`](https://github.com/cuuush/memcal/commit/98f1a8e) and [`4328c64`](https://github.com/cuuush/memcal/commit/4328c64), pushed to `main`, fix distinct same-day occasion merging and an uncited time-only nightly diff restoring an old venue. Product verification: 2477 unittest cases, 39 skipped; 400/400 temporal integration checks.
+## Realism and comparison
 
-The [unchanged control](runs/pizza-week-memcal-verified-20261010/development-review.json) reruns the original 42 messages and six questions: **6/6 answer passes, 28/30 retention points, eight tool calls**. Its source bundle hash is unchanged. Leo's explanation remains the source-fallback failure. The expanded corpus has a different set of criteria, so its denominator is not directly comparable.
+The same source bundle, prompts and criteria were replayed from fresh stores; no writer or verifier regenerated the messages. Bundle hash: `217e2b265c9df7a56192dc06955f5db6afa8ada24b13177b3868dd2a1c8236e4`.
 
-The first expanded attempt exposed a harness error: a safe follow-up review listed both missing fact IDs in reverse order, and validation rejected it before Hermes received the message. Coverage validation now accepts either order while rejecting omissions, duplicates and extra IDs. The unchanged corpus was rerun from fresh stores. The [development review](runs/pizza-week-context-memcal-verified-20261010/development-review.json) preserves the concrete rejected review and final result. All **192 harness tests** pass. Superseded runs and duplicate preparation were deleted.
+The week includes a pond plan cancelled through unnamed group messages, separate same-day appointments with those participants, Ben's dinner rescheduled from iMessage through email, and two distinct pizza outings with time/venue changes. Native processing cancels only the pond outing, keeps the separate appointments, moves one Ben dinner to Saturday at 7 pm at Juniper Cafe, and preserves the two pizza identities and corrections. Initial pizza details also include Ben's true Saturday dinner as an extra; expected pizza facts are correct, and the extra lookup counts toward tool effort.
 
-Every inference request used Spark Contributor through the capped gateway. The final accounted upper bound is **$5.66 total / $4.75 today**, including retained unknown reservations, below the $10 total and $5 daily caps. The final run's captured memory-provider work used 12 model requests, 35,799 input and 34,073 output tokens, accounting for $0.0104. Hermes used 31 model requests, 249,577 input and 8,174 output tokens, accounting for $0.0266; this includes normal agent overhead. Judging is logged separately. Aggregate requests and token windows do not establish an exact price for an individual tool call. Native backend cost fields reporting zero are not used as evidence of free inference.
+The prior source-enabled run had 12/12 correct answers, 39/46 retention points and 19 tool calls. Its archive-assisted Leo answer received no retention credit. The current condition blocks that route and exposes the missed answer. A single fresh extraction under a different tool condition is not a causal accuracy ranking. [Development review](runs/pizza-week-memory-only-memcal-20261010/development-review.json) records the comparison and diagnosis; superseded run folders are removed.
+
+Apple Messages SQLite fixtures and separate Contacts are provider-independent. Email uses RFC 5322 messages, distinct contact-linked accounts and real TLS IMAP against Memcal's native reader. No source reader is replaced, no facts are seeded, and Hermes does no ingestion. Nightly processing runs at 03:00 America/New_York; questions cannot see future batches. Named conversations preserve Hermes context, while separate sessions test later recall. This remains a small low-noise synthetic diagnostic; the text-only IMAP fixture is not a full consumer email server.
+
+## Validation and costs
+
+All **204 harness tests**, **2478 Memcal unittest cases** (39 skipped), and **400/400 temporal integration checks** pass. Preparation and native trace audits pass. These checks establish implementation/trace integrity, not calibrated provider accuracy.
+
+All inference used Spark Contributor through the capped gateway. Accounted upper bounds are **$5.70 total / $4.78 today**, including retained unknown reservations, below the $10 total and $5 daily caps. This replay added about **$0.035**. Captured provider work: 12 model requests, 35,878 input and 32,042 output tokens, $0.0100. Hermes: 28 requests, 190,641 input and 7,571 output tokens, $0.0206. All 40 provider/Hermes requests settled with known token counts; judging is logged separately. Request and turn windows do not establish the exact causal cost of an individual tool.
 
 ## Inspect and reuse
 
-The explorer reads public evidence directly from `runs/`: messages, native daily ingestion, actual answers and tool results, expected criteria, judge decisions and model usage. Private homes, databases, credentials and encrypted replay remain ignored. The current run and necessary unchanged control ship with Git.
+Public sources, criteria, answers, tool results, native processing and judges live directly in `runs/`. Private homes, databases, credentials and encrypted artifacts remain ignored. On your Mac, pull `work`, run `python3 serve_explorer.py`, and open:
 
-On your Mac, pull `work`, then:
+`http://localhost:8137/?run=pizza-week-memory-only-memcal-20261010&day=2026-10-09&provider=memcal-repeat-1`
 
-```sh
-python3 serve_explorer.py
-```
+The latest evidence ships with Git and displays without private runtime stores. Cloud localhost is separate from your Mac. Reuse [preparation/week.json](runs/pizza-week-memory-only-memcal-20261010/preparation/week.json) without generating messages again. Native re-auditing requires the private runtime files; saved audit results remain visible in a fresh checkout.
 
-Open `http://localhost:8137/?run=pizza-week-context-memcal-verified-20261010&day=2026-10-07&provider=memcal-repeat-1`. Cloud localhost is separate from your Mac. Fresh checkouts display the saved public evidence without private native stores.
-
-Reuse [preparation/week.json](runs/pizza-week-context-memcal-verified-20261010/preparation/week.json) to run the exact corpus without writer or verifier calls. Native re-auditing requires the private runtime files; the saved audit and public traces remain inspectable after checkout.
-
-Next, diagnose the remaining source-fallback paths in Memcal's retained change context and normal retrieval surface. Keep this frozen low-noise week as the control. After that, increase conversation noise gradually by about 100 messages and freeze that next corpus once; do not regenerate it for each provider run.
+Next: investigate general retention of event-related explanations and change context in Memcal, using this frozen failure. Do not insert expected facts or special-case Leo. Keep the corpus small until that behavior is understood, then add about 100 realistic noise messages and freeze that next corpus once.

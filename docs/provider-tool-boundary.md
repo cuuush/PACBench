@@ -22,7 +22,7 @@ receive their normal fact judgments and natural omission recovery rules.
 `tool-policy.json` records allowed and blocked source tools.
 `context.jsonl.tools.jsonl` records actual schemas exposed each turn. The native
 audit verifies these against the provider's discovered schemas and saved calls.
-Older comparison runs retain their recorded `provider-only-v1` condition.
+Superseded development runs are removed.
 
 This is an agent tool boundary, not OS isolation. Native provider internals may
 read files, run subprocesses and call models. The gateway still meters inference;

@@ -113,8 +113,9 @@ function dayTimeline(run) {
     '</div><p class="muted">The original conversations, grouped by the day they were written.</p>' + texts + '</section>' +
     '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' turns') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
     '</div>' + (arm ? '<p class="muted">' + 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' + '</p>' : '') +
+    (arm?.tool_policy?.version === 'retained-memory-only-v1' ? '<p class="muted">Archive and original-message tools are disabled. Native event/page citations remain available.</p>' : '') +
     (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : event.kind==='status' ? checkStatus(run,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
     (!events.length && planned.length ? details('Planned questions and criteria',renderContract({...run,evaluations:planned})) : '') +
-    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,evaluation_context:run.summary?.evaluation_context})) : '') +
+    (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,tool_policy:arm.tool_policy,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,evaluation_context:run.summary?.evaluation_context})) : '') +
     '</section></div>';
 }

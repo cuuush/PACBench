@@ -1,0 +1,23 @@
+{
+  "checkpoint": "ben-one-dinner",
+  "question": "[Simulated now: 2026-10-07T09:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many dinner plans did Ben and I settle on this week?",
+  "answer": "One — Dinner Saturday Oct 10 at 7pm, confirmed.",
+  "claims": [
+    {
+      "id": "dinner-count",
+      "description": "Me and Ben settled on one dinner occasion.",
+      "evidence": [
+        "pizza-week-twists-low/ben-dinner-02",
+        "pizza-week-twists-low/ben-dinner-03",
+        "pizza-week-twists-low/ben-email-reschedule-00",
+        "pizza-week-twists-low/ben-email-reschedule-01",
+        "pizza-week-twists-low/ben-email-reschedule-02",
+        "pizza-week-twists-low/ben-email-reschedule-03"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-07T09:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many dinner plans did Ben and I settle on this week?\nAnswer: One — Dinner Saturday Oct 10 at 7pm, confirmed.\nClaims (hidden from the assistant): [{\"id\": \"dinner-count\", \"claim\": \"Me and Ben settled on one dinner occasion.\", \"evidence\": [\"pizza-week-twists-low/ben-dinner-02\", \"pizza-week-twists-low/ben-dinner-03\", \"pizza-week-twists-low/ben-email-reschedule-00\", \"pizza-week-twists-low/ben-email-reschedule-01\", \"pizza-week-twists-low/ben-email-reschedule-02\", \"pizza-week-twists-low/ben-email-reschedule-03\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"dinner-count\", \"verdict\": \"correct\", \"reason\": \"Answer states 'One \\u2014 Dinner Saturday Oct 10 at 7pm, confirmed.'\"}], \"recovery\": [{\"id\": \"dinner-count\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/runs/pizza-week-memory-only-memcal-20261010/model-calls/130f0526f9ef8ecc7c03d537fced5ff3b6690ca001ba6dbf06c00190dacaebba.json"
+}

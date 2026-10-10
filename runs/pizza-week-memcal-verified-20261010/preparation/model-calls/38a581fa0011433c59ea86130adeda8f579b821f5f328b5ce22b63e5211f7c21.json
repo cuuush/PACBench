@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-07T20:47:27.077870+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-08. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-07 Me: ugh today dragged forever\n2026-10-07 Maya: tell me about it, I'm starving\n2026-10-07 Me: we still doing pizza Friday at 7pm?\n2026-10-07 Maya: yes please. Rosa's on Oak Street?\n2026-10-07 Me: yeah that works, their crust is the best\n2026-10-07 Maya: perfect, see you at 7 then\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: In the existing DM, Maya asks: about tomorrow, can we do 5 pm instead? They rely on their chat history.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The user agrees to move the existing Maya outing to 5 pm; its day and restaurant stay the same.\n\nLet the people sound like people. They can ramble about an ordinary day, drift into the main topic, and sometimes change subject. Some messages should have nothing to do with tested facts. Do not force a joke or use the same greeting pattern in every thread. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 4 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ac6afdf824b7a5e1fbf4e0c",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791406031.0,
+    "completed_at": 1791406047.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ac6afdf824b7a5e1fbf4e0c:rs_01a1181ec1c774049cd25f051be29ddd",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a fictional iMessage conversation between two speakers within a specified time window using prior context."
+          },
+          {
+            "type": "summary_text",
+            "text": "Constraining message content to implicit acceptance and natural casual date references without explicit recital."
+          },
+          {
+            "type": "summary_text",
+            "text": "Generating a two-line dialogue with a time-only change and a brief writer note."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the dialogue with a new opener, time-only change, and consistent evening timestamps."
+          },
+          {
+            "type": "summary_text",
+            "text": "Formatting the output as JSON with dialogue and writer_note fields while enforcing speaker labels and sentence limits"
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a1181efc037762a7c9475b4bd18807",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: finally home, today was chaos\\nMe: same, I'm wiped\\nMaya: btw about tomorrow, can we do 5pm instead? I have something later that night\\nMe: yeah 5 works for me\\nMaya: perfect thank youu\", \"writer_note\": \"Opened with tired-evening small talk to fit the 6pm window and bridge the day gap, then had Maya change only the time so Friday and Rosa's carry over from history without recapping.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 653,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2197,
+      "output_tokens_details": {
+        "reasoning_tokens": 1968
+      },
+      "total_tokens": 2850
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: finally home, today was chaos\\nMe: same, I'm wiped\\nMaya: btw about tomorrow, can we do 5pm instead? I have something later that night\\nMe: yeah 5 works for me\\nMaya: perfect thank youu\", \"writer_note\": \"Opened with tired-evening small talk to fit the 6pm window and bridge the day gap, then had Maya change only the time so Friday and Rosa's carry over from history without recapping.\"}",
+  "usage": {
+    "input_tokens": 653,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2197,
+    "output_tokens_details": {
+      "reasoning_tokens": 1968
+    },
+    "total_tokens": 2850
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

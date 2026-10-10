@@ -5,8 +5,8 @@ PACBench measures whether Hermes can answer questions using a local memory provi
 Use Spark Contributor through `/workspace/muse-gateway`. All authoring, judging, agent and provider inference share a $10 task cap and $5 per UTC day cap. Unknown charges remain reserved. Never route around the gateway.
 
 ```sh
-python -m pacbench.prepare weeks/pizza_day.json --output runs/pizza-prepared
-python -m pacbench.native_pilot --prepared runs/pizza-prepared --providers mem0 --output runs/pizza-current
+python -m pacbench.prepare weeks/pizza_week.json --week-start 2026-10-05 --output runs/pizza-prepared
+python -m pacbench.native_pilot --prepared runs/pizza-prepared/week.json --providers memcal --output runs/pizza-current
 python -m pacbench.native_audit runs/pizza-current
 python serve_explorer.py
 ```

@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-10T10:54:07.942197+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Identify independently assessable factual claims that cover every detail required by the test intent, and nothing else. The test intent is the complete expectation; dialogue supplies evidence, not extra requirements. Do not require incidental names, dates, times, venues or streets absent from the expectation. Separate details that an answer could get right or wrong independently, such as a date and a time, or a venue name and its street. Resolve relative days from each message's written timestamp where the dialogue makes that clear. Cite exact dialogue source IDs (including any assistant-user: prefix) for each. A proposed plan is different from an agreed plan. Do not include scenario details absent from the dialogue. Return only JSON: {\"claims\":[{\"id\":\"short-id\",\"statement\":\"current fact\",\"evidence\":[\"source-id\"]}]}.\n\nPrivate scenario: Available source dialogue\nTest intent: Two separate pizza outings.\nFrozen dialogue:\npizza-week-twists-low/pond-invite-00 | written 2026-10-05T17:00:00-04:00 | Me: anyone want to walk to the duck pond tomorrow?\npizza-week-twists-low/pond-invite-01 | written 2026-10-05T17:04:00-04:00 | Alex: yes please, I'm going stir crazy in here\npizza-week-twists-low/pond-invite-02 | written 2026-10-05T17:08:00-04:00 | Jen: lol same, I ate way too much at lunch\npizza-week-twists-low/pond-invite-03 | written 2026-10-05T17:12:00-04:00 | Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\npizza-week-twists-low/pond-invite-04 | written 2026-10-05T17:16:00-04:00 | Me: yeah that works for me\npizza-week-twists-low/pond-invite-05 | written 2026-10-05T17:20:00-04:00 | Jen: yeah that works, I'll bring coffee\npizza-week-twists-low/jen-call-00 | written 2026-10-05T17:25:00-04:00 | Me: ugh finally home, today was endless\npizza-week-twists-low/jen-call-01 | written 2026-10-05T17:30:00-04:00 | Jen: same, I'm just throwing dinner together\npizza-week-twists-low/jen-call-02 | written 2026-10-05T17:35:00-04:00 | Me: can we do a quick phone call Tuesday at 10 am to go over your job application?\npizza-week-twists-low/jen-call-03 | written 2026-10-05T17:40:00-04:00 | Jen: yeah that works, thank you!\npizza-week-twists-low/jen-call-04 | written 2026-10-05T17:45:00-04:00 | Me: perfect, talk then\npizza-week-twists-low/alex-coffee-00 | written 2026-10-05T17:50:00-04:00 | Me: finally home that bus was so slow\npizza-week-twists-low/alex-coffee-01 | written 2026-10-05T17:54:00-04:00 | Alex: ugh monday buses are the worst\npizza-week-twists-low/alex-coffee-02 | written 2026-10-05T17:58:00-04:00 | Me: want to grab coffee tomorrow just us two before you go to work? not the group thing\npizza-week-twists-low/alex-coffee-03 | written 2026-10-05T18:02:00-04:00 | Alex: yes please I need it\npizza-week-twists-low/alex-coffee-04 | written 2026-10-05T18:06:00-04:00 | Me: Birch Cafe at 11am on Tuesday?\npizza-week-twists-low/alex-coffee-05 | written 2026-10-05T18:10:00-04:00 | Alex: yeah that works, see you there\npizza-week-twists-low/ben-dinner-00 | written 2026-10-05T18:15:00-04:00 | Me: ugh finally home, today just dragged\npizza-week-twists-low/ben-dinner-01 | written 2026-10-05T18:20:00-04:00 | Ben: same, I literally just left the office\npizza-week-twists-low/ben-dinner-02 | written 2026-10-05T18:25:00-04:00 | Me: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm?\npizza-week-twists-low/ben-dinner-03 | written 2026-10-05T18:30:00-04:00 | Ben: yeah that works for me\npizza-week-twists-low/ben-dinner-04 | written 2026-10-05T18:35:00-04:00 | Me: perfect, see you there\npizza-week-twists-low/ben-email-reschedule-00 | written 2026-10-06T06:45:00-04:00 | Ben: Hi, about the dinner we arranged over iMessage yesterday, could we move it to Saturday at the same time? Please let me know if that works for you. Thanks, Ben\npizza-week-twists-low/ben-email-reschedule-01 | written 2026-10-06T07:10:00-04:00 | Me: Hi Ben, Saturday at 7 pm, same time as planned, works well for me. Happy to move it. Best regards\npizza-week-twists-low/ben-email-reschedule-02 | written 2026-10-06T07:35:00-04:00 | Ben: Thank you so much, I really appreciate it. I will see you on Saturday then. Best, Ben\npizza-week-twists-low/ben-email-reschedule-03 | written 2026-10-06T08:00:00-04:00 | Me: You are welcome. Looking forward to seeing you Saturday. Best regards\npizza-week-twists-low/pond-called-off-00 | written 2026-10-06T07:00:00-04:00 | Me: ugh morning, barely slept lol\npizza-week-twists-low/pond-called-off-01 | written 2026-10-06T07:02:51-04:00 | Jen: hey guys i can’t make it today\npizza-week-twists-low/pond-called-off-02 | written 2026-10-06T07:05:42-04:00 | Alex: me too let’s just do this another day!\npizza-week-twists-low/pond-called-off-03 | written 2026-10-06T07:08:34-04:00 | Me: yeah let's leave it for another day then, no worries\npizza-week-twists-low/pond-called-off-04 | written 2026-10-06T07:11:25-04:00 | Me: Jen our call later is still on tho right?\npizza-week-twists-low/pond-called-off-05 | written 2026-10-06T07:14:17-04:00 | Jen: yep call is still on\npizza-week-twists-low/pond-called-off-06 | written 2026-10-06T07:17:08-04:00 | Me: Alex we're still on for coffee?\npizza-week-twists-low/pond-called-off-07 | written 2026-10-06T07:20:00-04:00 | Alex: yep coffee is still on!\npizza-week-twists-low/devon-invite-00 | written 2026-10-07T18:00:00-04:00 | Me: ugh just got home, starving\npizza-week-twists-low/devon-invite-01 | written 2026-10-07T18:04:00-04:00 | Devon: same lol long day. want to get pizza Friday at 6pm?\npizza-week-twists-low/devon-invite-02 | written 2026-10-07T18:08:00-04:00 | Me: yeah that works\npizza-week-twists-low/devon-invite-03 | written 2026-10-07T18:12:00-04:00 | Devon: cool, Luigi's on 5th Street?\npizza-week-twists-low/devon-invite-04 | written 2026-10-07T18:16:00-04:00 | Me: yes please, I've been craving their garlic knots\npizza-week-twists-low/devon-invite-05 | written 2026-10-07T18:20:00-04:00 | Devon: haha same, see you then\npizza-week-twists-low/maya-invite-00 | written 2026-10-07T18:25:00-04:00 | Me: ugh today dragged forever\npizza-week-twists-low/maya-invite-01 | written 2026-10-07T18:29:00-04:00 | Maya: tell me about it, I'm starving\npizza-week-twists-low/maya-invite-02 | written 2026-10-07T18:33:00-04:00 | Me: we still doing pizza Friday at 7pm?\npizza-week-twists-low/maya-invite-03 | written 2026-10-07T18:37:00-04:00 | Maya: yes please. Rosa's on Oak Street?\npizza-week-twists-low/maya-invite-04 | written 2026-10-07T18:41:00-04:00 | Me: yeah that works, their crust is the best\npizza-week-twists-low/maya-invite-05 | written 2026-10-07T18:45:00-04:00 | Maya: perfect, see you at 7 then\npizza-week-twists-low/leo-joins-00 | written 2026-10-07T18:50:00-04:00 | Maya: hey Leo are you free Friday?\npizza-week-twists-low/leo-joins-01 | written 2026-10-07T18:54:00-04:00 | Leo: hey! yeah I should be free, what's going on\npizza-week-twists-low/leo-joins-02 | written 2026-10-07T18:58:00-04:00 | Maya: I already made plans with Me to grab pizza at Rosa's on Oak Street at 7 pm, want to join us?\npizza-week-twists-low/leo-joins-03 | written 2026-10-07T19:02:00-04:00 | Me: yes come! I need backup so Maya doesn't steal all my garlic knots lol\npizza-week-twists-low/leo-joins-04 | written 2026-10-07T19:06:00-04:00 | Leo: lol yeah that works, I'm in\npizza-week-twists-low/leo-joins-05 | written 2026-10-07T19:10:00-04:00 | Maya: yesss perfect, it's been such a long day I need pizza already\nassistant-user:pond-initial | written 2026-10-06T06:00:00-04:00 | Me: [assistant session tuesday-early] What's the plan for the duck pond today?\nassistant-user:pond-cancellation | written 2026-10-07T09:00:00-04:00 | Me: [assistant session wednesday-recap] Did we end up calling off the duck pond yesterday?\nassistant-user:separate-appointments | written 2026-10-07T09:02:00-04:00 | Me: [assistant session wednesday-recap] Did that change my call with Jen or coffee with Alex too?\nassistant-user:ben-moved | written 2026-10-07T09:04:00-04:00 | Me: [assistant session wednesday-recap] What's the latest plan for dinner with Ben?\nassistant-user:initial-plan-count | written 2026-10-08T09:00:00-04:00 | Me: [assistant session thursday-morning] How many pizza plans did I make for Friday?"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a12572-dfff-7058-84f7-26750f4dc4f8",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"claims\": [{\"id\": \"pizza-1\", \"statement\": \"There is an agreed pizza outing.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"pizza-2\", \"statement\": \"There is a second separate agreed pizza outing, making two separate pizza outings in total.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791629647,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 6226,
+      "prompt_tokens": 2718,
+      "total_tokens": 8944,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6077
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"claims\": [{\"id\": \"pizza-1\", \"statement\": \"There is an agreed pizza outing.\", \"evidence\": [\"pizza-week-twists-low/devon-invite-01\", \"pizza-week-twists-low/devon-invite-02\"]}, {\"id\": \"pizza-2\", \"statement\": \"There is a second separate agreed pizza outing, making two separate pizza outings in total.\", \"evidence\": [\"pizza-week-twists-low/maya-invite-02\", \"pizza-week-twists-low/maya-invite-03\", \"pizza-week-twists-low/maya-invite-04\", \"pizza-week-twists-low/leo-joins-02\"]}]}",
+  "usage": {
+    "completion_tokens": 6226,
+    "prompt_tokens": 2718,
+    "total_tokens": 8944,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6077
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

@@ -1,0 +1,135 @@
+{
+  "claims": [
+    {
+      "id": "meet-jen",
+      "statement": "The user is meeting Jen.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "meet-alex",
+      "statement": "The user is meeting Alex.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "day-tuesday",
+      "statement": "The meeting is on Tuesday.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "time-2pm",
+      "statement": "The meeting is at 2 pm.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-west-entrance",
+      "statement": "The meeting is at the west entrance.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-duck-pond",
+      "statement": "The meeting is at the duck pond.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-willow-park",
+      "statement": "The meeting is in Willow Park.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    }
+  ],
+  "question": "What's the plan for the duck pond today?",
+  "evidence_hash": "8764ededf6e89258a89f3aa2f5f93c6fba4733d0fa50a4883b37e67c91c01944",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set provides independent atomic claims for all 7 intent details: Jen, Alex, Tuesday, 2pm, west entrance, duck pond, Willow Park.",
+    "reviews": [
+      {
+        "id": "meet-jen",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Jen accepts Tuesday 2pm pond proposal in 05, establishing attendance."
+      },
+      {
+        "id": "meet-alex",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Alex proposes and Me/Jen accept, establishing Alex attendance."
+      },
+      {
+        "id": "day-tuesday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Proposal in 03 specifies Tuesday, accepted in 04-05."
+      },
+      {
+        "id": "time-2pm",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Proposal in 03 specifies 2pm, accepted in 04-05."
+      },
+      {
+        "id": "loc-west-entrance",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Proposal in 03 specifies west entrance, accepted in 04-05."
+      },
+      {
+        "id": "loc-duck-pond",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Proposal in 03 specifies duck pond, accepted in 04-05."
+      },
+      {
+        "id": "loc-willow-park",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Proposal in 03 specifies Willow Park, accepted in 04-05."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks for duck-pond plan 'today' (2026-10-06 = Tuesday), which matches the Tuesday 2pm west-entrance Willow Park meeting agreed by Me, Alex, Jen, without stating who/when/where details. Answering the plan naturally requires all 7 facts."
+  },
+  "author_fact_count": 0,
+  "test_intent": "The user is meeting Jen and Alex Tuesday at 2 pm at the west entrance to the duck pond in Willow Park.",
+  "question_source": "supplied",
+  "question_at": "2026-10-06T06:00:00-04:00",
+  "contract_hash": "141b478f5fb170049103852b956de313125f9bfcdc5fa7f049129998e2d0c74a"
+}

@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-10T11:11:19.402946+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a natural short email exchange. Subject: Dinner. Participants: Me, Ben; Me labels the owner. Date: 2026-10-06, local time 06:45–08:00.\nScenario: Ben emails casually to ask \"hey can we move our dinner to another day?\". The user suggests Saturday, Ben accepts at the same time, and the user agrees. These are friends writing brief casual emails, without formal salutations or sign-offs. They do not explain which app they previously used, and do not restate the restaurant or old day.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Ben and the user agree to move their existing dinner to Saturday at the same time.\n2. The dinner’s venue is unchanged.\nUse 4–12 short emails. Return only valid JSON with dialogue (a string with one Name: body line per email) and writer_note (a short string about the choices). No prose or Markdown fences outside the JSON."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6aca1d57ad34353e0977419c",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791630671.0,
+    "completed_at": 1791630679.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6aca1d57ad34353e0977419c:rs_01a1258280347007bb861ba850fa4ab3",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a brief casual email exchange between friends that confirms agreement on rescheduling dinner to Saturday at the same time."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating JSON structure and casual tone constraints while enforcing no restaurant or day restatement."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting four casual email lines with 'same place' to confirm Saturday and time without naming the venue or old day."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a125829c5d733d88060aef87a76979",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Ben: hey can we move our dinner to another day?\\nMe: yeah totally, what about Saturday?\\nBen: Saturday works, same time?\\nMe: yep same time works, same place, see you then\", \"writer_note\": \"Kept 4 brief casual emails to confirm Saturday same time same venue without naming restaurant or old day.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 223,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1615,
+      "output_tokens_details": {
+        "reasoning_tokens": 1449
+      },
+      "total_tokens": 1838
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Ben: hey can we move our dinner to another day?\\nMe: yeah totally, what about Saturday?\\nBen: Saturday works, same time?\\nMe: yep same time works, same place, see you then\", \"writer_note\": \"Kept 4 brief casual emails to confirm Saturday same time same venue without naming restaurant or old day.\"}",
+  "usage": {
+    "input_tokens": 223,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1615,
+    "output_tokens_details": {
+      "reasoning_tokens": 1449
+    },
+    "total_tokens": 1838
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

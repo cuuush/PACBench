@@ -1,0 +1,74 @@
+{
+  "checkpoint": "pond-initial",
+  "question": "[Simulated now: 2026-10-06T06:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for the duck pond today?",
+  "answer": "2pm walk at the west entrance to the duck pond in Willow Park with Alex and Jen. Jen's bringing coffee.",
+  "claims": [
+    {
+      "id": "meet-jen",
+      "description": "The user is meeting Jen.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "meet-alex",
+      "description": "The user is meeting Alex.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "day-tuesday",
+      "description": "The meeting is on Tuesday.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "time-2pm",
+      "description": "The meeting is at 2 pm.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-west-entrance",
+      "description": "The meeting is at the west entrance.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-duck-pond",
+      "description": "The meeting is at the duck pond.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "loc-willow-park",
+      "description": "The meeting is in Willow Park.",
+      "evidence": [
+        "pizza-week-twists-low/pond-invite-03",
+        "pizza-week-twists-low/pond-invite-04",
+        "pizza-week-twists-low/pond-invite-05"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-06T06:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for the duck pond today?\nAnswer: 2pm walk at the west entrance to the duck pond in Willow Park with Alex and Jen. Jen's bringing coffee.\nClaims (hidden from the assistant): [{\"id\": \"meet-jen\", \"claim\": \"The user is meeting Jen.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"meet-alex\", \"claim\": \"The user is meeting Alex.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"day-tuesday\", \"claim\": \"The meeting is on Tuesday.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"time-2pm\", \"claim\": \"The meeting is at 2 pm.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"loc-west-entrance\", \"claim\": \"The meeting is at the west entrance.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"loc-duck-pond\", \"claim\": \"The meeting is at the duck pond.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}, {\"id\": \"loc-willow-park\", \"claim\": \"The meeting is in Willow Park.\", \"evidence\": [\"pizza-week-twists-low/pond-invite-03\", \"pizza-week-twists-low/pond-invite-04\", \"pizza-week-twists-low/pond-invite-05\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"meet-jen\", \"verdict\": \"correct\", \"reason\": \"Answer states walk 'with Alex and Jen'.\"}, {\"id\": \"meet-alex\", \"verdict\": \"correct\", \"reason\": \"Answer states walk 'with Alex and Jen'.\"}, {\"id\": \"day-tuesday\", \"verdict\": \"correct\", \"reason\": \"Answer describes today's plan; today 2026-10-06 is Tuesday, inherited scope needs no repeat.\"}, {\"id\": \"time-2pm\", \"verdict\": \"correct\", \"reason\": \"Answer states '2pm walk'.\"}, {\"id\": \"loc-west-entrance\", \"verdict\": \"correct\", \"reason\": \"Answer states 'west entrance to the duck pond'.\"}, {\"id\": \"loc-duck-pond\", \"verdict\": \"correct\", \"reason\": \"Answer states 'duck pond'.\"}, {\"id\": \"loc-willow-park\", \"verdict\": \"correct\", \"reason\": \"Answer states 'in Willow Park'.\"}], \"recovery\": [{\"id\": \"meet-jen\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"meet-alex\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"day-tuesday\", \"kind\": \"provided\", \"reason\": \"Day correctly conveyed via inherited today scope.\"}, {\"id\": \"time-2pm\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"loc-west-entrance\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"loc-duck-pond\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"loc-willow-park\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/runs/pizza-week-context-memcal-verified-20261010/model-calls/60b4a26b68a1c2836813aed182200df5ffb7ae73157f8da155bd225f68646d88.json"
+}

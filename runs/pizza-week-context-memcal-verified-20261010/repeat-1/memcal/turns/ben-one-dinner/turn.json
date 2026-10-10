@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-07T09:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many dinner plans did Ben and I settle on this week?",
+  "at": "2026-10-07T09:15:00-04:00",
+  "answer": "1 — dinner Saturday Oct 10 at 7pm with Ben.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 6.82,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_074535_71b24d",
+  "raw_events": 4,
+  "session_id": "20261010_074535_71b24d",
+  "stderr_full": "\nsession_id: 20261010_074535_71b24d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_074535_71b24d\", \"timestamp\": 1791632735354}\n{\"type\": \"text\", \"text\": \"1\", \"timestamp\": 1791632739993}\n{\"type\": \"text\", \"text\": \" — dinner Saturday Oct 10 at 7pm with Ben.\", \"timestamp\": 1791632740024}\n{\"type\": \"result\", \"session_id\": \"20261010_074535_71b24d\", \"exit_code\": 0, \"text\": \"1 — dinner Saturday Oct 10 at 7pm with Ben.\", \"tokens\": {\"input\": 8999, \"output\": 397, \"total\": 9509, \"cache_read\": 113, \"cache_write\": 0}, \"duration_ms\": 5127, \"timestamp\": 1791632740482}",
+  "session_input_tokens": 8999,
+  "session_output_tokens": 397,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-07T09:15:00-04:00 [id=0122b5eced851c85bf4f179dcca92d2e61efff97] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Wednesday 7 October 2026)\n〔E3〕 · Tue Oct 6  \"phone call to go over job application\", 10am — with Jen\n〔E2〕 · Tue Oct 6  \"coffee\", 11am — with Alex\n〔E1〕 · Tue Oct 6  \"walk\", 2pm — not going · with Alex, Jen\n〔E4〕 Sat Oct 10  \"dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-04 – 2026-11-06; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-it04pedm",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-it04pedm",
+    "system_prompt_sha256": "ba539fafd48bfe4febc018e6b7f61d9f1f7b0fdca4d988d0c12361b0eb7f3838",
+    "reason": "No project context in native saved system prompt"
+  }
+}

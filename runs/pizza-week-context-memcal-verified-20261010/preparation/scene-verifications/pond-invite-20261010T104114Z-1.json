@@ -1,0 +1,85 @@
+{
+  "scene_id": "pond-invite",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-10T10:41:14+00:00",
+  "spec": {
+    "id": "pond-invite",
+    "channel": "imessage",
+    "thread": "pond-crew",
+    "scene": "The group makes a plan to walk to the duck pond together tomorrow. A short normal group chat, with one little unrelated aside.",
+    "test_intent": "",
+    "facts": [
+      "The user, Jen and Alex agree to meet Tuesday at 2 pm at the west entrance to the duck pond in Willow Park."
+    ],
+    "at": "2026-10-05T17:00:00-04:00",
+    "window_start": "2026-10-05T17:00:00-04:00",
+    "window_end": "2026-10-05T17:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      4,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Jen",
+      "Alex"
+    ],
+    "chat_name": "Park pals",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v14",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Me: anyone want to walk to the duck pond tomorrow?",
+    "Alex: yes please, I'm going stir crazy in here",
+    "Jen: lol same, I ate way too much at lunch",
+    "Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?",
+    "Me: yeah that works for me",
+    "Jen: yeah that works, I'll bring coffee"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 17:00 and 17:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: The group makes a plan to walk to the duck pond together tomorrow. A short normal group chat, with one little unrelated aside.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. The user, Jen and Alex agree to meet Tuesday at 2 pm at the west entrance to the duck pond in Willow Park.\n\nNew messages:\n1. Me: anyone want to walk to the duck pond tomorrow?\n2. Alex: yes please, I'm going stir crazy in here\n3. Jen: lol same, I ate way too much at lunch\n4. Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\n5. Me: yeah that works for me\n6. Jen: yeah that works, I'll bring coffee",
+  "judge_response": "{\"supported\": true, \"evidence\": [1, 2, 4, 5, 6], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [2, 4, 5, 6], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      4,
+      5,
+      6
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          2,
+          4,
+          5,
+          6
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 1928,
+  "response_chars": 148,
+  "model_call": "/workspace/PACBench/runs/pizza-week-context-20261010-preparation/model-calls/9e4c5b72766c008fdd4cad82796667a7edea1b506183cf9cd4c9696f08bb17c3.json",
+  "usage": {
+    "completion_tokens": 2186,
+    "prompt_tokens": 413,
+    "total_tokens": 2599,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2115
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

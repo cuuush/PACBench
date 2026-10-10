@@ -98,6 +98,14 @@ def native_run(run_dir: Path, runs_dir: Path):
     for folder in (source, run_dir, run_dir / 'judge-scope-review'):
         for path in sorted((folder / 'model-calls').glob('*.json')):
             records[path.name] = {'file': path.name, 'record': public_record(read_json(path))}
+    captured_times = []
+    for arm in arms.values():
+        try:
+            captured = datetime.datetime.fromisoformat((arm.get('model_usage') or {})['at'])
+            if captured.tzinfo is not None:
+                captured_times.append(captured.timestamp())
+        except (KeyError, TypeError, ValueError):
+            pass
     return {'kind': 'native' if summary.get('mode') else 'prepared', 'id': run_dir.name,
         'spec': spec, 'resolved_spec': resolved, 'summary': summary,
         'audit': read_json(run_dir / 'native-audit.json') or read_json(run_dir / 'run-audit.json'),
@@ -106,7 +114,8 @@ def native_run(run_dir: Path, runs_dir: Path):
         'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
         'scenes': read_json(source / 'scenes.json'), 'arms': arms,
         'verifications': [{'file': p.name, 'record': read_json(p)} for p in sorted((source / 'scene-verifications').glob('*.json'))],
-        'model_calls': list(records.values()), 'sort_time': (run_dir / 'summary.json').stat().st_mtime}
+        'model_calls': list(records.values()),
+        'sort_time': max(captured_times, default=(run_dir / 'summary.json').stat().st_mtime)}
 
 
 def load_runs(root: Path) -> dict:

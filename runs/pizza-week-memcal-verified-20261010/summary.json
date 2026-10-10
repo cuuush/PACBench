@@ -1,0 +1,1212 @@
+{
+  "state": "diagnostic",
+  "results": [
+    {
+      "provider": "memcal",
+      "repetition": 1,
+      "input_hash": "2c744ade17d9f3c4858e1b415e87f399c906e2ddd0ee0b5d2ab8b133fb191ce4",
+      "capability": {
+        "available": true,
+        "reason": "",
+        "tools": [
+          "memcal_open",
+          "memcal_open_page",
+          "memcal_search_wiki",
+          "memcal_open_source",
+          "memcal_conversation",
+          "memcal_list_days",
+          "memcal_list_month",
+          "memcal_search_archive",
+          "memcal_activity",
+          "memcal_refresh",
+          "memcal_add",
+          "memcal_update",
+          "memcal_schedule",
+          "memcal_move_once",
+          "memcal_merge",
+          "memcal_drop",
+          "memcal_todo",
+          "memcal_answer",
+          "memcal_note",
+          "memcal_alias",
+          "memcal_reviewed"
+        ],
+        "provider": "memcal",
+        "live_verified": true,
+        "read_only_smoke": {
+          "tool": "memcal_list_days",
+          "arguments": {},
+          "output": "{\"from\": \"2026-09-11\", \"to\": \"2026-09-11\", \"weekday\": \"Friday\", \"rows\": [], \"free\": true}"
+        },
+        "wiring_verified": true
+      },
+      "state": "diagnostic",
+      "checks": [
+        {
+          "id": "initial-plan-count",
+          "at": "2026-10-08T09:00:00-04:00",
+          "session": "thursday-morning",
+          "contract_hash": "89c1b47b82e233a58a03a6853067c397063528d1a04cff4a251aad7e1c5f8afe",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "two-outings",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "initial-plan-details",
+          "at": "2026-10-08T09:02:00-04:00",
+          "session": "thursday-morning",
+          "contract_hash": "93a8f0ab7491b4cc69afb371434c72105883c0983235eef172519d02625a62c0",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 12,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 12,
+              "points": 12.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-who",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-date",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-who",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "leo-who",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-date",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "updated-plan-count",
+          "at": "2026-10-09T09:00:00-04:00",
+          "session": "friday-morning",
+          "contract_hash": "f7a9340807c1c8550d5282375de6c3b85b1c36829e6c07ad665fbf010aba37bf",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "two-outings",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "updated-plan-details",
+          "at": "2026-10-09T09:02:00-04:00",
+          "session": "friday-morning",
+          "contract_hash": "5fc7b6a9ca8cfbd589bdaa124e4d107942fad125af48d85f141cba001c568a6c",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 12,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 12,
+              "points": 12.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "outing-count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-person",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-person",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "leo-person",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-leo-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-leo-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-leo-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "maya-leo-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "leo-availability",
+          "at": "2026-10-09T09:04:00-04:00",
+          "session": "friday-morning",
+          "contract_hash": "70ae09390806fe0efe5b846b7b9037c7df4404ab13c6f4ecea4071ead6336b5b",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "leo-shift-cover",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": true,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "leo-coming",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": true,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "devon-venue-fresh",
+          "at": "2026-10-09T12:00:00-04:00",
+          "session": "friday-devon-fresh",
+          "contract_hash": "753701e6be62262afe31dc264fb754d796726afdf4e8487046e86bae6bedf85f",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "venue-name",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "venue-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        }
+      ],
+      "reason": "",
+      "behavior": {
+        "evaluation_context": "shared"
+      }
+    }
+  ],
+  "mode": "native-hermes",
+  "builtin_memory": false,
+  "tool_policy": "provider-only-v1",
+  "session_search": false,
+  "ingestion_mode": "documents",
+  "gateway_before": {
+    "service": "muse-budget-gateway",
+    "day": "2026-10-10",
+    "timezone": "UTC",
+    "daily_limit_usd": 5.0,
+    "total_limit_usd": 10.0,
+    "accounted_today_usd": 4.6795566,
+    "accounted_total_usd": 5.592825,
+    "projects": [
+      {
+        "project": "pacbench-0855af7ec16e-supermemory-driver",
+        "calls": 11,
+        "accounted": 4503700,
+        "settled": 4503700,
+        "held": 0,
+        "input_tokens": 37241,
+        "output_tokens": 3898,
+        "accounted_usd": 0.0045037,
+        "settled_upper_bound_usd": 0.0045037,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-0855af7ec16e-supermemory-memory",
+        "calls": 32,
+        "accounted": 674625700,
+        "settled": 25819300,
+        "held": 648806400,
+        "input_tokens": 213039,
+        "output_tokens": 22577,
+        "accounted_usd": 0.6746257,
+        "settled_upper_bound_usd": 0.0258193,
+        "held_usd": 0.6488064
+      },
+      {
+        "project": "pacbench-0fc4988fc99d-byterover-memory",
+        "calls": 1,
+        "accounted": 105017600,
+        "settled": 0,
+        "held": 105017600,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1050176,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1050176
+      },
+      {
+        "project": "pacbench-290a4251673c-honcho-memory",
+        "calls": 7,
+        "accounted": 5851900,
+        "settled": 5851900,
+        "held": 0,
+        "input_tokens": 16661,
+        "output_tokens": 20929,
+        "accounted_usd": 0.0058519,
+        "settled_upper_bound_usd": 0.0058519,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-2b53610bcd7c-honcho-memory",
+        "calls": 1,
+        "accounted": 108134400,
+        "settled": 0,
+        "held": 108134400,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1081344,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1081344
+      },
+      {
+        "project": "pacbench-37ad2268b40c-memcal-driver",
+        "calls": 29,
+        "accounted": 34615100,
+        "settled": 34615100,
+        "held": 0,
+        "input_tokens": 320699,
+        "output_tokens": 12726,
+        "accounted_usd": 0.0346151,
+        "settled_upper_bound_usd": 0.0346151,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "calls": 6,
+        "accounted": 5024900,
+        "settled": 5024900,
+        "held": 0,
+        "input_tokens": 15993,
+        "output_tokens": 17128,
+        "accounted_usd": 0.0050249,
+        "settled_upper_bound_usd": 0.0050249,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-39bbbff28383-openviking-driver",
+        "calls": 22,
+        "accounted": 25474600,
+        "settled": 25474600,
+        "held": 0,
+        "input_tokens": 236608,
+        "output_tokens": 9069,
+        "accounted_usd": 0.0254746,
+        "settled_upper_bound_usd": 0.0254746,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-39bbbff28383-openviking-memory",
+        "calls": 26,
+        "accounted": 344784800,
+        "settled": 20381600,
+        "held": 324403200,
+        "input_tokens": 59100,
+        "output_tokens": 72358,
+        "accounted_usd": 0.3447848,
+        "settled_upper_bound_usd": 0.0203816,
+        "held_usd": 0.3244032
+      },
+      {
+        "project": "pacbench-50148f2ccd71-supermemory-memory",
+        "calls": 2,
+        "accounted": 216268800,
+        "settled": 0,
+        "held": 216268800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.2162688,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.2162688
+      },
+      {
+        "project": "pacbench-53a874df35ac-hindsight-memory",
+        "calls": 8,
+        "accounted": 865075200,
+        "settled": 0,
+        "held": 865075200,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.8650752,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.8650752
+      },
+      {
+        "project": "pacbench-905af3fdd18f-memcal-driver",
+        "calls": 14,
+        "accounted": 15049900,
+        "settled": 15049900,
+        "held": 0,
+        "input_tokens": 138251,
+        "output_tokens": 6124,
+        "accounted_usd": 0.0150499,
+        "settled_upper_bound_usd": 0.0150499,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-905af3fdd18f-memcal-memory",
+        "calls": 6,
+        "accounted": 4459500,
+        "settled": 4459500,
+        "held": 0,
+        "input_tokens": 15465,
+        "output_tokens": 14565,
+        "accounted_usd": 0.0044595,
+        "settled_upper_bound_usd": 0.0044595,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-a3e95d1aa5e5-byterover-memory",
+        "calls": 3,
+        "accounted": 315092800,
+        "settled": 0,
+        "held": 315092800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.3150928,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.3150928
+      },
+      {
+        "project": "pacbench-a725f4a5d778-hindsight-driver",
+        "calls": 14,
+        "accounted": 4830800,
+        "settled": 4830800,
+        "held": 0,
+        "input_tokens": 41536,
+        "output_tokens": 3386,
+        "accounted_usd": 0.0048308,
+        "settled_upper_bound_usd": 0.0048308,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-a725f4a5d778-hindsight-memory",
+        "calls": 23,
+        "accounted": 16953900,
+        "settled": 16953900,
+        "held": 0,
+        "input_tokens": 81463,
+        "output_tokens": 44038,
+        "accounted_usd": 0.0169539,
+        "settled_upper_bound_usd": 0.0169539,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-authoring",
+        "calls": 8,
+        "accounted": 5099500,
+        "settled": 5099500,
+        "held": 0,
+        "input_tokens": 12547,
+        "output_tokens": 19224,
+        "accounted_usd": 0.0050995,
+        "settled_upper_bound_usd": 0.0050995,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-cba07678769b-byterover-driver",
+        "calls": 11,
+        "accounted": 4946900,
+        "settled": 4946900,
+        "held": 0,
+        "input_tokens": 43393,
+        "output_tokens": 3038,
+        "accounted_usd": 0.0049469,
+        "settled_upper_bound_usd": 0.0049469,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-cba07678769b-byterover-memory",
+        "calls": 50,
+        "accounted": 906430200,
+        "settled": 66169400,
+        "held": 840260800,
+        "input_tokens": 592714,
+        "output_tokens": 34490,
+        "accounted_usd": 0.9064302,
+        "settled_upper_bound_usd": 0.0661694,
+        "held_usd": 0.8402608
+      },
+      {
+        "project": "pacbench-dc015f7bccc6-supermemory-memory",
+        "calls": 2,
+        "accounted": 216268800,
+        "settled": 0,
+        "held": 216268800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.2162688,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.2162688
+      },
+      {
+        "project": "pacbench-e134209ded47-byterover-memory",
+        "calls": 5,
+        "accounted": 525208000,
+        "settled": 0,
+        "held": 525208000,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.525208,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.525208
+      },
+      {
+        "project": "pacbench-e2e7a0e16d94-mem0-driver",
+        "calls": 13,
+        "accounted": 6092200,
+        "settled": 6092200,
+        "held": 0,
+        "input_tokens": 49784,
+        "output_tokens": 5569,
+        "accounted_usd": 0.0060922,
+        "settled_upper_bound_usd": 0.0060922,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-e2e7a0e16d94-mem0-memory",
+        "calls": 8,
+        "accounted": 10049800,
+        "settled": 10049800,
+        "held": 0,
+        "input_tokens": 68688,
+        "output_tokens": 15905,
+        "accounted_usd": 0.0100498,
+        "settled_upper_bound_usd": 0.0100498,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-judge",
+        "calls": 76,
+        "accounted": 151563200,
+        "settled": 43428800,
+        "held": 108134400,
+        "input_tokens": 96592,
+        "output_tokens": 168848,
+        "accounted_usd": 0.1515632,
+        "settled_upper_bound_usd": 0.0434288,
+        "held_usd": 0.1081344
+      },
+      {
+        "project": "pacbench-mem0-driver",
+        "calls": 1,
+        "accounted": 108134400,
+        "settled": 0,
+        "held": 108134400,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1081344,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1081344
+      }
+    ],
+    "pricing_source": "https://dev.meta.ai/docs/pricing-rate-limits",
+    "pricing_expires": "2026-10-20",
+    "note": "uncached-price upper bounds; uncertain calls retain full reservations"
+  },
+  "input_hash": "2c744ade17d9f3c4858e1b415e87f399c906e2ddd0ee0b5d2ab8b133fb191ce4",
+  "contract_hash": "753701e6be62262afe31dc264fb754d796726afdf4e8487046e86bae6bedf85f",
+  "bundle_hash": "c2c4b876ef15b4ad289300e7e7f32fd75ec3af207d66aad8a2fe9d0f35bdfee2",
+  "message_count": 42,
+  "source": "preparation",
+  "process_timezone": "America/New_York",
+  "ingestion_version": "daily-source-documents-v1",
+  "document_provider_blockers": {
+    "holographic": "Unsupported: fact storage and regex extraction do not provide document ingestion.",
+    "memori": "Excluded: Hermes documents Memori Cloud only; no local document-ingestion integration verified.",
+    "retaindb": "Excluded: Hermes documents hosted storage only; the benchmark requires local memory backends."
+  },
+  "ingestion_schedule": [
+    {
+      "id": "2026-10-07",
+      "at": "2026-10-07T19:10:00-04:00",
+      "source_ids": [
+        "pizza-week-twists-low/devon-invite-00",
+        "pizza-week-twists-low/devon-invite-01",
+        "pizza-week-twists-low/devon-invite-02",
+        "pizza-week-twists-low/devon-invite-03",
+        "pizza-week-twists-low/devon-invite-04",
+        "pizza-week-twists-low/devon-invite-05",
+        "pizza-week-twists-low/maya-invite-00",
+        "pizza-week-twists-low/maya-invite-01",
+        "pizza-week-twists-low/maya-invite-02",
+        "pizza-week-twists-low/maya-invite-03",
+        "pizza-week-twists-low/maya-invite-04",
+        "pizza-week-twists-low/maya-invite-05",
+        "pizza-week-twists-low/leo-joins-00",
+        "pizza-week-twists-low/leo-joins-01",
+        "pizza-week-twists-low/leo-joins-02",
+        "pizza-week-twists-low/leo-joins-03",
+        "pizza-week-twists-low/leo-joins-04",
+        "pizza-week-twists-low/leo-joins-05"
+      ],
+      "source_file": "sources/2026-10-07/messages.txt",
+      "file": "ingestion/2026-10-07.json",
+      "source_manifest_sha256": "4a22cbb2f89f3e261c1b4a2d5b27add32432275763cd2f812ba3f7c7d1fd869e"
+    },
+    {
+      "id": "2026-10-08",
+      "at": "2026-10-08T20:50:00-04:00",
+      "source_ids": [
+        "pizza-week-twists-low/maya-time-update-00",
+        "pizza-week-twists-low/maya-time-update-01",
+        "pizza-week-twists-low/maya-time-update-02",
+        "pizza-week-twists-low/maya-time-update-03",
+        "pizza-week-twists-low/maya-time-update-04",
+        "pizza-week-twists-low/group-venue-update-00",
+        "pizza-week-twists-low/group-venue-update-01",
+        "pizza-week-twists-low/group-venue-update-02",
+        "pizza-week-twists-low/group-venue-update-03",
+        "pizza-week-twists-low/group-venue-update-04",
+        "pizza-week-twists-low/group-venue-update-05",
+        "pizza-week-twists-low/leo-drops-out-00",
+        "pizza-week-twists-low/leo-drops-out-01",
+        "pizza-week-twists-low/leo-drops-out-02",
+        "pizza-week-twists-low/leo-drops-out-03",
+        "pizza-week-twists-low/leo-drops-out-04",
+        "pizza-week-twists-low/leo-drops-out-05",
+        "pizza-week-twists-low/leo-back-in-00",
+        "pizza-week-twists-low/leo-back-in-01",
+        "pizza-week-twists-low/leo-back-in-02",
+        "pizza-week-twists-low/leo-back-in-03",
+        "pizza-week-twists-low/leo-back-in-04",
+        "pizza-week-twists-low/leo-back-in-05",
+        "pizza-week-twists-low/leo-back-in-06"
+      ],
+      "source_file": "sources/2026-10-08/messages.txt",
+      "file": "ingestion/2026-10-08.json",
+      "source_manifest_sha256": "62468486f433bafe29d9b2f5abdcd52c0cdbb996d77f55a3a4c86ea5eb25d785"
+    }
+  ],
+  "evaluation_plan_hash": "10301972c4504c7bb59ad4ea2b8338fa2998ae708d5718a26ea198c2ef4114dd",
+  "evaluation_context": "shared",
+  "followup_plan_hash": "760d8f0c64d8a863224f9ef99adda821a879740f5a846a5f1adf730b4b969c02",
+  "followup_policy": "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback fails retention",
+  "gateway_after": {
+    "service": "muse-budget-gateway",
+    "day": "2026-10-10",
+    "timezone": "UTC",
+    "daily_limit_usd": 5.0,
+    "total_limit_usd": 10.0,
+    "accounted_today_usd": 4.7069771,
+    "accounted_total_usd": 5.6202455,
+    "projects": [
+      {
+        "project": "pacbench-03221e87e8ed-memcal-driver",
+        "calls": 13,
+        "accounted": 10947300,
+        "settled": 10947300,
+        "held": 0,
+        "input_tokens": 101457,
+        "output_tokens": 4008,
+        "accounted_usd": 0.0109473,
+        "settled_upper_bound_usd": 0.0109473,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-03221e87e8ed-memcal-memory",
+        "calls": 6,
+        "accounted": 5677200,
+        "settled": 5677200,
+        "held": 0,
+        "input_tokens": 15604,
+        "output_tokens": 20584,
+        "accounted_usd": 0.0056772,
+        "settled_upper_bound_usd": 0.0056772,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-0855af7ec16e-supermemory-driver",
+        "calls": 11,
+        "accounted": 4503700,
+        "settled": 4503700,
+        "held": 0,
+        "input_tokens": 37241,
+        "output_tokens": 3898,
+        "accounted_usd": 0.0045037,
+        "settled_upper_bound_usd": 0.0045037,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-0855af7ec16e-supermemory-memory",
+        "calls": 32,
+        "accounted": 674625700,
+        "settled": 25819300,
+        "held": 648806400,
+        "input_tokens": 213039,
+        "output_tokens": 22577,
+        "accounted_usd": 0.6746257,
+        "settled_upper_bound_usd": 0.0258193,
+        "held_usd": 0.6488064
+      },
+      {
+        "project": "pacbench-0fc4988fc99d-byterover-memory",
+        "calls": 1,
+        "accounted": 105017600,
+        "settled": 0,
+        "held": 105017600,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1050176,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1050176
+      },
+      {
+        "project": "pacbench-290a4251673c-honcho-memory",
+        "calls": 7,
+        "accounted": 5851900,
+        "settled": 5851900,
+        "held": 0,
+        "input_tokens": 16661,
+        "output_tokens": 20929,
+        "accounted_usd": 0.0058519,
+        "settled_upper_bound_usd": 0.0058519,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-2b53610bcd7c-honcho-memory",
+        "calls": 1,
+        "accounted": 108134400,
+        "settled": 0,
+        "held": 108134400,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1081344,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1081344
+      },
+      {
+        "project": "pacbench-37ad2268b40c-memcal-driver",
+        "calls": 29,
+        "accounted": 34615100,
+        "settled": 34615100,
+        "held": 0,
+        "input_tokens": 320699,
+        "output_tokens": 12726,
+        "accounted_usd": 0.0346151,
+        "settled_upper_bound_usd": 0.0346151,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-37ad2268b40c-memcal-memory",
+        "calls": 6,
+        "accounted": 5024900,
+        "settled": 5024900,
+        "held": 0,
+        "input_tokens": 15993,
+        "output_tokens": 17128,
+        "accounted_usd": 0.0050249,
+        "settled_upper_bound_usd": 0.0050249,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-39bbbff28383-openviking-driver",
+        "calls": 22,
+        "accounted": 25474600,
+        "settled": 25474600,
+        "held": 0,
+        "input_tokens": 236608,
+        "output_tokens": 9069,
+        "accounted_usd": 0.0254746,
+        "settled_upper_bound_usd": 0.0254746,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-39bbbff28383-openviking-memory",
+        "calls": 26,
+        "accounted": 344784800,
+        "settled": 20381600,
+        "held": 324403200,
+        "input_tokens": 59100,
+        "output_tokens": 72358,
+        "accounted_usd": 0.3447848,
+        "settled_upper_bound_usd": 0.0203816,
+        "held_usd": 0.3244032
+      },
+      {
+        "project": "pacbench-50148f2ccd71-supermemory-memory",
+        "calls": 2,
+        "accounted": 216268800,
+        "settled": 0,
+        "held": 216268800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.2162688,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.2162688
+      },
+      {
+        "project": "pacbench-53a874df35ac-hindsight-memory",
+        "calls": 8,
+        "accounted": 865075200,
+        "settled": 0,
+        "held": 865075200,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.8650752,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.8650752
+      },
+      {
+        "project": "pacbench-905af3fdd18f-memcal-driver",
+        "calls": 14,
+        "accounted": 15049900,
+        "settled": 15049900,
+        "held": 0,
+        "input_tokens": 138251,
+        "output_tokens": 6124,
+        "accounted_usd": 0.0150499,
+        "settled_upper_bound_usd": 0.0150499,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-905af3fdd18f-memcal-memory",
+        "calls": 6,
+        "accounted": 4459500,
+        "settled": 4459500,
+        "held": 0,
+        "input_tokens": 15465,
+        "output_tokens": 14565,
+        "accounted_usd": 0.0044595,
+        "settled_upper_bound_usd": 0.0044595,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-a3e95d1aa5e5-byterover-memory",
+        "calls": 3,
+        "accounted": 315092800,
+        "settled": 0,
+        "held": 315092800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.3150928,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.3150928
+      },
+      {
+        "project": "pacbench-a725f4a5d778-hindsight-driver",
+        "calls": 14,
+        "accounted": 4830800,
+        "settled": 4830800,
+        "held": 0,
+        "input_tokens": 41536,
+        "output_tokens": 3386,
+        "accounted_usd": 0.0048308,
+        "settled_upper_bound_usd": 0.0048308,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-a725f4a5d778-hindsight-memory",
+        "calls": 23,
+        "accounted": 16953900,
+        "settled": 16953900,
+        "held": 0,
+        "input_tokens": 81463,
+        "output_tokens": 44038,
+        "accounted_usd": 0.0169539,
+        "settled_upper_bound_usd": 0.0169539,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-authoring",
+        "calls": 8,
+        "accounted": 5099500,
+        "settled": 5099500,
+        "held": 0,
+        "input_tokens": 12547,
+        "output_tokens": 19224,
+        "accounted_usd": 0.0050995,
+        "settled_upper_bound_usd": 0.0050995,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-cba07678769b-byterover-driver",
+        "calls": 11,
+        "accounted": 4946900,
+        "settled": 4946900,
+        "held": 0,
+        "input_tokens": 43393,
+        "output_tokens": 3038,
+        "accounted_usd": 0.0049469,
+        "settled_upper_bound_usd": 0.0049469,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-cba07678769b-byterover-memory",
+        "calls": 50,
+        "accounted": 906430200,
+        "settled": 66169400,
+        "held": 840260800,
+        "input_tokens": 592714,
+        "output_tokens": 34490,
+        "accounted_usd": 0.9064302,
+        "settled_upper_bound_usd": 0.0661694,
+        "held_usd": 0.8402608
+      },
+      {
+        "project": "pacbench-dc015f7bccc6-supermemory-memory",
+        "calls": 2,
+        "accounted": 216268800,
+        "settled": 0,
+        "held": 216268800,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.2162688,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.2162688
+      },
+      {
+        "project": "pacbench-e134209ded47-byterover-memory",
+        "calls": 5,
+        "accounted": 525208000,
+        "settled": 0,
+        "held": 525208000,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.525208,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.525208
+      },
+      {
+        "project": "pacbench-e2e7a0e16d94-mem0-driver",
+        "calls": 13,
+        "accounted": 6092200,
+        "settled": 6092200,
+        "held": 0,
+        "input_tokens": 49784,
+        "output_tokens": 5569,
+        "accounted_usd": 0.0060922,
+        "settled_upper_bound_usd": 0.0060922,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-e2e7a0e16d94-mem0-memory",
+        "calls": 8,
+        "accounted": 10049800,
+        "settled": 10049800,
+        "held": 0,
+        "input_tokens": 68688,
+        "output_tokens": 15905,
+        "accounted_usd": 0.0100498,
+        "settled_upper_bound_usd": 0.0100498,
+        "held_usd": 0.0
+      },
+      {
+        "project": "pacbench-judge",
+        "calls": 90,
+        "accounted": 162359200,
+        "settled": 54224800,
+        "held": 108134400,
+        "input_tokens": 120774,
+        "output_tokens": 210737,
+        "accounted_usd": 0.1623592,
+        "settled_upper_bound_usd": 0.0542248,
+        "held_usd": 0.1081344
+      },
+      {
+        "project": "pacbench-mem0-driver",
+        "calls": 1,
+        "accounted": 108134400,
+        "settled": 0,
+        "held": 108134400,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_usd": 0.1081344,
+        "settled_upper_bound_usd": 0.0,
+        "held_usd": 0.1081344
+      }
+    ],
+    "pricing_source": "https://dev.meta.ai/docs/pricing-rate-limits",
+    "pricing_expires": "2026-10-20",
+    "note": "uncached-price upper bounds; uncertain calls retain full reservations"
+  },
+  "audit": {
+    "state": "pass",
+    "errors": [],
+    "scope": "native trace integrity, not calibrated provider quality"
+  }
+}

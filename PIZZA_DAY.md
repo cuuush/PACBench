@@ -1,52 +1,58 @@
 # Current Pizza Week diagnostic
 
-The current run is [pizza-week-recall-all-20261010](runs/pizza-week-recall-all-20261010/summary.json): the same 42 verified messages, seven low-noise scenes, six factual questions, and seven configured local providers. Wednesday establishes two Friday outings. Thursday changes the Maya/Leo outing's time and restaurant, rejects another restaurant, and has Leo drop out then return. Hermes sessions are shared within each morning and fresh between mornings and for the final Devon venue question.
+The latest run is [pizza-week-context-memcal-verified-20261010](runs/pizza-week-context-memcal-verified-20261010/summary.json): 72 messages, 13 low-noise scenes and 12 factual questions, using Memcal 0.8.2 plus product fixes on `main`. All twelve answers pass. Retention is **39/46 points**, with **19 Hermes tool calls**. Preparation and native trace audits pass. These are development diagnostics, not calibrated rankings.
 
-| Provider | Observed answer results | Hermes tool calls | Finding |
-| --- | --- | ---: | --- |
-| Memcal 0.8.2 | 5 pass, 1 fail | 26 | Initially reported one merged outing. Hermes recovered and repaired both using archive/original-message tools. Both full-detail answers fail retention. |
-| Mem0 OSS | 5 original passes; one judge-induced incomplete check | 6 | All six answers convey the expected facts. The judge incorrectly required repeating Friday in the updated-details answer; the corrected judge review gives 12/12. |
-| OpenViking | 6 pass | 25 | Correct answers, but original-document reads fail retention. Fresh Devon lookup took 12 calls. |
-| Supermemory local | 5 pass, 1 fail | 4 | Friday count omitted Devon. Three searches recovered both outings on the next direct question. |
-| Hindsight local | 6 pass | 6 | Native ingestion and consolidation completed; answers used retained facts. |
-| ByteRover local | 6 pass | 2 | First query timed out; second succeeded. Prefetch and internal query/curation work also incur provider inference. |
-| Honcho local | No recall: readiness failed | 0 | Native capture accepted 18 messages, but only 9 processing units completed before the deadline; 3 were in progress and 6 pending. |
+| Check | Answer | Retention | Hermes tools |
+| --- | --- | ---: | ---: |
+| Initial duck-pond plan | Pass | 7/7 | 2 |
+| Unnamed group cancellation | Pass | 0/3 | 5 |
+| Separate Jen call and Alex coffee | Pass | 0/2 | 2 |
+| Ben dinner count | Pass | 1/1 | 0 |
+| Ben dinner after email reschedule | Pass | 3/3 | 1 |
+| Initial pizza count | Pass | 1/1 | 0 |
+| Initial pizza details | Pass | 10/10 | 2 |
+| Updated pizza count | Pass | 1/1 | 0 |
+| Updated pizza details | Pass | 11/11 | 2 |
+| Leo shift cover | Pass | 0/2 | 3 |
+| Fresh-session Devon venue | Pass | 2/2 | 1 |
+| Fresh-session Ben dinner | Pass | 3/3 | 1 |
 
-These are development diagnostics, not calibrated rankings. Answer correctness and retention are separate. The six questions contain 30 independently graded facts. Saved retention accounting is Memcal 3/30, Mem0 27/30 (affected by the judge bug), OpenViking 0/30, Supermemory 29/30, Hindsight 30/30 and ByteRover 30/30. Source fallback propagates through a shared assistant session. Hermes's repairs also persist into later sessions: later success does not establish correct initial extraction.
+Source fallback loses retention credit even when the answer is right. The pond cancellation used archive search and a conversation read. The appointment question shares that assistant session and inherits its source access. Leo's shift-cover explanation also used original-message tools. No follow-up was needed in the final run. Only the provider's exact shipped tools were offered; no built-in filesystem, shell, browser or session-search tools were available.
 
-## Harness issues caught and corrected
+## Native state and realism review
 
-Preparation rejected an overbroad Friday count contract that demanded venue/time details. The authored expectation now explicitly judges only the number of outings. Preparation then passed, with the original source bundle hash unchanged.
+Monday creates four separate events: the pond outing, Jen's phone call, Alex's coffee and Ben's dinner. Tuesday's group messages say only “hey guys i can’t make it today” and “me too let’s just do this another day!”, followed by the owner's agreement. They name neither the outing nor the separate appointments. Native processing cancels only the pond outing, without inventing a replacement date.
 
-The answer judge penalized Mem0 for omitting the word Friday even though the question and ongoing conversation establish today's scope. The judge now respects inherited event/day scope. A [saved regression review](runs/pizza-week-recall-all-20261010/judge-scope-review/summary.json) accepts the correct Mem0 answer and still rejects Memcal's wrong count. Original trial grades remain unchanged; the explorer shows that review beside them. The attempted unnecessary follow-up failed authoring review and was never delivered. Other conversations continued.
+Ben's iMessage plan is dinner Thursday at 7 pm at Juniper Cafe. His email asks “hey can we move our dinner to another day?”; the replies settle Saturday, “same time” and “same place”. The native reader associates two distinct accounts using a standard Contacts card. Before Hermes answers, one event has moved to Saturday while retaining 7 pm and Juniper Cafe. A fresh Saturday session recalls that plan correctly. The two Friday pizza outings also remain separate, and the Maya/Leo time and venue corrections survive.
 
-ByteRover's shipped `brv_query` searches the curated knowledge tree, but our operation mapping left it unclassified. The mapping and a retention regression test are fixed. Only deterministic effort/retention accounting was recomputed; answers, judge verdicts, usage and tool traces are unchanged. The [review receipt](runs/pizza-week-recall-all-20261010/byterover-path-review.json) retains the original accounting.
+The source messages do not establish attendance at the call or coffee. Memcal automatically ages past appointments to `happened`; Hermes says they “show as happened”. This test judges whether they were cancelled, not whether they actually occurred. Keep that distinction when inspecting the output. The corpus is a small synthetic stress test with minimal chatter, not a claim of full real-world coverage.
 
-Preparation integrity passes. Native audits accept the five complete arms; the overall audit stays failed because Mem0's recovery diagnostics and Honcho's ingestion are incomplete. Those failures are visible and have not been relabelled as successful trials.
+Messages use a provider-independent Apple Messages SQLite fixture, realistic sender/thread/time metadata and a separate Contacts source. Email uses RFC 5322 messages, Inbox/Sent folders and real TLS IMAP against Memcal's native reader. The IMAP fixture implements the text-reading protocol needed here; it is not Proton Bridge or a full email server. No reader methods are replaced, no facts are seeded, and Hermes does no ingestion. Normal nightly processing runs at 03:00 America/New_York; questions never see future batches. Named assistant conversations share context, with separate fresh sessions for later checks.
 
-## Ingestion and cost
+Before benchmarking, source review caught drafts that repeated the restaurant or added explicit appointment reminders to the group cancellation. Those drafts were replaced. The final frozen corpus preserves contextual references. Preparation also rejected overbroad count and yes/no grading requirements; expectations now match the questions' natural scope.
 
-Each system received the same raw daily source records through its native interface. Memcal used the provider-independent Apple Messages database, separate contacts and normal nightly processing at 03:00 Eastern. Other systems used documented document import or real source-message capture. No Hermes ingestion conversations, summaries or seeded facts were used. Recall exposed only the selected provider's exact shipped tools.
+## Fixes, control and costs
 
-Every paid call used Spark Contributor through the shared gateway. The accounted upper bound rose by approximately **$2.06** during this run/review, to **$5.45 cumulative** and **$4.54 today**, below the $10 total/$5 daily caps. Failed or unresolved calls retain reservations. Post-shutdown usage is saved per provider; unknown token totals and per-tool attribution remain unknown. Top-level tool counts do not include provider prefetch or background model work.
+Memcal commits [`98f1a8e`](https://github.com/cuuush/memcal/commit/98f1a8e) and [`4328c64`](https://github.com/cuuush/memcal/commit/4328c64), pushed to `main`, fix distinct same-day occasion merging and an uncited time-only nightly diff restoring an old venue. Product verification: 2477 unittest cases, 39 skipped; 400/400 temporal integration checks.
 
-The explorer reads the latest public evidence directly from `runs/`. It shows messages, native daily ingestion, actual answers and tool results, criteria, judge prompts/responses, scope reviews and model usage. Private homes, databases, credentials and encrypted replay remain ignored. The superseded run and duplicate preparation were removed.
+The [unchanged control](runs/pizza-week-memcal-verified-20261010/development-review.json) reruns the original 42 messages and six questions: **6/6 answer passes, 28/30 retention points, eight tool calls**. Its source bundle hash is unchanged. Leo's explanation remains the source-fallback failure. The expanded corpus has a different set of criteria, so its denominator is not directly comparable.
 
-On your Mac, after pulling the `work` branch:
+The first expanded attempt exposed a harness error: a safe follow-up review listed both missing fact IDs in reverse order, and validation rejected it before Hermes received the message. Coverage validation now accepts either order while rejecting omissions, duplicates and extra IDs. The unchanged corpus was rerun from fresh stores. The [development review](runs/pizza-week-context-memcal-verified-20261010/development-review.json) preserves the concrete rejected review and final result. All **192 harness tests** pass. Superseded runs and duplicate preparation were deleted.
+
+Every inference request used Spark Contributor through the capped gateway. The final accounted upper bound is **$5.66 total / $4.75 today**, including retained unknown reservations, below the $10 total and $5 daily caps. The final run's captured memory-provider work used 12 model requests, 35,799 input and 34,073 output tokens, accounting for $0.0104. Hermes used 31 model requests, 249,577 input and 8,174 output tokens, accounting for $0.0266; this includes normal agent overhead. Judging is logged separately. Aggregate requests and token windows do not establish an exact price for an individual tool call. Native backend cost fields reporting zero are not used as evidence of free inference.
+
+## Inspect and reuse
+
+The explorer reads public evidence directly from `runs/`: messages, native daily ingestion, actual answers and tool results, expected criteria, judge decisions and model usage. Private homes, databases, credentials and encrypted replay remain ignored. The current run and necessary unchanged control ship with Git.
+
+On your Mac, pull `work`, then:
 
 ```sh
 python3 serve_explorer.py
 ```
 
-Open `http://localhost:8137/?run=pizza-week-recall-all-20261010`. The cloud server's localhost is not your Mac's localhost.
+Open `http://localhost:8137/?run=pizza-week-context-memcal-verified-20261010&day=2026-10-07&provider=memcal-repeat-1`. Cloud localhost is separate from your Mac. Fresh checkouts display the saved public evidence without private native stores.
 
-The reusable frozen input is [preparation/week.json](runs/pizza-week-recall-all-20261010/preparation/week.json). Preparation and provider execution remain separate. Native re-auditing requires private runtime files; a fresh checkout can inspect the saved evidence/audits without them.
+Reuse [preparation/week.json](runs/pizza-week-context-memcal-verified-20261010/preparation/week.json) to run the exact corpus without writer or verifier calls. Native re-auditing requires the private runtime files; the saved audit and public traces remain inspectable after checkout.
 
-## Next steps
-
-1. Fix the genuine Memcal event merge in the Memcal repository with lifecycle tests; do not tailor the source fixture or benchmark ingestion to it.
-2. Diagnose Honcho's queue/deriver throughput before another full attempt. Do not turn accepted messages into a readiness pass.
-3. Rerun the small frozen week with the corrected judge before treating scores as comparable. Review both passes and failures.
-4. Give the owner a realistic display name in the next corpus. Only then increase chatter gradually.
-
-The final group catch-up repeats the new time and venue. That is plausible, but final recall alone does not prove inference of the earlier DM-to-group link without restatement. We judge the current distinct outings, not an invented narration of internal processing.
+Next, diagnose the remaining source-fallback paths in Memcal's retained change context and normal retrieval surface. Keep this frozen low-noise week as the control. After that, increase conversation noise gradually by about 100 messages and freeze that next corpus once; do not regenerate it for each provider run.

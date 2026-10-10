@@ -1,0 +1,136 @@
+{
+  "state": "complete",
+  "plan_hash": "a5c369d5ce0022136128620af5c640b71b21d64f1834f6b8592610e7e57c95ab",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "unclassified": 1,
+      "source_evidence": 1,
+      "archive_search": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_activity",
+        "arguments": {
+          "handle": "E5",
+          "limit": 20
+        },
+        "category": "unclassified",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791632979807,
+        "result": {
+          "tool": "memcal_activity",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"handle\": \"E5\", \"kind\": \"event\", \"ref\": \"pizza@2026-10-09\", \"mark\": 79, \"total\": 0, \"omitted\": 0, \"next_cursor\": 0, \"items\": [], \"possibly_related\": [], \"note\": \"reading changes nothing; cite line ids in a correction\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_conversation",
+        "arguments": {
+          "after": 12,
+          "before": 12,
+          "line_id": 75
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791632982441,
+        "result": {
+          "tool": "memcal_conversation",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"channel\": \"imessage\", \"thread\": \"Friday crew\", \"conversation\": [{\"id\": 63, \"ts\": \"2026-10-08T18:33\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"btw saw Rosa's is closed for renovations so we gotta pick a new spot for Friday\"}, {\"id\": 64, \"ts\": \"2026-10-08T18:37\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"what about Domino's on Elm Street?\"}, {\"id\": 65, \"ts\": \"2026-10-08T18:41\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"that's too far for me, what about Mario's on Pine Street for Friday instead?\"}, {\"id\": 66, \"ts\": \"2026-10-08T18:45\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah that works, I'm good with that\"}, {\"id\": 67, \"ts\": \"2026-10-08T19:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"ugh finally home, what a day\"}, {\"id\": 68, \"ts\": \"2026-10-08T19:04\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"just caught up - they stuck me with a closing shift tomorrow so I can't do pizza on Friday, I'm sorry guys\"}, {\"id\": 69, \"ts\": \"2026-10-08T19:08\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"nooo that sucks, we'll miss you\"}, {\"id\": 70, \"ts\": \"2026-10-08T19:12\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"seriously? that's so last minute\"}, {\"id\": 71, \"ts\": \"2026-10-08T19:16\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"guess it's just me and you then Me?\"}, {\"id\": 72, \"ts\": \"2026-10-08T19:20\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yep we're still on, I'll eat Leo's share of knots lol\"}, {\"id\": 73, \"ts\": \"2026-10-08T20:30\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"ok you guys will be happy, got Tyler to cover my closing shift tomorrow so I'm back in for Friday!\"}, {\"id\": 74, \"ts\": \"2026-10-08T20:33\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yesss finally, missed you already lol\"}, {\"id\": 75, \"ts\": \"2026-10-08T20:36\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"omg thank god, ok quick catch up since you missed it - we're doing Mario's on Pine Street\"}, {\"id\": 76, \"ts\": \"2026-10-08T20:40\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"we already agreed in DMs to move Friday to 5pm cause I have to be at my parents later, you good with that Leo?\"}, {\"id\": 77, \"ts\": \"2026-10-08T20:43\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah 5pm works for me like we said in DMs\"}, {\"id\": 78, \"ts\": \"2026-10-08T20:46\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah 5pm Friday works for me, been craving their garlic knots\"}, {\"id\": 79, \"ts\": \"2026-10-08T20:50\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"lol same, I'm still dead from today tho I'm gonna crash early tonight\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "query": "Leo shift"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791632982448,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 73, \"when\": \"2026-10-08T20:30\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"ok you guys will be happy, got Tyler to cover my closing shift tomorrow so I'm back in for Friday!\"}, {\"line_id\": 68, \"when\": \"2026-10-08T19:04\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"just caught up - they stuck me with a closing shift tomorrow so I can't do pizza on Friday, I'm sorry guys\"}, {\"line_id\": 82, \"when\": \"2026-10-09T09:04\", \"who\": \"me\", \"channel\": \"agent\", \"thread\": \"hermes:20261010_074907_561b2c\", \"text\": \"[Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nDid Leo sort out his shift?\", \"note\": \"written by you earlier this session \\u2014 not independent evidence, do not cite it as confirmation\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 1,
+    "latency_s": 11.76,
+    "input_tokens": 2412,
+    "output_tokens": 392,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "leo-shift-cover",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-coming",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "leo-shift-cover",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": true,
+        "points": 0.0
+      },
+      {
+        "claim_id": "leo-coming",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": true,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

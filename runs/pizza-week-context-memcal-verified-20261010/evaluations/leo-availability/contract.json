@@ -1,0 +1,51 @@
+{
+  "claims": [
+    {
+      "id": "leo-shift-cover",
+      "statement": "Leo found someone to cover his work shift",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00"
+      ]
+    },
+    {
+      "id": "leo-coming",
+      "statement": "Leo is coming after all",
+      "evidence": [
+        "pizza-week-twists-low/leo-back-in-00"
+      ]
+    }
+  ],
+  "question": "Did Leo sort out his shift?",
+  "evidence_hash": "52593ad5f566d8e6852474b2c3db9e859a794655e0fd0c129c34d2a8040dd38a",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set provides independent claims for both required facts: shift cover and coming after all.",
+    "reviews": [
+      {
+        "id": "leo-shift-cover",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Directly stated in evidence as got Tyler to cover closing shift."
+      },
+      {
+        "id": "leo-coming",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Directly stated in evidence as back in for Friday after dropping out."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks if Leo resolved his shift without stating the answer; Leo's closing shift is established in dialogue, and answering requires both that Tyler covered it and that Leo is back in for Friday."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Leo found someone to cover his work shift and is coming after all.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T09:04:00-04:00",
+  "contract_hash": "90de372c42d452b7ba141ac5b50f12b6895021aca92475a9c3312e12f363fd7a"
+}

@@ -86,6 +86,18 @@ def test_refresh_reflects_edits_and_deletions_without_snapshot_fallback(tmp_path
     assert not (tmp_path / 'explorer/data').exists()
 
 
+def test_latest_run_uses_recorded_capture_time_after_checkout_changes_mtimes(tmp_path):
+    import os
+    root, arm = trial(tmp_path)
+    newer=root.parent/'newer'
+    shutil.copytree(root,newer)
+    save(arm/'model-usage.json',{'at':'2026-10-10T09:00:00+00:00'})
+    save(newer/'repeat-1/mem0/model-usage.json',{'at':'2026-10-10T11:00:00+00:00'})
+    os.utime(root/'summary.json',(2000000000,2000000000))
+    os.utime(newer/'summary.json',(1000000000,1000000000))
+    assert [r['id'] for r in explorer.load_runs(tmp_path)['runs']]==['newer','trial']
+
+
 def test_broken_run_does_not_hide_valid_results(tmp_path):
     trial(tmp_path)
     save(tmp_path / 'runs/broken/summary.json', {'mode': 'native-hermes'})

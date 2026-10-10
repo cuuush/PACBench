@@ -1,0 +1,65 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?",
+  "at": "2026-10-09T09:04:00-04:00",
+  "answer": "Yes — got Tyler to cover his closing shift, so he's back in for Friday.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_activity",
+      "input": {
+        "handle": "E1",
+        "limit": 20
+      },
+      "timestamp": 1791629700083
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_archive",
+      "input": {
+        "limit": 20,
+        "person": "Leo",
+        "query": "shift"
+      },
+      "timestamp": 1791629700091
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_activity",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"handle\": \"E1\", \"kind\": \"event\", \"ref\": \"pizza@2026-10-09\", \"mark\": 44, \"total\": 0, \"omitted\": 0, \"next_cursor\": 0, \"items\": [], \"possibly_related\": [], \"note\": \"reading changes nothing; cite line ids in a correction\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_archive",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"line_id\": 38, \"when\": \"2026-10-08T20:30\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"ok you guys will be happy, got Tyler to cover my closing shift tomorrow so I'm back in for Friday!\"}, {\"line_id\": 33, \"when\": \"2026-10-08T19:04\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"just caught up - they stuck me with a closing shift tomorrow so I can't do pizza on Friday, I'm sorry guys\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 9.87,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261010_065416_efcbc5 \"Count pizza plans today\" (2 user messages, 7 total messages)\n\nsession_id: 20261010_065416_efcbc5",
+  "raw_events": 9,
+  "session_id": "20261010_065416_efcbc5",
+  "stderr_full": "↻ Resumed session 20261010_065416_efcbc5 \"Count pizza plans today\" (2 user messages, 7 total messages)\n\nsession_id: 20261010_065416_efcbc5\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_065416_efcbc5\", \"timestamp\": 1791629694699}\n{\"type\": \"text\", \"text\": \"Let me check Leo's latest messages on that.\", \"timestamp\": 1791629699269}\n{\"type\": \"tool_use\", \"name\": \"memcal_activity\", \"input\": {\"handle\": \"E1\", \"limit\": 20}, \"timestamp\": 1791629700083}\n{\"type\": \"tool_result\", \"name\": \"memcal_activity\", \"output\": \"{\\\"handle\\\": \\\"E1\\\", \\\"kind\\\": \\\"event\\\", \\\"ref\\\": \\\"pizza@2026-10-09\\\", \\\"mark\\\": 44, \\\"total\\\": 0, \\\"omitted\\\": 0, \\\"next_cursor\\\": 0, \\\"items\\\": [], \\\"possibly_related\\\": [], \\\"note\\\": \\\"reading changes nothing; cite line ids in a correction\\\"}\", \"duration_ms\": 8, \"is_error\": false, \"timestamp\": 1791629700090}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_archive\", \"input\": {\"limit\": 20, \"person\": \"Leo\", \"query\": \"shift\"}, \"timestamp\": 1791629700091}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_archive\", \"output\": \"{\\\"results\\\": [{\\\"line_id\\\": 38, \\\"when\\\": \\\"2026-10-08T20:30\\\", \\\"who\\\": \\\"Leo\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"Friday crew\\\", \\\"text\\\": \\\"ok you guys will be happy, got Tyler to cover my closing shift tomorrow so I'm back in for Friday!\\\"}, {\\\"line_id\\\": 33, \\\"when\\\": \\\"2026-10-08T19:04\\\", \\\"who\\\": \\\"Leo\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"Friday crew\\\", \\\"text\\\": \\\"just caught up - they stuck me with a closing shift tomorrow so I can't do pizza on Friday, I'm sorry guys\\\"}]}\", \"duration_ms\": 4, \"is_error\": false, \"timestamp\": 1791629700096}\n{\"type\": \"text\", \"text\": \"\\n\\nYes — got Tyler to cover his closing shift, so\", \"timestamp\": 1791629702983}\n{\"type\": \"text\", \"text\": \" he's back in for Friday.\", \"timestamp\": 1791629703019}\n{\"type\": \"result\", \"session_id\": \"20261010_065416_efcbc5\", \"exit_code\": 0, \"text\": \"Yes — got Tyler to cover his closing shift, so he's back in for Friday.\", \"tokens\": {\"input\": 2946, \"output\": 784, \"total\": 23412, \"cache_read\": 19682, \"cache_write\": 0}, \"duration_ms\": 8380, \"timestamp\": 1791629703079}",
+  "session_input_tokens": 2946,
+  "session_output_tokens": 784,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-09T09:04:00-04:00 [id=a7d95a855cc579d3c900e3032a5a336108abfbb0] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Friday 9 October 2026)\n〔E1〕 Fri Oct 9  \"pizza\", 5pm — confirmed · with Leo, Maya\n〔E2〕 Fri Oct 9  \"pizza\", 6pm — confirmed · with Devon\n[complete for 2026-10-06 – 2026-11-08; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-qsu24v42",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-qsu24v42",
+    "system_prompt_sha256": "7acca47f5f4df7d3c1f17a91a4c9cc9594c4f75aa983cd56ffe6f1807a3307f1",
+    "reason": "No project context in native saved system prompt"
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "scene_id": "jen-call",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-10T10:41:42+00:00",
+  "spec": {
+    "id": "jen-call",
+    "channel": "imessage",
+    "thread": "jen",
+    "scene": "A DM arranging a quick phone call tomorrow morning about a job application. This is separate from the group outing.",
+    "test_intent": "",
+    "facts": [
+      "Jen and the user agree to a phone call on Tuesday at 10 am about her job application."
+    ],
+    "at": "2026-10-05T17:25:00-04:00",
+    "window_start": "2026-10-05T17:25:00-04:00",
+    "window_end": "2026-10-05T17:45:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      4,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Jen"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v14",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Me: ugh finally home, today was endless",
+    "Jen: same, I'm just throwing dinner together",
+    "Me: can we do a quick phone call Tuesday at 10 am to go over your job application?",
+    "Jen: yeah that works, thank you!",
+    "Me: perfect, talk then"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 17:25 and 17:45 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: A DM arranging a quick phone call tomorrow morning about a job application. This is separate from the group outing.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Jen and the user agree to a phone call on Tuesday at 10 am about her job application.\n\nNew messages:\n1. Me: ugh finally home, today was endless\n2. Jen: same, I'm just throwing dinner together\n3. Me: can we do a quick phone call Tuesday at 10 am to go over your job application?\n4. Jen: yeah that works, thank you!\n5. Me: perfect, talk then",
+  "judge_response": "{\"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      3,
+      4,
+      5
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          3,
+          4,
+          5
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 1823,
+  "response_chars": 139,
+  "model_call": "/workspace/PACBench/runs/pizza-week-context-20261010-preparation/model-calls/6998c90be92ce369e4a8d7e417bf13b485e81e897b7ce580d1cebeb7a4c51ffc.json",
+  "usage": {
+    "completion_tokens": 1461,
+    "prompt_tokens": 382,
+    "total_tokens": 1843,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1399
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

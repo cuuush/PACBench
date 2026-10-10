@@ -240,25 +240,34 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
         return load_combined_plan(path, binding)
     authoring_calls = []
     hidden = [{'claim_id': c.id, 'claim': c.statement} for c in selected]
-    authored = model_json(model,
+    write_prompt = (
         'Write one short user message asking for each missing detail. Ask for its value, '
         'preserving current versus historical meaning. Do not supply answers or tool instructions. '
         'Return ONLY JSON {"question":"message"}.\n'
-        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}', records=authoring_calls)
-    question = authored['question']
-    if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
-        raise ValueError('combined follow-up must be one bounded message')
-    review = model_json(model,
+        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
+    review_prompt = (
         'Does this message ask for every missing value without supplying answers or tool instructions, '
         'preserving current versus historical meaning? Reject broad recaps and yes/no confirmations. '
         'Return ONLY JSON {"safe":true,"covers_claim_ids":["covered IDs"],"reason":"explanation"}.\n'
-        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
-        f'Proposed message: {question}', records=authoring_calls)
-    origin = 'spark-combined-message'
-    if (review.get('safe') is not True or not _covers_all(review, claim_ids) or
-            not isinstance(review.get('reason'), str) or not review['reason'].strip()):
-        save(path.with_suffix('.rejected.json'), {'question': question, 'review': review})
+        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n')
+    rejected = []
+    for _ in range(2):
+        feedback = ('\nRevise the rejected draft using this independent review: '
+                    + json.dumps(rejected[-1])) if rejected else ''
+        authored = model_json(model, write_prompt + feedback, records=authoring_calls)
+        question = authored['question']
+        if not isinstance(question, str) or not 1 <= len(question.strip()) <= 2000:
+            raise ValueError('combined follow-up must be one bounded message')
+        review = model_json(model, review_prompt + f'Proposed message: {question}',
+                            records=authoring_calls)
+        if (review.get('safe') is True and _covers_all(review, claim_ids) and
+                isinstance(review.get('reason'), str) and review['reason'].strip()):
+            break
+        rejected.append({'question': question, 'review': review})
+        save(path.with_suffix('.rejected.json'), {**rejected[-1], 'drafts': rejected})
+    else:
         raise ValueError('combined follow-up failed neutral/complete coverage review')
+    origin = 'spark-combined-message'
     body = {**binding, 'question': question, 'review': review, 'origin': origin, 'authoring_calls': authoring_calls}
     result = {**body, 'question_hash': digest(body)}
     save(path, result)

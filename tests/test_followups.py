@@ -195,7 +195,7 @@ def test_unknown_usage_is_not_zero_and_project_windows_do_not_claim_tool_prices(
 def test_leading_question_rejected_and_saved_plan_cannot_change(tmp_path):
     policy = freeze_policy(contract(), tmp_path / 'policy.json')
     outputs = iter([{'question': 'Friday at seven, right?'},
-                    {'safe': False, 'covers_claim_ids': ['date', 'time'], 'reason': 'Leading question.'}])
+                    {'safe': False, 'covers_claim_ids': ['date', 'time'], 'reason': 'Leading question.'}] * 2)
     with pytest.raises(ValueError, match='neutral/complete coverage review'):
         combined_plan(contract(), policy, list(contract().claims),
                       lambda _: json.dumps(next(outputs)), tmp_path / 'combined')
@@ -217,7 +217,7 @@ def test_combined_review_coverage_is_complete_and_unique_regardless_of_order(tmp
     from pacbench.followups import load_combined_plan
     c=contract();policy=freeze_policy(c,tmp_path/'policy.json')
     replies=iter([{'question':'Which day and what time?'},
-                  {'safe':True,'covers_claim_ids':coverage,'reason':'Synthetic coverage review.'}])
+                  {'safe':True,'covers_claim_ids':coverage,'reason':'Synthetic coverage review.'}] * 2)
     write=lambda _: json.dumps(next(replies))
     if not accepted:
         with pytest.raises(ValueError,match='neutral/complete coverage review'):
@@ -282,3 +282,33 @@ def test_zero_correct_facts_skip_all_recovery_work_and_are_auditable(tmp_path, v
     (output / 'recovery.json').write_text(json.dumps(result))
     assert any('skip reason' in e for e in audit_followups(contract=c, plan=p,
         initial_turn=initial, initial_grade=initial_grade, output=output))
+
+
+def test_rejected_draft_gets_one_revision_before_one_agent_followup(tmp_path):
+    c=contract()
+    c.claims += (SimpleNamespace(id='companion',statement='Devon is going.',evidence=('m1',)),)
+    g=grade(('missed','missed'))
+    g.slots.append(GradedClaim('companion','correct','Already recalled.'))
+    g.correct=1
+    g.recovery.append({'id':'companion','kind':'provided','reason':'Already recalled.'})
+    replies=iter([{'question':'Friday at seven, right?'},
+        {'safe':False,'covers_claim_ids':[],'reason':'Leading question.'},
+        {'question':'Which day and what time?'},
+        {'safe':True,'covers_claim_ids':['date','time'],'reason':'Neutral and complete.'}])
+    prompts,questions=[],[]
+    def writer(prompt):
+        prompts.append(prompt)
+        return json.dumps(next(replies))
+    def runner(question,**kwargs):
+        questions.append(question)
+        return turn(question,'Recovered answer')
+    result=run_followups(contract=c,plan=freeze_policy(c,tmp_path/'policy.json'),grade=g,
+        initial_turn=turn(),output=tmp_path/'followups',judge=judge,home=tmp_path,
+        allowlist='',extra_env={},run_turn=runner,budget_snapshot=lambda:{'projects':[]},
+        question_model=writer,question_dir=tmp_path/'shared')
+    assert questions==['Which day and what time?']
+    assert len(prompts)==4 and 'Leading question.' in prompts[2]
+    assert result['state']=='complete' and result['score']['points']==2
+    assert g.correct==1
+    rejected=json.loads(next((tmp_path/'shared').glob('*.rejected.json')).read_text())
+    assert len(rejected['drafts'])==1

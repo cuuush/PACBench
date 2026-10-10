@@ -183,18 +183,29 @@
           "turns": [
             {
               "id": "pond-cancellation",
-              "prompt": "Did we end up calling off the duck pond yesterday?",
-              "expect": "Yes, Tuesday’s duck-pond outing with Jen and Alex was called off. They agreed to do it another day but did not settle a new date."
+              "prompt": "What happened with the duck pond yesterday, and did we pick another day?",
+              "expect": "The Tuesday duck-pond outing was called off. They agreed to do it another day but did not settle a replacement date."
             },
             {
               "id": "separate-appointments",
               "prompt": "Did that change my call with Jen or coffee with Alex too?",
-              "expect": "No. The group cancellation only applied to the pond outing. The separately agreed Tuesday 10 am phone call with Jen about her job application and Tuesday 11 am coffee with Alex at Birch Cafe were not cancelled in the messages. Do not claim they actually happened; attendance is unknown."
+              "expect": "Only the group pond outing was called off. The messages did not cancel the separately arranged call with Jen or coffee with Alex; those appointments remained as arranged."
+            }
+          ]
+        },
+        {
+          "id": "wednesday-ben",
+          "time": "9:15 am",
+          "turns": [
+            {
+              "id": "ben-one-dinner",
+              "prompt": "How many dinner plans did Ben and I settle on this week?",
+              "expect": "One dinner. Only the number of dinner occasions is being judged; rescheduling the original plan did not add a second dinner."
             },
             {
               "id": "ben-moved",
-              "prompt": "What's the latest plan for dinner with Ben?",
-              "expect": "The same dinner originally agreed for Thursday was moved to Saturday at 7 pm at Juniper Cafe. It is one dinner, not two."
+              "prompt": "When and where am I meeting Ben for dinner now?",
+              "expect": "Dinner with Ben is now Saturday at 7 pm at Juniper Cafe."
             }
           ]
         }

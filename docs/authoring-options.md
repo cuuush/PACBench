@@ -4,6 +4,8 @@
 
 Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
 
+Email channels use `type: "email"` and a `subject`. Each generated entry becomes an RFC 5322 email body with From/To, Date, Message-ID and reply references. Messaging and email addresses are distinct accounts on the same separate Contacts card. Memcal consumes Inbox/Sent through its native secure IMAP reader against a synthetic local mailbox; this is a protocol fixture, not a running Proton Bridge. No native reader methods or archive writes are substituted. The email checker can see earlier source dialogue across channels; the writer receives only its own thread history and authored scene requirements.
+
 ```json
 {
   "channels": {

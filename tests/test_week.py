@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==13 and len(resolved['checks'])==11
+    assert len(scenes)==13 and len(resolved['checks'])==12
     scene_by_id={s.id:s for s in scenes}
     check_by_id={c['id']:c for c in resolved['checks']}
     assert scene_by_id['leo-joins'].participants==('Me','Maya','Leo')
@@ -33,7 +33,7 @@ def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     evidence=contract_evidence(rows,resolved['checks'],check_by_id['initial-plan-count'])
     assert {r['source_id'] for r in evidence}=={'old','assistant-user:initial-plan-count',
         'assistant-user:pond-initial','assistant-user:pond-cancellation',
-        'assistant-user:separate-appointments','assistant-user:ben-moved'}
+        'assistant-user:separate-appointments','assistant-user:ben-one-dinner','assistant-user:ben-moved'}
     assert 'assistant-user:updated-plan-count' not in {r['source_id'] for r in evidence}
     bad=json.loads(json.dumps(spec));bad['days']['wednesday']['scenes'][0]['channel']='missing'
     with pytest.raises(ValueError,match='Unknown channel'):normalize_week(bad,'2026-09-07')

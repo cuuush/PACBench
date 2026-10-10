@@ -1,0 +1,119 @@
+{
+  "claims": [
+    {
+      "id": "meet-jen",
+      "statement": "The user is meeting Jen.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "meet-alex",
+      "statement": "The user is meeting Alex.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "day-tuesday",
+      "statement": "The meeting is on Tuesday.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "time-2pm",
+      "statement": "The meeting is at 2 pm.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "place-entrance",
+      "statement": "The meeting is at the west entrance to the duck pond.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    },
+    {
+      "id": "place-park",
+      "statement": "The meeting is in Willow Park.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/pond-invite-03",
+        "pizza-week-natural-confounders-low/pond-invite-04",
+        "pizza-week-natural-confounders-low/pond-invite-05"
+      ]
+    }
+  ],
+  "question": "What's the plan for the duck pond today?",
+  "evidence_hash": "c5fe72ca54f8ebb97308b4219b6dc74f9af29da5ea6753d72c9cdeca16333dc9",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set provides independent atomic claims for Jen, Alex, Tuesday, 2pm, west entrance to duck pond, and Willow Park — all intent details confirmed in dialogue.",
+    "reviews": [
+      {
+        "id": "meet-jen",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Jen confirms Alex's Tuesday 2pm proposal, establishing user meeting Jen."
+      },
+      {
+        "id": "meet-alex",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Alex proposes outing and Me accepts, establishing user meeting Alex."
+      },
+      {
+        "id": "day-tuesday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Tuesday proposed by Alex and confirmed by Me and Jen."
+      },
+      {
+        "id": "time-2pm",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "2pm proposed by Alex and confirmed by Me and Jen."
+      },
+      {
+        "id": "place-entrance",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "West entrance to duck pond proposed and confirmed."
+      },
+      {
+        "id": "place-park",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Willow Park proposed and confirmed as location."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks open-ended 'plan for the duck pond today' on Tuesday 2026-10-06, which matches the Tuesday 2pm pond event in evidence, without naming Jen/Alex/time/place. It presupposes only a today pond plan which is supported, and 'what's the plan' reasonably invites who/when/where details for all 6 facts."
+  },
+  "author_fact_count": 0,
+  "test_intent": "The user is meeting Jen and Alex Tuesday at 2 pm at the west entrance to the duck pond in Willow Park.",
+  "question_source": "supplied",
+  "question_at": "2026-10-06T06:00:00-04:00",
+  "contract_hash": "57cb577065a86be7a9d478c79405cd21669c6ca49a649241e00b3b7a1e0ec807"
+}

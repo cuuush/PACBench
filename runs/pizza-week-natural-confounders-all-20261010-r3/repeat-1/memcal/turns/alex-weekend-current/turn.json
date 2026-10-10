@@ -1,0 +1,62 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T12:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan with Alex this weekend?",
+  "at": "2026-10-09T12:15:00-04:00",
+  "answer": "Lunch with Alex Sunday Oct 11 at 12pm at Birch Cafe - you're confirmed. You declined dinner with Alex that same evening at 7pm at Juniper Cafe.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E8"
+      },
+      "timestamp": 1791660266164
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E6"
+      },
+      "timestamp": 1791660266177
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E8  lunch\n\nwhen: Sunday 11 October 2026 at 12:00\nstate: You're going\nwhere: Birch Cafe\nwho: Alex\nsource: person:Alex\n\nsources (6 line(s); * = what the row was built from):\n  — Wed Oct 7, 2026 11:20 · iMessage with Alex —\n   [41] Alex · Wed 7 Oct 11:20 · me: yes definitely, hope your shift goes faster lol\n  — Thu Oct 8, 2026 12:00 · iMessage with Alex · 1 day later —\n   [62] Alex · Thu 8 Oct 12:00 · Alex: hey finally on lunch break lol\n * [63] Alex · Thu 8 Oct 12:05 · Alex: would you be down for lunch instead on Sunday? like noon at Birch Cafe?\n * [64] Alex · Thu 8 Oct 12:10 · me: yeah that works for me!\n   [65] Alex · Thu 8 Oct 12:15 · me: still thinking about their latte from tuesday tbh\n * [66] Alex · Thu 8 Oct 12:20 · Alex: lol same, see you sunday then\n\nchanges:\n  2026-10-09T03:00  time: '' -> '12:00' (by dream:nightly:born)\n  2026-10-09T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-09T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-09T03:00  title: '' -> 'lunch' (by dream:nightly:born)\n  2026-10-09T03:00  location: '' -> 'Birch Cafe' (by dream:nightly:born)\n  2026-10-09T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-09T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-09T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E6  dinner\n\nwhen: Sunday 11 October 2026 at 19:00\nstate: You're not going\nwhere: Juniper Cafe\nwho: Alex\nsource: person:Alex\n\nsources (6 line(s); * = what the row was built from):\n  — Wed Oct 7, 2026 11:00 · iMessage with Alex —\n   [36] Alex · Wed 7 Oct 11:00 · Alex: morning, my shift is dragging already lol\n   [37] Alex · Wed 7 Oct 11:04 · me: ugh tell me about it, I'm stuck on laundry\n * [38] Alex · Wed 7 Oct 11:08 · Alex: hey random but would you wanna get dinner Sunday at 7? was thinking Juniper Cafe?\n * [39] Alex · Wed 7 Oct 11:12 · me: evenings are kinda awkward for me this weekend so I'll have to pass\n   [40] Alex · Wed 7 Oct 11:16 · Alex: all good, no worries! raincheck?\n   [41] Alex · Wed 7 Oct 11:20 · me: yes definitely, hope your shift goes faster lol\n\nchanges:\n  2026-10-08T03:00  time: '' -> '19:00' (by dream:nightly:born)\n  2026-10-08T03:00  kind: '' -> 'opportunity' (by dream:nightly:born-day)\n  2026-10-08T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-08T03:00  title: '' -> 'dinner' (by dream:nightly:born)\n  2026-10-08T03:00  location: '' -> 'Juniper Cafe' (by dream:nightly:born)\n  2026-10-08T03:00  status: '' -> 'declined' (by dream:nightly:born)\n  2026-10-08T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-08T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 8.09,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_152422_81df3c",
+  "raw_events": 14,
+  "session_id": "20261010_152422_81df3c",
+  "stderr_full": "\nsession_id: 20261010_152422_81df3c\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_152422_81df3c\", \"timestamp\": 1791660262576}\n{\"type\": \"text\", \"text\": \"Pulling the details for your Alex plans this weekend.\", \"timestamp\": 1791660265703}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E8\"}, \"timestamp\": 1791660266164}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E8  lunch\\n\\nwhen: Sunday 11 October 2026 at 12:00\\nstate: You're going\\nwhere: Birch Cafe\\nwho: Alex\\nsource: person:Alex\\n\\nsources (6 line(s); * = what the row was built from):\\n  — Wed Oct 7, 2026 11:20 · iMessage with Alex —\\n   [41] Alex · Wed 7 Oct 11:20 · me: yes definitely, hope your shift goes faster lol\\n  — Thu Oct 8, 2026 12:00 · iMessage with Alex · 1 day later —\\n   [62] Alex · Thu 8 Oct 12:00 · Alex: hey finally on lunch break lol\\n * [63] Alex · Thu 8 Oct 12:05 · Alex: would you be down for lunch instead on Sunday? like noon at Birch Cafe?\\n * [64] Alex · Thu 8 Oct 12:10 · me: yeah that works for me!\\n   [65] Alex · Thu 8 Oct 12:15 · me: still thinking about their latte from tuesday tbh\\n * [66] Alex · Thu 8 Oct 12:20 · Alex: lol same, see you sunday then\\n\\nchanges:\\n  2026-10-09T03:00  time: '' -> '12:00' (by dream:nightly:born)\\n  2026-10-09T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-09T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-09T03:00  title: '' -> 'lunch' (by dream:nightly:born)\\n  2026-10-09T03:00  location: '' -> 'Birch Cafe' (by dream:nightly:born)\\n  2026-10-09T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\\n  2026-10-09T03:00  participants: '' -> '[\\\"Alex\\\"]' (by dream:nightly:born)\\n  2026-10-09T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\\n\", \"duration_ms\": 12, \"is_error\": false, \"timestamp\": 1791660266176}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E6\"}, \"timestamp\": 1791660266177}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E6  dinner\\n\\nwhen: Sunday 11 October 2026 at 19:00\\nstate: You're not going\\nwhere: Juniper Cafe\\nwho: Alex\\nsource: person:Alex\\n\\nsources (6 line(s); * = what the row was built from):\\n  — Wed Oct 7, 2026 11:00 · iMessage with Alex —\\n   [36] Alex · Wed 7 Oct 11:00 · Alex: morning, my shift is dragging already lol\\n   [37] Alex · Wed 7 Oct 11:04 · me: ugh tell me about it, I'm stuck on laundry\\n * [38] Alex · Wed 7 Oct 11:08 · Alex: hey random but would you wanna get dinner Sunday at 7? was thinking Juniper Cafe?\\n * [39] Alex · Wed 7 Oct 11:12 · me: evenings are kinda awkward for me this weekend so I'll have to pass\\n   [40] Alex · Wed 7 Oct 11:16 · Alex: all good, no worries! raincheck?\\n   [41] Alex · Wed 7 Oct 11:20 · me: yes definitely, hope your shift goes faster lol\\n\\nchanges:\\n  2026-10-08T03:00  time: '' -> '19:00' (by dream:nightly:born)\\n  2026-10-08T03:00  kind: '' -> 'opportunity' (by dream:nightly:born-day)\\n  2026-10-08T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-08T03:00  title: '' -> 'dinner' (by dream:nightly:born)\\n  2026-10-08T03:00  location: '' -> 'Juniper Cafe' (by dream:nightly:born)\\n  2026-10-08T03:00  status: '' -> 'declined' (by dream:nightly:born)\\n  2026-10-08T03:00  participants: '' -> '[\\\"Alex\\\"]' (by dream:nightly:born)\\n  2026-10-08T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\\n\", \"duration_ms\": 7, \"is_error\": false, \"timestamp\": 1791660266185}\n{\"type\": \"text\", \"text\": \"\\n\\nLunch with Alex\", \"timestamp\": 1791660268812}\n{\"type\": \"text\", \"text\": \" Sunday Oct 11 at 12pm at Birch Cafe - you're confirmed\", \"timestamp\": 1791660268844}\n{\"type\": \"text\", \"text\": \".\", \"timestamp\": 1791660268878}\n{\"type\": \"text\", \"text\": \" You declined dinner\", \"timestamp\": 1791660268911}\n{\"type\": \"text\", \"text\": \" with Alex that\", \"timestamp\": 1791660268944}\n{\"type\": \"text\", \"text\": \" same evening\", \"timestamp\": 1791660268980}\n{\"type\": \"text\", \"text\": \" at 7pm at Juniper Cafe.\", \"timestamp\": 1791660269013}\n{\"type\": \"result\", \"session_id\": \"20261010_152422_81df3c\", \"exit_code\": 0, \"text\": \"Lunch with Alex Sunday Oct 11 at 12pm at Birch Cafe - you're confirmed. You declined dinner with Alex that same evening at 7pm at Juniper Cafe.\", \"tokens\": {\"input\": 9941, \"output\": 740, \"total\": 18346, \"cache_read\": 7665, \"cache_write\": 0}, \"duration_ms\": 6493, \"timestamp\": 1791660269069}",
+  "session_input_tokens": 9941,
+  "session_output_tokens": 740,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-09T12:15:00-04:00 [id=e1088a27f5a58bff82970ff947333060c4d8b53e] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Friday 9 October 2026)\n〔E3〕 · Tue Oct 6  \"phone call to go over job application\", 10am — was planned; attendance unknown · with Jen\n〔E2〕 · Tue Oct 6  \"coffee\", 11am — was planned; attendance unknown · with Alex\n〔E1〕 · Tue Oct 6  \"walk\", 2pm — not going · with Alex, Jen\n〔E5〕 Fri Oct 9  \"grab pizza\", 5pm — confirmed · with Maya, Leo\n〔E7〕 Fri Oct 9  \"pizza\", 6pm — confirmed · with Devon\n〔E4〕 Sat Oct 10  \"dinner to catch up\", 7pm — confirmed · with Ben\n〔E8〕 Sun Oct 11  \"lunch\", 12pm — confirmed · with Alex\n〔E6〕 Sun Oct 11  \"dinner\", 7pm — not going · with Alex\n[complete for 2026-10-06 – 2026-11-08; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no email 3 days — this week may be incomplete]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-75iqate5",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-75iqate5",
+    "system_prompt_sha256": "efc6af7af4cb2c74783a00dd679ec21d584c394c92099a47713fb41d1feba4b0",
+    "reason": "No project context in native saved system prompt"
+  }
+}

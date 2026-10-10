@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?",
+  "at": "2026-10-09T09:04:00-04:00",
+  "answer": "Yes — Tyler's covering his closing shift, so he's back in for tonight.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 8.62,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261010_163012_5f9c8d \"Check pizza plans for today\" (2 user messages, 6 total messages)\n\nsession_id: 20261010_163012_5f9c8d",
+  "raw_events": 4,
+  "session_id": "20261010_163012_5f9c8d",
+  "stderr_full": "↻ Resumed session 20261010_163012_5f9c8d \"Check pizza plans for today\" (2 user messages, 6 total messages)\n\nsession_id: 20261010_163012_5f9c8d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_163012_5f9c8d\", \"timestamp\": 1791664290635}\n{\"type\": \"text\", \"text\": \"Yes — Tyler's\", \"timestamp\": 1791664296628}\n{\"type\": \"text\", \"text\": \" covering his closing shift, so he's back in for tonight.\", \"timestamp\": 1791664296684}\n{\"type\": \"result\", \"session_id\": \"20261010_163012_5f9c8d\", \"exit_code\": 0, \"text\": \"Yes — Tyler's covering his closing shift, so he's back in for tonight.\", \"tokens\": {\"input\": 981, \"output\": 322, \"total\": 5384, \"cache_read\": 4081, \"cache_write\": 0}, \"duration_ms\": 6328, \"timestamp\": 1791664296963}",
+  "session_input_tokens": 981,
+  "session_output_tokens": 322,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Relevant Memories\n- [just now] [72%] Leo got Tyler to cover his closing shift on Friday, October 9, 2026, so Leo is back in for Friday pizza.\n- [just now] [67%] The Friday pizza meetup with Maya and Leo was moved to 5pm on Friday, October 9, 2026, at Maya's request.\n- [just now] [61%] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\n- [just now] [60%] Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\n- [just now] [58%] The Friday crew (user, Maya, and Leo) agreed to have pizza at Mario's on Pine Street on Friday, October 9, 2026.\n- [just now] [57%] Maya has to be at her parents' place later on Friday night, October 9, 2026.\n- [just now] [56%] User had a latte at Birch Cafe on Tuesday, October 6, 2026.\n- [just now] [56%] User is in group chat \"Friday crew\" with Maya and Leo.\n- [just now] [56%] User planned to have lunch with Alex at Birch Cafe at noon on Sunday, October 11, 2026.\n- [just now] [56%] Alex has a work shift on Tuesday after morning coffee.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-r47alfcd",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-r47alfcd",
+    "system_prompt_sha256": "8919aa10d1324850d92a7250ffc900e90d4d625e12703e501b3303667eeb055e",
+    "reason": "No project context in native saved system prompt"
+  }
+}

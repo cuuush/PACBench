@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-06T06:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for the duck pond today?",
+  "at": "2026-10-06T06:00:00-04:00",
+  "answer": "2pm at the west entrance in Willow Park with Jen and Alex — Jen's bringing coffee.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 11.55,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_162250_335bd8",
+  "raw_events": 5,
+  "session_id": "20261010_162250_335bd8",
+  "stderr_full": "\nsession_id: 20261010_162250_335bd8\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_162250_335bd8\", \"timestamp\": 1791663770692}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"2pm at\", \"timestamp\": 1791663779721}\n{\"type\": \"text\", \"text\": \" the west entrance in Willow Park with Jen and Alex — Jen's bringing\", \"timestamp\": 1791663779789}\n{\"type\": \"text\", \"text\": \" coffee.\", \"timestamp\": 1791663779862}\n{\"type\": \"result\", \"session_id\": \"20261010_162250_335bd8\", \"exit_code\": 0, \"text\": \"2pm at the west entrance in Willow Park with Jen and Alex — Jen's bringing coffee.\", \"tokens\": {\"input\": 3659, \"output\": 319, \"total\": 3978, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 9474, \"timestamp\": 1791663780167}",
+  "session_input_tokens": 3659,
+  "session_output_tokens": 319,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-05] User likes / craves the latte at Birch Cafe.\n- [2026-10-05] Alex has a work shift on Tuesday after morning coffee.\n- [2026-10-05] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\n- [2026-10-05] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\n- [2026-10-05] Jen has a job application that user is helping with.\n- [2026-10-05] User planned dinner with Ben at Juniper Cafe around 7pm on Thursday to catch up.\n- [2026-10-05] Jen will bring coffee to the duck pond walk on Tuesday.\n- [2026-10-05] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\n- [2026-10-05] User planned a walk to the duck pond with Jen and Alex on Tuesday at 2pm at the west entrance.\n- [2026-10-05] User is in group chat \"Park pals\" with Jen and Alex.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-r47alfcd",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-r47alfcd",
+    "system_prompt_sha256": "bdf66dd8c0e388e4b9837c928bb4f4b9fb0c31771f4674c3e87514ebb86b309d",
+    "reason": "No project context in native saved system prompt"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "state": "captured",
+  "started": "2026-10-10T20:24:13.644130+00:00",
+  "finished": "2026-10-10T20:24:31.900722+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 4,
+      "input_tokens": 12368,
+      "output_tokens": 1082,
+      "accounted_upper_bound_usd": 0.0014532,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "ca5b2314346c496e8838905b0c1e34d0",
+      "project": "pacbench-980b724e3f5e-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-10T20:24:16.966953+00:00",
+      "finished": "2026-10-10T20:24:19.764297+00:00",
+      "state": "settled",
+      "input_tokens": 323,
+      "output_tokens": 197,
+      "accounted": 71700,
+      "reserved": 108134400,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 7.17e-05
+    },
+    {
+      "id": "47886a730ccd437493b8b9a3f25ce049",
+      "project": "pacbench-980b724e3f5e-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-10T20:24:16.968570+00:00",
+      "finished": "2026-10-10T20:24:19.285274+00:00",
+      "state": "settled",
+      "input_tokens": 3681,
+      "output_tokens": 164,
+      "accounted": 400900,
+      "reserved": 108134400,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004009
+    },
+    {
+      "id": "a942631a64db44219f98638504ea6d58",
+      "project": "pacbench-980b724e3f5e-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-10T20:24:19.825888+00:00",
+      "finished": "2026-10-10T20:24:24.777659+00:00",
+      "state": "settled",
+      "input_tokens": 3997,
+      "output_tokens": 342,
+      "accounted": 468100,
+      "reserved": 108134400,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004681
+    },
+    {
+      "id": "8d2f489d71f14ad8b493dc97f8086d0a",
+      "project": "pacbench-980b724e3f5e-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-10T20:24:24.898338+00:00",
+      "finished": "2026-10-10T20:24:31.005714+00:00",
+      "state": "settled",
+      "input_tokens": 4367,
+      "output_tokens": 379,
+      "accounted": 512500,
+      "reserved": 108134400,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0005125
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

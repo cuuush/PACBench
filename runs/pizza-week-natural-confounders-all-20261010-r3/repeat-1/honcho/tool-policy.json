@@ -1,0 +1,31 @@
+{
+  "version": "retained-memory-only-v2",
+  "provider": "honcho",
+  "allowed_tools": [
+    "honcho_conclude",
+    "honcho_profile",
+    "honcho_reasoning"
+  ],
+  "blocked_source_tools": [
+    "honcho_context",
+    "honcho_search"
+  ],
+  "source_argument_rules": {
+    "viking_read": {
+      "scheme": "viking",
+      "memory_namespaces": [
+        "user",
+        "agent",
+        "~"
+      ],
+      "memory_path": "/memories/",
+      "summary_suffixes": {
+        "abstract": "/.abstract.md",
+        "overview": "/.overview.md"
+      },
+      "default_level": "overview"
+    }
+  },
+  "builtin_memory": false,
+  "os_sandbox": false
+}

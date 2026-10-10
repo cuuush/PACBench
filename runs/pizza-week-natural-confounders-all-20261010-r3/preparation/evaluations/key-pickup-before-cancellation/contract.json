@@ -1,0 +1,94 @@
+{
+  "claims": [
+    {
+      "id": "pickup-item",
+      "statement": "The item to collect is Devon's spare key",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-key-favor-02"
+      ]
+    },
+    {
+      "id": "pickup-venue",
+      "statement": "The pickup location is Luigi's",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-key-favor-02"
+      ]
+    },
+    {
+      "id": "pickup-street",
+      "statement": "The pickup location is on 5th Street",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-key-favor-02"
+      ]
+    },
+    {
+      "id": "pickup-day",
+      "statement": "The pickup day is Sunday",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-key-favor-02"
+      ]
+    },
+    {
+      "id": "pickup-time",
+      "statement": "The pickup time is 11 am",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-key-favor-02",
+        "pizza-week-natural-confounders-low/devon-key-favor-03"
+      ]
+    }
+  ],
+  "question": "What did I say I'd do for Devon tomorrow?",
+  "evidence_hash": "dbf8875ab01e95176a610fe0ad0c05c3f8447d730d5e37219fe9ef042e68b01e",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All 5 intent details (Devon's spare key, Luigi's, 5th Street, Sunday, 11am) are covered by independent atomic claims from the key-favor agreement.",
+    "reviews": [
+      {
+        "id": "pickup-item",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon says 'my spare key' in cited message, establishing item as Devon's spare key."
+      },
+      {
+        "id": "pickup-venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Cited message explicitly names Luigi's as pickup location."
+      },
+      {
+        "id": "pickup-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Cited message explicitly says 'on 5th Street'."
+      },
+      {
+        "id": "pickup-day",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Cited message explicitly says Sunday for pickup."
+      },
+      {
+        "id": "pickup-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon requests 'like 11am' and Me confirms 'at 11', establishing 11am."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks about tomorrow=Sunday at Sat 2026-10-10 without naming key, Luigi's, 5th Street, Sunday, or 11am; presupposition of an agreement for tomorrow is supported by devon-key-favor-02/03; open 'what did I say I'd do' reasonably invites full task details including item, venue+street, and day/time, distinguishing from Friday pizza."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Collect his spare key from Luigi’s on 5th Street on Sunday at 11 am.",
+  "question_source": "supplied",
+  "question_at": "2026-10-10T09:15:00-04:00",
+  "contract_hash": "56592605f30adc9a87e95e0bacd06890081225210561673b97df2b6471c93a26"
+}

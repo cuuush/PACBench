@@ -1,0 +1,35 @@
+{
+  "checkpoint": "leo-availability",
+  "question": "[Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?",
+  "answer": "Yes — Tyler is covering his closing shift, so he's back on for today.",
+  "claims": [
+    {
+      "id": "leo-shift-cover",
+      "description": "Leo found someone to cover his work shift.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/leo-back-in-00"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many pizza plans do I have today?\"}, {\"role\": \"assistant\", \"content\": \"You have 2 pizza plans today: 5pm with Maya and Leo at Mario's on Pine Street, and 6pm with Devon at Luigi's on 5th Street.\"}, {\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-09T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the latest plan for each one?\"}, {\"role\": \"assistant\", \"content\": \"Maya and Leo: 5pm today at Mario's on Pine Street.\\n\\nDevon: 6pm today at Luigi's on 5th Street.\"}]\nQuestion: [Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?\nAnswer: Yes — Tyler is covering his closing shift, so he's back on for today.\nClaims (hidden from the assistant): [{\"id\": \"leo-shift-cover\", \"claim\": \"Leo found someone to cover his work shift.\", \"evidence\": [\"pizza-week-natural-confounders-low/leo-back-in-00\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"leo-shift-cover\", \"verdict\": \"correct\", \"reason\": \"Answer states Tyler is covering his closing shift, so he's back on.\"}], \"recovery\": [{\"id\": \"leo-shift-cover\", \"kind\": \"provided\", \"reason\": \"Answer directly provides the cover fact.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?"
+    },
+    {
+      "role": "assistant",
+      "content": "You have 2 pizza plans today: 5pm with Maya and Leo at Mario's on Pine Street, and 6pm with Devon at Luigi's on 5th Street."
+    },
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-09T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the latest plan for each one?"
+    },
+    {
+      "role": "assistant",
+      "content": "Maya and Leo: 5pm today at Mario's on Pine Street.\n\nDevon: 6pm today at Luigi's on 5th Street."
+    }
+  ],
+  "model_call": "/tmp/pacbench-mem0-clean-rerun/model-calls/461e74604c38f96c34b53ac49772f792f62a4128698289fab155fe3b49c92ad7.json"
+}

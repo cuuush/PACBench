@@ -1,0 +1,119 @@
+{
+  "state": "complete",
+  "plan_hash": "050038d2c006610d9254a2666413e699a6deef546142ede05242b6c1cb033c87",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 3
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza plans Friday October 9 2026",
+          "top_k": 20
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791661395514,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"b1502646-ad6f-4b29-9988-9323edae6aad\", \"memory\": \"User confirmed plans with Maya to get pizza on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street, with User saying their crust is the best\", \"score\": 0.7598946536902178}, {\"id\": \"35ede247-fa11-4959-9ad2-903975bf7c8b\", \"memory\": \"User planned to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street, with User accepting and noting craving their garlic knots\", \"score\": 0.7517412027847805}, {\"id\": \"3cdd7abb-c6de-4723-89b5-a60809dd6d4a\", \"memory\": \"Leo initially dropped out of Friday pizza on October 9, 2026 on October 8 after being stuck with a closing shift, then got Tyler to cover the shift later that evening and rejoined for Friday.\", \"score\": 0.5711355452950307}, {\"id\": \"5fc84bde-a355-4d2e-a7d9-e400a39950fc\", \"memory\": \"Leo agreed to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026 after Maya invited him in the 'Friday crew' group chat, with User encouraging him to come for backup over garlic knots\", \"score\": 0.5650772685532167}, {\"id\": \"d485b540-5054-4ff7-8859-be0be00e1110\", \"memory\": \"User and Maya agreed in DMs on October 8, 2026 to move their Friday pizza on October 9, 2026 from 7pm to 5pm because Maya has something later that night and needs to be at her parents later, with Leo later confirming 5pm works for him.\", \"score\": 0.5641821391405938}, {\"id\": \"2b54fc6a-e66b-43c8-94b7-4f029c743ef5\", \"memory\": \"User noted on October 8, 2026 that Rosa's on Oak Street is closed for renovations, requiring a new spot for Friday pizza on October 9, 2026.\", \"score\": 0.5436154777134343}, {\"id\": \"caa426c7-ae8d-4c15-815d-13fc7b2bd8fe\", \"memory\": \"User and Maya agreed to move Friday pizza on October 9, 2026 to Mario's on Pine Street after Rosa's closure, after User suggested Domino's on Elm Street which Maya declined as too far, with Maya informing Leo who confirmed 5pm while craving garlic knots.\", \"score\": 0.5359068021492288}, {\"id\": \"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\", \"memory\": \"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\", \"score\": 0.3650418730243443}, {\"id\": \"9e7e0328-6232-4de6-a913-23e2259d3523\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\", \"score\": 0.33693330634999197}, {\"id\": \"ae7ba687-08f2-463a-ae5a-4638f444077f\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\", \"score\": 0.33096987202736505}, {\"id\": \"b8672024-cf50-4927-b5ff-a6ba6905baa0\", \"memory\": \"User and Alex agreed on October 8, 2026 to have lunch at noon on Sunday, October 11, 2026 at Birch Cafe instead of dinner after Alex proposed lunch, with User accepting and noting still thinking about their latte from Tuesday and Alex confirming.\", \"score\": 0.32506705386433865}, {\"id\": \"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\", \"memory\": \"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\", \"score\": 0.3180250262017774}, {\"id\": \"836d9421-f388-4239-8f69-a81470c6c43c\", \"memory\": \"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\", \"score\": 0.31178040101061605}, {\"id\": \"70f9c1d6-92be-45de-a960-f97952682e50\", \"memory\": \"Alex invited User to dinner at Juniper Cafe at 7pm on Sunday, October 11, 2026 on October 7, which User declined because evenings were awkward that weekend but agreed to a raincheck\", \"score\": 0.30549999410750966}, {\"id\": \"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\", \"memory\": \"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\", \"score\": 0.29831041262457986}], \"count\": 15}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "dinner plans with Maya Devon Leo",
+          "top_k": 20
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791661395582,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"35ede247-fa11-4959-9ad2-903975bf7c8b\", \"memory\": \"User planned to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street, with User accepting and noting craving their garlic knots\", \"score\": 0.6612734657804982}, {\"id\": \"5fc84bde-a355-4d2e-a7d9-e400a39950fc\", \"memory\": \"Leo agreed to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026 after Maya invited him in the 'Friday crew' group chat, with User encouraging him to come for backup over garlic knots\", \"score\": 0.6095390106703349}, {\"id\": \"d485b540-5054-4ff7-8859-be0be00e1110\", \"memory\": \"User and Maya agreed in DMs on October 8, 2026 to move their Friday pizza on October 9, 2026 from 7pm to 5pm because Maya has something later that night and needs to be at her parents later, with Leo later confirming 5pm works for him.\", \"score\": 0.6027151170275593}, {\"id\": \"caa426c7-ae8d-4c15-815d-13fc7b2bd8fe\", \"memory\": \"User and Maya agreed to move Friday pizza on October 9, 2026 to Mario's on Pine Street after Rosa's closure, after User suggested Domino's on Elm Street which Maya declined as too far, with Maya informing Leo who confirmed 5pm while craving garlic knots.\", \"score\": 0.5939532914219581}, {\"id\": \"b1502646-ad6f-4b29-9988-9323edae6aad\", \"memory\": \"User confirmed plans with Maya to get pizza on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street, with User saying their crust is the best\", \"score\": 0.479151364119822}, {\"id\": \"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\", \"memory\": \"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\", \"score\": 0.43726941550027937}, {\"id\": \"70f9c1d6-92be-45de-a960-f97952682e50\", \"memory\": \"Alex invited User to dinner at Juniper Cafe at 7pm on Sunday, October 11, 2026 on October 7, which User declined because evenings were awkward that weekend but agreed to a raincheck\", \"score\": 0.3245270649942267}, {\"id\": \"b8672024-cf50-4927-b5ff-a6ba6905baa0\", \"memory\": \"User and Alex agreed on October 8, 2026 to have lunch at noon on Sunday, October 11, 2026 at Birch Cafe instead of dinner after Alex proposed lunch, with User accepting and noting still thinking about their latte from Tuesday and Alex confirming.\", \"score\": 0.321346530915824}, {\"id\": \"3cdd7abb-c6de-4723-89b5-a60809dd6d4a\", \"memory\": \"Leo initially dropped out of Friday pizza on October 9, 2026 on October 8 after being stuck with a closing shift, then got Tyler to cover the shift later that evening and rejoined for Friday.\", \"score\": 0.317115367168342}, {\"id\": \"9e7e0328-6232-4de6-a913-23e2259d3523\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\", \"score\": 0.3156621377851078}, {\"id\": \"836d9421-f388-4239-8f69-a81470c6c43c\", \"memory\": \"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\", \"score\": 0.2836583408042068}, {\"id\": \"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\", \"memory\": \"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\", \"score\": 0.2759982907652636}, {\"id\": \"ae7ba687-08f2-463a-ae5a-4638f444077f\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\", \"score\": 0.2580758905538721}, {\"id\": \"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\", \"memory\": \"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\", \"score\": 0.2357957179276723}, {\"id\": \"2b54fc6a-e66b-43c8-94b7-4f029c743ef5\", \"memory\": \"User noted on October 8, 2026 that Rosa's on Oak Street is closed for renovations, requiring a new spot for Friday pizza on October 9, 2026.\", \"score\": 0.20803378845140713}], \"count\": 15}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Mario's Rosa's Luigi's pizza location time",
+          "top_k": 20
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791661395611,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"caa426c7-ae8d-4c15-815d-13fc7b2bd8fe\", \"memory\": \"User and Maya agreed to move Friday pizza on October 9, 2026 to Mario's on Pine Street after Rosa's closure, after User suggested Domino's on Elm Street which Maya declined as too far, with Maya informing Leo who confirmed 5pm while craving garlic knots.\", \"score\": 0.8245893544668569}, {\"id\": \"35ede247-fa11-4959-9ad2-903975bf7c8b\", \"memory\": \"User planned to get pizza with Devon on Friday, October 9, 2026 at 6pm at Luigi's on 5th Street, with User accepting and noting craving their garlic knots\", \"score\": 0.6665729426836204}, {\"id\": \"b1502646-ad6f-4b29-9988-9323edae6aad\", \"memory\": \"User confirmed plans with Maya to get pizza on Friday, October 9, 2026 at 7pm at Rosa's on Oak Street, with User saying their crust is the best\", \"score\": 0.47023845951349086}, {\"id\": \"5fc84bde-a355-4d2e-a7d9-e400a39950fc\", \"memory\": \"Leo agreed to join User and Maya for pizza at Rosa's on Oak Street at 7pm on Friday, October 9, 2026 after Maya invited him in the 'Friday crew' group chat, with User encouraging him to come for backup over garlic knots\", \"score\": 0.4681756626083562}, {\"id\": \"9e7e0328-6232-4de6-a913-23e2259d3523\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\", \"score\": 0.4625379455098109}, {\"id\": \"2b54fc6a-e66b-43c8-94b7-4f029c743ef5\", \"memory\": \"User noted on October 8, 2026 that Rosa's on Oak Street is closed for renovations, requiring a new spot for Friday pizza on October 9, 2026.\", \"score\": 0.45641832135925486}, {\"id\": \"d485b540-5054-4ff7-8859-be0be00e1110\", \"memory\": \"User and Maya agreed in DMs on October 8, 2026 to move their Friday pizza on October 9, 2026 from 7pm to 5pm because Maya has something later that night and needs to be at her parents later, with Leo later confirming 5pm works for him.\", \"score\": 0.35045086031741696}, {\"id\": \"3cdd7abb-c6de-4723-89b5-a60809dd6d4a\", \"memory\": \"Leo initially dropped out of Friday pizza on October 9, 2026 on October 8 after being stuck with a closing shift, then got Tyler to cover the shift later that evening and rejoined for Friday.\", \"score\": 0.31038040512519693}, {\"id\": \"b8672024-cf50-4927-b5ff-a6ba6905baa0\", \"memory\": \"User and Alex agreed on October 8, 2026 to have lunch at noon on Sunday, October 11, 2026 at Birch Cafe instead of dinner after Alex proposed lunch, with User accepting and noting still thinking about their latte from Tuesday and Alex confirming.\", \"score\": 0.25579573473657935}, {\"id\": \"ae7ba687-08f2-463a-ae5a-4638f444077f\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\", \"score\": 0.24547227057297735}, {\"id\": \"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\", \"memory\": \"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\", \"score\": 0.24012570705044872}, {\"id\": \"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\", \"memory\": \"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\", \"score\": 0.23890422897667962}, {\"id\": \"836d9421-f388-4239-8f69-a81470c6c43c\", \"memory\": \"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\", \"score\": 0.23365546773740958}, {\"id\": \"70f9c1d6-92be-45de-a960-f97952682e50\", \"memory\": \"Alex invited User to dinner at Juniper Cafe at 7pm on Sunday, October 11, 2026 on October 7, which User declined because evenings were awkward that weekend but agreed to a raincheck\", \"score\": 0.21809839924890217}, {\"id\": \"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\", \"memory\": \"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\", \"score\": 0.20824127128028108}], \"count\": 15}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.65,
+    "input_tokens": 8287,
+    "output_tokens": 1094,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "pizza-count-two",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "pizza-count-two",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

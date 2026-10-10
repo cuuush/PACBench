@@ -1,0 +1,40 @@
+{
+  "correct": 1,
+  "missed": 2,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "day-saturday",
+      "verdict": "correct",
+      "reason": "Answer states 'Saturday, October 10' for dinner with Ben."
+    },
+    {
+      "id": "time-7pm",
+      "verdict": "missed",
+      "reason": "Answer gives no time, stating it doesn't have original time stored."
+    },
+    {
+      "id": "venue-juniper",
+      "verdict": "missed",
+      "reason": "Answer gives no venue, stating it doesn't have original place stored."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "day-saturday",
+      "kind": "provided",
+      "reason": "Day correctly conveyed as Saturday."
+    },
+    {
+      "id": "time-7pm",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have original time stored."
+    },
+    {
+      "id": "venue-juniper",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have original place stored."
+    }
+  ],
+  "interaction": "answer"
+}

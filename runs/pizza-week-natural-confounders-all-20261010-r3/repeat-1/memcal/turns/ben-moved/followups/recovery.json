@@ -1,0 +1,106 @@
+{
+  "state": "complete",
+  "plan_hash": "34d94a3d09368b570df58aa78d0b3c8bb92fbc20560273d8865eaa9d90ad1578",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E4"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791660011803,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E4  dinner to catch up\n\nwhen: Saturday 10 October 2026 at 19:00\nstate: You're going\nwhere: Juniper Cafe\nwho: Ben\nsource: person:Ben\n\nsources (9 line(s); * = what the row was built from):\n  — Tue Oct 6, 2026 08:00 · email · Ben —\n * [29] Ben · Tue 6 Oct 08:00 · me: Re: Dinner yep same time works, same place, see you then\n  — Mon Oct 5, 2026 18:15 · iMessage with Ben · -1 days later —\n   [18] Ben · Mon 5 Oct 18:15 · me: ugh finally home, today just dragged\n   [19] Ben · Mon 5 Oct 18:20 · Ben: same, I literally just left the office\n * [20] Ben · Mon 5 Oct 18:25 · me: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm?\n * [21] Ben · Mon 5 Oct 18:30 · Ben: yeah that works for me\n * [22] Ben · Mon 5 Oct 18:35 · me: perfect, see you there\n  — Tue Oct 6, 2026 06:45 · email · Ben · 1 day later —\n * [30] Ben · Tue 6 Oct 06:45 · Ben: Dinner hey can we move our dinner to another day?\n * [28] Ben · Tue 6 Oct 07:10 · me: Re: Dinner yeah totally, what about Saturday?\n * [31] Ben · Tue 6 Oct 07:35 · Ben: Re: Dinner Saturday works, same time?\n\nchanges:\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'dinner to catch up' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'Juniper Cafe' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Ben\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Ben' (by dream:nightly:born-day)\n  2026-10-07T03:00  date: '2026-10-08' -> '2026-10-10' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 6.63,
+    "input_tokens": 9583,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "day-saturday",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "time-7pm",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "venue-juniper",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "day-saturday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time-7pm",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue-juniper",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

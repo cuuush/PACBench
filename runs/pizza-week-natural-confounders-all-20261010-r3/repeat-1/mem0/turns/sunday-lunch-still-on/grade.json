@@ -1,0 +1,60 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "with-alex",
+      "verdict": "correct",
+      "reason": "Answer to 'plan with Alex today' inherits with-Alex scope; states the plan without contradicting who it's with."
+    },
+    {
+      "id": "meal-lunch",
+      "verdict": "correct",
+      "reason": "Answer explicitly states 'Lunch'."
+    },
+    {
+      "id": "day-sunday",
+      "verdict": "correct",
+      "reason": "Answer inherits 'today' (2026-10-11) from question and does not contradict Sunday date."
+    },
+    {
+      "id": "time-noon",
+      "verdict": "correct",
+      "reason": "Answer explicitly states 'at noon'."
+    },
+    {
+      "id": "venue-birch",
+      "verdict": "correct",
+      "reason": "Answer explicitly states 'at Birch Cafe'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "with-alex",
+      "kind": "provided",
+      "reason": "Conveyed via inherited question scope."
+    },
+    {
+      "id": "meal-lunch",
+      "kind": "provided",
+      "reason": "Explicitly stated in answer."
+    },
+    {
+      "id": "day-sunday",
+      "kind": "provided",
+      "reason": "Conveyed via inherited today scope."
+    },
+    {
+      "id": "time-noon",
+      "kind": "provided",
+      "reason": "Explicitly stated in answer."
+    },
+    {
+      "id": "venue-birch",
+      "kind": "provided",
+      "reason": "Explicitly stated in answer."
+    }
+  ],
+  "interaction": "answer"
+}

@@ -1,0 +1,62 @@
+{
+  "claims": [
+    {
+      "id": "jen-call-remains",
+      "statement": "The separately arranged call with Jen was not cancelled and remained as arranged.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/jen-call-02",
+        "pizza-week-natural-confounders-low/jen-call-03",
+        "pizza-week-natural-confounders-low/jen-call-04",
+        "pizza-week-natural-confounders-low/pond-called-off-01",
+        "pizza-week-natural-confounders-low/pond-called-off-02",
+        "pizza-week-natural-confounders-low/pond-called-off-03"
+      ]
+    },
+    {
+      "id": "alex-coffee-remains",
+      "statement": "The separately arranged coffee with Alex was not cancelled and remained as arranged.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-coffee-02",
+        "pizza-week-natural-confounders-low/alex-coffee-03",
+        "pizza-week-natural-confounders-low/alex-coffee-04",
+        "pizza-week-natural-confounders-low/alex-coffee-05",
+        "pizza-week-natural-confounders-low/pond-called-off-01",
+        "pizza-week-natural-confounders-low/pond-called-off-02",
+        "pizza-week-natural-confounders-low/pond-called-off-03"
+      ]
+    }
+  ],
+  "question": "Did that change my call with Jen or coffee with Alex too?",
+  "evidence_hash": "f026f74d8e1793a73eaf1cbd0807fe5dfc3394ac54e72aeb6c7033963d5a2ec1",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Both required non-cancellations are covered by separate independent claims for Jen call and Alex coffee.",
+    "reviews": [
+      {
+        "id": "jen-call-remains",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue arranges Jen call and pond cancellation mentions only group pond outing, not the call, supporting non-cancellation."
+      },
+      {
+        "id": "alex-coffee-remains",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue arranges Alex coffee and pond cancellation mentions only group pond outing, not the coffee, supporting non-cancellation."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks about both the Jen call and Alex coffee without stating their outcome, so it does not supply answers. Presuppositions of an existing Jen call, Alex coffee, and a pond change antecedent for 'that' are supported by dialogue and the prior same-session wednesday-recap question about the duck pond yesterday. Answering requires confirming both remained, eliciting both expected facts."
+  },
+  "author_fact_count": 0,
+  "test_intent": "The messages did not cancel the separately arranged call with Jen or coffee with Alex; those appointments remained as arranged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-07T09:02:00-04:00",
+  "contract_hash": "2a306e8122a2cc7860c1c162e40a1c9f49e6987d0e4e65646db831448a825c5d"
+}

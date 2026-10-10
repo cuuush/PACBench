@@ -1,0 +1,72 @@
+{
+  "claims": [
+    {
+      "id": "date",
+      "statement": "The meeting is today, Saturday.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-email-reschedule-01",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-02",
+        "assistant-user:ben-fresh"
+      ]
+    },
+    {
+      "id": "time",
+      "statement": "The meeting is at 7 pm.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-dinner-02",
+        "pizza-week-natural-confounders-low/ben-dinner-03",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-02",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-03"
+      ]
+    },
+    {
+      "id": "venue",
+      "statement": "The meeting is at Juniper Cafe.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-dinner-02",
+        "pizza-week-natural-confounders-low/ben-dinner-03",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-03"
+      ]
+    }
+  ],
+  "question": "Where and when am I meeting Ben tonight?",
+  "evidence_hash": "dadf9d6a20e5c409a63631d0d6b145e738a6019a10e11d25a6e75d9d78473350",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All three intent details — Saturday/today, 7pm, Juniper Cafe — are each covered by an independent claim.",
+    "reviews": [
+      {
+        "id": "date",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Saturday proposal accepted plus Saturday-dated tonight query establishes today Saturday."
+      },
+      {
+        "id": "time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original 7pm preserved by same time confirmation in reschedule."
+      },
+      {
+        "id": "venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original Juniper Cafe preserved by same place confirmation in reschedule."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks 'where and when' for Ben meeting 'tonight' on Sat 2026-10-10, inviting venue, time, and date confirmation without stating 7pm, Juniper Cafe, or Saturday. Presupposition of a Ben meeting tonight is supported by Thursday Juniper 7pm moved to Saturday same time same place. Expected facts are supported by dialogue independent of scope."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Today, Saturday, at 7 pm at Juniper Cafe.",
+  "question_source": "supplied",
+  "question_at": "2026-10-10T09:00:00-04:00",
+  "contract_hash": "3c2c40506af7e5c6abf85097d1d3407bce50cfe757c30ab992a92f2c993b3c8a"
+}

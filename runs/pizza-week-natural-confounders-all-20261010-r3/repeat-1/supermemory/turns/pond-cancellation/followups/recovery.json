@@ -1,0 +1,127 @@
+{
+  "state": "complete",
+  "plan_hash": "05bc68e7538b5e7a97076d94697f470b2bc38cec03846ff9fdc64ec55d79e7d1",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 10,
+          "query": "duck pond walk Jen Alex postponed rescheduled"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663859653,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"LAjjJzww5cTtzpvxEt3XvF\", \"content\": \"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\", \"similarity\": 100}, {\"id\": \"g68Fd4xKEpkEFcgi18yX7s\", \"content\": \"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\", \"similarity\": 85}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 82}, {\"id\": \"k8e3SE7MpCgTaLHaidfaM7\", \"content\": \"\", \"similarity\": 64}], \"count\": 4}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 10,
+          "query": "duck pond new date rescheduled when"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663864782,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"LAjjJzww5cTtzpvxEt3XvF\", \"content\": \"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\", \"similarity\": 87}, {\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 76}, {\"id\": \"g68Fd4xKEpkEFcgi18yX7s\", \"content\": \"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\", \"similarity\": 75}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 73}, {\"id\": \"k8e3SE7MpCgTaLHaidfaM7\", \"content\": \"\", \"similarity\": 66}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 18.25,
+    "input_tokens": 10012,
+    "output_tokens": 885,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "pond-cancelled",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "pond-another-day",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed as postponed."
+    },
+    {
+      "id": "pond-no-date",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed as no new day picked."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "pond-cancelled",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pond-another-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pond-no-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

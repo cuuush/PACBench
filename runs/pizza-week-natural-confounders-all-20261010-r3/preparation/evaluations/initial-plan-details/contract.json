@@ -1,0 +1,206 @@
+{
+  "claims": [
+    {
+      "id": "devon-outing",
+      "statement": "There is an outing with Devon.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-01",
+        "pizza-week-natural-confounders-low/devon-invite-02"
+      ]
+    },
+    {
+      "id": "devon-friday",
+      "statement": "Devon's outing is on Friday.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-01"
+      ]
+    },
+    {
+      "id": "devon-6pm",
+      "statement": "Devon's outing is at 6 pm.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-01"
+      ]
+    },
+    {
+      "id": "devon-luigis",
+      "statement": "Devon's outing is at Luigi's.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-03",
+        "pizza-week-natural-confounders-low/devon-invite-04"
+      ]
+    },
+    {
+      "id": "devon-5th",
+      "statement": "Devon's outing is on 5th Street.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-03"
+      ]
+    },
+    {
+      "id": "maya-outing",
+      "statement": "There is an outing with Maya.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/maya-invite-02",
+        "pizza-week-natural-confounders-low/maya-invite-03"
+      ]
+    },
+    {
+      "id": "leo-joins",
+      "statement": "Leo is joining Maya's outing.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/leo-joins-02",
+        "pizza-week-natural-confounders-low/leo-joins-04"
+      ]
+    },
+    {
+      "id": "second-friday",
+      "statement": "Maya and Leo's outing is on Friday.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/maya-invite-02",
+        "pizza-week-natural-confounders-low/leo-joins-00"
+      ]
+    },
+    {
+      "id": "second-7pm",
+      "statement": "Maya and Leo's outing is at 7 pm.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/maya-invite-02",
+        "pizza-week-natural-confounders-low/maya-invite-05",
+        "pizza-week-natural-confounders-low/leo-joins-02"
+      ]
+    },
+    {
+      "id": "second-rosas",
+      "statement": "Maya and Leo's outing is at Rosa's.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/maya-invite-03",
+        "pizza-week-natural-confounders-low/maya-invite-04",
+        "pizza-week-natural-confounders-low/leo-joins-02"
+      ]
+    },
+    {
+      "id": "second-oak",
+      "statement": "Maya and Leo's outing is on Oak Street.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/maya-invite-03",
+        "pizza-week-natural-confounders-low/leo-joins-02"
+      ]
+    },
+    {
+      "id": "two-different",
+      "statement": "Devon's outing and Maya and Leo's outing are two different outings.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-01",
+        "pizza-week-natural-confounders-low/devon-invite-03",
+        "pizza-week-natural-confounders-low/maya-invite-02",
+        "pizza-week-natural-confounders-low/maya-invite-03",
+        "pizza-week-natural-confounders-low/leo-joins-02",
+        "pizza-week-natural-confounders-low/leo-joins-04"
+      ]
+    }
+  ],
+  "question": "Who am I meeting, and where and when?",
+  "evidence_hash": "5195cebcc62d2832f4dd9133251689111b7511a8de03021290a4439044f091f8",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All intent-required details for both Friday outings are covered by independent atomic claims.",
+    "reviews": [
+      {
+        "id": "devon-outing",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes pizza and Me accepts, establishing outing with Devon."
+      },
+      {
+        "id": "devon-friday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon invite explicitly states Friday."
+      },
+      {
+        "id": "devon-6pm",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon invite explicitly states 6pm."
+      },
+      {
+        "id": "devon-luigis",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes Luigi's and Me accepts."
+      },
+      {
+        "id": "devon-5th",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon specifies Luigi's on 5th Street."
+      },
+      {
+        "id": "maya-outing",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Me and Maya confirm pizza plan, establishing outing with Maya."
+      },
+      {
+        "id": "leo-joins",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Leo accepts invitation to join Maya's Rosa's outing."
+      },
+      {
+        "id": "second-friday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya invite and Leo invite both specify Friday for shared outing."
+      },
+      {
+        "id": "second-7pm",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya invite and Leo invite both specify 7 pm."
+      },
+      {
+        "id": "second-rosas",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya proposes Rosa's, Me accepts, and Leo invite repeats Rosa's."
+      },
+      {
+        "id": "second-oak",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maya proposes Rosa's on Oak Street and Leo invite repeats it."
+      },
+      {
+        "id": "two-different",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Different times, places, and participants establish two separate outings."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Same-session prior question 'How many pizza plans did I make for Friday?' provides conversational scope of Friday pizza plans. Follow-up 'Who am I meeting, and where and when?' asks for participants, locations, and times for those plans without supplying answers or presupposing details, reasonably inviting full details for both Devon outing and Maya/Leo outing and their distinctness."
+  },
+  "author_fact_count": 0,
+  "test_intent": "On Friday, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 7 pm at Rosa's on Oak Street. These are two different outings.",
+  "question_source": "supplied",
+  "question_at": "2026-10-08T09:02:00-04:00",
+  "contract_hash": "9aef46a517b43b81c6d4f7c6e0d28fb417ac29844a0969c87e5313fed085c408"
+}

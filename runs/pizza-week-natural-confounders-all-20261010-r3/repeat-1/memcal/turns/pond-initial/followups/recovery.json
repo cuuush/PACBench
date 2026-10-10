@@ -1,0 +1,186 @@
+{
+  "state": "complete",
+  "plan_hash": "611c9dedc34c82624acf6d9b88614ed417493dbc5861f9be590b2dba3917f860",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_detail": 3
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E1"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791659910851,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E1  walk\n\nwhen: Tuesday 6 October 2026 at 14:00\nstate: You're going\nwhere: west entrance to the duck pond in Willow Park\nwho: Alex, Jen\nsource: thread:imessage:Park pals\n\nsources (6 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:00 · iMessage with Park pals —\n * [1] Park pals · Mon 5 Oct 17:00 · me: anyone want to walk to the duck pond tomorrow?\n   [2] Park pals · Mon 5 Oct 17:04 · Alex: yes please, I'm going stir crazy in here\n   [3] Park pals · Mon 5 Oct 17:08 · Jen: lol same, I ate way too much at lunch\n * [4] Park pals · Mon 5 Oct 17:12 · Alex: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park?\n * [5] Park pals · Mon 5 Oct 17:16 · me: yeah that works for me\n * [6] Park pals · Mon 5 Oct 17:20 · Jen: yeah that works, I'll bring coffee\n\nchanges:\n  2026-10-06T03:00  time: '' -> '14:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'walk' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'west entrance to the duck pond in Willow Park' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\", \"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E2"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791659910862,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E2  coffee\n\nwhen: Tuesday 6 October 2026 at 11:00\nstate: You're going\nwhere: Birch Cafe\nwho: Alex\nsource: person:Alex\n\nsources (6 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:50 · iMessage with Alex —\n   [12] Alex · Mon 5 Oct 17:50 · me: monday absolutely wiped me out\n   [13] Alex · Mon 5 Oct 17:54 · Alex: same just got home and I'm starving\n * [14] Alex · Mon 5 Oct 17:58 · Alex: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am?\n * [15] Alex · Mon 5 Oct 18:02 · me: yeah that works, I was craving their latte anyway\n * [16] Alex · Mon 5 Oct 18:06 · Alex: same lol. see you Tuesday then?\n * [17] Alex · Mon 5 Oct 18:10 · me: yep see you then\n\nchanges:\n  2026-10-06T03:00  time: '' -> '11:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'coffee' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'Birch Cafe' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E3"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791659910870,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E3  phone call to go over job application\n\nwhen: Tuesday 6 October 2026 at 10:00\nstate: You're going\nwho: Jen\nsource: person:Jen\n\nsources (5 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:25 · iMessage with Jen —\n   [7] Jen · Mon 5 Oct 17:25 · me: ugh finally home, today was endless\n   [8] Jen · Mon 5 Oct 17:30 · Jen: same, I'm just throwing dinner together\n * [9] Jen · Mon 5 Oct 17:35 · me: can we do a quick phone call Tuesday at 10 am to go over your job application?\n * [10] Jen · Mon 5 Oct 17:40 · Jen: yeah that works, thank you!\n * [11] Jen · Mon 5 Oct 17:45 · me: perfect, talk then\n\nchanges:\n  2026-10-06T03:00  date: '' -> '2026-10-06' (by dream:nightly:born)\n  2026-10-06T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'phone call to go over job application' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 9.65,
+    "input_tokens": 17899,
+    "output_tokens": 611,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "meet-jen",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "meet-alex",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "day-tuesday",
+      "kind": "provided",
+      "reason": "Correctly conveyed via inherited today scope."
+    },
+    {
+      "id": "time-2pm",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "place-entrance",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "place-park",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 6,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 6,
+    "points": 6.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "meet-jen",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "meet-alex",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "day-tuesday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time-2pm",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "place-entrance",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "place-park",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "state": "complete",
+  "plan_hash": "c30c97d7fe710970b854627ffac2e3c22c1ce7ecba4c0bf4cba1655f00880def",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_reasoning": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_reflect",
+        "arguments": {
+          "query": "What is the latest plan for each pizza plan on October 9 2026?"
+        },
+        "category": "memory_reasoning",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791662514007,
+        "result": {
+          "tool": "hindsight_reflect",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"## Pizza Plans for October 9, 2026\\n\\nThere are **2 separate pizza plans** on that date:\\n\\n### 1. Friday Crew \\u2014 with Maya and Leo\\n\\n**Latest plan:**\\n\\n- **Who:** You, Maya, and Leo\\n- **Where:** Mario's on Pine Street\\n- **When:** Friday, October 9, 2026 at 5pm\\n\\n**How it changed:**\\n\\n- Started as Rosa's on Oak Street at 7pm\\n- Rosa's closed for renovations, so a new spot was needed\\n- You suggested Domino's on Elm Street as an alternative\\n- Maya proposed Mario's on Pine Street, which you agreed to\\n- Time moved from 7pm to 5pm after Maya asked to move to 5pm \\u2014 Maya has something later that night at her parents\\n\\n**Attendance update for Leo:**\\n\\n- Leo agreed to join\\n- Leo was then briefly out due to a closing shift at work\\n- Leo is back in after Tyler covered the shift\\n\\nReasoning check for this plan:\\n\\n- *Location in mentioned_at order:*\\n  - Rosa's on Oak Street at 7pm \\u2014 mentioned 2026-10-07 15:00\\n  - Rosa's at 7pm \\u2014 mentioned 2026-10-08 13:00\\n  - Rosa's on Oak St at 7pm \\u2014 mentioned 2026-10-08 13:02\\n  - Domino's on Elm Street proposed / Rosa's closed / Mario's on Pine Street proposed and agreed \\u2014 mentioned 2026-10-08 16:00\\n- *Authoritative fact:* Mario's on Pine Street, mentioned 2026-10-08 16:00, which is latest and therefore supersedes Rosa's\\n- *Time in mentioned_at order:*\\n  - 7pm \\u2014 mentioned 2026-10-07 15:00\\n  - 5pm \\u2014 mentioned 2026-10-08 16:00\\n- *Authoritative fact:* 5pm, mentioned 2026-10-08 16:00\\n- *Leo status, both mentioned 2026-10-08 16:00:*\\n  - Cannot attend due to closing shift \\u2014 occurred 2026-10-09 00:00\\n  - Got Tyler to cover, back in \\u2014 occurred 2026-10-09 00:30\\n  - The cover event occurs after the out event, and consolidated knowledge confirms Leo is back in\\n\\n### 2. With Devon\\n\\n**Latest plan \\u2014 unchanged:**\\n\\n- **Who:** You and Devon\\n- **Where:** Luigi's on 5th Street\\n- **When:** Friday, October 9, 2026 at 6pm\\n- **Note:** You mentioned craving their garlic knots\\n\\nReasoning check for this plan:\\n\\n- *In mentioned_at order:*\\n  - Luigi's on 5th Street at 6pm \\u2014 mentioned 2026-10-07 15:00\\n  - Luigi's at 6pm \\u2014 mentioned 2026-10-08 13:00\\n  - Luigi's on 5th St at 6pm \\u2014 mentioned 2026-10-08 13:02\\n- All three agree \\u2014 no change in location or time. Latest confirms 6pm at Luigi's.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 37.77,
+    "input_tokens": null,
+    "output_tokens": 491,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "count",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-who",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-date",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via 'today'."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "maya-who",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "leo-who",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "group-date",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via 'today'."
+    },
+    {
+      "id": "group-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "group-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "group-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 12,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 12,
+    "points": 12.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-who",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "maya-who",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "leo-who",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "group-date",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "group-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "group-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "group-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

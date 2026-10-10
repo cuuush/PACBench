@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "context": "shared",
+  "checks": [
+    {
+      "id": "pond-initial",
+      "at": "2026-10-06T06:00:00-04:00",
+      "contract_hash": "57cb577065a86be7a9d478c79405cd21669c6ca49a649241e00b3b7a1e0ec807",
+      "policy_hash": "611c9dedc34c82624acf6d9b88614ed417493dbc5861f9be590b2dba3917f860",
+      "session": "tuesday-early",
+      "expect": "The user is meeting Jen and Alex Tuesday at 2 pm at the west entrance to the duck pond in Willow Park."
+    },
+    {
+      "id": "pond-cancellation",
+      "at": "2026-10-07T09:00:00-04:00",
+      "contract_hash": "20f3bfa6a4c523d85465e64a6276d5d9bb2d59195a847a2169736d3de5ccdc25",
+      "policy_hash": "05bc68e7538b5e7a97076d94697f470b2bc38cec03846ff9fdc64ec55d79e7d1",
+      "session": "wednesday-recap",
+      "expect": "The Tuesday duck-pond outing was called off. They agreed to do it another day but did not settle a replacement date."
+    },
+    {
+      "id": "separate-appointments",
+      "at": "2026-10-07T09:02:00-04:00",
+      "contract_hash": "2a306e8122a2cc7860c1c162e40a1c9f49e6987d0e4e65646db831448a825c5d",
+      "policy_hash": "9fbb8c152ad7253b187f82428e5190f5ad3d7c7f110eb90b8c609e8073e2fde0",
+      "session": "wednesday-recap",
+      "expect": "The messages did not cancel the separately arranged call with Jen or coffee with Alex; those appointments remained as arranged."
+    },
+    {
+      "id": "ben-one-dinner",
+      "at": "2026-10-07T09:15:00-04:00",
+      "contract_hash": "a0cea9d5c8d14eb8b3edad34dac0427382f5244c17a4373603e338e6a4dac9bf",
+      "policy_hash": "646cd19116d15a0836ea1df73d4813f77f6baf1afdca42d945d21630edcabf28",
+      "session": "wednesday-ben",
+      "expect": "One dinner. Only the number of dinner occasions is being judged; rescheduling the original plan did not add a second dinner."
+    },
+    {
+      "id": "ben-moved",
+      "at": "2026-10-07T09:17:00-04:00",
+      "contract_hash": "d50d8f5d6f7f43ba7405886e53516e843db2065dd09dfc0b2f1664d28780fb38",
+      "policy_hash": "34d94a3d09368b570df58aa78d0b3c8bb92fbc20560273d8865eaa9d90ad1578",
+      "session": "wednesday-ben",
+      "expect": "Dinner with Ben is now Saturday at 7 pm at Juniper Cafe."
+    },
+    {
+      "id": "initial-plan-count",
+      "at": "2026-10-08T09:00:00-04:00",
+      "contract_hash": "263b0e2ee1c28427425d3371653d8355050753bea9e4e92bd19c47596bd0e596",
+      "policy_hash": "75c17fc7d60893bd1638004baa64e403eddbb1d9eb4e1868fa4f8a2fe2a6bad8",
+      "session": "thursday-morning",
+      "expect": "A count of two distinct pizza outings. Only the number of outings is being judged."
+    },
+    {
+      "id": "initial-plan-details",
+      "at": "2026-10-08T09:02:00-04:00",
+      "contract_hash": "9aef46a517b43b81c6d4f7c6e0d28fb417ac29844a0969c87e5313fed085c408",
+      "policy_hash": "ee06d6c0b18b63d2ca05efbdf86bee8673e70f8edbca1fc071614c1eabff02bb",
+      "session": "thursday-morning",
+      "expect": "On Friday, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 7 pm at Rosa's on Oak Street. These are two different outings."
+    },
+    {
+      "id": "updated-plan-count",
+      "at": "2026-10-09T09:00:00-04:00",
+      "contract_hash": "8ace4b8fc8a56adc460f1349ca71bf04642c0d62a77736c5e2bd14e707b6d47f",
+      "policy_hash": "050038d2c006610d9254a2666413e699a6deef546142ede05242b6c1cb033c87",
+      "session": "friday-morning",
+      "expect": "A count of two distinct pizza outings. Only the number of outings is being judged."
+    },
+    {
+      "id": "updated-plan-details",
+      "at": "2026-10-09T09:02:00-04:00",
+      "contract_hash": "ba14989ccfb15eed0f39f8d7afdc4c37a26d11c539372db4ddf8285f10fdcb5a",
+      "policy_hash": "c30c97d7fe710970b854627ffac2e3c22c1ce7ecba4c0bf4cba1655f00880def",
+      "session": "friday-morning",
+      "expect": "Today, Devon at 6 pm at Luigi's on 5th Street; Maya and Leo at 5 pm at Mario's on Pine Street. These are two different outings."
+    },
+    {
+      "id": "leo-availability",
+      "at": "2026-10-09T09:04:00-04:00",
+      "contract_hash": "f05300bd63ecee93b80433d1a974e2a2280933942ad8910a67d1ff6b669e75e9",
+      "policy_hash": "909abeb3792474ccaf8d63478ed51f6418c1359e994ddea4307f3c07af204e7b",
+      "session": "friday-morning",
+      "expect": "Leo found someone to cover his work shift."
+    },
+    {
+      "id": "devon-venue-fresh",
+      "at": "2026-10-09T12:00:00-04:00",
+      "contract_hash": "3a27fd79ede33fb5dd12f845c3b0c2d2e26977e3ff9ef0a0d69941a9a1d29672",
+      "policy_hash": "98805c37abccaf167787dd230dc4c29f1d4fc40d827272e1824e0631e1764125",
+      "session": "friday-devon-fresh",
+      "expect": "Luigi's on 5th Street."
+    },
+    {
+      "id": "alex-weekend-current",
+      "at": "2026-10-09T12:15:00-04:00",
+      "contract_hash": "92ecdf5c90dcb40087b54a59ee009d763b34cac0c7ba8f30989df80ae4e26746",
+      "policy_hash": "7483c596140f06aa902c8babdf6f49ae6e96baa1be0f917c9c7bab306857402f",
+      "session": "friday-alex-fresh",
+      "expect": "Lunch with Alex on Sunday at noon at Birch Cafe."
+    },
+    {
+      "id": "alex-declined-proposal",
+      "at": "2026-10-09T12:17:00-04:00",
+      "contract_hash": "f4cc1626cf34597b98155334e75783f39231e826b0f13b71178ff77387e3f986",
+      "policy_hash": "74c0fd4644d49a838f9b258cdbcd583b9a6be2b98aa15de45bcb9201b8cdf8ac",
+      "session": "friday-alex-fresh",
+      "expect": "No dinner with Alex at Juniper Cafe was agreed."
+    },
+    {
+      "id": "ben-fresh",
+      "at": "2026-10-10T09:00:00-04:00",
+      "contract_hash": "3c2c40506af7e5c6abf85097d1d3407bce50cfe757c30ab992a92f2c993b3c8a",
+      "policy_hash": "fd72497ef7a707d5ccaf4705de7d5565082561fc82ee478059e0265c39c90f93",
+      "session": "saturday-ben-fresh",
+      "expect": "Today, Saturday, at 7 pm at Juniper Cafe."
+    },
+    {
+      "id": "key-pickup-before-cancellation",
+      "at": "2026-10-10T09:15:00-04:00",
+      "contract_hash": "56592605f30adc9a87e95e0bacd06890081225210561673b97df2b6471c93a26",
+      "policy_hash": "f3be8106ec10f172aed2c897101dfc8d8e3142d568f34aabd7f0615c675b8df1",
+      "session": "saturday-key-fresh",
+      "expect": "Collect his spare key from Luigi’s on 5th Street on Sunday at 11 am."
+    },
+    {
+      "id": "key-pickup-not-meal",
+      "at": "2026-10-10T09:17:00-04:00",
+      "contract_hash": "a95271af70108d6e223b41c2aeb4b7ceddbdeccd9f6f1b3f3470762c01529b08",
+      "policy_hash": "52ea862036c2fa15cf38b9ffc17b11b9d1b903cde0b8e003fae9902014494382",
+      "session": "saturday-key-fresh",
+      "expect": "Devon will not be there for the key pickup."
+    },
+    {
+      "id": "key-favor-cancelled",
+      "at": "2026-10-11T09:00:00-04:00",
+      "contract_hash": "03d164f552850c75335fbf97f7812b5eaf03be614d68b0363d03bab79e21cbb7",
+      "policy_hash": "fc648ec00fb599c8aa2c17f70520a1a24abeba4fcbe40d0c2be5746843ae6c7a",
+      "session": "sunday-key-fresh",
+      "expect": "No. Devon already got the key back, so the Sunday pickup is no longer needed."
+    },
+    {
+      "id": "sunday-lunch-still-on",
+      "at": "2026-10-11T09:02:00-04:00",
+      "contract_hash": "53dc77c93e7f2805c87851844b8d29cd5237a85abb9b5e982e63e196e6c77e69",
+      "policy_hash": "fa5021557aef3db3fc6a6eb1af8884b9362224f20411aa133d8d2d1af9e31375",
+      "session": "sunday-key-fresh",
+      "expect": "Lunch with Alex today, Sunday, at noon at Birch Cafe."
+    }
+  ],
+  "plan_hash": "e6989ca498cd73cd15ca754399a2646eee3096abf8d46679bbc573ddb402fd82"
+}

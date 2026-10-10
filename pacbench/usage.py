@@ -14,11 +14,36 @@ def snapshot(roles, state=STATE):
         with sqlite3.connect(f'file:{Path(state) / "ledger.sqlite3"}?mode=ro', uri=True) as db:
             db.row_factory = sqlite3.Row
             marks = ','.join('?' for _ in roles)
-            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
+            columns = {r['name'] for r in db.execute('PRAGMA table_info(calls)')}
+            status = 'http_status' if 'http_status' in columns else 'NULL AS http_status'
+            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
         return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[{**dict(r), 'role':roles[r['project']],
             'accounted_upper_bound_usd':r['accounted']/1e9} for r in rows]}
     except (OSError,sqlite3.Error) as exc:
         return {'state':'unavailable','reason':type(exc).__name__,'calls':[]}
+
+
+def provider_model_health(capture):
+    """Stop paid evaluation after repeated bad requests, without guessing recall quality.
+
+    A single rejected request can be a successful native fallback. Count only
+    completed, definitive 400/422 responses in this arm's provider projects;
+    pending requests and successful responses with missing usage aren't errors.
+    """
+    groups = {}
+    for call in capture.get('calls', []):
+        if (call.get('role') == 'memory_provider' and call.get('finished') and
+                call.get('http_status') in (400, 422)):
+            groups.setdefault(call['project'], []).append(call)
+    repeated = [c for calls in groups.values() if len(calls) >= 3 for c in calls]
+    return {'state': 'stop' if repeated else capture.get('state', 'unavailable'),
+            'failed_requests': [{k: c.get(k) for k in
+                ('id', 'project', 'http_status', 'state', 'accounted_upper_bound_usd')}
+                for c in repeated],
+            'reason': ('Repeated provider-side HTTP 400/422 responses; stop further paid checks '
+                       'in this arm. Native completion alone does not establish healthy model execution.'
+                       if repeated else ''),
+            'scope': 'Execution/cost barrier, not a semantic memory grade. Held charges remain held.'}
 
 
 def window(before, after):

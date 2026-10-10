@@ -1,0 +1,134 @@
+{
+  "state": "complete",
+  "plan_hash": "f3be8106ec10f172aed2c897101dfc8d8e3142d568f34aabd7f0615c675b8df1",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "promised to do for Devon tomorrow commitment"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791662822743,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User agreed to pick up Devon's spare key from the bartender at Luigi's on 5th Street at 11am on October 11, 2026 by saying it's for Devon, because Devon can't be there himself.\\n2. User and Devon plan to get pizza at Luigi's on 5th Street at 6pm on October 9, 2026; user mentioned craving their garlic knots.\\n3. User is meeting Devon at Luigi's on 5th Street at 6pm on October 9, 2026.\\n4. User planned to have pizza with Devon at Luigi's on 5th St at 6pm on October 9, 2026.\\n5. User has a pizza plan with Devon at Luigi's on 5th Street at 6pm on October 9, 2026.\\n6. User, Maya, and Leo's Friday crew pizza plan for October 9, 2026 moved from Rosa's on Oak Street at 7pm to Mario's on Pine Street at 5pm after Rosa's closed for renovations. User suggested Domino's on Elm Street, while Maya proposed Mario's on Pine Street which the user agreed to. The time shifted to 5pm after Maya asked to move to 5pm and user agreed because Maya has something later that night at her parents. Leo was briefly out due to a closing shift at work but is back in after Tyler covered the shift.\\n7. Duck pond walk with Jen and Alex scheduled for 2pm on October 6, 2026 at the west entrance of Willow Park was called off because Jen and Alex couldn't make it; agreed to leave it for another day with no new date picked.\\n8. User, Jen, and Alex planned to meet at the west entrance of Willow Park at 2pm on October 6, 2026 for a walk to the duck pond with Jen bringing coffee, but the meetup was called off after Jen and Alex couldn't make it and postponed to another day.\\n9. User, Jen, and Alex planned to walk to the duck pond at 2pm on Tuesday, October 6, 2026, meeting at the west entrance of Willow Park with Jen bringing coffee, but the meetup was called off after Jen and Alex couldn't make it and postponed to another day.\\n10. User planned pizza with Maya and Leo for October 9, 2026, now meeting at Mario's on Pine Street at 5pm instead of Rosa's on Oak Street at 7pm because Rosa's is closed for renovations. Leo was briefly out due to a closing shift at work but rejoined after Tyler covered the shift.\\n11. User and Ben planned dinner to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, rescheduled at Ben's request to Saturday, October 10, 2026 at the same time.\\n12. User and Alex plan to meet on Tuesday, October 6, 2026.\\n13. User planned to meet Ben at Juniper Cafe at 7pm on October 10, 2026.\\n14. User and Ben settled on one dinner plan for the week: dinner on October 10, 2026 at 7pm at Juniper Cafe.\\n15. Alex invited user to dinner at Juniper Cafe at 7pm on October 11, 2026; user declined because evenings are awkward that weekend and they agreed to raincheck.\\n16. User is scheduled to have lunch with Alex at Birch Cafe at noon on Sunday, Oct 11, 2026.\\n17. User and Alex plan to have lunch at noon at Birch Cafe on October 11, 2026.\\n18. Tyler covered Leo's shift and is back in on October 9, 2026.\\n19. User has dinner at Juniper with Ben at 7pm on October 10, 2026.\\n20. User declined dinner at Juniper with Alex at 7pm on October 11, 2026 and rainchecked.\\n21. User has a pizza plan with Maya and Leo at Mario's on Pine Street at 5pm on October 9, 2026.\\n22. User and Jen scheduled a quick phone call at 10am on Tuesday, October 6, 2026 to go over Jen's job application.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 10.64,
+    "input_tokens": 4196,
+    "output_tokens": 425,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "pickup-item",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "pickup-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "pickup-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "pickup-day",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via tomorrow=Sunday."
+    },
+    {
+      "id": "pickup-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 5,
+    "points": 5.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "pickup-item",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

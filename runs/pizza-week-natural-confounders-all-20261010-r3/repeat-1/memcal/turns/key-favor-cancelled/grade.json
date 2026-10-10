@@ -1,0 +1,30 @@
+{
+  "correct": 1,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-got-key-back",
+      "verdict": "missed",
+      "reason": "Answer says 'marked as not going' but does not state Devon got the spare key back."
+    },
+    {
+      "id": "sunday-pickup-not-needed",
+      "verdict": "correct",
+      "reason": "Answer says 'No — that's marked as not going,' confirming no stop-by needed."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-got-key-back",
+      "kind": "implicit_omission",
+      "reason": "User asked if stop-by needed, not specifically for the reason; answer omitted that Devon got key back."
+    },
+    {
+      "id": "sunday-pickup-not-needed",
+      "kind": "provided",
+      "reason": "Answer conveyed pickup is not going / not needed."
+    }
+  ],
+  "interaction": "answer"
+}

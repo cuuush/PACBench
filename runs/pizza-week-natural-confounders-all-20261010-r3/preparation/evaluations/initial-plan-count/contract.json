@@ -1,0 +1,44 @@
+{
+  "claims": [
+    {
+      "id": "two-pizza-outings",
+      "statement": "There are two distinct pizza outings",
+      "evidence": [
+        "pizza-week-natural-confounders-low/devon-invite-01",
+        "pizza-week-natural-confounders-low/devon-invite-02",
+        "pizza-week-natural-confounders-low/devon-invite-03",
+        "pizza-week-natural-confounders-low/devon-invite-04",
+        "pizza-week-natural-confounders-low/maya-invite-02",
+        "pizza-week-natural-confounders-low/maya-invite-03",
+        "pizza-week-natural-confounders-low/maya-invite-04",
+        "pizza-week-natural-confounders-low/leo-joins-02"
+      ]
+    }
+  ],
+  "question": "How many pizza plans did I make for Friday?",
+  "evidence_hash": "622ba0e7eddcb6cb462a3f28ae6dc1a627940992b38785506923328387758eed",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Dialogue confirms two separate Friday pizza plans (Devon and Maya/Leo) and the single claim captures the required count.",
+    "reviews": [
+      {
+        "id": "two-pizza-outings",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Evidence shows two distinct confirmed pizza commitments and claim states only the intent-required count."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks neutral count for Friday without stating answer or assuming number/places/times. At 2026-10-08 Thursday, both Devon 6pm Luigi's and Maya 7pm Rosa's are future Friday plans, distinct by time/place, supporting two outings. No same-session scope needed, no cross-session leakage."
+  },
+  "author_fact_count": 0,
+  "test_intent": "A count of two distinct pizza outings. Only the number of outings is being judged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-08T09:00:00-04:00",
+  "contract_hash": "263b0e2ee1c28427425d3371653d8355050753bea9e4e92bd19c47596bd0e596"
+}

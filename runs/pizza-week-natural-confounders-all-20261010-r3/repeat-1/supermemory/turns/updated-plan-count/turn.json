@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?",
+  "at": "2026-10-09T09:00:00-04:00",
+  "answer": "1 — Mario's on Pine Street at 5pm with Maya and Leo.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 20,
+        "query": "pizza plans October 9"
+      },
+      "timestamp": 1791664226896
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"cXRkNu3JWBYqCKgUC6iEe1\", \"content\": \"The Friday crew (user, Maya, and Leo) agreed to have pizza at Mario's on Pine Street on Friday, October 9, 2026.\", \"similarity\": 83}, {\"id\": \"arszsk9BMttuBuT2Pg31dD\", \"content\": \"The Friday pizza meetup with Maya and Leo was moved to 5pm on Friday, October 9, 2026, at Maya's request.\", \"similarity\": 83}, {\"id\": \"jxds2wUSWUBq1fSNXajsLR\", \"content\": \"Leo got Tyler to cover his closing shift on Friday, October 9, 2026, so Leo is back in for Friday pizza.\", \"similarity\": 77}, {\"id\": \"h8vHbS4GRa931dqbfdSfkh\", \"content\": \"Maya has to be at her parents' place later on Friday night, October 9, 2026.\", \"similarity\": 70}], \"count\": 4}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 25.24,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_163012_5f9c8d",
+  "raw_events": 7,
+  "session_id": "20261010_163012_5f9c8d",
+  "stderr_full": "\nsession_id: 20261010_163012_5f9c8d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_163012_5f9c8d\", \"timestamp\": 1791664212258}\n{\"type\": \"text\", \"text\": \"I'll check your saved pizza plans to count today's.\", \"timestamp\": 1791664226100}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 20, \"query\": \"pizza plans October 9\"}, \"timestamp\": 1791664226896}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"cXRkNu3JWBYqCKgUC6iEe1\\\", \\\"content\\\": \\\"The Friday crew (user, Maya, and Leo) agreed to have pizza at Mario's on Pine Street on Friday, October 9, 2026.\\\", \\\"similarity\\\": 83}, {\\\"id\\\": \\\"arszsk9BMttuBuT2Pg31dD\\\", \\\"content\\\": \\\"The Friday pizza meetup with Maya and Leo was moved to 5pm on Friday, October 9, 2026, at Maya's request.\\\", \\\"similarity\\\": 83}, {\\\"id\\\": \\\"jxds2wUSWUBq1fSNXajsLR\\\", \\\"content\\\": \\\"Leo got Tyler to cover his closing shift on Friday, October 9, 2026, so Leo is back in for Friday pizza.\\\", \\\"similarity\\\": 77}, {\\\"id\\\": \\\"h8vHbS4GRa931dqbfdSfkh\\\", \\\"content\\\": \\\"Maya has to be at her parents' place later on Friday night, October 9, 2026.\\\", \\\"similarity\\\": 70}], \\\"count\\\": 4}\", \"duration_ms\": 76, \"is_error\": false, \"timestamp\": 1791664226970}\n{\"type\": \"text\", \"text\": \"\\n\\n1 — Mario's on Pine Street at 5\", \"timestamp\": 1791664234900}\n{\"type\": \"text\", \"text\": \"pm with Maya and Leo.\", \"timestamp\": 1791664234969}\n{\"type\": \"result\", \"session_id\": \"20261010_163012_5f9c8d\", \"exit_code\": 0, \"text\": \"1 — Mario's on Pine Street at 5pm with Maya and Leo.\", \"tokens\": {\"input\": 5790, \"output\": 782, \"total\": 8605, \"cache_read\": 2033, \"cache_write\": 0}, \"duration_ms\": 22929, \"timestamp\": 1791664235187}",
+  "session_input_tokens": 5790,
+  "session_output_tokens": 782,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-08] Maya has to be at her parents' place later on Friday night, October 9, 2026.\n- [2026-10-10] Leo craves the garlic knots at Mario's.\n- [2026-10-10] Maya finds Domino's on Elm Street too far for her.\n- [2026-10-08] Leo got Tyler to cover his closing shift on Friday, October 9, 2026, so Leo is back in for Friday pizza.\n- [2026-10-08] The Friday crew (user, Maya, and Leo) agreed to have pizza at Mario's on Pine Street on Friday, October 9, 2026.\n- [2026-10-08] The Friday pizza meetup with Maya and Leo was moved to 5pm on Friday, October 9, 2026, at Maya's request.\n- [2026-10-08] Rosa's is closed for renovations as of October 8, 2026.\n- [2026-10-08] User planned to have lunch with Alex at Birch Cafe at noon on Sunday, October 11, 2026.\n- [2026-10-08] User had a latte at Birch Cafe on Tuesday, October 6, 2026.\n- [2026-10-10] User thinks the crust at Rosa's on Oak Street is the best.\n\n## Relevant Memories\n- [just now] [64%] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-r47alfcd",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-r47alfcd",
+    "system_prompt_sha256": "8919aa10d1324850d92a7250ffc900e90d4d625e12703e501b3303667eeb055e",
+    "reason": "No project context in native saved system prompt"
+  }
+}

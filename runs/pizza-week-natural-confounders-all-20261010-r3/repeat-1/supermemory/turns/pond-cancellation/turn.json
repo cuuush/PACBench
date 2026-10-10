@@ -1,0 +1,64 @@
+{
+  "prompt": "[Simulated now: 2026-10-07T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat happened with the duck pond yesterday, and did we pick another day?",
+  "at": "2026-10-07T09:00:00-04:00",
+  "answer": "Yesterday's walk was called off — Jen and Alex both couldn't make it. It was postponed but no new day was picked.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 10,
+        "query": "duck pond walk Jen Alex postponed rescheduled"
+      },
+      "timestamp": 1791663859653
+    },
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 10,
+        "query": "duck pond new date rescheduled when"
+      },
+      "timestamp": 1791663864782
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"LAjjJzww5cTtzpvxEt3XvF\", \"content\": \"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\", \"similarity\": 100}, {\"id\": \"g68Fd4xKEpkEFcgi18yX7s\", \"content\": \"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\", \"similarity\": 85}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 82}, {\"id\": \"k8e3SE7MpCgTaLHaidfaM7\", \"content\": \"\", \"similarity\": 64}], \"count\": 4}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"LAjjJzww5cTtzpvxEt3XvF\", \"content\": \"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\", \"similarity\": 87}, {\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 76}, {\"id\": \"g68Fd4xKEpkEFcgi18yX7s\", \"content\": \"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\", \"similarity\": 75}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 73}, {\"id\": \"k8e3SE7MpCgTaLHaidfaM7\", \"content\": \"\", \"similarity\": 66}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 18.25,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_162414_2e0224",
+  "raw_events": 11,
+  "session_id": "20261010_162414_2e0224",
+  "stderr_full": "\nsession_id: 20261010_162414_2e0224\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_162414_2e0224\", \"timestamp\": 1791663854728}\n{\"type\": \"text\", \"text\": \"Let me pull the details on yesterday's duck pond plan.\", \"timestamp\": 1791663858937}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 10, \"query\": \"duck pond walk Jen Alex postponed rescheduled\"}, \"timestamp\": 1791663859653}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"LAjjJzww5cTtzpvxEt3XvF\\\", \\\"content\\\": \\\"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\\\", \\\"similarity\\\": 100}, {\\\"id\\\": \\\"g68Fd4xKEpkEFcgi18yX7s\\\", \\\"content\\\": \\\"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\\", \\\"similarity\\\": 85}, {\\\"id\\\": \\\"5bZixFrgYNJaTUZRCjNgPX\\\", \\\"content\\\": \\\"Jen will bring coffee to the duck pond walk on Tuesday.\\\", \\\"similarity\\\": 82}, {\\\"id\\\": \\\"k8e3SE7MpCgTaLHaidfaM7\\\", \\\"content\\\": \\\"\\\", \\\"similarity\\\": 64}], \\\"count\\\": 4}\", \"duration_ms\": 161, \"is_error\": false, \"timestamp\": 1791663859814}\n{\"type\": \"text\", \"text\": \"\\n\\nNo new date in that result — checking if one was picked.\", \"timestamp\": 1791663864394}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 10, \"query\": \"duck pond new date rescheduled when\"}, \"timestamp\": 1791663864782}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"LAjjJzww5cTtzpvxEt3XvF\\\", \\\"content\\\": \\\"Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\\\", \\\"similarity\\\": 87}, {\\\"id\\\": \\\"A4fjPcntjKkGyLZKMQA4q3\\\", \\\"content\\\": \\\"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\\\", \\\"similarity\\\": 76}, {\\\"id\\\": \\\"g68Fd4xKEpkEFcgi18yX7s\\\", \\\"content\\\": \\\"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\\", \\\"similarity\\\": 75}, {\\\"id\\\": \\\"5bZixFrgYNJaTUZRCjNgPX\\\", \\\"content\\\": \\\"Jen will bring coffee to the duck pond walk on Tuesday.\\\", \\\"similarity\\\": 73}, {\\\"id\\\": \\\"k8e3SE7MpCgTaLHaidfaM7\\\", \\\"content\\\": \\\"\\\", \\\"similarity\\\": 66}], \\\"count\\\": 5}\", \"duration_ms\": 110, \"is_error\": false, \"timestamp\": 1791663864893}\n{\"type\": \"text\", \"text\": \"\\n\\nYesterday's walk was called off —\", \"timestamp\": 1791663870725}\n{\"type\": \"text\", \"text\": \" Jen and Alex both couldn't make it. It was postponed but no new\", \"timestamp\": 1791663870780}\n{\"type\": \"text\", \"text\": \" day was picked.\", \"timestamp\": 1791663870837}\n{\"type\": \"result\", \"session_id\": \"20261010_162414_2e0224\", \"exit_code\": 0, \"text\": \"Yesterday's walk was called off — Jen and Alex both couldn't make it. It was postponed but no new day was picked.\", \"tokens\": {\"input\": 10012, \"output\": 885, \"total\": 12930, \"cache_read\": 2033, \"cache_write\": 0}, \"duration_ms\": 16289, \"timestamp\": 1791663871017}",
+  "session_input_tokens": 10012,
+  "session_output_tokens": 885,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-06] Duck pond walk with Jen and Alex planned for October 6, 2026 was called off and postponed to another day after Jen and Alex both said they couldn't make it.\n- [2026-10-06] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\n- [2026-10-05] User likes / craves the latte at Birch Cafe.\n- [2026-10-05] Alex has a work shift on Tuesday after morning coffee.\n- [2026-10-05] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\n- [2026-10-05] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\n- [2026-10-05] Jen has a job application that user is helping with.\n- [2026-10-05] Jen will bring coffee to the duck pond walk on Tuesday.\n- [2026-10-05] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\n- [2026-10-05] User is in group chat \"Park pals\" with Jen and Alex.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-r47alfcd",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-r47alfcd",
+    "system_prompt_sha256": "0c9c8eed58587d65b234d7bbe92086d159540762df79fa6076188d3b7b4fb0d4",
+    "reason": "No project context in native saved system prompt"
+  }
+}

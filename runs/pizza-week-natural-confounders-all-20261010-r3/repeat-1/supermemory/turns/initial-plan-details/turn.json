@@ -1,0 +1,114 @@
+{
+  "prompt": "[Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?",
+  "at": "2026-10-08T09:02:00-04:00",
+  "answer": "Based on what I have:\n\n- Ben — dinner, Saturday Oct 10, same time and place as originally planned (I don't have the time/place saved)\n- Jen — phone call, Tuesday at 10am, about her job application\n- Alex — coffee, Birch Cafe at 11am on Tuesday, before Alex's shift",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 20,
+        "query": "meeting dinner coffee phone call schedule"
+      },
+      "timestamp": 1791664088935
+    },
+    {
+      "type": "tool_use",
+      "name": "supermemory-profile",
+      "input": {
+        "query": "meetings schedule who where when"
+      },
+      "timestamp": 1791664089026
+    },
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 20,
+        "query": "Ben dinner time place restaurant"
+      },
+      "timestamp": 1791664093741
+    },
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 20,
+        "query": "Birch Cafe Alex coffee Tuesday"
+      },
+      "timestamp": 1791664093816
+    },
+    {
+      "type": "tool_use",
+      "name": "supermemory-search",
+      "input": {
+        "limit": 20,
+        "query": "duck pond walk Jen Alex Willow Park"
+      },
+      "timestamp": 1791664093912
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"fVRTBpwscX6RTcQdavrvg5\", \"content\": \"User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\", \"similarity\": 72}, {\"id\": \"NSUcQprVaMAxZqeqxQnXcS\", \"content\": \"\", \"similarity\": 61}], \"count\": 2}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "supermemory-profile",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"profile\": \"## Recent Context\\n- [2026-10-10] User thinks the crust at Rosa's on Oak Street is the best.\\n- [2026-10-10] User is in group chat \\\"Friday crew\\\" with Maya and Leo.\\n- [2026-10-10] User likes garlic knots, especially those from Luigi's.\\n- [2026-10-07] Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\\n- [2026-10-06] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\\n- [2026-10-05] User likes / craves the latte at Birch Cafe.\\n- [2026-10-05] Alex has a work shift on Tuesday after morning coffee.\\n- [2026-10-05] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\\n- [2026-10-05] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\\n- [2026-10-05] Jen has a job application that user is helping with.\\n- [2026-10-05] Jen will bring coffee to the duck pond walk on Tuesday.\\n- [2026-10-05] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\n- [2026-10-05] User is in group chat \\\"Park pals\\\" with Jen and Alex.\", \"static_count\": 0, \"dynamic_count\": 13}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 76}], \"count\": 1}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"FD3hCCBFPviWN3NCh9etka\", \"content\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\", \"similarity\": 96}, {\"id\": \"Z9xbj9LJGYGcQ13QPDPUSE\", \"content\": \"Alex has a work shift on Tuesday after morning coffee.\", \"similarity\": 82}, {\"id\": \"7MsPWTjtuxHCSdhqTewEwT\", \"content\": \"User likes / craves the latte at Birch Cafe.\", \"similarity\": 79}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 73}, {\"id\": \"gr6kb7X7X6SRiafjicRuhy\", \"content\": \"\", \"similarity\": 66}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "supermemory-search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"g68Fd4xKEpkEFcgi18yX7s\", \"content\": \"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\", \"similarity\": 100}, {\"id\": \"5bZixFrgYNJaTUZRCjNgPX\", \"content\": \"Jen will bring coffee to the duck pond walk on Tuesday.\", \"similarity\": 85}, {\"id\": \"9rN3z7AnXzM8Ckqj8F6W48\", \"content\": \"Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\", \"similarity\": 82}, {\"id\": \"DPsACkbVfS9yPvqWJRYL44\", \"content\": \"User is in group chat \\\"Park pals\\\" with Jen and Alex.\", \"similarity\": 72}, {\"id\": \"k8e3SE7MpCgTaLHaidfaM7\", \"content\": \"\", \"similarity\": 65}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 20.83,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261010_162714_6f7b2e \"Count Friday pizza plans\" (1 user message, 13 total messages)\n\nsession_id: 20261010_162714_6f7b2e",
+  "raw_events": 27,
+  "session_id": "20261010_162714_6f7b2e",
+  "stderr_full": "↻ Resumed session 20261010_162714_6f7b2e \"Count Friday pizza plans\" (1 user message, 13 total messages)\n\nsession_id: 20261010_162714_6f7b2e\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_162714_6f7b2e\", \"timestamp\": 1791664082830}\n{\"type\": \"text\", \"text\": \"Let me pull your upcoming meetings.\", \"timestamp\": 1791664087930}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 20, \"query\": \"meeting dinner coffee phone call schedule\"}, \"timestamp\": 1791664088935}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"fVRTBpwscX6RTcQdavrvg5\\\", \\\"content\\\": \\\"User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\\\", \\\"similarity\\\": 72}, {\\\"id\\\": \\\"NSUcQprVaMAxZqeqxQnXcS\\\", \\\"content\\\": \\\"\\\", \\\"similarity\\\": 61}], \\\"count\\\": 2}\", \"duration_ms\": 90, \"is_error\": false, \"timestamp\": 1791664089025}\n{\"type\": \"tool_use\", \"name\": \"supermemory-profile\", \"input\": {\"query\": \"meetings schedule who where when\"}, \"timestamp\": 1791664089026}\n{\"type\": \"tool_result\", \"name\": \"supermemory-profile\", \"output\": \"{\\\"profile\\\": \\\"## Recent Context\\\\n- [2026-10-10] User thinks the crust at Rosa's on Oak Street is the best.\\\\n- [2026-10-10] User is in group chat \\\\\\\"Friday crew\\\\\\\" with Maya and Leo.\\\\n- [2026-10-10] User likes garlic knots, especially those from Luigi's.\\\\n- [2026-10-07] Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\\\\n- [2026-10-06] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\\\\n- [2026-10-05] User likes / craves the latte at Birch Cafe.\\\\n- [2026-10-05] Alex has a work shift on Tuesday after morning coffee.\\\\n- [2026-10-05] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\\\\n- [2026-10-05] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\\\\n- [2026-10-05] Jen has a job application that user is helping with.\\\\n- [2026-10-05] Jen will bring coffee to the duck pond walk on Tuesday.\\\\n- [2026-10-05] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\\\n- [2026-10-05] User is in group chat \\\\\\\"Park pals\\\\\\\" with Jen and Alex.\\\", \\\"static_count\\\": 0, \\\"dynamic_count\\\": 13}\", \"duration_ms\": 134, \"is_error\": false, \"timestamp\": 1791664089161}\n{\"type\": \"text\", \"text\": \"\\n\\nI'll look up the details for your dinner with Ben.\", \"timestamp\": 1791664092492}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 20, \"query\": \"Ben dinner time place restaurant\"}, \"timestamp\": 1791664093741}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"A4fjPcntjKkGyLZKMQA4q3\\\", \\\"content\\\": \\\"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\\\", \\\"similarity\\\": 76}], \\\"count\\\": 1}\", \"duration_ms\": 69, \"is_error\": false, \"timestamp\": 1791664093812}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 20, \"query\": \"Birch Cafe Alex coffee Tuesday\"}, \"timestamp\": 1791664093816}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"FD3hCCBFPviWN3NCh9etka\\\", \\\"content\\\": \\\"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\\\", \\\"similarity\\\": 96}, {\\\"id\\\": \\\"Z9xbj9LJGYGcQ13QPDPUSE\\\", \\\"content\\\": \\\"Alex has a work shift on Tuesday after morning coffee.\\\", \\\"similarity\\\": 82}, {\\\"id\\\": \\\"7MsPWTjtuxHCSdhqTewEwT\\\", \\\"content\\\": \\\"User likes / craves the latte at Birch Cafe.\\\", \\\"similarity\\\": 79}, {\\\"id\\\": \\\"5bZixFrgYNJaTUZRCjNgPX\\\", \\\"content\\\": \\\"Jen will bring coffee to the duck pond walk on Tuesday.\\\", \\\"similarity\\\": 73}, {\\\"id\\\": \\\"gr6kb7X7X6SRiafjicRuhy\\\", \\\"content\\\": \\\"\\\", \\\"similarity\\\": 66}], \\\"count\\\": 5}\", \"duration_ms\": 95, \"is_error\": false, \"timestamp\": 1791664093910}\n{\"type\": \"tool_use\", \"name\": \"supermemory-search\", \"input\": {\"limit\": 20, \"query\": \"duck pond walk Jen Alex Willow Park\"}, \"timestamp\": 1791664093912}\n{\"type\": \"tool_result\", \"name\": \"supermemory-search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"g68Fd4xKEpkEFcgi18yX7s\\\", \\\"content\\\": \\\"Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\\", \\\"similarity\\\": 100}, {\\\"id\\\": \\\"5bZixFrgYNJaTUZRCjNgPX\\\", \\\"content\\\": \\\"Jen will bring coffee to the duck pond walk on Tuesday.\\\", \\\"similarity\\\": 85}, {\\\"id\\\": \\\"9rN3z7AnXzM8Ckqj8F6W48\\\", \\\"content\\\": \\\"Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\\\", \\\"similarity\\\": 82}, {\\\"id\\\": \\\"DPsACkbVfS9yPvqWJRYL44\\\", \\\"content\\\": \\\"User is in group chat \\\\\\\"Park pals\\\\\\\" with Jen and Alex.\\\", \\\"similarity\\\": 72}, {\\\"id\\\": \\\"k8e3SE7MpCgTaLHaidfaM7\\\", \\\"content\\\": \\\"\\\", \\\"similarity\\\": 65}], \\\"count\\\": 5}\", \"duration_ms\": 147, \"is_error\": false, \"timestamp\": 1791664094058}\n{\"type\": \"text\", \"text\": \"\\n\\nBased on what I\", \"timestamp\": 1791664100747}\n{\"type\": \"text\", \"text\": \" have:\\n\\n- Ben\", \"timestamp\": 1791664100790}\n{\"type\": \"text\", \"text\": \" — dinner, Saturday Oct\", \"timestamp\": 1791664100834}\n{\"type\": \"text\", \"text\": \" 10, same time and place\", \"timestamp\": 1791664100878}\n{\"type\": \"text\", \"text\": \" as originally\", \"timestamp\": 1791664100923}\n{\"type\": \"text\", \"text\": \" planned\", \"timestamp\": 1791664100968}\n{\"type\": \"text\", \"text\": \" (I\", \"timestamp\": 1791664101013}\n{\"type\": \"text\", \"text\": \" don't have the time\", \"timestamp\": 1791664101056}\n{\"type\": \"text\", \"text\": \"/place saved)\\n- Jen — phone call, Tuesday at 10am,\", \"timestamp\": 1791664101104}\n{\"type\": \"text\", \"text\": \" about her\", \"timestamp\": 1791664101162}\n{\"type\": \"text\", \"text\": \" job application\\n- Alex — coffee, Birch Cafe at\", \"timestamp\": 1791664101223}\n{\"type\": \"text\", \"text\": \" 11am on Tuesday, before Alex\", \"timestamp\": 1791664101284}\n{\"type\": \"text\", \"text\": \"'s shift\", \"timestamp\": 1791664101348}\n{\"type\": \"result\", \"session_id\": \"20261010_162714_6f7b2e\", \"exit_code\": 0, \"text\": \"Based on what I have:\\n\\n- Ben — dinner, Saturday Oct 10, same time and place as originally planned (I don't have the time/place saved)\\n- Jen — phone call, Tuesday at 10am, about her job application\\n- Alex — coffee, Birch Cafe at 11am on Tuesday, before Alex's shift\", \"tokens\": {\"input\": 6527, \"output\": 1378, \"total\": 21044, \"cache_read\": 13139, \"cache_write\": 0}, \"duration_ms\": 18557, \"timestamp\": 1791664101388}",
+  "session_input_tokens": 6527,
+  "session_output_tokens": 1378,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Relevant Memories\n- [just now] [64%] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\n- [just now] [58%] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\n- [just now] [56%] User is in group chat \"Friday crew\" with Maya and Leo.\n- [just now] [56%] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\n- [just now] [56%] Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\n- [just now] [52%] User is in group chat \"Park pals\" with Jen and Alex.\n- [just now] [52%] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\n- [just now] [51%] Jen has a job application that user is helping with.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-r47alfcd",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-r47alfcd",
+    "system_prompt_sha256": "c839dd53f94f2da85071686fbef29364972fa170105775808864dd150eaa8bd2",
+    "reason": "No project context in native saved system prompt"
+  }
+}

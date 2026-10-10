@@ -1,0 +1,56 @@
+{
+  "state": "complete",
+  "plan_hash": "52ea862036c2fa15cf38b9ffc17b11b9d1b903cde0b8e003fae9902014494382",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 0,
+    "total_tool_operations": 0,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {},
+    "operations": [],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.67,
+    "input_tokens": null,
+    "output_tokens": 94,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-absent",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-absent",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

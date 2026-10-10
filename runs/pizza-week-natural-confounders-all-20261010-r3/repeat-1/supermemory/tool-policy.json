@@ -1,0 +1,33 @@
+{
+  "version": "retained-memory-only-v2",
+  "provider": "supermemory",
+  "allowed_tools": [
+    "supermemory-forget",
+    "supermemory-profile",
+    "supermemory-save",
+    "supermemory-search",
+    "supermemory_forget",
+    "supermemory_profile",
+    "supermemory_search",
+    "supermemory_store"
+  ],
+  "blocked_source_tools": [],
+  "source_argument_rules": {
+    "viking_read": {
+      "scheme": "viking",
+      "memory_namespaces": [
+        "user",
+        "agent",
+        "~"
+      ],
+      "memory_path": "/memories/",
+      "summary_suffixes": {
+        "abstract": "/.abstract.md",
+        "overview": "/.overview.md"
+      },
+      "default_level": "overview"
+    }
+  },
+  "builtin_memory": false,
+  "os_sandbox": false
+}

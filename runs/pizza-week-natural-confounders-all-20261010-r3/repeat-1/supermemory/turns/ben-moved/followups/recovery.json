@@ -1,0 +1,188 @@
+{
+  "state": "complete",
+  "plan_hash": "34d94a3d09368b570df58aa78d0b3c8bb92fbc20560273d8865eaa9d90ad1578",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 5,
+    "total_tool_operations": 5,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 4,
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 20,
+          "query": "Ben dinner original time place location"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663938620,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 84}], \"count\": 1}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 20,
+          "query": "meeting Ben for dinner"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663938709,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 84}, {\"id\": \"NSUcQprVaMAxZqeqxQnXcS\", \"content\": \"\", \"similarity\": 62}], \"count\": 2}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 20,
+          "query": "dinner Ben restaurant"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663942405,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 77}], \"count\": 1}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-search",
+        "arguments": {
+          "limit": 20,
+          "query": "Ben"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663942558,
+        "result": {
+          "tool": "supermemory-search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"A4fjPcntjKkGyLZKMQA4q3\", \"content\": \"User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\", \"similarity\": 69}], \"count\": 1}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "supermemory-profile",
+        "arguments": {
+          "query": "Ben dinner"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791663942685,
+        "result": {
+          "tool": "supermemory-profile",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"profile\": \"## Recent Context\\n- [2026-10-07] Duck pond walk with Jen and Alex on October 6, 2026 was postponed with no replacement day picked as of October 7, 2026.\\n- [2026-10-06] User rescheduled dinner with Ben to Saturday, October 10, 2026, same time and same place.\\n- [2026-10-05] User likes / craves the latte at Birch Cafe.\\n- [2026-10-05] Alex has a work shift on Tuesday after morning coffee.\\n- [2026-10-05] User scheduled a phone call with Jen on Tuesday at 10am to go over Jen's job application.\\n- [2026-10-05] User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday before Alex's shift.\\n- [2026-10-05] Jen has a job application that user is helping with.\\n- [2026-10-05] Jen will bring coffee to the duck pond walk on Tuesday.\\n- [2026-10-05] Meeting point for duck pond walk with Jen and Alex is the west entrance to the duck pond in Willow Park.\\n- [2026-10-05] User is in group chat \\\"Park pals\\\" with Jen and Alex.\", \"static_count\": 0, \"dynamic_count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.06,
+    "input_tokens": null,
+    "output_tokens": 190,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "day-saturday",
+      "kind": "provided",
+      "reason": "Day correctly conveyed as Saturday."
+    },
+    {
+      "id": "time-7pm",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have original time stored."
+    },
+    {
+      "id": "venue-juniper",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have original place stored."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "admitted_retrieval_failure",
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 2,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "day-saturday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time-7pm",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "venue-juniper",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

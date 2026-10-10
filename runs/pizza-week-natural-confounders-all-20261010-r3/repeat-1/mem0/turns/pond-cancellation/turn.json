@@ -1,0 +1,64 @@
+{
+  "prompt": "[Simulated now: 2026-10-07T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat happened with the duck pond yesterday, and did we pick another day?",
+  "at": "2026-10-07T09:00:00-04:00",
+  "answer": "Yesterday (Oct 6) the 2pm duck pond walk with Jen and Alex was called off that morning — they both couldn't make it, and you agreed to leave it for another day.\n\nNo, you haven't picked another day yet.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "duck pond walk Willow Park",
+        "top_k": 10
+      },
+      "timestamp": 1791661213445
+    },
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "Park pals Jen Alex reschedule another day",
+        "top_k": 10
+      },
+      "timestamp": 1791661213482
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"836d9421-f388-4239-8f69-a81470c6c43c\", \"memory\": \"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\", \"score\": 0.8649641291778122}, {\"id\": \"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\", \"memory\": \"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\", \"score\": 0.8407901007493315}, {\"id\": \"ae7ba687-08f2-463a-ae5a-4638f444077f\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\", \"score\": 0.17984836204364796}, {\"id\": \"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\", \"memory\": \"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\", \"score\": 0.1660929413464181}, {\"id\": \"9e7e0328-6232-4de6-a913-23e2259d3523\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\", \"score\": 0.1647898097704044}, {\"id\": \"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\", \"memory\": \"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\", \"score\": 0.15247522509252928}], \"count\": 6}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\", \"memory\": \"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\", \"score\": 0.8524786110851934}, {\"id\": \"836d9421-f388-4239-8f69-a81470c6c43c\", \"memory\": \"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\", \"score\": 0.7362138716792184}, {\"id\": \"9e7e0328-6232-4de6-a913-23e2259d3523\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\", \"score\": 0.34928956670765693}, {\"id\": \"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\", \"memory\": \"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\", \"score\": 0.3334150745433906}, {\"id\": \"ae7ba687-08f2-463a-ae5a-4638f444077f\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\", \"score\": 0.3179029686527896}, {\"id\": \"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\", \"memory\": \"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\", \"score\": 0.26145136291277826}], \"count\": 6}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 15.43,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261010_154006_e8adbd",
+  "raw_events": 16,
+  "session_id": "20261010_154006_e8adbd",
+  "stderr_full": "\nsession_id: 20261010_154006_e8adbd\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_154006_e8adbd\", \"timestamp\": 1791661206667}\n{\"type\": \"text\", \"text\": \"I'll pull up the duck pond history to confirm what happened.\", \"timestamp\": 1791661212625}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"duck pond walk Willow Park\", \"top_k\": 10}, \"timestamp\": 1791661213445}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"836d9421-f388-4239-8f69-a81470c6c43c\\\", \\\"memory\\\": \\\"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\\\", \\\"score\\\": 0.8649641291778122}, {\\\"id\\\": \\\"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\\\", \\\"memory\\\": \\\"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\\\", \\\"score\\\": 0.8407901007493315}, {\\\"id\\\": \\\"ae7ba687-08f2-463a-ae5a-4638f444077f\\\", \\\"memory\\\": \\\"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\\\", \\\"score\\\": 0.17984836204364796}, {\\\"id\\\": \\\"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\\\", \\\"memory\\\": \\\"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\\\", \\\"score\\\": 0.1660929413464181}, {\\\"id\\\": \\\"9e7e0328-6232-4de6-a913-23e2259d3523\\\", \\\"memory\\\": \\\"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\\\", \\\"score\\\": 0.1647898097704044}, {\\\"id\\\": \\\"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\\\", \\\"memory\\\": \\\"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\\\", \\\"score\\\": 0.15247522509252928}], \\\"count\\\": 6}\", \"duration_ms\": 36, \"is_error\": false, \"timestamp\": 1791661213481}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"Park pals Jen Alex reschedule another day\", \"top_k\": 10}, \"timestamp\": 1791661213482}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"c622f5e6-d71f-4590-b7b1-dfcb95c50c8b\\\", \\\"memory\\\": \\\"User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\\\", \\\"score\\\": 0.8524786110851934}, {\\\"id\\\": \\\"836d9421-f388-4239-8f69-a81470c6c43c\\\", \\\"memory\\\": \\\"User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\\\", \\\"score\\\": 0.7362138716792184}, {\\\"id\\\": \\\"9e7e0328-6232-4de6-a913-23e2259d3523\\\", \\\"memory\\\": \\\"User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\\\", \\\"score\\\": 0.34928956670765693}, {\\\"id\\\": \\\"5f13f20f-c0fe-4294-ab5d-1bee2cdb6f6d\\\", \\\"memory\\\": \\\"User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\\\", \\\"score\\\": 0.3334150745433906}, {\\\"id\\\": \\\"ae7ba687-08f2-463a-ae5a-4638f444077f\\\", \\\"memory\\\": \\\"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\\\", \\\"score\\\": 0.3179029686527896}, {\\\"id\\\": \\\"438ca0ec-bbb5-4bec-aa45-58c1fdc69c39\\\", \\\"memory\\\": \\\"User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\\\", \\\"score\\\": 0.26145136291277826}], \\\"count\\\": 6}\", \"duration_ms\": 37, \"is_error\": false, \"timestamp\": 1791661213520}\n{\"type\": \"text\", \"text\": \"\\n\\nYesterday (\", \"timestamp\": 1791661214752}\n{\"type\": \"text\", \"text\": \"Oct \", \"timestamp\": 1791661214783}\n{\"type\": \"text\", \"text\": \"6) the \", \"timestamp\": 1791661214815}\n{\"type\": \"text\", \"text\": \"2pm duck pond walk with\", \"timestamp\": 1791661214848}\n{\"type\": \"text\", \"text\": \" Jen and Alex was called off that morning — they\", \"timestamp\": 1791661214880}\n{\"type\": \"text\", \"text\": \" both couldn't make it, and you agreed to leave it for another day.\\n\\nNo\", \"timestamp\": 1791661214912}\n{\"type\": \"text\", \"text\": \",\", \"timestamp\": 1791661214943}\n{\"type\": \"text\", \"text\": \" you haven't\", \"timestamp\": 1791661214976}\n{\"type\": \"text\", \"text\": \" picked another day yet.\", \"timestamp\": 1791661215008}\n{\"type\": \"result\", \"session_id\": \"20261010_154006_e8adbd\", \"exit_code\": 0, \"text\": \"Yesterday (Oct 6) the 2pm duck pond walk with Jen and Alex was called off that morning — they both couldn't make it, and you agreed to leave it for another day.\\n\\nNo, you haven't picked another day yet.\", \"tokens\": {\"input\": 8583, \"output\": 615, \"total\": 9198, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 8376, \"timestamp\": 1791661215044}",
+  "session_input_tokens": 8583,
+  "session_output_tokens": 615,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\n- User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\n- User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee\n- User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\n- User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\n- User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-4svhqt7r",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-4svhqt7r",
+    "system_prompt_sha256": "4f938bfbf9503282de7d9ea3f0f4252d2a78ba39b44a62998c764748abf3cb74",
+    "reason": "No project context in native saved system prompt"
+  }
+}

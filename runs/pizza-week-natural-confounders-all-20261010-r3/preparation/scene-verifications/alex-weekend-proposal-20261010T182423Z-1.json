@@ -1,0 +1,81 @@
+{
+  "scene_id": "alex-weekend-proposal",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-10T18:24:23+00:00",
+  "spec": {
+    "id": "alex-weekend-proposal",
+    "channel": "imessage",
+    "thread": "alex",
+    "scene": "Alex suggests Sunday dinner at Juniper Cafe at 7. The user declines because evenings are awkward this weekend. Brief friendly exchange; they do not agree to dinner or pick an alternative yet.",
+    "test_intent": "",
+    "facts": [
+      "Alex proposes Sunday dinner at 7 pm at Juniper Cafe, but the user declines. No dinner with Alex is agreed."
+    ],
+    "at": "2026-10-07T11:00:00-04:00",
+    "window_start": "2026-10-07T11:00:00-04:00",
+    "window_end": "2026-10-07T11:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      4,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Alex"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v14",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Alex: morning, my shift is dragging already lol",
+    "Me: ugh tell me about it, I'm stuck on laundry",
+    "Alex: hey random but would you wanna get dinner Sunday at 7? was thinking Juniper Cafe?",
+    "Me: evenings are kinda awkward for me this weekend so I'll have to pass",
+    "Alex: all good, no worries! raincheck?",
+    "Me: yes definitely, hope your shift goes faster lol"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-07. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 11:00 and 11:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Alex suggests Sunday dinner at Juniper Cafe at 7. The user declines because evenings are awkward this weekend. Brief friendly exchange; they do not agree to dinner or pick an alternative yet.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Alex proposes Sunday dinner at 7 pm at Juniper Cafe, but the user declines. No dinner with Alex is agreed.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-10-05 Me: monday absolutely wiped me out\n2026-10-05 Alex: same just got home and I'm starving\n2026-10-05 Alex: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am?\n2026-10-05 Me: yeah that works, I was craving their latte anyway\n2026-10-05 Alex: same lol. see you Tuesday then?\n2026-10-05 Me: yep see you then\n\nNew messages:\n1. Alex: morning, my shift is dragging already lol\n2. Me: ugh tell me about it, I'm stuck on laundry\n3. Alex: hey random but would you wanna get dinner Sunday at 7? was thinking Juniper Cafe?\n4. Me: evenings are kinda awkward for me this weekend so I'll have to pass\n5. Alex: all good, no worries! raincheck?\n6. Me: yes definitely, hope your shift goes faster lol",
+  "judge_response": "{\"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 4, 5], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      3,
+      4,
+      5
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          3,
+          4,
+          5
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2493,
+  "response_chars": 139,
+  "model_call": "/tmp/pacbench-expanded-preparation/model-calls/7d64c8c65c23e0a956626a85109d73368fb3272af8faf7e5ea68204a74d5b372.json",
+  "usage": {
+    "completion_tokens": 1934,
+    "prompt_tokens": 556,
+    "total_tokens": 2490,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1872
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

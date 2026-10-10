@@ -1,0 +1,28 @@
+{
+  "version": "retained-memory-only-v2",
+  "provider": "byterover",
+  "allowed_tools": [
+    "brv_curate",
+    "brv_query",
+    "brv_status"
+  ],
+  "blocked_source_tools": [],
+  "source_argument_rules": {
+    "viking_read": {
+      "scheme": "viking",
+      "memory_namespaces": [
+        "user",
+        "agent",
+        "~"
+      ],
+      "memory_path": "/memories/",
+      "summary_suffixes": {
+        "abstract": "/.abstract.md",
+        "overview": "/.overview.md"
+      },
+      "default_level": "overview"
+    }
+  },
+  "builtin_memory": false,
+  "os_sandbox": false
+}

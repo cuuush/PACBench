@@ -1,0 +1,39 @@
+{
+  "claims": [
+    {
+      "id": "no-alex-juniper-dinner",
+      "statement": "No dinner with Alex at Juniper Cafe was agreed.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-weekend-proposal-02",
+        "pizza-week-natural-confounders-low/alex-weekend-proposal-03",
+        "pizza-week-natural-confounders-low/alex-weekend-proposal-04"
+      ]
+    }
+  ],
+  "question": "Are we doing dinner at Juniper too?",
+  "evidence_hash": "47908671d82f29c6a0957ef7977af480026a93f0bc2cbc522c93806be839e64f",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Single intent-required fact is covered: Alex's Juniper dinner was proposed and declined.",
+    "reviews": [
+      {
+        "id": "no-alex-juniper-dinner",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Alex proposed Sunday 7pm Juniper dinner, Me declined, only lunch at Birch later agreed."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks current-status yes/no about Juniper dinner, with 'we' resolved via prior question in same friday-alex-fresh session to Me+Alex. It directly invites the declined-proposal fact without stating the answer or presupposing agreement; 'too' reads as in addition to the lunch plan, Juniper uniquely maps to Juniper Cafe."
+  },
+  "author_fact_count": 0,
+  "test_intent": "No dinner with Alex at Juniper Cafe was agreed.",
+  "question_source": "supplied",
+  "question_at": "2026-10-09T12:17:00-04:00",
+  "contract_hash": "f4cc1626cf34597b98155334e75783f39231e826b0f13b71178ff77387e3f986"
+}

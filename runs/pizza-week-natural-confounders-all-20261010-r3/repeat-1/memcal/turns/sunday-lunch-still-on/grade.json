@@ -1,0 +1,60 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "with-alex",
+      "verdict": "correct",
+      "reason": "Answer responds to 'plan with Alex today' with lunch details, inheriting Alex scope without contradiction."
+    },
+    {
+      "id": "meal-lunch",
+      "verdict": "correct",
+      "reason": "Answer explicitly states 'Lunch at noon' as the going plan."
+    },
+    {
+      "id": "day-sunday",
+      "verdict": "correct",
+      "reason": "Answer inherits 'today' from question with clock 2026-10-11, describing lunch as going."
+    },
+    {
+      "id": "time-noon",
+      "verdict": "correct",
+      "reason": "Answer explicitly states lunch is 'at noon'."
+    },
+    {
+      "id": "venue-birch",
+      "verdict": "correct",
+      "reason": "Answer explicitly states lunch is 'at Birch Cafe'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "with-alex",
+      "kind": "provided",
+      "reason": "Alex scope conveyed via inherited question context."
+    },
+    {
+      "id": "meal-lunch",
+      "kind": "provided",
+      "reason": "Lunch explicitly stated."
+    },
+    {
+      "id": "day-sunday",
+      "kind": "provided",
+      "reason": "Today scope inherited from question and clock."
+    },
+    {
+      "id": "time-noon",
+      "kind": "provided",
+      "reason": "Noon explicitly stated."
+    },
+    {
+      "id": "venue-birch",
+      "kind": "provided",
+      "reason": "Birch Cafe explicitly stated."
+    }
+  ],
+  "interaction": "answer"
+}

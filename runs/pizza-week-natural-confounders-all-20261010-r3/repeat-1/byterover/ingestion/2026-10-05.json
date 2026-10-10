@@ -1,0 +1,312 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "byterover",
+  "at": "2026-10-05T18:35:00-04:00",
+  "processing_at": "2026-10-05T18:35:00-04:00",
+  "document_sha256": "77e7603ac26493a20212fc92cb4d750f050cdb412211cb93de03b13823c80fb1",
+  "source_ids": [
+    "pizza-week-natural-confounders-low/pond-invite-00",
+    "pizza-week-natural-confounders-low/pond-invite-01",
+    "pizza-week-natural-confounders-low/pond-invite-02",
+    "pizza-week-natural-confounders-low/pond-invite-03",
+    "pizza-week-natural-confounders-low/pond-invite-04",
+    "pizza-week-natural-confounders-low/pond-invite-05",
+    "pizza-week-natural-confounders-low/jen-call-00",
+    "pizza-week-natural-confounders-low/jen-call-01",
+    "pizza-week-natural-confounders-low/jen-call-02",
+    "pizza-week-natural-confounders-low/jen-call-03",
+    "pizza-week-natural-confounders-low/jen-call-04",
+    "pizza-week-natural-confounders-low/alex-coffee-00",
+    "pizza-week-natural-confounders-low/alex-coffee-01",
+    "pizza-week-natural-confounders-low/alex-coffee-02",
+    "pizza-week-natural-confounders-low/alex-coffee-03",
+    "pizza-week-natural-confounders-low/alex-coffee-04",
+    "pizza-week-natural-confounders-low/alex-coffee-05",
+    "pizza-week-natural-confounders-low/ben-dinner-00",
+    "pizza-week-natural-confounders-low/ben-dinner-01",
+    "pizza-week-natural-confounders-low/ben-dinner-02",
+    "pizza-week-natural-confounders-low/ben-dinner-03",
+    "pizza-week-natural-confounders-low/ben-dinner-04"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "failed",
+  "ready": false,
+  "returncode": 1,
+  "stdout": "{\"ready\": false, \"interface\": \"brv curate --files (no custom prompt)\", \"result\": {\"command\": \"curate\", \"data\": {\"changes\": {\"created\": [], \"updated\": [\"/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\"]}, \"event\": \"completed\", \"logId\": \"cur-1791664738884\", \"message\": \"Context curated successfully\", \"pendingReview\": {\"count\": 1, \"files\": [{\"after\": \"Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe\", \"filePath\": \"personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\", \"impact\": \"high\", \"path\": \"personal_plans/weekly_schedule\", \"reason\": \"Curate confirmed social commitments from Oct 5 iMessage threads\", \"type\": \"UPSERT\"}], \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"status\": \"completed\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:31.957Z\"}, \"events\": [{\"command\": \"curate\", \"data\": {\"event\": \"thinking\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:38:59.716Z\"}, {\"command\": \"curate\", \"data\": {\"args\": {\"code\": \"// Preview context head and tail for single-pass curation\\n(async () => {\\n  const ctx = __curate_ctx_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3;\\n  const head = ctx.slice(0, 4000);\\n  const tail = ctx.slice(-4000);\\n  console.log(\\\"HEAD:\\\\n\\\" + head + \\\"\\\\n\\\\n---TAIL:\\\\n\\\" + tail);\\n  console.log(JSON.stringify({totalChars: ctx.length}));\\n})()\"}, \"event\": \"toolCall\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:11.173Z\"}, {\"command\": \"curate\", \"data\": {\"event\": \"toolResult\", \"success\": true, \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:11.377Z\"}, {\"command\": \"curate\", \"data\": {\"event\": \"thinking\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:11.393Z\"}, {\"command\": \"curate\", \"data\": {\"args\": {\"code\": \"// Curate Oct 5 messages into personal_plans domain\\n(async () => {\\n  const result = await tools.curate([{\\n    type: 'UPSERT',\\n    path: 'personal_plans/weekly_schedule',\\n    title: 'Oct 6-8 2026 Social Plans',\\n    reason: 'Curate confirmed social commitments from Oct 5 iMessage threads',\\n    summary: 'Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe',\\n    content: {\\n      facts: [\\n        {statement: 'Phone call with Jen scheduled Tuesday Oct 6 2026 at 10am to go over job application', category: 'project', subject: 'jen_phone_call', value: '2026-10-06T10:00:00-04:00'},\\n        {statement: 'Coffee with Alex scheduled Tuesday Oct 6 2026 at 11am at Birch Cafe before Alex shift', category: 'project', subject: 'alex_coffee', value: '2026-10-06T11:00:00-04:00 Birch Cafe'},\\n        {statement: 'Duck pond walk with Jen and Alex scheduled Tuesday Oct 6 2026 at 2pm at west entrance Willow Park, Jen bringing coffee', category: 'project', subject: 'pond_walk', value: '2026-10-06T14:00:00-04:00 Willow Park west entrance'},\\n        {statement: 'Dinner with Ben scheduled Thursday Oct 8 2026 at 7pm at Juniper Cafe', category: 'project', subject: 'ben_dinner', value: '2026-10-08T19:00:00-04:00 Juniper Cafe'}\\n      ],\\n      rawConcept: {\\n        task: 'Document confirmed social plans arranged in iMessages on Oct 5 2026',\\n        changes: ['Confirmed Jen phone call Tue 10am', 'Confirmed Alex coffee Tue 11am Birch Cafe', 'Confirmed pond walk Tue 2pm Willow Park west entrance', 'Confirmed Ben dinner Thu 7pm Juniper Cafe'],\\n        files: ['imports/2026-10-05/messages.txt'],\\n        flow: 'proposal -> acceptance -> confirmed plan',\\n        timestamp: '2026-10-05T18:35:00-04:00',\\n        author: 'Me via iMessage'\\n      },\\n      narrative: {\\n        structure: 'Four threads from Oct 5 evening: pond-crew group (Park pals: Me, Jen, Alex), jen 1:1, alex 1:1, ben 1:1. All proposals accepted with yeah that works. Tuesday Oct 6 has three back-to-back commitments: 10am call, 11am coffee, 2pm walk.',\\n        dependencies: 'Alex coffee is before Alex shift. Jen bringing coffee to pond walk. Jen call topic is job application review.',\\n        highlights: 'Pond walk: Tuesday 2pm west entrance duck pond Willow Park with Jen and Alex. Jen call: Tuesday 10am phone. Alex coffee: Tuesday 11am Birch Cafe (Alex craving latte noted). Ben dinner: Thursday 7pm Juniper Cafe to catch up.',\\n        examples: 'Alex pond invite verbatim: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park? Alex coffee verbatim: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am? Me dinner invite: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm? Me call request: can we do a quick phone call Tuesday at 10 am to go over your job application?'\\n      }\\n    },\\n    domainContext: {\\n      purpose: 'Personal social plans, meetups, calls and dinners arranged via messages.',\\n      scope: {included: ['Scheduled meetups with friends', 'Phone/video calls', 'Coffee, dinner, walk plans with times and locations'], excluded: ['Work sprints and formal meetings']},\\n      usage: 'Use for recalling when/where plans with friends and family are.'\\n    },\\n    topicContext: {\\n      overview: 'Week-by-week confirmed upcoming commitments with date, time, location, and participants.',\\n      keyConcepts: ['Confirmed date/time', 'Location', 'Participants', 'Source thread'],\\n      relatedTopics: []\\n    }\\n  }]);\\n  console.log(JSON.stringify(result));\\n})()\"}, \"event\": \"toolCall\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:28.750Z\"}, {\"command\": \"curate\", \"data\": {\"event\": \"toolResult\", \"success\": true, \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:28.818Z\"}, {\"command\": \"curate\", \"data\": {\"event\": \"thinking\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:28.820Z\"}, {\"command\": \"curate\", \"data\": {\"args\": {\"code\": \"// Record progress and report status\\n(async () => {\\n  tools.curation.recordProgress(__curate_hist_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3, {domain: 'personal_plans/weekly_schedule', title: 'Oct 6-8 2026 Social Plans', keyFacts: ['Jen call Tue 10am', 'Alex coffee Tue 11am Birch Cafe', 'Pond walk Tue 2pm Willow Park', 'Ben dinner Thu 7pm Juniper Cafe']});\\n  const status = {summary: {added: 1, failed: 0}, verification: {checked: 1, confirmed: 1, missing: []}, files: ['personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md']};\\n  setFinalResult('Curation complete.\\\\n```json\\\\n' + JSON.stringify(status, null, 2) + '\\\\n```\\\\n\\\\nCurated Oct 5 iMessage threads into personal_plans/weekly_schedule: four confirmed plans for Oct 6-8 (Jen call, Alex coffee, pond walk, Ben dinner) with times, locations, and verbatim proposals.');\\n})()\"}, \"event\": \"toolCall\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:31.947Z\"}, {\"command\": \"curate\", \"data\": {\"event\": \"toolResult\", \"success\": true, \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\", \"toolName\": \"code_exec\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:31.951Z\"}, {\"command\": \"curate\", \"data\": {\"changes\": {\"created\": [], \"updated\": [\"/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\"]}, \"event\": \"completed\", \"logId\": \"cur-1791664738884\", \"message\": \"Context curated successfully\", \"pendingReview\": {\"count\": 1, \"files\": [{\"after\": \"Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe\", \"filePath\": \"personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\", \"impact\": \"high\", \"path\": \"personal_plans/weekly_schedule\", \"reason\": \"Curate confirmed social commitments from Oct 5 iMessage threads\", \"type\": \"UPSERT\"}], \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"status\": \"completed\", \"taskId\": \"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"}, \"success\": true, \"timestamp\": \"2026-10-10T20:39:31.957Z\"}], \"stdout\": \"{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"thinking\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:38:59.716Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"args\\\":{\\\"code\\\":\\\"// Preview context head and tail for single-pass curation\\\\n(async () => {\\\\n  const ctx = __curate_ctx_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3;\\\\n  const head = ctx.slice(0, 4000);\\\\n  const tail = ctx.slice(-4000);\\\\n  console.log(\\\\\\\"HEAD:\\\\\\\\n\\\\\\\" + head + \\\\\\\"\\\\\\\\n\\\\\\\\n---TAIL:\\\\\\\\n\\\\\\\" + tail);\\\\n  console.log(JSON.stringify({totalChars: ctx.length}));\\\\n})()\\\"},\\\"event\\\":\\\"toolCall\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:11.173Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"toolResult\\\",\\\"success\\\":true,\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:11.377Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"thinking\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:11.393Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"args\\\":{\\\"code\\\":\\\"// Curate Oct 5 messages into personal_plans domain\\\\n(async () => {\\\\n  const result = await tools.curate([{\\\\n    type: 'UPSERT',\\\\n    path: 'personal_plans/weekly_schedule',\\\\n    title: 'Oct 6-8 2026 Social Plans',\\\\n    reason: 'Curate confirmed social commitments from Oct 5 iMessage threads',\\\\n    summary: 'Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe',\\\\n    content: {\\\\n      facts: [\\\\n        {statement: 'Phone call with Jen scheduled Tuesday Oct 6 2026 at 10am to go over job application', category: 'project', subject: 'jen_phone_call', value: '2026-10-06T10:00:00-04:00'},\\\\n        {statement: 'Coffee with Alex scheduled Tuesday Oct 6 2026 at 11am at Birch Cafe before Alex shift', category: 'project', subject: 'alex_coffee', value: '2026-10-06T11:00:00-04:00 Birch Cafe'},\\\\n        {statement: 'Duck pond walk with Jen and Alex scheduled Tuesday Oct 6 2026 at 2pm at west entrance Willow Park, Jen bringing coffee', category: 'project', subject: 'pond_walk', value: '2026-10-06T14:00:00-04:00 Willow Park west entrance'},\\\\n        {statement: 'Dinner with Ben scheduled Thursday Oct 8 2026 at 7pm at Juniper Cafe', category: 'project', subject: 'ben_dinner', value: '2026-10-08T19:00:00-04:00 Juniper Cafe'}\\\\n      ],\\\\n      rawConcept: {\\\\n        task: 'Document confirmed social plans arranged in iMessages on Oct 5 2026',\\\\n        changes: ['Confirmed Jen phone call Tue 10am', 'Confirmed Alex coffee Tue 11am Birch Cafe', 'Confirmed pond walk Tue 2pm Willow Park west entrance', 'Confirmed Ben dinner Thu 7pm Juniper Cafe'],\\\\n        files: ['imports/2026-10-05/messages.txt'],\\\\n        flow: 'proposal -> acceptance -> confirmed plan',\\\\n        timestamp: '2026-10-05T18:35:00-04:00',\\\\n        author: 'Me via iMessage'\\\\n      },\\\\n      narrative: {\\\\n        structure: 'Four threads from Oct 5 evening: pond-crew group (Park pals: Me, Jen, Alex), jen 1:1, alex 1:1, ben 1:1. All proposals accepted with yeah that works. Tuesday Oct 6 has three back-to-back commitments: 10am call, 11am coffee, 2pm walk.',\\\\n        dependencies: 'Alex coffee is before Alex shift. Jen bringing coffee to pond walk. Jen call topic is job application review.',\\\\n        highlights: 'Pond walk: Tuesday 2pm west entrance duck pond Willow Park with Jen and Alex. Jen call: Tuesday 10am phone. Alex coffee: Tuesday 11am Birch Cafe (Alex craving latte noted). Ben dinner: Thursday 7pm Juniper Cafe to catch up.',\\\\n        examples: 'Alex pond invite verbatim: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park? Alex coffee verbatim: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am? Me dinner invite: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm? Me call request: can we do a quick phone call Tuesday at 10 am to go over your job application?'\\\\n      }\\\\n    },\\\\n    domainContext: {\\\\n      purpose: 'Personal social plans, meetups, calls and dinners arranged via messages.',\\\\n      scope: {included: ['Scheduled meetups with friends', 'Phone/video calls', 'Coffee, dinner, walk plans with times and locations'], excluded: ['Work sprints and formal meetings']},\\\\n      usage: 'Use for recalling when/where plans with friends and family are.'\\\\n    },\\\\n    topicContext: {\\\\n      overview: 'Week-by-week confirmed upcoming commitments with date, time, location, and participants.',\\\\n      keyConcepts: ['Confirmed date/time', 'Location', 'Participants', 'Source thread'],\\\\n      relatedTopics: []\\\\n    }\\\\n  }]);\\\\n  console.log(JSON.stringify(result));\\\\n})()\\\"},\\\"event\\\":\\\"toolCall\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:28.750Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"toolResult\\\",\\\"success\\\":true,\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:28.818Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"thinking\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:28.820Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"args\\\":{\\\"code\\\":\\\"// Record progress and report status\\\\n(async () => {\\\\n  tools.curation.recordProgress(__curate_hist_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3, {domain: 'personal_plans/weekly_schedule', title: 'Oct 6-8 2026 Social Plans', keyFacts: ['Jen call Tue 10am', 'Alex coffee Tue 11am Birch Cafe', 'Pond walk Tue 2pm Willow Park', 'Ben dinner Thu 7pm Juniper Cafe']});\\\\n  const status = {summary: {added: 1, failed: 0}, verification: {checked: 1, confirmed: 1, missing: []}, files: ['personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md']};\\\\n  setFinalResult('Curation complete.\\\\\\\\n```json\\\\\\\\n' + JSON.stringify(status, null, 2) + '\\\\\\\\n```\\\\\\\\n\\\\\\\\nCurated Oct 5 iMessage threads into personal_plans/weekly_schedule: four confirmed plans for Oct 6-8 (Jen call, Alex coffee, pond walk, Ben dinner) with times, locations, and verbatim proposals.');\\\\n})()\\\"},\\\"event\\\":\\\"toolCall\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:31.947Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"event\\\":\\\"toolResult\\\",\\\"success\\\":true,\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\",\\\"toolName\\\":\\\"code_exec\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:31.951Z\\\"}\\n{\\\"command\\\":\\\"curate\\\",\\\"data\\\":{\\\"changes\\\":{\\\"created\\\":[],\\\"updated\\\":[\\\"/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\\\"]},\\\"event\\\":\\\"completed\\\",\\\"logId\\\":\\\"cur-1791664738884\\\",\\\"message\\\":\\\"Context curated successfully\\\",\\\"pendingReview\\\":{\\\"count\\\":1,\\\"files\\\":[{\\\"after\\\":\\\"Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe\\\",\\\"filePath\\\":\\\"personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\\\",\\\"impact\\\":\\\"high\\\",\\\"path\\\":\\\"personal_plans/weekly_schedule\\\",\\\"reason\\\":\\\"Curate confirmed social commitments from Oct 5 iMessage threads\\\",\\\"type\\\":\\\"UPSERT\\\"}],\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\"},\\\"status\\\":\\\"completed\\\",\\\"taskId\\\":\\\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\\\"},\\\"success\\\":true,\\\"timestamp\\\":\\\"2026-10-10T20:39:31.957Z\\\"}\\n\", \"stderr\": \"\", \"readiness\": \"Native curation completion; no pending review\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": false,
+    "interface": "brv curate --files (no custom prompt)",
+    "result": {
+      "command": "curate",
+      "data": {
+        "changes": {
+          "created": [],
+          "updated": [
+            "/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md"
+          ]
+        },
+        "event": "completed",
+        "logId": "cur-1791664738884",
+        "message": "Context curated successfully",
+        "pendingReview": {
+          "count": 1,
+          "files": [
+            {
+              "after": "Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe",
+              "filePath": "personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md",
+              "impact": "high",
+              "path": "personal_plans/weekly_schedule",
+              "reason": "Curate confirmed social commitments from Oct 5 iMessage threads",
+              "type": "UPSERT"
+            }
+          ],
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+        },
+        "status": "completed",
+        "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+      },
+      "success": true,
+      "timestamp": "2026-10-10T20:39:31.957Z"
+    },
+    "events": [
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:38:59.716Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Preview context head and tail for single-pass curation\n(async () => {\n  const ctx = __curate_ctx_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3;\n  const head = ctx.slice(0, 4000);\n  const tail = ctx.slice(-4000);\n  console.log(\"HEAD:\\n\" + head + \"\\n\\n---TAIL:\\n\" + tail);\n  console.log(JSON.stringify({totalChars: ctx.length}));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:11.173Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:11.377Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:11.393Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Curate Oct 5 messages into personal_plans domain\n(async () => {\n  const result = await tools.curate([{\n    type: 'UPSERT',\n    path: 'personal_plans/weekly_schedule',\n    title: 'Oct 6-8 2026 Social Plans',\n    reason: 'Curate confirmed social commitments from Oct 5 iMessage threads',\n    summary: 'Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe',\n    content: {\n      facts: [\n        {statement: 'Phone call with Jen scheduled Tuesday Oct 6 2026 at 10am to go over job application', category: 'project', subject: 'jen_phone_call', value: '2026-10-06T10:00:00-04:00'},\n        {statement: 'Coffee with Alex scheduled Tuesday Oct 6 2026 at 11am at Birch Cafe before Alex shift', category: 'project', subject: 'alex_coffee', value: '2026-10-06T11:00:00-04:00 Birch Cafe'},\n        {statement: 'Duck pond walk with Jen and Alex scheduled Tuesday Oct 6 2026 at 2pm at west entrance Willow Park, Jen bringing coffee', category: 'project', subject: 'pond_walk', value: '2026-10-06T14:00:00-04:00 Willow Park west entrance'},\n        {statement: 'Dinner with Ben scheduled Thursday Oct 8 2026 at 7pm at Juniper Cafe', category: 'project', subject: 'ben_dinner', value: '2026-10-08T19:00:00-04:00 Juniper Cafe'}\n      ],\n      rawConcept: {\n        task: 'Document confirmed social plans arranged in iMessages on Oct 5 2026',\n        changes: ['Confirmed Jen phone call Tue 10am', 'Confirmed Alex coffee Tue 11am Birch Cafe', 'Confirmed pond walk Tue 2pm Willow Park west entrance', 'Confirmed Ben dinner Thu 7pm Juniper Cafe'],\n        files: ['imports/2026-10-05/messages.txt'],\n        flow: 'proposal -> acceptance -> confirmed plan',\n        timestamp: '2026-10-05T18:35:00-04:00',\n        author: 'Me via iMessage'\n      },\n      narrative: {\n        structure: 'Four threads from Oct 5 evening: pond-crew group (Park pals: Me, Jen, Alex), jen 1:1, alex 1:1, ben 1:1. All proposals accepted with yeah that works. Tuesday Oct 6 has three back-to-back commitments: 10am call, 11am coffee, 2pm walk.',\n        dependencies: 'Alex coffee is before Alex shift. Jen bringing coffee to pond walk. Jen call topic is job application review.',\n        highlights: 'Pond walk: Tuesday 2pm west entrance duck pond Willow Park with Jen and Alex. Jen call: Tuesday 10am phone. Alex coffee: Tuesday 11am Birch Cafe (Alex craving latte noted). Ben dinner: Thursday 7pm Juniper Cafe to catch up.',\n        examples: 'Alex pond invite verbatim: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park? Alex coffee verbatim: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am? Me dinner invite: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm? Me call request: can we do a quick phone call Tuesday at 10 am to go over your job application?'\n      }\n    },\n    domainContext: {\n      purpose: 'Personal social plans, meetups, calls and dinners arranged via messages.',\n      scope: {included: ['Scheduled meetups with friends', 'Phone/video calls', 'Coffee, dinner, walk plans with times and locations'], excluded: ['Work sprints and formal meetings']},\n      usage: 'Use for recalling when/where plans with friends and family are.'\n    },\n    topicContext: {\n      overview: 'Week-by-week confirmed upcoming commitments with date, time, location, and participants.',\n      keyConcepts: ['Confirmed date/time', 'Location', 'Participants', 'Source thread'],\n      relatedTopics: []\n    }\n  }]);\n  console.log(JSON.stringify(result));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:28.750Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:28.818Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:28.820Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Record progress and report status\n(async () => {\n  tools.curation.recordProgress(__curate_hist_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3, {domain: 'personal_plans/weekly_schedule', title: 'Oct 6-8 2026 Social Plans', keyFacts: ['Jen call Tue 10am', 'Alex coffee Tue 11am Birch Cafe', 'Pond walk Tue 2pm Willow Park', 'Ben dinner Thu 7pm Juniper Cafe']});\n  const status = {summary: {added: 1, failed: 0}, verification: {checked: 1, confirmed: 1, missing: []}, files: ['personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md']};\n  setFinalResult('Curation complete.\\n```json\\n' + JSON.stringify(status, null, 2) + '\\n```\\n\\nCurated Oct 5 iMessage threads into personal_plans/weekly_schedule: four confirmed plans for Oct 6-8 (Jen call, Alex coffee, pond walk, Ben dinner) with times, locations, and verbatim proposals.');\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:31.947Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:31.951Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "changes": {
+            "created": [],
+            "updated": [
+              "/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md"
+            ]
+          },
+          "event": "completed",
+          "logId": "cur-1791664738884",
+          "message": "Context curated successfully",
+          "pendingReview": {
+            "count": 1,
+            "files": [
+              {
+                "after": "Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe",
+                "filePath": "personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md",
+                "impact": "high",
+                "path": "personal_plans/weekly_schedule",
+                "reason": "Curate confirmed social commitments from Oct 5 iMessage threads",
+                "type": "UPSERT"
+              }
+            ],
+            "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+          },
+          "status": "completed",
+          "taskId": "56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3"
+        },
+        "success": true,
+        "timestamp": "2026-10-10T20:39:31.957Z"
+      }
+    ],
+    "stdout": "{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"},\"success\":true,\"timestamp\":\"2026-10-10T20:38:59.716Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Preview context head and tail for single-pass curation\\n(async () => {\\n  const ctx = __curate_ctx_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3;\\n  const head = ctx.slice(0, 4000);\\n  const tail = ctx.slice(-4000);\\n  console.log(\\\"HEAD:\\\\n\\\" + head + \\\"\\\\n\\\\n---TAIL:\\\\n\\\" + tail);\\n  console.log(JSON.stringify({totalChars: ctx.length}));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:11.173Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:11.377Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:11.393Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Curate Oct 5 messages into personal_plans domain\\n(async () => {\\n  const result = await tools.curate([{\\n    type: 'UPSERT',\\n    path: 'personal_plans/weekly_schedule',\\n    title: 'Oct 6-8 2026 Social Plans',\\n    reason: 'Curate confirmed social commitments from Oct 5 iMessage threads',\\n    summary: 'Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe',\\n    content: {\\n      facts: [\\n        {statement: 'Phone call with Jen scheduled Tuesday Oct 6 2026 at 10am to go over job application', category: 'project', subject: 'jen_phone_call', value: '2026-10-06T10:00:00-04:00'},\\n        {statement: 'Coffee with Alex scheduled Tuesday Oct 6 2026 at 11am at Birch Cafe before Alex shift', category: 'project', subject: 'alex_coffee', value: '2026-10-06T11:00:00-04:00 Birch Cafe'},\\n        {statement: 'Duck pond walk with Jen and Alex scheduled Tuesday Oct 6 2026 at 2pm at west entrance Willow Park, Jen bringing coffee', category: 'project', subject: 'pond_walk', value: '2026-10-06T14:00:00-04:00 Willow Park west entrance'},\\n        {statement: 'Dinner with Ben scheduled Thursday Oct 8 2026 at 7pm at Juniper Cafe', category: 'project', subject: 'ben_dinner', value: '2026-10-08T19:00:00-04:00 Juniper Cafe'}\\n      ],\\n      rawConcept: {\\n        task: 'Document confirmed social plans arranged in iMessages on Oct 5 2026',\\n        changes: ['Confirmed Jen phone call Tue 10am', 'Confirmed Alex coffee Tue 11am Birch Cafe', 'Confirmed pond walk Tue 2pm Willow Park west entrance', 'Confirmed Ben dinner Thu 7pm Juniper Cafe'],\\n        files: ['imports/2026-10-05/messages.txt'],\\n        flow: 'proposal -> acceptance -> confirmed plan',\\n        timestamp: '2026-10-05T18:35:00-04:00',\\n        author: 'Me via iMessage'\\n      },\\n      narrative: {\\n        structure: 'Four threads from Oct 5 evening: pond-crew group (Park pals: Me, Jen, Alex), jen 1:1, alex 1:1, ben 1:1. All proposals accepted with yeah that works. Tuesday Oct 6 has three back-to-back commitments: 10am call, 11am coffee, 2pm walk.',\\n        dependencies: 'Alex coffee is before Alex shift. Jen bringing coffee to pond walk. Jen call topic is job application review.',\\n        highlights: 'Pond walk: Tuesday 2pm west entrance duck pond Willow Park with Jen and Alex. Jen call: Tuesday 10am phone. Alex coffee: Tuesday 11am Birch Cafe (Alex craving latte noted). Ben dinner: Thursday 7pm Juniper Cafe to catch up.',\\n        examples: 'Alex pond invite verbatim: want to do Tuesday at 2pm at the west entrance to the duck pond in Willow Park? Alex coffee verbatim: want to grab coffee tomorrow before my shift? was thinking Birch Cafe at 11am? Me dinner invite: we should grab dinner Thursday to catch up? Juniper Cafe around 7pm? Me call request: can we do a quick phone call Tuesday at 10 am to go over your job application?'\\n      }\\n    },\\n    domainContext: {\\n      purpose: 'Personal social plans, meetups, calls and dinners arranged via messages.',\\n      scope: {included: ['Scheduled meetups with friends', 'Phone/video calls', 'Coffee, dinner, walk plans with times and locations'], excluded: ['Work sprints and formal meetings']},\\n      usage: 'Use for recalling when/where plans with friends and family are.'\\n    },\\n    topicContext: {\\n      overview: 'Week-by-week confirmed upcoming commitments with date, time, location, and participants.',\\n      keyConcepts: ['Confirmed date/time', 'Location', 'Participants', 'Source thread'],\\n      relatedTopics: []\\n    }\\n  }]);\\n  console.log(JSON.stringify(result));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:28.750Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:28.818Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:28.820Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Record progress and report status\\n(async () => {\\n  tools.curation.recordProgress(__curate_hist_56eb0831_c7b4_4bd6_8a85_baa3cbd5f7f3, {domain: 'personal_plans/weekly_schedule', title: 'Oct 6-8 2026 Social Plans', keyFacts: ['Jen call Tue 10am', 'Alex coffee Tue 11am Birch Cafe', 'Pond walk Tue 2pm Willow Park', 'Ben dinner Thu 7pm Juniper Cafe']});\\n  const status = {summary: {added: 1, failed: 0}, verification: {checked: 1, confirmed: 1, missing: []}, files: ['personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md']};\\n  setFinalResult('Curation complete.\\\\n```json\\\\n' + JSON.stringify(status, null, 2) + '\\\\n```\\\\n\\\\nCurated Oct 5 iMessage threads into personal_plans/weekly_schedule: four confirmed plans for Oct 6-8 (Jen call, Alex coffee, pond walk, Ben dinner) with times, locations, and verbatim proposals.');\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:31.947Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:31.951Z\"}\n{\"command\":\"curate\",\"data\":{\"changes\":{\"created\":[],\"updated\":[\"/tmp/pacbench-provider-last-two/repeat-1/byterover/hermes-home/byterover/.brv/context-tree/personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\"]},\"event\":\"completed\",\"logId\":\"cur-1791664738884\",\"message\":\"Context curated successfully\",\"pendingReview\":{\"count\":1,\"files\":[{\"after\":\"Four confirmed plans for Oct 6-8: Jen call Tue 10am, Alex coffee Tue 11am Birch Cafe, pond walk Tue 2pm Willow Park, Ben dinner Thu 7pm Juniper Cafe\",\"filePath\":\"personal_plans/weekly_schedule/oct_6_8_2026_social_plans.md\",\"impact\":\"high\",\"path\":\"personal_plans/weekly_schedule\",\"reason\":\"Curate confirmed social commitments from Oct 5 iMessage threads\",\"type\":\"UPSERT\"}],\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"},\"status\":\"completed\",\"taskId\":\"56eb0831-c7b4-4bd6-8a85-baa3cbd5f7f3\"},\"success\":true,\"timestamp\":\"2026-10-10T20:39:31.957Z\"}\n",
+    "stderr": "",
+    "readiness": "Native curation completion; no pending review"
+  },
+  "latency_s": 34.2,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-10T20:38:57.793210+00:00",
+    "finished": "2026-10-10T20:39:31.988869+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 5,
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted_upper_bound_usd": 0.217697,
+        "unsettled_calls": 2
+      }
+    },
+    "model_calls": [
+      {
+        "id": "1fd5edc73579489e944601badbe176b7",
+        "project": "pacbench-816507cedb81-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T20:38:59.728935+00:00",
+        "finished": "2026-10-10T20:39:11.153947+00:00",
+        "state": "settled",
+        "input_tokens": 11859,
+        "output_tokens": 854,
+        "accounted": 1356700,
+        "reserved": 105676800,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013567
+      },
+      {
+        "id": "9b9dfc10269b4b2c9d4b2a3f0ce832e4",
+        "project": "pacbench-816507cedb81-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T20:39:11.400850+00:00",
+        "finished": "2026-10-10T20:39:28.740558+00:00",
+        "state": "settled",
+        "input_tokens": 17526,
+        "output_tokens": 1552,
+        "accounted": 2063000,
+        "reserved": 105676800,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.002063
+      },
+      {
+        "id": "6eac2805246f462090588ad1c13814f3",
+        "project": "pacbench-816507cedb81-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T20:39:28.826307+00:00",
+        "finished": "2026-10-10T20:39:31.939986+00:00",
+        "state": "settled",
+        "input_tokens": 26393,
+        "output_tokens": 314,
+        "accounted": 2702100,
+        "reserved": 105676800,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0027021
+      },
+      {
+        "id": "51471863a6774f1bbdcfdb11e9ca521f",
+        "project": "pacbench-816507cedb81-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T20:39:31.972294+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 105017600,
+        "reserved": 105017600,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.1050176
+      },
+      {
+        "id": "9a64973b67ee4005961ea94351e93624",
+        "project": "pacbench-816507cedb81-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-10T20:39:31.974145+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 106557600,
+        "reserved": 106557600,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.1065576
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

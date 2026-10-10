@@ -1,0 +1,134 @@
+{
+  "state": "complete",
+  "plan_hash": "7483c596140f06aa902c8babdf6f49ae6e96baa1be0f917c9c7bab306857402f",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "plan with Alex this weekend"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791662638333,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User and Alex plan to meet on Tuesday, October 6, 2026.\\n2. User and Alex plan to have lunch at noon at Birch Cafe on October 11, 2026.\\n3. User, Jen, and Alex planned to meet at the west entrance of Willow Park at 2pm on October 6, 2026 for a walk to the duck pond with Jen bringing coffee, but the meetup was called off after Jen and Alex couldn't make it and postponed to another day.\\n4. Alex invited user to dinner at Juniper Cafe at 7pm on October 11, 2026; user declined because evenings are awkward that weekend and they agreed to raincheck.\\n5. User, Jen, and Alex planned to walk to the duck pond at 2pm on Tuesday, October 6, 2026, meeting at the west entrance of Willow Park with Jen bringing coffee, but the meetup was called off after Jen and Alex couldn't make it and postponed to another day.\\n6. Duck pond walk with Jen and Alex scheduled for 2pm on October 6, 2026 at the west entrance of Willow Park was called off because Jen and Alex couldn't make it; agreed to leave it for another day with no new date picked.\\n7. User has a pizza plan with Devon at Luigi's on 5th Street at 6pm on October 9, 2026.\\n8. User has a pizza plan with Maya and Leo at Mario's on Pine Street at 5pm on October 9, 2026.\\n9. User and Ben settled on one dinner plan for the week: dinner on October 10, 2026 at 7pm at Juniper Cafe.\\n10. User planned pizza with Maya and Leo for October 9, 2026, now meeting at Mario's on Pine Street at 5pm instead of Rosa's on Oak Street at 7pm because Rosa's is closed for renovations. Leo was briefly out due to a closing shift at work but rejoined after Tyler covered the shift.\\n11. User, Maya, and Leo's Friday crew pizza plan for October 9, 2026 moved from Rosa's on Oak Street at 7pm to Mario's on Pine Street at 5pm after Rosa's closed for renovations. User suggested Domino's on Elm Street, while Maya proposed Mario's on Pine Street which the user agreed to. The time shifted to 5pm after Maya asked to move to 5pm and user agreed because Maya has something later that night at her parents. Leo was briefly out due to a closing shift at work but is back in after Tyler covered the shift.\\n12. User and Ben planned dinner to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, rescheduled at Ben's request to Saturday, October 10, 2026 at the same time.\\n13. User and Devon plan to get pizza at Luigi's on 5th Street at 6pm on October 9, 2026; user mentioned craving their garlic knots.\\n14. User planned to have pizza with Devon at Luigi's on 5th St at 6pm on October 9, 2026.\\n15. User planned to meet Ben at Juniper Cafe at 7pm on October 10, 2026.\\n16. Tyler covered Leo's shift and is back in on October 9, 2026.\\n17. User and Jen scheduled a quick phone call at 10am on Tuesday, October 6, 2026 to go over Jen's job application.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 83.47,
+    "input_tokens": 7044,
+    "output_tokens": 462,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "meal-type",
+      "kind": "provided",
+      "reason": "Correctly conveyed as Lunch"
+    },
+    {
+      "id": "with-alex",
+      "kind": "provided",
+      "reason": "Correctly conveyed via inherited question scope"
+    },
+    {
+      "id": "day-sunday",
+      "kind": "provided",
+      "reason": "Correctly conveyed as Sunday"
+    },
+    {
+      "id": "time-noon",
+      "kind": "provided",
+      "reason": "Correctly conveyed as noon"
+    },
+    {
+      "id": "venue-birch",
+      "kind": "provided",
+      "reason": "Correctly conveyed as Birch Cafe"
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 5,
+    "points": 5.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "meal-type",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "with-alex",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "day-sunday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time-noon",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue-birch",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

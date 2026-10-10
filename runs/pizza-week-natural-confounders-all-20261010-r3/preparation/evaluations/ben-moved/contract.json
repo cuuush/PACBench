@@ -1,0 +1,73 @@
+{
+  "claims": [
+    {
+      "id": "day-saturday",
+      "statement": "Dinner with Ben is on Saturday.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-email-reschedule-00",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-01",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-02",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-03"
+      ]
+    },
+    {
+      "id": "time-7pm",
+      "statement": "Dinner with Ben is at 7 pm.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-dinner-02",
+        "pizza-week-natural-confounders-low/ben-dinner-03",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-02",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-03"
+      ]
+    },
+    {
+      "id": "venue-juniper",
+      "statement": "Dinner with Ben is at Juniper Cafe.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/ben-dinner-02",
+        "pizza-week-natural-confounders-low/ben-dinner-03",
+        "pizza-week-natural-confounders-low/ben-email-reschedule-03"
+      ]
+    }
+  ],
+  "question": "When and where am I meeting Ben for dinner now?",
+  "evidence_hash": "6cedae2ab155cdbd8dcee6c5b6751901ea8617e41d4d77a0095ee9c415ef66cb",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All three intent details - Saturday, 7pm, Juniper Cafe - are each covered by an independent claim.",
+    "reviews": [
+      {
+        "id": "day-saturday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Reschedule thread proposes Saturday and both confirm it, establishing current day."
+      },
+      {
+        "id": "time-7pm",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original 7pm time is preserved by 'same time' confirmation in reschedule."
+      },
+      {
+        "id": "venue-juniper",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original Juniper Cafe is preserved by 'same place' confirmation in reschedule."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks for current 'when and where' for Ben dinner without stating answers; singular dinner and 'now' are supported by reschedule to Saturday same time/place, and when invites day+time while where invites venue."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Dinner with Ben is now Saturday at 7 pm at Juniper Cafe.",
+  "question_source": "supplied",
+  "question_at": "2026-10-07T09:17:00-04:00",
+  "contract_hash": "d50d8f5d6f7f43ba7405886e53516e843db2065dd09dfc0b2f1664d28780fb38"
+}

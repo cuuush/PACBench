@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-07T09:17:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhen and where am I meeting Ben for dinner now?",
+  "at": "2026-10-07T09:17:00-04:00",
+  "answer": "Saturday, October 10 at 7pm at Juniper Cafe.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 15.15,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261010_154051_8a5086 \"Count settled dinner plans with Ben\" (1 user message, 5 total messages)\n\nsession_id: 20261010_154051_8a5086",
+  "raw_events": 4,
+  "session_id": "20261010_154051_8a5086",
+  "stderr_full": "↻ Resumed session 20261010_154051_8a5086 \"Count settled dinner plans with Ben\" (1 user message, 5 total messages)\n\nsession_id: 20261010_154051_8a5086\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_154051_8a5086\", \"timestamp\": 1791661271903}\n{\"type\": \"text\", \"text\": \"Saturday, October 10 at\", \"timestamp\": 1791661279731}\n{\"type\": \"text\", \"text\": \" 7pm at Juniper Cafe.\", \"timestamp\": 1791661279779}\n{\"type\": \"result\", \"session_id\": \"20261010_154051_8a5086\", \"exit_code\": 0, \"text\": \"Saturday, October 10 at 7pm at Juniper Cafe.\", \"tokens\": {\"input\": 1759, \"output\": 414, \"total\": 5742, \"cache_read\": 3569, \"cache_write\": 0}, \"duration_ms\": 8172, \"timestamp\": 1791661280075}",
+  "session_input_tokens": 1759,
+  "session_output_tokens": 414,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User and Ben rescheduled their dinner at Juniper Cafe from Thursday, October 8, 2026 to Saturday, October 10, 2026 at 7pm after Ben asked to move it on October 6, with User proposing Saturday and both confirming same time and place\n- User planned dinner with Ben to catch up at Juniper Cafe around 7pm on Thursday, October 8, 2026, which Ben confirmed\n- User scheduled a quick phone call with Jen for Tuesday, October 6, 2026 at 10am to go over Jen's job application, which Jen confirmed\n- User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift, with User noting craving their latte\n- User's planned walk to the duck pond in Willow Park with Jen and Alex for Tuesday, October 6, 2026 at 2pm was called off that morning after Jen and Alex both said they couldn't make it, with User agreeing to leave it for another day\n- User planned a walk to the duck pond in Willow Park with Jen and Alex in the 'Park pals' group chat, agreed for Tuesday, October 6, 2026 at 2pm at the west entrance, with Jen bringing coffee",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-4svhqt7r",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-4svhqt7r",
+    "system_prompt_sha256": "4f938bfbf9503282de7d9ea3f0f4252d2a78ba39b44a62998c764748abf3cb74",
+    "reason": "No project context in native saved system prompt"
+  }
+}

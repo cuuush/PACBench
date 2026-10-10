@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-10T09:17:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nIs he meeting me there?",
+  "at": "2026-10-10T09:17:00-04:00",
+  "answer": "No — he said he can't be there himself, you're just picking it up from the bartender.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 7.67,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261010_152533_4adddb \"Recall commitment for Devon tomorrow\" (1 user message, 4 total messages)\n\nsession_id: 20261010_152533_4adddb",
+  "raw_events": 5,
+  "session_id": "20261010_152533_4adddb",
+  "stderr_full": "↻ Resumed session 20261010_152533_4adddb \"Recall commitment for Devon tomorrow\" (1 user message, 4 total messages)\n\nsession_id: 20261010_152533_4adddb\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261010_152533_4adddb\", \"timestamp\": 1791660346861}\n{\"type\": \"text\", \"text\": \"No — he said he can't be there himself,\", \"timestamp\": 1791660352426}\n{\"type\": \"text\", \"text\": \" you're just picking\", \"timestamp\": 1791660352451}\n{\"type\": \"text\", \"text\": \" it up from the bartender.\", \"timestamp\": 1791660352481}\n{\"type\": \"result\", \"session_id\": \"20261010_152533_4adddb\", \"exit_code\": 0, \"text\": \"No — he said he can't be there himself, you're just picking it up from the bartender.\", \"tokens\": {\"input\": 521, \"output\": 557, \"total\": 9767, \"cache_read\": 8689, \"cache_write\": 0}, \"duration_ms\": 6126, \"timestamp\": 1791660352987}",
+  "session_input_tokens": 521,
+  "session_output_tokens": 557,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-10T09:17:00-04:00 [id=de95ccdc5d8b9ce9030972582546246252a0b2e0] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Saturday 10 October 2026)\n〔E5〕 · Fri Oct 9  \"grab pizza\", 5pm — was planned; attendance unknown · with Maya, Leo\n〔E7〕 · Fri Oct 9  \"pizza\", 6pm — was planned; attendance unknown · with Devon\n〔E4〕 Sat Oct 10  \"dinner to catch up\", 7pm — confirmed · with Ben\n〔E9〕 Sun Oct 11  \"grab spare key\", 11am — confirmed · from Devon\n〔E8〕 Sun Oct 11  \"lunch\", 12pm — confirmed · with Alex\n〔E6〕 Sun Oct 11  \"dinner\", 7pm — not going · with Alex\n[complete for 2026-10-07 – 2026-11-09; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no email 4 days — this week may be incomplete]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/tmp/pacbench-chat-75iqate5",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/tmp/pacbench-chat-75iqate5",
+    "system_prompt_sha256": "665d63549c5062cec1eeff0c7fb50940e55aab9ef9ae9a4838bf676f7de836b5",
+    "reason": "No project context in native saved system prompt"
+  }
+}

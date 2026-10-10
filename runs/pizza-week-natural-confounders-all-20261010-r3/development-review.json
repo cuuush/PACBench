@@ -1,0 +1,139 @@
+{
+  "state": "complete-development-review-with-execution-blockers",
+  "input_hash": "157469ee365fa1cbf481292cbfc2b15192615911eedb6b41c9060875b7d72d0c",
+  "frozen_corpus": {
+    "messages": 94,
+    "scenes": 17,
+    "questions": 18,
+    "reused_scenes": 13,
+    "new_scenes": 4,
+    "source_generation_repeated_per_provider": false,
+    "sender_prefix_issues": 0
+  },
+  "provider_outcomes": [
+    {
+      "provider": "memcal",
+      "state": "diagnostic",
+      "outcome_counts": {
+        "pass": 17,
+        "fail": 1
+      },
+      "reason": ""
+    },
+    {
+      "provider": "mem0",
+      "state": "diagnostic",
+      "outcome_counts": {
+        "pass": 18
+      },
+      "reason": ""
+    },
+    {
+      "provider": "hindsight",
+      "state": "diagnostic",
+      "outcome_counts": {
+        "pass": 18
+      },
+      "reason": ""
+    },
+    {
+      "provider": "openviking",
+      "state": "partial",
+      "outcome_counts": {
+        "fail": 10,
+        "skipped": 8
+      },
+      "reason": "evaluation sequence incomplete"
+    },
+    {
+      "provider": "supermemory",
+      "state": "partial",
+      "outcome_counts": {
+        "pass": 5,
+        "fail": 5,
+        "ungraded": 8
+      },
+      "reason": "Stopped after repeated provider-side HTTP 400 errors; remaining checks not executed to protect the lifetime budget."
+    },
+    {
+      "provider": "honcho",
+      "state": "partial",
+      "outcome_counts": {
+        "ungraded": 18
+      },
+      "reason": "evaluation sequence incomplete"
+    },
+    {
+      "provider": "byterover",
+      "state": "partial",
+      "outcome_counts": {
+        "ungraded": 18
+      },
+      "reason": "evaluation sequence incomplete"
+    }
+  ],
+  "memcal_product": {
+    "accuracy_revision": "9d48226",
+    "latest_pushed_revision": "33878cb",
+    "diagnosis": "Retained recent shift-cover context hidden by bounded source preview; not established extraction loss.",
+    "paired_same_read_only_database": {
+      "before_cover_line": false,
+      "after_cover_line": true,
+      "line_bound": 12
+    },
+    "later_display_fix": "Relative day label corrected offline; accuracy not rerun on later display revision."
+  },
+  "verification": {
+    "harness_tests": 245,
+    "memcal_unittest_cases": 2482,
+    "memcal_skipped": 39,
+    "temporal_checks_passed": 400,
+    "challenge_checks_passed": 92,
+    "preparation_audit": "pass",
+    "native_audit": {
+      "state": "fail",
+      "errors": [
+        "repeat-1/openviking: incomplete arm",
+        "repeat-1/supermemory: incomplete arm",
+        "repeat-1/honcho: incomplete arm",
+        "repeat-1/byterover: incomplete arm"
+      ],
+      "scope": "native trace integrity, not calibrated provider quality"
+    },
+    "desktop_mobile_chromium": "pass",
+    "fresh_public_checkout_ui_and_preparation": "pass"
+  },
+  "model_error_barrier": {
+    "added_after_observed_run": true,
+    "rule": "Three definitive provider-side 400/422 responses in an isolated arm project stop further paid checks; reservations retained.",
+    "not_counted_as_bad_requests": [
+      "pending",
+      "200 without usage",
+      "other model roles",
+      "single native fallback"
+    ],
+    "native_shutdown": "Only failed arm native shutdown hook, then run-owned process cleanup; independent providers untouched."
+  },
+  "limitations": [
+    "One low-noise synthetic week, not a calibrated ranking.",
+    "OpenViking failed retained-memory tool boundary, often after correct search summaries; no proof of storage loss.",
+    "Supermemory model errors confound observed semantic failures.",
+    "Honcho readiness deadline and ByteRover pending review prevented recall.",
+    "Native attached citations and backend internals remain unchanged.",
+    "Per-tool causal tokens and costs remain unknown.",
+    "Full native re-audit requires ignored private runtime state."
+  ],
+  "budget": {
+    "lifetime_accounted_usd": 8.8202724,
+    "settled_usage_price_upper_bound_usd": 2.159122,
+    "uncertain_held_usd": 6.6611504,
+    "lifetime_cap_usd": 10,
+    "unknown_reservations_cleared": false
+  },
+  "next_steps": [
+    "Resolve queue readiness and native pending review before another broad sweep.",
+    "Diagnose repeated provider-side model request errors without product patches outside Memcal.",
+    "Explicitly decide OpenViking architecture fit for retained-memory boundary.",
+    "For stable arms add about 100 realistic unrelated messages, generate and verify once; defer 1000."
+  ]
+}

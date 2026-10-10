@@ -26,6 +26,18 @@ from .usage import tracked_turn
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
 ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
+_ARM_SHUTDOWNS = {}
+
+
+def stop_arm_model_work(root):
+    """Use the native run-owned shutdown hook when a cost barrier trips."""
+    stop = _ARM_SHUTDOWNS.pop(root.resolve(), None)
+    try:
+        if stop is not None:
+            stop()
+    finally:
+        from .process_cleanup import cleanup_run_processes
+        cleanup_run_processes(root)
 
 PROBE = '''
 import json, sys
@@ -228,12 +240,14 @@ finally:p.close()
         import atexit
         stop_script="from hindsight_embed import get_embed_manager; get_embed_manager().stop(__import__('sys').argv[1])"
         # Shutdown only this run-owned service, through the native manager.
-        atexit.register(lambda:subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',stop_script,'pacbench-'+run_id],
-            env={**os.environ,**env},cwd=harness.ISOLATED_TREE,capture_output=True,timeout=30))
+        stop = lambda:subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',stop_script,'pacbench-'+run_id],
+            env={**os.environ,**env},cwd=harness.ISOLATED_TREE,capture_output=True,timeout=30)
+        atexit.register(stop)
+        _ARM_SHUTDOWNS[root.resolve()] = stop
     if provider=='openviking':
         from provider_adapters.openviking_local import start
         base,key=client_settings(memory_project)
-        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     if provider=='byterover':
         from provider_adapters.byterover_local import configure
         base,key=client_settings(memory_project)
@@ -241,11 +255,11 @@ finally:p.close()
     if provider=='honcho':
         from provider_adapters.honcho_local import start
         base,key=client_settings(memory_project)
-        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     if provider=='supermemory':
         from provider_adapters.supermemory_local import start
         base,key=client_settings(memory_project)
-        start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     return env
 
 
@@ -429,7 +443,19 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             ingested=[]
             failed_batches=set()
             from .document_ingestion import ready_sources
+            from .usage import snapshot, provider_model_health
+            model_work_stopped = False
+            def check_model_health():
+                nonlocal model_work_stopped
+                health = provider_model_health(snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+                save(root/'provider-model-health.json', health)
+                if health['state'] == 'stop':
+                    if not model_work_stopped:
+                        model_work_stopped = True
+                        stop_arm_model_work(root)
+                    raise RuntimeError(health['reason'])
             def import_before_check(row, directory):
+                check_model_health()
                 needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'] or 'America/New_York')
                 for batch in needed:
                     if batch['id'] in ingested:continue
@@ -440,6 +466,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                         failed_batches.add(batch['id'])
                         raise RuntimeError('Native source ingestion/processing failed; inspect saved record')
                     ingested.append(batch['id'])
+                    check_model_health()
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
                 save(directory/'source-state.json',{'at':row['at'],'ingested_batches':list(ingested),
                     'source_ids':[sid for batch in needed for sid in batch['source_ids']]})

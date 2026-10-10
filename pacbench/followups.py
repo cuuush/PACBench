@@ -216,6 +216,12 @@ def recovery_score(grade, initial_metrics: dict, attempts: list[dict]) -> dict:
         'claims': points, 'calibrated': False}
 
 
+def _covers_all(review, claim_ids):
+    covered = review.get('covers_claim_ids')
+    return (isinstance(covered, list) and all(isinstance(c, str) for c in covered)
+            and len(covered) == len(claim_ids) and set(covered) == set(claim_ids))
+
+
 def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path) -> dict:
     """Spark authors one message for an observed missing-fact set; reuse it across arms."""
     claim_ids = [c.id for c in selected]
@@ -241,7 +247,7 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
         f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n'
         f'Proposed message: {question}', records=authoring_calls)
     origin = 'spark-combined-message'
-    if (review.get('safe') is not True or review.get('covers_claim_ids') != claim_ids or
+    if (review.get('safe') is not True or not _covers_all(review, claim_ids) or
             not isinstance(review.get('reason'), str) or not review['reason'].strip()):
         save(path.with_suffix('.rejected.json'), {'question': question, 'review': review})
         raise ValueError('combined follow-up failed neutral/complete coverage review')
@@ -258,7 +264,7 @@ def load_combined_plan(path: Path, binding: dict) -> dict:
             any(plan.get(k) != v for k, v in binding.items()) or
             not isinstance(plan.get('question'), str) or not 1 <= len(plan['question'].strip()) <= 2000 or
             plan.get('review', {}).get('safe') is not True or
-            plan.get('review', {}).get('covers_claim_ids') != binding['claim_ids']):
+            not _covers_all(plan.get('review', {}), binding['claim_ids'])):
         raise ValueError('combined follow-up hash/coverage/contract mismatch')
     return plan
 

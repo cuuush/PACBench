@@ -209,6 +209,27 @@ def test_leading_question_rejected_and_saved_plan_cannot_change(tmp_path):
         load_questions(tmp_path / 'plan.json', contract())
 
 
+@pytest.mark.parametrize('coverage, accepted', [
+    (['time', 'date'], True), (['date', 'date'], False),
+    (['date'], False), (['date', 'time', 'extra'], False), ('date,time', False),
+])
+def test_combined_review_coverage_is_complete_and_unique_regardless_of_order(tmp_path, coverage, accepted):
+    from pacbench.followups import load_combined_plan
+    c=contract();policy=freeze_policy(c,tmp_path/'policy.json')
+    replies=iter([{'question':'Which day and what time?'},
+                  {'safe':True,'covers_claim_ids':coverage,'reason':'Synthetic coverage review.'}])
+    write=lambda _: json.dumps(next(replies))
+    if not accepted:
+        with pytest.raises(ValueError,match='neutral/complete coverage review'):
+            combined_plan(c,policy,list(c.claims),write,tmp_path/'questions')
+        return
+    result=combined_plan(c,policy,list(c.claims),write,tmp_path/'questions')
+    binding={k:result[k] for k in ('contract_hash','component_plan_hash','claim_ids')}
+    path=next((tmp_path/'questions').glob('*.json'))
+    assert load_combined_plan(path,binding)==result
+    assert result['claim_ids']==['date','time'] and result['review']['covers_claim_ids']==coverage
+
+
 def test_resumed_turn_recovers_only_its_full_tool_results(tmp_path):
     import sqlite3
     from pacbench.harness import _recover_tool_results

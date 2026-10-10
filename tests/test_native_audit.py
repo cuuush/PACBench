@@ -150,3 +150,18 @@ def test_partial_story_audits_skips_without_bypassing_tool_boundary(trace, monke
         assert result['state'] == ('fail' if corrupt_tools else 'pass')
         if corrupt_tools:
             assert 'non-provider schema exposed' in str(result['errors'])
+
+
+def test_missing_arm_receipt_does_not_abort_later_provider_audits(trace):
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary['results'].insert(0,{'provider':'unconfigured','repetition':1,
+        'state':'incomplete','capability':{}})
+    save(root/'summary.json',summary)
+    saved=json.loads((arm/'judgment.json').read_text())
+    saved['question']='wrong question'
+    save(arm/'judgment.json',saved)
+    result=audit(root)
+    assert result['state']=='fail'
+    assert any('unconfigured' in e and 'FileNotFoundError' in e for e in result['errors'])
+    assert any('judge lacks recall clock' in e for e in result['errors'])

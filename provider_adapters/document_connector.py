@@ -227,7 +227,7 @@ def honcho(source,root,at,processing_at):
     messages=json.loads((source/'messages.json').read_text())
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
-    acknowledgments=[];sessions=[]
+    acknowledgments=[];sessions=[];minimum_work={}
     for identity,batch in groups.items():
         session=client.session('source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24])
         sessions.append(session)
@@ -247,6 +247,7 @@ def honcho(source,root,at,processing_at):
         if (observed.observe_me!=native_config.ai_observe_me or
                 observed.observe_others!=native_config.ai_observe_others):
             raise RuntimeError('Honcho did not apply the configured recall observer')
+        baseline=session.queue_status().model_dump(mode='json')
         pending=[]
         for m in batch:
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
@@ -259,18 +260,20 @@ def honcho(source,root,at,processing_at):
                 actual.created_at!=sent.created_at or
                 any(actual.metadata.get(k)!=v for k,v in sent.metadata.items())):
                 raise RuntimeError('Honcho source acknowledgment differs from the submitted message')
-        acknowledgments.append({'session_id':session.id,'observer':{'peer_id':observer,
+        minimum_work[session.id]=baseline['total_work_units']+len(response)
+        acknowledgments.append({'session_id':session.id,'processing_baseline':baseline,'minimum_work_units':minimum_work[session.id],'observer':{'peer_id':observer,
             'observe_me':observed.observe_me,'observe_others':observed.observe_others},'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
-    statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))
+    statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work)
     return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
-        'readiness':('Native acknowledgments and submitted-session processing complete' if done else reason),
+        'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
         'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
 
 
-def wait_honcho_sessions(sessions,roles):
+def wait_honcho_sessions(sessions,roles,minimum_work=None):
+    minimum_work=minimum_work or {}
     # A finite, isolated import has no concurrent producers. This is a scoped
     # benchmark readiness barrier, not a production requirement that the entire
     # workspace queue empty. Keep native processing unchanged.
@@ -284,7 +287,8 @@ def wait_honcho_sessions(sessions,roles):
         if status!=previous:
             statuses.append({'elapsed_s':round(elapsed,2),'sessions':status})
             last_progress=time.monotonic();previous=status
-        done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 for s in status.values())
+        done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 and
+            s.get('total_work_units',0)>=minimum_work.get(id,0) for id,s in status.items())
         if roles:
             health=provider_model_health(snapshot(roles))
             if health['state']=='stop':

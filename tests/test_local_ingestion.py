@@ -113,7 +113,7 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
                 created_at=datetime.fromisoformat(created_at),metadata=metadata)
     session=SimpleNamespace(id='session-1',get_peer_configuration=lambda peer:SimpleNamespace(observe_me=False,observe_others=True),add_peers=lambda peers:participants.extend(p[0].id if isinstance(p,tuple) else p.id for p in peers),
         add_messages=lambda batch:pending.extend(batch) or batch,
-        queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':0,'in_progress_work_units':0}))
+        queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':0,'in_progress_work_units':0,'total_work_units':len(pending)}))
     client=SimpleNamespace(session=lambda id:session,peer=Peer)
     monkeypatch.setitem(sys.modules,'honcho',SimpleNamespace(Honcho=lambda **kw:client))
     monkeypatch.setitem(sys.modules,'honcho.api_types',SimpleNamespace(SessionPeerConfig=lambda **kw:SimpleNamespace(**kw)))
@@ -188,6 +188,12 @@ def test_honcho_native_tool_capture_is_sanitized_and_affects_retention(tmp_path)
     assert metrics['provider_internal_tool_calls']==2
     assert metrics['provider_internal_source_fallback_confirmed'] and metrics['source_fallback_attempted']
     assert metrics['provider_internal_operations'][0]['category']=='memory_search'
+    from pacbench.semantic_grade import Grade,GradedClaim
+    from pacbench.followups import recovery_score
+    grade=Grade('check',slots=[GradedClaim('fact','correct','Answer is correct')],correct=1)
+    score=recovery_score(grade,metrics,[])
+    assert score['points']==0 and score['claims'][0]['retention_failed']
+    assert grade.correct==1  # Semantic judgment remains unchanged.
 
 
 def test_unattributed_native_source_work_needs_review_not_false_causal_failure():
@@ -197,3 +203,17 @@ def test_unattributed_native_source_work_needs_review_not_false_causal_failure()
     metrics=tool_profile(turn)
     assert not metrics['source_fallback_attempted']
     assert metrics['provider_internal_path_needs_review'] and metrics['unclassified_operations']==1
+
+
+def test_honcho_empty_old_queue_is_not_readiness_for_a_new_daily_batch(monkeypatch):
+    from provider_adapters.document_connector import wait_honcho_sessions
+    clock=[0]
+    monkeypatch.setattr('provider_adapters.document_connector.time.monotonic',lambda:clock[0])
+    monkeypatch.setattr('provider_adapters.document_connector.time.sleep',lambda seconds:clock.__setitem__(0,clock[0]+seconds))
+    def status():
+        values={'total_work_units':6,'pending_work_units':0,'in_progress_work_units':0}
+        if clock[0]>=2:values.update(total_work_units=12,pending_work_units=6)
+        if clock[0]>=4:values['pending_work_units']=0
+        return SimpleNamespace(model_dump=lambda **kw:values)
+    records,ready,reason,_=wait_honcho_sessions([SimpleNamespace(id='source',queue_status=status)],{}, {'source':12})
+    assert ready and not reason and clock[0]==4 and len(records)==3

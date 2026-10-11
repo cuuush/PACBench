@@ -8,12 +8,18 @@ from pathlib import Path
 from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
-def audit_honcho_receipt(batch, result):
+def audit_honcho_receipt(batch, result, previous_work=None):
     """Independently bind native acknowledgments and readiness to frozen sources."""
-    errors=[];seen=[];sessions=set()
+    if previous_work is None:previous_work={}
+    errors=[];seen=[];sessions=set();minimum={}
     expected={m['source_id']:m for m in batch}
     for ack in result.get('result',[]):
         sessions.add(ack['session_id'])
+        baseline=ack.get('processing_baseline',{})
+        prior=max(previous_work.get(ack['session_id'],0),baseline.get('total_work_units',0))
+        minimum[ack['session_id']]=prior+len(ack['messages'])
+        if 'minimum_work_units' in ack and ack['minimum_work_units']!=minimum[ack['session_id']]:
+            errors.append('Honcho new-work enrollment watermark differs from acknowledged sources')
         observer=ack.get('observer',{})
         if observer.get('peer_id')!='hermes' or observer.get('observe_others') is not True:
             errors.append('Honcho configured recall observer did not witness sources')
@@ -38,6 +44,10 @@ def audit_honcho_receipt(batch, result):
             status.get('pending_work_units')!=0 or status.get('in_progress_work_units')!=0
             for status in final.values()):
         errors.append('Honcho submitted-session processing did not complete')
+    for id in sessions:
+        if final.get(id,{}).get('total_work_units',0)<minimum[id]:
+            errors.append('Honcho readiness preceded new source work enrollment')
+        previous_work[id]=max(minimum[id],final.get(id,{}).get('total_work_units',0))
     return errors
 
 
@@ -48,6 +58,7 @@ def audit_ingestion(root, arm, messages, summary):
     schedule=summary['ingestion_schedule']
     batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
+    honcho_work={}
     cumulative=[]
     cumulative_mail=[]
     for row,(day,batch) in zip(schedule,batches):
@@ -99,7 +110,7 @@ def audit_ingestion(root, arm, messages, summary):
         check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York'),'native processing clock mismatch')
         if arm.name=='honcho':
-            errors.extend(audit_honcho_receipt(batch,record.get('result',{})))
+            errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

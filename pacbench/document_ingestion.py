@@ -135,8 +135,10 @@ def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, ch
             raise ValueError('Final evaluation precedes source availability or native processing')
 
 
-def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=240):
+def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     """Provider-owned ingestion/processing in an isolated process, no Hermes turn."""
+    # Honcho's asynchronous deriver needs a longer bounded batch barrier.
+    if timeout_s is None:timeout_s=1020 if provider=='honcho' else 240
     native_at=processing_at(at,provider,timezone)
     child_env=harness.turn_env(native_at,root/'hermes-home','',env)
     roles=json.loads(env['PACBENCH_USAGE_ROLES'])

@@ -223,9 +223,10 @@ def honcho(source,root,at,processing_at):
     messages=json.loads((source/'messages.json').read_text())
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
-    acknowledgments=[]
+    acknowledgments=[];sessions=[]
     for identity,batch in groups.items():
         session=client.session('source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24])
+        sessions.append(session)
         peers={}
         for m in batch:
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
@@ -247,16 +248,46 @@ def honcho(source,root,at,processing_at):
         acknowledgments.append({'session_id':session.id,'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
-    statuses=[];deadline=time.monotonic()+180
-    while True:
-        status=client.queue_status().model_dump(mode='json');statuses.append(status)
-        done=status['pending_work_units']==0 and status['in_progress_work_units']==0
-        if done or time.monotonic()>=deadline:break
-        time.sleep(1)
+    statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))
     return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
-        'result':acknowledgments,'processing_status':statuses,
-        'readiness':('Native message acknowledgments and processing queue drained' if done
-                     else 'Native messages acknowledged; processing queue did not drain before deadline')}
+        'result':acknowledgments,'processing_status':statuses,'model_health':health,
+        'readiness':('Native acknowledgments and submitted-session processing complete' if done else reason),
+        'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
+
+
+def wait_honcho_sessions(sessions,roles):
+    # A finite, isolated import has no concurrent producers. This is a scoped
+    # benchmark readiness barrier, not a production requirement that the entire
+    # workspace queue empty. Keep native processing unchanged.
+    statuses=[];started=time.monotonic();last_progress=started
+    done=False;reason='';health={}
+    from pacbench.usage import provider_model_health, snapshot
+    previous=None
+    while True:
+        status={session.id:session.queue_status().model_dump(mode='json') for session in sessions}
+        elapsed=time.monotonic()-started
+        if status!=previous:
+            statuses.append({'elapsed_s':round(elapsed,2),'sessions':status})
+            last_progress=time.monotonic();previous=status
+        done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 for s in status.values())
+        if roles:
+            health=provider_model_health(snapshot(roles))
+            if health['state']=='stop':
+                done=False;reason=health['reason'];break
+            # A refusal is terminal: never wait for retries to find a reset.
+            from pacbench.gateway_client import require_live_cost_boundary
+            try:require_live_cost_boundary()
+            except RuntimeError as exc:
+                done=False;reason=str(exc);break
+            if any(c.get('http_status')==429 for c in snapshot(roles).get('calls',[])):
+                done=False;reason='Gateway or upstream refused a request (HTTP 429); import stopped';break
+        if done:break
+        if elapsed>=900:
+            reason='Native submitted-session processing exceeded the 15-minute deadline';break
+        if time.monotonic()-last_progress>=300:
+            reason='Native submitted-session processing made no observable progress for five minutes';break
+        time.sleep(2)
+    return statuses,done,reason,health
 
 
 def supermemory(source,root,at,processing_at):

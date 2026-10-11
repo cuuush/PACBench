@@ -47,6 +47,8 @@ def start(root,env,model,base,key):
         'DB_CONNECTION_URI':f'postgresql+psycopg://postgres:postgres@127.0.0.1:{db_port}/postgres',
         'AUTH_USE_AUTH':'false','CACHE_ENABLED':'false','SENTRY_ENABLED':'false','TELEMETRY_ENABLED':'false',
         'LLM_OPENAI_API_KEY':key,'PACBENCH_MEMORY_API_KEY':key,'LLM_OPENAI_BASE_URL':base,
+        # Spark includes reasoning in its output allowance. The native 2500
+        # default was observed truncating extraction to zero observations.
         'LLM_DEFAULT_MAX_TOKENS':'16384',
         'COLLECT_METRICS_LOCAL':'true','LOCAL_METRICS_FILE':str(root/'honcho-model-metrics.jsonl'),
         'REASONING_TRACES_FILE':str(root/'honcho-reasoning-traces.jsonl'),
@@ -122,6 +124,7 @@ for m in models:
     save(root/'native-server-setup.json',{'route':'Documented manual self-hosting, native API + deriver + local pgvector',
          'version':'3.2.2','endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
+         'output_budget':'Native LLM_DEFAULT_MAX_TOKENS=16384; Spark reasoning compatibility, no prompt changes',
          'deriver_flush_enabled':True,'processing_option':'CLI advanced setup: snappy local deriver'})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{

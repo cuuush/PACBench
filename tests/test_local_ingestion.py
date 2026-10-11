@@ -112,14 +112,49 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
             return SimpleNamespace(id=metadata['source_id'],session_id='session-1',peer_id=self.id,content=content,
                 created_at=datetime.fromisoformat(created_at),metadata=metadata)
     session=SimpleNamespace(id='session-1',add_peers=lambda peers:participants.extend(p.id for p in peers),
-        add_messages=lambda batch:pending.extend(batch) or batch)
-    client=SimpleNamespace(session=lambda id:session,peer=Peer,
+        add_messages=lambda batch:pending.extend(batch) or batch,
         queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':0,'in_progress_work_units':0}))
+    client=SimpleNamespace(session=lambda id:session,peer=Peer)
     monkeypatch.setitem(sys.modules,'honcho',SimpleNamespace(Honcho=lambda **kw:client))
     result=honcho(source,home.parent,'now','now')
     assert result['ready'] and len(pending)==len(messages)
+    assert list(result['processing_status'][0]['sessions'])==['session-1']
     assert participants==['user','Devon']
     for native,original in zip(pending,messages):
         assert native.content==original['text']
         assert native.created_at==datetime.fromisoformat(original['written_at'])
         assert native.metadata=={k:v for k,v in original.items() if k!='text'}
+
+
+def test_honcho_scoped_barrier_allows_progress_past_old_deadline(monkeypatch):
+    from provider_adapters.document_connector import wait_honcho_sessions
+    clock=[0];polls=[0]
+    monkeypatch.setattr('provider_adapters.document_connector.time.monotonic',lambda:clock[0])
+    def sleep(seconds):clock[0]+=seconds
+    monkeypatch.setattr('provider_adapters.document_connector.time.sleep',sleep)
+    def status():
+        polls[0]+=1
+        done=min(int(clock[0]//100),4)
+        return SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':4-done,'in_progress_work_units':0,'completed_work_units':done})
+    records,ready,reason,_=wait_honcho_sessions([SimpleNamespace(id='submitted',queue_status=status)],{})
+    assert ready and not reason and clock[0]==400
+    assert polls[0]>180 and len(records)==5  # Changed status only, no repetitive polling bloat.
+
+
+def test_honcho_stalled_processing_remains_unready(monkeypatch):
+    from provider_adapters.document_connector import wait_honcho_sessions
+    clock=[0]
+    monkeypatch.setattr('provider_adapters.document_connector.time.monotonic',lambda:clock[0])
+    monkeypatch.setattr('provider_adapters.document_connector.time.sleep',lambda seconds:clock.__setitem__(0,clock[0]+seconds))
+    session=SimpleNamespace(id='submitted',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':1,'in_progress_work_units':0}))
+    records,ready,reason,_=wait_honcho_sessions([session],{})
+    assert not ready and 'no observable progress' in reason and clock[0]==300 and len(records)==1
+
+
+def test_honcho_bad_model_requests_stop_processing_wait(monkeypatch):
+    from provider_adapters.document_connector import wait_honcho_sessions
+    monkeypatch.setattr('pacbench.usage.snapshot',lambda roles:{})
+    monkeypatch.setattr('pacbench.usage.provider_model_health',lambda capture:{'state':'stop','reason':'Repeated provider-side HTTP 400'})
+    session=SimpleNamespace(id='submitted',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':1,'in_progress_work_units':0}))
+    records,ready,reason,health=wait_honcho_sessions([session],{'provider-project':'memory_provider'})
+    assert not ready and 'HTTP 400' in reason and health['state']=='stop' and len(records)==1

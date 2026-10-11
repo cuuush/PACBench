@@ -2,7 +2,7 @@
 
 PACBench measures whether Hermes can answer questions using a local memory provider after authentic ingestion of daily messages. Pizza Day is the small development test. Every provider receives the same frozen raw text through its documented document or message API; Memcal uses its real iMessage and secure IMAP readers against reusable synthetic source fixtures. Separate Contacts records associate the same person's messaging and email accounts. The provider performs extraction. Hermes starts afterward and may call only that provider's shipped tools.
 
-Use Spark Contributor through `/workspace/muse-gateway`. All authoring, judging, agent and provider inference share the existing $10 lifetime gateway cap. The default daily cap is $5; the explicitly authorized 10 October rerun raises that day to $10 within the unchanged lifetime ceiling. Unknown charges remain reserved. Never route around the gateway.
+Use Spark Contributor through `/workspace/muse-gateway`. All authoring, judging, agent and provider inference share a hard **$10 per UTC day**, with no lifetime cap. Settled daily spending resets at midnight UTC; unknown charges stay reserved across days. If the gateway blocks the daily budget, stop until reset. Never route around it.
 
 ```sh
 python -m pacbench.prepare weeks/pizza_week.json --week-start 2026-10-05 --output runs/pizza-prepared

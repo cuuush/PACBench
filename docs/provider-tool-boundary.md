@@ -9,11 +9,11 @@ message activity readers are excluded. For Memcal this blocks
 `memcal_activity`. Retained event/page opening and memory search remain available.
 Their native payloads, including attached citations, are unchanged. This condition
 measures retained memory and its attached evidence, rather than strictly facts-only
-storage. OpenViking's mixed `viking_read` remains available for native memory paths and
-explicit generated-summary pseudo-files (`/.overview.md`, `/.abstract.md`).
-Plain resource URIs are blocked even at overview level: the native reader can
-fall back to original file content. Full original documents and message-history
-reads are blocked before execution, including mixed batches and path traversal.
+storage. OpenViking's mixed `viking_read` is excluded entirely from Hermes's
+exposed schemas, including memory and generated-summary reads. Hermes uses the
+remaining shipped OpenViking tools and normal provider context. It receives no
+instruction to work around a reader that it can see but cannot use. URI guards
+remain defense in depth for unexpected calls; they do not grant tool exposure.
 Honcho's `honcho_search` and `honcho_context` return raw message excerpts and
 are excluded; native profile, conclusions and dialectic reasoning remain.
 Provider-internal retrieval during dialectic reasoning is native provider work,

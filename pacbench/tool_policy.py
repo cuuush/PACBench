@@ -3,6 +3,9 @@ from .followups import SOURCE_CATEGORIES, tool_category
 from .source_policy import SOURCE_ARGUMENT_RULES
 
 VERSION = 'retained-memory-only-v2'
+# Mixed document readers are excluded from Hermes's schemas entirely. Normal
+# retained event/page readers such as memcal_open remain available unchanged.
+BLOCKED_MIXED_READERS = {'viking_read'}
 
 
 def retained_tools(native_tools):
@@ -10,7 +13,8 @@ def retained_tools(native_tools):
             not isinstance(n,str) or not n or '*' in n for n in native_tools):
         raise ValueError('Provider supplied no exact native tool allowlist')
     names = sorted(set(native_tools))
-    blocked = [n for n in names if n not in SOURCE_ARGUMENT_RULES and tool_category(n,{}) in SOURCE_CATEGORIES]
+    blocked = [n for n in names if n in BLOCKED_MIXED_READERS or
+               n not in SOURCE_ARGUMENT_RULES and tool_category(n,{}) in SOURCE_CATEGORIES]
     allowed = [n for n in names if n not in blocked]
     if not allowed:
         raise ValueError('Provider supplied no retained-memory tools')

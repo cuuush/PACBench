@@ -142,9 +142,30 @@ def test_actual_dispatch_blocks_source_rescue_before_execution(monkeypatch,name)
     assert fn(None,'memcal_open')=='EXECUTED'
 
 
-def test_mixed_reader_is_offered_with_argument_constraints():
+def test_mixed_document_reader_is_excluded_from_grant():
     from pacbench.tool_policy import retained_tools
-    assert retained_tools(['viking_read','viking_search'])==(['viking_read','viking_search'],[])
+    assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])
+
+
+@pytest.mark.parametrize('provider,native,expected',[
+    ('openviking',['viking_read','viking_search'],['viking_search']),
+    ('memcal',['memcal_open','memcal_open_source','memcal_search_archive'],['memcal_open']),
+])
+def test_real_hermes_schema_filter_hides_document_readers_keeps_event_open(monkeypatch,tmp_path,provider,native,expected):
+    from pacbench.tool_policy import policy_record
+    grant=policy_record(provider,native)
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
+    monkeypatch.setenv('PACBENCH_CONTEXT_TRACE',str(tmp_path/'context.jsonl'))
+    tree=ast.parse((TREE/'agent/turn_context.py').read_text())
+    fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_turn_context')
+    policy=next(n for n in fn.body if isinstance(n,ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
+    agent=SimpleNamespace(tools=[{'function':{'name':n}} for n in [*native,'terminal','read_file','memory']])
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[policy],type_ignores=[])),
+                 'actual_schema_filter','exec'),{'agent':agent,'os':os,'json':json})
+    assert agent.valid_tool_names==set(expected)
+    evidence=json.loads((tmp_path/'context.jsonl.tools.jsonl').read_text())
+    assert evidence['offered_tools']==expected
 
 
 @pytest.mark.parametrize('names',[None,[],[None],['memcal_open',1],['memcal*'],'memcal_open'])

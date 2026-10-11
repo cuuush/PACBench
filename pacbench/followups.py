@@ -63,13 +63,14 @@ def load_questions(path: Path, contract) -> dict:
 def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     """Classify documented tool operations, never infer semantic answer correctness."""
     namespace = name.split('__')[1] if name.startswith('mcp__') and len(name.split('__')) >= 3 else ''
-    if (name in source_tools or name in {'session_search', 'imessage_search', 'search_messages'} or
+    if (name in source_tools or name in {'session_search', 'imessage_search', 'search_messages', 'grep_messages', 'search_messages_temporal', 'get_messages_by_date_range'} or
             namespace.lower() in {'imessage', 'messages'}):
         return 'source_messages'
     if name == 'memcal_search_archive':
         return 'archive_search'
     if name in {'memcal_open_source', 'memcal_conversation', 'memcal_activity'}:
         return 'source_evidence'
+    if name=='get_observation_context':return 'source_evidence'
     if name in {'honcho_search', 'honcho_context'}:
         return 'source_messages'
     if name == 'honcho_profile':
@@ -151,16 +152,32 @@ def tool_profile(turn, *, source_tools=()) -> dict:
     signatures = Counter((op['name'], json.dumps(op['arguments'], sort_keys=True)) for op in operations)
     traces = getattr(turn, 'provider_traces', []) or []
     native_calls = [call for trace in traces for call in trace.get('record', {}).get('toolCalls', [])]
+    native_operations=[]
+    for trace in traces:
+        if trace.get('provider')!='honcho':continue
+        for call in trace.get('record',{}).get('toolCalls',[]):
+            name=call.get('toolName','')
+            category=('memory_search' if name=='search_memory' else
+                      'memory_detail' if name in {'get_reasoning_chain','get_peer_card'} else
+                      tool_category(name,call.get('args',{}),source_tools))
+            native_operations.append({**call,'category':category,'attribution':trace.get('attribution')})
+    native_source=any(op['category'] in SOURCE_CATEGORIES and op['attribution']=='explicit-query-match'
+                      for op in native_operations)
+    native_unknown=sum(bool(t.get('error')) for t in traces if t.get('provider')=='honcho')+sum(op['category']=='unclassified' or
+        op['category'] in SOURCE_CATEGORIES and op['attribution']!='explicit-query-match' for op in native_operations)
     return {'top_level_calls': len(turn.tool_calls), 'total_tool_operations': len(operations),
         'provider_internal_tool_calls': len(native_calls) if traces and all(
             'toolCalls' in trace.get('record', {}) for trace in traces) else None,
         'provider_task_records': len(traces),
+        'provider_internal_operations': native_operations,
+        'provider_internal_source_fallback_confirmed': native_source,
+        'provider_internal_path_needs_review': bool(native_unknown),
         'categories': categories, 'operations': operations,
         'failed_operations': sum(op.get('success') is False for op in operations),
         'repeated_operations': sum(count - 1 for count in signatures.values()),
         'unmatched_tool_results': turn.tool_results[len(turn.tool_calls):],
-        'source_fallback_attempted': any(c in SOURCE_CATEGORIES for c in categories),
-        'unclassified_operations': categories.get('unclassified', 0)}
+        'source_fallback_attempted': native_source or any(c in SOURCE_CATEGORIES for c in categories),
+        'unclassified_operations': categories.get('unclassified', 0)+native_unknown}
 
 
 def turn_metrics(turn, previous=None, *, source_tools=()) -> dict:

@@ -129,5 +129,6 @@ for m in models:
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
         'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity}}})
+    env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
     env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE='pacbench-'+identity)
     return stop

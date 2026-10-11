@@ -162,3 +162,38 @@ def test_honcho_bad_model_requests_stop_processing_wait(monkeypatch):
     session=SimpleNamespace(id='submitted',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':1,'in_progress_work_units':0}))
     records,ready,reason,health=wait_honcho_sessions([session],{'provider-project':'memory_provider'})
     assert not ready and 'HTTP 400' in reason and health['state']=='stop' and len(records)==1
+
+
+def test_honcho_native_tool_capture_is_sanitized_and_affects_retention(tmp_path):
+    from pacbench.followups import tool_profile
+    journal=tmp_path/'native-private.jsonl'
+    env={'PACBENCH_HONCHO_TRACE_FILE':str(journal),'OPENAI_API_KEY':'test-gateway-secret'}
+    previous=json.dumps({'task_type':'dialectic_chat','timestamp':0,'input':{'messages':[]},
+        'output':{'tool_calls':[],'thinking_content':'test-gateway-secret'}})+'\n'
+    journal.write_text(previous)
+    before=harness.provider_trace_snapshot(env)
+    record={'timestamp':1,'task_type':'dialectic_chat','model':'spark',
+        'input':{'messages':[{'role':'user','content':'Query: Pizza Friday?'}]},
+        'output':{'thinking_content':'private reasoning','encrypted_content':'private ciphertext','tool_calls':[
+            {'tool_name':'search_memory','tool_input':{'query':'pizza'},'tool_result':'retained event'},
+            {'tool_name':'search_messages','tool_input':{'query':'Friday'},'tool_result':'source test-gateway-secret'}]}}
+    journal.write_text(previous+json.dumps(record)+'\n')
+    turn=harness.TurnResult(prompt='',at='',answer='',tool_calls=[{'name':'honcho_reasoning','input':{'query':'Pizza Friday?'}}],
+        tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=0)
+    harness.capture_provider_traces(turn,env,before)
+    assert 'private reasoning' not in json.dumps(turn.provider_traces)
+    assert 'private ciphertext' not in json.dumps(turn.provider_traces)
+    assert 'test-gateway-secret' not in json.dumps(turn.provider_traces)
+    metrics=tool_profile(turn)
+    assert metrics['provider_internal_tool_calls']==2
+    assert metrics['provider_internal_source_fallback_confirmed'] and metrics['source_fallback_attempted']
+    assert metrics['provider_internal_operations'][0]['category']=='memory_search'
+
+
+def test_unattributed_native_source_work_needs_review_not_false_causal_failure():
+    from pacbench.followups import tool_profile
+    turn=SimpleNamespace(tool_calls=[],tool_results=[],provider_traces=[{'provider':'honcho',
+        'attribution':'background-or-prefetch','record':{'toolCalls':[{'toolName':'grep_messages','args':{}}]}}])
+    metrics=tool_profile(turn)
+    assert not metrics['source_fallback_attempted']
+    assert metrics['provider_internal_path_needs_review'] and metrics['unclassified_operations']==1

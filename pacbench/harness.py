@@ -253,9 +253,27 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
 
 def provider_trace_snapshot(env: dict) -> dict:
     root = env.get('PACBENCH_PROVIDER_TRACE_ROOT')
-    if not root:
-        return {}
-    return {str(p): p.read_bytes() for p in Path(root).glob('projects/*/task-history/**/tsk-*.json')}
+    records={str(p):p.read_bytes() for p in Path(root).glob('projects/*/task-history/**/tsk-*.json')} if root else {}
+    honcho=env.get('PACBENCH_HONCHO_TRACE_FILE')
+    if honcho and Path(honcho).exists():records[honcho]=Path(honcho).read_bytes()
+    return records
+
+
+def honcho_tool_trace(data, turn):
+    """Publish native tool evidence only; private prompts/reasoning stay private."""
+    if data.get('task_type')!='dialectic_chat':return None
+    messages=data.get('input',{}).get('messages',[])
+    text=messages[-1].get('content','') if messages else ''
+    query=(text.split('\n\n## Relevant Observations',1)[0].removeprefix('Query: ').strip()
+           if isinstance(text,str) and text.startswith('Query: ') else None)
+    queries={(c.get('input',c.get('arguments',{})) or {}).get('query')
+             for c in turn.tool_calls if c.get('name')=='honcho_reasoning'}
+    calls=[{'toolName':c['tool_name'],'args':c.get('tool_input',{}),
+            'result':c.get('tool_result'),'metadata':c.get('tool_result_metadata',{})}
+           for c in data.get('output',{}).get('tool_calls',[]) or []]
+    return {'provider':'honcho','attribution':'explicit-query-match' if query in queries else 'background-or-prefetch',
+            'record':{'timestamp':data['timestamp'],'model':data.get('model'),'query':query,'toolCalls':calls},
+            'scope':'Native reasoning completed during the turn. Query matching identifies explicit Hermes requests; other work may be asynchronous.'}
 
 
 def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
@@ -268,6 +286,16 @@ def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
             for key in ('OPENAI_API_KEY', 'OPENAI_COMPATIBLE_API_KEY', 'SUPERMEMORY_API_KEY'):
                 token = env.get(key)
                 if token: text = text.replace(token, '<redacted>')
+            if filename==env.get('PACBENCH_HONCHO_TRACE_FILE'):
+                prior=before.get(filename,b'')
+                if not content.startswith(prior):raise ValueError('Native journal rotated during turn')
+                fresh=content[len(prior):].decode()
+                for key in ('OPENAI_API_KEY','OPENAI_COMPATIBLE_API_KEY','SUPERMEMORY_API_KEY'):
+                    if env.get(key):fresh=fresh.replace(env[key],'<redacted>')
+                for line in fresh.splitlines():
+                    trace=honcho_tool_trace(json.loads(line),turn)
+                    if trace:turn.provider_traces.append(trace)
+                continue
             record = json.loads(text)
             trace = {'file': filename, 'record': record}
             project = next((p for p in Path(filename).parents if p.parent.name == 'projects'), None)
@@ -283,8 +311,9 @@ def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
                         query_records.append(data)
                 trace['query_records'] = query_records
             turn.provider_traces.append(trace)
-        except (ValueError, UnicodeError):
-            turn.provider_traces.append({'file': filename, 'error': 'Native task journal could not be decoded'})
+        except (ValueError, UnicodeError, TypeError, AttributeError, KeyError):
+            turn.provider_traces.append({'file': filename, 'provider': 'honcho' if filename==env.get('PACBENCH_HONCHO_TRACE_FILE') else None,
+                                         'error': 'Native task journal could not be decoded'})
 
 
 def enforce_provider_tools(turn: TurnResult, env: dict) -> None:

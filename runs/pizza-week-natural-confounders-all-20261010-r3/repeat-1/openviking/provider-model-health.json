@@ -1,6 +1,28 @@
 {
-  "state": "captured",
-  "failed_requests": [],
-  "reason": "",
+  "state": "stop",
+  "failed_requests": [
+    {
+      "id": "89ca36c72a6d4cfc80611c5e33203739",
+      "project": "pacbench-97f13a2b1135-openviking-memory",
+      "http_status": 400,
+      "state": "uncertain",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "a509fb299a6641b5b6c6d1aa5fb71674",
+      "project": "pacbench-97f13a2b1135-openviking-memory",
+      "http_status": 400,
+      "state": "uncertain",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "56247c37d1f64e25abefa7d208ac68d1",
+      "project": "pacbench-97f13a2b1135-openviking-memory",
+      "http_status": 400,
+      "state": "uncertain",
+      "accounted_upper_bound_usd": 0.1081344
+    }
+  ],
+  "reason": "Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
   "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
 }

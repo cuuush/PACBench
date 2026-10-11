@@ -40,8 +40,8 @@
       "provider": "openviking",
       "state": "partial",
       "outcome_counts": {
-        "fail": 10,
-        "skipped": 8
+        "pass": 7,
+        "ungraded": 11
       },
       "reason": "evaluation sequence incomplete"
     },
@@ -84,7 +84,7 @@
     "later_display_fix": "Relative day label corrected offline; accuracy not rerun on later display revision."
   },
   "verification": {
-    "harness_tests": 245,
+    "harness_tests": 247,
     "memcal_unittest_cases": 2482,
     "memcal_skipped": 39,
     "temporal_checks_passed": 400,
@@ -93,15 +93,47 @@
     "native_audit": {
       "state": "fail",
       "errors": [
-        "repeat-1/openviking: incomplete arm",
         "repeat-1/supermemory: incomplete arm",
         "repeat-1/honcho: incomplete arm",
-        "repeat-1/byterover: incomplete arm"
+        "repeat-1/byterover: incomplete arm",
+        "repeat-1/openviking: incomplete arm"
       ],
-      "scope": "native trace integrity, not calibrated provider quality"
+      "scope": "Composed native trace integrity audits on identical frozen inputs; not calibrated provider quality.",
+      "arm_audits": {
+        "memcal": {
+          "state": "pass",
+          "errors": [],
+          "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+        },
+        "mem0": {
+          "state": "pass",
+          "errors": [],
+          "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+        },
+        "hindsight": {
+          "state": "pass",
+          "errors": [],
+          "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+        },
+        "openviking": {
+          "state": "fail",
+          "errors": [
+            "repeat-1/openviking: incomplete arm"
+          ],
+          "scope": "native trace integrity, not calibrated provider quality"
+        }
+      }
     },
     "desktop_mobile_chromium": "pass",
-    "fresh_public_checkout_ui_and_preparation": "pass"
+    "fresh_public_checkout_ui_and_preparation": "pass",
+    "openviking_delivered_trace_audit": {
+      "state": "pass",
+      "errors": [],
+      "delivered_checks": 7,
+      "imported_source_days": 3,
+      "full_input_hash": "157469ee365fa1cbf481292cbfc2b15192615911eedb6b41c9060875b7d72d0c",
+      "scope": "Only delivered turns and the exact imported prefix of frozen sources; not full-week completion or memory-quality calibration."
+    }
   },
   "model_error_barrier": {
     "added_after_observed_run": true,
@@ -116,24 +148,34 @@
   },
   "limitations": [
     "One low-noise synthetic week, not a calibrated ranking.",
-    "OpenViking failed retained-memory tool boundary, often after correct search summaries; no proof of storage loss.",
     "Supermemory model errors confound observed semantic failures.",
     "Honcho readiness deadline and ByteRover pending review prevented recall.",
     "Native attached citations and backend internals remain unchanged.",
     "Per-tool causal tokens and costs remain unknown.",
-    "Full native re-audit requires ignored private runtime state."
+    "Full native re-audit requires ignored private runtime state.",
+    "OpenViking completed 7/7 delivered checks with reader hidden; three internal model HTTP 400s stopped the remaining 11 checks. This is not full-week reliability evidence."
   ],
   "budget": {
-    "lifetime_accounted_usd": 8.8202724,
-    "settled_usage_price_upper_bound_usd": 2.159122,
-    "uncertain_held_usd": 6.6611504,
+    "lifetime_accounted_usd": 9.1872315,
+    "settled_usage_price_upper_bound_usd": 2.2016779,
+    "uncertain_held_usd": 6.9855536,
     "lifetime_cap_usd": 10,
     "unknown_reservations_cleared": false
   },
   "next_steps": [
     "Resolve queue readiness and native pending review before another broad sweep.",
     "Diagnose repeated provider-side model request errors without product patches outside Memcal.",
-    "Explicitly decide OpenViking architecture fit for retained-memory boundary.",
     "For stable arms add about 100 realistic unrelated messages, generate and verify once; defer 1000."
-  ]
+  ],
+  "tool_exposure_update": {
+    "viking_read_exposed": false,
+    "memcal_open_exposed": true,
+    "openviking_initial_pass": 7,
+    "openviking_ungraded": 11,
+    "openviking_policy_blocks": 0,
+    "openviking_tools": 17,
+    "same_frozen_inputs": true,
+    "reason_for_stop": "Three definitive provider-side HTTP 400s; native server shutdown invoked.",
+    "superseded_exposed_reader_arm_removed": true
+  }
 }

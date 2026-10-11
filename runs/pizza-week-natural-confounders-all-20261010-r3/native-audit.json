@@ -1,10 +1,34 @@
 {
   "state": "fail",
   "errors": [
-    "repeat-1/openviking: incomplete arm",
     "repeat-1/supermemory: incomplete arm",
     "repeat-1/honcho: incomplete arm",
-    "repeat-1/byterover: incomplete arm"
+    "repeat-1/byterover: incomplete arm",
+    "repeat-1/openviking: incomplete arm"
   ],
-  "scope": "native trace integrity, not calibrated provider quality"
+  "scope": "Composed native trace integrity audits on identical frozen inputs; not calibrated provider quality.",
+  "arm_audits": {
+    "memcal": {
+      "state": "pass",
+      "errors": [],
+      "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+    },
+    "mem0": {
+      "state": "pass",
+      "errors": [],
+      "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+    },
+    "hindsight": {
+      "state": "pass",
+      "errors": [],
+      "scope": "Previously completed native integrity audit on this exact frozen input; private runtime copies cleaned after verification."
+    },
+    "openviking": {
+      "state": "fail",
+      "errors": [
+        "repeat-1/openviking: incomplete arm"
+      ],
+      "scope": "native trace integrity, not calibrated provider quality"
+    }
+  }
 }

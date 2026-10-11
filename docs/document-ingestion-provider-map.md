@@ -8,7 +8,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 | --- | --- | --- |
 | Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings, gateway inference. |
 | Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank; native API `meta` adapter for Spark, using the gateway base URL. |
-| OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Original-document access fails retention. |
+| OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. The mixed `viking_read` is omitted from Hermes’s tool schemas; native context/search remain available. |
 | ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Current curation left a native pending review; recall was withheld. |
 | Supermemory | `documents.add` with raw content, canonical container tags and custom ID; poll status | Published local server and native SDK, Ollama embeddings. Native namespace resolver. Current document status reported done despite repeated provider-model HTTP 400s; run stopped. |
 | Honcho | Real source peers and original timestamps through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Accepted messages must finish processing before recall. Current Monday queue missed the 180-second deadline. |

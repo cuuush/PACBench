@@ -1,0 +1,45 @@
+{
+  "checkpoint": "separate-appointments",
+  "question": "[Simulated now: 2026-10-07T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid that change my call with Jen or coffee with Alex too?",
+  "answer": "No — yesterday's log only shows the duck pond postponed and dinner with Ben moved to Saturday. No change to your Jen call or Alex coffee in there.",
+  "claims": [
+    {
+      "id": "jen-call-remains",
+      "description": "The separately arranged call with Jen was not cancelled and remained as arranged.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/jen-call-02",
+        "pizza-week-natural-confounders-low/jen-call-03",
+        "pizza-week-natural-confounders-low/jen-call-04",
+        "pizza-week-natural-confounders-low/pond-called-off-01",
+        "pizza-week-natural-confounders-low/pond-called-off-02",
+        "pizza-week-natural-confounders-low/pond-called-off-03"
+      ]
+    },
+    {
+      "id": "alex-coffee-remains",
+      "description": "The separately arranged coffee with Alex was not cancelled and remained as arranged.",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-coffee-02",
+        "pizza-week-natural-confounders-low/alex-coffee-03",
+        "pizza-week-natural-confounders-low/alex-coffee-04",
+        "pizza-week-natural-confounders-low/alex-coffee-05",
+        "pizza-week-natural-confounders-low/pond-called-off-01",
+        "pizza-week-natural-confounders-low/pond-called-off-02",
+        "pizza-week-natural-confounders-low/pond-called-off-03"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-07T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat happened with the duck pond yesterday, and did we pick another day?\"}, {\"role\": \"assistant\", \"content\": \"Yesterday — Tuesday Oct 6 — the duck pond walk was postponed.\\n\\nYou said you were feeling groggy, Jen said she couldn't make it today, Alex agreed to do it another day, and you agreed to leave it for another day.\\n\\nNo, you didn't pick another day — just left it open.\"}]\nQuestion: [Simulated now: 2026-10-07T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid that change my call with Jen or coffee with Alex too?\nAnswer: No — yesterday's log only shows the duck pond postponed and dinner with Ben moved to Saturday. No change to your Jen call or Alex coffee in there.\nClaims (hidden from the assistant): [{\"id\": \"jen-call-remains\", \"claim\": \"The separately arranged call with Jen was not cancelled and remained as arranged.\", \"evidence\": [\"pizza-week-natural-confounders-low/jen-call-02\", \"pizza-week-natural-confounders-low/jen-call-03\", \"pizza-week-natural-confounders-low/jen-call-04\", \"pizza-week-natural-confounders-low/pond-called-off-01\", \"pizza-week-natural-confounders-low/pond-called-off-02\", \"pizza-week-natural-confounders-low/pond-called-off-03\"]}, {\"id\": \"alex-coffee-remains\", \"claim\": \"The separately arranged coffee with Alex was not cancelled and remained as arranged.\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-coffee-02\", \"pizza-week-natural-confounders-low/alex-coffee-03\", \"pizza-week-natural-confounders-low/alex-coffee-04\", \"pizza-week-natural-confounders-low/alex-coffee-05\", \"pizza-week-natural-confounders-low/pond-called-off-01\", \"pizza-week-natural-confounders-low/pond-called-off-02\", \"pizza-week-natural-confounders-low/pond-called-off-03\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"jen-call-remains\", \"verdict\": \"correct\", \"reason\": \"Answer states 'No change to your Jen call' in yesterday's log, conveying it was not cancelled.\"}, {\"id\": \"alex-coffee-remains\", \"verdict\": \"correct\", \"reason\": \"Answer states 'No change to your... Alex coffee in there,' conveying it was not cancelled.\"}], \"recovery\": [{\"id\": \"jen-call-remains\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed no change to Jen call.\"}, {\"id\": \"alex-coffee-remains\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed no change to Alex coffee.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-07T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat happened with the duck pond yesterday, and did we pick another day?"
+    },
+    {
+      "role": "assistant",
+      "content": "Yesterday — Tuesday Oct 6 — the duck pond walk was postponed.\n\nYou said you were feeling groggy, Jen said she couldn't make it today, Alex agreed to do it another day, and you agreed to leave it for another day.\n\nNo, you didn't pick another day — just left it open."
+    }
+  ],
+  "model_call": "/tmp/pacbench-openviking-no-reader/model-calls/756399cca8a4b495daddd022cd214f99590201ff46daade44fa3931fa2fa86a0.json"
+}

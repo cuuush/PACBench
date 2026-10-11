@@ -3,8 +3,68 @@
   "at": "2026-10-09T12:15:00-04:00",
   "session": "friday-alex-fresh",
   "contract_hash": "92ecdf5c90dcb40087b54a59ee009d763b34cac0c7ba8f30989df80ae4e26746",
-  "state": "ungraded",
-  "verdict": null,
-  "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-  "error_type": "execution_or_judge"
+  "state": "diagnostic",
+  "verdict": "fail",
+  "reason": "",
+  "interaction": "answer",
+  "recovery": {
+    "state": "complete",
+    "score": {
+      "initial_correct": 0,
+      "initial_missed": 0,
+      "initial_misrepresented": 5,
+      "max_points": 5,
+      "points": 0.0,
+      "recovery_weight": 0.5,
+      "claims": [
+        {
+          "claim_id": "meal-type",
+          "initial_verdict": "misrepresented",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        },
+        {
+          "claim_id": "with-alex",
+          "initial_verdict": "misrepresented",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        },
+        {
+          "claim_id": "day-sunday",
+          "initial_verdict": "misrepresented",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        },
+        {
+          "claim_id": "time-noon",
+          "initial_verdict": "misrepresented",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        },
+        {
+          "claim_id": "venue-birch",
+          "initial_verdict": "misrepresented",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        }
+      ],
+      "calibrated": false
+    },
+    "attempts": []
+  }
 }

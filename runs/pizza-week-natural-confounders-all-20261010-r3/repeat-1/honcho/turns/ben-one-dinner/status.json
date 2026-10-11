@@ -3,8 +3,32 @@
   "at": "2026-10-07T09:15:00-04:00",
   "session": "wednesday-ben",
   "contract_hash": "a0cea9d5c8d14eb8b3edad34dac0427382f5244c17a4373603e338e6a4dac9bf",
-  "state": "ungraded",
-  "verdict": null,
-  "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-  "error_type": "execution_or_judge"
+  "state": "diagnostic",
+  "verdict": "pass",
+  "reason": "",
+  "interaction": "answer",
+  "recovery": {
+    "state": "complete",
+    "score": {
+      "initial_correct": 1,
+      "initial_missed": 0,
+      "initial_misrepresented": 0,
+      "max_points": 1,
+      "points": 0.0,
+      "recovery_weight": 0.5,
+      "claims": [
+        {
+          "claim_id": "one-dinner",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": true,
+          "path_needs_review": true,
+          "points": 0.0
+        }
+      ],
+      "calibrated": false
+    },
+    "attempts": []
+  }
 }

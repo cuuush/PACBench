@@ -1,0 +1,183 @@
+{
+  "state": "fail",
+  "method": "Retrospective audit of actual acknowledgments and successive native submitted-session queue counts; no model calls.",
+  "finding": "Friday and Saturday returned ready before newly acknowledged message work enrolled; answer correctness cannot establish completed ingestion.",
+  "fix": "Read native baseline before submission, require new work to enroll and finish before recall. Prior completed work does not satisfy a new batch.",
+  "daily_evidence": [
+    {
+      "day": "2026-10-05",
+      "acknowledged_messages": 22,
+      "latency_s": 282.92,
+      "final_status": {
+        "elapsed_s": 281.63,
+        "sessions": {
+          "source-0783ce38b9f6ab9286babec7": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-ef8d8b58109a952bbd71a1c0": {
+            "total_work_units": 5,
+            "completed_work_units": 5,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-2054555e4f5299be251e1c9a": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-79679abdb35a902663956865": {
+            "total_work_units": 5,
+            "completed_work_units": 5,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": []
+    },
+    {
+      "day": "2026-10-06",
+      "acknowledged_messages": 8,
+      "latency_s": 131.8,
+      "final_status": {
+        "elapsed_s": 131.07,
+        "sessions": {
+          "source-c5fbdc1bbe007778bf8430c4": {
+            "total_work_units": 4,
+            "completed_work_units": 4,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-0783ce38b9f6ab9286babec7": {
+            "total_work_units": 10,
+            "completed_work_units": 10,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": []
+    },
+    {
+      "day": "2026-10-07",
+      "acknowledged_messages": 24,
+      "latency_s": 288.98,
+      "final_status": {
+        "elapsed_s": 287.45,
+        "sessions": {
+          "source-2054555e4f5299be251e1c9a": {
+            "total_work_units": 12,
+            "completed_work_units": 12,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-e38aeb6a62b9261569e88542": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-e6a4e0d793d5d17de623c7ed": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-11a263c1f559430a34998420": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": []
+    },
+    {
+      "day": "2026-10-08",
+      "acknowledged_messages": 29,
+      "latency_s": 335.23,
+      "final_status": {
+        "elapsed_s": 333.96,
+        "sessions": {
+          "source-2054555e4f5299be251e1c9a": {
+            "total_work_units": 17,
+            "completed_work_units": 17,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-e6a4e0d793d5d17de623c7ed": {
+            "total_work_units": 11,
+            "completed_work_units": 11,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          },
+          "source-11a263c1f559430a34998420": {
+            "total_work_units": 26,
+            "completed_work_units": 26,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": []
+    },
+    {
+      "day": "2026-10-09",
+      "acknowledged_messages": 6,
+      "latency_s": 0.6,
+      "final_status": {
+        "elapsed_s": 0.01,
+        "sessions": {
+          "source-e38aeb6a62b9261569e88542": {
+            "total_work_units": 6,
+            "completed_work_units": 6,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": [
+        "Honcho readiness preceded new source work enrollment"
+      ]
+    },
+    {
+      "day": "2026-10-10",
+      "acknowledged_messages": 5,
+      "latency_s": 0.92,
+      "final_status": {
+        "elapsed_s": 0.01,
+        "sessions": {
+          "source-e38aeb6a62b9261569e88542": {
+            "total_work_units": 12,
+            "completed_work_units": 12,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      "audit_errors": [
+        "Honcho readiness preceded new source work enrollment"
+      ]
+    }
+  ]
+}

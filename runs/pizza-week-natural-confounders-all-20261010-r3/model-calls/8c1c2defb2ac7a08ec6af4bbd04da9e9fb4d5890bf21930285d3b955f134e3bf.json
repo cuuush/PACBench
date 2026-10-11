@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-10-10T19:24:21.588219+00:00",
+  "created_at": "2026-10-11T21:00:53.127030+00:00",
   "status": "ok",
   "model": "muse-spark-1.3-contributor",
   "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
@@ -16,41 +16,41 @@
     ]
   },
   "response": {
-    "id": "chatcmpl-01a12746-00a1-7037-a4c1-3da6f86f46a4",
+    "id": "chatcmpl-01a12cc4-bbb6-75a7-8c57-5c9196e62e39",
     "choices": [
       {
         "finish_reason": "stop",
         "index": 0,
         "message": {
-          "content": "{\"verdicts\": [{\"id\": \"venue-name\", \"verdict\": \"correct\", \"reason\": \"Answer states venue is Luigi's.\"}, {\"id\": \"venue-street\", \"verdict\": \"correct\", \"reason\": \"Answer states venue is on 5th Street.\"}], \"recovery\": [{\"id\": \"venue-name\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"venue-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+          "content": "{\"verdicts\": [{\"id\": \"venue-name\", \"verdict\": \"correct\", \"reason\": \"Answer states meeting at Luigi's\"}, {\"id\": \"venue-street\", \"verdict\": \"correct\", \"reason\": \"Answer states on 5th Street\"}], \"recovery\": [{\"id\": \"venue-name\", \"kind\": \"provided\", \"reason\": \"Correct venue conveyed in answer\"}, {\"id\": \"venue-street\", \"kind\": \"provided\", \"reason\": \"Correct street conveyed in answer\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
           "refusal": null,
           "role": "assistant"
         },
         "logprobs": null
       }
     ],
-    "created": 1791660261,
+    "created": 1791752453,
     "model": "muse-spark-1.3-contributor",
     "object": "chat.completion",
     "usage": {
-      "completion_tokens": 1057,
+      "completion_tokens": 1112,
       "prompt_tokens": 627,
-      "total_tokens": 1684,
+      "total_tokens": 1739,
       "completion_tokens_details": {
-        "reasoning_tokens": 921
+        "reasoning_tokens": 982
       },
       "prompt_tokens_details": {
         "cached_tokens": 0
       }
     }
   },
-  "text": "{\"verdicts\": [{\"id\": \"venue-name\", \"verdict\": \"correct\", \"reason\": \"Answer states venue is Luigi's.\"}, {\"id\": \"venue-street\", \"verdict\": \"correct\", \"reason\": \"Answer states venue is on 5th Street.\"}], \"recovery\": [{\"id\": \"venue-name\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"venue-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "text": "{\"verdicts\": [{\"id\": \"venue-name\", \"verdict\": \"correct\", \"reason\": \"Answer states meeting at Luigi's\"}, {\"id\": \"venue-street\", \"verdict\": \"correct\", \"reason\": \"Answer states on 5th Street\"}], \"recovery\": [{\"id\": \"venue-name\", \"kind\": \"provided\", \"reason\": \"Correct venue conveyed in answer\"}, {\"id\": \"venue-street\", \"kind\": \"provided\", \"reason\": \"Correct street conveyed in answer\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
   "usage": {
-    "completion_tokens": 1057,
+    "completion_tokens": 1112,
     "prompt_tokens": 627,
-    "total_tokens": 1684,
+    "total_tokens": 1739,
     "completion_tokens_details": {
-      "reasoning_tokens": 921
+      "reasoning_tokens": 982
     },
     "prompt_tokens_details": {
       "cached_tokens": 0

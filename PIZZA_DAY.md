@@ -9,10 +9,10 @@ Latest run: [pizza-week-natural-confounders-all-20261010-r3](runs/pizza-week-nat
 | Hindsight | 18/18 pass | Completed native ingestion and all checks; one provider HTTP 502 reservation remains held. |
 | OpenViking | 7 pass; 11 ungraded | Rerun with `viking_read` absent from exposed schemas: zero blocked tool attempts. Three provider-side HTTP 400s triggered native shutdown before the remaining checks. |
 | Supermemory | 5 pass, 5 fail; 8 ungraded | Stopped after 12 provider-side HTTP 400 failures despite document status “done.” Results are confounded by the unhealthy model route, not a clean retention ranking. |
-| Honcho | 18 ungraded | Monday source messages acknowledged, but native processing queue did not drain within the 180-second deadline. |
+| Honcho | 15 pass; 3 fail | Observer-corrected native diagnostic. Internal original-message searches receive no retention credit. Friday/Saturday readiness preceded new work enrollment; accelerated assistant capture uses host timestamps. This is not a clean memory ranking. |
 | ByteRover | 18 ungraded | Native curation completed but returned a pending review. The connector correctly withheld recall; no automatic approval was injected. |
 
-All seven local connectors were attempted. The overall run is **incomplete**. Its composed component audits explicitly report four incomplete arms; saved earlier audits establish the integrity of the three completed arms, and a fresh native audit records the reader-free OpenViking attempt. A separate delivered-trace audit passes for its seven delivered checks and three imported source days, without claiming full-week completion. The completed Memcal, Mem0 and Hindsight arms have no native integrity errors. Preparation passes its integrity audit. Excluded providers remain Holographic (no practical automatic ingestion), RetainDB and Memori (no verified local Hermes backend).
+All seven local connectors were attempted. The overall run is **incomplete**. Saved audits establish the integrity of Memcal, Mem0 and Hindsight. OpenViking's separate delivered-trace audit covers seven checks and three source days, without claiming full-week completion. Honcho's new audit correctly rejects two premature readiness receipts. Preparation passes its integrity audit. Excluded providers remain Holographic (no practical automatic ingestion), RetainDB and Memori (no verified local Hermes backend).
 
 ## Natural complications
 
@@ -35,6 +35,9 @@ The sole current Memcal initial miss is the key-favor cancellation. “No — th
 
 ## Benchmark issues addressed
 
+- Honcho's configured Hermes observer now joins source sessions **before** messages arrive, using native observation settings verified by the API. Previously, Hermes queried a perspective that had not witnessed those sources. No assistant messages or manually extracted facts were inserted. A scoped, bounded processing wait replaces the premature three-minute timeout. A second race required a pre-submission queue baseline: newly acknowledged work must enroll and complete before readiness, rather than accepting old completed counts. The old full-week receipts retain their audit failures; a separate consecutive-batch native check verifies the fix.
+- Honcho's native reasoning journal now supplies sanitized internal tool arguments/results. Direct original-message tools remain hidden from Hermes, but the backend's own `search_messages`/`grep_messages` fallback is visible and gets no retention credit. Background work without a proven query match stays uncredited pending review. Semantic judges remain unchanged: Leo was missing from both pizza-detail answers, and the accepted Alex lunch was missed.
+- Spark's native 2500-token Honcho allowance was tested and truncated extraction. The existing 16384 allowance is restored through documented model configuration; it is a maximum, not a target output size. Native Hermes Honcho capture does not supply `created_at`, so simulated-date prefixes do not change captured assistant-turn timestamps. Source-message timestamps are preserved. This limits accelerated interactive-week conclusions; it is not proof of the cause of particular misses.
 - Hindsight now uses its documented native `meta` adapter with the gateway URL. The generic OpenAI adapter sent unsupported forced tool choices. No Hindsight product code or source content was patched.
 - Source-policy auditing reads actual Hermes `input` arguments as well as `arguments`. Live guards still run before dispatch. The regression covers both formats.
 - A rejected English criterion or combined follow-up draft gets one revision using independent reviewer feedback and another independent review before delivery. Criteria stay bound to authored facts. The agent still receives at most one combined follow-up.
@@ -48,7 +51,7 @@ Memcal uses real native Apple Messages and TLS IMAP readers with provider-indepe
 
 ## Verification and costs
 
-**247 offline harness tests pass**; JavaScript syntax checks pass. Memcal has **2,482 unittest cases, 39 skipped**, **400/400 temporal checks** and **92/92 challenges**. Saved answers, judge decisions and tool traces were reviewed for the completed arms. Offline checks and trace audits establish implementation integrity, not statistically calibrated accuracy.
+**273 offline harness tests pass**; JavaScript syntax checks pass. Earlier Memcal verification recorded **2,482 unittest cases, 39 skipped**, **400/400 temporal checks** and **92/92 challenges**. Saved answers, judge decisions and tool traces were reviewed. Offline checks and trace audits establish implementation integrity, not statistically calibrated accuracy.
 
 | Completed arm | Hermes tools, including recovery | Hermes model requests | Provider model requests | Settled request cost / held |
 | --- | ---: | ---: | ---: | ---: |
@@ -58,7 +61,9 @@ Memcal uses real native Apple Messages and TLS IMAP readers with provider-indepe
 
 These request totals exclude shared authoring/judging and do not establish the causal price of each individual tool. After-settlement receipts preserve role-specific tokens, late requests, HTTP statuses and unknown costs. In particular, Supermemory's failed-request reservations remain held.
 
-The lifetime gateway ledger is **$9.1872315 accounted**, comprising **$2.2016779 settled usage-price upper bounds** and **$6.9855536 uncertain reservations**, with no active reservations. This is lifetime accounting since setup, not $9.19 spent today or an invoice. Every Spark call used the gateway. The fixed **$10 lifetime** ceiling remains unchanged; the explicitly authorized 10 October daily ceiling is $10 within it. No held charges were refunded or cleared.
+The gateway now enforces **$10 per UTC day, with no lifetime cap**, as requested. Settled daily spending resets at midnight UTC. Unknown charges remain held, and a monetary refusal stops inference for that UTC day even if another request later settles. Existing history and holds were preserved; no budget bypass or refund was used.
+
+The old $9.1872 accounting total comprised $2.2017 in settled usage-price upper bounds and $6.9856 in uncertain reservations. It was not $9.19 spent that day. Measured ingestion-window charges for this small corpus are about **1.44¢ Memcal, 0.87¢ Mem0, 2.34¢ Hindsight, and 2.63¢ Honcho**. These windows can miss asynchronous background work; the full observer-corrected Honcho driver/provider projects cost **16.66¢**, excluding shared judging. Native extraction, consolidation and recall can make multiple requests per batch. See [cost-review.json](runs/pizza-week-natural-confounders-all-20261010-r3/cost-review.json) for the dated ledger snapshot and scope; prices are conservative usage bounds, not invoices.
 
 ## Inspect and next steps
 
@@ -70,4 +75,6 @@ On your Mac, pull branch `work`, run `python3 serve_explorer.py`, then open:
 
 Cloud localhost is separate from your Mac. Reuse [preparation/week.json](runs/pizza-week-natural-confounders-all-20261010-r3/preparation/week.json) without regenerating messages. Full native re-auditing requires private fixtures/homes; saved audit receipts remain portable.
 
-Before a larger cross-provider run, resolve Honcho's processing deadline against observed progress, establish ByteRover's recommended review workflow, and diagnose Supermemory's rejected model requests. OpenViking’s mixed reader stays hidden from Hermes; diagnose its internal rejected model requests without changing facts or questions. Memcal’s native event opener stays available. Do not relax guards to make a provider pass. For the stable arms, the next small step is roughly 100 realistic unrelated messages around these same storylines, frozen once; defer 1000 until readiness, tool enforcement and cost observability are reliable.
+Pizza Month will freeze one low-noise corpus, ingest **one daily batch for each of 30 days**, and ask questions **only after all ingestion**. Repeated Friday plans should differ by week, people, venue and updates while preserving source threads. Align final questions with the host date until simulated assistant capture is supported honestly. No paid month run has started.
+
+Before including every configured arm, establish ByteRover's recommended review workflow and diagnose OpenViking/Supermemory's rejected model routes. Honcho's internal original-message fallback remains a retention failure under this condition. Memcal's normal event opener stays available. Do not relax guards or change facts to make a provider pass.

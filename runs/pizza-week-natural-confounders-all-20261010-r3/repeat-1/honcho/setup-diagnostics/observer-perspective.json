@@ -1,0 +1,120 @@
+{
+  "state": "connector_configuration_failure",
+  "reason": "Native source ingestion completed in 246.12 seconds, but the configured Hermes AI observer was absent from source sessions. Hermes queried AI-observer/user-target memory and returned no stored plan. Native docs require observer presence before ingestion; no retrospective reseeding.",
+  "first_answer": {
+    "prompt": "[Simulated now: 2026-10-06T06:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for the duck pond today?",
+    "at": "2026-10-06T06:00:00-04:00",
+    "answer": "I don't have anything stored about a duck pond plan for today.",
+    "tool_calls": [
+      {
+        "type": "tool_use",
+        "name": "honcho_profile",
+        "input": {
+          "peer": "user"
+        },
+        "timestamp": 1791750533573
+      },
+      {
+        "type": "tool_use",
+        "name": "honcho_reasoning",
+        "input": {
+          "peer": "user",
+          "query": "What is the plan for the duck pond today? Include any scheduled tasks, maintenance, or events.",
+          "reasoning_level": "low"
+        },
+        "timestamp": 1791750533581
+      }
+    ],
+    "tool_results": [
+      {
+        "tool": "honcho_profile",
+        "success": true,
+        "policy_blocked": false,
+        "text": "{\"result\": \"No profile facts available yet.\", \"hint\": \"This is not an error.  this session has only 1 turn(s); peer cards accumulate as the dialectic layer reasons over conversation history (cadence every 1 turn(s)).  Try honcho_reasoning for a synthesized answer, or honcho_search to query raw conversation excerpts.\"}",
+        "truncated": false,
+        "capture": "hermes_session_db"
+      },
+      {
+        "tool": "honcho_reasoning",
+        "success": true,
+        "policy_blocked": false,
+        "text": "{\"result\": \"I don't have any information about the duck pond \\u2014 including any plan, scheduled tasks, maintenance, or events for today \\u2014 in my memory.\\n\"}",
+        "truncated": false,
+        "capture": "hermes_session_db"
+      }
+    ],
+    "policy_blocks": 0,
+    "latency_s": 22.54,
+    "returncode": 0
+  },
+  "first_grade": {
+    "correct": 0,
+    "missed": 6,
+    "misrepresented": 0,
+    "claims": [
+      {
+        "id": "meet-jen",
+        "verdict": "missed",
+        "reason": "Answer states no stored duck pond plan and does not mention Jen."
+      },
+      {
+        "id": "meet-alex",
+        "verdict": "missed",
+        "reason": "Answer states no stored duck pond plan and does not mention Alex."
+      },
+      {
+        "id": "day-tuesday",
+        "verdict": "missed",
+        "reason": "Answer provides no day information, only says no plan stored."
+      },
+      {
+        "id": "time-2pm",
+        "verdict": "missed",
+        "reason": "Answer provides no time, only says no plan stored."
+      },
+      {
+        "id": "place-entrance",
+        "verdict": "missed",
+        "reason": "Answer provides no location, only says no plan stored."
+      },
+      {
+        "id": "place-park",
+        "verdict": "missed",
+        "reason": "Answer provides no location, only says no plan stored."
+      }
+    ],
+    "recovery": [
+      {
+        "id": "meet-jen",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      },
+      {
+        "id": "meet-alex",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      },
+      {
+        "id": "day-tuesday",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      },
+      {
+        "id": "time-2pm",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      },
+      {
+        "id": "place-entrance",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      },
+      {
+        "id": "place-park",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it has nothing stored about the plan."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

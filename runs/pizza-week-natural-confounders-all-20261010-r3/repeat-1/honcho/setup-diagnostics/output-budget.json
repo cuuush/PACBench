@@ -1,0 +1,56 @@
+{
+  "state": "failed_configuration_trial",
+  "reason": "Native 2500-token output budget truncates Spark reasoning extraction; stop this diagnostic before scoring.",
+  "calls": [
+    {
+      "task": "dialectic_chat",
+      "max_tokens": 8192,
+      "input_tokens": 13314,
+      "output_tokens": 940,
+      "finish_reasons": [
+        "stop"
+      ],
+      "explicit_observations": null
+    },
+    {
+      "task": "minimal_deriver",
+      "max_tokens": 2500,
+      "input_tokens": 729,
+      "output_tokens": 2500,
+      "finish_reasons": [
+        "length"
+      ],
+      "explicit_observations": 0
+    },
+    {
+      "task": "minimal_deriver",
+      "max_tokens": 2500,
+      "input_tokens": 765,
+      "output_tokens": 2500,
+      "finish_reasons": [
+        "length"
+      ],
+      "explicit_observations": 0
+    },
+    {
+      "task": "minimal_deriver",
+      "max_tokens": 2500,
+      "input_tokens": 767,
+      "output_tokens": 1967,
+      "finish_reasons": [
+        "stop"
+      ],
+      "explicit_observations": 2
+    },
+    {
+      "task": "minimal_deriver",
+      "max_tokens": 2500,
+      "input_tokens": 720,
+      "output_tokens": 2500,
+      "finish_reasons": [
+        "length"
+      ],
+      "explicit_observations": 0
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "state": "complete",
+  "plan_hash": "909abeb3792474ccaf8d63478ed51f6418c1359e994ddea4307f3c07af204e7b",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 0,
+    "total_tool_operations": 0,
+    "provider_internal_tool_calls": 6,
+    "provider_task_records": 1,
+    "provider_internal_operations": [
+      {
+        "toolName": "search_memory",
+        "args": {
+          "query": "person preferences goals working style bio",
+          "top_k": 20
+        },
+        "result": "Found 20 observations for query 'person preferences goals working style bio':\n\nEXPLICIT:\n\n1. [2026-10-05 21:45:00] user proposed a quick phone call with Jen on October 6, 2026 at 10:00 AM to go over Jen's job application.\n2. [2026-10-11 20:42:54] user has a coffee with Alex.\n3. [2026-10-08 16:15:00] user agreed to have lunch at Birch Cafe at noon on Sunday, 2026-10-11.\n4. [2026-10-09 00:50:00] user planned at 00:50 on 2026-10-09 to go to sleep early during the night of 2026-10-08 to 2026-10-09.\n5. [2026-10-05 22:10:00] user agreed to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift.\n6. [2026-10-09 00:50:00] user agreed that 5pm on 2026-10-09 works for user for Friday pizza.\n7. [2026-10-09 00:50:00] user stated user also craves restaurant Mario's on Pine Street's garlic knots as of 00:50 on 2026-10-09.\n8. [2026-10-08 16:15:00] user stated on 2026-10-08 that user was still thinking about Birch Cafe's latte from Tuesday, 2026-10-06.\n9. [2026-10-09 00:50:00] user stated user will eat fellow chat participant Leo's share of knots.\n10. [2026-10-07 22:16:00] user arrived at user's home shortly before 2026-10-07 22:00:00.\n11. [2026-10-09 00:50:00] user arrived home shortly before 22:25 on 2026-10-08.\n12. [2026-10-09 00:50:00] user stated user had discussed moving Friday pizza meeting to 5pm in DMs with fellow chat participant Maya before 00:43 on 2026-10-09.\n13. [2026-10-05 21:45:00] user was home on October 5, 2026 at 9:25 PM.\n14. [2026-10-09 00:50:00] user agreed with fellow chat participant Maya to go to restaurant Mario's on Pine Street for Friday pizza on 2026-10-09.\n15. [2026-10-06 12:00:00] user agreed to move user's dinner with Ben to another day.\n16. [2026-10-08 22:15:00] user agreed to Maya's proposal to do 5pm on 2026-10-09.\n17. [2026-10-05 22:35:00] user was home on 2026-10-05 at 22:15\n18. [2026-10-07 22:16:00] user agreed to get pizza with Devon on 2026-10-09 at 18:00.\n19. [2026-10-07 22:16:00] user was starving at 2026-10-07 22:00:00.\n20. [2026-10-06 12:00:00] user stated the same place as the original dinner plan works for user's rescheduled dinner with Ben.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+        "metadata": {
+          "top_k": 20,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 20
+        },
+        "category": "memory_search",
+        "attribution": "background-or-prefetch"
+      },
+      {
+        "toolName": "search_memory",
+        "args": {
+          "query": "user likes dislikes preferences food coffee",
+          "top_k": 20
+        },
+        "result": "Found 20 observations for query 'user likes dislikes preferences food coffee':\n\nEXPLICIT:\n\n1. [2026-10-11 20:42:54] user has a coffee with Alex.\n2. [2026-10-05 22:10:00] user was craving Birch Cafe's latte.\n3. [2026-10-08 16:15:00] user stated on 2026-10-08 that user was still thinking about Birch Cafe's latte from Tuesday, 2026-10-06.\n4. [2026-10-05 22:10:00] user agreed to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift.\n5. [2026-10-07 15:20:00] user declined Alex's invitation to have dinner at Juniper Cafe at 7pm on 2026-10-11\n6. [2026-10-06 12:00:00] user agreed to move user's dinner with Ben to another day.\n7. [2026-10-09 00:50:00] user stated user also craves restaurant Mario's on Pine Street's garlic knots as of 00:50 on 2026-10-09.\n8. [2026-10-08 16:15:00] user agreed to have lunch at Birch Cafe at noon on Sunday, 2026-10-11.\n9. [2026-10-09 00:50:00] user stated user will eat fellow chat participant Leo's share of knots.\n10. [2026-10-07 22:41:00] user believes the crust at Rosa's on Oak Street is the best.\n11. [2026-10-06 12:00:00] user stated the same place as the original dinner plan works for user's rescheduled dinner with Ben.\n12. [2026-10-09 00:50:00] user agreed with fellow chat participant Maya to go to restaurant Mario's on Pine Street for Friday pizza on 2026-10-09.\n13. [2026-10-09 00:50:00] user suggested restaurant Domino's on Elm Street for Friday pizza on 2026-10-09.\n14. [2026-10-05 22:35:00] user will meet Ben for dinner at Juniper Cafe on 2026-10-08 around 19:00 to catch up\n15. [2026-10-07 22:16:00] user was starving at 2026-10-07 22:00:00.\n16. [2026-10-09 00:50:00] user agreed that 5pm on 2026-10-09 works for user for Friday pizza.\n17. [2026-10-06 12:00:00] user stated the same time as the original dinner plan works for user's rescheduled dinner with Ben.\n18. [2026-10-06 12:00:00] user proposed Saturday, October 10, 2026 as the new day for user's dinner with Ben.\n19. [2026-10-07 23:02:00] user accepted Maya's invitation to grab pizza together at Rosa's on Oak Street at 7 pm.\n20. [2026-10-09 00:50:00] user confirmed to fellow chat participant Maya that user's Friday pizza plan with Maya was still on as of 23:20 on 2026-10-08.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+        "metadata": {
+          "top_k": 20,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 20
+        },
+        "category": "memory_search",
+        "attribution": "background-or-prefetch"
+      },
+      {
+        "toolName": "search_memory",
+        "args": {
+          "query": "user work job goals schedule routine",
+          "top_k": 20
+        },
+        "result": "Found 20 observations for query 'user work job goals schedule routine':\n\nEXPLICIT:\n\n1. [2026-10-09 00:50:00] user agreed that 5pm on 2026-10-09 works for user for Friday pizza.\n2. [2026-10-05 21:45:00] user proposed a quick phone call with Jen on October 6, 2026 at 10:00 AM to go over Jen's job application.\n3. [2026-10-09 00:50:00] user planned at 00:50 on 2026-10-09 to go to sleep early during the night of 2026-10-08 to 2026-10-09.\n4. [2026-10-06 12:00:00] user stated the same time as the original dinner plan works for user's rescheduled dinner with Ben.\n5. [2026-10-08 22:15:00] user agreed to Maya's proposal to do 5pm on 2026-10-09.\n6. [2026-10-07 15:20:00] user found evenings during the weekend of 2026-10-10 to 2026-10-11 awkward\n7. [2026-10-09 00:50:00] user arrived home shortly before 22:25 on 2026-10-08.\n8. [2026-10-05 21:45:00] user was home on October 5, 2026 at 9:25 PM.\n9. [2026-10-08 16:15:00] user agreed to have lunch at Birch Cafe at noon on Sunday, 2026-10-11.\n10. [2026-10-06 12:00:00] user stated the same place as the original dinner plan works for user's rescheduled dinner with Ben.\n11. [2026-10-07 15:20:00] user was stuck doing laundry on 2026-10-07\n12. [2026-10-06 11:20:00] user agreed on 2026-10-06 to postpone the plan discussed with Jen and Alex to a day other than 2026-10-06.\n13. [2026-10-05 22:35:00] user was home on 2026-10-05 at 22:15\n14. [2026-10-09 00:50:00] user stated user had discussed moving Friday pizza meeting to 5pm in DMs with fellow chat participant Maya before 00:43 on 2026-10-09.\n15. [2026-10-05 21:45:00] user described October 5, 2026 as an endless day.\n16. [2026-10-07 22:16:00] user arrived at user's home shortly before 2026-10-07 22:00:00.\n17. [2026-10-07 22:41:00] user agreed that Rosa's on Oak Street works for pizza on October 9, 2026 at 7pm.\n18. [2026-10-05 22:10:00] user agreed to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift.\n19. [2026-10-06 12:00:00] user agreed to move user's dinner with Ben to another day.\n20. [2026-10-07 22:16:00] user was starving at 2026-10-07 22:00:00.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+        "metadata": {
+          "top_k": 20,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 20
+        },
+        "category": "memory_search",
+        "attribution": "background-or-prefetch"
+      },
+      {
+        "toolName": "search_memory",
+        "args": {
+          "query": "user personality tired exhausted energy evenings",
+          "top_k": 20
+        },
+        "result": "Found 20 observations for query 'user personality tired exhausted energy evenings':\n\nEXPLICIT:\n\n1. [2026-10-09 00:50:00] user was still exhausted as of 00:50 on 2026-10-09.\n2. [2026-10-06 11:20:00] user felt groggy on the morning of 2026-10-06.\n3. [2026-10-09 00:50:00] user had exhausted feet at 22:25 on 2026-10-08.\n4. [2026-10-05 22:10:00] user was wiped out by Monday, October 5, 2026.\n5. [2026-10-07 15:20:00] user found evenings during the weekend of 2026-10-10 to 2026-10-11 awkward\n6. [2026-10-09 00:50:00] user planned at 00:50 on 2026-10-09 to go to sleep early during the night of 2026-10-08 to 2026-10-09.\n7. [2026-10-05 21:45:00] user was home on October 5, 2026 at 9:25 PM.\n8. [2026-10-08 22:15:00] user felt wiped on 2026-10-08.\n9. [2026-10-09 00:50:00] user arrived home shortly before 22:25 on 2026-10-08.\n10. [2026-10-05 22:35:00] user was home on 2026-10-05 at 22:15\n11. [2026-10-11 20:42:54] user has a coffee with Alex.\n12. [2026-10-07 22:16:00] user was starving at 2026-10-07 22:00:00.\n13. [2026-10-05 21:45:00] user described October 5, 2026 as an endless day.\n14. [2026-10-07 22:16:00] user arrived at user's home shortly before 2026-10-07 22:00:00.\n15. [2026-10-09 00:50:00] user agreed that 5pm on 2026-10-09 works for user for Friday pizza.\n16. [2026-10-07 15:20:00] user agreed to a raincheck with Alex\n17. [2026-10-11 20:42:54] user has a call with Jen.\n18. [2026-10-07 22:41:00] user felt that October 7, 2026 dragged forever.\n19. [2026-10-09 00:50:00] user stated user had discussed moving Friday pizza meeting to 5pm in DMs with fellow chat participant Maya before 00:43 on 2026-10-09.\n20. [2026-10-05 22:10:00] user agreed to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026 before Alex's shift.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+        "metadata": {
+          "top_k": 20,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 20
+        },
+        "category": "memory_search",
+        "attribution": "background-or-prefetch"
+      },
+      {
+        "toolName": "search_memory",
+        "args": {
+          "query": "user name identity who is user",
+          "top_k": 20
+        },
+        "result": "Found 20 observations for query 'user name identity who is user':\n\nEXPLICIT:\n\n1. [2026-10-11 20:42:54] user has a call with Jen.\n2. [2026-10-05 22:10:00] user was wiped out by Monday, October 5, 2026.\n3. [2026-10-05 22:35:00] user was home on 2026-10-05 at 22:15\n4. [2026-10-05 21:45:00] user was home on October 5, 2026 at 9:25 PM.\n5. [2026-10-11 20:42:54] user has a coffee with Alex.\n6. [2026-10-07 22:16:00] user arrived at user's home shortly before 2026-10-07 22:00:00.\n7. [2026-10-09 00:50:00] user stated user will eat fellow chat participant Leo's share of knots.\n8. [2026-10-08 22:15:00] user felt wiped on 2026-10-08.\n9. [2026-10-05 21:16:00] user agreed to meet on 2026-10-06 at 2pm at the west entrance to the duck pond in Willow Park.\n10. [2026-10-09 00:50:00] user arrived home shortly before 22:25 on 2026-10-08.\n11. [2026-10-07 23:02:00] user needs backup so Maya does not steal all of user's garlic knots.\n12. [2026-10-07 22:16:00] user was starving at 2026-10-07 22:00:00.\n13. [2026-10-07 15:20:00] user agreed to a raincheck with Alex\n14. [2026-10-07 22:16:00] user agreed to get pizza with Devon on 2026-10-09 at 18:00.\n15. [2026-10-07 15:20:00] user was stuck doing laundry on 2026-10-07\n16. [2026-10-05 21:16:00] user invited others to walk to the duck pond on 2026-10-06.\n17. [2026-10-08 16:15:00] user agreed to have lunch at Birch Cafe at noon on Sunday, 2026-10-11.\n18. [2026-10-09 00:50:00] user was still exhausted as of 00:50 on 2026-10-09.\n19. [2026-10-06 12:00:00] user proposed Saturday, October 10, 2026 as the new day for user's dinner with Ben.\n20. [2026-10-09 00:50:00] user agreed that 5pm on 2026-10-09 works for user for Friday pizza.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+        "metadata": {
+          "top_k": 20,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 20
+        },
+        "category": "memory_search",
+        "attribution": "background-or-prefetch"
+      },
+      {
+        "toolName": "search_messages",
+        "args": {
+          "limit": 10,
+          "query": "user preferences daily routine working style"
+        },
+        "result": "Found 10 matching messages in 4 conversation snippets for query 'user preferences daily routine working style'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-c5fbdc1bbe007778bf8430c4, 1 match(es)) ---\n2026-10-06 10:45:00 Ben: hey can we move our dinner to another day?\n2026-10-06 11:10:00 user: yeah totally, what about Saturday?\n2026-10-06 11:35:00 Ben: Saturday works, same time?\n2026-10-06 12:00:00 user: yep same time works, same place, see you then\n\n--- Snippet 2 (session: source-11a263c1f559430a34998420, 1 match(es)) ---\n2026-10-07 23:10:00 Maya: yesss perfect, it's been such a long day I need pizza already\n2026-10-08 22:25:00 user: just got home my feet are dead lol\n2026-10-08 22:29:00 Maya: same, today dragged forever\n2026-10-08 22:33:00 user: btw saw Rosa's is closed for renovations so we gotta pick a new spot for Friday\n2026-10-08 22:37:00 user: what about Domino's on Elm Street?\n\n--- Snippet 3 (session: source-11a263c1f559430a34998420, 1 match(es)) ---\n2026-10-09 00:36:40 Maya: omg thank god, ok quick catch up since you missed it - we're doing Mario's on Pine Street\n2026-10-09 00:40:00 Maya: we already agreed in DMs to move Friday to 5pm cause I have to be at my parents later, you good with that Leo?\n2026-10-09 00:43:20 user: yeah 5pm works for me like we said in DMs\n2026-10-09 00:46:40 Leo: yeah 5pm Friday works for me, been craving their garlic knots\n2026-10-09 00:50:00 user: lol same, I'm still dead from today tho I'm gonna crash early tonight\n\n--- Snippet 4 (session: pacbench-chat-9k1s8koi, 7 match(es)) ---\n2026-10-11 20:42:54 user: [Simulated now: 2026-10-07T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid that change my call with Jen or coffee with Alex too?\n2026-10-11 20:42:54 hermes: No — that was just the duck pond. I have no record of a change to your 10am call with Jen or 11am coffee with Alex.\n2026-10-11 20:43:40 user: [Simulated now: 2026-10-07T09:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many dinner plans did Ben and I settle on this week?\n2026-10-11 20:43:40 hermes: 1 — dinner at Juniper Cafe Saturday Oct 10 around 7pm, rescheduled from Oct 8.\n2026-10-11 20:43:54 user: [Simulated now: 2026-10-07T09:17:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhen and where am I meeting Ben for dinner now?\n2026-10-11 20:43:54 hermes: Saturday, October 10 around 7pm at Juniper Cafe.\n2026-10-11 20:49:13 user: [Simulated now: 2026-10-08T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans did I make for Friday?\n2026-10-11 20:49:13 hermes: 2 — Devon at Luigi's at 6pm and Rosa's at 7pm on Oct 9.\n2026-10-11 20:49:50 user: [Simulated now: 2026-10-08T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWho am I meeting, and where and when?\n2026-10-11 20:49:50 hermes: Devon — Luigi's on 5th St — Oct 9 at 6pm; Maya — Rosa's on Oak St — Oct 9 at 7pm.\n2026-10-11 20:56:12 user: [Simulated now: 2026-10-09T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many pizza plans do I have today?\n2026-10-11 20:56:12 hermes: You have 2 pizza plans today: 5pm with Maya at Mario's on Pine Street, and 6pm with Devon at Luigi's on 5th Street.\n2026-10-11 20:57:07 user: [Simulated now: 2026-10-09T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the latest plan for each one?\n2026-10-11 20:57:07 hermes: Devon: 6pm today at Luigi's on 5th Street — unchanged.\n\nMaya: 5pm today at Mario's on Pine Street — moved from 7pm at Rosa's because Rosa's is closed for renovations.\n2026-10-11 20:59:18 user: [Simulated now: 2026-10-09T09:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the latest plan for each one and who else is included?\n2026-10-11 20:59:18 hermes: Devon: 6pm today at Luigi's on 5th Street, just you + Devon.\n\nMaya: 5pm today at Mario's on Pine Street, you + Maya + Leo.\n2026-10-11 20:59:52 user: [Simulated now: 2026-10-09T09:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid Leo sort out his shift?\n2026-10-11 20:59:52 hermes: Yes — Tyler is covering his closing shift, so he's back in for pizza today.",
+        "metadata": {
+          "top_k": 10,
+          "used_embedding": true,
+          "embedding_query_count": 1,
+          "query_tokens": 6,
+          "results_count": 4
+        },
+        "category": "source_messages",
+        "attribution": "background-or-prefetch"
+      }
+    ],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": true,
+    "categories": {},
+    "operations": [],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 1,
+    "latency_s": 26.24,
+    "input_tokens": 5488,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": true,
+    "inherited_unclassified": true
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "leo-shift-cover",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "leo-shift-cover",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": true,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  },
+  "native_trace_review": "Honcho internal original-message reads now visible. Semantic verdicts and questions unchanged; retention credit follows existing source-fallback/unknown-path rules."
+}

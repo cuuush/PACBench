@@ -1,0 +1,52 @@
+{
+  "checkpoint": "alex-weekend-current",
+  "question": "[Simulated now: 2026-10-09T12:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan with Alex this weekend?",
+  "answer": "Nothing currently — you declined Alex's dinner at Juniper Cafe at 7pm on Oct 11 for a raincheck, said weekend evenings were awkward.",
+  "claims": [
+    {
+      "id": "meal-type",
+      "description": "The plan with Alex is for lunch",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-lunch-instead-01",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-02"
+      ]
+    },
+    {
+      "id": "with-alex",
+      "description": "The lunch is with Alex",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-lunch-instead-01",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-02"
+      ]
+    },
+    {
+      "id": "day-sunday",
+      "description": "The lunch is on Sunday",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-lunch-instead-01",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-02",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-04"
+      ]
+    },
+    {
+      "id": "time-noon",
+      "description": "The lunch is at noon",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-lunch-instead-01",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-02"
+      ]
+    },
+    {
+      "id": "venue-birch",
+      "description": "The lunch is at Birch Cafe",
+      "evidence": [
+        "pizza-week-natural-confounders-low/alex-lunch-instead-01",
+        "pizza-week-natural-confounders-low/alex-lunch-instead-02"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-09T12:15:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan with Alex this weekend?\nAnswer: Nothing currently — you declined Alex's dinner at Juniper Cafe at 7pm on Oct 11 for a raincheck, said weekend evenings were awkward.\nClaims (hidden from the assistant): [{\"id\": \"meal-type\", \"claim\": \"The plan with Alex is for lunch\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-lunch-instead-01\", \"pizza-week-natural-confounders-low/alex-lunch-instead-02\"]}, {\"id\": \"with-alex\", \"claim\": \"The lunch is with Alex\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-lunch-instead-01\", \"pizza-week-natural-confounders-low/alex-lunch-instead-02\"]}, {\"id\": \"day-sunday\", \"claim\": \"The lunch is on Sunday\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-lunch-instead-01\", \"pizza-week-natural-confounders-low/alex-lunch-instead-02\", \"pizza-week-natural-confounders-low/alex-lunch-instead-04\"]}, {\"id\": \"time-noon\", \"claim\": \"The lunch is at noon\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-lunch-instead-01\", \"pizza-week-natural-confounders-low/alex-lunch-instead-02\"]}, {\"id\": \"venue-birch\", \"claim\": \"The lunch is at Birch Cafe\", \"evidence\": [\"pizza-week-natural-confounders-low/alex-lunch-instead-01\", \"pizza-week-natural-confounders-low/alex-lunch-instead-02\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"meal-type\", \"verdict\": \"misrepresented\", \"reason\": \"Answer says nothing currently and declined dinner, contradicting a current lunch plan.\"}, {\"id\": \"with-alex\", \"verdict\": \"misrepresented\", \"reason\": \"Answer mentions Alex only for declined dinner and says nothing currently, contradicting a current lunch with Alex.\"}, {\"id\": \"day-sunday\", \"verdict\": \"misrepresented\", \"reason\": \"Answer says nothing currently, contradicting a current Sunday lunch, even though Oct 11 mentioned for declined dinner.\"}, {\"id\": \"time-noon\", \"verdict\": \"misrepresented\", \"reason\": \"Answer asserts 7pm for declined dinner, not noon, and says nothing currently.\"}, {\"id\": \"venue-birch\", \"verdict\": \"misrepresented\", \"reason\": \"Answer asserts Juniper Cafe for declined dinner, not Birch Cafe, and says nothing currently.\"}], \"recovery\": [{\"id\": \"meal-type\", \"kind\": \"incorrect\", \"reason\": \"Answer gives wrong meal-type and denies current plan.\"}, {\"id\": \"with-alex\", \"kind\": \"incorrect\", \"reason\": \"Answer contradicts current lunch with Alex by saying nothing currently.\"}, {\"id\": \"day-sunday\", \"kind\": \"incorrect\", \"reason\": \"Answer contradicts current Sunday plan by saying nothing currently.\"}, {\"id\": \"time-noon\", \"kind\": \"incorrect\", \"reason\": \"Answer gives wrong time 7pm and denies current plan.\"}, {\"id\": \"venue-birch\", \"kind\": \"incorrect\", \"reason\": \"Answer gives wrong venue Juniper Cafe and denies current plan.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/runs/pizza-week-natural-confounders-all-20261010-r3/model-calls/6bc4ecdeeca39d35ec2464157fd39230f6b8114cb22dae56f5a285cd7fa9d12d.json"
+}

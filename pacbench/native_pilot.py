@@ -540,7 +540,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     report["state"] = ("diagnostic" if all(r["state"] == "diagnostic" for r in results)
                        else "incomplete") if source else "inventory"
     if source:
-        report["gateway_after"] = require_live_cost_boundary()
+        try:report["gateway_after"] = require_live_cost_boundary()
+        except RuntimeError as exc:
+            # Budget stopping is a completed execution outcome, not a reason
+            # to leave the public run permanently marked "running".
+            report.update(state="incomplete", spending_stop=str(exc))
     save(output / "summary.json", report)
     if source:
         from .native_audit import audit

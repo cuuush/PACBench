@@ -8,6 +8,39 @@ from pathlib import Path
 from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
+def audit_honcho_receipt(batch, result):
+    """Independently bind native acknowledgments and readiness to frozen sources."""
+    errors=[];seen=[];sessions=set()
+    expected={m['source_id']:m for m in batch}
+    for ack in result.get('result',[]):
+        sessions.add(ack['session_id'])
+        observer=ack.get('observer',{})
+        if observer.get('peer_id')!='hermes' or observer.get('observe_others') is not True:
+            errors.append('Honcho configured recall observer did not witness sources')
+        for actual in ack['messages']:
+            metadata=actual.get('metadata',{});source_id=metadata.get('source_id')
+            seen.append(source_id);original=expected.get(source_id)
+            if original is None:
+                errors.append('Honcho acknowledged an unknown source');continue
+            identity=(original['channel'],original['thread'])
+            session='source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24]
+            if actual.get('session_id')!=session or ack['session_id']!=session:
+                errors.append('Honcho acknowledged the wrong source session')
+            if (actual.get('peer_id')!=('user' if original['from_owner'] else original['sender']) or
+                    actual.get('content')!=original['text'] or
+                    datetime.fromisoformat(actual['created_at'])!=datetime.fromisoformat(original['written_at']) or
+                    any(metadata.get(k)!=v for k,v in original.items() if k!='text')):
+                errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
+    if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
+    changes=result.get('processing_status',[])
+    final=changes[-1].get('sessions',{}) if changes else {}
+    if set(final)!=sessions or not final or any(
+            status.get('pending_work_units')!=0 or status.get('in_progress_work_units')!=0
+            for status in final.values()):
+        errors.append('Honcho submitted-session processing did not complete')
+    return errors
+
+
 def audit_ingestion(root, arm, messages, summary):
     errors=[]
     def check(ok,msg):
@@ -65,6 +98,8 @@ def audit_ingestion(root, arm, messages, summary):
         check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')
         check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York'),'native processing clock mismatch')
+        if arm.name=='honcho':
+            errors.extend(audit_honcho_receipt(batch,record.get('result',{})))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

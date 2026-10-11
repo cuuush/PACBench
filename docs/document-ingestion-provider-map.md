@@ -11,7 +11,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 | OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. The mixed `viking_read` is omitted from Hermes’s tool schemas; native context/search remain available. |
 | ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Current curation left a native pending review; recall was withheld. |
 | Supermemory | `documents.add` with raw content, canonical container tags and custom ID; poll status | Published local server and native SDK, Ollama embeddings. Native namespace resolver. Current document status reported done despite repeated provider-model HTTP 400s; run stopped. |
-| Honcho | Real source peers and original timestamps through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Accepted messages must finish processing before recall. Current Monday queue missed the 180-second deadline. |
+| Honcho | Real source peers, original timestamps and native configured recall observer through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Accepted messages must finish processing before recall. The old 180-second wait cut off continuing work; a fresh batch completed in 246 seconds. Submitted-session progress now has a 15-minute bound and a five-minute stall limit. Hermes's AI observer must join before ingestion; attaching it later does not backfill observations. Spark requires the native 16384-token allowance; 2500 truncated extraction. A fresh observer-corrected recall run is being verified. |
 | Memcal | Native Messages SQLite and TLS IMAP readers, separate contacts, normal nightly processing | Provider-independent Apple schema and RFC 5322 fixtures; nightly processing at 03:00 scenario-local time. Version 0.8.2 with product fixes on `main`. |
 | Holographic | Fact storage and regex extraction | Excluded: no practical general automatic source ingestion. |
 | RetainDB | Hosted storage/import | Excluded: Hermes documents no verified local backend. |
@@ -22,3 +22,14 @@ Every connector gets the same frozen public message records; daily documents are
 Memcal email delivery uses a real local TLS IMAP server with Inbox/Sent folders, reply references and separate account addresses linked by standard Contacts cards. This is a text-message fixture implementing the commands used by the native reader, not a Proton Bridge installation or a full mailbox server. No reader methods are replaced. The connector waits for native ingestion and processing before Hermes starts.
 
 Run-owned namespaces and stores prevent cross-trial state. Configure each system from its project instructions; retain version/setup receipts. Failed readiness blocks recall. Internal native tools, queues and cost are captured where available; missing observability stays unknown. [Current findings](../PIZZA_DAY.md) cover all seven configured local connectors and their actual readiness/recall outcomes. Inspect answer, retention and harness issues separately. These development grades are not calibrated rankings.
+
+
+Honcho's [directional representations](https://docs.honcho.dev/v3/documentation/features/advanced/directional-representations)
+require the querying observer to witness messages when they are created. Hermes
+normally recalls via its AI peer with the human as target. The connector joins
+that configured AI as a non-speaking reader using native `SessionPeerConfig`,
+verifies the server's actual flags, then delivers real source messages. No
+assistant utterances, manual conclusions or retrospective memory inserts are made.
+Honcho [queue status](https://docs.honcho.dev/v3/documentation/features/advanced/queue-status)
+is an observability interface, not a production synchronization contract. The
+benchmark's bounded barrier covers only its finite, isolated submitted sessions.

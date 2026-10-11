@@ -119,3 +119,24 @@ def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path)
     (memories/'MEMORY.md').write_text('')
     record_recall_isolation(tmp_path)
     assert json.loads((tmp_path/'pre-recall-isolation.json').read_text())['hermes_sessions_before_recall']==[]
+
+
+@pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer'])
+def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damage):
+    from pacbench.document_audit import audit_honcho_receipt
+    import hashlib
+    original=message('source-1')
+    session='source-'+hashlib.sha256(json.dumps(('imessage','one')).encode()).hexdigest()[:24]
+    actual={'id':'native-message','session_id':session,'peer_id':'Devon','content':original['text'],
+            'created_at':original['written_at'],'metadata':{k:v for k,v in original.items() if k!='text'}}
+    receipt={'result':[{'session_id':session,'observer':{'peer_id':'hermes','observe_me':False,'observe_others':True},'messages':[actual]}],
+             'processing_status':[{'sessions':{session:{'pending_work_units':0,'in_progress_work_units':0}}}]}
+    if damage=='text':actual['content']='Invented summary'
+    elif damage=='speaker':actual['peer_id']='hermes'
+    elif damage=='time':actual['created_at']='2026-09-11T18:00:00-04:00'
+    elif damage=='session':actual['session_id']='other-source'
+    elif damage=='missing':receipt['result'][0]['messages']=[]
+    elif damage=='pending':receipt['processing_status'][0]['sessions'][session]['pending_work_units']=1
+    elif damage=='observer':receipt['result'][0]['observer']['observe_others']=False
+    errors=audit_honcho_receipt([original],receipt)
+    assert bool(errors)==bool(damage)

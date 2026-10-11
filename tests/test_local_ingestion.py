@@ -104,22 +104,26 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
     (source/'messages.json').write_text(json.dumps(messages))
     home=tmp_path/'arm/hermes-home';home.mkdir(parents=True)
     (home/'honcho.json').write_text(json.dumps({'baseUrl':'http://127.0.0.1:1234',
-        'hosts':{'hermes':{'workspace':'local-test','peerName':'user'}}}))
+        'hosts':{'hermes':{'workspace':'local-test','peerName':'user','aiPeer':'hermes'}}}))
     pending=[];participants=[]
     class Peer:
         def __init__(self,id):self.id=id
         def message(self,content,created_at,metadata):
             return SimpleNamespace(id=metadata['source_id'],session_id='session-1',peer_id=self.id,content=content,
                 created_at=datetime.fromisoformat(created_at),metadata=metadata)
-    session=SimpleNamespace(id='session-1',add_peers=lambda peers:participants.extend(p.id for p in peers),
+    session=SimpleNamespace(id='session-1',get_peer_configuration=lambda peer:SimpleNamespace(observe_me=False,observe_others=True),add_peers=lambda peers:participants.extend(p[0].id if isinstance(p,tuple) else p.id for p in peers),
         add_messages=lambda batch:pending.extend(batch) or batch,
         queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'pending_work_units':0,'in_progress_work_units':0}))
     client=SimpleNamespace(session=lambda id:session,peer=Peer)
     monkeypatch.setitem(sys.modules,'honcho',SimpleNamespace(Honcho=lambda **kw:client))
+    monkeypatch.setitem(sys.modules,'honcho.api_types',SimpleNamespace(SessionPeerConfig=lambda **kw:SimpleNamespace(**kw)))
+    monkeypatch.setitem(sys.modules,'plugins.memory.honcho.client',SimpleNamespace(
+        HonchoClientConfig=SimpleNamespace(from_global_config=lambda:SimpleNamespace(ai_observe_me=False,ai_observe_others=True))))
     result=honcho(source,home.parent,'now','now')
     assert result['ready'] and len(pending)==len(messages)
     assert list(result['processing_status'][0]['sessions'])==['session-1']
-    assert participants==['user','Devon']
+    assert participants==['user','Devon','hermes']
+    assert result['result'][0]['observer']=={'peer_id':'hermes','observe_me':False,'observe_others':True}
     for native,original in zip(pending,messages):
         assert native.content==original['text']
         assert native.created_at==datetime.fromisoformat(original['written_at'])

@@ -214,11 +214,15 @@ def byterover(source,root,at,processing_at):
 
 def honcho(source,root,at,processing_at):
     from honcho import Honcho
+    from honcho.api_types import SessionPeerConfig
+    from plugins.memory.honcho.client import HonchoClientConfig
     import hashlib
     cfg=json.loads((root/'hermes-home/honcho.json').read_text())
     if not cfg['baseUrl'].startswith('http://127.0.0.1:'):
         raise ValueError('Honcho ingestion requires the run-owned local server')
     host=cfg['hosts']['hermes']
+    native_config=HonchoClientConfig.from_global_config()
+    observer=host['aiPeer']
     client=Honcho(base_url=cfg['baseUrl'],workspace_id=host['workspace'],environment='local',max_retries=0,timeout=30)
     messages=json.loads((source/'messages.json').read_text())
     groups={}
@@ -232,7 +236,17 @@ def honcho(source,root,at,processing_at):
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
             peers[peer_id]=client.peer(peer_id)
         # Real source participants, not a fabricated user/assistant exchange.
-        session.add_peers(list(peers.values()))
+        # Hermes recalls from its AI observer's perspective. Honcho requires
+        # this observer to witness source messages as they arrive; adding it
+        # afterward does not backfill memory. This is a non-speaking reader,
+        # not a fabricated participant/message. Use the native Hermes flags.
+        session.add_peers([*peers.values(), (client.peer(observer), SessionPeerConfig(
+            observe_me=native_config.ai_observe_me,
+            observe_others=native_config.ai_observe_others))])
+        observed=session.get_peer_configuration(observer)
+        if (observed.observe_me!=native_config.ai_observe_me or
+                observed.observe_others!=native_config.ai_observe_others):
+            raise RuntimeError('Honcho did not apply the configured recall observer')
         pending=[]
         for m in batch:
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
@@ -245,7 +259,8 @@ def honcho(source,root,at,processing_at):
                 actual.created_at!=sent.created_at or
                 any(actual.metadata.get(k)!=v for k,v in sent.metadata.items())):
                 raise RuntimeError('Honcho source acknowledgment differs from the submitted message')
-        acknowledgments.append({'session_id':session.id,'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
+        acknowledgments.append({'session_id':session.id,'observer':{'peer_id':observer,
+            'observe_me':observed.observe_me,'observe_others':observed.observe_others},'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
     statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))

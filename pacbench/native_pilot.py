@@ -397,6 +397,16 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 save(root/'status.json',result)
                 save(output/'summary.json',report)
                 continue
+            if source:
+                try:require_live_cost_boundary()
+                except RuntimeError as exc:
+                    result={'provider':provider,'repetition':repetition,'state':'blocked',
+                            'reason':str(exc),'input_hash':report['input_hash'],
+                            'capability':{'available':False,'reason':str(exc),'tools':[],
+                                          'wiring_verified':False,'execution_blocker':str(exc)}}
+                    results.append(result);save(root/'status.json',result)
+                    save(output/'summary.json',report)
+                    continue
             try:
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
                                 local_timezone=resolved.get("timezone", "") if resolved else "")
@@ -447,6 +457,12 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             model_work_stopped = False
             def check_model_health():
                 nonlocal model_work_stopped
+                try:require_live_cost_boundary()
+                except RuntimeError:
+                    if not model_work_stopped:
+                        model_work_stopped = True
+                        stop_arm_model_work(root)
+                    raise
                 health = provider_model_health(snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
                 save(root/'provider-model-health.json', health)
                 if health['state'] == 'stop':
@@ -464,6 +480,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     save(root/batch['file'],record)
                     if record['state']!='ready':
                         failed_batches.add(batch['id'])
+                        check_model_health()
                         raise RuntimeError('Native source ingestion/processing failed; inspect saved record')
                     ingested.append(batch['id'])
                     check_model_health()

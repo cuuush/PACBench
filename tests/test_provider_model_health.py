@@ -44,6 +44,8 @@ def test_cost_stop_invokes_only_the_failed_arms_native_shutdown(tmp_path, monkey
     assert stopped == ['first']
     assert cleaned == [first, first]
     assert other.resolve() in native_pilot._ARM_SHUTDOWNS
+
+
 def test_inventory_shuts_down_each_owned_backend_before_starting_the_next(tmp_path,monkeypatch):
     from pacbench import native_pilot
     events=[]
@@ -53,4 +55,3 @@ def test_inventory_shuts_down_each_owned_backend_before_starting_the_next(tmp_pa
     report=native_pilot.run(None,tmp_path/'matrix',providers=['memcal','honcho'])
     assert report['state']=='inventory'
     assert events==[('start','memcal'),('stop','memcal'),('start','honcho'),('stop','honcho')]
-

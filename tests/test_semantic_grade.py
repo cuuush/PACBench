@@ -10,6 +10,16 @@ from pacbench.semantic_grade import Claim, grade_semantic
 from pacbench.semantic_contract import build_contract, load_contract
 
 
+def test_contract_source_view_preserves_chat_context_for_unnamed_cancellations():
+    from pacbench.semantic_contract import _dialogue
+    shared={'written_at':'2026-10-06T07:00:00-04:00','sender':'Jen','text':"I can't make it today"}
+    rendered=_dialogue([
+        {**shared,'source_id':'group-1','channel':'imessage','thread':'pond-crew'},
+        {**shared,'source_id':'dm-1','channel':'imessage','thread':'jen'}])
+    assert 'group-1 | written' in rendered and 'channel imessage | thread pond-crew | Jen:' in rendered
+    assert 'dm-1 | written' in rendered and 'channel imessage | thread jen | Jen:' in rendered
+
+
 def test_description_alone_generates_and_judges_a_scene():
     scene = ScenePlan(scene="Devon and the user making plans to get pizza Friday night",
                       test_intent="Recall the agreed plan",

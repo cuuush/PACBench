@@ -108,7 +108,7 @@ class ScenePlan:
 
 
 #: Prompt version for scene-level authoring.
-SCENE_PROMPT_VERSION = "scene-v15"
+SCENE_PROMPT_VERSION = "scene-v16"
 
 
 def scene_prompt(plan: ScenePlan,
@@ -135,6 +135,7 @@ def scene_prompt(plan: ScenePlan,
                 f"{continuity}Scenario: {plan.scene}{required}\n"
                 + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
                    if plan.message_range else "Use a short exchange. ") +
+                "The subject is header metadata; do not put a Subject: prefix inside an email body. "
                 "Return only valid JSON with dialogue (a string with one Name: body line per email) and writer_note (a short string about the choices). No prose or Markdown fences outside the JSON.")
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "

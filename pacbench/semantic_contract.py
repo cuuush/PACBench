@@ -35,6 +35,7 @@ def _call_json(call: Callable, prompt: str) -> dict:
 
 def _dialogue(observations: list[dict]) -> str:
     return "\n".join(f"{o['source_id']} | written {o['written_at']} | "
+                     f"channel {o.get('channel','assistant')} | thread {o.get('thread','assistant')} | "
                      f"{o['sender']}: {o['text']}"
                      for o in observations)
 

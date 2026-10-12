@@ -70,7 +70,7 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
         row = dict(authored)
         row['noise']=noise
         if 'message_range' not in row:
-            if noise=='low':row['message_range']=[4,12]
+            if noise=='low':row['message_range']=[2,12]
             else:
                 if not row.get('participants'):raise ValueError('Chatty weeks require explicit chat participants')
                 key=(row.get('channel','text'),row.get('thread',row.get('id','')),str(row.get('at',row.get('window_start','')))[:10])

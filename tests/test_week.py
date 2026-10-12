@@ -16,25 +16,24 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==17 and len(resolved['checks'])==18
+    assert len(scenes)==19 and len(resolved['checks'])==13
     scene_by_id={s.id:s for s in scenes}
     check_by_id={c['id']:c for c in resolved['checks']}
     assert scene_by_id['leo-joins'].participants==('Me','Maya','Leo')
     assert scene_by_id['group-venue-update'].participants==scene_by_id['leo-joins'].participants
     assert scene_by_id['ben-email-reschedule'].email_subject=='Dinner'
-    assert check_by_id['initial-plan-count']['at']=='2026-09-10T09:00:00-04:00'
-    assert {check_by_id[k]['session'] for k in ('initial-plan-count','initial-plan-details')}=={'thursday-morning'}
-    assert {check_by_id[k]['session'] for k in ('updated-plan-count','updated-plan-details','leo-availability')}=={'friday-morning'}
-    assert check_by_id['devon-venue-fresh']['session']=='friday-devon-fresh'
+    assert check_by_id['pizza-final-details']['at']=='2026-09-13T21:00:00-04:00'
+    assert {check_by_id[k]['session'] for k in ('pizza-final-details','maya-change-history','leo-cover')}=={'pizza-recap'}
+    assert check_by_id['jen-upcoming']['session']=='jen-next-week'
+    assert all(r['at']>scenes[-1].window_end for r in resolved['checks'])
     assert all(r.get('kind','recall')=='recall' and not r.get('requires') and
                not r.get('depends_on') and not r.get('trigger') for r in resolved['checks'])
-    rows=[message('old',stamp='2026-09-09T18:00:00-04:00'),message('future')]
+    rows=[message('old',stamp='2026-09-09T18:00:00-04:00'),message('future',stamp='2026-09-14T18:00:00-04:00')]
     rows[0]['collected_at']='2026-09-09T18:00:00-04:00'
-    evidence=contract_evidence(rows,resolved['checks'],check_by_id['initial-plan-count'])
-    assert {r['source_id'] for r in evidence}=={'old','assistant-user:initial-plan-count',
-        'assistant-user:pond-initial','assistant-user:pond-cancellation',
-        'assistant-user:separate-appointments','assistant-user:ben-one-dinner','assistant-user:ben-moved'}
-    assert 'assistant-user:updated-plan-count' not in {r['source_id'] for r in evidence}
+    rows[1]['collected_at']=rows[1]['written_at']
+    evidence=contract_evidence(rows,resolved['checks'],check_by_id['maya-change-history'])
+    assert {r['source_id'] for r in evidence}=={'old','assistant-user:pizza-final-details','assistant-user:maya-change-history'}
+    assert 'assistant-user:leo-cover' not in {r['source_id'] for r in evidence}
     bad=json.loads(json.dumps(spec));bad['days']['wednesday']['scenes'][0]['channel']='missing'
     with pytest.raises(ValueError,match='Unknown channel'):normalize_week(bad,'2026-09-07')
 
@@ -45,8 +44,8 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
     assert resolved['noise']=='high'
     scene_by_id={s.id:s for s in scenes}
     assert scene_by_id['devon-invite'].message_range==(1200,1600)
-    assert scene_by_id['leo-joins'].message_range==(1800,2400)
-    assert scene_by_id['leo-joins'].messages_per_person==(600,800)
+    assert scene_by_id['leo-joins'].message_range==(900,1200)
+    assert scene_by_id['leo-joins'].messages_per_person==(300,400)
     assert 'unrelated topics' in scene_prompt(scene_by_id['leo-joins'])
     assert 'members can be silent' not in scene_prompt(scene_by_id['leo-joins']).lower()
     spec['noise']='extreme'
@@ -183,7 +182,7 @@ def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_p
     assert next(s for s in scenes if s.id=='devon-invite').at=='2026-10-28T18:00:00-04:00'
     assert resolved['checks'][-1]['at']=='2026-11-01T09:00:00-05:00'
     assert 'date' not in spec['days']['wednesday']
-    assert next(c for c in resolved['checks'] if c['id']=='initial-plan-count')['expect']==spec['days']['thursday']['conversations'][0]['turns'][0]['expect']
+    assert resolved['checks'][0]['expect']==spec['days']['sunday']['conversations'][0]['turns'][0]['expect']
     assert resolved['checks'][0]['facts']==[]
     with pytest.raises(ValueError,match='Monday'):resolve_spec(spec,tmp_path,week_start='2026-10-27')
 

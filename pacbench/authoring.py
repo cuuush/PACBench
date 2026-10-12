@@ -108,7 +108,7 @@ class ScenePlan:
 
 
 #: Prompt version for scene-level authoring.
-SCENE_PROMPT_VERSION = "scene-v14"
+SCENE_PROMPT_VERSION = "scene-v15"
 
 
 def scene_prompt(plan: ScenePlan,
@@ -130,7 +130,7 @@ def scene_prompt(plan: ScenePlan,
         if prior_lines else "")
     if plan.email_subject:
         return (f"Write a natural short email exchange. Subject: {plan.email_subject}. "
-                f"Participants: {', '.join(plan.participants)}; Me labels the owner. "
+                f"Participants: {', '.join(plan.participants)}; Me is the owner's speaker label, not a spoken name. "
                 f"Date: {plan.window_start[:10]}, local time {plan.window_start[11:16]}–{plan.window_end[11:16]}.\n"
                 f"{continuity}Scenario: {plan.scene}{required}\n"
                 + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
@@ -139,7 +139,7 @@ def scene_prompt(plan: ScenePlan,
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "
         "Use `Me` exactly for the user's own messages and distinct names for "
-        "other people. The user must speak at least once. Do not use `User`, "
+        "other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, "
         "`I`, or another alias for the user's speaker label.\n\n"
         + (f"Chat members: {', '.join(plan.participants)}. Use only these speaker labels."+
            (' Members can be silent.\n' if not plan.messages_per_person else '\n') if plan.participants else "") +
@@ -150,10 +150,10 @@ def scene_prompt(plan: ScenePlan,
         "current time of day consistent with that window.\n"
         f"{continuity}"
         f"Scenario: {plan.scene}{required}\n\n"
-        "Let the people sound like people. They can ramble about an ordinary "
-        "day, drift into the main topic, and sometimes change subject. "
-        "Some messages should have nothing to do with tested facts. Do not "
-        "force a joke or use the same greeting pattern in every thread. "
+        "Continue each person's voice from their earlier messages. Start with what "
+        "they want to say; small talk and unrelated remarks are optional. Allow "
+        "short message bursts and different reply lengths. Do not force an opening "
+        "greeting, joke or tired-after-work aside into every exchange. "
         + {'low': 'Noise: low. Use the shortest natural exchange with a little incidental chatter. ',
            'medium': 'Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. ',
            'high': 'Noise: high. Make a very chatty day, with many unrelated topics, facts and other plans. ' }[plan.noise] +
@@ -235,8 +235,11 @@ def parse_scene_lines(text: str, plan: ScenePlan) -> list[tuple[str, str]]:
 
 
 def spread_timestamps(plan: ScenePlan, n: int) -> list[str]:
-    """Spread `n` timestamps evenly across the scene window, deterministically
-    in Python — the model never authors timestamps."""
+    """Freeze reproducible uneven reply gaps within the authored scene window.
+
+    This is synthetic pacing, not a measured human timing distribution. The
+    model never authors clocks and provider reruns use the same frozen times.
+    """
     try:
         start = datetime.fromisoformat(plan.window_start)
         end = datetime.fromisoformat(plan.window_end)
@@ -250,16 +253,16 @@ def spread_timestamps(plan: ScenePlan, n: int) -> list[str]:
             f"start {plan.window_start!r}")
     if n <= 1:
         return [start.isoformat(timespec="seconds")]
-    if plan.timezone:
-        zone = ZoneInfo(plan.timezone)
-        start, end = start.astimezone(timezone.utc), end.astimezone(timezone.utc)
-        step = (end - start) / (n - 1)
-        return [(end if i == n - 1 else start + step * i)
-                .astimezone(zone).isoformat(timespec="seconds")
-                for i in range(n)]
-    step = (end - start) / (n - 1)
-    return [(end if i == n - 1 else start + step * i).isoformat(timespec="seconds")
-            for i in range(n)]
+    zone = ZoneInfo(plan.timezone) if plan.timezone else None
+    if zone:start,end=start.astimezone(timezone.utc),end.astimezone(timezone.utc)
+    weights=[(1,2,4,12,40)[hashlib.sha256(f'{plan.id}:{i}'.encode()).digest()[0]%5]
+             for i in range(n-1)]
+    total=sum(weights);elapsed=0;stamps=[start]
+    for weight in weights:
+        elapsed+=weight
+        stamps.append(end if elapsed==total else start+(end-start)*(elapsed/total))
+    return [(stamp.astimezone(zone) if zone else stamp).isoformat(timespec='seconds')
+            for stamp in stamps]
 
 
 def norm_thread(thread: str) -> str:

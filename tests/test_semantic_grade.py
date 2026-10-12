@@ -91,7 +91,6 @@ def test_fact_authored_thread_uses_prose_facts_and_verifies_each_one():
                      window_start="2026-10-01T17:00:00")
     prompt = scene_prompt(plan)
     assert "Wednesday" in prompt and "5pm" in prompt
-    assert "ordinary day" in prompt
     assert "Choose the number of messages" in prompt
     lines = [("Mike", "Ice cream Wednesday?"),
              ("Sarah", "Five works for me."), ("Me", "Great, see you Wednesday at five!")]

@@ -36,6 +36,19 @@ def test_writer_and_verifier_see_the_local_message_window():
     assert "between 19:00 and 19:20 local time" in judge_prompt(
         plan, [("Me", "Today is dragging")])
 
+
+def test_frozen_pacing_is_uneven_reproducible_and_preserves_dst_window():
+    plan=ScenePlan(id='uneven-replies',scene='An ordinary chat.',
+        at='2026-11-01T01:55:00-04:00',window_end='2026-11-01T01:15:00-05:00',
+        timezone='America/New_York')
+    stamps=spread_timestamps(plan,8)
+    assert stamps==spread_timestamps(plan,8)
+    assert stamps[0]==plan.window_start and stamps[-1]==plan.window_end
+    parsed=[datetime.fromisoformat(v) for v in stamps]
+    gaps=[(b-a).total_seconds() for a,b in zip(parsed,parsed[1:])]
+    assert min(gaps)>0 and len(set(gaps))>1
+    assert sum(gaps)==1200
+
 def test_blocked_tool_result_is_not_successful():
     event = {"type": "tool_result", "tool": "mcp__hindsight__list_memories",
              "success": True,

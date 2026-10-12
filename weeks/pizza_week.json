@@ -289,7 +289,7 @@
             {
               "id": "leo-cover",
               "prompt": "Did Leo find someone to cover in the end?",
-              "expect": "Yes. Tyler covered Leo's Friday work shift, and Leo confirmed he was joining the pizza lunch after all."
+              "expect": "Yes, Tyler covered his shift. Only coverage and the coverer's identity are judged."
             }
           ]
         },
@@ -337,7 +337,7 @@
             {
               "id": "alex-declined",
               "prompt": "Was dinner at Juniper part of that as well?",
-              "expect": "No. The user declined Alex's Sunday 7 pm dinner suggestion at Juniper Cafe."
+              "expect": "No dinner with Alex at Juniper Cafe was agreed. Only whether that dinner was agreed is judged."
             }
           ]
         },
@@ -353,7 +353,7 @@
             {
               "id": "key-prior-offer",
               "prompt": "What had I offered to do for him?",
-              "expect": "Collect Devon's spare key from the bartender at Luigi's on 5th Street on Sunday at 11 am. Devon was not going to meet the user there."
+              "expect": "Collect Devon's spare key from the bartender at Luigi's on 5th Street on Sunday at 11 am. Only the favor, collection point and scheduled day/time are judged."
             }
           ]
         },
@@ -363,13 +363,13 @@
           "turns": [
             {
               "id": "jen-upcoming",
-              "prompt": "What have I lined up with Jen for Tuesday?",
-              "expect": "A phone call next Tuesday at 10 am about Jen's interview."
+              "prompt": "When is my call with Jen on Tuesday, and what is it for?",
+              "expect": "At 10 am, to prepare for her interview. Only the time and purpose are judged."
             },
             {
               "id": "jen-distinct-calls",
               "prompt": "Is that the same call about her application?",
-              "expect": "No. They arranged a separate call about the job application for the earlier Tuesday, and this new next-Tuesday call concerns the interview."
+              "expect": "No. This is a new appointment, not the earlier job-application call. Only whether it is the same appointment is judged."
             }
           ]
         },
@@ -381,6 +381,28 @@
               "id": "pizza-distinct-count",
               "prompt": "How many different pizza outings did I agree to for this past Friday?",
               "expect": "Exactly two distinct pizza outings. Only the count is judged; restaurant suggestions, participant changes and rescheduling do not add outings."
+            }
+          ]
+        },
+        {
+          "id": "pickup-party-fresh",
+          "time": "10 pm",
+          "turns": [
+            {
+              "id": "pickup-not-meeting",
+              "prompt": "Was Devon supposed to meet me at the key pickup?",
+              "expect": "No. Devon was not going to be there; the user had agreed to collect the key for him. Only whether Devon was meant to attend is judged."
+            }
+          ]
+        },
+        {
+          "id": "pond-details-fresh",
+          "time": "10:02 pm",
+          "turns": [
+            {
+              "id": "pond-original-details",
+              "prompt": "Where and what time was the duck-pond meetup meant to be?",
+              "expect": "At 2 pm at the west entrance to the duck pond in Willow Park. Only the original time and meeting point are judged."
             }
           ]
         }

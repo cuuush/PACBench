@@ -301,11 +301,14 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
                 f"scene {plan.id!r}: verbatim dupe {text[:60]!r}")
         seen.add(key)
     stamps = spread_timestamps(plan, len(lines))
+    # Author scene names can reveal cancellations or outcomes. Export only
+    # opaque source identities; readable authoring labels stay in audit files.
+    thread='thread-'+hashlib.sha256(f'{plan.channel}:{plan.thread}'.encode()).hexdigest()[:24]
     return tuple(
         Observation(
-            source_id=f"{life_id}/{plan.id}-{i:02d}", channel=plan.channel,
+            source_id='message-'+hashlib.sha256(f'{life_id}/{plan.id}/{i}'.encode()).hexdigest()[:24], channel=plan.channel,
             written_at=stamp, arrived_at=stamp, collected_at=stamp,
-            sender=sender, thread=plan.thread, text=text,
+            sender=sender, thread=thread, text=text,
             from_owner=sender == "Me", structured=(
                 {'participants':list(plan.participants),'chat_name':plan.chat_name,
                  **({'email_subject':plan.email_subject} if plan.email_subject else {})} if plan.participants else None))

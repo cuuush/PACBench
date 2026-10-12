@@ -20,6 +20,45 @@ def test_contract_source_view_preserves_chat_context_for_unnamed_cancellations()
     assert 'dm-1 | written' in rendered and 'channel imessage | thread jen | Jen:' in rendered
 
 
+def test_exported_message_and_thread_ids_do_not_reveal_authoring_outcomes():
+    first=ScenePlan(id='party-cancelled',thread='pond-cancelled',channel='imessage',
+        scene='The group postpones an outing.',participants=('Me','Jen'),at='2026-10-06T07:00:00-04:00')
+    second=ScenePlan(id='party-reinstated',thread='pond-cancelled',channel='imessage',
+        scene='The same group follows up.',participants=('Me','Jen'),at='2026-10-07T07:00:00-04:00')
+    lines=[('Jen',"I can't make it today"),('Me','No worries')]
+    a=build_scene_observations('author-week',first,lines)
+    b=build_scene_observations('author-week',second,lines)
+    assert a==build_scene_observations('author-week',first,lines)
+    assert a[0].thread==b[0].thread
+    assert {o.source_id for o in a}.isdisjoint(o.source_id for o in b)
+    assert all(word not in json.dumps([o.public() for o in a+b]) for word in ('author-week','party-cancelled','party-reinstated','pond-cancelled'))
+
+
+@pytest.mark.parametrize('citation',['s1','s999'])
+def test_draft_citation_aliases_resolve_exactly_and_unknown_labels_fail(tmp_path,citation):
+    source='message-97d543a2ea1f3d30a9a18b2c'
+    observations=[{'source_id':source,'sender':'Me','written_at':'2026-10-05T18:00:00-04:00',
+        'channel':'imessage','thread':'thread-opaque','text':'Dinner Friday at seven.'}]
+    def draft(prompt):
+        assert 's1 | written' in prompt and source not in prompt
+        return json.dumps({'claims':[{'id':'time','statement':'Dinner is at seven.','evidence':[citation]}]})
+    def review(prompt):
+        assert source in prompt
+        if 'Check this evaluation prompt' in prompt:
+            return json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'The question asks for the time.'})
+        return json.dumps({'complete':True,'reviews':[{'id':'time','supported':True,'relevant':True,'unambiguous':True,'reason':'The source states the time.'}]})
+    question=lambda prompt:json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'The question asks for the time.'})
+    kwargs=dict(scene='Dinner',test_intent='Dinner is at seven.',observations=observations,
+        generate=draft,verify=review,question_generate=question,user_question='What time is dinner?',
+        question_at='2026-10-11T21:00:00-04:00',output_path=tmp_path/'contract.json')
+    if citation=='s999':
+        with pytest.raises(ValueError,match='unsupported citation'):build_contract(**kwargs)
+    else:
+        result=build_contract(**kwargs)
+        assert result.claims[0].evidence==(source,)
+        assert load_contract(tmp_path/'contract.json')==result
+
+
 def test_description_alone_generates_and_judges_a_scene():
     scene = ScenePlan(scene="Devon and the user making plans to get pizza Friday night",
                       test_intent="Recall the agreed plan",

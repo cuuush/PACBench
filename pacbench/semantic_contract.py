@@ -33,8 +33,9 @@ def _call_json(call: Callable, prompt: str) -> dict:
     raise ValueError("contract model returned malformed JSON twice")
 
 
-def _dialogue(observations: list[dict]) -> str:
-    return "\n".join(f"{o['source_id']} | written {o['written_at']} | "
+def _dialogue(observations: list[dict], source_labels=None) -> str:
+    source_labels=source_labels or {}
+    return "\n".join(f"{source_labels.get(o['source_id'],o['source_id'])} | written {o['written_at']} | "
                      f"channel {o.get('channel','assistant')} | thread {o.get('thread','assistant')} | "
                      f"{o['sender']}: {o['text']}"
                      for o in observations)
@@ -74,6 +75,10 @@ def build_contract(*, scene: str, test_intent: str,
     ids = {o["source_id"] for o in observations}
     if len(ids) != len(observations):
         raise ValueError("duplicate dialogue source ids")
+    # Short, exact citation labels avoid asking the draft model to transcribe
+    # opaque hashes. Review and frozen claims still use original source IDs.
+    aliases={f's{i}':o['source_id'] for i,o in enumerate(observations,1)}
+    draft_dialogue=_dialogue(observations,{source:alias for alias,source in aliases.items()})
     if behavior:
         if not author_facts:
             draft=_call_json(generate,
@@ -134,7 +139,7 @@ def build_contract(*, scene: str, test_intent: str,
         '"evidence":["source-id"]}]}.\n\n'
         f"Private scenario: {scene}\nTest intent: {test_intent}\n"
         f"{fact_instruction}"
-        f"Frozen dialogue:\n{dialogue}" +
+        f"Frozen dialogue (cite its s-number labels):\n{draft_dialogue}" +
         ("\nRevise the rejected draft using this independent review. Keep the original "
          "expectation and evidence; do not invent support or add requirements.\n" +
          json.dumps(_claim_feedback) if _claim_feedback is not None else ""))
@@ -149,6 +154,8 @@ def build_contract(*, scene: str, test_intent: str,
         if not isinstance(row, dict):
             raise ValueError("malformed contract claim")
         cid, evidence = row.get("id"), row.get("evidence")
+        if isinstance(evidence,list) and all(isinstance(e,str) for e in evidence):
+            evidence=[aliases.get(e,e) for e in evidence]
         statement = (author_facts[len(claims)] if author_facts and
                      len(claims) < len(author_facts) else row.get("statement"))
         if (not isinstance(cid, str) or not cid or cid in seen or
@@ -271,6 +278,7 @@ def build_contract(*, scene: str, test_intent: str,
     evidence_hash = hashlib.sha256(json.dumps(observations, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
     body = {"claims": [vars(c) for c in claims], "question": question.strip(),
+            "source_aliases": aliases,
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,
             "author_fact_count": len(author_facts),"test_intent":test_intent}

@@ -99,7 +99,7 @@ function chatThread(items) {
 function emailRead(item) {
   if (!item) return notice("No email captured.");
   const from = item.from_owner ? "You" : item.sender;
-  const to = item.from_owner ? item.thread : "You";
+  const to = item.from_owner ? (item.structured?.participants || []).filter(name => name !== 'Me').join(', ') || item.thread : "You";
   const subject = String(item.text || "").split("\n")[0].slice(0, 90) || "(no subject)";
   return '<div data-message="' + esc(item.source_id) + '"><h3>' + esc(subject) +
     '</h3><div class="mail-meta">From: ' + esc(from) + "<br>To: " + esc(to) +
@@ -151,8 +151,8 @@ function renderModelCall(call) {
     details("Full model request and response", dump(call));
 }
 function reviewedLines(run, sceneId, lineNumbers) {
-  const prefix = "/" + sceneId + "-";
-  const items = sources(run).filter(item => item.source_id.includes(prefix));
+  const scene = (run.scenes?.scenes || []).find(item => item.scene_id === sceneId);
+  const items = (scene?.source_ids || []).map(id => sources(run).find(item => item.source_id === id));
   return (lineNumbers || []).map(index => {
     const item = items[index - 1];
     return item ? sourceLink(item.source_id) : '<span class="muted">line ' + esc(index) + " unavailable</span>";

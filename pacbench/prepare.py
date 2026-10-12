@@ -269,6 +269,7 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             (o.written_at, o.sender, o.text) for o in new_messages)
         observations.extend(o.public() for o in new_messages)
         scene_records.append({"scene_id": plan.id, "lines": realized.lines,
+                              "source_ids": [o.source_id for o in new_messages],
                               "record": vars(realized.record),
                               "verdict": realized.verdict})
         save(root / "scenes.json", {"scenes": scene_records})

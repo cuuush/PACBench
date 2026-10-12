@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==19 and len(resolved['checks'])==15
+    assert len(scenes)==19 and len(resolved['checks'])==17
     scene_by_id={s.id:s for s in scenes}
     check_by_id={c['id']:c for c in resolved['checks']}
     assert scene_by_id['leo-joins'].participants==('Me','Maya','Leo')

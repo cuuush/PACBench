@@ -334,7 +334,7 @@ function scoreDetails(run, ex, expanded = true) {
     '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
     (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
     (ex.judge_review ? details("Judge scope review (original grade unchanged)",
-      notice("This saved answer was checked again after fixing inherited day/event scope. The original trial grade remains above.") +
+      notice("This review records possible judging or question-scope issues. The original trial grade remains above.") +
       '<h4>Review response</h4><pre>' + esc(ex.judge_review.response) +
       '</pre><h4>Review prompt</h4><pre>' + esc(ex.judge_review.prompt) + '</pre>') : "") +
     (ex.judgment ? details("Answer judge prompt and response", '<p class="muted">Judge: ' + esc(modelCall(run, ex.judgment.model_call)?.model || "model not captured") + "</p>" + '<h4>Prompt</h4><pre>' +

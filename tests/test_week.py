@@ -79,6 +79,31 @@ def test_execution_failure_skips_dependent_session_and_continues_independent(tmp
     assert audit_checks(checks,'shared',root)==[]
 
 
+def test_recovery_authoring_error_preserves_initial_grade_and_disjoint_counts(tmp_path,monkeypatch):
+    from pacbench import native_checks
+    from pacbench.semantic_contract import EvaluationContract,ContractClaim
+    from pacbench.followups import freeze_policy
+    checks=checkpoints(tmp_path)
+    row,old,_=checks[0]
+    contract=EvaluationContract(old.claims+(ContractClaim('detail-2','Another detail.',('m1',)),),
+        old.question,old.evidence_hash,'two-facts')
+    checks[0]=(row,contract,freeze_policy(contract,tmp_path/'two-fact-policy.json'))
+    def judge(prompt):
+        result=json.loads(correct_judge(prompt))
+        if len(result['verdicts'])==2:
+            result['verdicts'][1]['verdict']='missed'
+            result['recovery'][1]['kind']='implicit_omission'
+        return json.dumps(result)
+    def recover(**kwargs):
+        return {'state':'incomplete' if kwargs['grade'].missed else 'complete','score':{},'attempts':[]}
+    monkeypatch.setattr(native_checks,'run_followups',recover)
+    report=run_checks(checks,'isolated',tmp_path/'arm',judge,'',{},
+        question_dir=tmp_path/'questions',run_turn=lambda prompt,**kw:runner_result(prompt,kw),budget_snapshot=lambda:{'projects':[]})
+    assert report['state']=='partial'
+    assert [x['state'] for x in report['checks']]==['diagnostic','diagnostic']
+    assert report['counts']=={'pass':1,'fail':1,'ungraded':0,'recovery_ungraded':1}
+
+
 @pytest.mark.parametrize('clarifies',[True,False])
 def test_one_scripted_reply_only_when_requested_and_no_recovery_for_actions(tmp_path,clarifies):
     checks=checkpoints(tmp_path)

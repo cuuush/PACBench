@@ -263,8 +263,11 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
         'Return ONLY JSON {"question":"message"}.\n'
         f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
     review_prompt = (
-        'Does this message ask for every missing value without supplying answers or tool instructions, '
-        'preserving current versus historical meaning? Reject broad recaps and yes/no confirmations. '
+        'Does this message naturally ask for all missing information without stating its answers, '
+        'supplying a missing name/time/place as a confirmation, or prescribing tools? '
+        'Object-specific why/how/what-happened questions are valid. A yes/no question about a '
+        'boolean status does not assert that status is true. Preserve the missing facts\' own '
+        'current/historical meaning, including historical reasons for a current state. '
         'Return ONLY JSON {"safe":true,"covers_claim_ids":["covered IDs"],"reason":"explanation"}.\n'
         f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n')
     rejected = []

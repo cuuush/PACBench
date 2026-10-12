@@ -101,7 +101,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             allowlist=allowlist, extra_env=env, question_dir=question_dir,
                             previous_turn=state['previous'], conversation=state['history'], inherited_path=state['path'],
                             run_turn=run_turn, budget_snapshot=budget_snapshot)
-                        item.update(state='diagnostic' if recovery['state']=='complete' else 'ungraded',
+                        item.update(state='diagnostic',
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',
                             recovery={'state':recovery['state'],'score':recovery['score'],'attempts':recovery['attempts']})
                     advance(state,turn,directory)
@@ -118,10 +118,13 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                     error_type='benchmark_contract' if isinstance(exc,BenchmarkContractError) else 'execution_or_judge')
         save(directory / 'status.json', item)
         save(root / 'evaluation.json', report)
-    report['state'] = ('diagnostic' if all(x['state']=='diagnostic' or
+    report['state'] = ('diagnostic' if all((x['state']=='diagnostic' and
+        x.get('recovery',{}).get('state','complete')=='complete') or
         x['state']=='skipped' and x['reason']=='Scripted clarification reply was not requested' for x in report['checks']) else 'partial')
     report['counts'] = {v:sum(x.get('verdict')==v for x in report['checks']) for v in ('pass','fail')}
-    report['counts']['ungraded'] = sum(x['state']=='ungraded' or x['state']=='skipped' and x['reason']=='Dependency unavailable' for x in report['checks'])
+    report['counts']['ungraded'] = sum(x.get('verdict') is None and (x['state']=='ungraded' or x['state']=='skipped' and x['reason']=='Dependency unavailable') for x in report['checks'])
+    recovery_ungraded=sum(x.get('recovery',{}).get('state','complete')!='complete' for x in report['checks'])
+    if recovery_ungraded:report['counts']['recovery_ungraded']=recovery_ungraded
     save(root / 'evaluation.json', report)
     return report
 

@@ -77,7 +77,7 @@ function day(value) {
 }
 function chatThread(items) {
   const names = [...new Set(items.filter(item => !item.from_owner).map(item => item.sender))];
-  const heading = names.length ? names.join(", ") : "Conversation";
+  const heading = items[0]?.structured?.chat_name || (names.length ? names.join(", ") : "Conversation");
   let priorDay = "";
   let rows = "";
   for (const item of items) {
@@ -100,7 +100,7 @@ function emailRead(item) {
   if (!item) return notice("No email captured.");
   const from = item.from_owner ? "You" : item.sender;
   const to = item.from_owner ? (item.structured?.participants || []).filter(name => name !== 'Me').join(', ') || item.thread : "You";
-  const subject = String(item.text || "").split("\n")[0].slice(0, 90) || "(no subject)";
+  const subject = item.structured?.email_subject || "(no subject)";
   return '<div data-message="' + esc(item.source_id) + '"><h3>' + esc(subject) +
     '</h3><div class="mail-meta">From: ' + esc(from) + "<br>To: " + esc(to) +
     "<br>Date: " + esc(item.written_at) + '</div><div class="mail-body">' +

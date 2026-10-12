@@ -1,0 +1,75 @@
+{
+  "state": "captured",
+  "started": "2026-10-12T02:56:31.203864+00:00",
+  "finished": "2026-10-12T02:56:37.972758+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 4902,
+      "output_tokens": 271,
+      "accounted_upper_bound_usd": 0.0005444,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 1,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.1176576,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "4e0110faca86448da6c1e36a7ba8786f",
+      "project": "pacbench-fc30d20446d2-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:56:33.243087+00:00",
+      "finished": "2026-10-12T02:56:35.983309+00:00",
+      "state": "settled",
+      "input_tokens": 4902,
+      "output_tokens": 271,
+      "accounted": 544400,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0005444
+    },
+    {
+      "id": "e32a125f7a734b31b82b3a4705665bb5",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:56:37.144827+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "77c19a85422a4a719f48c8f03d7760dc",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:56:30.698384+00:00",
+      "finished": "2026-10-12T02:56:35.651429+00:00",
+      "state": "settled",
+      "input_tokens": 3733,
+      "output_tokens": 796,
+      "accounted": 532500,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0005325
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

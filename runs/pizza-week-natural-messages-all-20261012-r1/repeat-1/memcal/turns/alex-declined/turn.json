@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-11T21:32:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWas dinner at Juniper part of that as well?",
+  "at": "2026-10-11T21:32:00-04:00",
+  "answer": "No — dinner at Juniper was declined; lunch at Birch Cafe is what you agreed on.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 6.01,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261011_230337_b45781 \"Recall weekend plans with Alex\" (1 user message, 5 total messages)\n\nsession_id: 20261011_230337_b45781",
+  "raw_events": 5,
+  "session_id": "20261011_230337_b45781",
+  "stderr_full": "↻ Resumed session 20261011_230337_b45781 \"Recall weekend plans with Alex\" (1 user message, 5 total messages)\n\nsession_id: 20261011_230337_b45781\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261011_230337_b45781\", \"timestamp\": 1791774229211}\n{\"type\": \"text\", \"text\": \"No — dinner at Juniper was declined;\", \"timestamp\": 1791774233525}\n{\"type\": \"text\", \"text\": \" lunch at Birch Cafe\", \"timestamp\": 1791774233551}\n{\"type\": \"text\", \"text\": \" is what you agreed on.\", \"timestamp\": 1791774233588}\n{\"type\": \"result\", \"session_id\": \"20261011_230337_b45781\", \"exit_code\": 0, \"text\": \"No — dinner at Juniper was declined; lunch at Birch Cafe is what you agreed on.\", \"tokens\": {\"input\": 9955, \"output\": 366, \"total\": 10321, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 4612, \"timestamp\": 1791774233824}",
+  "session_input_tokens": 9955,
+  "session_output_tokens": 366,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-11T21:32:00-04:00 [id=3cecade668f6bb2c4019492e86977adb7c13fff5] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 handles and pages open with memcal_open]\n\n## Upcoming  (today is Sunday 11 October 2026)\n〔E5〕 · Fri Oct 9  \"Pizza\", 12pm — was planned; attendance unknown · with Leo, Maya\n〔E6〕 · Fri Oct 9  \"Pizza\", 6pm — was planned; attendance unknown · with Devon\n〔E4〕 · Sat Oct 10  \"Dinner\", 7pm — was planned; attendance unknown · with Ben\n〔E9〕 Sun Oct 11  \"Grab spare key\", 11am — not going · with Devon\n〔E8〕 Sun Oct 11  \"Lunch\", 12pm — confirmed · with Alex\n〔E7〕 Sun Oct 11  \"Dinner\", 7pm — not going · with Alex\n〔E10〕 Tue Oct 13  \"Interview prep call\", 10am — confirmed · with Jen\n[complete for 2026-10-08 – 2026-11-10; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no email 5 days — this week may be incomplete]\n\n## People and facts\nPages: dinner (where)\n\nWIKI PAGES MENTIONED THIS TURN\n\n# Dinner\n\nRecent instances:\n- 2026-10-11 — Juniper Cafe\n- 2026-10-10 — Juniper Cafe\n\n## Facts\n\n- **where**: Juniper Cafe  <!-- memcal 2026-10-08 -->",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-4aw_z15b",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-4aw_z15b",
+    "system_prompt_sha256": "459bdcd28e1d3a5e236e3fb15d72ffaa96d232c3b1847fd2d38be8d6d508d87a",
+    "reason": "No project context in native saved system prompt"
+  }
+}

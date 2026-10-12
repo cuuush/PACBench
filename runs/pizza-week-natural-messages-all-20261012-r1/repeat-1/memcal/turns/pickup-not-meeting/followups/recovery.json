@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "d8fdfeeee4263f09d0e520070a9ebe1224fe216cad22680d0d0b73acf2814074",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E9"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774369251,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E9  Grab spare key\n\nwhen: Sunday 11 October 2026 at 11:00\nstate: You're not going\nwhere: Luigi's on 5th Street\nwho: Devon\nnote: Spare key with bartender\nsource: person:Devon\n\nsources (11 line(s); * = what the row was built from):\n  — Sat Oct 10, 2026 16:04 · iMessage with Devon —\n * [72] Devon · Sat 10 Oct 16:04 · Devon: so don't worry about tomorrow, you don't need to grab it\n  — Wed Oct 7, 2026 18:20 · iMessage with Devon · 3 days earlier —\n   [36] Devon · Wed 7 Oct 18:20 · me: yes, love that place\n  — Fri Oct 9, 2026 20:30 · iMessage with Devon · 2 days later —\n   [61] Devon · Fri 9 Oct 20:30 · Devon: hey can you do me a quick favor?\n * [62] Devon · Fri 9 Oct 20:31 · Devon: left my spare key with the bartender at luigi's on 5th street\n   [63] Devon · Fri 9 Oct 20:35 · me: oh no yeah definitely\n * [64] Devon · Fri 9 Oct 20:36 · Devon: could you grab it for me sunday at 11am? i won't be around\n * [65] Devon · Fri 9 Oct 20:36 · me: yeah that works i can do sunday at 11\n   [66] Devon · Fri 9 Oct 20:50 · Devon: thank you you're a lifesaver\n  — Sat Oct 10, 2026 16:00 · iMessage with Devon · 1 day later —\n * [71] Devon · Sat 10 Oct 16:00 · Devon: hey quick update - i got my spare key back already\n   [73] Devon · Sat 10 Oct 16:12 · me: oh perfect, glad you got it back\n   [74] Devon · Sat 10 Oct 16:20 · me: lmk if you need anything else\n\nchanges:\n  2026-10-10T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-10T03:00  title: '' -> 'Grab spare key' (by dream:nightly:born)\n  2026-10-10T03:00  location: '' -> \"Luigi's on 5th Street\" (by dream:nightly:born)\n  2026-10-10T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-10T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-10T03:00  note: '' -> 'Spare key with bartender' (by dream:nightly:born)\n  2026-10-10T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n  2026-10-11T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 6.36,
+    "input_tokens": 17164,
+    "output_tokens": 405,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-not-attend",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-not-attend",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

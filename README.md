@@ -27,6 +27,8 @@ Commit public artifacts under `runs/` with the code. There is no generated dashb
 
 Offline tests establish harness integrity, not provider accuracy. A passing saved-run audit also does not establish a ranking. See [AGENTS.md](AGENTS.md) for operating rules.
 
-Recall uses only allowed native memory tools. Dedicated archive and original-message
-readers are disabled; attempts fail the check. Native event/page citations remain
-available. See [the tool boundary](docs/provider-tool-boundary.md).
+Recall exposes only the selected provider's shipped tools. New trials permit
+native message/source search: correct answers keep their grade, while source-assisted
+turns earn no retention credit and all observed costs are recorded. Memcal event
+opening receives normal credit. The published diagnostic used the earlier stricter
+condition. See [the tool boundary](docs/provider-tool-boundary.md).

@@ -1,0 +1,197 @@
+{
+  "state": "complete",
+  "plan_hash": "7e3641ae542832ff579e58698f13caf1426cb30ee44f18825d1212f731d22b19",
+  "attempts": [
+    {
+      "claim_ids": [
+        "venue-street",
+        "day-sunday"
+      ],
+      "question": "What had I offered to do for him, what street is Luigi's on, and what day was scheduled?",
+      "state": "graded",
+      "verdicts": [
+        {
+          "id": "venue-street",
+          "verdict": "correct",
+          "reason": "Answer states Luigi's on 5th Street."
+        },
+        {
+          "id": "day-sunday",
+          "verdict": "correct",
+          "reason": "Answer states scheduled for Sunday at 11am."
+        }
+      ],
+      "metrics": {
+        "top_level_calls": 0,
+        "total_tool_operations": 0,
+        "provider_internal_tool_calls": null,
+        "provider_task_records": 0,
+        "provider_internal_operations": [],
+        "provider_internal_source_fallback_confirmed": false,
+        "provider_internal_path_needs_review": false,
+        "categories": {},
+        "operations": [],
+        "failed_operations": 0,
+        "repeated_operations": 0,
+        "unmatched_tool_results": [],
+        "source_fallback_attempted": false,
+        "unclassified_operations": 0,
+        "latency_s": 7.1,
+        "input_tokens": 8145,
+        "output_tokens": null,
+        "policy_blocks": 0,
+        "returncode": 0
+      },
+      "question_authoring_reused": false,
+      "question_hash": "b57ed4e4cf1f29bcbb52eac31f0a828f24f8ee676febbb62305d8350461dc0c5",
+      "gateway_window": {
+        "projects": [
+          {
+            "project": "pacbench-cb27d43c8962-honcho-memory",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.0,
+            "held_usd_delta": 0.1081344,
+            "input_tokens_delta": 0,
+            "output_tokens_delta": 0
+          },
+          {
+            "project": "pacbench-df1cc5762f3d-memcal-driver",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.0010982000000000006,
+            "held_usd_delta": 0.0,
+            "input_tokens_delta": 9932,
+            "output_tokens_delta": 525
+          }
+        ],
+        "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+      }
+    }
+  ],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 0,
+    "total_tool_operations": 0,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {},
+    "operations": [],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.98,
+    "input_tokens": null,
+    "output_tokens": 91,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "favor-spare-key",
+      "kind": "provided",
+      "reason": "Stated in answer."
+    },
+    {
+      "id": "collect-from-bartender",
+      "kind": "provided",
+      "reason": "Stated in answer."
+    },
+    {
+      "id": "venue-luigis",
+      "kind": "provided",
+      "reason": "Stated in answer."
+    },
+    {
+      "id": "venue-street",
+      "kind": "implicit_omission",
+      "reason": "Omitted; broad 'what had I offered' is not explicit request for street."
+    },
+    {
+      "id": "day-sunday",
+      "kind": "implicit_omission",
+      "reason": "Omitted; broad request does not explicitly ask for day."
+    },
+    {
+      "id": "time-11am",
+      "kind": "provided",
+      "reason": "Stated in answer."
+    }
+  ],
+  "eligible_claim_ids": [
+    "venue-street",
+    "day-sunday"
+  ],
+  "score": {
+    "initial_correct": 4,
+    "initial_missed": 2,
+    "initial_misrepresented": 0,
+    "max_points": 6,
+    "points": 5.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "favor-spare-key",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "collect-from-bartender",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue-luigis",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue-street",
+        "initial_verdict": "missed",
+        "followup_verdict": "correct",
+        "recovered_answer": true,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.5
+      },
+      {
+        "claim_id": "day-sunday",
+        "initial_verdict": "missed",
+        "followup_verdict": "correct",
+        "recovered_answer": true,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.5
+      },
+      {
+        "claim_id": "time-11am",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "correct": 3,
+  "missed": 3,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "favor-spare-key",
+      "verdict": "correct",
+      "reason": "Answer says 'Pick up his spare key' with 'his' resolving to Devon from question."
+    },
+    {
+      "id": "collect-from-bartender",
+      "verdict": "correct",
+      "reason": "Answer explicitly says 'from the bartender'."
+    },
+    {
+      "id": "venue-luigis",
+      "verdict": "correct",
+      "reason": "Answer explicitly says 'at Luigi's'."
+    },
+    {
+      "id": "venue-street",
+      "verdict": "missed",
+      "reason": "Answer mentions Luigi's but states no street address."
+    },
+    {
+      "id": "day-sunday",
+      "verdict": "missed",
+      "reason": "Answer states no day and does not mention Sunday."
+    },
+    {
+      "id": "time-11am",
+      "verdict": "missed",
+      "reason": "Answer states no time and does not mention 11am."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "favor-spare-key",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "collect-from-bartender",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "venue-luigis",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "venue-street",
+      "kind": "implicit_omission",
+      "reason": "Broad 'what offered' request, not specific to street; omitted without claiming unknown."
+    },
+    {
+      "id": "day-sunday",
+      "kind": "implicit_omission",
+      "reason": "Broad 'what offered' request, not specific to day; omitted without claiming unknown."
+    },
+    {
+      "id": "time-11am",
+      "kind": "implicit_omission",
+      "reason": "Broad 'what offered' request, not specific to time; omitted without claiming unknown."
+    }
+  ],
+  "interaction": "answer"
+}

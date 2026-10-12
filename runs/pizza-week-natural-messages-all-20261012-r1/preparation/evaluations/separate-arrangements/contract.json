@@ -1,0 +1,61 @@
+{
+  "claims": [
+    {
+      "id": "jen-call-not-cancelled",
+      "statement": "The separately arranged job-application call with Jen was not cancelled.",
+      "evidence": [
+        "message-a46a13e09e6159733f5b7f4f",
+        "message-fddb42aeb8db9662ad7a4b81",
+        "message-a5e12a923bf3456aac68be98",
+        "message-9adcff1373cc2ed76edf0ad3",
+        "message-6c55a81e0a2e668341dadf88",
+        "message-7567e73050e997fb560b6980"
+      ]
+    },
+    {
+      "id": "alex-coffee-not-cancelled",
+      "statement": "The coffee with Alex was not cancelled.",
+      "evidence": [
+        "message-83bd0d53c6051a29c6a6c19c",
+        "message-f4b2310cc8c21914373a2681",
+        "message-a5e12a923bf3456aac68be98",
+        "message-9adcff1373cc2ed76edf0ad3",
+        "message-6c55a81e0a2e668341dadf88",
+        "message-3e1d1fbd1dfc2de4b1101132"
+      ]
+    }
+  ],
+  "question": "Did that cancel my call with Jen or coffee with Alex that Tuesday too?",
+  "evidence_hash": "1cff93327bfff4b6bb817df0a525687ac1e5a01758ca2129dad4576fc7396a37",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Both intent-required non-cancellations are covered by separate independent claims - Jen call and Alex coffee.",
+    "reviews": [
+      {
+        "id": "jen-call-not-cancelled",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Walk cancellation is in separate thread and later cover-letter reference confirms Jen call happened."
+      },
+      {
+        "id": "alex-coffee-not-cancelled",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Walk cancellation is in separate thread and Oct-07 catching-up-yesterday confirms Tuesday coffee happened."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks whether duck-pond cancellation affected the Tuesday Jen call and Alex coffee without stating outcome; 'that' resolves via prior pond-recap question to duck-pond cancellation, and both Tuesday events are supported in dialogue, inviting both not-cancelled facts."
+  },
+  "author_fact_count": 0,
+  "test_intent": "The group cancellation did not cancel the separately arranged job-application call with Jen or coffee with Alex. Only whether those two arrangements were cancelled is judged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-11T21:12:00-04:00",
+  "contract_hash": "f145b8e621995c83daf5d8d9046ac405e9dc5dd3162b6ff0c44ada207f96a17c"
+}

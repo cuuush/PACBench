@@ -124,7 +124,7 @@ def test_retained_memory_policy_excludes_every_memcal_source_reader():
     from pacbench.followups import tool_category, SOURCE_CATEGORIES
     tools=['memcal_open','memcal_search_wiki','memcal_activity','memcal_conversation',
            'memcal_search_archive','memcal_open_source']
-    policy=policy_record('memcal',tools)
+    policy=policy_record('memcal',tools,version='retained-memory-only-v2')
     assert policy['allowed_tools']==['memcal_open','memcal_search_wiki']
     assert len(policy['blocked_source_tools'])==4
     assert all(tool_category(n,{}) in SOURCE_CATEGORIES for n in policy['blocked_source_tools'])
@@ -147,13 +147,62 @@ def test_mixed_document_reader_is_excluded_from_grant():
     assert retained_tools(['viking_read','viking_search'])==(['viking_search'],['viking_read'])
 
 
+@pytest.mark.parametrize('provider,native,source,arguments',[
+    ('memcal',['memcal_open','memcal_search_archive'],'memcal_search_archive',{'query':'pizza'}),
+    ('honcho',['honcho_reasoning','honcho_search'],'honcho_search',{'query':'pizza'}),
+    ('openviking',['viking_search','viking_read'],'viking_read',{'uri':'viking://resources/day/messages.txt','level':'full'}),
+])
+def test_native_source_access_is_permitted_and_penalized_without_exposing_os_tools(monkeypatch,tmp_path,provider,native,source,arguments):
+    from pacbench.tool_policy import policy_record
+    from pacbench.followups import tool_profile,recovery_score
+    from pacbench.semantic_grade import Grade,GradedClaim
+    grant=policy_record(provider,native)
+    assert grant['blocked_source_tools']==[]
+    assert grant['source_fallback_penalty']['retention_weight']==0
+    monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
+    monkeypatch.setenv('PACBENCH_SOURCE_ARGUMENT_RULES',json.dumps(grant['source_argument_rules']))
+    monkeypatch.setenv('PACBENCH_CONTEXT_TRACE',str(tmp_path/'context.jsonl'))
+    tree=ast.parse((TREE/'agent/turn_context.py').read_text())
+    fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='build_turn_context')
+    policy=next(n for n in fn.body if isinstance(n,ast.If) and 'PACBENCH_PROVIDER_ONLY' in ast.unparse(n.test))
+    agent=SimpleNamespace(tools=[{'function':{'name':n}} for n in [*native,'terminal','read_file','session_search']])
+    exec(compile(ast.fix_missing_locations(ast.Module(body=[policy],type_ignores=[])),
+        'native_source_schema_filter','exec'),{'agent':agent,'os':os,'json':json})
+    assert agent.valid_tool_names==set(native)
+    dispatch=guard('agent/inline_tool_executors.py','resolve_invoke_tool_executor',
+        lambda n:isinstance(n,ast.If) and 'INVOKE_TOOL_PRE_MEMORY_MANAGER_NAMES' in ast.unparse(n.test))
+    assert dispatch(None,source)=='EXECUTED'
+    assert 'PACBENCH-BLOCKED' in dispatch(None,'read_file')(None,{},None)
+    turn=TurnResult(prompt='',at='',answer='The correct fact',tool_calls=[{'name':source,'input':arguments}],
+        tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=1)
+    env={'PACBENCH_PROVIDER_ONLY':'1','PACBENCH_TOOL_ALLOWLIST':','.join(native),
+        'PACBENCH_SOURCE_ARGUMENT_RULES':json.dumps(grant['source_argument_rules'])}
+    enforce_provider_tools(turn,env)
+    assert turn.policy_blocks==0
+    metrics=tool_profile(turn)
+    assert metrics['source_fallback_attempted']
+    grade=Grade(checkpoint='fact',correct=1,slots=[GradedClaim('fact','correct','Answered correctly')])
+    score=recovery_score(grade,metrics,[])
+    assert score['points']==0 and score['claims'][0]['initial_verdict']=='correct'
+
+
+def test_normal_memcal_event_open_keeps_retention_credit_with_source_access():
+    from pacbench.followups import tool_profile,recovery_score
+    from pacbench.semantic_grade import Grade,GradedClaim
+    turn=TurnResult(prompt='',at='',answer='The correct fact',tool_calls=[{'name':'memcal_open','input':{'ref':'E1'}}],
+        tool_results=[],policy_blocks=0,latency_s=0,returncode=0,stderr_tail='',raw_events=1)
+    grade=Grade(checkpoint='fact',correct=1,slots=[GradedClaim('fact','correct','Answered correctly')])
+    assert recovery_score(grade,tool_profile(turn),[])['points']==1
+
+
 @pytest.mark.parametrize('provider,native,expected',[
     ('openviking',['viking_read','viking_search'],['viking_search']),
     ('memcal',['memcal_open','memcal_open_source','memcal_search_archive'],['memcal_open']),
 ])
 def test_real_hermes_schema_filter_hides_document_readers_keeps_event_open(monkeypatch,tmp_path,provider,native,expected):
     from pacbench.tool_policy import policy_record
-    grant=policy_record(provider,native)
+    grant=policy_record(provider,native,version='retained-memory-only-v2')
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY','1')
     monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST',','.join(grant['allowed_tools']))
     monkeypatch.setenv('PACBENCH_CONTEXT_TRACE',str(tmp_path/'context.jsonl'))

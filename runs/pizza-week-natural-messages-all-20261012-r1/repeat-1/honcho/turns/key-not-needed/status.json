@@ -1,0 +1,58 @@
+{
+  "id": "key-not-needed",
+  "at": "2026-10-11T21:40:00-04:00",
+  "session": "key-recap",
+  "contract_hash": "bf66bb90d68b96553807191427c34fe9457fbc7dc2367537d88ca04d25faefa3",
+  "state": "ungraded",
+  "verdict": "fail",
+  "reason": "Recovery diagnostics incomplete",
+  "interaction": "answer",
+  "recovery": {
+    "state": "incomplete",
+    "score": {
+      "initial_correct": 1,
+      "initial_missed": 1,
+      "initial_misrepresented": 0,
+      "max_points": 2,
+      "points": 0.0,
+      "recovery_weight": 0.5,
+      "claims": [
+        {
+          "claim_id": "key-recovered",
+          "initial_verdict": "missed",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        },
+        {
+          "claim_id": "sunday-pickup-cancelled",
+          "initial_verdict": "correct",
+          "followup_verdict": null,
+          "recovered_answer": false,
+          "retention_failed": false,
+          "path_needs_review": true,
+          "points": 0.0
+        }
+      ],
+      "calibrated": false
+    },
+    "attempts": [
+      {
+        "claim_ids": [
+          "key-recovered"
+        ],
+        "question": null,
+        "state": "failed",
+        "verdicts": [],
+        "metrics": {
+          "source_fallback_attempted": false,
+          "unclassified_operations": 0
+        },
+        "question_authoring_reused": false,
+        "error": "ValueError: combined follow-up failed neutral/complete coverage review"
+      }
+    ]
+  }
+}

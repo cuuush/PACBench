@@ -1,0 +1,195 @@
+{
+  "state": "complete",
+  "plan_hash": "36795e4772251b0b8ebf68c1fe1a045de0045a4f4525c8d4d9a9438d185e7d45",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 6,
+    "total_tool_operations": 6,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 5,
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_search_wiki",
+        "arguments": {
+          "limit": 10,
+          "query": "duck-pond meetup"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774381557,
+        "result": {
+          "tool": "memcal_search_wiki",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"query\": \"duck-pond meetup\", \"results\": [], \"message\": \"No matching wiki fact for 'duck-pond meetup'. This means no stored fact matched \\u2014 not that the user never told us. Try memcal_search_archive for original statements, or memcal_open if you know the page.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_wiki",
+        "arguments": {
+          "limit": 10,
+          "query": "duck"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774385526,
+        "result": {
+          "tool": "memcal_search_wiki",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"query\": \"duck\", \"results\": [], \"message\": \"No matching wiki fact for 'duck'. This means no stored fact matched \\u2014 not that the user never told us. Try memcal_search_archive for original statements, or memcal_open if you know the page.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_wiki",
+        "arguments": {
+          "limit": 10,
+          "query": "pond"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774385534,
+        "result": {
+          "tool": "memcal_search_wiki",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"query\": \"pond\", \"results\": [], \"message\": \"No matching wiki fact for 'pond'. This means no stored fact matched \\u2014 not that the user never told us. Try memcal_search_archive for original statements, or memcal_open if you know the page.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_wiki",
+        "arguments": {
+          "limit": 10,
+          "query": "meetup"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774385540,
+        "result": {
+          "tool": "memcal_search_wiki",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"query\": \"meetup\", \"results\": [], \"message\": \"No matching wiki fact for 'meetup'. This means no stored fact matched \\u2014 not that the user never told us. Try memcal_search_archive for original statements, or memcal_open if you know the page.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_list_month",
+        "arguments": {
+          "month": "2026-10"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774385546,
+        "result": {
+          "tool": "memcal_list_month",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"month\": \"2026-10\", \"rows\": [{\"row\": \"Tue Oct 6  Job application help call, 10am \\u2014 was planned; attendance unknown \\u00b7 with Jen\", \"source\": \"E1\"}, {\"row\": \"Tue Oct 6  Coffee, 11am \\u2014 was planned; attendance unknown \\u00b7 Birch Cafe \\u00b7 with Alex\", \"source\": \"E3\"}, {\"row\": \"Tue Oct 6  Short walk, 2pm \\u2014 not going \\u00b7 west entrance to the duck pond in Willow Park \\u00b7 with Alex, Jen\", \"source\": \"E2\"}, {\"row\": \"Fri Oct 9  Pizza, 12pm \\u2014 was planned; attendance unknown \\u00b7 Mario's on Pine Street \\u00b7 with Leo, Maya\", \"source\": \"E5\"}, {\"row\": \"Fri Oct 9  Pizza, 6pm \\u2014 was planned; attendance unknown \\u00b7 Luigi's on 5th Street \\u00b7 with Devon\", \"source\": \"E6\"}, {\"row\": \"Sat Oct 10  Dinner, 7pm \\u2014 was planned; attendance unknown \\u00b7 Juniper Cafe \\u00b7 with Ben\", \"source\": \"E4\"}, {\"row\": \"Sun Oct 11  Grab spare key, 11am \\u2014 not going \\u00b7 Luigi's on 5th Street \\u00b7 Spare key with bartender \\u00b7 with Devon\", \"source\": \"E9\"}, {\"row\": \"Sun Oct 11  Lunch, 12pm \\u2014 confirmed \\u00b7 Birch Cafe \\u00b7 with Alex\", \"source\": \"E8\"}, {\"row\": \"Sun Oct 11  Dinner, 7pm \\u2014 not going \\u00b7 Juniper Cafe \\u00b7 with Alex\", \"source\": \"E7\"}, {\"row\": \"Tue Oct 13  Interview prep call, 10am \\u2014 confirmed \\u00b7 to prep for Jen's interview \\u00b7 with Jen\", \"source\": \"E10\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E2"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774387055,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E2  Short walk\n\nwhen: Tuesday 6 October 2026 at 14:00\nstate: You're not going\nwhere: west entrance to the duck pond in Willow Park\nwho: Alex, Jen\nsource: thread:imessage:Park pals\n\nsources (7 line(s); * = what the row was built from):\n  (!) no line-level citation — these are the conversation it came out of, not the lines it was built from\n  — Tue Oct 6, 2026 07:20 · iMessage with Park pals —\n * [20] Park pals · Tue 6 Oct 07:20 · me: No worries, sounds good - let's just leave it for another day\n  — Mon Oct 5, 2026 17:00 · iMessage with Park pals · 1 day earlier —\n * [1] Park pals · Mon 5 Oct 17:00 · Alex: Up for a short walk tomorrow? I can do 2pm\n * [2] Park pals · Mon 5 Oct 17:05 · me: Tuesday at 2 works for me. Meet at the west entrance to the duck pond in Willow Park?\n * [3] Park pals · Mon 5 Oct 17:08 · Jen: Lovely, count me in!\n * [4] Park pals · Mon 5 Oct 17:20 · Alex: yeah that works\n  — Tue Oct 6, 2026 07:00 · iMessage with Park pals · 1 day later —\n * [18] Park pals · Tue 6 Oct 07:00 · Jen: hey guys i can’t make it today\n * [19] Park pals · Tue 6 Oct 07:06 · Alex: me too let’s just do this another day!\n\nchanges:\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Short walk' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'west entrance to the duck pond in Willow Park' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\", \"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\n  2026-10-07T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 12.5,
+    "input_tokens": 10944,
+    "output_tokens": 1253,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "time",
+      "kind": "provided",
+      "reason": "Time correctly given in answer"
+    },
+    {
+      "id": "place",
+      "kind": "provided",
+      "reason": "Place correctly given in answer"
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "place",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

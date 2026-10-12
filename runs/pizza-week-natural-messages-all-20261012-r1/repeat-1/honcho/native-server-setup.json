@@ -1,0 +1,14 @@
+{
+  "route": "Documented manual self-hosting, native API + deriver + local pgvector",
+  "version": "3.2.2",
+  "endpoint": "http://127.0.0.1:51383",
+  "health": {
+    "status": "ok"
+  },
+  "models": "muse-spark-1.3-contributor",
+  "embedding": "local Ollama nomic-embed-text",
+  "starter_facts": false,
+  "output_budget": "Native LLM_DEFAULT_MAX_TOKENS=16384; Spark reasoning compatibility, no prompt changes",
+  "deriver_flush_enabled": true,
+  "processing_option": "CLI advanced setup: snappy local deriver"
+}

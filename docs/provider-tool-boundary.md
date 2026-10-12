@@ -1,37 +1,13 @@
-# Retained-memory-only recall
+# Provider tools and source penalties
 
-New trials use `retained-memory-only-v2`. Hermes uses the selected provider's
-normal plugin and prefetch, with an exact subset of its shipped tools.
+New trials use `provider-memory-with-source-penalty-v3`. Hermes receives only the selected provider's exact shipped tools. Native message search, archive search and source opening are permitted, including Honcho's message readers, Memcal's archive readers and OpenViking's mixed `viking_read`.
 
-Dedicated archive search, original-source opening, conversation history and
-message activity readers are excluded. For Memcal this blocks
-`memcal_search_archive`, `memcal_open_source`, `memcal_conversation` and
-`memcal_activity`. Retained event/page opening and memory search remain available.
-Their native payloads, including attached citations, are unchanged. This condition
-measures retained memory and its attached evidence, rather than strictly facts-only
-storage. OpenViking's mixed `viking_read` is excluded entirely from Hermes's
-exposed schemas, including memory and generated-summary reads. Hermes uses the
-remaining shipped OpenViking tools and normal provider context. It receives no
-instruction to work around a reader that it can see but cannot use. URI guards
-remain defense in depth for unexpected calls; they do not grant tool exposure.
-Honcho's `honcho_search` and `honcho_context` return raw message excerpts and
-are excluded; native profile, conclusions and dialectic reasoning remain.
-Provider-internal retrieval during dialectic reasoning is native provider work,
-with gateway cost recorded where observable; it is not an exposed archive tool.
+Answer correctness and retention are separate. A correct source-assisted answer keeps its semantic grade, but the turn earns zero retention credit. That source path also carries into dependent turns sharing its context. Log actual calls, arguments/results, latency, observed model requests and tokens. A penalty is not a dollar price; unknown costs remain unknown. Background source work without proven query attribution remains uncredited pending review.
 
-Only exact allowed names are offered to Hermes. Existing sequential, concurrent
-and registry guards reject excluded tools before execution. Built-in memory,
-session search, generic discovery, shell, filesystem and browser remain disabled.
-Any disallowed attempt fails the check even if the final answer is correct.
-Independent conversations continue. Missing or wrong answers using allowed tools
-receive their normal fact judgments and natural omission recovery rules.
+Memcal's normal `memcal_open` is retained event detail and receives normal credit. Native memory pages, generated summaries and attached citations remain unchanged. Apply the same rule to every provider. No generic messaging connector, filesystem, shell, browser, discovery/dispatch, built-in memory or Hermes session-search tools are added.
 
-`tool-policy.json` records allowed tools, blocked source tools and argument rules.
-`context.jsonl.tools.jsonl` records actual schemas exposed each turn. The native
-audit verifies these against the provider's discovered schemas, actual turn argument
-rules and saved calls.
-Superseded development runs are removed.
+`tool-policy.json` freezes the grant and penalty. `context.jsonl.tools.jsonl` records actual offered schemas. Dispatch guards reject all tools outside the exact native grant before execution; the audit checks schemas, calls and native saved prompt isolation. A prohibited-tool attempt still invalidates the check.
 
-This is an agent tool boundary, not OS isolation. Native provider internals may
-read files, run subprocesses and call models. The gateway still meters inference;
-unknown nested work is not reported as free.
+The current published diagnostic used the earlier `retained-memory-only-v2` condition, which hid dedicated source readers and `viking_read`. Its saved permissions and grades are unchanged; it is not a live test of the new permission policy. The auditor recognizes that frozen receipt.
+
+This is a tool boundary, not OS isolation. Native provider internals can read their stores, run subprocesses and call models. All inference remains metered through the gateway; nested work is not assumed free.

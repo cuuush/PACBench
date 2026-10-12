@@ -1,0 +1,26 @@
+{
+  "checkpoint": "key-not-needed",
+  "question": "[Simulated now: 2026-10-11T21:40:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid I still need to collect Devon's key today?",
+  "answer": "No — Devon told you on Oct 10 you no longer needed to grab it.",
+  "claims": [
+    {
+      "id": "key-recovered",
+      "description": "Devon had already recovered the spare key",
+      "evidence": [
+        "message-86b75ba510c763f2340ac708"
+      ]
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "description": "The Sunday pickup was no longer needed",
+      "evidence": [
+        "message-a625dacac01175fcb430cae3",
+        "message-4872cdea5e268c583798044b"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-11T21:40:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid I still need to collect Devon's key today?\nAnswer: No — Devon told you on Oct 10 you no longer needed to grab it.\nClaims (hidden from the assistant): [{\"id\": \"key-recovered\", \"claim\": \"Devon had already recovered the spare key\", \"evidence\": [\"message-86b75ba510c763f2340ac708\"]}, {\"id\": \"sunday-pickup-cancelled\", \"claim\": \"The Sunday pickup was no longer needed\", \"evidence\": [\"message-a625dacac01175fcb430cae3\", \"message-4872cdea5e268c583798044b\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"key-recovered\", \"verdict\": \"missed\", \"reason\": \"Answer says pickup no longer needed but does not state Devon recovered the spare key.\"}, {\"id\": \"sunday-pickup-cancelled\", \"verdict\": \"correct\", \"reason\": \"Answer states you no longer needed to grab it, conveying pickup cancelled.\"}], \"recovery\": [{\"id\": \"key-recovered\", \"kind\": \"implicit_omission\", \"reason\": \"Detail omitted without claiming unknown; user asked about need, not explicitly about recovery.\"}, {\"id\": \"sunday-pickup-cancelled\", \"kind\": \"provided\", \"reason\": \"Answer directly conveys pickup was no longer needed.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/model-calls/11106ec872c10e0b754547a1d5fdffda603f803ad9782508cc37a99fe050d2a5.json"
+}

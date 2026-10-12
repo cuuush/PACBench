@@ -1,0 +1,119 @@
+{
+  "checkpoint": "pizza-final-details",
+  "question": "[Simulated now: 2026-10-11T21:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did I end up arranging for pizza this past Friday?",
+  "answer": "Friday Oct 9 you had two pizza plans:\n\n- Lunch: noon at Mario's on Pine Street with Maya (Leo rejoined). Moved from 1pm at Rosa's on Oak Street after Rosa's closed for renovations; Domino's on Elm was proposed but rejected.\n- Dinner: 6pm at Luigi's on 5th Street with Devon.",
+  "claims": [
+    {
+      "id": "outing1-pizza",
+      "description": "The first agreed outing was for pizza",
+      "evidence": [
+        "message-bc34f6d045f2dd902d0e20d6"
+      ]
+    },
+    {
+      "id": "outing1-lunch",
+      "description": "The first agreed outing was lunch",
+      "evidence": [
+        "message-bc34f6d045f2dd902d0e20d6"
+      ]
+    },
+    {
+      "id": "outing1-maya",
+      "description": "The first agreed outing included Maya",
+      "evidence": [
+        "message-bc34f6d045f2dd902d0e20d6",
+        "message-7e7a08372fbb2c8c888d0e7a"
+      ]
+    },
+    {
+      "id": "outing1-leo",
+      "description": "The first agreed outing included Leo",
+      "evidence": [
+        "message-c707307447984c88c86bf02c",
+        "message-db7b8db5e13aa3ef4f42caba"
+      ]
+    },
+    {
+      "id": "outing1-friday",
+      "description": "The first agreed outing was on Friday",
+      "evidence": [
+        "message-bef0e42bcdd81eb01ae22fdb",
+        "message-2be6c4f874464e99362eb01d"
+      ]
+    },
+    {
+      "id": "outing1-noon",
+      "description": "The first agreed outing was at noon",
+      "evidence": [
+        "message-bef0e42bcdd81eb01ae22fdb",
+        "message-e21578773e104215c318bc71"
+      ]
+    },
+    {
+      "id": "outing1-marios",
+      "description": "The first agreed outing venue was Mario's",
+      "evidence": [
+        "message-8b5353f20df7b75382e43b55",
+        "message-2be6c4f874464e99362eb01d",
+        "message-7e7a08372fbb2c8c888d0e7a"
+      ]
+    },
+    {
+      "id": "outing1-pine",
+      "description": "The first agreed outing street was Pine Street",
+      "evidence": [
+        "message-8b5353f20df7b75382e43b55",
+        "message-7e7a08372fbb2c8c888d0e7a"
+      ]
+    },
+    {
+      "id": "outing2-pizza",
+      "description": "The second agreed outing was for pizza",
+      "evidence": [
+        "message-1bd0e91ce6573ee1b681abc7"
+      ]
+    },
+    {
+      "id": "outing2-devon",
+      "description": "The second agreed outing included Devon",
+      "evidence": [
+        "message-1bd0e91ce6573ee1b681abc7",
+        "message-e6a5935675c9634877322dc6"
+      ]
+    },
+    {
+      "id": "outing2-friday",
+      "description": "The second agreed outing was on Friday",
+      "evidence": [
+        "message-1bd0e91ce6573ee1b681abc7"
+      ]
+    },
+    {
+      "id": "outing2-6pm",
+      "description": "The second agreed outing was at 6 pm",
+      "evidence": [
+        "message-4e3bff1bf7559d409edcb217",
+        "message-27b846add00735a1449b8379"
+      ]
+    },
+    {
+      "id": "outing2-luigis",
+      "description": "The second agreed outing venue was Luigi's",
+      "evidence": [
+        "message-58c41651d29b6c6574a1e1fc",
+        "message-e6a5935675c9634877322dc6"
+      ]
+    },
+    {
+      "id": "outing2-5th",
+      "description": "The second agreed outing street was 5th Street",
+      "evidence": [
+        "message-58c41651d29b6c6574a1e1fc"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-11T21:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did I end up arranging for pizza this past Friday?\nAnswer: Friday Oct 9 you had two pizza plans:\n\n- Lunch: noon at Mario's on Pine Street with Maya (Leo rejoined). Moved from 1pm at Rosa's on Oak Street after Rosa's closed for renovations; Domino's on Elm was proposed but rejected.\n- Dinner: 6pm at Luigi's on 5th Street with Devon.\nClaims (hidden from the assistant): [{\"id\": \"outing1-pizza\", \"claim\": \"The first agreed outing was for pizza\", \"evidence\": [\"message-bc34f6d045f2dd902d0e20d6\"]}, {\"id\": \"outing1-lunch\", \"claim\": \"The first agreed outing was lunch\", \"evidence\": [\"message-bc34f6d045f2dd902d0e20d6\"]}, {\"id\": \"outing1-maya\", \"claim\": \"The first agreed outing included Maya\", \"evidence\": [\"message-bc34f6d045f2dd902d0e20d6\", \"message-7e7a08372fbb2c8c888d0e7a\"]}, {\"id\": \"outing1-leo\", \"claim\": \"The first agreed outing included Leo\", \"evidence\": [\"message-c707307447984c88c86bf02c\", \"message-db7b8db5e13aa3ef4f42caba\"]}, {\"id\": \"outing1-friday\", \"claim\": \"The first agreed outing was on Friday\", \"evidence\": [\"message-bef0e42bcdd81eb01ae22fdb\", \"message-2be6c4f874464e99362eb01d\"]}, {\"id\": \"outing1-noon\", \"claim\": \"The first agreed outing was at noon\", \"evidence\": [\"message-bef0e42bcdd81eb01ae22fdb\", \"message-e21578773e104215c318bc71\"]}, {\"id\": \"outing1-marios\", \"claim\": \"The first agreed outing venue was Mario's\", \"evidence\": [\"message-8b5353f20df7b75382e43b55\", \"message-2be6c4f874464e99362eb01d\", \"message-7e7a08372fbb2c8c888d0e7a\"]}, {\"id\": \"outing1-pine\", \"claim\": \"The first agreed outing street was Pine Street\", \"evidence\": [\"message-8b5353f20df7b75382e43b55\", \"message-7e7a08372fbb2c8c888d0e7a\"]}, {\"id\": \"outing2-pizza\", \"claim\": \"The second agreed outing was for pizza\", \"evidence\": [\"message-1bd0e91ce6573ee1b681abc7\"]}, {\"id\": \"outing2-devon\", \"claim\": \"The second agreed outing included Devon\", \"evidence\": [\"message-1bd0e91ce6573ee1b681abc7\", \"message-e6a5935675c9634877322dc6\"]}, {\"id\": \"outing2-friday\", \"claim\": \"The second agreed outing was on Friday\", \"evidence\": [\"message-1bd0e91ce6573ee1b681abc7\"]}, {\"id\": \"outing2-6pm\", \"claim\": \"The second agreed outing was at 6 pm\", \"evidence\": [\"message-4e3bff1bf7559d409edcb217\", \"message-27b846add00735a1449b8379\"]}, {\"id\": \"outing2-luigis\", \"claim\": \"The second agreed outing venue was Luigi's\", \"evidence\": [\"message-58c41651d29b6c6574a1e1fc\", \"message-e6a5935675c9634877322dc6\"]}, {\"id\": \"outing2-5th\", \"claim\": \"The second agreed outing street was 5th Street\", \"evidence\": [\"message-58c41651d29b6c6574a1e1fc\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"outing1-pizza\", \"verdict\": \"correct\", \"reason\": \"Answer introduces lunch as one of two pizza plans.\"}, {\"id\": \"outing1-lunch\", \"verdict\": \"correct\", \"reason\": \"Answer labels first plan as Lunch.\"}, {\"id\": \"outing1-maya\", \"verdict\": \"correct\", \"reason\": \"Answer says lunch with Maya.\"}, {\"id\": \"outing1-leo\", \"verdict\": \"correct\", \"reason\": \"Answer states Leo rejoined the lunch.\"}, {\"id\": \"outing1-friday\", \"verdict\": \"correct\", \"reason\": \"Answer dates lunch to Friday Oct 9.\"}, {\"id\": \"outing1-noon\", \"verdict\": \"correct\", \"reason\": \"Answer gives lunch time as noon.\"}, {\"id\": \"outing1-marios\", \"verdict\": \"correct\", \"reason\": \"Answer gives lunch venue as Mario's.\"}, {\"id\": \"outing1-pine\", \"verdict\": \"correct\", \"reason\": \"Answer gives lunch street as Pine Street.\"}, {\"id\": \"outing2-pizza\", \"verdict\": \"correct\", \"reason\": \"Answer includes dinner under two pizza plans.\"}, {\"id\": \"outing2-devon\", \"verdict\": \"correct\", \"reason\": \"Answer says dinner with Devon.\"}, {\"id\": \"outing2-friday\", \"verdict\": \"correct\", \"reason\": \"Answer dates dinner to Friday Oct 9.\"}, {\"id\": \"outing2-6pm\", \"verdict\": \"correct\", \"reason\": \"Answer gives dinner time as 6pm.\"}, {\"id\": \"outing2-luigis\", \"verdict\": \"correct\", \"reason\": \"Answer gives dinner venue as Luigi's.\"}, {\"id\": \"outing2-5th\", \"verdict\": \"correct\", \"reason\": \"Answer gives dinner street as 5th Street.\"}], \"recovery\": [{\"id\": \"outing1-pizza\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-lunch\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-maya\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-leo\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-friday\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-noon\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-marios\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing1-pine\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-pizza\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-devon\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-friday\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-6pm\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-luigis\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}, {\"id\": \"outing2-5th\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/model-calls/b60972c9a0da06ede350db585d6ba0551de8502dca9510c3bc529810cd22b282.json"
+}

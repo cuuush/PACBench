@@ -1,0 +1,213 @@
+{
+  "captured_at": "2026-10-12T19:56:07.271449+00:00",
+  "budget": {
+    "day": "2026-10-12",
+    "timezone": "UTC",
+    "daily_limit_usd": 10.0,
+    "total_limit_usd": null,
+    "budget_blocked": false,
+    "accounted_today_usd": 9.0181745,
+    "settled_today_upper_bound_usd": 0.8493761,
+    "unresolved_reservations_usd": 8.1687984
+  },
+  "complete_current_arm_projects": [
+    {
+      "provider": "memcal",
+      "state": "diagnostic",
+      "initial_counts": {
+        "pass": 15,
+        "fail": 2,
+        "ungraded": 0,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 50.0,
+      "max_points": 52,
+      "native_model_requests": 62,
+      "settled_upper_bound_usd": 0.0515349,
+      "held_usd": 0.0,
+      "reason": ""
+    },
+    {
+      "provider": "mem0",
+      "state": "diagnostic",
+      "initial_counts": {
+        "pass": 17,
+        "fail": 0,
+        "ungraded": 0,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 52.0,
+      "max_points": 52,
+      "native_model_requests": 64,
+      "settled_upper_bound_usd": 0.0472781,
+      "held_usd": 0.0,
+      "reason": ""
+    },
+    {
+      "provider": "hindsight",
+      "state": "diagnostic",
+      "initial_counts": {
+        "pass": 12,
+        "fail": 5,
+        "ungraded": 0,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 43.5,
+      "max_points": 52,
+      "native_model_requests": 105,
+      "settled_upper_bound_usd": 0.0625792,
+      "held_usd": 0.0,
+      "reason": ""
+    },
+    {
+      "provider": "honcho",
+      "state": "partial",
+      "initial_counts": {
+        "pass": 14,
+        "fail": 2,
+        "ungraded": 1,
+        "recovery_ungraded": 1
+      },
+      "retention_points": 2.0,
+      "max_points": 50,
+      "native_model_requests": 287,
+      "settled_upper_bound_usd": 0.2457277,
+      "held_usd": 0.0,
+      "reason": "evaluation sequence incomplete"
+    },
+    {
+      "provider": "openviking",
+      "state": "partial",
+      "initial_counts": {
+        "pass": 2,
+        "fail": 2,
+        "ungraded": 13,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 21.0,
+      "max_points": 23,
+      "native_model_requests": 58,
+      "settled_upper_bound_usd": 0.0768534,
+      "held_usd": 0.540672,
+      "reason": "evaluation sequence incomplete"
+    },
+    {
+      "provider": "supermemory",
+      "state": "partial",
+      "initial_counts": {
+        "pass": 0,
+        "fail": 0,
+        "ungraded": 17,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 0,
+      "max_points": 0,
+      "native_model_requests": 16,
+      "settled_upper_bound_usd": 0.0121878,
+      "held_usd": 0.3244032,
+      "reason": "evaluation sequence incomplete"
+    },
+    {
+      "provider": "byterover",
+      "state": "partial",
+      "initial_counts": {
+        "pass": 0,
+        "fail": 0,
+        "ungraded": 17,
+        "recovery_ungraded": 0
+      },
+      "retention_points": 0,
+      "max_points": 0,
+      "native_model_requests": 28,
+      "settled_upper_bound_usd": 0.0630708,
+      "held_usd": 0.2100352,
+      "reason": "evaluation sequence incomplete"
+    }
+  ],
+  "import_windows": [
+    {
+      "provider": "mem0",
+      "native_requests_started_in_import_windows": 6,
+      "daily_batches_attempted": 6,
+      "daily_batches_ready": 6,
+      "total_import_wall_s": 129.24,
+      "settled_upper_bound_usd": 0.0088989,
+      "held_usd": 0.0,
+      "input_tokens": 63323,
+      "output_tokens": 12833
+    },
+    {
+      "provider": "honcho",
+      "native_requests_started_in_import_windows": 40,
+      "daily_batches_attempted": 6,
+      "daily_batches_ready": 6,
+      "total_import_wall_s": 1047.61,
+      "settled_upper_bound_usd": 0.0288877,
+      "held_usd": 0.0,
+      "input_tokens": 28311,
+      "output_tokens": 130283
+    },
+    {
+      "provider": "hindsight",
+      "native_requests_started_in_import_windows": 20,
+      "daily_batches_attempted": 6,
+      "daily_batches_ready": 6,
+      "total_import_wall_s": 250.97,
+      "settled_upper_bound_usd": 0.0187375,
+      "held_usd": 0.0,
+      "input_tokens": 90923,
+      "output_tokens": 48226
+    },
+    {
+      "provider": "supermemory",
+      "native_requests_started_in_import_windows": 16,
+      "daily_batches_attempted": 3,
+      "daily_batches_ready": 3,
+      "total_import_wall_s": 190.46,
+      "settled_upper_bound_usd": 0.0121878,
+      "held_usd": 0.3244032,
+      "input_tokens": null,
+      "output_tokens": null
+    },
+    {
+      "provider": "openviking",
+      "native_requests_started_in_import_windows": 24,
+      "daily_batches_attempted": 6,
+      "daily_batches_ready": 6,
+      "total_import_wall_s": 610.07,
+      "settled_upper_bound_usd": 0.0242371,
+      "held_usd": 0.0,
+      "input_tokens": 31245,
+      "output_tokens": 105563
+    },
+    {
+      "provider": "memcal",
+      "native_requests_started_in_import_windows": 16,
+      "daily_batches_attempted": 6,
+      "daily_batches_ready": 6,
+      "total_import_wall_s": 279.54,
+      "settled_upper_bound_usd": 0.0118124,
+      "held_usd": 0.0,
+      "input_tokens": 40698,
+      "output_tokens": 38713
+    },
+    {
+      "provider": "byterover",
+      "native_requests_started_in_import_windows": 27,
+      "daily_batches_attempted": 3,
+      "daily_batches_ready": 2,
+      "total_import_wall_s": 247.93,
+      "settled_upper_bound_usd": 0.0630708,
+      "held_usd": 0.1050176,
+      "input_tokens": null,
+      "output_tokens": null
+    }
+  ],
+  "scope": [
+    "Daily accounting includes all shared gateway work, preparation, judging, failed/repeated native attempts and unresolved reservations carried across days.",
+    "The chosen-arm project totals cover native Hermes/provider calls, not shared authoring/judging overhead. They do not include discarded interrupted/corrective attempts.",
+    "Import-window totals capture requests started during those windows. Asynchronous native work may start or finish later; these are not exact per-document or per-tool prices.",
+    "Settled figures use conservative configured token prices, not invoices. Unknown usage remains held; no reservations or budget refusals were cleared or bypassed.",
+    "Every inference request uses Spark Contributor through the existing gateway. Offline/UI checks make no model requests."
+  ]
+}

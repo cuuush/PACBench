@@ -1,0 +1,122 @@
+{
+  "state": "complete",
+  "plan_hash": "4a6dbcdeece30b2933829d433f8b1f05a9925fb3e71b580ae0b1a23bd744a4db",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2,
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_search_wiki",
+        "arguments": {
+          "limit": 10,
+          "query": "Jen application cover letter"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774342129,
+        "result": {
+          "tool": "memcal_search_wiki",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"query\": \"Jen application cover letter\", \"results\": [], \"message\": \"No matching wiki fact for 'Jen application cover letter'. This means no stored fact matched \\u2014 not that the user never told us. Try memcal_search_archive for original statements, or memcal_open if you know the page.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_list_days",
+        "arguments": {
+          "days": 7,
+          "when": "2026-10-01"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774342136,
+        "result": {
+          "tool": "memcal_list_days",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"from\": \"2026-10-01\", \"to\": \"2026-10-07\", \"weekday\": \"Thursday\", \"rows\": [{\"row\": \"Tue Oct 6  Job application help call, 10am \\u2014 was planned; attendance unknown \\u00b7 with Jen\", \"source\": \"E1\"}, {\"row\": \"Tue Oct 6  Coffee, 11am \\u2014 was planned; attendance unknown \\u00b7 Birch Cafe \\u00b7 with Alex\", \"source\": \"E3\"}, {\"row\": \"Tue Oct 6  Short walk, 2pm \\u2014 not going \\u00b7 west entrance to the duck pond in Willow Park \\u00b7 with Alex, Jen\", \"source\": \"E2\"}], \"free\": false}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E1"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774343109,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E1  Job application help call\n\nwhen: Tuesday 6 October 2026 at 10:00\nstate: Was planned; attendance unconfirmed\nwho: Jen\nsource: person:Jen\n\nsources (7 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:25 · iMessage with Jen —\n * [5] Jen · Mon 5 Oct 17:25 · Jen: hey can you help me with my job application real quick?\n   [6] Jen · Mon 5 Oct 17:42 · Jen: stuck on the cover letter part ugh\n * [7] Jen · Mon 5 Oct 17:42 · me: yeah of course, want to do a quick call tomorrow morning to go over it?\n * [8] Jen · Mon 5 Oct 17:44 · Jen: Tuesday at 10am works for me?\n * [9] Jen · Mon 5 Oct 17:45 · me: yeah that works, talk then\n  — Sat Oct 10, 2026 11:40 · iMessage with Jen · 5 days later —\n   [67] Jen · Sat 10 Oct 11:40 · Jen: hey good news - I got an interview for that job!!\n   [68] Jen · Sat 10 Oct 11:55 · Jen: can we do another quick call Tuesday at 10 to prep for the interview?\n\nchanges:\n  2026-10-06T03:00  date: '' -> '2026-10-06' (by dream:nightly:born)\n  2026-10-06T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Job application help call' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 13.06,
+    "input_tokens": 11257,
+    "output_tokens": 870,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "distinct-appointment",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed as new distinct appointment."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "distinct-appointment",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

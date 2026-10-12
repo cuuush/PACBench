@@ -1,0 +1,123 @@
+{
+  "state": "captured",
+  "started": "2026-10-12T02:52:33.719704+00:00",
+  "finished": "2026-10-12T02:52:42.021417+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 3978,
+      "output_tokens": 249,
+      "accounted_upper_bound_usd": 0.0004476,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 3,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.3434496,
+      "unsettled_calls": 3
+    }
+  },
+  "model_calls": [
+    {
+      "id": "7be7b0b1c9d04d4b81296fb88cee6490",
+      "project": "pacbench-fc30d20446d2-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:35.902780+00:00",
+      "finished": "2026-10-12T02:52:39.901505+00:00",
+      "state": "settled",
+      "input_tokens": 3978,
+      "output_tokens": 249,
+      "accounted": 447600,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004476
+    },
+    {
+      "id": "61df12e71ed5469e9c06d0519ea56354",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:40.863272+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "f44a608e215f4aeca17cf538f70bd9e8",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:41.465541+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    },
+    {
+      "id": "4e72928e60e6457d89b62a73a88760a1",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:41.466067+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "b936d7979b564f93941616a7b5ca93cb",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:20.363073+00:00",
+      "finished": "2026-10-12T02:52:40.180606+00:00",
+      "state": "settled",
+      "input_tokens": 3309,
+      "output_tokens": 3196,
+      "accounted": 970100,
+      "reserved": 117657600,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0009701
+    },
+    {
+      "id": "3d616bf220174c26b1d6c85ba72ae88e",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:52:20.363809+00:00",
+      "finished": "2026-10-12T02:52:36.175761+00:00",
+      "state": "settled",
+      "input_tokens": 3079,
+      "output_tokens": 2142,
+      "accounted": 736300,
+      "reserved": 117657600,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0007363
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

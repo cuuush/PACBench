@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-12T00:54:00.809268+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 17:25 and 17:45 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Jen asks for help with her job application and they arrange a quick call tomorrow morning. She sends a couple of short messages rather than a formal request.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Jen and the user agree to a phone call on Tuesday at 10 am about her job application.\n\nNew messages:\n1. Jen: hey can you help me with my job application real quick?\n2. Jen: stuck on the cover letter part ugh\n3. Me: yeah of course, want to do a quick call tomorrow morning to go over it?\n4. Jen: Tuesday at 10am works for me?\n5. Me: yeah that works, talk then"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a12d9a-2b3d-7714-8b68-4723c331a556",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [1, 3, 4, 5], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 3, 4, 5], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1791766440,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2120,
+      "prompt_tokens": 396,
+      "total_tokens": 2516,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2052
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [1, 3, 4, 5], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 3, 4, 5], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 2120,
+    "prompt_tokens": 396,
+    "total_tokens": 2516,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2052
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

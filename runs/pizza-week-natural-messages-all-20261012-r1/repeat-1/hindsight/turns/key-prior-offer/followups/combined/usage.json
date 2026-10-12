@@ -1,0 +1,74 @@
+{
+  "state": "captured",
+  "started": "2026-10-12T02:57:16.987936+00:00",
+  "finished": "2026-10-12T02:57:25.286933+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 4990,
+      "output_tokens": 401,
+      "accounted_upper_bound_usd": 0.0005792,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 2,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.2353152,
+      "unsettled_calls": 2
+    }
+  },
+  "model_calls": [
+    {
+      "id": "c340939c0f794e4e9e4e9a7d20797187",
+      "project": "pacbench-fc30d20446d2-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:57:19.218422+00:00",
+      "finished": "2026-10-12T02:57:22.816299+00:00",
+      "state": "settled",
+      "input_tokens": 4990,
+      "output_tokens": 401,
+      "accounted": 579200,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0005792
+    },
+    {
+      "id": "cbee8740efa9418db86972b6550da173",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:57:23.844301+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    },
+    {
+      "id": "cda28f14c34f472081fb71a4fb0a0044",
+      "project": "pacbench-fc30d20446d2-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T02:57:23.844795+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

@@ -323,8 +323,9 @@ def enforce_provider_tools(turn: TurnResult, env: dict) -> None:
     allowed = {n.strip() for n in env.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
                if n.strip() and "*" not in n}
     from .source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
+    rules = json.loads(env.get('PACBENCH_SOURCE_ARGUMENT_RULES', json.dumps(SOURCE_ARGUMENT_RULES)))
     forbidden = [c for c in turn.tool_calls if c.get("name") not in allowed or
-                 source_read_blocked(c.get("name"),c.get("input",c.get("arguments",{})),SOURCE_ARGUMENT_RULES)]
+                 source_read_blocked(c.get("name"),c.get("input",c.get("arguments",{})),rules)]
     turn.policy_blocks = max(turn.policy_blocks, len(forbidden))
 
 

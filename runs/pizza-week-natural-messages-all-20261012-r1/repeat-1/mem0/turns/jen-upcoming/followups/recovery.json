@@ -1,0 +1,96 @@
+{
+  "state": "complete",
+  "plan_hash": "333e52753bd79a4654145d87fbf4bfc5cbeb3519f8bf3135b57ca3cacd96b80a",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "call with Jen Tuesday October 13",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791773065862,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"4df1e25b-5b46-4321-b479-b875938dcd67\", \"memory\": \"User scheduled another call with Jen at 10am on Tuesday, October 13, 2026 to prep for Jen's job interview after Jen requested it on October 10, 2026, which User accepted.\", \"score\": 0.9003185459067826}, {\"id\": \"38020c51-dcaa-42b3-a18b-db9e741997a0\", \"memory\": \"User scheduled a call with Jen at 10am on Tuesday, October 6, 2026 to go over Jen's job application cover letter.\", \"score\": 0.8935553325349571}, {\"id\": \"f6918f43-b190-4137-9a03-78e14aadaba5\", \"memory\": \"User, Jen, and Alex postponed their short walk planned for 2pm on Tuesday, October 6, 2026 at the west entrance to the duck pond in Willow Park after Jen and Alex both said that morning they couldn't make it and User agreed to leave it for another day.\", \"score\": 0.6452664737830264}, {\"id\": \"c50caf51-4b20-4159-96ab-ac6456cd4dcf\", \"memory\": \"User, Jen, and Alex planned a short walk at 2pm on Tuesday, October 6, 2026, meeting at the west entrance to the duck pond in Willow Park, as agreed in the 'Park pals' group chat on October 5, 2026.\", \"score\": 0.5957188112619185}, {\"id\": \"e886aa11-1216-4a95-ba8f-e93be7210b17\", \"memory\": \"Jen asked User for help with her job application on October 5, 2026, saying she was stuck on the cover letter part.\", \"score\": 0.392018645185575}, {\"id\": \"917f9514-1f7f-4224-9413-51daa2c2c107\", \"memory\": \"Jen got an interview for the job she had asked User for help with on October 5, 2026, sharing the good news on October 10, 2026 after User helped with her cover letter on October 6.\", \"score\": 0.39181217544005703}, {\"id\": \"5455e024-01bf-46cf-acc7-2cb5f0a8acda\", \"memory\": \"User caught up with Alex on Tuesday, October 6, 2026, with Alex saying on October 7 it was really good catching up yesterday\", \"score\": 0.37554854142993394}, {\"id\": \"bc6a66fb-145e-4c0f-8abd-23af4335cc7e\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026.\", \"score\": 0.35968069144202497}, {\"id\": \"892d1ab2-5190-47e9-997c-e8b1b91332c9\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from 7pm on Thursday, October 8, 2026 to 7pm on Saturday, October 10, 2026 after Ben asked on October 6 to push it to later in the week due to a work deadline.\", \"score\": 0.2932275539142259}, {\"id\": \"5570dfea-2d2b-46bd-bbeb-7342b8d22306\", \"memory\": \"Alex invited User to dinner at 7pm on Sunday, October 11, 2026 at Juniper Cafe on October 7, which User declined saying evenings are awkward that weekend, and they agreed to raincheck\", \"score\": 0.29277719049637835}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 15.4,
+    "input_tokens": 1712,
+    "output_tokens": 477,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "call-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer"
+    },
+    {
+      "id": "call-purpose",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer"
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "call-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "call-purpose",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "claims": [
+    {
+      "id": "key-recovered",
+      "statement": "Devon had already recovered the spare key",
+      "evidence": [
+        "message-86b75ba510c763f2340ac708"
+      ]
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "statement": "The Sunday pickup was no longer needed",
+      "evidence": [
+        "message-a625dacac01175fcb430cae3",
+        "message-4872cdea5e268c583798044b"
+      ]
+    }
+  ],
+  "question": "Did I still need to collect Devon's key today?",
+  "evidence_hash": "7437ba240fa7e3430dd4417298125a82d43a7f9734dd9f13da4a6d9dd978a496",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Both intent-required facts are covered by independent claims: recovery and cancellation of Sunday pickup.",
+    "reviews": [
+      {
+        "id": "key-recovered",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon directly states he got spare key back already on Oct 10."
+      },
+      {
+        "id": "sunday-pickup-cancelled",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon explicitly says don't worry about tomorrow, you don't need to grab it, cancelling Sunday Oct 11 pickup."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks about current need for the Sunday pickup without stating the outcome. 'Still' and 'today' are supported by the prior Sunday 11am request and Oct-11 question time, and answering No reasonably requires both that Devon recovered the key and that the pickup was cancelled."
+  },
+  "author_fact_count": 0,
+  "test_intent": "No. Devon had already recovered the spare key, so the Sunday pickup was no longer needed.",
+  "question_source": "supplied",
+  "question_at": "2026-10-11T21:40:00-04:00",
+  "contract_hash": "bf66bb90d68b96553807191427c34fe9457fbc7dc2367537d88ca04d25faefa3"
+}

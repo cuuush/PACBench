@@ -1,0 +1,128 @@
+{
+  "state": "complete",
+  "plan_hash": "539f11a0ea2937c2302b84d0f0b926ff3b9ea2c9fc67e5507deae355c21158e6",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 2
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E4"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774194220,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E4  Dinner\n\nwhen: Saturday 10 October 2026 at 19:00\nstate: Was planned; attendance unconfirmed\nwhere: Juniper Cafe\nwho: Ben\nsource: person:Ben\n\npages: dinner (series)\n\nsources (7 line(s); * = what the row was built from):\n  — Tue Oct 6, 2026 08:00 · email · Ben —\n * [26] Ben · Tue 6 Oct 08:00 · Ben: Re: Dinner Saturday at the same time is perfect, same place works.\n  — Mon Oct 5, 2026 18:15 · iMessage with Ben · 1 day earlier —\n * [14] Ben · Mon 5 Oct 18:15 · me: still good for dinner Thursday?\n * [15] Ben · Mon 5 Oct 18:16 · Ben: Yeah. Juniper Cafe at 7pm?\n * [16] Ben · Mon 5 Oct 18:20 · me: yeah that works\n   [17] Ben · Mon 5 Oct 18:35 · me: see you there\n  — Tue Oct 6, 2026 06:45 · email · Ben · 1 day later —\n * [25] Ben · Tue 6 Oct 06:45 · Ben: Dinner Hey, a work deadline just came up - can we push our dinner to later this week?\n * [24] Ben · Tue 6 Oct 07:00 · me: Re: Dinner No problem, how about Saturday at the same time? Same place?\n\nchanges:\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Dinner' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'Juniper Cafe' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Ben\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Ben' (by dream:nightly:born-day)\n  2026-10-07T03:00  date: '2026-10-08' -> '2026-10-10' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "dinner"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774194234,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"dinner\", \"title\": \"Dinner\", \"section\": \"projects\", \"is_self\": false, \"answers\": [\"where\"], \"facts\": [{\"slot\": \"where\", \"value\": \"Juniper Cafe\", \"source\": \"memcal\", \"ts\": \"2026-10-08\", \"lines\": []}], \"cited_ids\": {\"where\": []}, \"provenance\": {\"where\": {\"entity\": \"event:dinner@2026-10-11\", \"bundle\": \"98bae8\", \"run\": null, \"gen\": \"\", \"verb\": \"derived\", \"at\": \"2026-10-08T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Dinner\\n\\nRecent instances:\\n- 2026-10-11 \\u2014 Juniper Cafe\\n- 2026-10-10 \\u2014 Juniper Cafe\\n\\n## Facts\\n\\n- **where**: Juniper Cafe  <!-- memcal 2026-10-08 -->\\n\", \"encounters\": {\"count\": 0, \"by_activity\": [], \"recent\": []}, \"sources\": {\"where\": [{\"id\": 28, \"ts\": \"2026-10-07T11:04:00-04:00\", \"channel\": \"imessage\", \"thread\": \"58df607e09b954c1@example.test\", \"who\": \"Alex\", \"text\": \"would you wanna do dinner sunday at 7pm at Juniper Cafe?\", \"evidence\": true, \"source_heading\": \"Wed Oct 7, 2026 11:04 \\u00b7 iMessage with Alex\"}, {\"id\": 29, \"ts\": \"2026-10-07T11:12:00-04:00\", \"channel\": \"imessage\", \"thread\": \"58df607e09b954c1@example.test\", \"who\": \"me\", \"text\": \"ah sorry, evenings are awkward this weekend\", \"evidence\": true}, {\"id\": 30, \"ts\": \"2026-10-07T11:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"58df607e09b954c1@example.test\", \"who\": \"Alex\", \"text\": \"totally get it, raincheck?\", \"evidence\": true}]}, \"narrow\": {\"where\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.21,
+    "input_tokens": 17735,
+    "output_tokens": 554,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "day",
+      "kind": "provided",
+      "reason": "Correct day directly stated in answer."
+    },
+    {
+      "id": "time",
+      "kind": "provided",
+      "reason": "Correct time directly stated in answer."
+    },
+    {
+      "id": "venue",
+      "kind": "provided",
+      "reason": "Correct venue directly stated in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

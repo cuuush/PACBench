@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-12T00:56:27.298929+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Jen, Alex. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-06. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 07:00 and 07:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-05 Alex: Up for a short walk tomorrow? I can do 2pm\n2026-10-05 Me: Tuesday at 2 works for me. Meet at the west entrance to the duck pond in Willow Park?\n2026-10-05 Jen: Lovely, count me in!\n2026-10-05 Alex: yeah that works\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: In the existing group, Jen says exactly \"hey guys i can’t make it today\". Alex replies \"me too let’s just do this another day!\". The user agrees to leave it for another day, without choosing a new date. This is a brief exchange about postponing the group outing: nobody names the outing or location, and nobody discusses any other appointments. Context comes from yesterday in this group.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The three people call off their Tuesday group outing to the duck pond. No replacement day is agreed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6acc303b95cf8a5e4cc44536",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791766564.0,
+    "completed_at": 1791766587.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6acc303b95cf8a5e4cc44536:rs_01a12d9c0e867292864ef62d50b2d616",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Applying speaker-label and pronoun constraints for a believable imessage conversation format."
+          },
+          {
+            "type": "summary_text",
+            "text": "Enforcing pronoun use in message bodies while keeping speaker labels to the allowed set and morning timestamps."
+          },
+          {
+            "type": "summary_text",
+            "text": "Resolving the conflict between required exact dialogue and the no-naming constraint for the outing and location."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a three-line group exchange that implies canceling the Tuesday outing via context while avoiding naming it or proposing a new date."
+          },
+          {
+            "type": "summary_text",
+            "text": "Composing exact quoted lines for Jen and Alex while keeping the Me reply vague and consistent with prior voice."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a12d9c64cc74b493c39885b2132bbe",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Jen: hey guys i can’t make it today\\nAlex: me too let’s just do this another day!\\nMe: No worries, sounds good - let's just leave it for another day\", \"writer_note\": \"Kept it to three short messages matching each person's casing style from yesterday, letting today's date carry the Tuesday context so the plan is called off without restating it.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 705,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2842,
+      "output_tokens_details": {
+        "reasoning_tokens": 2623
+      },
+      "total_tokens": 3547
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Jen: hey guys i can’t make it today\\nAlex: me too let’s just do this another day!\\nMe: No worries, sounds good - let's just leave it for another day\", \"writer_note\": \"Kept it to three short messages matching each person's casing style from yesterday, letting today's date carry the Tuesday context so the plan is called off without restating it.\"}",
+  "usage": {
+    "input_tokens": 705,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2842,
+    "output_tokens_details": {
+      "reasoning_tokens": 2623
+    },
+    "total_tokens": 3547
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

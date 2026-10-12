@@ -1,0 +1,596 @@
+{
+  "method": "Manual inspection of recorded source, answers, grades and native tool paths. No verdicts changed.",
+  "qualification": "A small diagnostic exposes counterexamples; it cannot establish universal provider incapacity or a calibrated ranking.",
+  "reviewed_failures": [
+    {
+      "provider": "honcho",
+      "check": "separate-arrangements",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "Hermes turn failed or lost conversation continuity",
+      "response": "Checking those Tuesday plans.\n\nGot the coffee answer — retrying the Jen call lookup.\n\nThat follow-up came back empty — I'll check the Jen call again.",
+      "review": "Native turn timed out while retrying a Jen lookup. Execution is ungraded; do not infer the intended facts are absent.",
+      "record_directory": "repeat-1/honcho/turns/separate-arrangements"
+    },
+    {
+      "provider": "honcho",
+      "check": "key-not-needed",
+      "initial_verdict": "fail",
+      "execution_state": "ungraded",
+      "reason": "Recovery diagnostics incomplete",
+      "response": "No — Devon told you on Oct 10 you no longer needed to grab it.",
+      "review": "Initial answer gives the no-longer-needed state but omits the reason. The old generic recovery reviewer rejected its object-specific follow-up; valid initial grade preserved and recovery error reported separately.",
+      "record_directory": "repeat-1/honcho/turns/key-not-needed"
+    },
+    {
+      "provider": "honcho",
+      "check": "key-prior-offer",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "You'd offered to grab his spare key from the bartender at Luigi's at 11am today.",
+      "review": "Initial answer omits street/day; native internal original-message fallback is a separate retention limitation.",
+      "record_directory": "repeat-1/honcho/turns/key-prior-offer"
+    },
+    {
+      "provider": "hindsight",
+      "check": "pond-final",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "I don't have anything stored about the duck pond, so I can't confirm we picked another day.",
+      "review": "Normal native recall did not surface the pond identity/cancellation; the answer admits no stored information. Tool output has a generic short walk but does not supply the requested cancellation.",
+      "record_directory": "repeat-1/hindsight/turns/pond-final"
+    },
+    {
+      "provider": "hindsight",
+      "check": "separate-arrangements",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "No — I have no cancellation recorded.\n\nYour call with Jen is still on for 10am Tuesday, October 13. I don't have a coffee with Alex that Tuesday, only coffee Oct 6 and lunch Oct 11.",
+      "review": "Hermes chose upcoming Tuesday despite native recall returning both Jen calls and the old coffee. This is a date/reference selection failure; not proof of provider extraction loss.",
+      "record_directory": "repeat-1/hindsight/turns/separate-arrangements"
+    },
+    {
+      "provider": "hindsight",
+      "check": "key-not-needed",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "Yes — 11am pickup from the bartender at Luigi's today, and I have no record you did it.",
+      "review": "The answer asserts the old pickup is still needed despite Saturday source resolving it. Normal recall did not surface the resolution; later native capture can reinforce the erroneous answer.",
+      "record_directory": "repeat-1/hindsight/turns/key-not-needed"
+    },
+    {
+      "provider": "hindsight",
+      "check": "key-prior-offer",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "Pick up his spare key from the bartender at Luigi's.",
+      "review": "Initial recall omits day/time/street. Combined recovery obtains some additional detail; inspect the recorded half-credit rather than treating recovery as an initial pass.",
+      "record_directory": "repeat-1/hindsight/turns/key-prior-offer"
+    },
+    {
+      "provider": "hindsight",
+      "check": "pond-original-details",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "I don't have any record of a duck-pond meetup.",
+      "review": "Normal recall did not surface the requested original pond location. This does not establish that the fact is absent from every native store/index.",
+      "record_directory": "repeat-1/hindsight/turns/pond-original-details"
+    },
+    {
+      "provider": "supermemory",
+      "check": "pizza-final-details",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/pizza-final-details"
+    },
+    {
+      "provider": "supermemory",
+      "check": "maya-change-history",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/maya-change-history"
+    },
+    {
+      "provider": "supermemory",
+      "check": "rejected-pizza-option",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/rejected-pizza-option"
+    },
+    {
+      "provider": "supermemory",
+      "check": "leo-cover",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/leo-cover"
+    },
+    {
+      "provider": "supermemory",
+      "check": "pond-final",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/pond-final"
+    },
+    {
+      "provider": "supermemory",
+      "check": "separate-arrangements",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/separate-arrangements"
+    },
+    {
+      "provider": "supermemory",
+      "check": "ben-current",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/ben-current"
+    },
+    {
+      "provider": "supermemory",
+      "check": "ben-no-duplicate",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/ben-no-duplicate"
+    },
+    {
+      "provider": "supermemory",
+      "check": "alex-agreed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/alex-agreed"
+    },
+    {
+      "provider": "supermemory",
+      "check": "alex-declined",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/alex-declined"
+    },
+    {
+      "provider": "supermemory",
+      "check": "key-not-needed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/key-not-needed"
+    },
+    {
+      "provider": "supermemory",
+      "check": "key-prior-offer",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/key-prior-offer"
+    },
+    {
+      "provider": "supermemory",
+      "check": "jen-upcoming",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/jen-upcoming"
+    },
+    {
+      "provider": "supermemory",
+      "check": "jen-distinct-calls",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/jen-distinct-calls"
+    },
+    {
+      "provider": "supermemory",
+      "check": "pizza-distinct-count",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/pizza-distinct-count"
+    },
+    {
+      "provider": "supermemory",
+      "check": "pickup-not-meeting",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/pickup-not-meeting"
+    },
+    {
+      "provider": "supermemory",
+      "check": "pond-original-details",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/supermemory/turns/pond-original-details"
+    },
+    {
+      "provider": "openviking",
+      "check": "pizza-final-details",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "This past Friday was Oct 9.\n\nYou ended up with: Mario's on Pine Street at noon with Maya and Leo (Friday crew).\n\nIt started as Rosa's on Oak Street at 1pm, then moved because Rosa's was closed for renovations. Leo rejoined after Tyler covered his day shift, you all confirmed noon at Mario's, and you closed it Oct 8 with \"perfect, see you there tomorrow.\"\n\nYou also still had a separate Friday-evening pizza thread with Devon — Luigi's on 5th Street around 6pm.",
+      "review": "The answer gives correct noon pizza details but is penalized for not repeating lunch; uniformly flagged judge/criterion issue.",
+      "record_directory": "repeat-1/openviking/turns/pizza-final-details"
+    },
+    {
+      "provider": "openviking",
+      "check": "rejected-pizza-option",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "My logs only show Domino's on Elm Street was proposed and passed over in favor of Mario's on Pine Street — no reason from Maya is recorded.\n\nSearch summaries don't include her actual wording. If you want, I can pull the full Oct 8 thread text, but based on what's indexed, her preference reason isn't stated.",
+      "review": "Native search summaries omit Maya’s reason and the answer admits it cannot retrieve that reason. The original-source reader is hidden; no follow-up is given for admitted lookup failure.",
+      "record_directory": "repeat-1/openviking/turns/rejected-pizza-option"
+    },
+    {
+      "provider": "openviking",
+      "check": "pond-final",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/pond-final"
+    },
+    {
+      "provider": "openviking",
+      "check": "separate-arrangements",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/separate-arrangements"
+    },
+    {
+      "provider": "openviking",
+      "check": "ben-current",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/ben-current"
+    },
+    {
+      "provider": "openviking",
+      "check": "ben-no-duplicate",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/ben-no-duplicate"
+    },
+    {
+      "provider": "openviking",
+      "check": "alex-agreed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/alex-agreed"
+    },
+    {
+      "provider": "openviking",
+      "check": "alex-declined",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/alex-declined"
+    },
+    {
+      "provider": "openviking",
+      "check": "key-not-needed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/key-not-needed"
+    },
+    {
+      "provider": "openviking",
+      "check": "key-prior-offer",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/key-prior-offer"
+    },
+    {
+      "provider": "openviking",
+      "check": "jen-upcoming",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/jen-upcoming"
+    },
+    {
+      "provider": "openviking",
+      "check": "jen-distinct-calls",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/jen-distinct-calls"
+    },
+    {
+      "provider": "openviking",
+      "check": "pizza-distinct-count",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/pizza-distinct-count"
+    },
+    {
+      "provider": "openviking",
+      "check": "pickup-not-meeting",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/pickup-not-meeting"
+    },
+    {
+      "provider": "openviking",
+      "check": "pond-original-details",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/openviking/turns/pond-original-details"
+    },
+    {
+      "provider": "memcal",
+      "check": "pizza-final-details",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "Friday Oct 9 you had two pizzas arranged:\n\n12pm with Leo and Maya at Mario's on Pine Street. Started as 1pm at Rosa's on Oak Street, moved to noon and to Mario's because Rosa's was closed for renovations.\n\n6pm with Devon at Luigi's on 5th Street.",
+      "review": "Judge/criterion issue: the initial answer gives correct noon pizza people/place/time but is penalized for not saying lunch. The recovery question loses Friday-pizza scope and elicits the earlier pond outing. Not demonstrated loss of the initial pizza facts.",
+      "record_directory": "repeat-1/memcal/turns/pizza-final-details"
+    },
+    {
+      "provider": "memcal",
+      "check": "key-prior-offer",
+      "initial_verdict": "fail",
+      "execution_state": "diagnostic",
+      "reason": "",
+      "response": "You'd offered to grab his spare key from the bartender at Luigi's at 11am.",
+      "review": "Initial answer omitted street/day. One combined follow-up recovered both without additional tools. Partial recovery credit preserves the initial omissions.",
+      "record_directory": "repeat-1/memcal/turns/key-prior-offer"
+    },
+    {
+      "provider": "byterover",
+      "check": "pizza-final-details",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Native source ingestion/processing failed; inspect saved record",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/pizza-final-details"
+    },
+    {
+      "provider": "byterover",
+      "check": "maya-change-history",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/maya-change-history"
+    },
+    {
+      "provider": "byterover",
+      "check": "rejected-pizza-option",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/rejected-pizza-option"
+    },
+    {
+      "provider": "byterover",
+      "check": "leo-cover",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/leo-cover"
+    },
+    {
+      "provider": "byterover",
+      "check": "pond-final",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/pond-final"
+    },
+    {
+      "provider": "byterover",
+      "check": "separate-arrangements",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/separate-arrangements"
+    },
+    {
+      "provider": "byterover",
+      "check": "ben-current",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/ben-current"
+    },
+    {
+      "provider": "byterover",
+      "check": "ben-no-duplicate",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/ben-no-duplicate"
+    },
+    {
+      "provider": "byterover",
+      "check": "alex-agreed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/alex-agreed"
+    },
+    {
+      "provider": "byterover",
+      "check": "alex-declined",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/alex-declined"
+    },
+    {
+      "provider": "byterover",
+      "check": "key-not-needed",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/key-not-needed"
+    },
+    {
+      "provider": "byterover",
+      "check": "key-prior-offer",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/key-prior-offer"
+    },
+    {
+      "provider": "byterover",
+      "check": "jen-upcoming",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/jen-upcoming"
+    },
+    {
+      "provider": "byterover",
+      "check": "jen-distinct-calls",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/jen-distinct-calls"
+    },
+    {
+      "provider": "byterover",
+      "check": "pizza-distinct-count",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/pizza-distinct-count"
+    },
+    {
+      "provider": "byterover",
+      "check": "pickup-not-meeting",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/pickup-not-meeting"
+    },
+    {
+      "provider": "byterover",
+      "check": "pond-original-details",
+      "initial_verdict": null,
+      "execution_state": "ungraded",
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "response": null,
+      "review": "Inspect the saved native answer, criterion verdicts and readiness/tool traces; no product incapacity is inferred from an execution error.",
+      "record_directory": "repeat-1/byterover/turns/pond-original-details"
+    }
+  ]
+}

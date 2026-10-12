@@ -1,0 +1,56 @@
+{
+  "claims": [
+    {
+      "id": "thursday-replaced",
+      "statement": "The Thursday dinner was replaced by Saturday",
+      "evidence": [
+        "message-91615bf14da236f8259a66dd",
+        "message-9238a44bf38a981fa7045f8c",
+        "message-a17fe7fb284a0f4b29687d96",
+        "message-2d5de85a5d2bd0a13f8d894e"
+      ]
+    },
+    {
+      "id": "no-two-dinners",
+      "statement": "Ben and I did not agree to two separate dinners",
+      "evidence": [
+        "message-9238a44bf38a981fa7045f8c",
+        "message-a17fe7fb284a0f4b29687d96",
+        "message-2d5de85a5d2bd0a13f8d894e"
+      ]
+    }
+  ],
+  "question": "Was Thursday still on too?",
+  "evidence_hash": "581d98e290495d99ec9d3d5cae9c406350e7006df178c9997ece5fe6deb7181d",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Both intent-required facts are covered: replacement by Saturday and no two dinners.",
+    "reviews": [
+      {
+        "id": "thursday-replaced",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue shows Thursday dinner agreed, then Ben asked to push it and both agreed to Saturday, establishing replacement."
+      },
+      {
+        "id": "no-two-dinners",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Push language shows a move of the single dinner, with no agreement to keep Thursday plus add Saturday."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "In same ben-recap session, prior Q 'What did Ben and I end up settling on for dinner?' supplies Ben-dinner scope, so 'Thursday' resolves to original Thursday Ben dinner and 'too' to in addition to settled dinner. Answering whether Thursday was still on requires stating it was replaced by Saturday and that no two-dinner agreement existed. Presuppositions that Thursday was once on and another dinner exists are supported by dialogue; no answers supplied and no unsupported two-dinner presupposition."
+  },
+  "author_fact_count": 0,
+  "test_intent": "No. Thursday was replaced by Saturday; they did not agree to two separate dinners.",
+  "question_source": "supplied",
+  "question_at": "2026-10-11T21:22:00-04:00",
+  "contract_hash": "b9c66c6c73153b6cc678fcc1608e9d83dd5c1e8b6988672f246b7261838238c0"
+}

@@ -1,0 +1,264 @@
+{
+  "state": "complete",
+  "plan_hash": "d6e8ae9c76c00c304f9de76ac27d84fbf985414d20fcf234d19baf2091557b05",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza Friday October 9 arrangements",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791772738330,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"8396eb5f-3136-4077-9af5-6aaca64df2a6\", \"memory\": \"Leo rejoined User and Maya's Friday noon pizza at Mario's on Pine Street on October 9, 2026 after Tyler agreed to cover Leo's Friday day shift, with Maya confirming the new time and venue on October 8 and Leo accepting\", \"score\": 0.686057708265645}, {\"id\": \"5f642f5b-929a-4e76-bcfd-8a4572aacfe0\", \"memory\": \"User planned pizza with Devon at 6pm on Friday, October 9, 2026 at Luigi's on 5th Street after Devon invited User on October 7, which User accepted saying they love that place\", \"score\": 0.6802668762783597}, {\"id\": \"1b28762b-897b-4462-b79d-29d11fa7b4df\", \"memory\": \"User and Maya rescheduled their Friday pizza lunch from 1pm to noon on October 9, 2026 after Maya requested the earlier time on October 8 due to having something later, which User accepted\", \"score\": 0.6793036396417091}, {\"id\": \"9559e799-0997-461c-acf8-3b797313cb5f\", \"memory\": \"Maya invited Leo on October 7 to join User and Maya's 1pm pizza lunch at Rosa's on Oak Street on Friday, October 9, 2026, which Leo initially accepted but then cancelled the same day saying he was put on day shift Friday\", \"score\": 0.6592960738150233}, {\"id\": \"ac8d9fe7-571c-4fdb-8669-cf86a6d25e1e\", \"memory\": \"User planned a pizza lunch with Maya at Rosa's on Oak Street at 1pm on Friday, October 9, 2026 after Maya invited User on October 6 saying she had been craving it all week, which User accepted.\", \"score\": 0.6555218807940684}, {\"id\": \"468e8480-3ffc-493b-9951-95422fc72057\", \"memory\": \"User and Maya agreed on October 8, 2026 to move their Friday, October 9 noon pizza lunch to Mario's on Pine Street after User proposed Domino's on Elm Street and Maya rejected it as too far\", \"score\": 0.6550840113186007}, {\"id\": \"b95b3acb-ee6f-46f6-b3fb-24a997fcfea3\", \"memory\": \"Maya discovered on October 8, 2026 that Rosa's on Oak Street is closed for renovations, cancelling it as the venue for User and Maya's planned Friday, October 9 pizza lunch\", \"score\": 0.6484529569307904}, {\"id\": \"c2e9e4d9-d084-4523-b46a-ea195424bc1c\", \"memory\": \"User confirmed to Maya on October 7 that their 1pm pizza lunch at Rosa's on Oak Street on Friday, October 9, 2026 is still on after Leo cancelled due to day shift\", \"score\": 0.6272410313874084}, {\"id\": \"cde9f133-bf99-4799-b49e-fe2a2ffd5383\", \"memory\": \"User planned dinner with Ben at Juniper Cafe at 7pm on Thursday, October 8, 2026.\", \"score\": 0.2963785953926307}, {\"id\": \"892d1ab2-5190-47e9-997c-e8b1b91332c9\", \"memory\": \"User and Ben rescheduled their dinner at Juniper Cafe from 7pm on Thursday, October 8, 2026 to 7pm on Saturday, October 10, 2026 after Ben asked on October 6 to push it to later in the week due to a work deadline.\", \"score\": 0.2959267114290021}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.91,
+    "input_tokens": 8640,
+    "output_tokens": 1091,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "outing1-pizza",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-lunch",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-maya",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-leo",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-friday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-noon",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-marios",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing1-pine",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-pizza",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-devon",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-friday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-6pm",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-luigis",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "outing2-5th",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 14,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 14,
+    "points": 14.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "outing1-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-lunch",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-maya",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-leo",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-friday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-noon",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-marios",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing1-pine",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-devon",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-friday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-6pm",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-luigis",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "outing2-5th",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

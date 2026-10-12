@@ -1,0 +1,110 @@
+{
+  "claims": [
+    {
+      "id": "favor-spare-key",
+      "statement": "The favor was to collect Devon's spare key",
+      "evidence": [
+        "message-a52e7deb0984c5a1cb9d4d44",
+        "message-a625dacac01175fcb430cae3"
+      ]
+    },
+    {
+      "id": "collect-from-bartender",
+      "statement": "The key was to be collected from the bartender",
+      "evidence": [
+        "message-a52e7deb0984c5a1cb9d4d44"
+      ]
+    },
+    {
+      "id": "venue-luigis",
+      "statement": "The collection point was Luigi's",
+      "evidence": [
+        "message-a52e7deb0984c5a1cb9d4d44"
+      ]
+    },
+    {
+      "id": "venue-street",
+      "statement": "Luigi's is on 5th Street",
+      "evidence": [
+        "message-a52e7deb0984c5a1cb9d4d44"
+      ]
+    },
+    {
+      "id": "day-sunday",
+      "statement": "The scheduled day was Sunday",
+      "evidence": [
+        "message-a625dacac01175fcb430cae3",
+        "message-15ffb254dc2da0d75f9a23c3"
+      ]
+    },
+    {
+      "id": "time-11am",
+      "statement": "The scheduled time was 11am",
+      "evidence": [
+        "message-a625dacac01175fcb430cae3",
+        "message-15ffb254dc2da0d75f9a23c3"
+      ]
+    }
+  ],
+  "question": "What had I offered to do for him?",
+  "evidence_hash": "cd98710b66eafe781017637e55b66f28f811e4c8bd25e9f1a723f45245aa9380",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set independently covers favor, bartender, Luigi's, 5th Street, Sunday, and 11am as established.",
+    "reviews": [
+      {
+        "id": "favor-spare-key",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue shows Devon asked to grab spare key and Me agreed."
+      },
+      {
+        "id": "collect-from-bartender",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon states key was left with the bartender for pickup."
+      },
+      {
+        "id": "venue-luigis",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon names Luigi's as location of key."
+      },
+      {
+        "id": "venue-street",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon specifies Luigi's on 5th Street."
+      },
+      {
+        "id": "day-sunday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon requested Sunday and Me confirmed Sunday."
+      },
+      {
+        "id": "time-11am",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon requested 11am and Me confirmed 11am."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "'him' resolves to Devon via prior question in same key-recap session about Devon's key; past-perfect 'had offered' correctly asks historical offer vs cancelled current need; prompt supplies no spare-key/bartender/Luigi's/5th/Sunday/11am details but a full answer to what was offered requires them."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Collect Devon's spare key from the bartender at Luigi's on 5th Street on Sunday at 11 am. Only the favor, collection point and scheduled day/time are judged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-11T21:42:00-04:00",
+  "contract_hash": "a9027181eab9dc5dad92b164a71fbdcd6fcb966eca46672180744c16485bfe6c"
+}

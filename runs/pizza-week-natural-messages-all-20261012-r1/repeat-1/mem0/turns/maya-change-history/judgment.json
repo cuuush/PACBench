@@ -1,0 +1,71 @@
+{
+  "checkpoint": "maya-change-history",
+  "question": "[Simulated now: 2026-10-11T21:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with Maya's plan?",
+  "answer": "Original was 1pm Friday at Rosa's on Oak Street.\n\nChanged to noon at Mario's on Pine Street on Oct 8 — time moved earlier because Maya had something later, venue moved because Rosa's was closed for renovations (Domino's was proposed and rejected as too far). Leo rejoined after Tyler covered his shift.",
+  "claims": [
+    {
+      "id": "time-original",
+      "description": "The original pizza plan time was 1pm",
+      "evidence": [
+        "message-d777215b966f37abfbaf3be4",
+        "message-c8957c9b9dcde0608641f21f"
+      ]
+    },
+    {
+      "id": "time-final",
+      "description": "The final pizza plan time was noon",
+      "evidence": [
+        "message-c6b798f81fc1fcd97913a384",
+        "message-e21578773e104215c318bc71",
+        "message-bef0e42bcdd81eb01ae22fdb"
+      ]
+    },
+    {
+      "id": "venue-original-name",
+      "description": "The original pizza venue name was Rosa's",
+      "evidence": [
+        "message-d777215b966f37abfbaf3be4",
+        "message-c8957c9b9dcde0608641f21f"
+      ]
+    },
+    {
+      "id": "venue-original-street",
+      "description": "The original pizza venue street was Oak Street",
+      "evidence": [
+        "message-d777215b966f37abfbaf3be4",
+        "message-c8957c9b9dcde0608641f21f"
+      ]
+    },
+    {
+      "id": "venue-final-name",
+      "description": "The final pizza venue name was Mario's",
+      "evidence": [
+        "message-8b5353f20df7b75382e43b55",
+        "message-2be6c4f874464e99362eb01d",
+        "message-7e7a08372fbb2c8c888d0e7a"
+      ]
+    },
+    {
+      "id": "venue-final-street",
+      "description": "The final pizza venue street was Pine Street",
+      "evidence": [
+        "message-8b5353f20df7b75382e43b55",
+        "message-2be6c4f874464e99362eb01d",
+        "message-7e7a08372fbb2c8c888d0e7a"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-11T21:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat did I end up arranging for pizza this past Friday?\"}, {\"role\": \"assistant\", \"content\": \"For Friday, October 9:\\n\\n- Noon pizza lunch with Maya and Leo at Mario's on Pine Street. Started as 1pm at Rosa's with Maya, moved to noon, then to Mario's after Rosa's closed for renovations, Leo rejoined after Tyler covered his shift.\\n\\n- 6pm pizza with Devon at Luigi's on 5th Street.\"}]\nQuestion: [Simulated now: 2026-10-11T21:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat changed with Maya's plan?\nAnswer: Original was 1pm Friday at Rosa's on Oak Street.\n\nChanged to noon at Mario's on Pine Street on Oct 8 — time moved earlier because Maya had something later, venue moved because Rosa's was closed for renovations (Domino's was proposed and rejected as too far). Leo rejoined after Tyler covered his shift.\nClaims (hidden from the assistant): [{\"id\": \"time-original\", \"claim\": \"The original pizza plan time was 1pm\", \"evidence\": [\"message-d777215b966f37abfbaf3be4\", \"message-c8957c9b9dcde0608641f21f\"]}, {\"id\": \"time-final\", \"claim\": \"The final pizza plan time was noon\", \"evidence\": [\"message-c6b798f81fc1fcd97913a384\", \"message-e21578773e104215c318bc71\", \"message-bef0e42bcdd81eb01ae22fdb\"]}, {\"id\": \"venue-original-name\", \"claim\": \"The original pizza venue name was Rosa's\", \"evidence\": [\"message-d777215b966f37abfbaf3be4\", \"message-c8957c9b9dcde0608641f21f\"]}, {\"id\": \"venue-original-street\", \"claim\": \"The original pizza venue street was Oak Street\", \"evidence\": [\"message-d777215b966f37abfbaf3be4\", \"message-c8957c9b9dcde0608641f21f\"]}, {\"id\": \"venue-final-name\", \"claim\": \"The final pizza venue name was Mario's\", \"evidence\": [\"message-8b5353f20df7b75382e43b55\", \"message-2be6c4f874464e99362eb01d\", \"message-7e7a08372fbb2c8c888d0e7a\"]}, {\"id\": \"venue-final-street\", \"claim\": \"The final pizza venue street was Pine Street\", \"evidence\": [\"message-8b5353f20df7b75382e43b55\", \"message-2be6c4f874464e99362eb01d\", \"message-7e7a08372fbb2c8c888d0e7a\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"time-original\", \"verdict\": \"correct\", \"reason\": \"Answer states 'Original was 1pm Friday'\"}, {\"id\": \"time-final\", \"verdict\": \"correct\", \"reason\": \"Answer states 'Changed to noon at Mario's'\"}, {\"id\": \"venue-original-name\", \"verdict\": \"correct\", \"reason\": \"Answer states original was 'at Rosa's'\"}, {\"id\": \"venue-original-street\", \"verdict\": \"correct\", \"reason\": \"Answer states original was 'on Oak Street'\"}, {\"id\": \"venue-final-name\", \"verdict\": \"correct\", \"reason\": \"Answer states changed to 'at Mario's'\"}, {\"id\": \"venue-final-street\", \"verdict\": \"correct\", \"reason\": \"Answer states changed to 'on Pine Street'\"}], \"recovery\": [{\"id\": \"time-original\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as 1pm\"}, {\"id\": \"time-final\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as noon\"}, {\"id\": \"venue-original-name\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as Rosa's\"}, {\"id\": \"venue-original-street\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as Oak Street\"}, {\"id\": \"venue-final-name\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as Mario's\"}, {\"id\": \"venue-final-street\", \"kind\": \"provided\", \"reason\": \"Correctly conveyed as Pine Street\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-11T21:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did I end up arranging for pizza this past Friday?"
+    },
+    {
+      "role": "assistant",
+      "content": "For Friday, October 9:\n\n- Noon pizza lunch with Maya and Leo at Mario's on Pine Street. Started as 1pm at Rosa's with Maya, moved to noon, then to Mario's after Rosa's closed for renovations, Leo rejoined after Tyler covered his shift.\n\n- 6pm pizza with Devon at Luigi's on 5th Street."
+    }
+  ],
+  "model_call": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/model-calls/e3393edda20c4b548ec338fd17f8c3dbc6b476b5a7fe9292c8f963de1f532bff.json"
+}

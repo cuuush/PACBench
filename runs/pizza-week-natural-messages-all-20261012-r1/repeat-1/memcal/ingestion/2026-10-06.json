@@ -1,0 +1,320 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "memcal",
+  "at": "2026-10-06T18:50:00-04:00",
+  "processing_at": "2026-10-07T03:00:00-04:00",
+  "document_sha256": "782134d08305cbcbf99d2a964123b006cb5d02c872ebe8c58e30277856a211a6",
+  "source_ids": [
+    "message-9238a44bf38a981fa7045f8c",
+    "message-a17fe7fb284a0f4b29687d96",
+    "message-a5e12a923bf3456aac68be98",
+    "message-9adcff1373cc2ed76edf0ad3",
+    "message-6c55a81e0a2e668341dadf88",
+    "message-2d5de85a5d2bd0a13f8d894e",
+    "message-bc34f6d045f2dd902d0e20d6",
+    "message-d777215b966f37abfbaf3be4",
+    "message-7fb96571016206b1ce44d602"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"native source readers + native nightly dream\", \"contacts\": {\"linked\": 8, \"report\": \"linked 8 handles from 1 source(s)\"}, \"ingest\": {\"channel\": \"imessage\", \"read\": 6, \"archived\": 6, \"passed\": 6, \"error\": null, \"notes\": [], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null, \"last_rowid\": 23, \"floor\": \"2026-10-05T18:35:00-04:00\"}, \"email_ingest\": {\"channel\": \"email\", \"read\": 3, \"archived\": 3, \"passed\": 3, \"error\": null, \"notes\": [\"Sent: first run — starting 30 days back\", \"INBOX: first run — starting 30 days back\"], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null}, \"email_transport\": {\"interface\": \"TLS IMAP4rev1 Inbox/Sent fixture\", \"commands\": [{\"command\": \"CAPABILITY\", \"operation\": null, \"folder\": null, \"status\": \"OK\"}, {\"command\": \"LOGIN\", \"operation\": null, \"folder\": null, \"status\": \"OK\"}, {\"command\": \"LIST\", \"operation\": null, \"folder\": null, \"status\": \"OK\"}, {\"command\": \"EXAMINE\", \"operation\": null, \"folder\": \"Sent\", \"status\": \"OK\"}, {\"command\": \"STATUS\", \"operation\": null, \"folder\": \"Sent\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"SEARCH\", \"folder\": \"Sent\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"Sent\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"Sent\", \"status\": \"OK\"}, {\"command\": \"EXAMINE\", \"operation\": null, \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"STATUS\", \"operation\": null, \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"SEARCH\", \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"UID\", \"operation\": \"FETCH\", \"folder\": \"INBOX\", \"status\": \"OK\"}, {\"command\": \"LOGOUT\", \"operation\": null, \"folder\": \"INBOX\", \"status\": \"OK\"}], \"account\": \"da8bbfab-4b22-5d0f-84d7-3e2e85fd07b5@mail.example.test\"}, \"bundles\": [{\"run_id\": 2, \"entity\": \"person:Ben\", \"bundle_id\": \"0644b3\", \"label\": \"Ben\", \"kind\": \"person\", \"lines\": 3, \"state\": \"reading\", \"updated_at\": \"2026-10-07T03:00:00-04:00\"}, {\"run_id\": 2, \"entity\": \"person:Maya\", \"bundle_id\": \"aff481\", \"label\": \"Maya\", \"kind\": \"person\", \"lines\": 3, \"state\": \"reading\", \"updated_at\": \"2026-10-07T03:00:00-04:00\"}, {\"run_id\": 2, \"entity\": \"thread:imessage:Park pals\", \"bundle_id\": \"2f07a7\", \"label\": \"Park pals\", \"kind\": \"thread\", \"lines\": 4, \"state\": \"reading\", \"updated_at\": \"2026-10-07T03:00:00-04:00\"}], \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-week-natural-messages-memcal-recovery-20261012-r2/repeat-1/memcal/ingestion-model-calls/2026-10-06.json\", \"native_event_state\": [{\"key\": \"coffee@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"11:00\", \"title\": \"Coffee\", \"location\": \"Birch Cafe\", \"status\": \"confirmed\", \"participants\": \"[\\\"Alex\\\"]\", \"subject\": \"me\"}, {\"key\": \"dinner@2026-10-08\", \"date\": \"2026-10-10\", \"time\": \"19:00\", \"title\": \"Dinner\", \"location\": \"Juniper Cafe\", \"status\": \"confirmed\", \"participants\": \"[\\\"Ben\\\"]\", \"subject\": \"me\"}, {\"key\": \"job-application-help-call@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"10:00\", \"title\": \"Job application help call\", \"location\": null, \"status\": \"confirmed\", \"participants\": \"[\\\"Jen\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-09\", \"date\": \"2026-10-09\", \"time\": \"13:00\", \"title\": \"Pizza\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\"]\", \"subject\": \"me\"}, {\"key\": \"short-walk@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"14:00\", \"title\": \"Short walk\", \"location\": \"west entrance to the duck pond in Willow Park\", \"status\": \"declined\", \"participants\": \"[\\\"Alex\\\", \\\"Jen\\\"]\", \"subject\": \"me\"}], \"processing\": {\"run_id\": 2, \"errors\": [], \"report\": \"dream run #2 — 3 bundles, 10 items, 3 writes\\n  updated   2026-10-06 Short walk [short-walk@2026-10-06]\\n  updated   2026-10-10 Dinner [dinner@2026-10-08]\\n  inserted  2026-10-09 Pizza [pizza@2026-10-09]\\n  usage: 2 calls · 5228 in (0 cached) · 4194 out · cost not reported\"}, \"readiness\": \"Native dream completion without errors\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 8,
+      "report": "linked 8 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 6,
+      "archived": 6,
+      "passed": 6,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 23,
+      "floor": "2026-10-05T18:35:00-04:00"
+    },
+    "email_ingest": {
+      "channel": "email",
+      "read": 3,
+      "archived": 3,
+      "passed": 3,
+      "error": null,
+      "notes": [
+        "Sent: first run — starting 30 days back",
+        "INBOX: first run — starting 30 days back"
+      ],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null
+    },
+    "email_transport": {
+      "interface": "TLS IMAP4rev1 Inbox/Sent fixture",
+      "commands": [
+        {
+          "command": "CAPABILITY",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "LOGIN",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "LIST",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "EXAMINE",
+          "operation": null,
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "STATUS",
+          "operation": null,
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "SEARCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "EXAMINE",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "STATUS",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "SEARCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "LOGOUT",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        }
+      ],
+      "account": "da8bbfab-4b22-5d0f-84d7-3e2e85fd07b5@mail.example.test"
+    },
+    "bundles": [
+      {
+        "run_id": 2,
+        "entity": "person:Ben",
+        "bundle_id": "0644b3",
+        "label": "Ben",
+        "kind": "person",
+        "lines": 3,
+        "state": "reading",
+        "updated_at": "2026-10-07T03:00:00-04:00"
+      },
+      {
+        "run_id": 2,
+        "entity": "person:Maya",
+        "bundle_id": "aff481",
+        "label": "Maya",
+        "kind": "person",
+        "lines": 3,
+        "state": "reading",
+        "updated_at": "2026-10-07T03:00:00-04:00"
+      },
+      {
+        "run_id": 2,
+        "entity": "thread:imessage:Park pals",
+        "bundle_id": "2f07a7",
+        "label": "Park pals",
+        "kind": "thread",
+        "lines": 4,
+        "state": "reading",
+        "updated_at": "2026-10-07T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-week-natural-messages-memcal-recovery-20261012-r2/repeat-1/memcal/ingestion-model-calls/2026-10-06.json",
+    "native_event_state": [
+      {
+        "key": "coffee@2026-10-06",
+        "date": "2026-10-06",
+        "time": "11:00",
+        "title": "Coffee",
+        "location": "Birch Cafe",
+        "status": "confirmed",
+        "participants": "[\"Alex\"]",
+        "subject": "me"
+      },
+      {
+        "key": "dinner@2026-10-08",
+        "date": "2026-10-10",
+        "time": "19:00",
+        "title": "Dinner",
+        "location": "Juniper Cafe",
+        "status": "confirmed",
+        "participants": "[\"Ben\"]",
+        "subject": "me"
+      },
+      {
+        "key": "job-application-help-call@2026-10-06",
+        "date": "2026-10-06",
+        "time": "10:00",
+        "title": "Job application help call",
+        "location": null,
+        "status": "confirmed",
+        "participants": "[\"Jen\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-09",
+        "date": "2026-10-09",
+        "time": "13:00",
+        "title": "Pizza",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\"]",
+        "subject": "me"
+      },
+      {
+        "key": "short-walk@2026-10-06",
+        "date": "2026-10-06",
+        "time": "14:00",
+        "title": "Short walk",
+        "location": "west entrance to the duck pond in Willow Park",
+        "status": "declined",
+        "participants": "[\"Alex\", \"Jen\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 2,
+      "errors": [],
+      "report": "dream run #2 — 3 bundles, 10 items, 3 writes\n  updated   2026-10-06 Short walk [short-walk@2026-10-06]\n  updated   2026-10-10 Dinner [dinner@2026-10-08]\n  inserted  2026-10-09 Pizza [pizza@2026-10-09]\n  usage: 2 calls · 5228 in (0 cached) · 4194 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "latency_s": 34.04,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-12T02:56:40.661316+00:00",
+    "finished": "2026-10-12T02:57:14.698315+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 5228,
+        "output_tokens": 4194,
+        "accounted_upper_bound_usd": 0.0013616,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "13568228b8ef4521afbc33b6a16606d4",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:56:41.941769+00:00",
+        "finished": "2026-10-12T02:57:02.242428+00:00",
+        "state": "settled",
+        "input_tokens": 4400,
+        "output_tokens": 3421,
+        "accounted": 1124200,
+        "reserved": 108110200,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011242
+      },
+      {
+        "id": "e91200af6e004f94bc91f080f9f54ccb",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:57:02.276354+00:00",
+        "finished": "2026-10-12T02:57:14.630054+00:00",
+        "state": "settled",
+        "input_tokens": 828,
+        "output_tokens": 773,
+        "accounted": 237400,
+        "reserved": 108143000,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0002374
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

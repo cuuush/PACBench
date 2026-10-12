@@ -1,0 +1,279 @@
+{
+  "tool_policy": "retained-memory-only-v2",
+  "providers": [
+    {
+      "provider": "byterover",
+      "initial_turn_windows": 0,
+      "completed_initial_turns": 0,
+      "initial": {
+        "hermes": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      },
+      "followup_turn_windows": 0,
+      "followups": {
+        "hermes": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "provider": "hindsight",
+      "initial_turn_windows": 17,
+      "completed_initial_turns": 17,
+      "initial": {
+        "hermes": {
+          "model_calls": 43,
+          "settled_upper_bound_usd": 0.0151448,
+          "held_usd": 0.0,
+          "input_tokens": 130020,
+          "output_tokens": 10714
+        },
+        "memory_provider": {
+          "model_calls": 29,
+          "settled_upper_bound_usd": 0.0210501,
+          "held_usd": 0.0,
+          "input_tokens": 107581,
+          "output_tokens": 51460
+        }
+      },
+      "followup_turn_windows": 1,
+      "followups": {
+        "hermes": {
+          "model_calls": 1,
+          "settled_upper_bound_usd": 0.0005792,
+          "held_usd": 0.0,
+          "input_tokens": 4990,
+          "output_tokens": 401
+        },
+        "memory_provider": {
+          "model_calls": 2,
+          "settled_upper_bound_usd": 0.0015541,
+          "held_usd": 0.0,
+          "input_tokens": 6341,
+          "output_tokens": 4600
+        }
+      }
+    },
+    {
+      "provider": "honcho",
+      "initial_turn_windows": 17,
+      "completed_initial_turns": 16,
+      "initial": {
+        "hermes": {
+          "model_calls": 35,
+          "settled_upper_bound_usd": 0.0174812,
+          "held_usd": 0.0,
+          "input_tokens": 146402,
+          "output_tokens": 14205
+        },
+        "memory_provider": {
+          "model_calls": 188,
+          "settled_upper_bound_usd": 0.174195,
+          "held_usd": 0.0,
+          "input_tokens": 1447526,
+          "output_tokens": 147212
+        }
+      },
+      "followup_turn_windows": 1,
+      "followups": {
+        "hermes": {
+          "model_calls": 1,
+          "settled_upper_bound_usd": 0.0005982,
+          "held_usd": 0.0,
+          "input_tokens": 5248,
+          "output_tokens": 367
+        },
+        "memory_provider": {
+          "model_calls": 6,
+          "settled_upper_bound_usd": 0.0044536,
+          "held_usd": 0.0,
+          "input_tokens": 37248,
+          "output_tokens": 3644
+        }
+      }
+    },
+    {
+      "provider": "mem0",
+      "initial_turn_windows": 17,
+      "completed_initial_turns": 17,
+      "initial": {
+        "hermes": {
+          "model_calls": 41,
+          "settled_upper_bound_usd": 0.0187758,
+          "held_usd": 0.0,
+          "input_tokens": 161238,
+          "output_tokens": 13260
+        },
+        "memory_provider": {
+          "model_calls": 17,
+          "settled_upper_bound_usd": 0.0196034,
+          "held_usd": 0.0,
+          "input_tokens": 132138,
+          "output_tokens": 31948
+        }
+      },
+      "followup_turn_windows": 0,
+      "followups": {
+        "hermes": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "provider": "memcal",
+      "initial_turn_windows": 17,
+      "completed_initial_turns": 17,
+      "initial": {
+        "hermes": {
+          "model_calls": 41,
+          "settled_upper_bound_usd": 0.0336591,
+          "held_usd": 0.0,
+          "input_tokens": 313749,
+          "output_tokens": 11421
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      },
+      "followup_turn_windows": 2,
+      "followups": {
+        "hermes": {
+          "model_calls": 5,
+          "settled_upper_bound_usd": 0.0060634,
+          "held_usd": 0.0,
+          "input_tokens": 55954,
+          "output_tokens": 2340
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      }
+    },
+    {
+      "provider": "openviking",
+      "initial_turn_windows": 4,
+      "completed_initial_turns": 4,
+      "initial": {
+        "hermes": {
+          "model_calls": 14,
+          "settled_upper_bound_usd": 0.0329477,
+          "held_usd": 0.0,
+          "input_tokens": 316765,
+          "output_tokens": 6356
+        },
+        "memory_provider": {
+          "model_calls": 5,
+          "settled_upper_bound_usd": 0.0019,
+          "held_usd": 0.2162688,
+          "input_tokens": null,
+          "output_tokens": null
+        }
+      },
+      "followup_turn_windows": 1,
+      "followups": {
+        "hermes": {
+          "model_calls": 4,
+          "settled_upper_bound_usd": 0.011155,
+          "held_usd": 0.0,
+          "input_tokens": 106658,
+          "output_tokens": 2446
+        },
+        "memory_provider": {
+          "model_calls": 3,
+          "settled_upper_bound_usd": 0.001625,
+          "held_usd": 0.0,
+          "input_tokens": 5002,
+          "output_tokens": 5624
+        }
+      }
+    },
+    {
+      "provider": "supermemory",
+      "initial_turn_windows": 0,
+      "completed_initial_turns": 0,
+      "initial": {
+        "hermes": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      },
+      "followup_turn_windows": 0,
+      "followups": {
+        "hermes": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        "memory_provider": {
+          "model_calls": 0,
+          "settled_upper_bound_usd": 0.0,
+          "held_usd": 0.0,
+          "input_tokens": 0,
+          "output_tokens": 0
+        }
+      }
+    }
+  ],
+  "scope": [
+    "Same frozen 17 prompts and 80 source messages. Compare equal coverage; incomplete arms are not cheaper successful alternatives.",
+    "Initial and follow-up inference windows exclude scene generation, contract authoring, grading and prior source-import work.",
+    "Native provider calls in turn windows can perform lookup, reasoning or post-answer capture/consolidation. This is not causal per-tool pricing.",
+    "Async work started outside these windows and future/deferred processing are excluded. Zero observed provider requests does not prove zero lifetime memory cost.",
+    "Unknown usage stays held and token totals unknown. Settled figures are conservative configured usage-price bounds, not invoices.",
+    "These are existing strict-policy diagnostics. New trials permit native source tools with a separate retention penalty; no new-policy cost claim is inferred from this run."
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "state": "captured",
+  "started": "2026-10-12T03:18:33.501502+00:00",
+  "finished": "2026-10-12T03:18:55.259155+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 6127,
+      "output_tokens": 436,
+      "accounted_upper_bound_usd": 0.0006999,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 4,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.11101770000000001,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "be8668849de644f3a1930f4c9f844e2d",
+      "project": "pacbench-cb27d43c8962-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:35.768350+00:00",
+      "finished": "2026-10-12T03:18:37.756274+00:00",
+      "state": "settled",
+      "input_tokens": 4958,
+      "output_tokens": 331,
+      "accounted": 562000,
+      "reserved": 106496000,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.000562
+    },
+    {
+      "id": "8e26e7516de64a61a92e6148d6c9d914",
+      "project": "pacbench-cb27d43c8962-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:37.994764+00:00",
+      "finished": "2026-10-12T03:18:41.920646+00:00",
+      "state": "settled",
+      "input_tokens": 7432,
+      "output_tokens": 635,
+      "accounted": 870200,
+      "reserved": 106496000,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0008702
+    },
+    {
+      "id": "6d8ae53d2824460dafacd7a82b4d728b",
+      "project": "pacbench-cb27d43c8962-honcho-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:38.060196+00:00",
+      "finished": "2026-10-12T03:18:43.123197+00:00",
+      "state": "settled",
+      "input_tokens": 6127,
+      "output_tokens": 436,
+      "accounted": 699900,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0006999
+    },
+    {
+      "id": "f404e1c13b664b578faf12f6b8fd4d51",
+      "project": "pacbench-cb27d43c8962-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:42.099045+00:00",
+      "finished": "2026-10-12T03:18:54.759855+00:00",
+      "state": "settled",
+      "input_tokens": 11573,
+      "output_tokens": 1469,
+      "accounted": 1451100,
+      "reserved": 106496000,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0014511
+    },
+    {
+      "id": "019d6d9be220475f9ab02dd11b9e56eb",
+      "project": "pacbench-cb27d43c8962-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:50.571165+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "28d43968f245428bacbe76594282ca6d",
+      "project": "pacbench-cb27d43c8962-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:18:26.598919+00:00",
+      "finished": "2026-10-12T03:18:36.627225+00:00",
+      "state": "settled",
+      "input_tokens": 733,
+      "output_tokens": 1254,
+      "accounted": 324100,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0003241
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

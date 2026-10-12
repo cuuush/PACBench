@@ -1,0 +1,42 @@
+{
+  "state": "captured",
+  "started": "2026-10-12T03:01:47.133808+00:00",
+  "finished": "2026-10-12T03:01:53.813468+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 13904,
+      "output_tokens": 362,
+      "accounted_upper_bound_usd": 0.0014628,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "0a26426f613d49bb83037b96542ebe36",
+      "project": "pacbench-df1cc5762f3d-memcal-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-12T03:01:49.295370+00:00",
+      "finished": "2026-10-12T03:01:53.000736+00:00",
+      "state": "settled",
+      "input_tokens": 13904,
+      "output_tokens": 362,
+      "accounted": 1462800,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0014628
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

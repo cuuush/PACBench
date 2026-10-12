@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "d3c1538be1cb3a5d716de393d060075a1d67414f671acb09ddd49362fceb71eb",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "pizza outings agreed Friday"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791773882337,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User, Maya, and Leo plan to meet for pizza at Mario's on Pine Street at noon on Friday, October 9, 2026, rescheduled from 1pm because Maya has something later; venue changed from Rosa's on Oak Street because Rosa's is closed for renovations (Domino's on Elm Street was too far for Maya); Leo is attending again after Tyler agreed to cover his Friday day shift.\\n2. User and Devon plan to get pizza at Luigi's on 5th Street on Friday evening, October 9, 2026, with 6pm proposed; user agreed to Devon's suggestion saying they love that place.\\n3. Tyler agreed to cover Leo's Friday day shift on October 9, 2026.\\n4. User had pizza evening plan on October 9, 2026 around 6pm at Luigi's on 5th Street with Devon.\\n5. User had pizza lunch on October 9, 2026 at noon at Mario's on Pine Street with Maya and Leo, moved from 1pm at Rosa's on Oak Street; time moved up for Maya's later commitment and venue changed because Rosa's was closed for renovations.\\n6. User agreed to meet Ben at Juniper Cafe at 7pm on October 5, 2026.\\n7. User and Alex agreed to have lunch at noon on October 11, 2026 at Birch Cafe.\\n8. User and Alex agreed to have lunch at noon on October 11, 2026 at Birch Cafe.\\n9. User agreed to pick up Devon's spare key from the bartender at Luigi's on 5th street at 11am on October 11, 2026; Devon asked for the favor and won't be around.\\n10. User, Alex, and Jen agreed to a short walk on October 6, 2026 at 2pm.\\n11. Maya was not keen on Domino's on Elm Street because it was too far for her.\\n12. User had dinner plans with Ben on October 8, 2026, rescheduled to Saturday, October 10, 2026 at the same time and place after Ben had a work deadline.\\n13. User and Ben settled on dinner at Juniper Cafe on October 10, 2026 at 7pm, rescheduled from October 8 at the same time and place.\\n14. User offered to pick up Devon's spare key from the bartender at Luigi's on 5th street, due by 11am on October 11, 2026, still outstanding as of that evening.\\n15. User plans to meet Alex for coffee at Birch Cafe on October 6, 2026 at 11am.\\n16. No coffee with Alex is scheduled for Tuesday, October 13, 2026.\\n17. User has a call with Jen scheduled for 10am on Tuesday, October 13, 2026.\\n18. User found Moonfall Protocol dumb but fun to watch, agreeing with Maya.\\n19. User and Jen scheduled a call at 10am on Tuesday, October 13, 2026 to prep for Jen's interview.\\n20. Maya liked Moonfall Protocol, saying the visuals carried it.\\n21. Leo watched Moonfall Protocol on October 9, 2026 and found it rough with a plot that made zero sense, later conceding it was dumb fun.\\n22. User had lunch with Alex on October 11, 2026.\\n23. User had dinner at Juniper with Ben, not Alex.\\n24. Jen asked user for help with her job application cover letter, and user scheduled a call with Jen at 10am on October 6, 2026 to go over it.\\n25. User had coffee with Alex on October 6, 2026.\\n26. Jen got an interview for a job on October 10, 2026, likely helped by prior cover letter work with user.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 10.68,
+    "input_tokens": 1247,
+    "output_tokens": 660,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "pizza-count-2",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "pizza-count-2",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

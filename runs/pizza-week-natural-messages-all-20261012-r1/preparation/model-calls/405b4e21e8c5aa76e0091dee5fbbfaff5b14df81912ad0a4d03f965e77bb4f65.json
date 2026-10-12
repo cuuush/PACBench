@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-12T00:54:27.059550+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-05. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 17:50 and 18:10 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex offers coffee tomorrow before work. He is concise. A small ordinary aside is fine; no tired-after-work introduction.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex and the user agree to coffee Tuesday at 11 am at Birch Cafe.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6acc2fc2af707dae90c843ba",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791766441.0,
+    "completed_at": 1791766466.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6acc2fc2af707dae90c843ba:rs_01a12d9a2f0c72a0ae7956246af6b3d0",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a concise iMessage scenario with Alex offering coffee before work and agreeing on Tuesday 11am at Birch Cafe."
+          },
+          {
+            "type": "summary_text",
+            "text": "Applying style constraints to keep dialogue brief and natural while avoiding date recitals and stage directions."
+          },
+          {
+            "type": "summary_text",
+            "text": "Checking style constraints for speaker labels and natural date phrasing in a short dialogue."
+          },
+          {
+            "type": "summary_text",
+            "text": "Refining the dialogue to state Tuesday explicitly while keeping the exchange concise and natural."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating speaker labels and time references against the dialogue constraints."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a12d9a8f02712bb7633c79af7386df",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Alex: want to grab coffee tomorrow before work?\\nMe: yeah definitely. Birch Cafe?\\nAlex: yep. 11am Tuesday?\\nMe: yeah that works. see you then\", \"writer_note\": \"Kept Alex concise and direct while letting Me suggest the place, so the plan builds naturally. Ended with a light sign-off to keep it short and text-like.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 505,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2997,
+      "output_tokens_details": {
+        "reasoning_tokens": 2792
+      },
+      "total_tokens": 3502
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Alex: want to grab coffee tomorrow before work?\\nMe: yeah definitely. Birch Cafe?\\nAlex: yep. 11am Tuesday?\\nMe: yeah that works. see you then\", \"writer_note\": \"Kept Alex concise and direct while letting Me suggest the place, so the plan builds naturally. Ended with a light sign-off to keep it short and text-like.\"}",
+  "usage": {
+    "input_tokens": 505,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2997,
+    "output_tokens_details": {
+      "reasoning_tokens": 2792
+    },
+    "total_tokens": 3502
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

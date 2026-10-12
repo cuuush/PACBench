@@ -383,7 +383,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                             record_dir=output / "model-calls")
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
-        report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback fails retention"
+        report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback is permitted but earns no retention credit"
         report["state"] = "running"
         save(output / "summary.json", report)
     for repetition in range(1, repetitions + 1):
@@ -453,6 +453,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 stop_arm_model_work(root)
                 continue
             allowlist = ",".join(policy["allowed_tools"])
+            env['PACBENCH_SOURCE_ARGUMENT_RULES'] = json.dumps(policy['source_argument_rules'])
             save(root / "tool-policy.json", policy)
             ingested=[]
             failed_batches=set()

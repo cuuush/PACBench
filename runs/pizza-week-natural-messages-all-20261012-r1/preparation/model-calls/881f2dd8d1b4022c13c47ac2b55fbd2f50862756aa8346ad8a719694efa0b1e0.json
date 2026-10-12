@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-12T01:03:39.486748+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-10. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 16:00 and 16:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-07 Devon: wanna get pizza Friday evening?\n2026-10-07 Me: yes definitely\n2026-10-07 Devon: 6pm?\n2026-10-07 Me: yeah that works\n2026-10-07 Devon: Luigi's on 5th Street?\n2026-10-07 Me: yes, love that place\n2026-10-09 Devon: hey can you do me a quick favor?\n2026-10-09 Devon: left my spare key with the bartender at luigi's on 5th street\n2026-10-09 Me: oh no yeah definitely\n2026-10-09 Devon: could you grab it for me sunday at 11am? i won't be around\n2026-10-09 Me: yeah that works i can do sunday at 11\n2026-10-09 Devon: thank you you're a lifesaver\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Devon follows up in this DM: actually don’t worry about tomorrow, I got it back already. The user acknowledges naturally. They rely on the spare-key conversation from last night, without naming another outing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Devon has already recovered the spare key, so the user no longer needs to collect it on Sunday.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6acc31ebdba47613538e4ce3",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791767001.0,
+    "completed_at": 1791767019.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6acc31ebdba47613538e4ce3:rs_01a12da2b90c738bad7ad6566e97a8a5",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating an iMessage conversation between Me and Devon with timestamps from 16:00 to 16:20 on 2026-10-10 using only the given speaker labels."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the iMessage thread to acknowledge the key recovery and close the Sunday pickup."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short iMessage exchange with a writer note on natural tone and key-recovery closure."
+          },
+          {
+            "type": "summary_text",
+            "text": "Refining the iMessage dialogue to keep lowercase tone, afternoon time consistency, and explicit spare key recovery closure."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a12da2fddc740f811f33c4782b0a96",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Devon: hey quick update - i got my spare key back already\\nDevon: so don't worry about tomorrow, you don't need to grab it\\nMe: oh perfect, glad you got it back\\nMe: lmk if you need anything else\", \"writer_note\": \"Kept Devon's casual lowercase style for a direct Saturday update using 'tomorrow' for Sunday, and gave Me a short relieved acknowledgment without rehashing the earlier pizza plan.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 781,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2834,
+      "output_tokens_details": {
+        "reasoning_tokens": 2610
+      },
+      "total_tokens": 3615
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Devon: hey quick update - i got my spare key back already\\nDevon: so don't worry about tomorrow, you don't need to grab it\\nMe: oh perfect, glad you got it back\\nMe: lmk if you need anything else\", \"writer_note\": \"Kept Devon's casual lowercase style for a direct Saturday update using 'tomorrow' for Sunday, and gave Me a short relieved acknowledgment without rehashing the earlier pizza plan.\"}",
+  "usage": {
+    "input_tokens": 781,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2834,
+    "output_tokens_details": {
+      "reasoning_tokens": 2610
+    },
+    "total_tokens": 3615
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

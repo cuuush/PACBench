@@ -1,0 +1,412 @@
+{
+  "id": "pizza-week-natural-messages-low",
+  "timezone": "America/New_York",
+  "noise": "low",
+  "channels": {
+    "devon": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Devon"
+      ]
+    },
+    "maya": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya"
+      ]
+    },
+    "friday-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "name": "Friday crew"
+    },
+    "pond-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen",
+        "Alex"
+      ],
+      "name": "Park pals"
+    },
+    "jen": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen"
+      ]
+    },
+    "alex": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Alex"
+      ]
+    },
+    "ben": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Ben"
+      ]
+    },
+    "ben-email": {
+      "type": "email",
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "subject": "Dinner"
+    }
+  },
+  "days": {
+    "monday": {
+      "scenes": [
+        {
+          "id": "pond-invite",
+          "channel": "pond-crew",
+          "time": "5 pm",
+          "scene": "The existing group arranges a short walk tomorrow. Alex is direct, Jen is warm but brief. They do not need an opening greeting.",
+          "facts": [
+            "The user, Jen and Alex agree to meet Tuesday at 2 pm at the west entrance to the duck pond in Willow Park."
+          ]
+        },
+        {
+          "id": "jen-call",
+          "channel": "jen",
+          "time": "5:25 pm",
+          "scene": "Jen asks for help with her job application and they arrange a quick call tomorrow morning. She sends a couple of short messages rather than a formal request.",
+          "facts": [
+            "Jen and the user agree to a phone call on Tuesday at 10 am about her job application."
+          ]
+        },
+        {
+          "id": "alex-coffee",
+          "channel": "alex",
+          "time": "5:50 pm",
+          "scene": "Alex offers coffee tomorrow before work. He is concise. A small ordinary aside is fine; no tired-after-work introduction.",
+          "facts": [
+            "Alex and the user agree to coffee Tuesday at 11 am at Birch Cafe."
+          ]
+        },
+        {
+          "id": "ben-dinner",
+          "channel": "ben",
+          "time": "6:15 pm",
+          "scene": "The user and Ben arrange dinner Thursday. Ben writes plainly; he uses both text and email to arrange things, depending on whether he is at his desk.",
+          "facts": [
+            "The user and Ben agree to dinner Thursday at 7 pm at Juniper Cafe."
+          ]
+        }
+      ]
+    },
+    "tuesday": {
+      "scenes": [
+        {
+          "id": "ben-email-reschedule",
+          "channel": "ben-email",
+          "time": "6:45 am",
+          "until": "8 am",
+          "scene": "A work deadline came up. Ben emails asking to move their dinner later this week. The user suggests Saturday and Ben accepts at the same time. Terse, casual emails; no narration of today's date or where he is writing.",
+          "facts": [
+            "Ben and the user agree to move their existing dinner to Saturday at the same time.",
+            "The dinner’s venue is unchanged."
+          ]
+        },
+        {
+          "id": "pond-called-off",
+          "channel": "pond-crew",
+          "time": "7 am",
+          "scene": "In the existing group, Jen says exactly \"hey guys i can’t make it today\". Alex replies \"me too let’s just do this another day!\". The user agrees to leave it for another day, without choosing a new date. This is a brief exchange about postponing the group outing: nobody names the outing or location, and nobody discusses any other appointments. Context comes from yesterday in this group.",
+          "facts": [
+            "The three people call off their Tuesday group outing to the duck pond. No replacement day is agreed."
+          ]
+        },
+        {
+          "id": "maya-invite",
+          "channel": "maya",
+          "time": "6:30 pm",
+          "scene": "Maya suggests pizza lunch Friday. She is more chatty than Devon, but this is an ordinary arrangement, not a recap of every detail.",
+          "facts": [
+            "The user and Maya agree to pizza Friday at 1 pm at Rosa's on Oak Street."
+          ]
+        }
+      ]
+    },
+    "wednesday": {
+      "scenes": [
+        {
+          "id": "alex-weekend-proposal",
+          "channel": "alex",
+          "time": "11 am",
+          "scene": "Alex suggests Sunday dinner at Juniper at 7. The user declines because evenings are awkward this weekend. Short friendly exchange; no alternative is agreed yet.",
+          "facts": [
+            "Alex proposes Sunday dinner at 7 pm at Juniper Cafe, but the user declines. No dinner with Alex is agreed."
+          ]
+        },
+        {
+          "id": "devon-invite",
+          "channel": "devon",
+          "time": "6 pm",
+          "scene": "Devon suggests getting pizza Friday evening. His messages are short, without a generic workday opener.",
+          "facts": [
+            "The user and Devon agree to get pizza on Friday at 6 pm.",
+            "They choose Luigi's on 5th Street."
+          ]
+        },
+        {
+          "id": "leo-joins",
+          "channel": "friday-crew",
+          "time": "6:50 pm",
+          "scene": "Maya invites Leo to join the Friday pizza lunch she already arranged with the user. Write a natural group invitation using we and you, rather than calling the user Me inside the message.",
+          "facts": [
+            "Leo agrees to join the user and Maya at their existing Friday pizza lunch, at 1 pm at Rosa's on Oak Street."
+          ]
+        },
+        {
+          "id": "leo-drops-out",
+          "channel": "friday-crew",
+          "time": "8:10 pm",
+          "scene": "Later that evening Leo learns he has a Friday day shift, so he cannot come to lunch. Maya and the user are still going. Leo is dry and brief; nobody recites the whole plan.",
+          "facts": [
+            "Leo says he cannot join Friday pizza because of a work shift. The user and Maya are still going."
+          ]
+        }
+      ]
+    },
+    "thursday": {
+      "scenes": [
+        {
+          "id": "alex-lunch-instead",
+          "channel": "alex",
+          "time": "12 pm",
+          "scene": "In the same DM, Alex follows up a day later: lunch instead Sunday? Noon at Birch? The user agrees. They remember the earlier exchange and do not narrate it back.",
+          "facts": [
+            "Alex and the user agree to lunch on Sunday at noon at Birch Cafe. This is lunch, not the declined dinner at Juniper."
+          ]
+        },
+        {
+          "id": "maya-time-update",
+          "channel": "maya",
+          "time": "6 pm",
+          "scene": "In their existing DM, Maya asks about tomorrow: could they do noon instead? She has something later. The user agrees, without repeating the venue or activity.",
+          "facts": [
+            "The existing Friday pizza lunch with Maya moves from 1 pm to noon. Its day and venue are unchanged by this exchange."
+          ]
+        },
+        {
+          "id": "group-venue-update",
+          "channel": "friday-crew",
+          "time": "6:25 pm",
+          "scene": "The group learns Rosa's is closed for renovations. The user suggests Domino's on Elm Street; Maya says that is too far and suggests Mario's on Pine Street instead. They agree. Leo is silent. Do not recite the time.",
+          "facts": [
+            "The user and Maya agree to Mario's on Pine Street for their existing Friday pizza outing.",
+            "Domino's on Elm Street was suggested and rejected; it is not the agreed venue."
+          ]
+        },
+        {
+          "id": "leo-back-in",
+          "channel": "friday-crew",
+          "time": "8:30 pm",
+          "scene": "A day after dropping out, Leo says Tyler covered his Friday day shift and he can come after all. Maya naturally catches him up on the new time and venue. Nobody explains which messaging app or DM was used.",
+          "facts": [
+            "Tyler covers Leo's Friday work shift, so Leo rejoins the user and Maya for the same pizza lunch. The final agreed time is noon, at Mario's on Pine Street."
+          ]
+        }
+      ]
+    },
+    "friday": {
+      "scenes": [
+        {
+          "id": "devon-key-favor",
+          "channel": "devon",
+          "time": "8:30 pm",
+          "scene": "Devon asks a small favor: he left his spare key with the bartender at Luigi’s on 5th Street and asks the user to collect it on Sunday. The user agrees to stop by at 11 am. Devon will not be there; this is a pickup for him, not another meal together. Do not say whether the earlier pizza outing happened.",
+          "facts": [
+            "The user agrees to collect Devon’s spare key on Sunday at 11 am from Luigi’s on 5th Street. Devon is not attending the pickup."
+          ]
+        }
+      ]
+    },
+    "saturday": {
+      "scenes": [
+        {
+          "id": "jen-next-week-call",
+          "channel": "jen",
+          "time": "11:40 am",
+          "until": "12:10 pm",
+          "scene": "Jen has an interview coming up and asks for another quick call Tuesday at 10. They agree. This is a new next-week appointment; her earlier application call is not moved. An ordinary personal update can accompany the request.",
+          "facts": [
+            "Jen and the user agree to a new phone call next Tuesday at 10 am about her interview. This is separate from the earlier Tuesday job-application call."
+          ]
+        },
+        {
+          "id": "devon-key-no-longer-needed",
+          "channel": "devon",
+          "time": "4 pm",
+          "scene": "Devon follows up in this DM: actually don’t worry about tomorrow, I got it back already. The user acknowledges naturally. They rely on the spare-key conversation from last night, without naming another outing.",
+          "facts": [
+            "Devon has already recovered the spare key, so the user no longer needs to collect it on Sunday."
+          ]
+        },
+        {
+          "id": "friday-crew-chatter",
+          "channel": "friday-crew",
+          "time": "6:20 pm",
+          "until": "6:55 pm",
+          "scene": "The group briefly debates a terrible movie Leo watched. Maya disagrees with his take. Ordinary friendly chatter, without arranging an outing or recapping pizza.",
+          "facts": []
+        }
+      ]
+    },
+    "sunday": {
+      "conversations": [
+        {
+          "id": "pizza-recap",
+          "time": "9 pm",
+          "turns": [
+            {
+              "id": "pizza-final-details",
+              "prompt": "What did I end up arranging for pizza this past Friday?",
+              "expect": "Two distinct outings: pizza lunch with Maya and Leo on Friday at noon at Mario's on Pine Street, and pizza with Devon on Friday at 6 pm at Luigi's on 5th Street. Describe agreed plans; do not require proof either outing happened."
+            },
+            {
+              "id": "maya-change-history",
+              "prompt": "What changed with Maya's plan?",
+              "expect": "The time changed from 1 pm to noon. The venue changed from Rosa's on Oak Street to Mario's on Pine Street. Only these time and venue changes are judged."
+            },
+            {
+              "id": "rejected-pizza-option",
+              "prompt": "Why wasn't Maya keen on Domino's?",
+              "expect": "It was too far for her."
+            },
+            {
+              "id": "leo-cover",
+              "prompt": "Did Leo find someone to cover in the end?",
+              "expect": "Yes, Tyler covered his shift. Only coverage and the coverer's identity are judged."
+            }
+          ]
+        },
+        {
+          "id": "pond-recap",
+          "time": "9:10 pm",
+          "turns": [
+            {
+              "id": "pond-final",
+              "prompt": "What happened with the duck pond? Did we pick another day?",
+              "expect": "The duck-pond outing was called off, and no replacement day was agreed. Only cancellation and replacement status are judged."
+            },
+            {
+              "id": "separate-arrangements",
+              "prompt": "Did that cancel my call with Jen or coffee with Alex that Tuesday too?",
+              "expect": "The group cancellation did not cancel the separately arranged job-application call with Jen or coffee with Alex. Only whether those two arrangements were cancelled is judged."
+            }
+          ]
+        },
+        {
+          "id": "ben-recap",
+          "time": "9:20 pm",
+          "turns": [
+            {
+              "id": "ben-current",
+              "prompt": "What did Ben and I end up settling on for dinner?",
+              "expect": "Dinner with Ben was settled for Saturday at 7 pm at Juniper Cafe. Only the final day, time and venue are judged."
+            },
+            {
+              "id": "ben-no-duplicate",
+              "prompt": "Was Thursday still on too?",
+              "expect": "No. Thursday was replaced by Saturday; they did not agree to two separate dinners."
+            }
+          ]
+        },
+        {
+          "id": "alex-recap",
+          "time": "9:30 pm",
+          "turns": [
+            {
+              "id": "alex-agreed",
+              "prompt": "What did Alex and I agree on for this weekend?",
+              "expect": "Lunch on Sunday at noon at Birch Cafe. Only the agreed plan is judged, not whether lunch happened."
+            },
+            {
+              "id": "alex-declined",
+              "prompt": "Was dinner at Juniper part of that as well?",
+              "expect": "No dinner with Alex at Juniper Cafe was agreed. Only whether that dinner was agreed is judged."
+            }
+          ]
+        },
+        {
+          "id": "key-recap",
+          "time": "9:40 pm",
+          "turns": [
+            {
+              "id": "key-not-needed",
+              "prompt": "Did I still need to collect Devon's key today?",
+              "expect": "No. Devon had already recovered the spare key, so the Sunday pickup was no longer needed."
+            },
+            {
+              "id": "key-prior-offer",
+              "prompt": "What had I offered to do for him?",
+              "expect": "Collect Devon's spare key from the bartender at Luigi's on 5th Street on Sunday at 11 am. Only the favor, collection point and scheduled day/time are judged."
+            }
+          ]
+        },
+        {
+          "id": "jen-next-week",
+          "time": "9:50 pm",
+          "turns": [
+            {
+              "id": "jen-upcoming",
+              "prompt": "When is my call with Jen on Tuesday, and what is it for?",
+              "expect": "At 10 am, to prepare for her interview. Only the time and purpose are judged."
+            },
+            {
+              "id": "jen-distinct-calls",
+              "prompt": "Is that the same call about her application?",
+              "expect": "No. This is a new appointment, not the earlier job-application call. Only whether it is the same appointment is judged."
+            }
+          ]
+        },
+        {
+          "id": "pizza-count-fresh",
+          "time": "9:58 pm",
+          "turns": [
+            {
+              "id": "pizza-distinct-count",
+              "prompt": "How many different pizza outings did I agree to for this past Friday?",
+              "expect": "Exactly two distinct pizza outings. Only the count is judged; restaurant suggestions, participant changes and rescheduling do not add outings."
+            }
+          ]
+        },
+        {
+          "id": "pickup-party-fresh",
+          "time": "10 pm",
+          "turns": [
+            {
+              "id": "pickup-not-meeting",
+              "prompt": "Was Devon supposed to meet me at the key pickup?",
+              "expect": "No. Devon was not going to be there; the user had agreed to collect the key for him. Only whether Devon was meant to attend is judged."
+            }
+          ]
+        },
+        {
+          "id": "pond-details-fresh",
+          "time": "10:02 pm",
+          "turns": [
+            {
+              "id": "pond-original-details",
+              "prompt": "Where and what time was the duck-pond meetup meant to be?",
+              "expect": "At 2 pm at the west entrance to the duck pond in Willow Park. Only the original time and meeting point are judged."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

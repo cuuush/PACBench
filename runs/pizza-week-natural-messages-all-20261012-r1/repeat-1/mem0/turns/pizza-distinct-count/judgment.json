@@ -1,0 +1,21 @@
+{
+  "checkpoint": "pizza-distinct-count",
+  "question": "[Simulated now: 2026-10-11T21:58:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many different pizza outings did I agree to for this past Friday?",
+  "answer": "2 — noon with Maya (and Leo) at Mario's, and 6pm with Devon at Luigi's.",
+  "claims": [
+    {
+      "id": "pizza-count-2",
+      "description": "The user agreed to exactly two distinct pizza outings for this past Friday.",
+      "evidence": [
+        "message-bc34f6d045f2dd902d0e20d6",
+        "message-7fb96571016206b1ce44d602",
+        "message-1bd0e91ce6573ee1b681abc7",
+        "message-0587cc25c468408d6bdf178d"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-11T21:58:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many different pizza outings did I agree to for this past Friday?\nAnswer: 2 — noon with Maya (and Leo) at Mario's, and 6pm with Devon at Luigi's.\nClaims (hidden from the assistant): [{\"id\": \"pizza-count-2\", \"claim\": \"The user agreed to exactly two distinct pizza outings for this past Friday.\", \"evidence\": [\"message-bc34f6d045f2dd902d0e20d6\", \"message-7fb96571016206b1ce44d602\", \"message-1bd0e91ce6573ee1b681abc7\", \"message-0587cc25c468408d6bdf178d\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"pizza-count-2\", \"verdict\": \"correct\", \"reason\": \"Answer states '2' distinct outings with details matching Friday scope.\"}], \"recovery\": [{\"id\": \"pizza-count-2\", \"kind\": \"provided\", \"reason\": \"Answer directly provides the count of two.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/model-calls/0d015866dd54f2d35c6114e8f96729b9c13edb6770b4effb35a6742e781854fa.json"
+}

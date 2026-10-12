@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-12T01:02:19.011809+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-09. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 20:30 and 20:50 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-07 Devon: wanna get pizza Friday evening?\n2026-10-07 Me: yes definitely\n2026-10-07 Devon: 6pm?\n2026-10-07 Me: yeah that works\n2026-10-07 Devon: Luigi's on 5th Street?\n2026-10-07 Me: yes, love that place\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Devon asks a small favor: he left his spare key with the bartender at Luigi’s on 5th Street and asks the user to collect it on Sunday. The user agrees to stop by at 11 am. Devon will not be there; this is a pickup for him, not another meal together. Do not say whether the earlier pizza outing happened.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The user agrees to collect Devon’s spare key on Sunday at 11 am from Luigi’s on 5th Street. Devon is not attending the pickup.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6acc319a64c610913db749a8",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791766914.0,
+    "completed_at": 1791766938.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6acc319a64c610913db749a8:rs_01a12da16637745bb260d0ce4ba58e81",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Interpreting speaker label rules for iMessage formatting and clarifying pronoun usage in message bodies."
+          },
+          {
+            "type": "summary_text",
+            "text": "Applying speaker label constraints and time-window consistency to the iMessage formatting."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short acceptance that references the location and time without restating all details."
+          },
+          {
+            "type": "summary_text",
+            "text": "Shaping a lowercase two-person exchange that confirms Sunday 11am at Luigi's without reciting all details."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding one line of incidental chatter while keeping the exchange short and unambiguous."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a12da1c2e0743a9d86088e491c8916",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Devon: hey can you do me a quick favor?\\nDevon: left my spare key with the bartender at luigi's on 5th street\\nMe: oh no yeah definitely\\nDevon: could you grab it for me sunday at 11am? i won't be around\\nMe: yeah that works i can do sunday at 11\\nDevon: thank you you're a lifesaver\", \"writer_note\": \"Kept both voices short and lowercase like the original thread and split the details across proposal and short acceptance to avoid a recital while still making Sunday 11am, Luigi's, and Devon's absence clear.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 705,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3252,
+      "output_tokens_details": {
+        "reasoning_tokens": 2992
+      },
+      "total_tokens": 3957
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Devon: hey can you do me a quick favor?\\nDevon: left my spare key with the bartender at luigi's on 5th street\\nMe: oh no yeah definitely\\nDevon: could you grab it for me sunday at 11am? i won't be around\\nMe: yeah that works i can do sunday at 11\\nDevon: thank you you're a lifesaver\", \"writer_note\": \"Kept both voices short and lowercase like the original thread and split the details across proposal and short acceptance to avoid a recital while still making Sunday 11am, Luigi's, and Devon's absence clear.\"}",
+  "usage": {
+    "input_tokens": 705,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 3252,
+    "output_tokens_details": {
+      "reasoning_tokens": 2992
+    },
+    "total_tokens": 3957
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

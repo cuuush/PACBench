@@ -1,0 +1,82 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-10-09T20:50:00-04:00",
+  "processing_at": "2026-10-09T20:50:00-04:00",
+  "document_sha256": "e76d3ebfe93b9eb65bf90d35899971f2b9aa6358608e51d356dba8932c5a6d12",
+  "source_ids": [
+    "message-4a2995af6e4c049692ec656d",
+    "message-a52e7deb0984c5a1cb9d4d44",
+    "message-b7c2806420606e520c42a742",
+    "message-a625dacac01175fcb430cae3",
+    "message-15ffb254dc2da0d75f9a23c3",
+    "message-d7cbb5a75d851e0b1fad63a7"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"eb09faf3-370b-4001-ad4a-3af972b41183\", \"memory\": \"User agreed on October 9, 2026 to grab Devon's spare key from the bartender at Luigi's on 5th Street at 11am on Sunday, October 11, 2026, after Devon said he left it there and would not be around\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/repeat-1/mem0/ingestion-model-calls/2026-10-09.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "eb09faf3-370b-4001-ad4a-3af972b41183",
+          "memory": "User agreed on October 9, 2026 to grab Devon's spare key from the bartender at Luigi's on 5th Street at 11am on Sunday, October 11, 2026, after Devon said he left it there and would not be around",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/repeat-1/mem0/ingestion-model-calls/2026-10-09.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 11.97,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-12T02:38:14.001339+00:00",
+    "finished": "2026-10-12T02:38:25.976366+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 9641,
+        "output_tokens": 768,
+        "accounted_upper_bound_usd": 0.0011177,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "a61f65c5775b4de0b0bd4e58c8015bc4",
+        "project": "pacbench-46e22bc0228c-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:38:18.261794+00:00",
+        "finished": "2026-10-12T02:38:24.884025+00:00",
+        "state": "settled",
+        "input_tokens": 9641,
+        "output_tokens": 768,
+        "accounted": 1117700,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011177
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

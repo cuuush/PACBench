@@ -1,0 +1,95 @@
+{
+  "state": "complete",
+  "plan_hash": "333e52753bd79a4654145d87fbf4bfc5cbeb3519f8bf3135b57ca3cacd96b80a",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E10"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774320938,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E10  Interview prep call\n\nwhen: Tuesday 13 October 2026 at 10:00\nstate: You're going\nwho: Jen\nnote: to prep for Jen's interview\nsource: person:Jen\n\nsources (5 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:45 · iMessage with Jen —\n   [9] Jen · Mon 5 Oct 17:45 · me: yeah that works, talk then\n  — Sat Oct 10, 2026 11:40 · iMessage with Jen · 5 days later —\n   [67] Jen · Sat 10 Oct 11:40 · Jen: hey good news - I got an interview for that job!!\n * [68] Jen · Sat 10 Oct 11:55 · Jen: can we do another quick call Tuesday at 10 to prep for the interview?\n * [69] Jen · Sat 10 Oct 12:02 · me: yes!! congrats, yeah that works\n   [70] Jen · Sat 10 Oct 12:10 · me: that cover letter from last time must have worked\n\nchanges:\n  2026-10-11T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-11T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-11T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-11T03:00  title: '' -> 'Interview prep call' (by dream:nightly:born)\n  2026-10-11T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-11T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-11T03:00  note: '' -> \"to prep for Jen's interview\" (by dream:nightly:born)\n  2026-10-11T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.5,
+    "input_tokens": 1102,
+    "output_tokens": 355,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "call-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer"
+    },
+    {
+      "id": "call-purpose",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer"
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "call-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "call-purpose",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "state": "complete",
+  "plan_hash": "e1f7a81423928230f4e6b2852d4edc8dd3ee4dae43818a5943a3a063b6dc7bed",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 2
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E1"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774171101,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E1  Job application help call\n\nwhen: Tuesday 6 October 2026 at 10:00\nstate: Was planned; attendance unconfirmed\nwho: Jen\nsource: person:Jen\n\nsources (7 line(s); * = what the row was built from):\n  — Mon Oct 5, 2026 17:25 · iMessage with Jen —\n * [5] Jen · Mon 5 Oct 17:25 · Jen: hey can you help me with my job application real quick?\n   [6] Jen · Mon 5 Oct 17:42 · Jen: stuck on the cover letter part ugh\n * [7] Jen · Mon 5 Oct 17:42 · me: yeah of course, want to do a quick call tomorrow morning to go over it?\n * [8] Jen · Mon 5 Oct 17:44 · Jen: Tuesday at 10am works for me?\n * [9] Jen · Mon 5 Oct 17:45 · me: yeah that works, talk then\n  — Sat Oct 10, 2026 11:40 · iMessage with Jen · 5 days later —\n   [67] Jen · Sat 10 Oct 11:40 · Jen: hey good news - I got an interview for that job!!\n   [68] Jen · Sat 10 Oct 11:55 · Jen: can we do another quick call Tuesday at 10 to prep for the interview?\n\nchanges:\n  2026-10-06T03:00  date: '' -> '2026-10-06' (by dream:nightly:born)\n  2026-10-06T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Job application help call' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E3"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791774171113,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E3  Coffee\n\nwhen: Tuesday 6 October 2026 at 11:00\nstate: Was planned; attendance unconfirmed\nwhere: Birch Cafe\nwho: Alex\nsource: person:Alex\n\nsources (6 line(s); * = what the row was built from):\n  (!) no line-level citation — these are the conversation it came out of, not the lines it was built from\n  — Mon Oct 5, 2026 17:50 · iMessage with Alex —\n * [10] Alex · Mon 5 Oct 17:50 · Alex: want to grab coffee tomorrow before work?\n * [11] Alex · Mon 5 Oct 17:59 · me: yeah definitely. Birch Cafe?\n * [12] Alex · Mon 5 Oct 18:09 · Alex: yep. 11am Tuesday?\n * [13] Alex · Mon 5 Oct 18:10 · me: yeah that works. see you then\n  — Wed Oct 7, 2026 11:00 · iMessage with Alex · 2 days later —\n   [27] Alex · Wed 7 Oct 11:00 · Alex: really good catching up yesterday\n   [28] Alex · Wed 7 Oct 11:04 · Alex: would you wanna do dinner sunday at 7pm at Juniper Cafe?\n\nchanges:\n  2026-10-06T03:00  time: '' -> '11:00' (by dream:nightly:born)\n  2026-10-06T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-06T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-06T03:00  title: '' -> 'Coffee' (by dream:nightly:born)\n  2026-10-06T03:00  location: '' -> 'Birch Cafe' (by dream:nightly:born)\n  2026-10-06T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-06T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-06T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 9.44,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-not-cancelled",
+      "kind": "provided",
+      "reason": "Not-cancelled status correctly conveyed."
+    },
+    {
+      "id": "alex-coffee-not-cancelled",
+      "kind": "provided",
+      "reason": "Not-cancelled/happened status correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-not-cancelled",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-not-cancelled",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,637 @@
+{
+  "provider": "openviking",
+  "repetition": 1,
+  "input_hash": "54f87d878f5348c5592116c395884a6ab3c90e1c1dd36a3392ecba3fd7a4f357",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "viking_search",
+      "viking_read",
+      "viking_browse",
+      "viking_remember",
+      "viking_forget",
+      "viking_add_resource"
+    ],
+    "provider": "openviking",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "viking_search",
+      "arguments": {
+        "query": "native read-only capability check"
+      },
+      "output": "{\"results\": [{\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.774, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}, {\"uri\": \"viking://agent/.overview.md\", \"type\": \"resource\", \"score\": 0.745, \"abstract\": \"Shared agent capabilities and configuration available across the account.\"}, {\"uri\": \"viking://agent/skills/.abstract.md\", \"type\": \"skill\", \"score\": 0.741, \"abstract\": \"Shared skill registry. Stores callable skill definitions available across the account.\"}, {\"uri\": \"viking://agent/tools/.abstract.md\", \"type\": \"resource\", \"score\": 0.734, \"abstract\": \"Shared tool configuration for agent capabilities.\"}, {\"uri\": \"viking://user/default/.abstract.md\", \"type\": \"resource\", \"score\": 0.732, \"abstract\": \"User scope. Stores user's long-term memory, persisted across sessions.\"}, {\"uri\": \"viking://agent/endpoints/.abstract.md\", \"type\": \"resource\", \"score\": 0.716, \"abstract\": \"Shared communication endpoint configuration for agent capabilities.\"}], \"total\": 6}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "checks": [
+    {
+      "id": "pizza-final-details",
+      "at": "2026-10-11T21:00:00-04:00",
+      "session": "pizza-recap",
+      "contract_hash": "6581ce625275cd95ed1f101810d53e37ce69496b2c74343e3d239a7f4db7d8ef",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 13,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 14,
+          "points": 13.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "outing1-pizza",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-lunch",
+              "initial_verdict": "missed",
+              "followup_verdict": "missed",
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "outing1-maya",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-leo",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-friday",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-noon",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-marios",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing1-pine",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-pizza",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-devon",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-friday",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-6pm",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-luigis",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "outing2-5th",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": [
+          {
+            "claim_ids": [
+              "outing1-lunch"
+            ],
+            "question": "What was the first agreed outing?",
+            "state": "graded",
+            "verdicts": [
+              {
+                "id": "outing1-lunch",
+                "verdict": "missed",
+                "reason": "Answer describes Tuesday 2pm duck pond meetup with Jen and Alex and never mentions lunch."
+              }
+            ],
+            "metrics": {
+              "top_level_calls": 5,
+              "total_tool_operations": 5,
+              "provider_internal_tool_calls": null,
+              "provider_task_records": 0,
+              "provider_internal_operations": [],
+              "provider_internal_source_fallback_confirmed": false,
+              "provider_internal_path_needs_review": false,
+              "categories": {
+                "memory_search": 5
+              },
+              "operations": [
+                {
+                  "name": "viking_browse",
+                  "arguments": {
+                    "action": "list",
+                    "path": "viking://resources/2026-10-05"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1791834125515,
+                  "result": {
+                    "tool": "viking_browse",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"path\": \"viking://resources/2026-10-05\", \"entries\": [{\"name\": \"2026-10-05_1.md\", \"uri\": \"viking://resources/2026-10-05/2026-10-05_1.md\", \"type\": \"file\", \"abstract\": \"\"}, {\"name\": \"2026-10-05_2.md\", \"uri\": \"viking://resources/2026-10-05/2026-10-05_2.md\", \"type\": \"file\", \"abstract\": \"\"}, {\"name\": \"2026-10-05_3.md\", \"uri\": \"viking://resources/2026-10-05/2026-10-05_3.md\", \"type\": \"file\", \"abstract\": \"\"}]}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                },
+                {
+                  "name": "viking_search",
+                  "arguments": {
+                    "limit": 10,
+                    "mode": "deep",
+                    "query": "first agreed outing earliest dinner lunch meetup"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1791834125552,
+                  "result": {
+                    "tool": "viking_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"results\": [{\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.703, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.698, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.69, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.689, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}], \"total\": 4}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                },
+                {
+                  "name": "viking_browse",
+                  "arguments": {
+                    "action": "stat",
+                    "path": "viking://resources/2026-10-05/2026-10-05_1.md"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1791834142375,
+                  "result": {
+                    "tool": "viking_browse",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"name\": \"2026-10-05_1.md\", \"size\": 2925, \"mode\": 420, \"modTime\": \"2026-10-12T19:30:30Z\", \"isDir\": false, \"uri\": \"viking://resources/2026-10-05/2026-10-05_1.md\", \"isLocked\": false, \"id\": \"ea0a68445b40fed5d2dcf82c91687fe1\"}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                },
+                {
+                  "name": "viking_search",
+                  "arguments": {
+                    "limit": 10,
+                    "mode": "fast",
+                    "query": "October 5 agreed dinner lunch plans"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1791834142406,
+                  "result": {
+                    "tool": "viking_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"results\": [{\"uri\": \"viking://resources/2026-10-06/.overview.md\", \"type\": \"resource\", \"score\": 0.762, \"abstract\": \"# 2026-10-06\\n\\nThis directory holds a chronological log of personal messages from October 6, 2026, collected across email and imessage channels for personal record keeping and semantic search by the owner. It covers three everyday coordination threads: dinner rescheduling with Ben due to a work deadline, cancellation and postponement of a Park pals meetup with Jen and Alex, and a Friday pizza lunch plan with Maya. Key outcomes include dinner moved to Saturday at the same time and same place, Park pals outing postponed to another day by mutual agreement, and confirmed lunch at Rosa's on Oak Street at 1 on Friday. Requiring no specialized knowledge, it supports easy retrieval with keywords dinner, reschedule, work deadline, Park pals, pizza, lunch, Rosa's, email, imessage.\\n\\n## Directory Coverage\\n\\nThis directory contains 1 direct entry. All direct entries are represented in this overview. There are no subdirectories. The single file entry is fully described in the sections below, providing complete coverage of the directory content without any unsampled or unexamined items remaining.\\n\\n## Quick Navigation\\n\\nWhat do you want to learn? Use the guide below to find the relevant log content quickly.\\n\\n- To review dinner rescheduling with Ben and the work deadline update → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – dinner, reschedule, Saturday, same time and same place\\n- To check Park pals postponement with Jen and Alex by mutual agreement → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – Park pals, cancellation, postponed outing to another day\\n- To confirm Friday pizza lunch plan with Maya → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – pizza, lunch, Rosa's on Oak Street at 1 on Friday\\n\\nWhat do you want to do?\\n\\n- To search personal records by keywords across email and imessage for semantic retrieval → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – personal record keeping, chronological log, no specialized knowledge needed\\n\\n## Detailed Description\\n\\n### [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md)\\n\\nThis file is a chronological log of personal messages from October 6, 2026, spanning email and imessage channels. It is organized into three threads for personal record keeping and semantic search by the owner and requires no specialized knowledge to understand.\\n\\nThe first thread documents dinner rescheduling with Ben, where dinner is moved to Saturday at the same time and same place due to a work deadline.\\n\\nThe second thread records cancellation of a Park pals meetup with Jen and Alex, with the outing postponed to another day by mutual agreement after Jen and Alex could not make it.\\n\\nThe third thread captures a Friday pizza lunch plan with Maya, confirmed as lunch at Rosa's on Oak Street at 1 on Friday.\\n\\nTogether, the log preserves key takeaways, coordination decisions, and timing details across dinner, reschedule, work deadline, Park pals, pizza, lunch, Rosa's, email, and imessage topics for easy future retrieval.\"}, {\"uri\": \"viking://resources/2026-10-07/.overview.md\", \"type\": \"resource\", \"score\": 0.752, \"abstract\": \"# 2026-10-07\\n\\nThis directory contains exported iMessage conversation logs from October 7, 2026, organized by thread identifiers with structured metadata such as timestamps, channel, sender, participants, and ownership flags. It covers personal planning for social meetups, including dinner invitations, pizza plans, schedule changes, and confirmations. Threads involve Alex and Devon and a group chat called Friday crew with Maya and Leo, with venues and times such as Juniper Cafe, Luigi's on 5th Street, and Rosa's on Oak Street. Keywords include imessage, catching up, dinner, raincheck, pizza, Friday evening, pizza lunch, thread, and participants. It is suitable for personal archiving and communication review, with no specialized audience or technical prerequisites.\\n\\n## Directory Coverage\\n\\nTotal direct entries: 3. All direct entries are represented in the summaries below. There are no subdirectories.\\n\\n## Quick Navigation\\n\\nWhat do you want to learn?\\n\\n- To review a declined Sunday dinner invitation and an accepted Friday pizza plan → [2026-10-07_1.md](viking://resources/2026-10-07/2026-10-07_1.md) — Alex, Devon, Juniper Cafe, catching up, raincheck, Friday evening\\n- To review arranged lunch and dinner meetups with locations and confirmations → [2026-10-07_2.md](viking://resources/2026-10-07/2026-10-07_2.md) — Friday crew, Maya, Leo, pizza lunch, Rosa's on Oak Street, Luigi's on 5th Street\\n- To review a work-related schedule change affecting Friday pizza plans → [2026-10-07_3.md](viking://resources/2026-10-07/2026-10-07_3.md) — Friday crew, day shift, cancellation, remaining plans still on\\n\\n## Detailed Description\\n\\n### [2026-10-07_1.md](viking://resources/2026-10-07/2026-10-07_1.md)\\n\\nThis file records an extract of iMessage messages exchanged on October 7, 2026. It contains two separate conversations organized by thread identifiers, one with Alex and another with Devon, including metadata such as arrived_at, written_at, channel, sender, and from_owner. The main topics are an invitation to dinner on Sunday at 19h at Juniper Cafe, declined due to unavailability at night on the weekend, and an invitation for pizza on Friday evening, accepted with a proposed time of 18h. Key information includes times, participants, and decisions about the meetings. The apparent use context is personal archiving or conversation history reference, with no defined technical audience, useful for semantic search by keywords such as imessage, catching up, dinner, raincheck, pizza, Friday evening, and Juniper Cafe.\\n\\n### [2026-10-07_2.md](viking://resources/2026-10-07/2026-10-07_2.md)\\n\\nThis file records iMessage conversations from October 7, 2026 as structured JSON log entries. It contains two threads with fields for channel, sender, text, thread ID, timestamps, and structured chat name and participants. One thread between Me and Devon discusses meeting at Luigi's on 5th Street with agreement from Me. The other thread named Friday crew among Me, Maya and Leo arranges a pizza lunch on Friday, specifying 1pm at Rosa's on Oak Street, with Maya inviting Leo, Me encouraging attendance, and Leo confirming he is in. It is a chat export for communication review or archiving, with no specialized audience or prerequisite knowledge, associated with keywords such as imessage, thread, participants, Friday crew, pizza lunch, Rosa's on Oak Street, and Luigi's on 5th Street.\\n\\n### [2026-10-07_3.md](viking://resources/2026-10-07/2026-10-07_3.md)\\n\\nThis file serves as an exported log of a brief iMessage conversation in the Friday crew chat. It contains structured message records with metadata including arrived_at, collected_at, channel, sender, from_owner, source_id, thread identifier, written_at timestamps, and text content. The conversation centers on a Friday schedule change to day shift preventing pizza plans, a sympathetic response, reassurance about catching up next time, and confirmation that the remaining plans are still on.\"}, {\"uri\": \"viking://resources/2026-10-08/.overview.md\", \"type\": \"resource\", \"score\": 0.725, \"abstract\": \"# 2026-10-08\\n\\nThis directory contains exported iMessage conversation logs collected on 2026-10-08, covering one-on-one chats and a group Friday crew thread with timestamped message records, sender details, thread identifiers, and participant lists. Topics include rescheduling Sunday lunch to noon at Birch Cafe, rescheduling a meeting to noon, and coordinating a Friday pizza meetup with venue proposals for Domino's on Elm Street and Mario's on Pine Street amid closure of Rosa's for renovations. Keywords include imessage, thread, lunch, noon, and scheduling archive. It is suitable for participants or reviewers needing a record of plans and decisions for personal scheduling review, requiring no specialized knowledge beyond familiarity with the conversation context.\\n\\n## Directory Coverage\\n\\nTotal direct entries: 3. All direct entries are represented in this overview. The directory consists of three files with no subdirectories.\\n\\n## Quick Navigation\\n\\nWhat do you want to do?\\n\\n- Review confirmed noon changes for Sunday and tomorrow meetings and a closure notice → [2026-10-08_1.md](viking://resources/2026-10-08/2026-10-08_1.md) — scheduling archive, Birch Cafe, Rosa's, confirmations\\n- Follow Friday pizza planning from proposals to final agreement → [2026-10-08_2.md](viking://resources/2026-10-08/2026-10-08_2.md) — Friday crew, Mario's on Pine Street, noon Friday\\n- Inspect single-message metadata and closing confirmation → [2026-10-08_3.md](viking://resources/2026-10-08/2026-10-08_3.md) — data log, timestamps, thread record\\n\\n## Detailed Description\\n\\n### [2026-10-08_1.md](viking://resources/2026-10-08/2026-10-08_1.md)\\n\\nThis file is a structured export log of iMessage conversations collected on 2026-10-08. It holds timestamped records with sender, channel, thread identifiers, and participant lists for one-on-one chats and a group chat. Covered exchanges include rescheduling of Sunday lunch to noon at Birch Cafe between Me and Alex with confirmation, rescheduling of a meeting tomorrow from 1pm to noon between Me and Maya with confirmation, and a Friday crew group message from Maya involving Me, Maya and Leo stating Rosa's is closed for renovations. The final record is truncated. Confirmed changes to noon and the closure notice are the main takeaways. It serves as a conversational archive for personal scheduling review and requires no specialized knowledge.\\n\\n### [2026-10-08_2.md](viking://resources/2026-10-08/2026-10-08_2.md)\\n\\nThis file is an exported iMessage chat log for the Friday crew thread among Me, Maya and Leo. It records a timestamped sequence on 2026-10-08 coordinating a Friday pizza meetup, including proposals for Domino's on Elm Street and Mario's on Pine Street and discussion of Rosa's being closed. The outcome is agreement to meet at Mario's on Pine Street at noon on Friday, with Leo rejoining after Tyler agrees to cover his Friday day shift and both Maya and Leo confirming time and location. As a structured message archive with arrived_at, sender, source_id and thread identifiers, it is useful for participants or reviewers needing a record of plans and decisions.\\n\\n### [2026-10-08_3.md](viking://resources/2026-10-08/2026-10-08_3.md)\\n\\nThis file records a single instant messaging entry with associated metadata and functions as a fragmentary data log or reference record rather than a tutorial or guide. It includes routing and timing fields such as arrived_at, collected_at, written_at, channel, sender, source_id and thread identifiers, plus structured chat context and message text. Details specify channel imessage, sender Me marked as from_owner true, chat_name Friday crew with participants Me, Maya and Leo, text perfect, see you there tomorrow, and timestamp 2026-10-08T20:50:00-04:00. It references thread thread-4d6823a8afa64dc93f7217fb and source_id message-6006d1428fe93ef4f7820b56. No intended audience, prerequisite knowledge, or use case is explicitly stated.\"}, {\"uri\": \"viking://resources/2026-10-10/.abstract.md\", \"type\": \"resource\", \"score\": 0.715, \"abstract\": \"This directory provides a chronological archive of iMessage conversations recorded on October 10, 2026.\"}, {\"uri\": \"viking://resources/2026-10-06/2026-10-06.md\", \"type\": \"resource\", \"score\": 0.711, \"abstract\": \"This document is a chronological log of personal messages from October 6, 2026 across email and imessage channels. It covers three threads: dinner rescheduling with Ben, cancellation of a Park pals meetup with Jen and Alex, and a Friday pizza lunch plan with Maya. Key takeaways include dinner moved to Saturday at the same time and same place due to a work deadline, Park pals outing postponed to another day by mutual agreement after Jen and Alex could not make it, and confirmed lunch at Rosa's on Oak Street at 1 on Friday. Intended for personal record keeping and semantic search by the owner, requiring no specialized knowledge, with keywords dinner, reschedule, work deadline, Park pals, pizza, lunch, Rosa's, email, imessage.\"}, {\"uri\": \"viking://agent/endpoints/.abstract.md\", \"type\": \"resource\", \"score\": 0.707, \"abstract\": \"Shared communication endpoint configuration for agent capabilities.\"}, {\"uri\": \"viking://resources/2026-10-09/.abstract.md\", \"type\": \"resource\", \"score\": 0.704, \"abstract\": \"This directory captures a personal iMessage conversation log from October 9 2026 documenting a favor request between Devon and Me.\"}, {\"uri\": \"viking://resources/2026-10-05/.overview.md\", \"type\": \"resource\", \"score\": 0.704, \"abstract\": \"# 2026-10-05\\n\\nEste diretório reúne registros de mensagens instantâneas coletadas em 5 de outubro de 2026, voltados ao arquivamento e à revisão de conversas pessoais. O conteúdo abrange agendamentos informais e confirmações de encontros, como caminhada em grupo no parque, café antes do trabalho, jantar e outros compromissos, além de apoio para candidatura a emprego com foco em carta de apresentação. Os participantes citados são Me, Jen, Alex e Ben, com locais como lagoa dos patos em Willow Park, Birch Cafe e Juniper Cafe. Trata-se de material útil para o titular acompanhar planos, horários e solicitações, sem exigir conhecimento técnico além da compreensão de registros de conversa.\\n\\n## Cobertura do Diretório\\n\\nEste diretório possui 3 entradas diretas e todas estão representadas nos resumos abaixo. Não há subdiretórios e nenhum item deixou de ser examinado individualmente.\\n\\n## Navegação Rápida\\n\\nEscolha abaixo conforme o que deseja consultar:\\n\\n- O que deseja rever sobre caminhada em grupo e apoio para candidatura? → [2026-10-05_1.md](viking://resources/2026-10-05/2026-10-05_1.md) — passeio com amigos no parque, ponto de encontro na lagoa e ajuda com carta de apresentação\\n- O que deseja verificar sobre café antes do trabalho, conversa e jantar? → [2026-10-05_2.md](viking://resources/2026-10-05/2026-10-05_2.md) — confirmações de horários entre interlocutores, encontro em cafeteria e compromissos semanais\\n- O que deseja confirmar sobre encontro noturno entre duas pessoas? → [2026-10-05_3.md](viking://resources/2026-10-05/2026-10-05_3.md) — proposta de horário em cafeteria, respostas de concordância e aceite do encontro\\n\\n## Descrição Detalhada\\n\\n### [2026-10-05_1.md](viking://resources/2026-10-05/2026-10-05_1.md)\\n\\nEste arquivo reúne registros de mensagens de 5 de outubro de 2026, distribuídos em duas conversas distintas. A primeira é a conversa em grupo Park pals, com Me, Jen e Alex, dedicada ao planejamento de uma caminhada curta. O grupo combina o encontro para terça-feira às 14h na entrada oeste da lagoa dos patos em Willow Park, com proposta de horário feita por Alex e proposta de local feita por Me, ambas confirmadas por Jen e Alex. A segunda é uma conversa direta entre Me e Jen sobre ajuda com candidatura a emprego, na qual Jen pede apoio rápido e relata dificuldade com a parte da carta de apresentação, enquanto Me oferece uma ligação rápida na manhã seguinte para revisar o texto. Trata-se de exportação pessoal para guarda e revisão, útil para acompanhar planos e pedidos, sem necessidade de conhecimento especializado.\\n\\n### [2026-10-05_2.md](viking://resources/2026-10-05/2026-10-05_2.md)\\n\\nEste arquivo tem como finalidade registrar um extrato de mensagens do canal de mensagens instantâneas coletadas em 2026-10-05. É composto por registros estruturados com informações de horário de chegada, horário de coleta, indicação de remetente, identificadores, nome da conversa e participantes, conteúdo textual, identificador da conversa e horário de redação. Os temas tratados são agendamentos informais, incluindo confirmação de conversa na terça-feira às 10h, combinação de café antes do trabalho na terça-feira às 11h em Birch Cafe e confirmação de jantar na quinta-feira. As informações centrais são as confirmações recíprocas entre Me e os interlocutores Jen, Alex e Ben. O tipo documental é um registro de mensagens para arquivamento e consulta, útil para revisão do histórico de conversas, sem pré-requisitos técnicos além da compreensão de registros de diálogo.\\n\\n### [2026-10-05_3.md](viking://resources/2026-10-05/2026-10-05_3.md)\\n\\nEste arquivo tem como finalidade registrar um trecho de conversa por mensagens instantâneas entre os participantes Me e Ben. Não possui seções ou títulos, sendo formado por registros sequenciais em formato estruturado com metadados de canal, conversa, remetente, identificadores, horários de chegada, de coleta e de redação, além do campo com o conteúdo das mensagens.\"}], \"total\": 8}",
+                    "truncated": false,
+                    "capture": "hermes_session_db",
+                    "stream_preview": "{\"results\": [{\"uri\": \"viking://resources/2026-10-06/.overview.md\", \"type\": \"resource\", \"score\": 0.762, \"abstract\": \"# 2026-10-06\\n\\nThis directory holds a chronological log of personal messages from October 6, 2026, collected across email and imessage channels for personal record keeping and semantic search by the owner. It covers three everyday coordination threads: dinner rescheduling with Ben due to a work deadline, cancellation and postponement of a Park pals meetup with Jen and Alex, and a Friday pizza lunch plan with Maya. Key outcomes include dinner moved to Saturday at the same time and same place, Park pals outing postponed to another day by mutual agreement, and confirmed lunch at Rosa's on Oak Street at 1 on Friday. Requiring no specialized knowledge, it supports easy retrieval with keywords dinner, reschedule, work deadline, Park pals, pizza, lunch, Rosa's, email, imessage.\\n\\n## Directory Coverage\\n\\nThis directory contains 1 direct entry. All direct entries are represented in this overview. There are no subdirectories. The single file entry is fully described in the sections below, providing complete coverage of the directory content without any unsampled or unexamined items remaining.\\n\\n## Quick Navigation\\n\\nWhat do you want to learn? Use the guide below to find the relevant log content quickly.\\n\\n- To review dinner rescheduling with Ben and the work deadline update → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – dinner, reschedule, Saturday, same time and same place\\n- To check Park pals postponement with Jen and Alex by mutual agreement → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – Park pals, cancellation, postponed outing to another day\\n- To confirm Friday pizza lunch plan with Maya → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – pizza, lunch, Rosa's on Oak Street at 1 on Friday\\n\\nWhat do you want to do?\\n\\n- To search personal records by keywords across email and imessage for semantic retrieval → [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md) – personal record keeping, chronological log, no specialized knowledge needed\\n\\n## Detailed Description\\n\\n### [2026-10-06.md](viking://resources/2026-10-06/2026-10-06.md)\\n\\nThis file is a chronological log of personal messages from October 6, 2026, spanning email and imessage channels. It is organized into three threads for personal record keeping and semantic search by the owner and requires no specialized knowledge to understand.\\n\\nThe first thread documents dinner rescheduling with Ben, where dinner is moved to Saturday at the same time and same place due to a work deadline.\\n\\nThe second thread records cancellation of a Park pals meetup with Jen and Alex, with the outing postponed to another day by mutual agreement after Jen and Alex could not make it.\\n\\nThe third thread captures a Friday pizza lunch plan with Maya, confirmed as lunch at Rosa's on Oak Street at 1 on Friday.\\n\\nTogether, the log preserves key takeaways, coordination decisions, and timing details across dinner, reschedule, work deadline, Park pals, pizza, lunch, Rosa's, email, and imessage topics for easy future retrieval.\"}, {\"uri\": \"viking://resources/2026-10-07/.overview.md\", \"type\": \"resource\", \"score\": 0.752, \"abstract\": \"# 2026-10-07\\n\\nThis directory contains exported iMessage conversation logs from October 7, 2026, organized by thread identifiers with structured metadata such as timestamps, channel, sender, participants, and ownership flags. It covers personal planning for social meetups, including dinner invitations, pizza plans, schedule changes, and confirmations. Threads involve Alex and Devon and a group chat called Friday crew with Maya and Leo, with venues and times such as Juniper Cafe, Luigi's on 5th Street, and Rosa's on Oak Street. Keywords include imessage, catching up, dinner, raincheck, pizza, Friday evening, pizza lunch, thread, and participants. It is suitable for personal archiving and communication review, with no specialized audience or technical prerequisites.\\n\\n## Directory Coverage\\n\\nTotal direct entries: 3. All direct entries are represented in the summaries below. There are no subdirectories.\\n\\n## Quick Navigation\\n\\nWhat do you want to learn?\\n\\n- To review a declined Sunday dinner invitation and an accepted Friday pizza plan → [2026-10-07_1.md](viking://resources/2026-10-07/2026-10-07_1.md) — Alex, Devon, Juniper Cafe, catching up, raincheck, Friday evening\\n- To review arranged lunch and dinner meetups with locations and confirmations → [2026-10-07_2.md](viking://resources/2026-10-07/2026-10-07_2.md) — Friday crew, Maya, Leo, pizza lunch, Rosa's on Oak Street, Luigi's on 5th Street\\n- To review a work-related schedule change affecting Friday pizza plans → [2026-10-07_3.md](viking://resources/2026-10-07/2026-10-07_3.md) — Friday crew, day shift, cancellation, remaining plans still on\\n\\n## Detailed Description\\n\\n### [2026-10-07_1.md](viking://resources/2026-10-07/2026-..."
+                  }
+                },
+                {
+                  "name": "viking_search",
+                  "arguments": {
+                    "limit": 10,
+                    "mode": "deep",
+                    "query": "October 5 Park pals Willow Park Tuesday 2pm Birch Cafe coffee 11am dinner Thursday Ben"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1791834149183,
+                  "result": {
+                    "tool": "viking_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"results\": [{\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.688, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.688, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.681, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.648, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}], \"total\": 4}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                }
+              ],
+              "failed_operations": 0,
+              "repeated_operations": 0,
+              "unmatched_tool_results": [],
+              "source_fallback_attempted": false,
+              "unclassified_operations": 0,
+              "latency_s": 53.07,
+              "input_tokens": null,
+              "output_tokens": null,
+              "policy_blocks": 0,
+              "returncode": 0
+            },
+            "question_authoring_reused": false,
+            "question_hash": "3d865dfa4d7c1a5cef83ed86bbc127ebec392b84065d93e78a0c765605872455",
+            "gateway_window": {
+              "projects": [
+                {
+                  "project": "pacbench-da8718079d9e-openviking-driver",
+                  "calls_delta": 4,
+                  "settled_upper_bound_usd_delta": 0.011155,
+                  "held_usd_delta": 0.0,
+                  "input_tokens_delta": 106658,
+                  "output_tokens_delta": 2446
+                },
+                {
+                  "project": "pacbench-da8718079d9e-openviking-memory",
+                  "calls_delta": 3,
+                  "settled_upper_bound_usd_delta": 0.001624999999999998,
+                  "held_usd_delta": 0.0,
+                  "input_tokens_delta": 5002,
+                  "output_tokens_delta": 5624
+                }
+              ],
+              "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "maya-change-history",
+      "at": "2026-10-11T21:02:00-04:00",
+      "session": "pizza-recap",
+      "contract_hash": "027d19cdaf11dd1dbdf5cdf4bed945a71d59594361755856e5e1de7765675772",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 6,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 6,
+          "points": 6.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "time-original",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "time-final",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "venue-original-name",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "venue-original-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "venue-final-name",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "venue-final-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "rejected-pizza-option",
+      "at": "2026-10-11T21:04:00-04:00",
+      "session": "pizza-recap",
+      "contract_hash": "489a7dd5e0e5dc620c8e65e9e037f14f01249c506737804113a08104c5af31a8",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 0,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "too-far",
+              "initial_verdict": "missed",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "leo-cover",
+      "at": "2026-10-11T21:06:00-04:00",
+      "session": "pizza-recap",
+      "contract_hash": "baf9356345e70c14059617e8c9679e5f1ff7faea27c9fd88d2fefd97fdcacd01",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 2,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 2,
+          "points": 2.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "leo-shift-covered",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "coverer-tyler",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "pond-final",
+      "at": "2026-10-11T21:10:00-04:00",
+      "session": "pond-recap",
+      "contract_hash": "7f2f98752d42fe1bfb5c34b8b3c555dfa57357eac567852624e4d2b2b3dd5ce5",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "separate-arrangements",
+      "at": "2026-10-11T21:12:00-04:00",
+      "session": "pond-recap",
+      "contract_hash": "f145b8e621995c83daf5d8d9046ac405e9dc5dd3162b6ff0c44ada207f96a17c",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "ben-current",
+      "at": "2026-10-11T21:20:00-04:00",
+      "session": "ben-recap",
+      "contract_hash": "236c20a2d203d554a38741c0aefff802dd0d60f1227ddd8173bd9be2612ed5c8",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "ben-no-duplicate",
+      "at": "2026-10-11T21:22:00-04:00",
+      "session": "ben-recap",
+      "contract_hash": "b9c66c6c73153b6cc678fcc1608e9d83dd5c1e8b6988672f246b7261838238c0",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "alex-agreed",
+      "at": "2026-10-11T21:30:00-04:00",
+      "session": "alex-recap",
+      "contract_hash": "dfd926a28568461ac528d65dbb23a351b4be9e59bb558c1fb9641dcb783bf285",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "alex-declined",
+      "at": "2026-10-11T21:32:00-04:00",
+      "session": "alex-recap",
+      "contract_hash": "b5948013618eec8b95c3a3b2338d12ef1bb74843c225f4eb5a384bb06b50fb60",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "key-not-needed",
+      "at": "2026-10-11T21:40:00-04:00",
+      "session": "key-recap",
+      "contract_hash": "bf66bb90d68b96553807191427c34fe9457fbc7dc2367537d88ca04d25faefa3",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "key-prior-offer",
+      "at": "2026-10-11T21:42:00-04:00",
+      "session": "key-recap",
+      "contract_hash": "a9027181eab9dc5dad92b164a71fbdcd6fcb966eca46672180744c16485bfe6c",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "jen-upcoming",
+      "at": "2026-10-11T21:50:00-04:00",
+      "session": "jen-next-week",
+      "contract_hash": "90622f269cb2348be4f940779dd09640ff37a5825cb6d5637ceb3de697079bfd",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "jen-distinct-calls",
+      "at": "2026-10-11T21:52:00-04:00",
+      "session": "jen-next-week",
+      "contract_hash": "afcb27b073e4c8cf4ca491aa45d16d49d4f7104a7e0b934b4211f2bab7faeb52",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "pizza-distinct-count",
+      "at": "2026-10-11T21:58:00-04:00",
+      "session": "pizza-count-fresh",
+      "contract_hash": "443021e74e08f9a6a85f058218785d8e5e56a1ced981f333686931a6a92ac034",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "pickup-not-meeting",
+      "at": "2026-10-11T22:00:00-04:00",
+      "session": "pickup-party-fresh",
+      "contract_hash": "cf7d83dc2008cb3cf48adfbc03948555a79885072e8648dd2f9273b9e0d9da08",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "pond-original-details",
+      "at": "2026-10-11T22:02:00-04:00",
+      "session": "pond-details-fresh",
+      "contract_hash": "0f054602e07ce457eb1b740a3cad9d6cbf5cb58df92668e26df928cee978e914",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

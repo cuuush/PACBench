@@ -1,0 +1,123 @@
+{
+  "state": "complete",
+  "plan_hash": "9078a900d5a01f77d5be2c7897b20fc6a261d5f0fca66c5caaabce70933d7659",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "Alex agreement weekend plans"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1791773727043,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User plans to meet Alex for coffee at Birch Cafe on October 6, 2026 at 11am.\\n2. User and Alex agreed to have lunch at noon on October 11, 2026 at Birch Cafe.\\n3. No coffee with Alex is scheduled for Tuesday, October 13, 2026.\\n4. User, Alex, and Jen agreed to a short walk on October 6, 2026 at 2pm.\\n5. User had lunch with Alex on October 11, 2026.\\n6. User had coffee with Alex on October 6, 2026.\\n7. User had dinner plans with Ben on October 8, 2026, rescheduled to Saturday, October 10, 2026 at the same time and place after Ben had a work deadline.\\n8. User and Devon plan to get pizza at Luigi's on 5th Street on Friday evening, October 9, 2026, with 6pm proposed; user agreed to Devon's suggestion saying they love that place.\\n9. Tyler agreed to cover Leo's Friday day shift on October 9, 2026.\\n10. User, Maya, and Leo plan to meet for pizza at Mario's on Pine Street at noon on Friday, October 9, 2026, rescheduled from 1pm because Maya has something later; venue changed from Rosa's on Oak Street because Rosa's is closed for renovations (Domino's on Elm Street was too far for Maya); Leo is attending again after Tyler agreed to cover his Friday day shift.\\n11. User had pizza evening plan on October 9, 2026 around 6pm at Luigi's on 5th Street with Devon.\\n12. User agreed to meet Ben at Juniper Cafe at 7pm on October 5, 2026.\\n13. User agreed to pick up Devon's spare key from the bartender at Luigi's on 5th street at 11am on October 11, 2026; Devon asked for the favor and won't be around.\\n14. User has a call with Jen scheduled for 10am on Tuesday, October 13, 2026.\\n15. User and Jen scheduled a call at 10am on Tuesday, October 13, 2026 to prep for Jen's interview.\\n16. User and Ben settled on dinner at Juniper Cafe on October 10, 2026 at 7pm, rescheduled from October 8 at the same time and place.\\n17. User had pizza lunch on October 9, 2026 at noon at Mario's on Pine Street with Maya and Leo, moved from 1pm at Rosa's on Oak Street; time moved up for Maya's later commitment and venue changed because Rosa's was closed for renovations.\\n18. Leo watched Moonfall Protocol on October 9, 2026 and found it rough with a plot that made zero sense, later conceding it was dumb fun.\\n19. Maya liked Moonfall Protocol, saying the visuals carried it.\\n20. Jen got an interview for a job on October 10, 2026, likely helped by prior cover letter work with user.\\n21. Jen asked user for help with her job application cover letter, and user scheduled a call with Jen at 10am on October 6, 2026 to go over it.\\n22. User found Moonfall Protocol dumb but fun to watch, agreeing with Maya.\\n23. Maya was not keen on Domino's on Elm Street because it was too far for her.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.76,
+    "input_tokens": 7006,
+    "output_tokens": 452,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "meal",
+      "kind": "provided",
+      "reason": "Answer conveys lunch."
+    },
+    {
+      "id": "day",
+      "kind": "provided",
+      "reason": "Answer conveys Oct 11/today = Sunday."
+    },
+    {
+      "id": "time",
+      "kind": "provided",
+      "reason": "Answer conveys noon."
+    },
+    {
+      "id": "venue",
+      "kind": "provided",
+      "reason": "Answer conveys Birch Cafe."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 4,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 4,
+    "points": 4.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "meal",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "correct": 1,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "key-recovered",
+      "verdict": "missed",
+      "reason": "Answer says pickup no longer needed but does not state Devon recovered the spare key."
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "verdict": "correct",
+      "reason": "Answer states you no longer needed to grab it, conveying pickup cancelled."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "key-recovered",
+      "kind": "implicit_omission",
+      "reason": "Detail omitted without claiming unknown; user asked about need, not explicitly about recovery."
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "kind": "provided",
+      "reason": "Answer directly conveys pickup was no longer needed."
+    }
+  ],
+  "interaction": "answer"
+}

@@ -1,0 +1,30 @@
+{
+  "correct": 0,
+  "missed": 0,
+  "misrepresented": 2,
+  "claims": [
+    {
+      "id": "key-recovered",
+      "verdict": "misrepresented",
+      "reason": "Answer asserts key still needs collecting and 'no record you did it', contradicting recovery."
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "verdict": "misrepresented",
+      "reason": "Answer asserts 'Yes' pickup still needed today, contradicting cancellation."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "key-recovered",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite that collection is still required."
+    },
+    {
+      "id": "sunday-pickup-cancelled",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite that Sunday pickup is still needed."
+    }
+  ],
+  "interaction": "answer"
+}

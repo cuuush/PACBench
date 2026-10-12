@@ -1,0 +1,35 @@
+{
+  "checkpoint": "key-prior-offer",
+  "question": "[Simulated now: 2026-10-11T21:42:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat street is Luigi's on?",
+  "answer": "5th Street.",
+  "claims": [
+    {
+      "id": "venue-street",
+      "description": "Luigi's is on 5th Street",
+      "evidence": [
+        "message-a52e7deb0984c5a1cb9d4d44"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-11T21:40:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nDid I still need to collect Devon's key today?\"}, {\"role\": \"assistant\", \"content\": \"No — Devon told you on Oct 10 you no longer needed to grab it.\"}, {\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-11T21:42:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat had I offered to do for him?\"}, {\"role\": \"assistant\", \"content\": \"You'd offered to grab his spare key from the bartender at Luigi's at 11am today.\"}]\nQuestion: [Simulated now: 2026-10-11T21:42:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat street is Luigi's on?\nAnswer: 5th Street.\nClaims (hidden from the assistant): [{\"id\": \"venue-street\", \"claim\": \"Luigi's is on 5th Street\", \"evidence\": [\"message-a52e7deb0984c5a1cb9d4d44\"]}]",
+  "response": "{\"verdicts\":[{\"id\":\"venue-street\",\"verdict\":\"correct\",\"reason\":\"Answer '5th Street' to 'What street is Luigi's on?' asserts Luigi's is on 5th Street.\"}]}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-11T21:40:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDid I still need to collect Devon's key today?"
+    },
+    {
+      "role": "assistant",
+      "content": "No — Devon told you on Oct 10 you no longer needed to grab it."
+    },
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-11T21:42:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat had I offered to do for him?"
+    },
+    {
+      "role": "assistant",
+      "content": "You'd offered to grab his spare key from the bartender at Luigi's at 11am today."
+    }
+  ],
+  "model_call": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/model-calls/8aba6e8e9e271d605aea43f16edfe70b4c524afce4cc07178f56c6cca082f56e.json"
+}

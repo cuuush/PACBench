@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-12T00:57:00.578640+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-06. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:30 and 18:50 local time. Keep references to the current time of day consistent with that window.\nScenario: Maya suggests pizza lunch Friday. She is more chatty than Devon, but this is an ordinary arrangement, not a recap of every detail.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The user and Maya agree to pizza Friday at 1 pm at Rosa's on Oak Street.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6acc305cb3697747807d4dac",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1791766603.0,
+    "completed_at": 1791766620.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6acc305cb3697747807d4dac:rs_01a12d9ca7e0727a8ff85964d7c19837",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Constructing an iMessage conversation with Me and Maya between 18:30 and 18:50 on 2026-10-06 about Maya suggesting pizza lunch."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding constraints for message length, tone, and factual commitments in the iMessage format."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a minimal dialogue with two speakers and a brief writer note on tone."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating dialogue structure and speaker labels against the formatting constraints."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a12d9ce72c7174967dac69353bad50",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: want to grab pizza for lunch on Friday?\\nMaya: was thinking Rosa's on Oak Street at 1 if you're free, I've been craving it all week lol\\nMe: yeah that works, see you there\", \"writer_note\": \"Let Maya lead with a chatty two-text proposal to set all details, then kept Me's acceptance short to confirm without reciting the plan.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 512,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2031,
+      "output_tokens_details": {
+        "reasoning_tokens": 1835
+      },
+      "total_tokens": 2543
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: want to grab pizza for lunch on Friday?\\nMaya: was thinking Rosa's on Oak Street at 1 if you're free, I've been craving it all week lol\\nMe: yeah that works, see you there\", \"writer_note\": \"Let Maya lead with a chatty two-text proposal to set all details, then kept Me's acceptance short to confirm without reciting the plan.\"}",
+  "usage": {
+    "input_tokens": 512,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2031,
+    "output_tokens_details": {
+      "reasoning_tokens": 1835
+    },
+    "total_tokens": 2543
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

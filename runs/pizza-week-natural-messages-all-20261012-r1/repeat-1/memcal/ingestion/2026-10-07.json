@@ -1,0 +1,262 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "memcal",
+  "at": "2026-10-07T20:30:00-04:00",
+  "processing_at": "2026-10-08T03:00:00-04:00",
+  "document_sha256": "66a43bc9e6a3d121c6727bd00e44297d71c18b096968e580ad83d49ff6f40ba5",
+  "source_ids": [
+    "message-3e1d1fbd1dfc2de4b1101132",
+    "message-03cd0f66b07aacf8b5712ce2",
+    "message-727d47fe30bbaacb25412c82",
+    "message-cbeb667268b4ff6ead2c9489",
+    "message-1bd0e91ce6573ee1b681abc7",
+    "message-0587cc25c468408d6bdf178d",
+    "message-4e3bff1bf7559d409edcb217",
+    "message-27b846add00735a1449b8379",
+    "message-58c41651d29b6c6574a1e1fc",
+    "message-e6a5935675c9634877322dc6",
+    "message-2a75dcbb4216791052b5a22f",
+    "message-c8957c9b9dcde0608641f21f",
+    "message-9996abcdf19eb37285df2a01",
+    "message-cc4917bb263eb2c7ab57caa5",
+    "message-dc82931276f6c956a66e8788",
+    "message-01389a2f4690d3634f5e50a5",
+    "message-cde5bba0c5c3eb603540e442",
+    "message-9f8b73a23683b6177181e489",
+    "message-eddcd99bce56ed8e5c9db1fe"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"native source readers + native nightly dream\", \"contacts\": {\"linked\": 12, \"report\": \"linked 12 handles from 1 source(s)\"}, \"ingest\": {\"channel\": \"imessage\", \"read\": 19, \"archived\": 19, \"passed\": 19, \"error\": null, \"notes\": [], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null, \"last_rowid\": 42, \"floor\": \"2026-10-06T18:50:00-04:00\"}, \"bundles\": [{\"run_id\": 3, \"entity\": \"person:Alex\", \"bundle_id\": \"c1547d\", \"label\": \"Alex\", \"kind\": \"person\", \"lines\": 4, \"state\": \"reading\", \"updated_at\": \"2026-10-08T03:00:00-04:00\"}, {\"run_id\": 3, \"entity\": \"person:Devon\", \"bundle_id\": \"517eb9\", \"label\": \"Devon\", \"kind\": \"person\", \"lines\": 6, \"state\": \"reading\", \"updated_at\": \"2026-10-08T03:00:00-04:00\"}, {\"run_id\": 3, \"entity\": \"thread:imessage:Friday crew\", \"bundle_id\": \"84c3ba\", \"label\": \"Friday crew\", \"kind\": \"thread\", \"lines\": 9, \"state\": \"reading\", \"updated_at\": \"2026-10-08T03:00:00-04:00\"}], \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-week-natural-messages-memcal-recovery-20261012-r2/repeat-1/memcal/ingestion-model-calls/2026-10-07.json\", \"native_event_state\": [{\"key\": \"coffee@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"11:00\", \"title\": \"Coffee\", \"location\": \"Birch Cafe\", \"status\": \"confirmed\", \"participants\": \"[\\\"Alex\\\"]\", \"subject\": \"me\"}, {\"key\": \"dinner@2026-10-08\", \"date\": \"2026-10-10\", \"time\": \"19:00\", \"title\": \"Dinner\", \"location\": \"Juniper Cafe\", \"status\": \"confirmed\", \"participants\": \"[\\\"Ben\\\"]\", \"subject\": \"me\"}, {\"key\": \"dinner@2026-10-11\", \"date\": \"2026-10-11\", \"time\": \"19:00\", \"title\": \"Dinner\", \"location\": \"Juniper Cafe\", \"status\": \"declined\", \"participants\": \"[\\\"Alex\\\"]\", \"subject\": \"me\"}, {\"key\": \"job-application-help-call@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"10:00\", \"title\": \"Job application help call\", \"location\": null, \"status\": \"confirmed\", \"participants\": \"[\\\"Jen\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-09\", \"date\": \"2026-10-09\", \"time\": \"13:00\", \"title\": \"Pizza\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-09~2\", \"date\": \"2026-10-09\", \"time\": \"18:00\", \"title\": \"Pizza\", \"location\": \"Luigi's on 5th Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}, {\"key\": \"short-walk@2026-10-06\", \"date\": \"2026-10-06\", \"time\": \"14:00\", \"title\": \"Short walk\", \"location\": \"west entrance to the duck pond in Willow Park\", \"status\": \"declined\", \"participants\": \"[\\\"Alex\\\", \\\"Jen\\\"]\", \"subject\": \"me\"}], \"processing\": {\"run_id\": 3, \"errors\": [], \"report\": \"dream run #3 — 3 bundles, 19 items, 2 writes\\n  inserted  2026-10-09 Pizza [pizza@2026-10-09~2]\\n  inserted  2026-10-11 Dinner [dinner@2026-10-11]\\n  series    dinner\\n  merged: kept 2 separate rows (person:Devon, person:Maya): not the same event\\n  merged: kept 2 separate rows (person:Alex, person:Ben): not the same event\\n  usage: 4 calls · 8494 in (0 cached) · 10007 out · cost not reported\"}, \"readiness\": \"Native dream completion without errors\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 12,
+      "report": "linked 12 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 19,
+      "archived": 19,
+      "passed": 19,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 42,
+      "floor": "2026-10-06T18:50:00-04:00"
+    },
+    "bundles": [
+      {
+        "run_id": 3,
+        "entity": "person:Alex",
+        "bundle_id": "c1547d",
+        "label": "Alex",
+        "kind": "person",
+        "lines": 4,
+        "state": "reading",
+        "updated_at": "2026-10-08T03:00:00-04:00"
+      },
+      {
+        "run_id": 3,
+        "entity": "person:Devon",
+        "bundle_id": "517eb9",
+        "label": "Devon",
+        "kind": "person",
+        "lines": 6,
+        "state": "reading",
+        "updated_at": "2026-10-08T03:00:00-04:00"
+      },
+      {
+        "run_id": 3,
+        "entity": "thread:imessage:Friday crew",
+        "bundle_id": "84c3ba",
+        "label": "Friday crew",
+        "kind": "thread",
+        "lines": 9,
+        "state": "reading",
+        "updated_at": "2026-10-08T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-week-natural-messages-memcal-recovery-20261012-r2/repeat-1/memcal/ingestion-model-calls/2026-10-07.json",
+    "native_event_state": [
+      {
+        "key": "coffee@2026-10-06",
+        "date": "2026-10-06",
+        "time": "11:00",
+        "title": "Coffee",
+        "location": "Birch Cafe",
+        "status": "confirmed",
+        "participants": "[\"Alex\"]",
+        "subject": "me"
+      },
+      {
+        "key": "dinner@2026-10-08",
+        "date": "2026-10-10",
+        "time": "19:00",
+        "title": "Dinner",
+        "location": "Juniper Cafe",
+        "status": "confirmed",
+        "participants": "[\"Ben\"]",
+        "subject": "me"
+      },
+      {
+        "key": "dinner@2026-10-11",
+        "date": "2026-10-11",
+        "time": "19:00",
+        "title": "Dinner",
+        "location": "Juniper Cafe",
+        "status": "declined",
+        "participants": "[\"Alex\"]",
+        "subject": "me"
+      },
+      {
+        "key": "job-application-help-call@2026-10-06",
+        "date": "2026-10-06",
+        "time": "10:00",
+        "title": "Job application help call",
+        "location": null,
+        "status": "confirmed",
+        "participants": "[\"Jen\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-09",
+        "date": "2026-10-09",
+        "time": "13:00",
+        "title": "Pizza",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-09~2",
+        "date": "2026-10-09",
+        "time": "18:00",
+        "title": "Pizza",
+        "location": "Luigi's on 5th Street",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      },
+      {
+        "key": "short-walk@2026-10-06",
+        "date": "2026-10-06",
+        "time": "14:00",
+        "title": "Short walk",
+        "location": "west entrance to the duck pond in Willow Park",
+        "status": "declined",
+        "participants": "[\"Alex\", \"Jen\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 3,
+      "errors": [],
+      "report": "dream run #3 — 3 bundles, 19 items, 2 writes\n  inserted  2026-10-09 Pizza [pizza@2026-10-09~2]\n  inserted  2026-10-11 Dinner [dinner@2026-10-11]\n  series    dinner\n  merged: kept 2 separate rows (person:Devon, person:Maya): not the same event\n  merged: kept 2 separate rows (person:Alex, person:Ben): not the same event\n  usage: 4 calls · 8494 in (0 cached) · 10007 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "latency_s": 70.14,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-12T02:57:14.704280+00:00",
+    "finished": "2026-10-12T02:58:24.848593+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 4,
+        "input_tokens": 8494,
+        "output_tokens": 10007,
+        "accounted_upper_bound_usd": 0.0028507999999999997,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "3dc72cd1cbd349c0893491e32cf2bbbf",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:57:14.941596+00:00",
+        "finished": "2026-10-12T02:57:31.904505+00:00",
+        "state": "settled",
+        "input_tokens": 4486,
+        "output_tokens": 2651,
+        "accounted": 978800,
+        "reserved": 108114000,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0009788
+      },
+      {
+        "id": "2cd8df8439f24990a964ced6254eef2d",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:57:31.924385+00:00",
+        "finished": "2026-10-12T02:57:45.914535+00:00",
+        "state": "settled",
+        "input_tokens": 1543,
+        "output_tokens": 2221,
+        "accounted": 598500,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005985
+      },
+      {
+        "id": "f55e5cfd8cd54fa3aab8cd74583e4f9a",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:57:45.918655+00:00",
+        "finished": "2026-10-12T02:58:17.538881+00:00",
+        "state": "settled",
+        "input_tokens": 1580,
+        "output_tokens": 3940,
+        "accounted": 946000,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.000946
+      },
+      {
+        "id": "dba9e7c85dab4bd48813b7bc02c63d47",
+        "project": "pacbench-df1cc5762f3d-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:58:17.571726+00:00",
+        "finished": "2026-10-12T02:58:24.756716+00:00",
+        "state": "settled",
+        "input_tokens": 885,
+        "output_tokens": 1195,
+        "accounted": 327500,
+        "reserved": 108158400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0003275
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

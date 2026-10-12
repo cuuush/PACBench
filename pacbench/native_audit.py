@@ -12,8 +12,8 @@ from .followups import load_questions, audit_followups
 from .harness import TurnResult
 from .evaluation import load_evaluations
 from .native_checks import audit_checks
-from .tool_policy import VERSION as TOOL_POLICY, policy_record
-from .source_policy import SOURCE_ARGUMENT_RULES, source_read_blocked
+from .tool_policy import SUPPORTED_VERSIONS, policy_record
+from .source_policy import source_read_blocked
 
 
 def audit(root: Path) -> dict:
@@ -28,7 +28,7 @@ def audit(root: Path) -> dict:
     try:
         summary = read(root / 'summary.json')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
-        check(summary.get('tool_policy') == TOOL_POLICY, 'Provider tool boundary required')
+        check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
         check(len(bundle['lives']) == 1, 'expected one life')
         messages = messages_for(bundle, next(iter(bundle['lives'])))
@@ -78,7 +78,7 @@ def audit(root: Path) -> dict:
                 if not reviewable:
                     # A blocked arm has no live trace; keep the failure and audit later arms.
                     continue
-                if summary.get('tool_policy') == TOOL_POLICY:
+                if summary.get('tool_policy') in SUPPORTED_VERSIONS:
                     from .context_isolation import actual_context, VERSION
                     workspace_file = arm / 'recall-workspace.json'
                     workspace_record = (read(workspace_file) if workspace_file.exists()
@@ -86,9 +86,11 @@ def audit(root: Path) -> dict:
                     check(workspace_record['version'] == VERSION,
                           f'{label}: unsupported recall context isolation')
                     check(summary.get('builtin_memory') is False, f'{label}: built-in memory enabled')
-                    expected_policy = policy_record(result['provider'], result['capability']['tools'])
+                    expected_policy = policy_record(result['provider'], result['capability']['tools'],
+                        version=summary['tool_policy'])
                     allowed = expected_policy['allowed_tools']
                     policy = read(arm / 'tool-policy.json')
+                    rules = expected_policy['source_argument_rules']
                     check(policy == expected_policy,
                         f'{label}: provider tool policy mismatch')
                     check(bool(allowed) and all('*' not in n for n in allowed),
@@ -98,7 +100,7 @@ def audit(root: Path) -> dict:
                     check(bool(schemas), f'{label}: missing offered tool evidence')
                     check(all(row['allowed_tools'] == allowed and
                         set(row['offered_tools']) <= set(allowed) and
-                        row.get('source_argument_rules') == SOURCE_ARGUMENT_RULES for row in schemas),
+                        row.get('source_argument_rules') == rules for row in schemas),
                         f'{label}: non-provider schema exposed')
                     paths = [*arm.glob('recall.json'), *arm.glob('turns/*/turn.json'),
                         *arm.glob('followups/*/turn.json'), *arm.glob('turns/*/followups/*/turn.json')]
@@ -114,7 +116,7 @@ def audit(root: Path) -> dict:
                                   f'{label}: saved recall context receipt differs from native prompt')
                             check(not data.get('policy_blocks') and all(
                                 c.get('name') in allowed and not source_read_blocked(
-                                    c.get('name'),c.get('input',c.get('arguments',{})),SOURCE_ARGUMENT_RULES) for c in data['tool_calls']),
+                                    c.get('name'),c.get('input',c.get('arguments',{})),rules) for c in data['tool_calls']),
                                 f'{label}: non-provider tool attempted in {path.relative_to(arm)}')
                 from .document_audit import audit_ingestion
                 errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))

@@ -1,0 +1,113 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-10-05T18:35:00-04:00",
+  "processing_at": "2026-10-05T18:35:00-04:00",
+  "document_sha256": "262dfc8e860c77cf983c9084f9da7c9864df4720b7688c556ad03c443343085b",
+  "source_ids": [
+    "message-19fd371ebd01cf787d54a067",
+    "message-6d58564f32bc110e6862bd04",
+    "message-34dc33065b8856e28dc635a6",
+    "message-66bba0bfb7132294b1297dee",
+    "message-a6086d7b9e6f825ff3a1e116",
+    "message-f5d8939741aba28a3c20db90",
+    "message-184b878e601b0a8028739b62",
+    "message-a46a13e09e6159733f5b7f4f",
+    "message-fddb42aeb8db9662ad7a4b81",
+    "message-3fa9db53c007f5b3c18c7d18",
+    "message-60d7b9e47e689d1e55ceec70",
+    "message-83bd0d53c6051a29c6a6c19c",
+    "message-f4b2310cc8c21914373a2681",
+    "message-91615bf14da236f8259a66dd",
+    "message-fadd50dc498e0106ffb483fa",
+    "message-c2e37d4092e2c354f0333567",
+    "message-f38f4023939f21e01bcf6ecb"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"c50caf51-4b20-4159-96ab-ac6456cd4dcf\", \"memory\": \"User, Jen, and Alex planned a short walk at 2pm on Tuesday, October 6, 2026, meeting at the west entrance to the duck pond in Willow Park, as agreed in the 'Park pals' group chat on October 5, 2026.\", \"event\": \"ADD\"}, {\"id\": \"e886aa11-1216-4a95-ba8f-e93be7210b17\", \"memory\": \"Jen asked User for help with her job application on October 5, 2026, saying she was stuck on the cover letter part.\", \"event\": \"ADD\"}, {\"id\": \"38020c51-dcaa-42b3-a18b-db9e741997a0\", \"memory\": \"User scheduled a call with Jen at 10am on Tuesday, October 6, 2026 to go over Jen's job application cover letter.\", \"event\": \"ADD\"}, {\"id\": \"bc6a66fb-145e-4c0f-8abd-23af4335cc7e\", \"memory\": \"User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026.\", \"event\": \"ADD\"}, {\"id\": \"cde9f133-bf99-4799-b49e-fe2a2ffd5383\", \"memory\": \"User planned dinner with Ben at Juniper Cafe at 7pm on Thursday, October 8, 2026.\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/repeat-1/mem0/ingestion-model-calls/2026-10-05.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "c50caf51-4b20-4159-96ab-ac6456cd4dcf",
+          "memory": "User, Jen, and Alex planned a short walk at 2pm on Tuesday, October 6, 2026, meeting at the west entrance to the duck pond in Willow Park, as agreed in the 'Park pals' group chat on October 5, 2026.",
+          "event": "ADD"
+        },
+        {
+          "id": "e886aa11-1216-4a95-ba8f-e93be7210b17",
+          "memory": "Jen asked User for help with her job application on October 5, 2026, saying she was stuck on the cover letter part.",
+          "event": "ADD"
+        },
+        {
+          "id": "38020c51-dcaa-42b3-a18b-db9e741997a0",
+          "memory": "User scheduled a call with Jen at 10am on Tuesday, October 6, 2026 to go over Jen's job application cover letter.",
+          "event": "ADD"
+        },
+        {
+          "id": "bc6a66fb-145e-4c0f-8abd-23af4335cc7e",
+          "memory": "User planned to grab coffee with Alex at Birch Cafe at 11am on Tuesday, October 6, 2026.",
+          "event": "ADD"
+        },
+        {
+          "id": "cde9f133-bf99-4799-b49e-fe2a2ffd5383",
+          "memory": "User planned dinner with Ben at Juniper Cafe at 7pm on Thursday, October 8, 2026.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-week-natural-messages-all-20261012-r1/repeat-1/mem0/ingestion-model-calls/2026-10-05.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 22.22,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-12T02:36:40.174794+00:00",
+    "finished": "2026-10-12T02:37:02.398266+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 10456,
+        "output_tokens": 1911,
+        "accounted_upper_bound_usd": 0.0014278,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "429a8082a7a843e0afc386ca623be121",
+        "project": "pacbench-46e22bc0228c-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-12T02:36:47.889300+00:00",
+        "finished": "2026-10-12T02:37:01.223419+00:00",
+        "state": "settled",
+        "input_tokens": 10456,
+        "output_tokens": 1911,
+        "accounted": 1427800,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0014278
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "claims": [
+    {
+      "id": "leo-shift-covered",
+      "statement": "Leo's Friday day shift was covered",
+      "evidence": [
+        "message-c707307447984c88c86bf02c"
+      ]
+    },
+    {
+      "id": "coverer-tyler",
+      "statement": "Tyler was the person who covered Leo's shift",
+      "evidence": [
+        "message-c707307447984c88c86bf02c"
+      ]
+    }
+  ],
+  "question": "Did Leo find someone to cover in the end?",
+  "evidence_hash": "5f54a5b1e8db26d401472b9c9f8b6cd8715bdfc31dc7a345ccf1590772774c45",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Both intent-required details are present as separate claims: coverage occurred and Tyler is the coverer.",
+    "reviews": [
+      {
+        "id": "leo-shift-covered",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Leo explicitly reports Tyler will cover his Friday day shift, which intent confirms as covered."
+      },
+      {
+        "id": "coverer-tyler",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Same message explicitly names Tyler as the person covering Leo's shift."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks whether Leo found cover without naming Tyler or Friday day shift, presupposes only a need for cover supported by Leo's Friday day-shift conflict, and a complete answer in pizza-recap context requires stating shift was covered and by Tyler."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Yes, Tyler covered his shift. Only coverage and the coverer's identity are judged.",
+  "question_source": "supplied",
+  "question_at": "2026-10-11T21:06:00-04:00",
+  "contract_hash": "baf9356345e70c14059617e8c9679e5f1ff7faea27c9fd88d2fefd97fdcacd01"
+}

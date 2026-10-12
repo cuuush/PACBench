@@ -396,6 +396,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 results.append(result)
                 save(root/'status.json',result)
                 save(output/'summary.json',report)
+                stop_arm_model_work(root)
                 continue
             if source:
                 try:require_live_cost_boundary()
@@ -422,6 +423,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 save(root/'simulation-clock.json',{'process_timezone':resolved.get('timezone','') if resolved else '',
                      'pin':'setup attempt; no evaluation'})
                 save(output/'summary.json',report)
+                stop_arm_model_work(root)
                 continue
             save(root / "simulation-clock.json", {"process_timezone": env.get("TZ", ""),
                  "pin": "public simulated clock supplied to every turn"})
@@ -441,12 +443,14 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             if (not source or not capability["available"] or capability.get("execution_blocker")
                     or result["state"] == "invalid"):
                 save(output / "summary.json", report)
+                stop_arm_model_work(root)
                 continue
             try:
                 policy = policy_record(provider, capability["tools"])
             except ValueError as exc:
                 result.update(state="invalid", reason=str(exc))
                 save(output / "summary.json", report)
+                stop_arm_model_work(root)
                 continue
             allowlist = ",".join(policy["allowed_tools"])
             save(root / "tool-policy.json", policy)
@@ -503,6 +507,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 except RuntimeError as exc:
                     result.update(state='invalid',reason=str(exc))
                     save(root/'status.json',result);save(output/'summary.json',report)
+                    stop_arm_model_work(root)
                     continue
                 # Deliberately omit --resume: recall must cross a real session boundary.
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
@@ -534,6 +539,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     if recovery["state"] != "complete":
                         result.update(state="invalid", reason="follow-up diagnostics incomplete")
             from .usage import snapshot
+            # Stop this run-owned backend before moving to another provider.
+            # Leaving its workers alive until matrix exit permits background
+            # model work and late costs outside the completed arm's lifetime.
+            stop_arm_model_work(root)
             save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)

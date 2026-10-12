@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
-    assert len(scenes)==19 and len(resolved['checks'])==13
+    assert len(scenes)==19 and len(resolved['checks'])==15
     scene_by_id={s.id:s for s in scenes}
     check_by_id={c['id']:c for c in resolved['checks']}
     assert scene_by_id['leo-joins'].participants==('Me','Maya','Leo')
@@ -187,7 +187,8 @@ def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_p
     with pytest.raises(ValueError,match='Monday'):resolve_spec(spec,tmp_path,week_start='2026-10-27')
 
 
-def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tmp_path):
+@pytest.mark.parametrize('dedicated_draft',[False,True])
+def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tmp_path,dedicated_draft):
     from pacbench.evaluation import freeze_evaluations,load_evaluations,resolve_checks
     row={'id':'one','prompt':'What is the plan?','expect':'Dinner is at the cafe.','at':'2026-09-11T09:00:00-04:00'}
     resolved={**resolve_checks({'checks':[row]},row['at'],'America/New_York'),'question_at':row['at'],'timezone':'America/New_York'}
@@ -195,10 +196,16 @@ def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tm
     prompts=[]
     def model(prompt):
         prompts.append(prompt)
-        if 'Identify independently' in prompt:return json.dumps({'claims':[{'id':'dinner-place','statement':'Dinner is at the cafe.','evidence':['m1']}]})
+        if 'Identify independently' in prompt:
+            assert not dedicated_draft
+            return json.dumps({'claims':[{'id':'dinner-place','statement':'Dinner is at the cafe.','evidence':['m1']}]})
         if 'Review each proposed claim' in prompt:return json.dumps({'complete':True,'reviews':[{'id':'dinner-place','supported':True,'relevant':True,'unambiguous':True,'reason':'Source supports the venue.'}]})
         return json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'The natural question covers dinner.'})
-    plan=freeze_evaluations(resolved,messages,None,model,tmp_path)
+    def draft(prompt):
+        assert 'Identify independently' in prompt
+        prompts.append(prompt)
+        return json.dumps({'claims':[{'id':'dinner-place','statement':'Dinner is at the cafe.','evidence':['m1']}]})
+    plan=freeze_evaluations(resolved,messages,None,model,tmp_path,generate=draft if dedicated_draft else None)
     loaded,checks=load_evaluations(tmp_path,messages,resolved)
     assert loaded==plan and checks[0][1].claims[0].statement=='Dinner is at the cafe.'
     assert all('Required facts:' not in p for p in prompts)

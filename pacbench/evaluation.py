@@ -68,7 +68,7 @@ def contract_evidence(messages, checks, current):
     return available
 
 
-def freeze_evaluations(resolved, messages, target, model, root, *, resume=False):
+def freeze_evaluations(resolved, messages, target, model, root, *, resume=False, generate=None):
     rows,errors = [],[]
     for check in resolved['checks']:
         path = root / 'evaluations' / check['id']
@@ -97,7 +97,7 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False)
                 contract_path.unlink(missing_ok=True)
                 (path / 'followup-plan.json').unlink(missing_ok=True)
                 contract = build_contract(scene='Available source dialogue', test_intent=check.get('expect') or check['prompt'],
-                    observations=available, author_facts=tuple(check['facts']), generate=model,
+                    observations=available, author_facts=tuple(check['facts']), generate=generate or model,
                     verify=model, question_generate=model, output_path=contract_path,
                     user_question=check['prompt'], question_at=check['at'],behavior=check.get('kind')=='behavior')
         except Exception as exc:

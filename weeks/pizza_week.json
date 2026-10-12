@@ -273,13 +273,18 @@
           "turns": [
             {
               "id": "pizza-final-details",
-              "prompt": "What did I end up arranging for pizza on Friday?",
+              "prompt": "What did I end up arranging for pizza this past Friday?",
               "expect": "Two distinct outings: pizza lunch with Maya and Leo on Friday at noon at Mario's on Pine Street, and pizza with Devon on Friday at 6 pm at Luigi's on 5th Street. Describe agreed plans; do not require proof either outing happened."
             },
             {
               "id": "maya-change-history",
               "prompt": "What changed with Maya's plan?",
-              "expect": "The same Friday pizza outing changed from 1 pm at Rosa's on Oak Street to noon at Mario's on Pine Street. Domino's on Elm Street was suggested but rejected."
+              "expect": "The time changed from 1 pm to noon. The venue changed from Rosa's on Oak Street to Mario's on Pine Street. Only these time and venue changes are judged."
+            },
+            {
+              "id": "rejected-pizza-option",
+              "prompt": "Why wasn't Maya keen on Domino's?",
+              "expect": "It was too far for her."
             },
             {
               "id": "leo-cover",
@@ -295,12 +300,12 @@
             {
               "id": "pond-final",
               "prompt": "What happened with the duck pond? Did we pick another day?",
-              "expect": "The Tuesday group duck-pond outing with Jen and Alex was called off; no replacement day was agreed."
+              "expect": "The duck-pond outing was called off, and no replacement day was agreed. Only cancellation and replacement status are judged."
             },
             {
               "id": "separate-arrangements",
-              "prompt": "Did that change my other arrangements with Jen and Alex?",
-              "expect": "Those messages only called off the duck-pond outing. They did not cancel the separate Tuesday 10 am job-application call with Jen or Tuesday 11 am coffee with Alex at Birch Cafe."
+              "prompt": "Did that cancel my call with Jen or coffee with Alex that Tuesday too?",
+              "expect": "The group cancellation did not cancel the separately arranged job-application call with Jen or coffee with Alex. Only whether those two arrangements were cancelled is judged."
             }
           ]
         },
@@ -311,7 +316,7 @@
             {
               "id": "ben-current",
               "prompt": "What did Ben and I end up settling on for dinner?",
-              "expect": "One dinner, rescheduled from Thursday to Saturday at 7 pm at Juniper Cafe. The date change came through email and preserved the time and venue from the text-message arrangement."
+              "expect": "Dinner with Ben was settled for Saturday at 7 pm at Juniper Cafe. Only the final day, time and venue are judged."
             },
             {
               "id": "ben-no-duplicate",
@@ -365,6 +370,17 @@
               "id": "jen-distinct-calls",
               "prompt": "Is that the same call about her application?",
               "expect": "No. They arranged a separate call about the job application for the earlier Tuesday, and this new next-Tuesday call concerns the interview."
+            }
+          ]
+        },
+        {
+          "id": "pizza-count-fresh",
+          "time": "9:58 pm",
+          "turns": [
+            {
+              "id": "pizza-distinct-count",
+              "prompt": "How many different pizza outings did I agree to for this past Friday?",
+              "expect": "Exactly two distinct pizza outings. Only the count is judged; restaurant suggestions, participant changes and rescheduling do not add outings."
             }
           ]
         }

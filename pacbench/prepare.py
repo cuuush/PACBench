@@ -232,6 +232,12 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
                         url=client_settings("pacbench-judge")[0] + "/chat/completions",
                         cache_dir=root / "model-cache")
+    # Keep independent verification and answer grading unchanged. Native low
+    # reasoning produced valid criterion drafts where the default setting
+    # repeatedly emitted malformed JSON on the larger multi-outing question.
+    draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                        cache_dir=root / "model-cache", reasoning_effort="low")
     observations = []
     scene_records = []
     thread_history: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
@@ -283,7 +289,7 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     if resolved['checks']:
         from .evaluation import freeze_evaluations
         evaluation_plan = freeze_evaluations(resolved, observations, target, judge, root,
-                                            resume=bool(progress.get('resume')))
+                                            resume=bool(progress.get('resume')),generate=draft)
         if evaluation_plan.get('errors'):
             summary={'state':'incomplete','results':[],'bundle_hash':bundle_hash(bundle),
                 'message_count':len(observations),'errors':evaluation_plan['errors']}
@@ -296,7 +302,7 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
         contract = build_contract(
             scene=target.scene, test_intent=target.test_intent,
             author_facts=tuple(spec.get("facts", target.facts)),
-            observations=observations, generate=judge, verify=judge,
+            observations=observations, generate=draft, verify=judge,
             question_generate=judge, output_path=root / "contract.json")
     progress["contract_frozen_at"] = datetime.now(timezone.utc).isoformat()
     freeze_policy(contract, root / "followup-plan.json")

@@ -8,11 +8,11 @@ Put conversations under the weekday where they happen. Each has an `id`, a human
   "time": "9 am",
   "turns": [
     {"id": "plans", "prompt": "What's the deal with pizza tomorrow?",
-     "expect": "Two Friday outings: Devon at 6 pm at Luigi's, and Maya at 7 pm at Rosa's with Leo."},
-    {"id": "cancel", "kind": "behavior", "prompt": "Actually, cancel pizza tomorrow.",
-     "expect": "Ask which outing I mean, without claiming either is cancelled."},
-    {"id": "clarify", "kind": "behavior", "trigger": "clarification", "depends_on": "cancel",
-     "prompt": "The one with Devon.", "expect": "Acknowledge that I am not going with Devon."}
+     "expect": "Two Friday outings: Maya and Leo at noon at Mario's on Pine Street, and Devon at 6 pm at Luigi's on 5th Street."},
+    {"id": "devon", "prompt": "What time am I meeting Devon?",
+     "expect": "6 pm Friday."},
+    {"id": "maya", "prompt": "And Maya?",
+     "expect": "Noon Friday."}
   ]
 }
 ```
@@ -21,7 +21,7 @@ Turns in the same conversation resume one actual Hermes session. A different con
 
 Preparation derives independently assessable criteria from each expectation, verifies them against available source and scripted user instructions, and reviews whether the public prompt fairly requests them. Expectations, scenes and private judging criteria never enter Hermes questions or source imports. Future source batches are ingested only when their native processing has completed by the simulated turn time.
 
-`kind: behavior` grades an observable reply or clarification and gets no omission recovery. An acknowledgement does not prove a retained update or external calendar action. A later fresh conversation checks persistence. `trigger: clarification` sends its scripted reply only when the semantic judge identifies a clarification request; replies are not invented to rescue the agent. Use `depends_on` for later checks that require that reply. Contracts also bind conditional evidence dependencies, so an undelivered instruction cannot become assumed truth.
+Use factual recall for the memory benchmark. Do not use an ambiguous cancellation plus a mandatory clarification as proof of memory quality. Separately, `kind: behavior` can grade an authored observable reply or clarification and gets no omission recovery. An acknowledgement does not prove a retained update or external calendar action. A later fresh conversation checks persistence. `trigger: clarification` sends its scripted reply only when the semantic judge identifies a clarification request; replies are not invented to rescue the agent. Use `depends_on` for later checks that require that reply. Contracts also bind conditional evidence dependencies, so an undelivered instruction cannot become assumed truth.
 
 Each turn gets pass/fail for judged behavior. Malformed judges, missing script truth and execution errors remain ungraded with a reason. Independent conversations continue; unavailable dependent turns skip with a cause. A wrong answer remains a failure and does not stop unrelated checks. Review passes as well as failures while developing.
 

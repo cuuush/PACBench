@@ -73,11 +73,12 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
     assert received==[message('m1')]
 
 
-@pytest.mark.parametrize('change',['hash','file','duplicate','unfinished','preparation'])
+@pytest.mark.parametrize('change',['hash','file','duplicate','unfinished','preparation','clock'])
 def test_publishing_rejects_mixed_or_unfinished_evidence_without_partial_public_run(repo,change):
     first=component(repo,'first','memcal');second=component(repo,'second','honcho')
     s=json.loads((second/'summary.json').read_text())
     if change=='hash':s['input_hash']='different'
+    elif change=='clock':s['ingestion_version']='different-clock-condition'
     elif change=='file':save(second/'bundle.json',{'synthetic':'different'})
     elif change=='duplicate':s['results'][0]['provider']='memcal'
     elif change=='unfinished':s['state']='running'

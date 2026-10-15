@@ -29,6 +29,37 @@ def test_email_checker_can_verify_cross_channel_reference_without_writer_recap()
     messages=build_scene_observations('email-week',plan,list(result.lines))
     assert messages[0].structured['email_subject']=='Dinner'
 
+
+def test_email_reply_quotes_survive_as_one_body_with_the_actual_sender(tmp_path):
+    from email import message_from_string
+    from email.policy import default
+    from pacbench.authoring import realize_scene,build_scene_observations
+    from pacbench.email_fixture import append_emails
+    plan=ScenePlan(scene='Ben moves dinner to Saturday, quoting the old Thursday plan.',
+        channel='email',thread='dinner',participants=('Me','Ben'),email_subject='Dinner',message_range=(2,4))
+    body='Saturday works at seven.\n\nOn Monday Ben wrote:\n> Thursday at seven?\n> Me: sounds good'
+    def writer(_):return json.dumps({'dialogue':[{'sender':'Ben','body':'Can we do Saturday instead?'},
+        {'sender':'Me','body':body}],'writer_note':'A reply retains the quoted old arrangement.'})
+    def checker(_):return json.dumps({'supported':True,'evidence':[1,2],'problem':''})
+    result=realize_scene(plan,writer,checker)
+    messages=[m.public() for m in build_scene_observations('email-quotes',plan,list(result.lines))]
+    mailbox=tmp_path/'mailbox.json';append_emails(mailbox,messages)
+    rows=json.loads(mailbox.read_text())['messages']
+    assert len(rows)==2 and messages[1]['from_owner'] is True
+    assert messages[1]['text']==body
+    parsed=message_from_string(rows[1]['rfc822'],policy=default)
+    assert parsed.get_content().strip().splitlines()==body.splitlines()
+    assert parsed['In-Reply-To']==rows[0]['message_id']
+
+
+def test_noisy_thread_context_does_not_discard_the_original_plan():
+    plan=ScenePlan(scene='Move the existing pizza to five.',participants=('Me','Maya'))
+    prior=(('2026-10-12T10:00:00-04:00','Maya',"Friday at Luigi's at six?"),)+tuple(
+        ('2026-10-12T11:00:00-04:00','Me',f'Unrelated message {i}') for i in range(40))
+    assert "Friday at Luigi's at six?" in scene_prompt(plan,prior)
+    checker_prior=tuple((at,'imessage:maya',who,text) for at,who,text in prior)
+    assert "Friday at Luigi's at six?" in judge_prompt(plan,[('Maya','Can we do five instead?'),('Me','Yes')],checker_prior)
+
 def test_writer_and_verifier_see_the_local_message_window():
     plan = ScenePlan(scene="Make an evening plan.",
                      at="2026-09-08T19:00:00", id="evening")

@@ -108,7 +108,7 @@ class ScenePlan:
 
 
 #: Prompt version for scene-level authoring.
-SCENE_PROMPT_VERSION = "scene-v16"
+SCENE_PROMPT_VERSION = "scene-v17"
 
 
 def scene_prompt(plan: ScenePlan,
@@ -122,7 +122,7 @@ def scene_prompt(plan: ScenePlan,
         "Earlier messages in this same thread, with their dates "
         "(context, not text to repeat):\n" +
         "\n".join((f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
-                   else f"{row[0]}: {row[1]}") for row in prior_lines[-12:]) +
+                   else f"{row[0]}: {row[1]}") for row in prior_lines) +
         "\nContinue naturally. People remember the prior exchange and do not "
         "recap settled details unless conversation calls for it. Respect any "
         "gap between those dates and today's date; don't reply as if an old "
@@ -136,7 +136,8 @@ def scene_prompt(plan: ScenePlan,
                 + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
                    if plan.message_range else "Use a short exchange. ") +
                 "The subject is header metadata; do not put a Subject: prefix inside an email body. "
-                "Return only valid JSON with dialogue (a string with one Name: body line per email) and writer_note (a short string about the choices). No prose or Markdown fences outside the JSON.")
+                'Return only JSON with dialogue (an array of {"sender": "Name", "body": "email text"}) '
+                'and writer_note (a short string). Bodies may contain paragraphs and quoted replies using escaped newlines.')
     return (
         f"Write a believable {plan.channel} conversation from this scenario. "
         "Use `Me` exactly for the user's own messages and distinct names for "
@@ -235,6 +236,22 @@ def parse_scene_lines(text: str, plan: ScenePlan) -> list[tuple[str, str]]:
     return lines
 
 
+def parse_scene_dialogue(value, plan: ScenePlan) -> list[tuple[str, str]]:
+    """Keep quoted speakers inside an email body, rather than inventing messages."""
+    if isinstance(value,str):return parse_scene_lines(value,plan)
+    if not plan.email_subject or not isinstance(value,list):
+        raise ValueError('Render needs dialogue text or an email dialogue array')
+    lines=[]
+    for row in value:
+        if (not isinstance(row,dict) or row.get('sender') not in plan.participants or
+                not isinstance(row.get('body'),str) or not row['body'].strip()):
+            raise ValueError('Email needs a declared sender and a nonempty body')
+        lines.append((row['sender'],row['body'].strip()))
+    if not any(s=='Me' for s,_ in lines) or not any(s!='Me' for s,_ in lines):
+        raise ValueError('Email exchange needs the owner and another participant')
+    return lines
+
+
 def spread_timestamps(plan: ScenePlan, n: int) -> list[str]:
     """Freeze reproducible uneven reply gaps within the authored scene window.
 
@@ -318,7 +335,7 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
 # ------------------------------------------------------------------ judging --
 
 #: Approved narrow-judge prompter (verdicts only, never ground truth).
-JUDGE_PROMPT_VERSION = "scene-judge-v9"
+JUDGE_PROMPT_VERSION = "scene-judge-v10"
 
 def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
@@ -330,7 +347,7 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
              "(cite only the numbered new messages below):\n" +
              "\n".join((f"{row[0]} [{row[1]}] {row[2]}: {row[3]}" if len(row)==4 else
                         f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
-                        else f"{row[0]}: {row[1]}") for row in prior_lines[-20:]) +
+                        else f"{row[0]}: {row[1]}") for row in prior_lines) +
              "\n\n" if prior_lines else "")
     required = ("\n\nFor each numbered required fact, report whether the dialogue "
                 "actually establishes it, with line citations. Distinguish "
@@ -351,6 +368,7 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
         "Cite evidence of commitment without requiring a scripted confirmation order. Check that "
         "continuations agree with the current plan across DMs, group chats and email; "
         "an old week's venue is not the current venue unless someone changes it. "
+        "Quoted email history is historical context, not a new confirmation. "
         "`Me` consistently represents the user. Judge meaning, not token "
         "overlap. Return only JSON with keys supported (boolean), evidence "
         "(array of numbered dialogue line integers), and problem (short "
@@ -602,15 +620,15 @@ def realize_scene(plan: ScenePlan, generate: Generate,
             writer_note = ""
             if out.startswith("{"):
                 rendered = json.loads(out)
-                if not isinstance(rendered, dict) or not isinstance(rendered.get("dialogue"), str):
-                    raise ValueError("render must contain dialogue text")
+                if not isinstance(rendered, dict) or 'dialogue' not in rendered:
+                    raise ValueError("render must contain dialogue")
                 if not isinstance(rendered.get("writer_note"), str):
                     raise ValueError("render must contain a writer note")
                 dialogue = rendered["dialogue"]
                 writer_note = rendered["writer_note"].strip()
                 if not writer_note:
                     raise ValueError("render writer note is empty")
-            lines = parse_scene_lines(dialogue, plan)
+            lines = parse_scene_dialogue(dialogue, plan)
             if plan.message_range and not plan.message_range[0] <= len(lines) <= plan.message_range[1]:
                 raise ValueError(f"message count {len(lines)} outside {plan.message_range}")
             if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):

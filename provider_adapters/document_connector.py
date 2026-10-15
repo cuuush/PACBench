@@ -258,13 +258,22 @@ def honcho(source,root,at,processing_at):
         # this observer to witness source messages as they arrive; adding it
         # afterward does not backfill memory. This is a non-speaking reader,
         # not a fabricated participant/message. Use the native Hermes flags.
-        session.add_peers([*peers.values(), (client.peer(observer), SessionPeerConfig(
+        members=[(peer,SessionPeerConfig(observe_me=native_config.user_observe_me,
+            observe_others=native_config.user_observe_others)) if name==host['peerName'] else peer
+            for name,peer in peers.items()]
+        session.add_peers([*members, (client.peer(observer), SessionPeerConfig(
             observe_me=native_config.ai_observe_me,
             observe_others=native_config.ai_observe_others))])
         observed=session.get_peer_configuration(observer)
         if (observed.observe_me!=native_config.ai_observe_me or
                 observed.observe_others!=native_config.ai_observe_others):
             raise RuntimeError('Honcho did not apply the configured recall observer')
+        owner=None
+        if host['peerName'] in peers:
+            owner=session.get_peer_configuration(host['peerName'])
+            if (owner.observe_me!=native_config.user_observe_me or
+                    owner.observe_others!=native_config.user_observe_others):
+                raise RuntimeError('Honcho did not apply the configured owner membership')
         baseline=session.queue_status().model_dump(mode='json')
         pending=[]
         for m in batch:
@@ -280,17 +289,22 @@ def honcho(source,root,at,processing_at):
                 raise RuntimeError('Honcho source acknowledgment differs from the submitted message')
         minimum_work[session.id]=baseline['total_work_units']+len(response)
         acknowledgments.append({'session_id':session.id,'processing_baseline':baseline,'minimum_work_units':minimum_work[session.id],'observer':{'peer_id':observer,
-            'observe_me':observed.observe_me,'observe_others':observed.observe_others},'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
+            'observe_me':observed.observe_me,'observe_others':observed.observe_others},
+            'owner':({'peer_id':host['peerName'],'observe_me':owner.observe_me,'observe_others':owner.observe_others} if owner else None),
+            'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
-    statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work)
+    defaults=json.loads((root/'native-processing-settings.json').read_text())
+    grace=defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
+    statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work,
+        batch_grace_s=grace)
     return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
         'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
         'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
 
 
-def wait_honcho_sessions(sessions,roles,minimum_work=None):
+def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0):
     minimum_work=minimum_work or {}
     # A finite, isolated import has no concurrent producers. This is a scoped
     # benchmark readiness barrier, not a production requirement that the entire
@@ -319,11 +333,12 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None):
             if any(c.get('http_status')==429 for c in snapshot(roles).get('calls',[])):
                 done=False;reason='Gateway or upstream refused a request (HTTP 429); import stopped';break
         if done:break
-        if elapsed>=900:
-            reason='Native submitted-session processing exceeded the 15-minute deadline';break
-        if time.monotonic()-last_progress>=300:
-            reason='Native submitted-session processing made no observable progress for five minutes';break
-        time.sleep(2)
+        if elapsed>=batch_grace_s+900:
+            reason='Native submitted-session processing exceeded its batch delay plus 15 minutes';break
+        if elapsed>=batch_grace_s+300 and time.monotonic()-last_progress>=300:
+            reason='Native submitted-session processing stalled for five minutes after its batch delay';break
+        busy=any(s['in_progress_work_units'] for s in status.values())
+        time.sleep(2 if busy or elapsed>=batch_grace_s else 10)
     return statuses,done,reason,health
 
 

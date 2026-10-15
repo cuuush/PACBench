@@ -15,7 +15,8 @@ from . import harness
 from .followups import save
 from .usage import snapshot, window
 
-VERSION = 'daily-source-documents-v1'
+VERSION = 'daily-source-documents-v2'
+LEGACY_VERSION = 'daily-source-documents-v1'
 PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {
@@ -102,43 +103,48 @@ def prepare_sources(output, messages, timezone):
     return schedule
 
 
-def processing_at(at, provider, timezone):
-    if provider!='memcal':
+def processing_at(at, provider, timezone, *, version=VERSION):
+    if version not in (VERSION,LEGACY_VERSION):raise ValueError('Unknown ingestion clock version')
+    if version==LEGACY_VERSION and provider!='memcal':
         return at
     stamp=datetime.fromisoformat(at).astimezone(ZoneInfo(timezone))
     return datetime.combine(stamp.date()+timedelta(days=1),datetime.min.time(),ZoneInfo(timezone)).replace(hour=3).isoformat()
 
 
-def ready_sources(schedule, provider, at, timezone):
+def ready_sources(schedule, provider, at, timezone, *, version=VERSION):
     clock=datetime.fromisoformat(at)
     ready=[]
     for row in schedule:
         source_time=datetime.fromisoformat(row['at'])
-        finished=datetime.fromisoformat(processing_at(row['at'],provider,timezone))
+        finished=datetime.fromisoformat(processing_at(row['at'],provider,timezone,version=version))
         if source_time<=clock<finished:
             raise ValueError('Evaluation precedes native processing; do not use future memory state')
         if finished<=clock:ready.append(row)
     return ready
 
 
-def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, chronological=False):
+def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, chronological=False,version=VERSION):
     """Only completed daily batches may precede a checkpoint; never import its future."""
     questions=[datetime.fromisoformat(value) for value in question_times]
     if not questions or any(value.utcoffset() is None for value in questions):
         raise ValueError('Evaluation clocks require explicit timezone offsets')
     for provider in providers:
         for at in question_times:
-            ready=ready_sources(schedule,provider,at,timezone)
+            ready=ready_sources(schedule,provider,at,timezone,version=version)
             if not chronological and len(ready)!=len(schedule):
                 raise ValueError('Evaluation precedes source availability; chronological checkpoint ingestion is required')
-        if len(ready_sources(schedule,provider,max(questions).isoformat(),timezone))!=len(schedule):
+        if len(ready_sources(schedule,provider,max(questions).isoformat(),timezone,version=version))!=len(schedule):
             raise ValueError('Final evaluation precedes source availability or native processing')
 
 
 def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     """Provider-owned ingestion/processing in an isolated process, no Hermes turn."""
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
-    if timeout_s is None:timeout_s=1020 if provider=='honcho' else 240
+    if timeout_s is None:
+        timeout_s=240
+        if provider=='honcho':
+            defaults=json.loads((root/'native-processing-settings.json').read_text())
+            timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     native_at=processing_at(at,provider,timezone)
     child_env=harness.turn_env(native_at,root/'hermes-home','',env)
     roles=json.loads(env['PACBENCH_USAGE_ROLES'])

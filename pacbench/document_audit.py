@@ -5,7 +5,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from .document_ingestion import VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
+from .document_ingestion import VERSION, LEGACY_VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
 def audit_honcho_receipt(batch, result, previous_work=None):
@@ -56,6 +56,8 @@ def audit_ingestion(root, arm, messages, summary):
     def check(ok,msg):
         if not ok:errors.append(msg)
     schedule=summary['ingestion_schedule']
+    version=summary.get('ingestion_version',VERSION)
+    check(version in (VERSION,LEGACY_VERSION),'unsupported ingestion clock version')
     batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
     honcho_work={}
@@ -72,7 +74,7 @@ def audit_ingestion(root, arm, messages, summary):
         check(row['id']==day and row['at']==at and row['source_ids']==ids,'source availability schedule mismatch')
         check(row['file']==f'ingestion/{day}.json' and row['source_file']==f'sources/{day}/messages.txt','unsafe or unexpected ingestion path')
         check(hashlib.sha256((source/'source.json').read_bytes()).hexdigest()==row['source_manifest_sha256'],'source manifest hash mismatch')
-        check(meta['version']==VERSION and meta['source_ids']==ids and meta['at']==at,'source manifest differs from frozen observations')
+        check(meta['version']==version and meta['source_ids']==ids and meta['at']==at,'source manifest differs from frozen observations')
         check((source/'messages.txt').read_text()==text and json.loads((source/'messages.json').read_text())==batch,'delivered source text differs from frozen observations')
         check(hashlib.sha256(text.encode()).hexdigest()==meta['document_sha256'],'source document hash mismatch')
         for name,sha in meta.get('fixture_hashes',{}).items():
@@ -100,15 +102,15 @@ def audit_ingestion(root, arm, messages, summary):
                 check(parseaddr(mail['From'])[1]==mail_address(m['sender']), 'email sender differs from source')
                 check(parsedate_to_datetime(mail['Date'])==datetime.fromisoformat(m['written_at']),
                       'email date differs from source')
-                check(mail.get_payload(decode=True).decode(mail.get_content_charset()).strip()==m['text'].strip(),
+                check(mail.get_payload(decode=True).decode(mail.get_content_charset()).replace('\r\n','\n').strip()==m['text'].replace('\r\n','\n').strip(),
                       'email body differs from source')
                 check(item['folder']==('Sent' if m['from_owner'] else 'INBOX'), 'email ownership folder mismatch')
         record=json.loads((arm/row['file']).read_text())
-        check(record['provider']==arm.name and record['version']==VERSION and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
+        check(record['provider']==arm.name and record['version']==version and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
         check(record['document_sha256']==meta['document_sha256'],'provider document hash mismatch')
         check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')
         check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
-        check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York'),'native processing clock mismatch')
+        check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York',version=version),'native processing clock mismatch')
         if arm.name=='honcho':
             errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
@@ -131,14 +133,14 @@ def audit_ingestion(root, arm, messages, summary):
         if path.exists():turns.append(json.loads(path.read_text()))
     expected={(t['session_id'],t['prompt']) for t in turns}
     validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York',
-                               chronological=bool(summary.get('evaluation_plan_hash')))
+                               chronological=bool(summary.get('evaluation_plan_hash')),version=version)
     if summary.get('evaluation_plan_hash'):
         plan=json.loads((root/'evaluation-plan.json').read_text())
         for row in plan['checks']:
             directory=arm/'turns'/row['id']
             if not (directory/'turn.json').exists():continue
             state=json.loads((directory/'source-state.json').read_text())
-            due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York')
+            due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York',version=version)
             check(state=={'at':row['at'],'ingested_batches':[r['id'] for r in due],
                          'source_ids':[sid for r in due for sid in r['source_ids']]},'Checkpoint source state has missing/future batches')
             usage=json.loads((directory/'usage.json').read_text())

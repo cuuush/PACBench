@@ -52,6 +52,15 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
     with pytest.raises(ValueError,match='low, medium or high'):resolve_spec(spec,tmp_path,week_start="2026-09-07")
 
 
+def test_medium_noise_keeps_email_volume_distinct_from_text_chat(tmp_path):
+    spec=json.loads(Path('weeks/pizza_week.json').read_text());spec['noise']='medium'
+    scenes,_,_=resolve_spec(spec,tmp_path,week_start='2026-09-07')
+    email=next(s for s in scenes if s.id=='ben-email-reschedule')
+    dm=next(s for s in scenes if s.id=='devon-invite')
+    assert email.message_range==(2,6) and email.messages_per_person is None
+    assert dm.message_range==(40,80) and dm.messages_per_person==(20,40)
+
+
 def runner_result(prompt, kwargs, *, rc=0, answer='Synthetic answer.'):
     return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
         at=kwargs['at'],answer=answer,tool_calls=[],tool_results=[],policy_blocks=0,latency_s=1,
@@ -287,11 +296,11 @@ def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_pa
     from pacbench.document_ingestion import daily_batches
     spec=json.loads(Path('weeks/pizza_month.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-14')
-    assert len(scenes)==40 and resolved['ingestion_days']==30
+    assert len(scenes)==45 and resolved['ingestion_days']==30 and resolved['noise']=='medium'
     assert scenes[0].at.startswith('2026-09-15') and scenes[-1].at.startswith('2026-10-14')
     assert len({s.id for s in scenes})==len(scenes)
     assert {s.thread for s in scenes if s.id.endswith('devon-friday')}=={'devon'}
-    assert len(resolved['checks'])==10
+    assert len(resolved['checks'])==14
     assert all(c['at'].startswith('2026-10-15') and c['at']>scenes[-1].window_end for c in resolved['checks'])
     rows=[{**message(str(i),thread=s.thread,stamp=s.at),'collected_at':s.at} for i,s in enumerate(scenes)]
     assert len(daily_batches(rows,'America/New_York'))==30

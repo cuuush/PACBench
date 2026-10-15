@@ -88,6 +88,23 @@ def test_evaluation_cannot_use_future_source_or_nightly_processing():
         validate_evaluation_clocks(schedule,['memcal'],['2026-09-11T01:00:00-04:00'],'America/New_York')
 
 
+@pytest.mark.parametrize('provider',['memcal','mem0','hindsight','honcho','openviking','supermemory','byterover'])
+def test_every_provider_uses_the_same_nightly_cutoff_with_dst(provider):
+    from pacbench.document_ingestion import ready_sources
+    at='2026-10-31T23:00:00-04:00';schedule=[{'at':at}]
+    assert processing_at(at,provider,'America/New_York')=='2026-11-01T03:00:00-05:00'
+    with pytest.raises(ValueError,match='native processing'):
+        ready_sources(schedule,provider,'2026-11-01T02:59:00-05:00','America/New_York')
+    assert ready_sources(schedule,provider,'2026-11-01T03:00:00-05:00','America/New_York')==schedule
+
+
+def test_old_ingestion_receipts_keep_their_original_clock_condition():
+    from pacbench.document_ingestion import LEGACY_VERSION
+    at='2026-10-14T20:00:00-04:00'
+    assert processing_at(at,'mem0','America/New_York',version=LEGACY_VERSION)==at
+    assert processing_at(at,'memcal','America/New_York',version=LEGACY_VERSION)=='2026-10-15T03:00:00-04:00'
+
+
 def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch):
     from pacbench import document_ingestion as module
     schedule=prepare_sources(tmp_path,[message('one')],'America/New_York')

@@ -47,19 +47,19 @@ def start(root,env,model,base,key):
         'DB_CONNECTION_URI':f'postgresql+psycopg://postgres:postgres@127.0.0.1:{db_port}/postgres',
         'AUTH_USE_AUTH':'false','CACHE_ENABLED':'false','SENTRY_ENABLED':'false','TELEMETRY_ENABLED':'false',
         'LLM_OPENAI_API_KEY':key,'PACBENCH_MEMORY_API_KEY':key,'LLM_OPENAI_BASE_URL':base,
-        # Spark includes reasoning in its output allowance. The native 2500
-        # default was observed truncating extraction to zero observations.
-        'LLM_DEFAULT_MAX_TOKENS':'16384',
         'COLLECT_METRICS_LOCAL':'true','LOCAL_METRICS_FILE':str(root/'honcho-model-metrics.jsonl'),
         'REASONING_TRACES_FILE':str(root/'honcho-reasoning-traces.jsonl'),
         'DERIVER_MODEL_CONFIG':json.dumps(config),'SUMMARY_MODEL_CONFIG':json.dumps(config),
-        'DERIVER_FLUSH_ENABLED':'true',
         'DREAM_DEDUCTION_MODEL_CONFIG':json.dumps(config),'DREAM_INDUCTION_MODEL_CONFIG':json.dumps(config),
         'DIALECTIC_LEVELS':json.dumps({level:{'MODEL_CONFIG':config} for level in ('minimal','low','medium','high','max')}),
         'EMBEDDING_VECTOR_DIMENSIONS':'768',
         'EMBEDDING_MODEL_CONFIG':json.dumps({'transport':'openai','model':'nomic-embed-text',
             'dimensions_mode':'never','overrides':{'base_url':'http://127.0.0.1:11435/v1','api_key_env':'PACBENCH_MEMORY_API_KEY'}})}
     for k in ('LLM_ANTHROPIC_API_KEY','LLM_GEMINI_API_KEY','ANTHROPIC_API_KEY','GEMINI_API_KEY'):
+        child.pop(k,None)
+    # Preserve native behavior, including the normal accumulation delay and
+    # output limit. A model incompatibility is evidence, not a reason to tune it.
+    for k in ('DERIVER_FLUSH_ENABLED','LLM_DEFAULT_MAX_TOKENS'):
         child.pop(k,None)
     # Check every resolved generation model/endpoint before migrations or workers.
     guard='''
@@ -68,10 +68,18 @@ from pacbench.gateway_client import validate_route
 models=[settings.DERIVER.MODEL_CONFIG,settings.SUMMARY.MODEL_CONFIG,
         settings.DREAM.DEDUCTION_MODEL_CONFIG,settings.DREAM.INDUCTION_MODEL_CONFIG,
         *(v.MODEL_CONFIG for v in settings.DIALECTIC.LEVELS.values())]
-import os
+import os,json
 for m in models:
     assert m.transport=='openai' and m.model==os.environ['PACBENCH_EXPECTED_MODEL'] and m.fallback is None
     validate_route(m.overrides.base_url,os.environ[m.overrides.api_key_env])
+fields=type(settings.DERIVER).model_fields
+processing={name:getattr(settings.DERIVER,name) for name in (
+    'FLUSH_ENABLED','REPRESENTATION_BATCH_WORK_UNIT_TARGET_TOKENS',
+    'REPRESENTATION_BATCH_TARGET_INPUT_TOKENS','REPRESENTATION_BATCH_MAX_AGE_SECONDS')}
+assert all(value==fields[name].default for name,value in processing.items())
+assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT_MAX_TOKENS'].default
+print(json.dumps({'native_defaults_verified':True,'deriver':processing,
+                 'llm_default_max_tokens':settings.LLM.DEFAULT_MAX_TOKENS}))
 '''
     child['PYTHONPATH']=str(source)+os.pathsep+str(Path(__file__).resolve().parents[1])
     child['PACBENCH_EXPECTED_MODEL']=model
@@ -92,6 +100,8 @@ for m in models:
             'sha256':required,'native_tiktoken_cache':True})
     validated=subprocess.run([str(python),'-c',guard],env=child,cwd=root,capture_output=True,text=True,timeout=30)
     if validated.returncode:raise RuntimeError('Honcho model configuration validation failed: '+validated.stderr.replace(key,'<redacted>'))
+    processing=json.loads(validated.stdout.strip().splitlines()[-1])
+    save(root/'native-processing-settings.json',processing)
     deadline=time.monotonic()+30
     while time.monotonic()<deadline:
         ready=subprocess.run([*docker,'exec',name,'pg_isready','-U','postgres'],env=docker_env,capture_output=True,timeout=10)
@@ -124,11 +134,11 @@ for m in models:
     save(root/'native-server-setup.json',{'route':'Documented manual self-hosting, native API + deriver + local pgvector',
          'version':'3.2.2','endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
-         'output_budget':'Native LLM_DEFAULT_MAX_TOKENS=16384; Spark reasoning compatibility, no prompt changes',
-         'deriver_flush_enabled':True,'processing_option':'CLI advanced setup: snappy local deriver'})
+         'processing':processing,'processing_option':'Unmodified native batching and output defaults'})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
-        'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity}}})
+        'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity,
+        'observationMode':'directional'}}})  # Current native setup default, not the legacy-file migration mode.
     env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
     env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE='pacbench-'+identity)
     return stop

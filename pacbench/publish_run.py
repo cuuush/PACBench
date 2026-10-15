@@ -14,7 +14,7 @@ from .followups import save
 
 REPO=Path(__file__).resolve().parents[1]
 COMMON=('input_hash','bundle_hash','contract_hash','evaluation_plan_hash','followup_plan_hash',
-        'tool_policy','process_timezone','evaluation_context','message_count')
+        'tool_policy','ingestion_version','process_timezone','evaluation_context','message_count')
 
 
 def read(path):

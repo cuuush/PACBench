@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from pacbench.context_isolation import actual_context, workspace_for
-from pacbench.document_ingestion import VERSION, prepare_sources, record_recall_isolation
+from pacbench.document_ingestion import VERSION, prepare_sources, record_recall_isolation,processing_at
 from pacbench.frozen import write_bundle
 from pacbench.native_audit import audit
 from pacbench.source_policy import SOURCE_ARGUMENT_RULES
@@ -64,7 +64,7 @@ def trace(tmp_path):
     save(arm / row['file'], {'version': VERSION, 'provider': 'mem0', 'at': row['at'],
         'source_ids': row['source_ids'], 'document_sha256': meta['document_sha256'],
         'hermes_ingestion_turns': 0, 'ready': True, 'state': 'ready', 'returncode': 0,
-        'processing_at': row['at']})
+        'processing_at': processing_at(row['at'],'mem0','America/New_York')})
     assert audit(tmp_path)['state'] == 'pass', audit(tmp_path)
     return tmp_path, arm
 

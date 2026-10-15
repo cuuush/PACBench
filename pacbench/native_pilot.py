@@ -370,7 +370,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=os.path.relpath(source.resolve(), output))
         report["process_timezone"] = resolved.get("timezone", "")
-        report.update(ingestion_version='daily-source-documents-v1',
+        from .document_ingestion import VERSION as INGESTION_VERSION
+        report.update(ingestion_version=INGESTION_VERSION,
                       document_provider_blockers=dict(BLOCKERS),
                       ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
         validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],

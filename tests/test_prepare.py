@@ -60,6 +60,28 @@ def test_noisy_thread_context_does_not_discard_the_original_plan():
     checker_prior=tuple((at,'imessage:maya',who,text) for at,who,text in prior)
     assert "Friday at Luigi's at six?" in judge_prompt(plan,[('Maya','Can we do five instead?'),('Me','Yes')],checker_prior)
 
+
+def test_group_noise_allows_a_speaker_to_exceed_their_target_share():
+    from pacbench.authoring import realize_scene
+    plan=ScenePlan(scene='Friends catching up.',participants=('Me','Sam','Jordan'),
+                   message_range=(6,9),messages_per_person=(2,3))
+    lines=[(name,f'Message {i} from {name}') for name,n in [('Me',4),('Sam',2),('Jordan',2)] for i in range(n)]
+    writer=lambda _: '\n'.join(f'{s}: {t}' for s,t in lines)
+    checker=lambda _: json.dumps({'supported':True,'evidence':[1,8],'problem':''})
+    result=realize_scene(plan,writer,checker)
+    assert result.lines==tuple(lines) and result.record.attempts==1
+
+
+def test_group_noise_still_requires_each_member_minimum_and_a_bounded_total():
+    from pacbench.authoring import realize_scene,AuthoringError
+    plan=ScenePlan(scene='Friends catching up.',participants=('Me','Sam','Jordan'),
+                   message_range=(6,9),messages_per_person=(2,3))
+    for counts in ((5,2,1),(4,3,3)):
+        lines=[(name,f'Message {i} from {name}') for name,n in zip(plan.participants,counts) for i in range(n)]
+        writer=lambda _: '\n'.join(f'{s}: {t}' for s,t in lines)
+        with pytest.raises(AuthoringError,match='member minimum|message count'):
+            realize_scene(plan,writer,lambda _: pytest.fail('Out-of-bounds text reached the checker'))
+
 def test_writer_and_verifier_see_the_local_message_window():
     plan = ScenePlan(scene="Make an evening plan.",
                      at="2026-09-08T19:00:00", id="evening")

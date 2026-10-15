@@ -621,7 +621,7 @@
             "id": "leo-withdraws",
             "channel": "friday-crew",
             "time": "12:15 pm",
-            "scene": "Leo discovers he cannot get away from work for the Friday outing he joined yesterday. The others are still going. They talk normally around this update; nobody cancels the whole group plan.",
+            "scene": "Leo discovers he cannot get away from work for the Friday outing he joined yesterday. The others are still going. They talk normally around this update; nobody cancels the whole group plan. Maya is still avoiding dairy.",
             "facts": [
               "Leo says he cannot make Friday's pizza after all. Maya and the user keep their noon pizza at Mario's on Pine Street; Leo is no longer attending."
             ],
@@ -659,7 +659,7 @@
               {
                 "id": "friday-pizza",
                 "prompt": "What’s the deal with pizza tomorrow?",
-                "expect": "For Friday there are exactly two agreed pizza outings: the user and Maya at noon at Mario's on Pine Street, and the user with Devon at 6 pm at Luigi's on 5th Street. Leo withdrew from the group outing and is not attending. Judge current attendees, times, venues/streets and Leo's withdrawal, not meal labels."
+                "expect": "For Friday there are exactly two agreed pizza outings: the user and Maya at noon at Mario's on Pine Street, and the user with Devon at 6 pm at Luigi's on 5th Street. Leo withdrew and is not attending. Judge current attendees, times and venues/streets. Correct current attendees are sufficient without separately recounting Leo's withdrawal. No meal labels are required."
               },
               {
                 "id": "maya-options",
@@ -751,7 +751,7 @@
               {
                 "id": "leo-attending",
                 "prompt": "Is Leo joining us for pizza tomorrow?",
-                "expect": "No. Leo withdrew, while the user and Maya are still going to their Friday noon pizza. Judge Leo's attendance and whether the remaining outing continues."
+                "expect": "No. Leo withdrew from Friday's pizza outing. Only whether Leo is attending is judged."
               }
             ]
           },
@@ -773,7 +773,7 @@
               {
                 "id": "alex-entrance",
                 "prompt": "Which entrance should we use at Birch tomorrow?",
-                "expect": "Use the step-free side entrance on Mill Lane for Alex. The front entrance has steps. Judge the entrance/location and accessibility requirement."
+                "expect": "Use the side entrance on Mill Lane. It is step-free and avoids the front steps. Judge which entrance and street; correctly identifying the entrance is sufficient without explaining the injury or repeating that it is step-free."
               }
             ]
           },

@@ -569,8 +569,8 @@ def realize_scene(plan: ScenePlan, generate: Generate,
             lines.extend(result.lines); records.append(result.record)
         if not plan.message_range[0]<=len(lines)<=plan.message_range[1]:
             raise AuthoringError('Chunked conversation missed its message target; no padding permitted')
-        if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):
-            raise AuthoringError('Chunked conversation missed a member target; no padding permitted')
+        if plan.messages_per_person and any(sum(s==p for s,_ in lines)<plan.messages_per_person[0] for p in plan.participants):
+            raise AuthoringError('Chunked conversation missed a member minimum; no padding permitted')
         verdict,pc,rc,jpath=judge_scene(plan,lines,judge_generate,model=model,record_dir=record_dir,
             prior_lines=verification_lines if verification_lines is not None else prior_lines)
         record=SceneRecord(scene_id=plan.id,status='ok',attempts=sum(r.attempts for r in records),
@@ -631,8 +631,10 @@ def realize_scene(plan: ScenePlan, generate: Generate,
             lines = parse_scene_dialogue(dialogue, plan)
             if plan.message_range and not plan.message_range[0] <= len(lines) <= plan.message_range[1]:
                 raise ValueError(f"message count {len(lines)} outside {plan.message_range}")
-            if plan.messages_per_person and any(not plan.messages_per_person[0]<=sum(s==p for s,_ in lines)<=plan.messages_per_person[1] for p in plan.participants):
-                raise ValueError('Conversation missed a member message target')
+            # Keep the overall output bounded and require each member's minimum,
+            # while allowing a person to contribute more than their target share.
+            if plan.messages_per_person and any(sum(s==p for s,_ in lines)<plan.messages_per_person[0] for p in plan.participants):
+                raise ValueError('Conversation missed a member minimum')
             record.writer_notes.append(writer_note)
         except (SceneRenderError, ValueError) as exc:
             failure = f"unparsable render: {exc.problem if isinstance(exc, SceneRenderError) else exc}"

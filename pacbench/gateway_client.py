@@ -9,6 +9,10 @@ from pathlib import Path
 STATE = Path(os.environ.get('MUSE_GATEWAY_STATE', '/workspace/shared/muse-gateway'))
 
 
+class SpendingBlocked(RuntimeError):
+    """A monetary refusal is terminal for this live trial."""
+
+
 def client_settings(project: str) -> tuple[str, str]:
     key = (STATE / 'client-token').read_text().strip()
     base = json.loads((STATE / 'address.json').read_text())['base']
@@ -31,7 +35,7 @@ def require_live_cost_boundary() -> dict:
             total is not None and (type(total) not in (int, float) or not 0 < total <= 10)):
         raise RuntimeError('gateway cannot establish the $10 daily spending boundary')
     if health.get('budget_blocked') or health.get('accounted_today_usd', 0) >= daily:
-        raise RuntimeError('shared daily spending gateway blocked; stop live work until reset')
+        raise SpendingBlocked('shared daily spending gateway blocked; stop live work until reset')
     return health
 
 

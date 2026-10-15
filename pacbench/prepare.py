@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from .authoring import ScenePlan, SceneRecord, SceneRealization, build_scene_observations, realize_scene, scene_spec
 from .creds import load_driver
 from .gateway_client import client_settings
+from .gateway_client import SpendingBlocked
 from .frozen import bundle_hash, write_bundle
 from .model_calls import ModelClient, ResponsesWriter, public_record
 from .semantic_contract import build_contract, load_contract
@@ -140,11 +141,21 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     checks = resolve_checks(spec, question_at, timezone_name)
     if checks['checks'] and datetime.fromisoformat(checks['checks'][-1]['at']) <= latest:
         raise ValueError('Final evaluation must follow all source scenes')
+    ingestion_days = spec.get('ingestion_days')
+    if ingestion_days is not None:
+        days = sorted({datetime.fromisoformat(s.at).date() for s in scenes})
+        if (type(ingestion_days) is not int or ingestion_days < 1 or
+                len(days) != ingestion_days or (days[-1] - days[0]).days + 1 != ingestion_days):
+            raise ValueError('ingestion_days must match contiguous source days')
+        if any(datetime.fromisoformat(c['at']) <= latest for c in checks['checks']):
+            raise ValueError('Daily-ingestion trials ask questions only after all sources')
     return scenes, target, {
         "id": life_id, "test_scene_id": target.id,
         "timezone": timezone_name,
         "question_at": question_at, "scenes": [scene_spec(s) for s in scenes],
-        "noise": noise, "week": bool(spec.get('week')), **({"week_start":spec["week_start"]} if "week_start" in spec else {}), **checks}
+        "noise": noise, "week": bool(spec.get('week')),
+        **({'ingestion_days': ingestion_days} if ingestion_days is not None else {}),
+        **({"week_start":spec["week_start"]} if "week_start" in spec else {}), **checks}
 
 
 WEEKDAYS=('monday','tuesday','wednesday','thursday','friday','saturday','sunday')
@@ -163,11 +174,13 @@ def clock_on_day(day, value):
 
 def normalize_week(spec, week_start=None):
     """Expand readable weekdays and reusable channels only at preparation time."""
-    if 'days' not in spec:return spec
+    if 'days' not in spec and 'weeks' not in spec:return spec
+    if 'days' in spec and 'weeks' in spec:raise ValueError('Use days or weeks, not both')
     if any(k in spec for k in ('scenes','checks','facts')):
         raise ValueError('Weeks use inline scene facts and turn expectations, without a top-level fact catalog')
-    days=spec['days'];channels=spec.get('channels')
-    if not isinstance(days,dict) or set(days)!=set(WEEKDAYS):
+    weeks=spec.get('weeks',[spec.get('days')]);channels=spec.get('channels')
+    if not isinstance(weeks,list) or not weeks:raise ValueError('weeks must be a nonempty list of weekday maps')
+    if any(not isinstance(days,dict) or set(days)!=set(WEEKDAYS) for days in weeks):
         raise ValueError('Week days must be monday through sunday')
     if not isinstance(channels,dict) or not channels:raise ValueError('Week needs reusable channel definitions')
     allowed={'type','participants','name','subject'}
@@ -179,11 +192,14 @@ def normalize_week(spec, week_start=None):
     if week_start and monday.weekday()!=0:raise ValueError('week-start must be a Monday')
     monday-=timedelta(days=monday.weekday())
     scenes,checks=[],[]
-    for offset,weekday in enumerate(WEEKDAYS):
-        day=days[weekday];date=monday+timedelta(days=offset)
+    for offset in range(7*len(weeks)):
+        week_index,weekday_index=divmod(offset,7)
+        weekday=WEEKDAYS[weekday_index]
+        day=weeks[week_index][weekday];date=monday+timedelta(days=offset)
         if not isinstance(day,dict) or set(day)-{'scenes','conversations'}:raise ValueError(f'Invalid {weekday} section')
         for scene in day.get('scenes',[]):
             row=dict(scene);channel_id=row.pop('channel',None)
+            if 'weeks' in spec:row['id']=f"w{week_index+1}-{row['id']}"
             if channel_id not in channels:raise ValueError(f'Unknown channel {channel_id!r}')
             definition=channels[channel_id]
             row.update(channel=definition['type'],thread=channel_id,participants=definition['participants'],
@@ -204,7 +220,7 @@ def normalize_week(spec, week_start=None):
                 row['session']=session
                 checks.append(row)
     if not scenes or not checks:raise ValueError('Week requires sources and assistant turns')
-    return {**{k:v for k,v in spec.items() if k not in ('days','channels')},'week':True,
+    return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels')},'week':True,
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
         'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
 
@@ -259,6 +275,10 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
                                      verification_lines=(tuple((m['written_at'],m['channel']+':'+m['thread'],m['sender'],m['text'])
                                         for m in observations if datetime.fromisoformat(m['written_at'])<datetime.fromisoformat(plan.at))
                                         if plan.channel=='email' else None))
+        except SpendingBlocked as exc:
+            failures.append({'scene_id':plan.id,'state':'ungraded','reason':str(exc)})
+            save(root/'scene-errors.json',failures)
+            break
         except Exception as exc:
             failures.append({'scene_id':plan.id,'state':'ungraded','reason':f'{type(exc).__name__}: {exc}'})
             blocked_threads.add(key)

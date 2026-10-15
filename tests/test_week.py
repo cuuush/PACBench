@@ -281,3 +281,32 @@ def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
     copy=import_week(tmp_path/'week.json',tmp_path/'copy')
     received,_,_=read_prepared(copy,100)
     assert received==messages
+
+
+def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_path):
+    from pacbench.document_ingestion import daily_batches
+    spec=json.loads(Path('weeks/pizza_month.json').read_text())
+    scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-14')
+    assert len(scenes)==40 and resolved['ingestion_days']==30
+    assert scenes[0].at.startswith('2026-09-15') and scenes[-1].at.startswith('2026-10-14')
+    assert len({s.id for s in scenes})==len(scenes)
+    assert {s.thread for s in scenes if s.id.endswith('devon-friday')}=={'devon'}
+    assert len(resolved['checks'])==10
+    assert all(c['at'].startswith('2026-10-15') and c['at']>scenes[-1].window_end for c in resolved['checks'])
+    rows=[{**message(str(i),thread=s.thread,stamp=s.at),'collected_at':s.at} for i,s in enumerate(scenes)]
+    assert len(daily_batches(rows,'America/New_York'))==30
+    spec['ingestion_days']=31
+    with pytest.raises(ValueError,match='contiguous'):resolve_spec(spec,tmp_path,week_start='2026-09-14')
+
+
+def test_multiweek_scope_across_dst_and_repeated_scene_names(tmp_path):
+    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    days=spec.pop('days');spec['weeks']=[days,json.loads(json.dumps(days))]
+    for day in spec['weeks'][0].values():day.pop('conversations',None)
+    scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-10-26')
+    assert len(scenes)==38 and len({s.id for s in scenes})==38
+    assert next(s for s in scenes if s.id=='w1-devon-invite').at.endswith('-04:00')
+    assert next(s for s in scenes if s.id=='w2-devon-invite').at.endswith('-05:00')
+    assert all(c['at'].startswith('2026-11-08') for c in resolved['checks'])
+    spec['days']=days
+    with pytest.raises(ValueError,match='not both'):normalize_week(spec,'2026-10-26')

@@ -106,6 +106,7 @@ class ModelClient:
             error_response: str | None = None
             error = ""
             transient = False
+            spending_refused = False
             try:
                 from .gateway_client import validate_route
                 validate_route(self.url, self.key)
@@ -123,6 +124,13 @@ class ModelClient:
                 error_response = exc.read().decode("utf-8", errors="replace")[:8000]
                 error = f"HTTP {exc.code}: {exc.reason}"
                 transient = exc.code == 429 or exc.code >= 500
+                try:
+                    refusal_type = json.loads(error_response).get('error', {}).get('type')
+                    if refusal_type in ('budget_refused','request_refused'):
+                        transient = False
+                        spending_refused = refusal_type == 'budget_refused'
+                except (ValueError, AttributeError):
+                    pass
                 content = ""
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
@@ -139,6 +147,9 @@ class ModelClient:
                                       else "not reported by API"),
                       "error": error, "error_response": error_response}
             _write_record(path, record)
+            if spending_refused:
+                from .gateway_client import SpendingBlocked
+                raise SpendingBlocked(f'model call blocked by daily spending gateway; audit record {path}: {error}')
             if not error:
                 if self.cache_dir is not None:
                     self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -185,9 +196,11 @@ class ResponsesWriter(ModelClient):
 
     def __init__(self, *, key: str, model: str, record_dir: Path,
                  temperature: float = 0.7, cache_dir: Path | None = None,
+                 reasoning_effort: str = 'low',
                  url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses"):
         super().__init__(key=key, model=model, record_dir=record_dir,
-                         temperature=temperature, cache_dir=cache_dir, url=url)
+                         temperature=temperature, cache_dir=cache_dir, url=url,
+                         reasoning_effort=reasoning_effort)
 
     def __call__(self, prompt: str) -> ModelOutput:
         return self._responses([{"role": "user", "content": [
@@ -218,6 +231,6 @@ class ResponsesWriter(ModelClient):
         return self._request({"model": self.model, "temperature": self.temperature,
                               "store": False,
                               "include": ["reasoning.encrypted_content"],
-                              "reasoning": {"effort": "medium", "summary": "auto"},
+                              "reasoning": {"effort": self.reasoning_effort, "summary": "auto"},
                               "max_output_tokens": 8192, "input": items},
                              protocol="responses")

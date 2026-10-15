@@ -8,7 +8,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .followups import digest, freeze_policy, load_questions, save
-from .semantic_contract import build_contract, load_contract
+from .semantic_contract import AUTHORING_VERSION, EVIDENCE_VERSION, build_contract, load_contract
+from .gateway_client import SpendingBlocked
 
 
 def resolve_checks(spec, question_at, timezone):
@@ -56,14 +57,16 @@ def visible_messages(messages, at):
     return [m for m in messages if datetime.fromisoformat(m['collected_at']) <= clock]
 
 
-def contract_evidence(messages, checks, current):
+def contract_evidence(messages, checks, current, context='shared', *, structured_sessions=True):
     available=visible_messages(messages,current['at'])
     if not any('session' in c or c.get('kind')=='behavior' for c in checks):return available
     # Planned public user instructions establish intended state, never an
     # invented successful assistant reply. This evidence is judge-only.
     for row in checks:
+        session=(row.get('session') or ('shared' if context=='shared' else row['id'])) if structured_sessions else row.get('session','shared')
         available.append({'source_id':'assistant-user:'+row['id'],'written_at':row['at'],
-            'sender':'Me','text':f"[assistant session {row.get('session','shared')}] {row['prompt']}"})
+            **({'channel':'assistant','thread':session} if structured_sessions else {}),
+            'sender':'Me','text':f"[assistant session {session}] {row['prompt']}"})
         if row['id']==current['id']:break
     return available
 
@@ -72,7 +75,7 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
     rows,errors = [],[]
     for check in resolved['checks']:
         path = root / 'evaluations' / check['id']
-        available = contract_evidence(messages,resolved['checks'],check)
+        available = contract_evidence(messages,resolved['checks'],check,resolved.get('evaluation_context','shared'))
         if not available:raise ValueError('Evaluation has no available source messages')
         try:
             contract = None
@@ -81,7 +84,9 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
                 try:
                     cached = load_contract(contract_path)
                     document = json.loads(contract_path.read_text())
-                    if (cached.evidence_hash == digest(available) and
+                    if (document.get('authoring_version') == AUTHORING_VERSION and
+                            document.get('evidence_version') == EVIDENCE_VERSION and
+                            cached.evidence_hash == digest(available) and
                             cached.question == check['prompt'] and
                             document.get('question_at') == check['at'] and
                             document.get('test_intent') == (check.get('expect') or check['prompt']) and
@@ -100,6 +105,10 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
                     observations=available, author_facts=tuple(check['facts']), generate=generate or model,
                     verify=model, question_generate=model, output_path=contract_path,
                     user_question=check['prompt'], question_at=check['at'],behavior=check.get('kind')=='behavior')
+        except SpendingBlocked as exc:
+            errors.append({'id':check['id'],'reason':str(exc),'remaining_checks':'not attempted after monetary refusal'})
+            save(root/'evaluation-errors.json',errors)
+            break
         except Exception as exc:
             errors.append({'id':check['id'],'reason':f'{type(exc).__name__}: {exc}'})
             save(root/'evaluation-errors.json',errors)
@@ -134,7 +143,8 @@ def load_evaluations(root, messages, resolved):
         c = load_contract(directory / 'contract.json')
         policy = load_questions(directory / 'followup-plan.json', c)
         document = json.loads((directory / 'contract.json').read_text())
-        evidence=contract_evidence(messages,resolved['checks'],spec)
+        evidence=contract_evidence(messages,resolved['checks'],spec,resolved.get('evaluation_context','shared'),
+            structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
         if (any(row.get(k)!=spec.get(k) for k in ('session','kind','trigger','depends_on','expect')) or
                 c.contract_hash != row['contract_hash'] or c.evidence_hash != digest(evidence) or
                 policy['plan_hash'] != row['policy_hash'] or row['at'] != spec['at'] or

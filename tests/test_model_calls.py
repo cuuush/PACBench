@@ -103,6 +103,7 @@ def test_rejected_pizza_draft_replays_encrypted_reasoning(tmp_path):
     assert realized.lines[-1] == ("Me", "Yes, let's do it.")
     assert requests[0]["store"] is False
     assert requests[0]["include"] == ["reasoning.encrypted_content"]
+    assert requests[0]['reasoning']['effort'] == 'low'
     assert requests[1]["input"][1]["encrypted_content"] == "sealed-first"
     assert "not agreed" in requests[1]["input"][-1]["content"][0]["text"]
     saved = [json.loads(path.read_text()) for path in (tmp_path / "private").glob("*.json")]
@@ -185,3 +186,16 @@ def fake_gateway_identity(tmp_path, monkeypatch):
     (state / 'client-token').write_text('test' if __name__.endswith('test_model_calls') else 'TEST-GATEWAY')
     (state / 'address.json').write_text(json.dumps({'base':'http://127.0.0.1:8099'}))
     monkeypatch.setattr(gateway_client, 'STATE', state)
+
+
+def test_gateway_budget_refusal_is_terminal_without_transport_retry(tmp_path):
+    import io
+    import urllib.error
+    refusal=urllib.error.HTTPError('http://gateway',429,'Too Many Requests',{},
+        io.BytesIO(b'{"error":{"type":"budget_refused","message":"daily limit"}}'))
+    client=ModelClient(key='test',model='spark',record_dir=tmp_path)
+    with mock.patch('pacbench.model_calls.urllib.request.urlopen',side_effect=refusal) as call, \
+         mock.patch('pacbench.model_calls.time.sleep') as sleep:
+        with pytest.raises(RuntimeError,match='HTTP 429'):client('Write a scene')
+    assert call.call_count==1 and not sleep.called
+    assert len(list(tmp_path.glob('*.json')))==1

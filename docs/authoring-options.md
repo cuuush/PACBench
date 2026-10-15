@@ -29,7 +29,9 @@ For an update scene, describe what changes. Use “same time” or “venue unch
 
 `noise` is `low`, `medium` or `high`. Low is the shortest natural exchange (normally 2–12 messages). Medium targets 20–40 messages per person per conversation per day. High targets 600–800 per person, including unrelated topics, facts and side plans. Multiple scenes in the same chat/day share that target. Larger exchanges use bounded chunks; messages are never padded, copied or truncated to meet a count. Start with low. An optional `until` sets the scene's ending wall time; high otherwise continues through the rest of its day, respecting the next scene in that chat. Authored start times remain unchanged. Within each window, deterministic uneven gaps provide synthetic pacing; they do not claim to reproduce an empirically measured distribution.
 
-Concrete dates are assigned during preparation. `--week-start` selects a Monday; without it, preparation uses the current week in the configured timezone. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
+For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sunday maps. Channels remain shared, so an ongoing chat keeps its identity across the month. Scene IDs gain a week prefix when compiled; assistant turn and session IDs stay as authored. [Pizza Month](../weeks/pizza_month.json) uses five calendar maps to cover 30 consecutive source days, then asks upcoming-plan questions. `ingestion_days: 30` verifies that exact daily coverage and prevents interim questions.
+
+Concrete dates are assigned during preparation. `--week-start` selects the first Monday; without it, preparation uses the current week in the configured timezone. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
 ```sh
 python -m pacbench.prepare weeks/pizza_week.json --week-start 2026-10-05 --output runs/pizza-prepared

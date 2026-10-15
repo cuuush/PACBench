@@ -312,3 +312,27 @@ def test_rejected_draft_gets_one_revision_before_one_agent_followup(tmp_path):
     assert g.correct==1
     rejected=json.loads(next((tmp_path/'shared').glob('*.rejected.json')).read_text())
     assert len(rejected['drafts'])==1
+
+
+def test_recovery_anchors_use_correct_context_and_are_bound_to_cache(tmp_path):
+    c=contract();p=freeze_policy(c,tmp_path/'policy.json');prompts=[]
+    def model(prompt):
+        prompts.append(prompt)
+        if 'Proposed message:' in prompt:
+            return json.dumps({'safe':True,'covers_claim_ids':['time'],'reason':'Known Friday outing, missing time.'})
+        return json.dumps({'question':'What time is the Friday pizza with Maya?'})
+    directory=tmp_path/'questions'
+    first=combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Maya.'])
+    assert all('Already correct: ["Friday pizza with Maya."]' in s for s in prompts)
+    combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Maya.'])
+    assert len(prompts)==2
+    second=combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Devon.'])
+    assert len(prompts)==4 and first['question_hash']!=second['question_hash']
+
+
+def test_failed_checkpoint_serialization_preserves_last_complete_state(tmp_path):
+    from pacbench.followups import save
+    file=tmp_path/'summary.json';save(file,{'state':'running','completed':4})
+    with pytest.raises(TypeError):save(file,{'state':object()})
+    assert json.loads(file.read_text())=={'state':'running','completed':4}
+    assert list(tmp_path.iterdir())==[file]

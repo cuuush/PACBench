@@ -58,6 +58,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "independently against the assistant's answer to the user's question. "
         "Use meaning and context, not string matching or a demand for "
         "verbatim wording. Grade only the details stated in each claim. "
+        "Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. "
         "Resolve the answer's inherited event and day scope from the question, "
         "simulated clock and prior conversation; do not require repeating that scope. "
         "A correct fragment does not satisfy a claim if the same answer contradicts it. "

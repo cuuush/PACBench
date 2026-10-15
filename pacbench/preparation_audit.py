@@ -31,6 +31,17 @@ def audit_prepared(root: Path) -> dict:
             errors.append('Claim cites unavailable source messages')
         load_questions(root / 'followup-plan.json', contract)
         resolved = json.loads((root / 'resolved-spec.json').read_text())
+        if resolved.get('ingestion_days') is not None:
+            from datetime import date, datetime
+            from .document_ingestion import daily_batches
+            batches=daily_batches(messages,resolved.get('timezone','America/New_York'))
+            expected=resolved['ingestion_days']
+            days=[date.fromisoformat(day) for day,_ in batches]
+            if (len(days)!=expected or not days or (days[-1]-days[0]).days+1!=expected):
+                errors.append('Frozen messages do not cover the requested contiguous ingestion days')
+            latest=max(datetime.fromisoformat(m['collected_at']) for m in messages)
+            if any(datetime.fromisoformat(c['at'])<=latest for c in resolved.get('checks',[])):
+                errors.append('Daily-ingestion trial asks questions before all sources arrive')
         # Re-validate clocks and bounded questions, independent of provider runs.
         from .evaluation import resolve_checks
         normalized = resolve_checks(resolved, resolved['question_at'], resolved.get('timezone', ''))

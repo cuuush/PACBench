@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -16,8 +18,18 @@ SOURCE_CATEGORIES = {'archive_search', 'source_evidence', 'source_messages'}
 
 
 def save(path: Path, value) -> None:
+    """Publish a complete checkpoint, even while the explorer reads the run."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + '\n')
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w',encoding='utf-8',dir=path.parent,
+                prefix='.'+path.name+'-',suffix='.tmp',delete=False) as stream:
+            temporary=Path(stream.name)
+            json.dump(value,stream,indent=2,ensure_ascii=False)
+            stream.write('\n')
+        os.replace(temporary,path)
+    finally:
+        if temporary is not None:temporary.unlink(missing_ok=True)
 
 
 def digest(value) -> str:
@@ -247,11 +259,16 @@ def _covers_all(review, claim_ids):
             and len(covered) == len(claim_ids) and set(covered) == set(claim_ids))
 
 
-def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path) -> dict:
+def combined_binding(contract, component_plan, selected, known_context=()):
+    return {'contract_hash':contract.contract_hash,'component_plan_hash':component_plan['plan_hash'],
+            'claim_ids':[c.id for c in selected], 'authoring_version':'scoped-recovery-v2',
+            'known_context':list(known_context)}
+
+
+def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path, *, known_context=()) -> dict:
     """Spark authors one message for an observed missing-fact set; reuse it across arms."""
     claim_ids = [c.id for c in selected]
-    binding = {'contract_hash': contract.contract_hash, 'component_plan_hash': component_plan['plan_hash'],
-               'claim_ids': claim_ids}
+    binding = combined_binding(contract, component_plan, selected, known_context)
     path = directory / (digest(binding) + '.json')
     if path.exists():
         return load_combined_plan(path, binding)
@@ -260,16 +277,18 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     write_prompt = (
         'Write one short user message asking for each missing detail. Ask for its value, '
         'preserving current versus historical meaning. Do not supply answers or tool instructions. '
+        'Use already-correct context to identify the event; avoid private ordinals like first outing. '
         'Return ONLY JSON {"question":"message"}.\n'
-        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}')
+        f'Original question: {contract.question}\nAlready correct: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}')
     review_prompt = (
         'Does this message naturally ask for all missing information without stating its answers, '
         'supplying a missing name/time/place as a confirmation, or prescribing tools? '
         'Object-specific why/how/what-happened questions are valid. A yes/no question about a '
         'boolean status does not assert that status is true. Preserve the missing facts\' own '
         'current/historical meaning, including historical reasons for a current state. '
+        'Reject ambiguous event anchors; already-correct details may identify the event, missing values may not. '
         'Return ONLY JSON {"safe":true,"covers_claim_ids":["covered IDs"],"reason":"explanation"}.\n'
-        f'Original question: {contract.question}\nMissing facts: {json.dumps(hidden)}\n')
+        f'Original question: {contract.question}\nAlready correct: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}\n')
     rejected = []
     for _ in range(2):
         feedback = ('\nRevise the rejected draft using this independent review: '
@@ -359,9 +378,11 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                 raise ValueError('cannot follow up without the real recall session')
             budget_snapshot()
             question_root = question_dir or output / 'question-plans'
-            binding = {'contract_hash':contract.contract_hash, 'component_plan_hash':plan['plan_hash'], 'claim_ids':[c.id for c in selected]}
+            known_context = [c.statement for c in contract.claims if slots[c.id].verdict == 'correct']
+            binding = combined_binding(contract, plan, selected, known_context)
             attempt['question_authoring_reused'] = (question_root / (digest(binding) + '.json')).exists()
-            authored = combined_plan(contract, plan, selected, question_model or judge, question_root)
+            authored = combined_plan(contract, plan, selected, question_model or judge, question_root,
+                                     known_context=known_context)
             question = authored['question']
             attempt.update(question=question, question_hash=authored['question_hash'])
             save(directory / 'question-plan.json', authored)
@@ -436,6 +457,10 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             frozen_question = load_combined_plan(directory / 'question-plan.json', {
                 'contract_hash': contract.contract_hash, 'component_plan_hash': plan['plan_hash'],
                 'claim_ids': failed})
+            if frozen_question.get('authoring_version') == 'scoped-recovery-v2':
+                known = [c.statement for c in contract.claims if next(s for s in grade.slots if s.id == c.id).verdict == 'correct']
+                load_combined_plan(directory / 'question-plan.json',
+                    combined_binding(contract, plan, [c for c in contract.claims if c.id in failed], known))
             check(attempt['question_hash'] == frozen_question['question_hash'], 'combined question hash mismatch')
             question = frozen_question['question']
             check(attempt['question'] == question, 'follow-up question changed')

@@ -438,6 +438,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                           "available-unverified" if capability["available"] and
                           not capability.get("execution_blocker") else "blocked")}
             results.append(result)
+            save(root / 'status.json', result)
+            save(output / 'summary.json', report)
             if capability.get("wiring_verified") is False:
                 result.update(state="invalid", reason="native read-only smoke failed")
             if (not source or not capability["available"] or capability.get("execution_blocker")

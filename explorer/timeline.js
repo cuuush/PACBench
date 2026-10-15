@@ -79,15 +79,15 @@ function ingestionExchange(run, arm, item) {
   return '<section class="exchange ingestion-exchange"><div class="exchange-label">Provider ingestion · ' +
     esc(localClock(exposureAt(item),run)) + '</div><h3>' + delivered + ' messages in the ingestion packet for ' + esc(arm.label || arm.provider) + '</h3>' +
     (item.record?.ready===false ? notice('Native ingestion or processing failed. Hermes recall was not run.') : '') +
-    (item.delivery==='native-imessage' ? '<p>Native Apple Messages database and separate contacts fixture → provider reader → normal processing.</p>' : item.delivery==='native-messages' ? '<p>Real source speakers, threads and timestamps → native message-batch API. No fabricated assistant turns.</p>' : item.delivery==='document' ? '<p>Raw daily document → provider ingestion API. No Hermes ingestion turn.</p>' : '<p>Inspect the saved source packet and native acknowledgement.</p>') +
-    (item.delivery==='native-imessage' ? '<p class="muted">Source collected ' + esc(readableDay(dayKey(item.at,run))) + ' at ' + esc(localClock(item.at,run)) + '; nightly processing ' + esc(readableDay(dayKey(exposureAt(item),run))) + ' at ' + esc(localClock(exposureAt(item),run)) + '.</p>' : '') +
+    (['native-imessage','native-sources'].includes(item.delivery) ? '<p>Native Apple Messages database, contacts and email fixtures → provider readers → normal processing.</p>' : item.delivery==='native-messages' ? '<p>Real source speakers, threads and timestamps → native message-batch API. No fabricated assistant turns.</p>' : item.delivery==='document' ? '<p>Raw daily document → provider ingestion API. No Hermes ingestion turn.</p>' : '<p>Inspect the saved source packet and native acknowledgement.</p>') +
+    (['native-imessage','native-sources'].includes(item.delivery) ? '<p class="muted">Source collected ' + esc(readableDay(dayKey(item.at,run))) + ' at ' + esc(localClock(item.at,run)) + '; nightly processing ' + esc(readableDay(dayKey(exposureAt(item),run))) + ' at ' + esc(localClock(exposureAt(item),run)) + '.</p>' : '') +
     details("Delivered texts",packetChat) + (item.document ? details(item.delivery==='native-messages' ? 'Exact source batch before transport' : 'Exact raw source document','<pre>'+esc(item.document)+'</pre>') : '') +
     usageDetails(item) + details("Provider packets, acknowledgement and parameters",dump(item.record)) + '</section>';
 
 }
 function dayTimeline(run) {
   const days = simulationDays(run);
-  if (!days.includes(selectedDay)) selectedDay = days[0] || "";
+  if (!days.includes(selectedDay)) selectedDay = days[days.length-1] || "";
   const keys = Object.keys(run.arms || {});
   if (!keys.includes(selectedProvider)) selectedProvider = keys.find(key => (run.arms[key].exposures?.length || run.arms[key].exchanges?.length)) || keys[0] || "";
   const messages = sources(run).filter(m => dayKey(m.written_at,run) === selectedDay);

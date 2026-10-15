@@ -10,6 +10,9 @@ from typing import Callable
 
 from .model_calls import ModelOutput
 
+AUTHORING_VERSION = 'event-scoped-v3'
+EVIDENCE_VERSION = 'assistant-session-fields-v2'
+
 
 def _text(result: str | ModelOutput) -> str:
     return result.text if isinstance(result, ModelOutput) else result
@@ -104,7 +107,7 @@ def build_contract(*, scene: str, test_intent: str,
                 not r.get('reason') or not r.get('evidence') or set(r['evidence'])-ids for i,r in enumerate(reviews,1))):
             raise ValueError(f'Behavior criteria rejected: {reviewed}')
         claims=tuple(ContractClaim(r['id'],fact,tuple(r['evidence'])) for fact,r in zip(author_facts,reviews))
-        body={'claims':[vars(c) for c in claims],'question':user_question,
+        body={'authoring_version':AUTHORING_VERSION,'evidence_version':EVIDENCE_VERSION,'claims':[vars(c) for c in claims],'question':user_question,
             'evidence_hash':hashlib.sha256(json.dumps(observations,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
             'review':reviewed,'question_review':{'safe':True,'faithful':True,'elicits_all':True,'reason':'Reviewed behavioral interaction'},
             'author_fact_count':len(author_facts),'question_source':'supplied','question_at':question_at,'kind':'behavior','test_intent':test_intent}
@@ -133,11 +136,13 @@ def build_contract(*, scene: str, test_intent: str,
         "message's written timestamp where the dialogue makes that clear. "
         "Cite exact dialogue source IDs (including any assistant-user: prefix) for "
         "each. "
+        "Each statement must identify its event and date scope without private ordinals such as 'the first outing'. "
+        "Do not add a redundant meal label when time and pizza already express the required plan. "
         "A proposed plan is different from an agreed plan. Do not include "
         "scenario details absent from the dialogue. Return only JSON: "
         '{"claims":[{"id":"short-id","statement":"current fact",'
         '"evidence":["source-id"]}]}.\n\n'
-        f"Private scenario: {scene}\nTest intent: {test_intent}\n"
+        f"Private scenario: {scene}\nQuestion time: {question_at}\nPublic question: {user_question}\nTest intent: {test_intent}\n"
         f"{fact_instruction}"
         f"Frozen dialogue (cite its s-number labels):\n{draft_dialogue}" +
         ("\nRevise the rejected draft using this independent review. Keep the original "
@@ -172,6 +177,8 @@ def build_contract(*, scene: str, test_intent: str,
         "Reject claims not required by the test intent even when supported by "
         "the dialogue. Do not require the same outing detail again for each "
         "participant. "
+        "Reject redundant wording requirements and private ordinal event labels. "
+        "Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. "
         "When required facts are supplied, verify that each matching claim "
         "faithfully covers exactly that one fact. Try answering one detail "
         "correctly while omitting another detail in the same claim: if this "
@@ -190,7 +197,7 @@ def build_contract(*, scene: str, test_intent: str,
         '"reviews":[{"id":"claim-id","supported":true,'
         '"relevant":true,"unambiguous":true,"reason":"brief explanation"}]}. '
         "One review per claim in order.\n\n"
-        f"Test intent: {test_intent}\n{fact_instruction}Frozen dialogue:\n{dialogue}\n"
+        f"Question time: {question_at}\nPublic question: {user_question}\nTest intent: {test_intent}\n{fact_instruction}Frozen dialogue:\n{dialogue}\n"
         f"Proposed claims: {json.dumps([vars(c) for c in claims])}")
     reviews = reviewed.get("reviews")
     if (reviewed.get("complete") is not True or
@@ -256,6 +263,7 @@ def build_contract(*, scene: str, test_intent: str,
             "or presupposing unsupported details? Respect current versus historical meaning. "
             "Resolve references using earlier public questions in the same tagged assistant session; "
             "questions in other sessions do not supply conversational scope. "
+            "For assistant-channel rows, thread identifies the session; source IDs identify turns. "
             "A topic or time scope does not itself establish which events belong in it. "
             'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
             f"Question time: {question_at}\nPrompt: {question}\n"
@@ -277,7 +285,7 @@ def build_contract(*, scene: str, test_intent: str,
         raise ValueError(f"question unsafe or unfaithful: {question_review}")
     evidence_hash = hashlib.sha256(json.dumps(observations, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
-    body = {"claims": [vars(c) for c in claims], "question": question.strip(),
+    body = {"authoring_version":AUTHORING_VERSION,"evidence_version":EVIDENCE_VERSION,"claims": [vars(c) for c in claims], "question": question.strip(),
             "source_aliases": aliases,
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,

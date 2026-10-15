@@ -11,7 +11,7 @@ from pacbench.native_checks import audit_checks, run_checks
 from pacbench.semantic_contract import ContractClaim, EvaluationContract, build_contract
 
 
-@pytest.mark.parametrize('change', ['unchanged', 'source', 'prompt', 'expect', 'at', 'facts', 'corruption'])
+@pytest.mark.parametrize('change', ['unchanged', 'source', 'prompt', 'expect', 'at', 'facts', 'corruption', 'authoring_version'])
 def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
     from pacbench.evaluation import freeze_evaluations
     observations = [{'source_id':'m1', 'written_at':'2026-09-10T18:00:00-04:00',
@@ -36,6 +36,11 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
     elif change=='corruption':
         path=tmp_path/'evaluations/breakfast/contract.json'
         path.write_text(path.read_text().replace('Breakfast is', 'Lunch is'))
+    elif change=='authoring_version':
+        from pacbench.followups import digest
+        path=tmp_path/'evaluations/breakfast/contract.json'
+        old=json.loads(path.read_text());old.pop('contract_hash');old['authoring_version']='old'
+        path.write_text(json.dumps({**old,'contract_hash':digest(old)}))
     calls.clear()
     second = freeze_evaluations(resolved, observations, None, model, tmp_path, resume=True)
     assert not second.get('errors')
@@ -199,3 +204,19 @@ def test_rejected_english_criteria_get_one_independently_reviewed_repair(tmp_pat
         with pytest.raises(ValueError,match='review rejected'):run()
         assert not (tmp_path/'contract.json').exists()
     assert len(calls)==len(reviews)==2
+
+
+def test_judge_session_fields_follow_execution_context_not_turn_ids():
+    from pacbench.evaluation import contract_evidence
+    from pacbench.semantic_contract import _dialogue
+    checks=[{'id':'details','session':'same','at':'2026-10-15T10:00:00-04:00','prompt':'What is the plan with Maya?'},
+            {'id':'other','session':'same','at':'2026-10-15T10:02:00-04:00','prompt':'Is Rosa’s still the place?'},
+            {'id':'fresh','at':'2026-10-15T10:04:00-04:00','prompt':'What about Friday?'}]
+    evidence=contract_evidence([],checks,checks[1])
+    assert [m['thread'] for m in evidence]==['same','same']
+    assert 'channel assistant | thread same' in _dialogue(evidence)
+    assert contract_evidence([],checks,checks[2],'isolated')[-1]['thread']=='fresh'
+    assert contract_evidence([],checks,checks[2],'shared')[-1]['thread']=='shared'
+    legacy=contract_evidence([],checks,checks[2],structured_sessions=False)
+    assert all('thread' not in m and 'channel' not in m for m in legacy)
+    assert legacy[-1]['text'].startswith('[assistant session shared]')

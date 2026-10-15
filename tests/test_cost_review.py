@@ -1,5 +1,7 @@
 """Synthetic cost-window accounting, not provider rankings."""
-from pacbench.cost_review import review,summarize
+import sqlite3
+
+from pacbench.cost_review import processing_debt,review,summarize
 from pacbench.followups import save
 
 
@@ -27,7 +29,14 @@ def test_native_costs_count_unique_requests_and_keep_background_and_holds(tmp_pa
     assert row['phases']['ingestion']['memory_provider']['model_requests']==1
     assert row['phases']['outside_captured_windows']['memory_provider']['model_requests']==1
     assert row['complete_for_cost_comparison'] is True
+    assert row['lifecycle_cost_complete'] is None
+    assert row['deferred_processing']['state']=='unobserved'
     assert row['overlapping_phase_request_ids']=={}
+    save(arm/'evaluation.json',{'checks':[{'verdict':'pass','recovery':{'state':'invalid'}}],
+        'counts':{'pass':1,'fail':0,'ungraded':0}})
+    incomplete=review(tmp_path,ledger=tmp_path/'absent-ledger')['providers'][0]
+    assert incomplete['initial_counts']['pass']==1
+    assert incomplete['complete_for_cost_comparison'] is False
 
 
 def test_unknown_or_unexecuted_cost_is_not_free(tmp_path):
@@ -36,3 +45,19 @@ def test_unknown_or_unexecuted_cost_is_not_free(tmp_path):
         'state':'preflight-failed','reason':'Native import failed'}]})
     row=review(tmp_path,ledger=tmp_path/'absent-ledger')['providers'][0]
     assert row['cost'] is None and row['complete_for_cost_comparison'] is False
+
+
+def test_pending_native_capture_is_not_a_zero_future_cost(tmp_path):
+    database=tmp_path/'memcal-home/memcal.db';database.parent.mkdir()
+    with sqlite3.connect(database) as connection:
+        connection.executescript('CREATE TABLE archive(id INTEGER,channel TEXT); '
+            'CREATE TABLE spool(archive_id INTEGER,processed_at TEXT); '
+            "INSERT INTO archive VALUES (1,'imessage'),(2,'agent'),(3,'agent'); "
+            "INSERT INTO spool VALUES (1,'done'),(2,NULL),(3,NULL);")
+    debt=processing_debt(tmp_path,'memcal')
+    assert debt['state']=='observed-pending'
+    assert debt['pending_by_channel']=={'agent':2}
+    assert debt['future_model_cost_usd'] is None
+    # Portable evidence keeps the observation without exporting the private DB.
+    database.unlink()
+    assert processing_debt(tmp_path,'memcal')==debt

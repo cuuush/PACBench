@@ -25,6 +25,27 @@ def summarize(calls):
         'unsettled_requests':sum(c['state']!='settled' for c in known)}
 
 
+def processing_debt(arm,provider):
+    """Inspect a native queue when available; absence is not proof of no work."""
+    receipt=arm/'processing-debt.json'
+    database=arm/'memcal-home/memcal.db'
+    if provider=='memcal' and database.exists():
+        with sqlite3.connect(f'file:{database.resolve()}?mode=ro',uri=True) as connection:
+            rows=connection.execute('SELECT a.channel,count(*) FROM spool s JOIN archive a '
+                'ON a.id=s.archive_id WHERE s.processed_at IS NULL GROUP BY a.channel').fetchall()
+        counts=dict(rows)
+        record={'state':'observed-pending' if counts else 'observed-empty',
+            'captured_at':datetime.now(timezone.utc).isoformat(),
+            'method':'Read-only native Memcal spool inspection after the benchmark workload',
+            'pending_by_channel':counts,'pending_items':sum(counts.values()),
+            'future_model_cost_usd':None}
+        save(receipt,record)
+        return record
+    if receipt.exists():return read(receipt)
+    return {'state':'unobserved','future_model_cost_usd':None,
+        'reason':'No native queue inspection receipt; the completed workload does not prove all deferred processing finished.'}
+
+
 def review(root,*,ledger=STATE/'ledger.sqlite3'):
     summary=read(root/'summary.json');results=[];connection=None
     if ledger.exists():
@@ -34,7 +55,7 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
             arm=root/f"repeat-{result['repetition']}"/result['provider']
             if result['state']=='preflight-failed':
                 results.append({'provider':result['provider'],'state':'not-run','reason':result['reason'],
-                    'complete_for_cost_comparison':False,'cost':None});continue
+                    'complete_for_cost_comparison':False,'lifecycle_cost_complete':False,'cost':None});continue
             snapshot=read(arm/'model-usage.json') if (arm/'model-usage.json').exists() else {'calls':[]}
             capture_available=snapshot.get('state')=='captured'
             actual={}
@@ -59,13 +80,17 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
             evaluation=read(arm/'evaluation.json') if (arm/'evaluation.json').exists() else {'checks':[],'counts':{}}
             scores=[c.get('recovery',{}).get('score',{}) for c in evaluation['checks']]
             expected=len(read(root/'evaluation-plan.json')['checks'])
+            debt=processing_debt(arm,result['provider'])
             results.append({'provider':result['provider'],'state':result['state'],
                 'daily_batches_attempted':len(records),'daily_batches_ready':sum(r.get('ready') is True for r in records),
                 'ingestion_wall_s':round(sum(r.get('latency_s',0) for r in records),2),
                 'initial_counts':evaluation.get('counts',{}),
                 'retention_points':sum(s.get('points',0) for s in scores),'retention_max_graded':sum(s.get('max_points',0) for s in scores),
                 'complete_for_cost_comparison':len(records)==len(summary['ingestion_schedule']) and all(r.get('ready') is True for r in records)
-                    and len(evaluation['checks'])==expected and all(c.get('verdict') in ('pass','fail') for c in evaluation['checks']),
+                    and len(evaluation['checks'])==expected and all(c.get('verdict') in ('pass','fail')
+                        and c.get('recovery',{}).get('state','complete')=='complete' for c in evaluation['checks']),
+                'deferred_processing':debt,
+                'lifecycle_cost_complete':False if debt['state']=='observed-pending' else None,
                 'cost':totals(set(actual)) if capture_available else None,
                 'phases':{phase:totals(ids) for phase,ids in phases.items()},
                 'terminal_snapshot_missing_requests':sorted(assigned-{c['id'] for c in snapshot['calls']}),
@@ -78,7 +103,8 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
         'scope':['All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.',
             'Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.',
             'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown charges remain reservations.',
-            'Only arms completing identical daily batches and all initial questions can be compared as full-run costs.',
+            'Only arms completing identical daily batches, initial questions and required recovery can be compared as observed workload costs.',
+            'Observed workload costs stop at the recorded arm cutoff. Pending or unobserved deferred processing prevents a full lifecycle cost claim; future costs are unknown, not zero.',
             'Native canary execution and failed attempts are separate from month costs. Semantic correctness and source-assisted retention are separate scores.']}
     save(root/'cost-comparison.json',report)
     return report

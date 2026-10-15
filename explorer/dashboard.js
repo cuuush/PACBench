@@ -392,6 +392,24 @@ function judgePage(run) {
       '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +
       (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("");
 }
+function costPage(run) {
+  const review = run.cost_review;
+  const money = value => value == null ? 'unknown' : '$' + Number(value).toFixed(6);
+  return '<section class="stage"><h2>Observed costs</h2>' +
+    '<p>These are costs through each arm’s recorded cutoff. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
+    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes</th><th>Provider internals</th><th>Held reservations</th><th>Model calls</th><th>Workload complete</th></tr></thead><tbody>' +
+    review.providers.map(row => {
+      const h = row.cost?.hermes, p = row.cost?.memory_provider, counts = row.initial_counts;
+      const held = h && p && h.held_usd != null && p.held_usd != null ? h.held_usd + p.held_usd : null;
+      return '<tr><td>' + esc(row.provider) + '</td><td>' + esc(counts ? [counts.pass, counts.fail, counts.ungraded].join(' / ') : 'not run') +
+        '</td><td>' + esc(row.retention_max_graded ? row.retention_points + ' / ' + row.retention_max_graded : 'ungraded') +
+        '</td><td>' + money(h?.settled_upper_bound_usd) + '</td><td>' + money(p?.settled_upper_bound_usd) +
+        '</td><td>' + money(held) + '</td><td>' + esc(h && p ? h.model_requests + p.model_requests : 'unknown') +
+        '</td><td>' + (row.complete_for_cost_comparison ? 'yes' : 'no') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' +
+    review.providers.map(row => details(row.provider + ' · phases, tokens and deferred work', dump(row))).join('') +
+    details('Cost scope and limitations', dump(review.scope)) + '</section>';
+}
 function technicalPage(run) {
   return '<section class="stage"><h2>Saved run files</h2><p class="muted">These records are here for debugging. The Timeline shows texts and provider activity by simulated day. Authoring and Judges show how the test was made and evaluated.</p>' +
     details("Original and resolved author spec", dump({author: run.spec, resolved: run.resolved_spec})) +
@@ -407,6 +425,7 @@ function render() {
   const run = selected();
   if (!run) { el("content").innerHTML = notice("No saved run selected."); return; }
   const items = [["timeline", "Day by day"], ["story", "Authoring"], ["judge", "Criteria & judges"],
+    ...(run.cost_review ? [["costs","Costs & work"]] : []),
     ...(run.preflight ? [["preflight","Native canary"]] : []), ["details", "Saved files"]];
   if (run.arms?.[page]) { selectedProvider = page; page = "timeline"; }
   if (!items.some(item => item[0] === page)) page = "timeline";
@@ -419,7 +438,7 @@ function render() {
       esc(run.summary.failed_stage || "experiment") + ": " + esc(run.summary.error) + "</div>" : "";
   const body = page === "preflight" ? '<section class="stage"><h2>Native canary</h2><p>A separate small corpus checks ingestion and recall before the month. These answers are not month scores.</p></section>' + dayTimeline(run.preflight) :
     page === "timeline" ? dayTimeline(run) : page === "story" ? semanticStory(run) :
-    page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : dayTimeline(run);
+    page === "judge" ? judgePage(run) : page === "costs" ? costPage(run) : page === "details" ? technicalPage(run) : dayTimeline(run);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
     "Experiment" + '</span><h1>' +
     esc(titleOf(run)) + '</h1><p>' + esc(idOf(run)) +

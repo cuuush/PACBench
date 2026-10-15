@@ -86,11 +86,18 @@ def test_healthy_canary_cannot_be_silently_omitted_from_month(repo):
 
 def test_explicit_replacement_keeps_old_attempt_separate_and_removes_stale_files(repo):
     first=component(repo,'interrupted','memcal');second=component(repo,'fresh','memcal')
+    stopped=json.loads((first/'summary.json').read_text())
+    stopped.update(state='interrupted',interruption='Original worker ended',spending_stop='Original stop')
+    save(first/'summary.json',stopped)
     old=first/'repeat-1/memcal'
     save(old/'followups/old-only.json',{'original':'preserve separately'})
     output=publish_run.publish([first,second],repo/'runs/current',selection={'memcal':second})
     summary=json.loads((output/'summary.json').read_text())
     assert len(summary['results'])==1
+    assert summary['state']=='diagnostic'
+    assert 'interruption' not in summary and 'spending_stop' not in summary
+    original=json.loads((output/'components/interrupted/summary.json').read_text())
+    assert original['interruption']=='Original worker ended' and original['spending_stop']=='Original stop'
     assert summary['component_runs'][0]['selected_providers']==[]
     assert not (output/'repeat-1/memcal/followups/old-only.json').exists()
     attempt=summary['other_attempts'][0]

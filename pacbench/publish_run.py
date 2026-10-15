@@ -51,6 +51,11 @@ def publish(sources,destination,*,preflight=None,selection=None):
     summaries=[read(p/'summary.json') for p in sources]
     if not summaries:raise ValueError('No native runs to publish')
     reference=deepcopy(summaries[0])
+    # Execution stops belong to their original component. The combined run's
+    # state is computed from the selected arms below; a replaced interruption
+    # must not become the explanation for a fresh arm or another provider.
+    for key in ('interruption','spending_stop'):
+        reference.pop(key,None)
     if any(not reference.get(k) for k in ('input_hash','bundle_hash','contract_hash','tool_policy')):
         raise ValueError('Native run is missing frozen input/contract/policy identity')
     selection={name:Path(path).resolve() for name,path in (selection or {}).items()}

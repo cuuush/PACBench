@@ -418,6 +418,8 @@ function technicalPage(run) {
       (run.model_calls || []).map(call => details(call.record?.model + " · " + call.file.split('/').pop().slice(0, 12),
         renderModelCall(call.record))).join("")) +
     details("Allowed and blocked recall tools", dump(Object.fromEntries(Object.entries(run.arms || {}).map(([key,arm]) => [key,arm.tool_policy])))) +
+    (run.development_review ? details('Development review',dump(run.development_review)) : '') +
+    (run.failure_review ? details('Failure review (original grades unchanged)',dump(run.failure_review)) : '') +
     details("Experiment status and run audit", dump({status: run.experiment_status,
       summary: run.summary, audit: run.audit})) + "</section>";
 }

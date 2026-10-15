@@ -128,6 +128,8 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         'bundle_hash': actual_hash, 'contract': contract, 'evaluation_plan': plan,
         'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
         'cost_review': read_json(run_dir / 'cost-comparison.json'),
+        'development_review': read_json(run_dir / 'development-review.json'),
+        'failure_review': read_json(run_dir / 'failure-review.json'),
         'preflight':(native_run(run_dir/'preflight',runs_dir,include_preflight=False)
                      if include_preflight and (run_dir/'preflight/summary.json').exists() else None),
         'scenes': read_json(source / 'scenes.json'), 'arms': arms,

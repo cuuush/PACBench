@@ -77,6 +77,9 @@ def audit_prepared(root: Path) -> dict:
                     quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues') or
                     any(quality.get('review',{}).get(k) is not True for k in ('consistent','expectations_supported','natural_enough'))):
                 errors.append('Corpus realism review is stale or unresolved')
+            call=json.loads((root/'model-calls'/Path(quality.get('model_call','')).name).read_text())
+            if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
+                errors.append('Corpus realism review differs from its actual model receipt')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime
             from .document_ingestion import daily_batches

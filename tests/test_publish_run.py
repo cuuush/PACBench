@@ -73,6 +73,28 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
     assert received==[message('m1')]
 
 
+@pytest.mark.parametrize('change',['none','override','failed','missing','malformed'])
+def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
+    from pacbench.preparation_audit import audit_prepared
+    root=component(repo,'review','memcal')/'preparation'
+    resolved=json.loads((root/'resolved-spec.json').read_text())
+    resolved['scenes']=[]
+    save(root/'resolved-spec.json',resolved)
+    review={'consistent':True,'expectations_supported':True,'natural_enough':True,
+            'issues':[],'notes':'Reviewed actual source.'}
+    quality={'state':'pass','source_hash':digest([message('m1')]),
+        'intent_hash':digest({'scenes':[],'checks':[]}),
+        'review':review,'model_call':'original/runtime/model-calls/realism.json'}
+    call={'status':'ok','text':json.dumps(review)}
+    if change=='override':quality['review']={**review,'notes':'Silently replaced verdict.'}
+    if change=='failed':call['status']='failed'
+    if change=='malformed':call['text']='not a verdict'
+    save(root/'realism-review.json',quality)
+    if change!='missing':save(root/'model-calls/realism.json',call)
+    result=audit_prepared(root)
+    assert result['state']==('pass' if change=='none' else 'fail')
+
+
 @pytest.mark.parametrize('change',['hash','file','duplicate','unfinished','preparation','clock'])
 def test_publishing_rejects_mixed_or_unfinished_evidence_without_partial_public_run(repo,change):
     first=component(repo,'first','memcal');second=component(repo,'second','honcho')

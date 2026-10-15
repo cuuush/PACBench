@@ -65,6 +65,19 @@ def window(before, after):
         'scope':'Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.'}
 
 
+def refresh_window(capture, latest):
+    """Refresh only the window's request IDs; keep the original receipt untouched."""
+    if not capture or capture.get('state')!='captured' or not latest or latest.get('state')!='captured':
+        return None
+    known={c['id']:c for c in latest.get('calls',[])}
+    calls=[known.get(c['id'],c) for c in capture.get('model_calls',[])]
+    if calls==capture.get('model_calls',[]):return None
+    updated=window({'state':'captured','at':capture['started'],'calls':[]},
+        {'state':'captured','at':capture['finished'],'calls':calls})
+    return {**capture,'model_calls':calls,'roles':updated['roles'],
+            'settlement_observed_at':latest.get('at')}
+
+
 def tracked_turn(run_turn, prompt, *, usage_path, **kwargs):
     from .followups import save
     roles = json.loads((kwargs.get('extra_env') or {}).get('PACBENCH_USAGE_ROLES','{}'))

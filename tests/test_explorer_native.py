@@ -75,6 +75,26 @@ def test_portable_run_displays_authoring_and_judges_without_private_homes(tmp_pa
     assert not list(moved.rglob('hermes-home'))
 
 
+def test_explorer_updates_turn_usage_from_saved_final_receipt_without_live_ledger(tmp_path):
+    from pacbench.usage import window
+    root,arm=trial(tmp_path)
+    pending={'id':'one','role':'memory_provider','state':'reserved',
+             'input_tokens':None,'output_tokens':None,'accounted_upper_bound_usd':.1}
+    usage=window({'state':'captured','at':'before','calls':[]},
+        {'state':'captured','at':'after','calls':[pending]})
+    settled={**pending,'state':'settled','input_tokens':100,'output_tokens':20,
+             'accounted_upper_bound_usd':.000014}
+    save(arm/'usage.json',usage)
+    save(arm/'model-usage.json',{'state':'captured','at':'2026-10-15T12:00:00+00:00','calls':[settled]})
+    result=explorer.native_run(root,tmp_path/'runs')
+    ex=result['arms']['mem0-repeat-1']['exchanges'][0]
+    assert ex['usage']==usage
+    current=ex['usage_after_settlement']['roles']['memory_provider']
+    assert current['unsettled_calls']==0 and current['input_tokens']==100
+    assert current['accounted_upper_bound_usd']==.000014
+    assert json.loads((arm/'usage.json').read_text())==usage
+
+
 def test_refresh_reflects_edits_and_deletions_without_snapshot_fallback(tmp_path):
     root, arm = trial(tmp_path)
     save(tmp_path / 'explorer/latest-run.json', {'runs': [{'id': 'stale-snapshot'}]})

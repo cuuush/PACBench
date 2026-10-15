@@ -10,6 +10,30 @@ def call(id,role,state='settled',cost=.01):
             'input_tokens':10 if state=='settled' else None,'output_tokens':2 if state=='settled' else None}
 
 
+def test_turn_usage_refreshes_settlements_without_adding_background_calls_or_erasing_holds():
+    from copy import deepcopy
+    from pacbench.usage import refresh_window,window
+    held=call('answer','memory_provider','reserved',.1)
+    unknown=call('unknown','memory_provider','uncertain',.2)
+    captured=window({'state':'captured','at':'before','calls':[]},
+        {'state':'captured','at':'after','calls':[held,unknown]})
+    original=deepcopy(captured)
+    settled=call('answer','memory_provider',cost=.001)
+    latest={'state':'captured','at':'later','calls':[
+        settled,unknown,call('later-background','memory_provider',cost=.04)]}
+    updated=refresh_window(captured,latest)
+    assert captured==original
+    assert updated['started']=='before' and updated['finished']=='after'
+    assert updated['settlement_observed_at']=='later'
+    assert [c['id'] for c in updated['model_calls']]==['answer','unknown']
+    role=updated['roles']['memory_provider']
+    assert role['model_calls']==2 and role['unsettled_calls']==1
+    assert role['accounted_upper_bound_usd']==.201
+    assert role['input_tokens'] is None  # Unknown request remains unknown.
+    assert updated['per_tool_tokens'] is None
+    assert refresh_window(captured,{'state':'unavailable'}) is None
+
+
 def test_native_costs_count_unique_requests_and_keep_background_and_holds(tmp_path):
     save(tmp_path/'summary.json',{'input_hash':'synthetic','results':[{'provider':'local','repetition':1,'state':'diagnostic'}],
         'ingestion_schedule':[{'id':'day'}]})

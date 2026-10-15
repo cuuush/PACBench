@@ -372,7 +372,7 @@ function effortDetails(ex) {
     esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
 }
 function usageDetails(ex) {
-  const usage = ex.usage;
+  const usage = ex.usage_after_settlement || ex.usage;
   let rows = "";
   if (usage?.state === 'captured') {
     rows = Object.entries(usage.roles || {}).map(([role,total]) => '<tr><td>' + (role === 'hermes' ? 'Hermes' : 'Memory provider') +
@@ -383,7 +383,9 @@ function usageDetails(ex) {
   const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
     (ex.question_authoring_reused ? 'Reused wording; these are the original authoring records, not fresh charges for this answer.' : 'Separate benchmark overhead, outside Hermes and the memory provider.') + '</p>' + dump(authoring) : '';
   return details('Model calls and token usage', rows ? '<div class="usage-table"><table><thead><tr><th>Who</th><th>LLM calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost upper bound</th></tr></thead><tbody>' + rows +
-    '</tbody></table></div><p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later. Local embedding/model tokens are not captured in this gateway table.</p>' + details('Individual model requests and late settlements',dump(usage)) + benchmark :
+    '</tbody></table></div>' + (ex.usage_after_settlement ? '<p class="muted">Usage updated from a later arm receipt; the original window and request IDs are unchanged.</p>' : '') +
+    '<p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later. Local embedding/model tokens are not captured in this gateway table.</p>' +
+    details('Individual model requests and late settlements',dump(ex.usage_after_settlement ? {original_window:ex.usage,updated_window:usage} : usage)) + benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
 function judgePage(run) {

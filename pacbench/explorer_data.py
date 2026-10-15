@@ -41,6 +41,8 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
             continue
         repetition = arm.parent.name
         provider = arm.name
+        model_usage=read_json(arm/'model-usage.json')
+        settled_usage=read_json(arm/'model-usage-after-settlement.json')
         exchanges = []
         def append_exchange(directory, checkpoint_contract, check_id, turn_file):
             turn = read_json(directory / turn_file)
@@ -83,6 +85,9 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
                     'document':document,
                     'packet_verified':record['source_ids']==row['source_ids'] and
                        hashlib.sha256(document.encode()).hexdigest()==record['document_sha256']})
+        from .usage import refresh_window
+        for item in exchanges+exposures:
+            item['usage_after_settlement']=refresh_window(item.get('usage'),settled_usage or model_usage)
         preflight = read_json(arm / 'preflight.json')
         status = read_json(arm / 'status.json') or {'state': 'running', 'capability': preflight}
         operations = [op for ex in exchanges for op in (ex.get('metrics') or {}).get('operations', [])]
@@ -92,8 +97,8 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
             'label': f'{provider.title()} · {repetition.replace("-", " ")}',
             'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
             'tool_policy': read_json(arm / 'tool-policy.json'),
-            'model_usage': read_json(arm / 'model-usage.json'),
-            'model_usage_after_settlement': read_json(arm / 'model-usage-after-settlement.json'),
+            'model_usage': model_usage,
+            'model_usage_after_settlement': settled_usage,
             'turn': exchanges[0]['turn'] if exchanges else None}
         arms[f'{provider}-{repetition}']['evaluation'] = read_json(arm / 'evaluation.json')
     records = {}

@@ -147,6 +147,8 @@ def hindsight_operations(provider,client,bank_id,deadline):
 def hindsight(source,root,at,processing_at):
     from plugins.memory.hindsight import HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
+    from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+    deadline=time.monotonic()+PROCESSING_TIMEOUT_S
     cfg=json.loads((root/'hermes-home/hindsight/config.json').read_text())
     validate_route(cfg['llm_base_url'],os.environ['HINDSIGHT_LLM_API_KEY'])
     provider=HindsightMemoryProvider()
@@ -162,7 +164,6 @@ def hindsight(source,root,at,processing_at):
         # a separate queued operation. Observe its real status before recall.
         # No retry of the source, extra Hermes turn, recall-type change or delay
         # chosen from an answer. The shared ingestion deadline still applies.
-        deadline=time.monotonic()+180
         statuses=[]
         while True:
             data=hindsight_operations(provider,client,cfg['bank_id'],deadline)

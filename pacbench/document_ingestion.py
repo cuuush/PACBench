@@ -1,4 +1,4 @@
-"""Lossless daily source delivery, without Hermes ingestion or fact extraction."""
+"""Daily raw source delivery, without Hermes ingestion or fact extraction."""
 from __future__ import annotations
 
 import hashlib
@@ -15,8 +15,11 @@ from . import harness
 from .followups import save
 from .usage import snapshot, window
 
-VERSION = 'daily-source-documents-v2'
+VERSION = 'daily-source-documents-v3'
+NIGHTLY_JSON_VERSION = 'daily-source-documents-v2'
 LEGACY_VERSION = 'daily-source-documents-v1'
+SUPPORTED_VERSIONS = (LEGACY_VERSION,NIGHTLY_JSON_VERSION,VERSION)
+PROCESSING_TIMEOUT_S = 900
 PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {
@@ -52,10 +55,32 @@ def daily_batches(messages, timezone):
             for day,batch in sorted(groups.items())]
 
 
-def document_text(batch, collected_at):
-    # JSON lines are text, with unambiguous escaping and all original public fields.
-    # No narrative instructions, synthetic assistant responses or fact extraction.
-    return '\n'.join(json.dumps(m,ensure_ascii=False,sort_keys=True) for m in batch)+'\n'
+def document_text(batch, collected_at, *, version=VERSION):
+    if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown document format version')
+    if version in (LEGACY_VERSION,NIGHTLY_JSON_VERSION):
+        return '\n'.join(json.dumps(m,ensure_ascii=False,sort_keys=True) for m in batch)+'\n'
+    # A practical message export: copy every body, keep source chronology and
+    # introduce each conversation once per contiguous block. Full machine
+    # records, including source IDs, remain in messages.json for native readers
+    # and integrity checks; they need not inflate the LLM's transcript.
+    lines=[f'Daily messages — collected through {collected_at}']
+    previous=None
+    for m in batch:
+        metadata=m.get('structured') or {}
+        conversation=(m['channel'],m['thread'],metadata)
+        if conversation!=previous:
+            lines.extend(['',f"Conversation: {m['channel']} | {m['thread']}"])
+            if metadata.get('chat_name'):lines.append('Name: '+metadata['chat_name'])
+            if metadata.get('participants'):lines.append('Participants: '+', '.join(metadata['participants']))
+            if metadata.get('email_subject'):lines.append('Subject: '+metadata['email_subject'])
+            extra={k:v for k,v in metadata.items() if k not in ('chat_name','participants','email_subject')}
+            if extra:lines.append('Metadata: '+json.dumps(extra,ensure_ascii=False,sort_keys=True))
+            previous=conversation
+        lines.extend(['',f"[{m['written_at']}] {m['sender']}"+(' (sent by owner)' if m['from_owner'] else '')])
+        for key,label in (('arrived_at','Delivered'),('collected_at','Captured')):
+            if m.get(key) and m[key]!=m['written_at']:lines.append(f'{label}: {m[key]}')
+        lines.append(m['text'])
+    return '\n'.join(lines)+'\n'
 
 
 def prepare_sources(output, messages, timezone):
@@ -104,7 +129,7 @@ def prepare_sources(output, messages, timezone):
 
 
 def processing_at(at, provider, timezone, *, version=VERSION):
-    if version not in (VERSION,LEGACY_VERSION):raise ValueError('Unknown ingestion clock version')
+    if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown ingestion clock version')
     if version==LEGACY_VERSION and provider!='memcal':
         return at
     stamp=datetime.fromisoformat(at).astimezone(ZoneInfo(timezone))
@@ -141,7 +166,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     """Provider-owned ingestion/processing in an isolated process, no Hermes turn."""
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
     if timeout_s is None:
-        timeout_s=240
+        timeout_s=PROCESSING_TIMEOUT_S  # One nightly batch may contain several real conversations.
         if provider=='honcho':
             defaults=json.loads((root/'native-processing-settings.json').read_text())
             timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']

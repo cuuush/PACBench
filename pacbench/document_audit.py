@@ -5,7 +5,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from .document_ingestion import VERSION, LEGACY_VERSION, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
+from .document_ingestion import VERSION, SUPPORTED_VERSIONS, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
 def audit_honcho_receipt(batch, result, previous_work=None):
@@ -57,7 +57,7 @@ def audit_ingestion(root, arm, messages, summary):
         if not ok:errors.append(msg)
     schedule=summary['ingestion_schedule']
     version=summary.get('ingestion_version',VERSION)
-    check(version in (VERSION,LEGACY_VERSION),'unsupported ingestion clock version')
+    check(version in SUPPORTED_VERSIONS,'unsupported ingestion version')
     batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
     honcho_work={}
@@ -70,7 +70,7 @@ def audit_ingestion(root, arm, messages, summary):
         meta=json.loads((source/'source.json').read_text())
         at=max((m['collected_at'] for m in batch),key=datetime.fromisoformat)
         ids=[m['source_id'] for m in batch]
-        text=document_text(batch,at)
+        text=document_text(batch,at,version=version)
         check(row['id']==day and row['at']==at and row['source_ids']==ids,'source availability schedule mismatch')
         check(row['file']==f'ingestion/{day}.json' and row['source_file']==f'sources/{day}/messages.txt','unsafe or unexpected ingestion path')
         check(hashlib.sha256((source/'source.json').read_bytes()).hexdigest()==row['source_manifest_sha256'],'source manifest hash mismatch')

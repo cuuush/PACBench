@@ -57,10 +57,37 @@ def test_daily_documents_cover_sources_and_fixture_has_no_future_rows(tmp_path):
     assert [r['id'] for r in schedule]==['2026-09-10','2026-09-11']
     for i,row in enumerate(schedule,1):
         source=tmp_path/'sources'/row['id']
-        assert len((source/'messages.txt').read_text().splitlines())==1
+        assert 'Friday dinner at seven.' in (source/'messages.txt').read_text()
         with sqlite3.connect(source/'chat.db') as db:
             assert db.execute('SELECT count(*) FROM message').fetchone()[0]==i
-    assert json.loads((tmp_path/'sources/2026-09-10/messages.txt').read_text())==first
+    assert json.loads((tmp_path/'sources/2026-09-10/messages.json').read_text())==[first]
+
+
+def test_readable_document_preserves_bodies_context_ownership_and_delayed_delivery():
+    from pacbench.document_ingestion import document_text
+    a={**message('opaque-id-a','Me',True),'structured':{'participants':['Me','Ben'],'email_subject':'Dinner'},
+       'channel':'email','text':'  Saturday works.\n\n> Me: Thursday?\n> Ben: yes!  ',
+       'arrived_at':'2026-09-10T18:00:00-04:00'}
+    b={**message('opaque-id-b','Ben'),'channel':'email','structured':a['structured'],
+       'arrived_at':'2026-09-10T18:05:00-04:00','text':'Thanks! 🦆'}
+    c={**message('opaque-id-c','Jen',thread='pond'),'structured':{'participants':['Me','Jen','Alex'],'chat_name':'Duck crew'},
+       'text':'I can’t make Friday.'}
+    text=document_text([a,b,c],c['collected_at'])
+    for row in (a,b,c):assert row['text']+'\n' in text and row['written_at'] in text
+    assert text.count('Conversation:')==2 and text.count('Participants: Me, Ben')==1
+    assert 'Subject: Dinner' in text and 'Name: Duck crew' in text
+    assert '] Me (sent by owner)' in text and '] Ben\n' in text
+    assert 'Delivered: '+b['arrived_at'] in text and 'Captured: '+a['collected_at'] in text
+    assert 'opaque-id-' not in text and '"source_id"' not in text
+
+
+@pytest.mark.parametrize('version',['daily-source-documents-v1','daily-source-documents-v2'])
+def test_old_document_bytes_remain_auditable(version):
+    from pacbench.document_ingestion import document_text
+    rows=[message('original')]
+    assert json.loads(document_text(rows,rows[0]['collected_at'],version=version))==rows[0]
+    expected=rows[0]['collected_at'] if version.endswith('v1') else '2026-09-11T03:00:00-04:00'
+    assert processing_at(rows[0]['collected_at'],'mem0','America/New_York',version=version)==expected
 
 
 def test_clock_offsets_and_collection_day_not_string_prefix():

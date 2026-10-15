@@ -1,0 +1,125 @@
+{
+  "state": "complete",
+  "plan_hash": "90026ce1b1b9feec0e8d48031c90c5a3505d9015b7923027af997568fd242628",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1,
+      "archive_search": 1,
+      "source_evidence": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "maya"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095438014,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"maya\", \"title\": \"Maya\", \"section\": \"people\", \"is_self\": false, \"answers\": [\"diet\"], \"facts\": [{\"slot\": \"diet\", \"value\": \"dairy-free\", \"source\": \"person:Maya\", \"ts\": \"2026-10-12\", \"lines\": [1698, 1708]}], \"cited_ids\": {\"diet\": [1698, 1708]}, \"provenance\": {\"diet\": {\"entity\": \"person:Maya\", \"bundle\": \"aff481\", \"run\": 27, \"gen\": \"chatcmpl-01a14130-7a39-7386-a1c4-ab28d6d6cf11\", \"verb\": \"slot\", \"at\": \"2026-10-12T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Maya\\n\\n## Facts\\n\\n- **diet**: dairy-free  <!-- person:Maya 2026-10-12 #1698 #1708 -->\\n\", \"encounters\": {\"count\": 1, \"by_activity\": [{\"activity\": \"Pizza lunch\", \"count\": 1}], \"recent\": [{\"key\": \"pizza-lunch@2026-09-25\", \"date\": \"2026-09-25\", \"title\": \"Pizza lunch\", \"location\": \"Mario's on Pine Street\", \"with\": [\"Leo\"]}]}, \"sources\": {\"diet\": [{\"id\": 1698, \"ts\": \"2026-10-11T13:55:12-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i'm gonna try going dairy-free for the next few weeks and see if it helps\", \"evidence\": true, \"source_heading\": \"Sun Oct 11, 2026 13:55 \\u00b7 iMessage with Maya\"}, {\"id\": 1708, \"ts\": \"2026-10-11T14:29:05-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like no milk, cheese, butter, all of it for a few weeks\", \"evidence\": true}]}, \"narrow\": {\"diet\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "person": "Maya",
+          "query": "Domino"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095441077,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 1823, \"when\": \"2026-10-12T17:39\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"text\": \"my coworker mentioned Domino's but ugh that's way too far from us\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_conversation",
+        "arguments": {
+          "after": 12,
+          "before": 12,
+          "line_id": 1823
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095443539,
+        "result": {
+          "tool": "memcal_conversation",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"conversation\": [{\"id\": 1804, \"ts\": \"2026-10-12T17:14\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"same, i just heated up leftover soup\"}, {\"id\": 1805, \"ts\": \"2026-10-12T17:18\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"tomato again?\"}, {\"id\": 1806, \"ts\": \"2026-10-12T17:19\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah with the window open it's perfect soup weather\"}, {\"id\": 1807, \"ts\": \"2026-10-12T17:23\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"same, mine's still cracked open and i'm freezing lol\"}, {\"id\": 1808, \"ts\": \"2026-10-12T17:28\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"how's your stomach been today?\"}, {\"id\": 1809, \"ts\": \"2026-10-12T17:28\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"actually better? did oat milk latte this morning and no regrets\"}, {\"id\": 1810, \"ts\": \"2026-10-12T17:28\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"oh nice, so the dairy-free test is working so far\"}, {\"id\": 1811, \"ts\": \"2026-10-12T17:29\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"kinda seems like it, which is annoying cause i love cheese\"}, {\"id\": 1813, \"ts\": \"2026-10-12T17:30\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"tragic for a pizza lover tbh\"}, {\"id\": 1814, \"ts\": \"2026-10-12T17:30\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"right?? speaking of, are you free to get food friday?\"}, {\"id\": 1815, \"ts\": \"2026-10-12T17:30\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah should be, need something to look forward to\"}, {\"id\": 1819, \"ts\": \"2026-10-12T17:35\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"same, this week is already dragging\"}, {\"id\": 1823, \"ts\": \"2026-10-12T17:39\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"my coworker mentioned Domino's but ugh that's way too far from us\"}, {\"id\": 1824, \"ts\": \"2026-10-12T17:39\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that's like across town, not worth it\"}, {\"id\": 1825, \"ts\": \"2026-10-12T17:40\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"exactly, too far, i'm not driving out there on a friday\"}, {\"id\": 1826, \"ts\": \"2026-10-12T17:40\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"no way, let's just stay around here\"}, {\"id\": 1827, \"ts\": \"2026-10-12T17:41\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah our usual area is so much easier\"}, {\"id\": 1830, \"ts\": \"2026-10-12T17:45\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"Rosa's on Oak Street?\"}, {\"id\": 1831, \"ts\": \"2026-10-12T17:45\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes please, i miss it\"}, {\"id\": 1832, \"ts\": \"2026-10-12T17:45\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"same, haven't been since last time\"}, {\"id\": 1833, \"ts\": \"2026-10-12T17:46\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"do they have anything dairy-free tho? cause i'm still doing the no dairy thing\"}, {\"id\": 1837, \"ts\": \"2026-10-12T17:50\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"i think they do that marinara veggie one with no cheese?\"}, {\"id\": 1838, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"oh yeah and i could just do salad + that?\"}, {\"id\": 1839, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"totally, we can ask for no cheese no butter stuff\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 12.5,
+    "input_tokens": 7545,
+    "output_tokens": 49,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "maya-dominos-reason",
+      "kind": "provided",
+      "reason": "Reason 'too far' was correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "maya-dominos-reason",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

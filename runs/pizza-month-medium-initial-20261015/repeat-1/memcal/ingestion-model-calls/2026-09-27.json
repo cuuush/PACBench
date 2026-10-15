@@ -1,0 +1,96 @@
+{
+  "bundles": [
+    {
+      "run_id": 13,
+      "entity": "person:Maya",
+      "bundle_id": "aff481",
+      "label": "Maya",
+      "kind": "person",
+      "lines": 52,
+      "state": "reading",
+      "updated_at": "2026-09-28T03:00:00-04:00"
+    }
+  ],
+  "calls": [
+    {
+      "generation_id": "chatcmpl-01a14126-79c6-73bb-9348-e7c2be48c359",
+      "run_id": 13,
+      "stage": "propose",
+      "label": "person:Maya",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-09-28T03:00:00-04:00",
+      "max_tokens": 16906,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 4738,
+        "completion_tokens": 1396,
+        "cached_tokens": 0,
+        "reasoning_tokens": 1373,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "aff481",
+          "entity": "person:Maya",
+          "label": "Maya",
+          "lines": 52
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho actually joined or spoke as participants, not an entire room roster.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Monday 2026-09-28.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Sun 27 Sep · Mon 28 Sep (TODAY) · Tue 29 Sep · Wed 30 Sep · Thu 1 Oct · Fri 2 Oct · Sat 3 Oct · Sun 4 Oct · Mon 5 Oct · Tue 6 Oct · Wed 7 Oct · Thu 8 Oct · Fri 9 Oct · Sat 10 Oct · Sun 11 Oct · Mon 12 Oct · Tue 13 Oct · Wed 14 Oct\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  pizza-lunch@2026-09-25 | 2026-09-25 | commitment/happened | Pizza lunch | 13:00 | Mario's on Pine Street | with Maya, Leo\n  pizza@2026-09-25 | 2026-09-25 | commitment/confirmed | Pizza | 19:00 | Rosa's on Oak Street | with Devon\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Alex, Devon, Jen, Leo, Maya\n\nWIKI PAGES: pizza, pizza-lunch",
+      "suffix": "1 bundle(s) follow:\n  aff481  Maya\nList all 1 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID aff481   (Maya)\none-to-one on imessage · 52 lines\n-- Sun 2026-09-27 --\n  L1 17:00 (imessage) Maya: sunday is disappearing so fast\n  L2 17:12 (imessage) me: seriously where did the weekend go\n  L3 17:12 (imessage) Maya: I blinked and it's almost dinner time\n  L4 17:13 (imessage) me: same, I'm still in blanket mode on the couch\n  L5 17:13 (imessage) Maya: same, laundry is judging me from the corner\n  L6 17:14 (imessage) me: lol did you ever finish last week's chair pile\n  L7 17:17 (imessage) Maya: no that became permanent decor\n  L8 17:18 (imessage) me: iconic, I finally folded mine this morning\n  L9 17:19 (imessage) Maya: proud of you honestly\n  L10 17:22 (imessage) me: how's the grocery store basil holding up\n  L11 17:23 (imessage) Maya: still alive somehow, miracle\n  L12 17:35 (imessage) me: give it another week lol\n  L13 17:35 (imessage) Maya: don't jinx it\n  L14 17:39 (imessage) me: my plants are doing better since I actually watered them\n  L15 17:39 (imessage) Maya: plant parent redemption arc continues\n  L16 17:40 (imessage) me: what did you end up doing today\n  L17 17:52 (imessage) Maya: literally nothing, scrolled, nap, leftovers\n  L18 17:52 (imessage) me: perfect sunday tbh, what leftovers\n  L19 17:53 (imessage) Maya: just pasta, nothing exciting\n  L20 18:05 (imessage) me: I had cereal for lunch like a true adult\n  L21 18:09 (imessage) Maya: lol classic sunday meal\n  L22 18:09 (imessage) Maya: oh did you see there's a new pizza place near the station?\n  L23 18:10 (imessage) me: no? when did that open\n  L24 18:10 (imessage) Maya: I think like last week? saw it walking by\n  L25 18:10 (imessage) me: oh interesting, what's it called\n  L26 18:14 (imessage) Maya: something with like oven in the name? I forgot\n  L27 18:26 (imessage) me: lol helpful\n  L28 18:27 (imessage) Maya: I just saw the sign and the line, looked busy\n  L29 18:30 (imessage) me: that's usually a good sign\n  L30 18:43 (imessage) Maya: yeah wonder if we should try it sometime?\n  L31 18:46 (imessage) me: maybe yeah, could be fun to check out eventually\n  L32 18:58 (imessage) Maya: like not now now, just someday when we're over there\n  L33 18:59 (imessage) me: totally, I'm always down for pizza in theory\n  L34 19:00 (imessage) Maya: same, Rosa's still has my heart tho\n  L35 19:12 (imessage) me: seriously those garlic knots, can't beat\n  L36 19:24 (imessage) Maya: right? dangerous\n  L37 19:37 (imessage) me: did your sister ever sign up for pottery?\n  L38 19:38 (imessage) Maya: she keeps saying she will, hasn't yet\n  L39 19:39 (imessage) me: lol tell her Tuesday guy is waiting\n  L40 19:51 (imessage) Maya: I will, how's your wavy bowl doing\n  L41 19:52 (imessage) me: holding my keys, very functional art\n  L42 19:54 (imessage) Maya: love that for it\n  L43 20:06 (imessage) me: are you doing anything tonight or just rotting\n  L44 20:18 (imessage) Maya: just rotting, might do a face mask later\n  L45 20:30 (imessage) me: ooh fancy, I should do laundry round two\n  L46 20:34 (imessage) Maya: ugh don't, enjoy the couch\n  L47 20:34 (imessage) me: you're right, couch wins\n  L48 20:35 (imessage) Maya: always wins on sundays\n  L49 20:38 (imessage) me: what are you watching\n  L50 20:40 (imessage) Maya: just some random baking show\n  L51 20:43 (imessage) me: oh send me the name, I need background noise\n  L52 20:45 (imessage) Maya: will do once this episode ends, it's chaos\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nOTHER POSSIBLY RELATED EVENTS INVOLVING PEOPLE HERE\n  pizza-lunch@2026-09-25 | Fri 2026-09-25 | commitment/happened | Pizza lunch | Mario's on Pine Street | with Maya, Leo\nNO PAGE YET FOR: Maya — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\"diffs\": [], \"reviewed\": [\"aff481\"]}",
+      "parsed": {
+        "diffs": [],
+        "reviewed": [
+          "aff481"
+        ]
+      },
+      "echoed": [
+        "aff481"
+      ],
+      "routed": [
+        {
+          "id": "aff481",
+          "entity": "person:Maya",
+          "label": "Maya",
+          "lines": 52
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "chatcmpl-01a14126-8d6c-73c1-9b22-18fc0c6d0c33",
+      "run_id": 13,
+      "stage": "sweep",
+      "label": "state review",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-09-28T03:00:00-04:00",
+      "max_tokens": 16184,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 652,
+        "completion_tokens": 585,
+        "cached_tokens": 0,
+        "reasoning_tokens": 564,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "You are reviewing the state of a personal memory system right after a batch of writes.\nYou are not adding anything new. You are looking for damage:\n\n  duplicate    two rows that are plainly the same event -> drop the worse-worded one\n  junk         a row or fact that should never have been stored (banter, affection,\n               newsletter events, facts about software, other people's opinions)\n  contradiction  two rows that cannot both be true -> raise a question\n\nA booking that was really made and then called off is a `declined` row, not a duplicate\nor junk. Both rows stay. This summary has no source evidence, so it cannot authorize a\nstatus correction. Leave corrections to Merge and Apply, which can compare source lines.\n\nKEYS ARE OPAQUE\nA row's key is an identifier, not data. It is minted once from the title and the date\nthe row was first seen, and it never changes afterwards — so a row that moved to a new\ndate keeps its original suffix, and `beer-garden@2026-08-01` dated 2026-08-02 is a row\nthat moved, working exactly as intended. The date field is the truth; the key is a\nname. Never raise a question about a key disagreeing with a date.\n\nQUESTIONS ARE FOR THE USER\nEvery question you raise is shown to a person and costs them a reply. Ask only about\ntheir life — never about this system's bookkeeping, formatting, or internal\nconsistency. If the only person who could act on the answer is the system itself, it\nis not a question.\n\nBe conservative. Deleting a real row is worse than leaving a slightly awkward one.\nReturn empty arrays when the state looks fine, which is the common case.\n",
+      "suffix": "MEMCAL AFTER THIS RUN\n  pizza-lunch@2026-09-25 | 2026-09-25 | commitment/happened | Pizza lunch | 13:00 | Mario's on Pine Street | with Maya, Leo\n  pizza@2026-09-25 | 2026-09-25 | commitment/confirmed | Pizza | 19:00 | Rosa's on Oak Street | with Devon\n\nOPEN TO-DOS\n  (none)\n\nQUESTIONS ALREADY OPEN — do not ask any of these again\n  (none)\n\nWRITES IN THIS RUN\n  (none)\n\nReview this state.",
+      "completion": "{\"drop_events\":[],\"drop_todos\":[],\"questions\":[]}",
+      "parsed": {
+        "drop_events": [],
+        "drop_todos": [],
+        "questions": []
+      }
+    }
+  ]
+}

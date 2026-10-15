@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:50:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhen am I calling Jen tomorrow, and what’s it for?",
+  "at": "2026-10-15T10:50:00-04:00",
+  "answer": "10am — to review her job application draft.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E16"
+      },
+      "timestamp": 1792095587406
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E16  Call\n\nwhen: Friday 16 October 2026 at 10:00\nstate: You're going\nwho: Jen\nsource: person:Jen\n\nsources (10 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 11:20 · iMessage with Jen —\n   [2245] Jen · Tue 13 Oct 11:20 · me: same, it's the worst\n   [2246] Jen · Tue 13 Oct 11:20 · me: i can read it tonight if you want\n * [2247] Jen · Tue 13 Oct 11:20 · Jen: would a quick call be easier? i have dumb questions\n   [2249] Jen · Tue 13 Oct 11:25 · me: yeah probably, talking it through is faster\n * [2251] Jen · Tue 13 Oct 11:26 · Jen: would friday at 10 am work for a call?\n * [2252] Jen · Tue 13 Oct 11:26 · me: yeah that works for me\n * [2261] Jen · Tue 13 Oct 11:31 · Jen: perfect, thank youuu\n * [2263] Jen · Tue 13 Oct 11:31 · Jen: i'll send you the draft thursday night so you don't have to read cold\n   [2266] Jen · Tue 13 Oct 11:32 · me: good plan, then we can just review it on the call\n   [2267] Jen · Tue 13 Oct 11:33 · Jen: exactly, just need a second pair of eyes on the job application stuff\n\nchanges:\n  2026-10-14T03:00  date: '' -> '2026-10-16' (by dream:nightly:born)\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'Call' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-14T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 7.5,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261015_161943_012796",
+  "raw_events": 7,
+  "session_id": "20261015_161943_012796",
+  "stderr_full": "\nsession_id: 20261015_161943_012796\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_161943_012796\", \"timestamp\": 1792095583706}\n{\"type\": \"text\", \"text\": \"Pulling the details on that Jen call.\", \"timestamp\": 1792095586870}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E16\"}, \"timestamp\": 1792095587406}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E16  Call\\n\\nwhen: Friday 16 October 2026 at 10:00\\nstate: You're going\\nwho: Jen\\nsource: person:Jen\\n\\nsources (10 line(s); * = what the row was built from):\\n  — Tue Oct 13, 2026 11:20 · iMessage with Jen —\\n   [2245] Jen · Tue 13 Oct 11:20 · me: same, it's the worst\\n   [2246] Jen · Tue 13 Oct 11:20 · me: i can read it tonight if you want\\n * [2247] Jen · Tue 13 Oct 11:20 · Jen: would a quick call be easier? i have dumb questions\\n   [2249] Jen · Tue 13 Oct 11:25 · me: yeah probably, talking it through is faster\\n * [2251] Jen · Tue 13 Oct 11:26 · Jen: would friday at 10 am work for a call?\\n * [2252] Jen · Tue 13 Oct 11:26 · me: yeah that works for me\\n * [2261] Jen · Tue 13 Oct 11:31 · Jen: perfect, thank youuu\\n * [2263] Jen · Tue 13 Oct 11:31 · Jen: i'll send you the draft thursday night so you don't have to read cold\\n   [2266] Jen · Tue 13 Oct 11:32 · me: good plan, then we can just review it on the call\\n   [2267] Jen · Tue 13 Oct 11:33 · Jen: exactly, just need a second pair of eyes on the job application stuff\\n\\nchanges:\\n  2026-10-14T03:00  date: '' -> '2026-10-16' (by dream:nightly:born)\\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-14T03:00  title: '' -> 'Call' (by dream:nightly:born)\\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\\n  2026-10-14T03:00  participants: '' -> '[\\\"Jen\\\"]' (by dream:nightly:born)\\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\\n\", \"duration_ms\": 198, \"is_error\": false, \"timestamp\": 1792095587601}\n{\"type\": \"text\", \"text\": \"\\n\\n10am — to review her\", \"timestamp\": 1792095589418}\n{\"type\": \"text\", \"text\": \" job application draft.\", \"timestamp\": 1792095589458}\n{\"type\": \"result\", \"session_id\": \"20261015_161943_012796\", \"exit_code\": 0, \"text\": \"10am — to review her job application draft.\", \"tokens\": {\"input\": 1725, \"output\": 350, \"total\": 19197, \"cache_read\": 17122, \"cache_write\": 0}, \"duration_ms\": 5797, \"timestamp\": 1792095589503}",
+  "session_input_tokens": 1725,
+  "session_output_tokens": 350,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-15T10:50:00-04:00 [id=578c15ab2cf431a89a6ae61c0ef77d5f1c2a861c] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Thursday 15 October 2026)\n〔E11〕 · Mon Oct 12  \"potato salad pickup\" — could go · from Devon\n〔E16〕 Fri Oct 16  \"Call\", 10am — confirmed · with Jen\n〔E17〕 Fri Oct 16  \"Coffee\", 11am — confirmed · with Alex\n〔E13〕 Fri Oct 16  \"Lunch\", 12pm — confirmed · with Leo, Maya\n〔E14〕 Fri Oct 16  \"Park walk\", 2pm — not going · with Alex, Jen\n〔E15〕 Fri Oct 16  \"Pizza\", 6pm — confirmed · with Devon\n〔E18〕 Sat Oct 17  \"Pizza\" — could go · with Maya\n〔E12〕 Sat Oct 17  \"Dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-12 – 2026-11-14; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n\n## People and facts\nPages: lunch (where) · maya (diet) · pizza (where) · pizza-lunch (where)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-rs877epu",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-rs877epu",
+    "system_prompt_sha256": "2e32caee3dd310ae1794beff70b8419ac77107044a8f32a06b34586477653aee",
+    "reason": "No project context in native saved system prompt"
+  }
+}

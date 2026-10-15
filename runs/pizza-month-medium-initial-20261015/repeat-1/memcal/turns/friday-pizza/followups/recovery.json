@@ -1,0 +1,298 @@
+{
+  "state": "complete",
+  "plan_hash": "8cba5f71b462851e0b40bb4292d9c0dcfcbf5aab04795afb3858eb16c262c321",
+  "attempts": [
+    {
+      "claim_ids": [
+        "friday-count",
+        "noon-time",
+        "noon-venue",
+        "noon-street",
+        "noon-attendees"
+      ],
+      "question": "Besides tomorrow's 6pm with Devon at Luigi's, how many other pizza outings are there tomorrow and what are their times, venues, streets, and full attendee lists?",
+      "state": "graded",
+      "verdicts": [
+        {
+          "id": "friday-count",
+          "verdict": "misrepresented",
+          "reason": "Answer asserts tomorrow's only pizza outing is the 6pm with Devon, contradicting exactly two outings."
+        },
+        {
+          "id": "noon-time",
+          "verdict": "missed",
+          "reason": "Answer mentions only 6pm for Devon outing and gives no noon time for a Mario's outing."
+        },
+        {
+          "id": "noon-venue",
+          "verdict": "missed",
+          "reason": "Answer does not mention Mario's at all, only the 6pm with Devon."
+        },
+        {
+          "id": "noon-street",
+          "verdict": "missed",
+          "reason": "Answer mentions no Pine Street or street for another outing."
+        },
+        {
+          "id": "noon-attendees",
+          "verdict": "missed",
+          "reason": "Answer lists no attendee list with Maya for another outing, only Devon for the 6pm."
+        }
+      ],
+      "metrics": {
+        "top_level_calls": 0,
+        "total_tool_operations": 0,
+        "provider_internal_tool_calls": null,
+        "provider_task_records": 0,
+        "provider_internal_operations": [],
+        "provider_internal_source_fallback_confirmed": false,
+        "provider_internal_path_needs_review": false,
+        "categories": {},
+        "operations": [],
+        "failed_operations": 0,
+        "repeated_operations": 0,
+        "unmatched_tool_results": [],
+        "source_fallback_attempted": false,
+        "unclassified_operations": 0,
+        "latency_s": 10.56,
+        "input_tokens": null,
+        "output_tokens": 236,
+        "policy_blocks": 0,
+        "returncode": 0
+      },
+      "question_authoring_reused": false,
+      "question_hash": "5387773d66832c361402a50ff3a45288b41abf3b156f5e6e103fc4293d1c3899",
+      "gateway_window": {
+        "projects": [
+          {
+            "project": "pacbench-2f36e830adba-mem0-driver",
+            "calls_delta": 0,
+            "settled_upper_bound_usd_delta": 0.0005929999999999998,
+            "held_usd_delta": -0.1081344,
+            "input_tokens_delta": 5040,
+            "output_tokens_delta": 445
+          },
+          {
+            "project": "pacbench-2f36e830adba-mem0-memory",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.0013694000000000067,
+            "held_usd_delta": 0.0,
+            "input_tokens_delta": 7764,
+            "output_tokens_delta": 2965
+          },
+          {
+            "project": "pacbench-d6d4cec02085-memcal-driver",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.0012342999999999998,
+            "held_usd_delta": 0.0,
+            "input_tokens_delta": 10771,
+            "output_tokens_delta": 786
+          },
+          {
+            "project": "pacbench-judge",
+            "calls_delta": 1,
+            "settled_upper_bound_usd_delta": 0.0,
+            "held_usd_delta": 0.1081344,
+            "input_tokens_delta": 0,
+            "output_tokens_delta": 0
+          }
+        ],
+        "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+      }
+    }
+  ],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E15"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095333674,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E15  Pizza\n\nwhen: Friday 16 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th Street\nwho: Devon\nsource: person:Devon\n\npages: pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Mon Oct 12, 2026 18:24 · iMessage with Devon —\n * [1895] Devon · Mon 12 Oct 18:24 · Devon: hey you wanna do pizza friday after work?\n * [1903] Devon · Mon 12 Oct 18:31 · me: oh yeah i'm down, been craving cheesy slices\n * [1909] Devon · Mon 12 Oct 18:38 · Devon: wanna do Luigi's on 5th Street?\n * [1915] Devon · Mon 12 Oct 18:44 · me: oh yes their garlic knots, i'm in\n   [1920] Devon · Mon 12 Oct 18:46 · Devon: lol i knew you'd say that\n   [1923] Devon · Mon 12 Oct 18:48 · me: those didn't even survive the drive home last time\n   [1934] Devon · Mon 12 Oct 18:55 · Devon: same, ate mine in the car no shame\n * [1935] Devon · Mon 12 Oct 18:55 · me: so friday at Luigi's?\n * [1936] Devon · Mon 12 Oct 18:56 · Devon: yeah is 6 pm good for you?\n * [1937] Devon · Mon 12 Oct 18:56 · me: yeah that works, i can head straight from the office\n   [1939] Devon · Mon 12 Oct 18:56 · Devon: perfect, i can leave on time too\n   [1943] Devon · Mon 12 Oct 19:03 · me: rare win for us\n\nchanges:\n  2026-10-13T03:00  kind: '' -> 'commitment' (by dream:nightly:born)\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born)\n  2026-10-13T03:00  title: '' -> 'Pizza' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 12.37,
+    "input_tokens": 19331,
+    "output_tokens": 550,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "friday-count",
+      "kind": "implicit_omission",
+      "reason": "Omitted second outing; broad 'deal with pizza' is not explicit request for count."
+    },
+    {
+      "id": "noon-time",
+      "kind": "implicit_omission",
+      "reason": "Omitted noon time without saying unknown; broad question not explicit for this detail."
+    },
+    {
+      "id": "noon-venue",
+      "kind": "implicit_omission",
+      "reason": "Omitted Mario's venue without saying unknown; broad question not explicit."
+    },
+    {
+      "id": "noon-street",
+      "kind": "implicit_omission",
+      "reason": "Omitted Pine Street without saying unknown; broad question not explicit."
+    },
+    {
+      "id": "noon-attendees",
+      "kind": "implicit_omission",
+      "reason": "Omitted Maya attendees without saying unknown; broad question not explicit."
+    },
+    {
+      "id": "evening-time",
+      "kind": "provided",
+      "reason": "Answer explicitly gives Fri Oct 16, 6pm."
+    },
+    {
+      "id": "evening-venue",
+      "kind": "provided",
+      "reason": "Answer explicitly gives Luigi's."
+    },
+    {
+      "id": "evening-street",
+      "kind": "provided",
+      "reason": "Answer explicitly gives on 5th Street."
+    },
+    {
+      "id": "evening-attendees",
+      "kind": "provided",
+      "reason": "Answer explicitly gives with Devon and you're confirmed."
+    }
+  ],
+  "eligible_claim_ids": [
+    "friday-count",
+    "noon-time",
+    "noon-venue",
+    "noon-street",
+    "noon-attendees"
+  ],
+  "score": {
+    "initial_correct": 4,
+    "initial_missed": 5,
+    "initial_misrepresented": 0,
+    "max_points": 9,
+    "points": 4.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "friday-count",
+        "initial_verdict": "missed",
+        "followup_verdict": "misrepresented",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "noon-time",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "noon-venue",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "noon-street",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "noon-attendees",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "evening-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "evening-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "evening-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "evening-attendees",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

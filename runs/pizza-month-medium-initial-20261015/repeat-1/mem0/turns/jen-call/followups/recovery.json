@@ -1,0 +1,96 @@
+{
+  "state": "complete",
+  "plan_hash": "2b98a514305fc35f356c61ad2534418f1fa12f7dc66961c90477763df6e0550b",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "calling Jen tomorrow call time purpose",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095493711,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"f559b666-6570-4b40-9716-be0ee32a9324\", \"memory\": \"Jen is applying internally for a coordinator role on the same team but with a different manager, due Friday afternoon October 16, 2026, struggling with a fake-sounding opening paragraph of her cover letter; User agreed to review it on a call Friday October 16 at 10am after Jen sends the draft Thursday night.\", \"score\": 0.8023830403895237}, {\"id\": \"8fca84fd-fa13-4730-9b3d-d3c88c09bb1e\", \"memory\": \"On the evening of October 4, 2026, Jen had leftover soup for dinner and planned soup then trash TV and early bed, while User was indecisive between pasta and cereal, feeling too lazy to boil water for pasta and calling it Sunday evening brain.\", \"score\": 0.7967196210855523}, {\"id\": \"76202fbc-e861-49ac-9fcb-42b431ac1fbe\", \"memory\": \"Jen's sister is visiting for the weekend arriving Thursday night Oct 15, planning to chill and bake banana bread if bananas ripen, with Alex's tip to ripen them in oven with light on. User has a dentist appointment Oct 13 and called cereal for lunch elite.\", \"score\": 0.774326904089826}, {\"id\": \"ab21c146-3b55-4647-a6ff-a7e8a4dcb908\", \"memory\": \"On October 4, 2026, User's cat was back on staring duty, sitting on the armrest just watching User, with User saying she was judging hard about the pasta indecision and Jen jokingly calling her a creepy gremlin who should judge.\", \"score\": 0.7513034433195984}, {\"id\": \"b8a8ddf4-0200-4f8c-b5d4-169541bb9e03\", \"memory\": \"User, Jen and Alex postponed their Friday plan on October 14, 2026. Jen cancelled because her sister arrives the night of October 15 requiring schedule shifts, Alex also cancelled citing a weird week, and all three agreed to raincheck with zero guilt and figure it out later.\", \"score\": 0.6945441910085997}, {\"id\": \"beae59da-debc-44e1-aefc-a4d4e9cd3b35\", \"memory\": \"User, Jen and Alex planned a Willow Park walk Friday Oct 16 at 2pm for an hour max, meeting at west entrance by the duck pond to see baby ducks spotted last week. Jen must run after to pick up her sister at 4pm, recalling Alex once went to the north side in rain.\", \"score\": 0.6661785897758605}, {\"id\": \"d4c0e93f-d609-49a0-bd7d-f34d6cad6be1\", \"memory\": \"On October 13, 2026, Jen had back-to-back meetings since 9am with only sad burnt hallway coffee and a soggy salad in the fridge for desk lunch, and said her office lobby leak is finally fixed but the elevator now smells like paint, a bare upgrade from wet socks.\", \"score\": 0.5726337163579496}, {\"id\": \"0d0d28a8-a0b0-4386-839d-3bfb8b57aaf8\", \"memory\": \"As of October 14, 2026, Jen is on episode 5 of the lighthouse show and says it's getting good with no spoilers, Alex is behind and plans to catch up that night, and User needs something to watch while folding laundry. Maya was also folding two shirts while listening to a chaotic food podcast joking Saturday is pizza's emotional support day.\", \"score\": 0.5617579288189882}, {\"id\": \"89a7c22a-8399-48d2-a834-b6575dfde7a1\", \"memory\": \"As of October 4, 2026, Jen had bought a cheap black replacement umbrella at lunch the Monday after her previous umbrella incident, reporting it was holding up so far but it had not rained much since the purchase.\", \"score\": 0.5580884059407962}, {\"id\": \"5ba82e32-2e45-40a3-a45f-d33876b57eba\", \"memory\": \"Last Sunday, October 11, 2026, User made pasta instead of cereal after forcing to boil water, while Jen had soup then fell asleep at 9:30pm watching TV after a dumb book ending she is now less mad about but still donating, with the book already bagged by the door and taking a reading break.\", \"score\": 0.5551372655114748}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.3,
+    "input_tokens": 2638,
+    "output_tokens": 648,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-time",
+      "kind": "provided",
+      "reason": "Time correctly conveyed in answer."
+    },
+    {
+      "id": "jen-call-purpose",
+      "kind": "provided",
+      "reason": "Purpose correctly conveyed as cover letter review."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "jen-call-purpose",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

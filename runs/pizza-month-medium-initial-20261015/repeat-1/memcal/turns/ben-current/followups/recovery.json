@@ -1,0 +1,109 @@
+{
+  "state": "complete",
+  "plan_hash": "70fd4356bf0180370e3c47bb77d3e300cd54826fc2cb9a7a43aa646534510320",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E12"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792095490320,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E12  Dinner\n\nwhen: Saturday 17 October 2026 at 19:00\nstate: You're going\nwhere: Juniper Cafe, 45 Elm Street\nwho: Ben\nsource: person:Ben\n\nsources (12 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 13:45 · email · Ben —\n * [2356] Ben · Tue 13 Oct 13:45 · me: Re: Dinner No worries at all, work happens! Saturday at 7pm at Juniper Cafe works for me. Let's do Saturday instead of Thursday. See you then!\n  — Mon Oct 12, 2026 18:52 · iMessage with Ben · 1 day earlier —\n   [1931] Ben · Mon 12 Oct 18:52 · Ben: I have nothing that night I think\n   [1938] Ben · Mon 12 Oct 18:56 · me: nice, somewhere easy?\n * [1950] Ben · Mon 12 Oct 19:08 · Ben: what about juniper cafe thursday at 7?\n * [1955] Ben · Mon 12 Oct 19:12 · me: yeah that works\n   [1959] Ben · Mon 12 Oct 19:12 · me: I haven't been there in forever\n   [1962] Ben · Mon 12 Oct 19:16 · Ben: me neither, their fries are so good tho\n  — Mon Oct 12, 2026 20:00 · email · Ben —\n * [2070] Ben · Mon 12 Oct 20:00 · Ben: Dinner Hi! Following up from our DM — here's the address for dinner Thursday at 7pm at Juniper Cafe: 45 Elm Street. See you there!\n * [2069] Ben · Mon 12 Oct 21:15 · me: Re: Dinner Thanks Ben! Confirming our same plan from DM — Thursday at 7pm at Juniper Cafe. See you then!\n  — Tue Oct 13, 2026 10:00 · email · Ben · 1 day later —\n * [2357] Ben · Tue 13 Oct 10:00 · Ben: Re: Dinner Hi! Writing from work — bad news on my end. A work deadline just came up and I can't get away Thursday evening. Can we move our dinner to Saturday at 7pm instead? Still Juniper Cafe? Let me know if that works!\n  — Wed Oct 14, 2026 10:15 · email · Ben · 1 day later —\n   [2659] Ben · Wed 14 Oct 10:15 · Ben: Re: Dinner Thanks again for being flexible yesterday! Just called Juniper Cafe and they moved our reservation to Saturday at 7pm. So we're all set for Saturday — Thursday is off. See you then!\n   [2658] Ben · Wed 14 Oct 11:45 · me: Re: Dinner Perfect, thanks for sorting it! See you Saturday at 7pm at Juniper!\n\nchanges:\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born)\n  2026-10-13T03:00  title: '' -> 'Dinner' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> 'Juniper Cafe, 45 Elm Street' (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Ben\"]' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Ben' (by dream:nightly:born-day)\n  2026-10-14T03:00  date: '2026-10-15' -> '2026-10-17' (by dream:nightly)\n  2026-10-14T03:00  time: '19:00' -> '19:00' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.79,
+    "input_tokens": 1510,
+    "output_tokens": 424,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-day",
+      "kind": "provided",
+      "reason": "Day correctly conveyed"
+    },
+    {
+      "id": "ben-time",
+      "kind": "provided",
+      "reason": "Time correctly conveyed"
+    },
+    {
+      "id": "ben-venue",
+      "kind": "provided",
+      "reason": "Venue correctly conveyed"
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "ben-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "ben-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -2,6 +2,9 @@
 
 let selectedDay = "";
 let selectedProvider = "";
+const dayFormatters = new Map();
+const timeFormatters = new Map();
+const readableDayFormatter = new Intl.DateTimeFormat("en-US", {timeZone:"UTC",weekday:"long",month:"short",day:"numeric"});
 
 function zoneOf(run) { return run.resolved_spec?.timezone || run.spec?.timezone || ""; }
 function dayKey(value, run) {
@@ -11,7 +14,9 @@ function dayKey(value, run) {
     const stamp = new Date(value);
     if (!Number.isNaN(stamp.valueOf())) {
       try {
-        const parts = new Intl.DateTimeFormat("en-US", {timeZone: zone, year:"numeric", month:"2-digit", day:"2-digit"}).formatToParts(stamp);
+        if (!dayFormatters.has(zone)) dayFormatters.set(zone,
+          new Intl.DateTimeFormat("en-US", {timeZone: zone, year:"numeric", month:"2-digit", day:"2-digit"}));
+        const parts = dayFormatters.get(zone).formatToParts(stamp);
         const part = type => parts.find(p => p.type === type).value;
         return `${part("year")}-${part("month")}-${part("day")}`;
       } catch { /* Preserve the saved local date if a historical zone is unavailable. */ }
@@ -21,12 +26,17 @@ function dayKey(value, run) {
 }
 function readableDay(value) {
   if (!/^\d{4}-\d\d-\d\d$/.test(value)) return "Date not captured";
-  return new Intl.DateTimeFormat("en-US", {timeZone:"UTC",weekday:"long",month:"short",day:"numeric"}).format(new Date(value + "T12:00:00Z"));
+  return readableDayFormatter.format(new Date(value + "T12:00:00Z"));
 }
 function localClock(value, run) {
   if (!value) return "Time not captured";
   if (zoneOf(run) && /(?:Z|[+-]\d\d:\d\d)$/.test(value)) {
-    try { return new Intl.DateTimeFormat("en-US", {timeZone:zoneOf(run),hour:"numeric",minute:"2-digit"}).format(new Date(value)); } catch { /* saved time below */ }
+    try {
+      const zone = zoneOf(run);
+      if (!timeFormatters.has(zone)) timeFormatters.set(zone,
+        new Intl.DateTimeFormat("en-US", {timeZone:zone,hour:"numeric",minute:"2-digit"}));
+      return timeFormatters.get(zone).format(new Date(value));
+    } catch { /* saved time below */ }
   }
   return String(value).slice(11,16) || "Time not captured";
 }
@@ -93,8 +103,13 @@ function dayTimeline(run) {
   const messages = sources(run).filter(m => dayKey(m.written_at,run) === selectedDay);
   const arm = run.arms?.[selectedProvider];
   const events = arm ? eventsOnDay(arm,selectedDay,run) : [];
+  const sourceCounts = new Map();
+  for (const message of sources(run)) {
+    const date = dayKey(message.written_at,run);
+    sourceCounts.set(date,(sourceCounts.get(date) || 0)+1);
+  }
   const dayButtons = days.map(date => {
-    const count = sources(run).filter(m => dayKey(m.written_at,run) === date).length;
+    const count = sourceCounts.get(date) || 0;
     const turns = Object.values(run.arms || {}).reduce((total,provider)=>total+eventsOnDay(provider,date,run).length,0);
     return '<button type="button" data-day="' + esc(date) + '" aria-pressed="' + (date===selectedDay) + '" class="day-chip ' +
       (date===selectedDay?'active':'') + '"><strong>' + esc(readableDay(date)) + '</strong><span>' + count + ' texts · ' + turns + ' turns</span></button>';

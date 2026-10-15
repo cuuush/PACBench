@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-15T20:19:54.895937+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-15T11:20:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAnything I need to keep in mind about food for Maya tomorrow?\nAnswer: Yes — tomorrow is your noon pizza at Rosa's with Maya and Leo, and Maya is on day 5 of her strict dairy-free test.\n\nKeep in mind: no milk, cheese, or butter at all — not just lactose. Her stomach has been much better with no bloat since Oct 11 on oat milk, but she misses real cheese.\n\nFor Rosa's that meant marinara veggie pizza with no cheese plus salad, asking for no cheese and no butter. Skip the garlic knots for her or ask light — the buttery ones upset her stomach before.\nClaims (hidden from the assistant): [{\"id\": \"maya-dairy-free-friday\", \"claim\": \"For the pizza with Maya on Friday, October 16, Maya needs dairy-free food.\", \"evidence\": [\"message-c910d49bde3e04eca717514c\", \"message-531883d4c47cefef329ec57b\", \"message-21b2f4a45feddab7a420019d\"]}]"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a14138-a966-7374-87dd-06e80db629dd",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"verdicts\": [{\"id\": \"maya-dairy-free-friday\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya is on day 5 of strict dairy-free test with no milk, cheese, or butter for tomorrow's pizza.\"}], \"recovery\": [{\"id\": \"maya-dairy-free-friday\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792095594,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 1415,
+      "prompt_tokens": 778,
+      "total_tokens": 2193,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1307
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 483
+      }
+    }
+  },
+  "text": "{\"verdicts\": [{\"id\": \"maya-dairy-free-friday\", \"verdict\": \"correct\", \"reason\": \"Answer states Maya is on day 5 of strict dairy-free test with no milk, cheese, or butter for tomorrow's pizza.\"}], \"recovery\": [{\"id\": \"maya-dairy-free-friday\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "usage": {
+    "completion_tokens": 1415,
+    "prompt_tokens": 778,
+    "total_tokens": 2193,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1307
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 483
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

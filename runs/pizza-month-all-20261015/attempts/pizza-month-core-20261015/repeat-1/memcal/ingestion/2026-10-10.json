@@ -1,0 +1,205 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "memcal",
+  "at": "2026-10-10T15:20:00-04:00",
+  "processing_at": "2026-10-11T03:00:00-04:00",
+  "document_sha256": "67cb33c744a4411e78032b97f9ca28d7c63006b96ff806d3a8fff64f2c3f399b",
+  "source_ids": [
+    "message-6800ec1b32735c44e458225d",
+    "message-12c461fc4494e4792f4c585f",
+    "message-45d7bc58067d75251d313421",
+    "message-0e6d105e138a149931615361"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"native source readers + native nightly dream\", \"contacts\": {\"linked\": 12, \"report\": \"linked 12 handles from 1 source(s)\"}, \"ingest\": {\"channel\": \"imessage\", \"read\": 4, \"archived\": 4, \"passed\": 4, \"error\": null, \"notes\": [], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null, \"last_rowid\": 107, \"floor\": \"2026-10-09T20:20:00-04:00\"}, \"bundles\": [{\"run_id\": 26, \"entity\": \"person:Maya\", \"bundle_id\": \"aff481\", \"label\": \"Maya\", \"kind\": \"person\", \"lines\": 4, \"state\": \"reading\", \"updated_at\": \"2026-10-11T03:00:00-04:00\"}], \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/memcal/ingestion-model-calls/2026-10-10.json\", \"native_event_state\": [{\"key\": \"catch-up@2026-09-18\", \"date\": \"2026-09-18\", \"time\": \"13:00\", \"title\": \"catch-up\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-09-18\", \"date\": \"2026-09-18\", \"time\": \"18:00\", \"title\": \"pizza\", \"location\": \"Luigi's on 5th Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-09-25\", \"date\": \"2026-09-25\", \"time\": \"13:00\", \"title\": \"pizza\", \"location\": \"Mario's on Pine Street\", \"status\": \"happened\", \"participants\": \"[\\\"Maya\\\", \\\"Leo\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-09-25~2\", \"date\": \"2026-09-25\", \"time\": \"19:00\", \"title\": \"pizza\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-02\", \"date\": \"2026-10-02\", \"time\": \"12:30\", \"title\": \"Pizza\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-02~2\", \"date\": \"2026-10-02\", \"time\": \"18:00\", \"title\": \"Pizza\", \"location\": \"Mario's on Pine\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-09\", \"date\": \"2026-10-09\", \"time\": \"12:00\", \"title\": \"Pizza\", \"location\": \"Luigi's on 5th Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\", \\\"Leo\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza@2026-10-09~2\", \"date\": \"2026-10-09\", \"time\": \"18:30\", \"title\": \"Pizza\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}], \"processing\": {\"run_id\": 26, \"errors\": [], \"report\": \"dream run #26 — 1 bundles, 4 items, 0 writes\\n  series    pizza\\n  usage: 2 calls · 4371 in (3554 cached) · 1404 out · cost not reported\"}, \"readiness\": \"Native dream completion without errors\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 12,
+      "report": "linked 12 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 4,
+      "archived": 4,
+      "passed": 4,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 107,
+      "floor": "2026-10-09T20:20:00-04:00"
+    },
+    "bundles": [
+      {
+        "run_id": 26,
+        "entity": "person:Maya",
+        "bundle_id": "aff481",
+        "label": "Maya",
+        "kind": "person",
+        "lines": 4,
+        "state": "reading",
+        "updated_at": "2026-10-11T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/memcal/ingestion-model-calls/2026-10-10.json",
+    "native_event_state": [
+      {
+        "key": "catch-up@2026-09-18",
+        "date": "2026-09-18",
+        "time": "13:00",
+        "title": "catch-up",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-09-18",
+        "date": "2026-09-18",
+        "time": "18:00",
+        "title": "pizza",
+        "location": "Luigi's on 5th Street",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-09-25",
+        "date": "2026-09-25",
+        "time": "13:00",
+        "title": "pizza",
+        "location": "Mario's on Pine Street",
+        "status": "happened",
+        "participants": "[\"Maya\", \"Leo\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-09-25~2",
+        "date": "2026-09-25",
+        "time": "19:00",
+        "title": "pizza",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-02",
+        "date": "2026-10-02",
+        "time": "12:30",
+        "title": "Pizza",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-02~2",
+        "date": "2026-10-02",
+        "time": "18:00",
+        "title": "Pizza",
+        "location": "Mario's on Pine",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-09",
+        "date": "2026-10-09",
+        "time": "12:00",
+        "title": "Pizza",
+        "location": "Luigi's on 5th Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\", \"Leo\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-10-09~2",
+        "date": "2026-10-09",
+        "time": "18:30",
+        "title": "Pizza",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 26,
+      "errors": [],
+      "report": "dream run #26 — 1 bundles, 4 items, 0 writes\n  series    pizza\n  usage: 2 calls · 4371 in (3554 cached) · 1404 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "latency_s": 10.92,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:11:22.694720+00:00",
+    "finished": "2026-10-15T05:11:33.612108+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 4371,
+        "output_tokens": 1404,
+        "accounted_upper_bound_usd": 0.0007178999999999999,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "d6c82633c8de4670a2ae6c4276a963bb",
+        "project": "pacbench-fa8e373795a3-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:11:22.866960+00:00",
+        "finished": "2026-10-15T05:11:29.657605+00:00",
+        "state": "settled",
+        "input_tokens": 3719,
+        "output_tokens": 954,
+        "accounted": 562700,
+        "reserved": 108076200,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005627
+      },
+      {
+        "id": "b5068767c7c1485cbd2f970e491aa167",
+        "project": "pacbench-fa8e373795a3-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:11:29.679218+00:00",
+        "finished": "2026-10-15T05:11:33.546371+00:00",
+        "state": "settled",
+        "input_tokens": 652,
+        "output_tokens": 450,
+        "accounted": 155200,
+        "reserved": 108093400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0001552
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

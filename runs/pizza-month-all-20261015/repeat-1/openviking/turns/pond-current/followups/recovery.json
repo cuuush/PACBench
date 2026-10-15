@@ -1,0 +1,160 @@
+{
+  "state": "complete",
+  "plan_hash": "44e93524da6080322308d87689cc2a0a8020e05d35378ca7d4281bf47a392d23",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 4,
+    "total_tool_operations": 4,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 3,
+      "source_evidence": 1
+    },
+    "operations": [
+      {
+        "name": "viking_search",
+        "arguments": {
+          "limit": 10,
+          "mode": "auto",
+          "query": "duck pond meeting tomorrow"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792071855308,
+        "result": {
+          "tool": "viking_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"uri\": \"viking://resources/2026-10-01/.abstract.md\", \"type\": \"resource\", \"score\": 0.772, \"abstract\": \"This directory documents a short personal communication record from October 1 2026 focused on clarification of plans for tomorrow.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/15/friday_crew_lunch.md\", \"type\": \"memorie\", \"score\": 0.762, \"abstract\": \"# Summary\\nThe user has a pizza lunch with Maya and Leo on 2026-10-16 at noon at Mario's on Pine Street. The plan was originally Rosa's on Oak Street at noon until on the morning of 2026-10-14 Maya said Rosa's is closed and proposed Mario's at the same time, which the user and Leo both confirmed.\\n# 2026-10-15 (Thursday) ChatLog:\\n**user**: [Simulated now: 2026-10-15T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat’s the deal with pizza tomorrow?\\n...\\n**assistant**: Tomorrow is Friday Oct 16 and you have two pizza plans:\\n\\nNoon with Maya and Leo (Friday crew) at Mario's on Pine Street. That was Rosa's on Oak Street at noon until yesterday morning when Maya said Rosa's is closed and proposed Mario's at the same time....\"}, {\"uri\": \"viking://resources/2026-09-24/.abstract.md\", \"type\": \"resource\", \"score\": 0.759, \"abstract\": \"This directory captures a brief informal personal coordination record centered on a Friday crew iMessage group conversation among Me, Maya, and Leo about rescheduling a pizza meetup.\"}, {\"uri\": \"viking://resources/2026-09-23/.abstract.md\", \"type\": \"resource\", \"score\": 0.758, \"abstract\": \"This directory captures a brief personal coordination record from September 23, 2026, centered on arranging a social meeting for pizza.\"}, {\"uri\": \"viking://resources/2026-09-18/.abstract.md\", \"type\": \"resource\", \"score\": 0.758, \"abstract\": \"This directory captures a brief personal chat transcript documenting everyday coordination for a lunch plan on September 18.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/15/.overview.md\", \"type\": \"memorie\", \"score\": 0.758, \"abstract\": \"# Events Overview\\n\\n- [The user has a pizza dinner with Devon on 2026-10-16 at 18:00 at Luigi's on 5th. The plan started as Rosa's at 18:30 and was confirmed on 2026-10-14 as Luigi's on Friday at 18:00.](./devon_pizza_dinner.md)\\n\\n- [The user has a pizza lunch with Maya and Leo on 2026-10-16 at noon at Mario's on Pine Street. The plan was originally Rosa's on Oak Street at noon until on the morning of 2026-10-14 Maya said Rosa's is closed and proposed Mario's at the same time, which the user and Leo both confirmed.](./friday_crew_lunch.md)\"}, {\"uri\": \"viking://resources/2026-10-08/.abstract.md\", \"type\": \"resource\", \"score\": 0.754, \"abstract\": \"This directory captures a short personal group messaging record from October 8 2026, centered on coordination and confirmation of social plans.\"}, {\"uri\": \"viking://resources/2026-09-28/.abstract.md\", \"type\": \"resource\", \"score\": 0.751, \"abstract\": \"This directory documents a brief personal chat arranging a pizza meetup on Friday, preserved as an iMessage message log. It covers four sequential exchanges in the same thread between Me and Maya, including timestamps, sender information, and message text.\"}, {\"uri\": \"viking://resources/2026-10-03/.abstract.md\", \"type\": \"resource\", \"score\": 0.749, \"abstract\": \"This directory captures a brief personal chat log centered on confirming a meeting location detail. It documents an iMessage exchange about which street Luigi's is located on, using prior chat history for verification.\"}], \"total\": 9}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "viking_browse",
+        "arguments": {
+          "action": "list",
+          "path": "viking://resources/2026-10-01/"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792071859078,
+        "result": {
+          "tool": "viking_browse",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"path\": \"viking://resources/2026-10-01/\", \"entries\": [{\"name\": \"2026-10-01.md\", \"uri\": \"viking://resources/2026-10-01/2026-10-01.md\", \"type\": \"file\", \"abstract\": \"\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "viking_search",
+        "arguments": {
+          "limit": 10,
+          "mode": "fast",
+          "query": "duck pond"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792071859110,
+        "result": {
+          "tool": "viking_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"uri\": \"viking://resources/2026-09-20/.abstract.md\", \"type\": \"resource\", \"score\": 0.727, \"abstract\": \"This directory contains a short personal chat transcript capturing a casual humorous exchange about a newly bought basil plant.\"}, {\"uri\": \"viking://resources/2026-09-28/.abstract.md\", \"type\": \"resource\", \"score\": 0.723, \"abstract\": \"This directory documents a brief personal chat arranging a pizza meetup on Friday, preserved as an iMessage message log. It covers four sequential exchanges in the same thread between Me and Maya, including timestamps, sender information, and message text.\"}, {\"uri\": \"viking://resources/2026-10-03/.abstract.md\", \"type\": \"resource\", \"score\": 0.722, \"abstract\": \"This directory captures a brief personal chat log centered on confirming a meeting location detail. It documents an iMessage exchange about which street Luigi's is located on, using prior chat history for verification.\"}, {\"uri\": \"viking://resources/2026-09-15/.abstract.md\", \"type\": \"resource\", \"score\": 0.721, \"abstract\": \"This directory captures a short personal coordination record centered on planning a social catch-up.\"}, {\"uri\": \"viking://resources/2026-09-22/.abstract.md\", \"type\": \"resource\", \"score\": 0.72, \"abstract\": \"This directory preserves a personal messaging record from September 22, 2026, centered on team lunch experience and informal pizza outing planning.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/15/.overview.md\", \"type\": \"memorie\", \"score\": 0.72, \"abstract\": \"# Events Overview\\n\\n- [The user has a pizza dinner with Devon on 2026-10-16 at 18:00 at Luigi's on 5th. The plan started as Rosa's at 18:30 and was confirmed on 2026-10-14 as Luigi's on Friday at 18:00.](./devon_pizza_dinner.md)\\n\\n- [The user has a pizza lunch with Maya and Leo on 2026-10-16 at noon at Mario's on Pine Street. The plan was originally Rosa's on Oak Street at noon until on the morning of 2026-10-14 Maya said Rosa's is closed and proposed Mario's at the same time, which the user and Leo both confirmed.](./friday_crew_lunch.md)\"}, {\"uri\": \"viking://resources/2026-09-16/.abstract.md\", \"type\": \"resource\", \"score\": 0.718, \"abstract\": \"This directory captures a short casual iMessage conversation log documenting a social plan between two participants.\"}, {\"uri\": \"viking://resources/2026-09-18/.abstract.md\", \"type\": \"resource\", \"score\": 0.718, \"abstract\": \"This directory captures a brief personal chat transcript documenting everyday coordination for a lunch plan on September 18.\"}, {\"uri\": \"viking://resources/2026-09-27/.abstract.md\", \"type\": \"resource\", \"score\": 0.718, \"abstract\": \"This directory captures a personal chat log from September 27, 2026, documenting casual Sunday downtime between two participants.\"}, {\"uri\": \"viking://resources/2026-10-10/.abstract.md\", \"type\": \"resource\", \"score\": 0.717, \"abstract\": \"This directory captures a personal iMessage conversation log from October 10, 2026 between Me and Maya documenting a birthday plan update.\"}], \"total\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "viking_read",
+        "arguments": {
+          "level": "full",
+          "uri": "viking://resources/2026-10-01/2026-10-01.md"
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792071860061,
+        "result": {
+          "tool": "viking_read",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"uri\": \"viking://resources/2026-10-01/2026-10-01.md\", \"resolved_uri\": \"viking://resources/2026-10-01/2026-10-01.md\", \"level\": \"full\", \"content\": \"{\\\"arrived_at\\\": \\\"2026-10-01T19:00:00-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"collected_at\\\": \\\"2026-10-01T19:00:00-04:00\\\", \\\"from_owner\\\": false, \\\"sender\\\": \\\"Maya\\\", \\\"source_id\\\": \\\"message-b4c5c328adf4afab27c5d6de\\\", \\\"structured\\\": {\\\"chat_name\\\": \\\"\\\", \\\"participants\\\": [\\\"Me\\\", \\\"Maya\\\"]}, \\\"text\\\": \\\"omg i've been scrolling luigi's menu for tomorrow and nothing looked right lol\\\", \\\"thread\\\": \\\"thread-6956a8ddb6f1be6162de33e9\\\", \\\"written_at\\\": \\\"2026-10-01T19:00:00-04:00\\\"}\\n{\\\"arrived_at\\\": \\\"2026-10-01T19:04:00-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"collected_at\\\": \\\"2026-10-01T19:04:00-04:00\\\", \\\"from_owner\\\": false, \\\"sender\\\": \\\"Maya\\\", \\\"source_id\\\": \\\"message-b693c72be032b0bf01ecc239\\\", \\\"structured\\\": {\\\"chat_name\\\": \\\"\\\", \\\"participants\\\": [\\\"Me\\\", \\\"Maya\\\"]}, \\\"text\\\": \\\"wait duh, we're still doing Rosa's on Oak Street at 12:30 tomorrow right?\\\", \\\"thread\\\": \\\"thread-6956a8ddb6f1be6162de33e9\\\", \\\"written_at\\\": \\\"2026-10-01T19:04:00-04:00\\\"}\\n{\\\"arrived_at\\\": \\\"2026-10-01T19:16:00-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"collected_at\\\": \\\"2026-10-01T19:16:00-04:00\\\", \\\"from_owner\\\": true, \\\"sender\\\": \\\"Me\\\", \\\"source_id\\\": \\\"message-4ccf5818dc3d6b9d6222cf19\\\", \\\"structured\\\": {\\\"chat_name\\\": \\\"\\\", \\\"participants\\\": [\\\"Me\\\", \\\"Maya\\\"]}, \\\"text\\\": \\\"haha yeah, Rosa's at 12:30\\\", \\\"thread\\\": \\\"thread-6956a8ddb6f1be6162de33e9\\\", \\\"written_at\\\": \\\"2026-10-01T19:16:00-04:00\\\"}\\n{\\\"arrived_at\\\": \\\"2026-10-01T19:20:00-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"collected_at\\\": \\\"2026-10-01T19:20:00-04:00\\\", \\\"from_owner\\\": false, \\\"sender\\\": \\\"Maya\\\", \\\"source_id\\\": \\\"message-f37570ad589de59c6c5ad8b7\\\", \\\"structured\\\": {\\\"chat_name\\\": \\\"\\\", \\\"participants\\\": [\\\"Me\\\", \\\"Maya\\\"]}, \\\"text\\\": \\\"ok good, i was so confused for a sec\\\", \\\"thread\\\": \\\"thread-6956a8ddb6f1be6162de33e9\\\", \\\"written_at\\\": \\\"2026-10-01T19:20:00-04:00\\\"}\\n\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 13.74,
+    "input_tokens": 10830,
+    "output_tokens": 1018,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "postponed",
+      "kind": "unavailable",
+      "reason": "Answer claims it has no record of the meeting."
+    },
+    {
+      "id": "no-replacement",
+      "kind": "unavailable",
+      "reason": "Answer claims no record and does not address replacement."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 2,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "postponed",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "no-replacement",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

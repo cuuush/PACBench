@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did Ben and I settle on for dinner?",
+  "at": "2026-10-15T10:30:00-04:00",
+  "answer": "Juniper Cafe at 7pm on Saturday, Oct 17 — rescheduled from Oct 15 because Ben was stuck at work.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "dinner with Ben settled on"
+      },
+      "timestamp": 1792042965878
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User and Ben rescheduled dinner at Juniper Cafe from October 15, 2026 at 7pm to Saturday, October 17, 2026 at 7pm because Ben was stuck at work.\\n2. Rosa's is closed as of October 14, 2026, leading to changing the Friday dinner venue to Mario's.\\n3. User and Maya plan to meet for lunch at Rosa's on Oak Street at 12:30 on October 2, 2026.\\n4. User, Maya, and Leo ate pizza at Mario's on Pine Street on September 25, 2026, after rescheduling from noon to 1pm for Maya's morning appointment. The pizza was very good with excellent crust, but the olives were way too salty and left Maya and user drinking water all afternoon.\\n5. User agreed to pizza trip at noon on October 16, 2026 at Mario's with Maya and Leo.\\n6. User and Devon agreed to grab pizza at Rosa's on Oak Street at 6:30pm on October 9, 2026.\\n7. User has pizza at Mario's on Pine with Maya and Leo at noon on October 16, 2026.\\n8. Devon attended a team lunch on September 22, 2026 where 3 pizzas were ordered for 20 people and Devon got only one cold slice.\\n9. User agreed to pizza trip at 6pm on October 16, 2026 at Luigi's with Devon.\\n10. User, Maya, and Leo plan to meet at Mario's on Pine Street on Friday, October 16, 2026 at noon, moved from Rosa's on Oak Street after Rosa's closed; originally 1pm rescheduled to noon at Maya's request because she has a 1:30 commitment.\\n11. User, Maya, and Leo plan to try Luigi's on 5th Street for pizza at noon on October 9, 2026.\\n12. Maya's sister will celebrate her birthday with friends with pizza at Rosa's on October 17, 2026 at 4pm; user and Maya are not attending.\\n13. User has pizza at Luigi's on 5th with Devon at 6pm on October 16, 2026.\\n14. User and Devon plan to have pizza at Luigi's on 5th Street at 6pm on September 18, 2026.\\n15. User, Jen, and Alex planned a walk at the west entrance of the duck pond in Willow Park on October 16, 2026 at 2pm, postponed to another day because Jen and Alex can't make it.\\n16. User and Devon plan to meet at Luigi's on 5th on Friday, October 16, 2026 at 6pm.\\n17. User and Devon plan to grab pizza at Rosa's on Oak Street at 7pm on September 25, 2026.\\n18. User and Devon plan to grab pizza to catch up at Mario's on Pine at 6pm on October 2, 2026.\\n19. Jen asked the user to review her almost-finished job application, and the user agreed to a quick call at 10 to review it after Jen sends it over.\\n20. User's family is visiting on Saturday, October 3, 2026, so user is unavailable that day.\\n21. User and Maya plan to meet for a pizza catch-up at Rosa's on September 18, 2026 at 1pm.\\n22. User and Alex plan to grab coffee at 11am on Friday, October 16, 2026 at birch.\\n23. User prefers Luigi's over Domino's for pizza.\\n24. User and Devon declined to attend team pizza at Domino's on September 26, 2026 at 2pm.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 9.7,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261015_014243_07c1c7",
+  "raw_events": 10,
+  "session_id": "20261015_014243_07c1c7",
+  "stderr_full": "\nsession_id: 20261015_014243_07c1c7\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_014243_07c1c7\", \"timestamp\": 1792042963184}\n{\"type\": \"text\", \"text\": \"I'll search my memory for what you and Ben settled on for dinner.\", \"timestamp\": 1792042965402}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"dinner with Ben settled on\"}, \"timestamp\": 1792042965878}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User and Ben rescheduled dinner at Juniper Cafe from October 15, 2026 at 7pm to Saturday, October 17, 2026 at 7pm because Ben was stuck at work.\\\\n2. Rosa's is closed as of October 14, 2026, leading to changing the Friday dinner venue to Mario's.\\\\n3. User and Maya plan to meet for lunch at Rosa's on Oak Street at 12:30 on October 2, 2026.\\\\n4. User, Maya, and Leo ate pizza at Mario's on Pine Street on September 25, 2026, after rescheduling from noon to 1pm for Maya's morning appointment. The pizza was very good with excellent crust, but the olives were way too salty and left Maya and user drinking water all afternoon.\\\\n5. User agreed to pizza trip at noon on October 16, 2026 at Mario's with Maya and Leo.\\\\n6. User and Devon agreed to grab pizza at Rosa's on Oak Street at 6:30pm on October 9, 2026.\\\\n7. User has pizza at Mario's on Pine with Maya and Leo at noon on October 16, 2026.\\\\n8. Devon attended a team lunch on September 22, 2026 where 3 pizzas were ordered for 20 people and Devon got only one cold slice.\\\\n9. User agreed to pizza trip at 6pm on October 16, 2026 at Luigi's with Devon.\\\\n10. User, Maya, and Leo plan to meet at Mario's on Pine Street on Friday, October 16, 2026 at noon, moved from Rosa's on Oak Street after Rosa's closed; originally 1pm rescheduled to noon at Maya's request because she has a 1:30 commitment.\\\\n11. User, Maya, and Leo plan to try Luigi's on 5th Street for pizza at noon on October 9, 2026.\\\\n12. Maya's sister will celebrate her birthday with friends with pizza at Rosa's on October 17, 2026 at 4pm; user and Maya are not attending.\\\\n13. User has pizza at Luigi's on 5th with Devon at 6pm on October 16, 2026.\\\\n14. User and Devon plan to have pizza at Luigi's on 5th Street at 6pm on September 18, 2026.\\\\n15. User, Jen, and Alex planned a walk at the west entrance of the duck pond in Willow Park on October 16, 2026 at 2pm, postponed to another day because Jen and Alex can't make it.\\\\n16. User and Devon plan to meet at Luigi's on 5th on Friday, October 16, 2026 at 6pm.\\\\n17. User and Devon plan to grab pizza at Rosa's on Oak Street at 7pm on September 25, 2026.\\\\n18. User and Devon plan to grab pizza to catch up at Mario's on Pine at 6pm on October 2, 2026.\\\\n19. Jen asked the user to review her almost-finished job application, and the user agreed to a quick call at 10 to review it after Jen sends it over.\\\\n20. User's family is visiting on Saturday, October 3, 2026, so user is unavailable that day.\\\\n21. User and Maya plan to meet for a pizza catch-up at Rosa's on September 18, 2026 at 1pm.\\\\n22. User and Alex plan to grab coffee at 11am on Friday, October 16, 2026 at birch.\\\\n23. User prefers Luigi's over Domino's for pizza.\\\\n24. User and Devon declined to attend team pizza at Domino's on September 26, 2026 at 2pm.\\\"}\", \"duration_ms\": 1112, \"is_error\": false, \"timestamp\": 1792042966990}\n{\"type\": \"text\", \"text\": \"\\n\\nJuni\", \"timestamp\": 1792042969716}\n{\"type\": \"text\", \"text\": \"per Cafe at 7pm on\", \"timestamp\": 1792042969748}\n{\"type\": \"text\", \"text\": \" Saturday, Oct\", \"timestamp\": 1792042969780}\n{\"type\": \"text\", \"text\": \" 17 — rescheduled from Oct\", \"timestamp\": 1792042969813}\n{\"type\": \"text\", \"text\": \" 15 because Ben was stuck at work.\", \"timestamp\": 1792042969850}\n{\"type\": \"result\", \"session_id\": \"20261015_014243_07c1c7\", \"exit_code\": 0, \"text\": \"Juniper Cafe at 7pm on Saturday, Oct 17 — rescheduled from Oct 15 because Ben was stuck at work.\", \"tokens\": {\"input\": 7055, \"output\": 423, \"total\": 7478, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 6728, \"timestamp\": 1792042969912}",
+  "session_input_tokens": 7055,
+  "session_output_tokens": 423,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-qaiil359",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-qaiil359",
+    "system_prompt_sha256": "d7aef65a8aa47a9c98eeba2de4d9949d2338792acc76cf94da6e41fbaa701ec6",
+    "reason": "No project context in native saved system prompt"
+  }
+}

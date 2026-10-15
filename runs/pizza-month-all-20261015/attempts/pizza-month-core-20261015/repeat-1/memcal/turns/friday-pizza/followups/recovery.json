@@ -1,0 +1,259 @@
+{
+  "state": "complete",
+  "plan_hash": "e719b2dc4c72e3966ad135920a04e94a7eefda2ba941b4270132e3af2683a801",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 3
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E9"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041309482,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E9  Pizza\n\nwhen: Friday 16 October 2026 at 12:00\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Leo, Maya\nsource: person:Maya\n\npages: pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 08:04 · iMessage with Friday crew —\n * [150] Friday crew · Wed 14 Oct 08:04 · Maya: can we do Mario's on Pine Street Friday instead? same time?\n  — Mon Oct 12, 2026 17:20 · iMessage with Maya · 2 days earlier —\n * [117] Maya · Mon 12 Oct 17:20 · me: yeah that works\n  — Tue Oct 13, 2026 08:00 · iMessage with Maya · 1 day later —\n   [128] Maya · Tue 13 Oct 08:00 · Maya: morning! about Friday, can we do noon instead?\n   [129] Maya · Tue 13 Oct 08:09 · Maya: i just realized i have something at 1:30\n  — Tue Oct 13, 2026 09:00 · iMessage with Friday crew —\n * [132] Friday crew · Tue 13 Oct 09:00 · Maya: moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\n * [133] Friday crew · Tue 13 Oct 09:00 · me: yep, still on for me\n * [134] Friday crew · Tue 13 Oct 09:10 · Leo: yeah that works, I'm in for Friday\n   [135] Friday crew · Tue 13 Oct 09:20 · Maya: perfect thank you!!\n  — Wed Oct 14, 2026 08:00 · iMessage with Friday crew · 1 day later —\n   [149] Friday crew · Wed 14 Oct 08:00 · Maya: bad news guys just saw Rosa's is closed\n * [151] Friday crew · Wed 14 Oct 08:18 · me: oh good backup, yep still good for me\n * [152] Friday crew · Wed 14 Oct 08:19 · Leo: yeah that works\n   [153] Friday crew · Wed 14 Oct 08:20 · Maya: perfect thank you!!\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  location: '' -> \"Rosa's on Oak Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Maya\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Maya' (by dream:nightly:born-day)\n  2026-10-14T03:00  time: '13:00' -> '12:00' (by dream:nightly)\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E10"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041309495,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E10  Pizza\n\nwhen: Friday 16 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th Street\nwho: Devon\nsource: person:Devon\n\npages: pizza (series)\n\nsources (6 line(s); * = what the row was built from):\n  — Sun Oct 11, 2026 17:20 · iMessage with Devon —\n   [112] Devon · Sun 11 Oct 17:20 · me: nice, master chef over here\n  — Mon Oct 12, 2026 17:30 · iMessage with Devon · 1 day later —\n   [118] Devon · Mon 12 Oct 17:30 · Devon: kitchen still smells like burnt crust lol\n * [119] Devon · Mon 12 Oct 17:40 · Devon: let's skip rosa's and do luigi's on 5th street for pizza friday instead? 6pm?\n * [120] Devon · Mon 12 Oct 17:50 · me: yeah that works, you clearly need a pro to show you how its done\n  — Wed Oct 14, 2026 18:30 · iMessage with Devon · 2 days later —\n   [161] Devon · Wed 14 Oct 18:30 · Devon: this week feels so long, tomorrow's thursday right?\n   [162] Devon · Wed 14 Oct 18:36 · me: yeah, only thursday lol\n\nchanges:\n  2026-10-13T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'Pizza' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "pizza"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041309505,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"pizza\", \"title\": \"Pizza\", \"section\": \"projects\", \"is_self\": false, \"answers\": [\"where\"], \"facts\": [{\"slot\": \"where\", \"value\": \"Mario's on Pine Street\", \"source\": \"memcal\", \"ts\": \"2026-10-15\", \"lines\": []}], \"cited_ids\": {\"where\": []}, \"provenance\": {\"where\": {\"entity\": \"event:pizza@2026-10-16\", \"bundle\": \"a783e7\", \"run\": null, \"gen\": \"\", \"verb\": \"derived\", \"at\": \"2026-10-15T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Pizza\\n\\nRecent instances:\\n- 2026-10-16 \\u2014 Mario's on Pine Street\\n- 2026-10-16 \\u2014 Luigi's on 5th Street\\n- 2026-10-09 \\u2014 Luigi's on 5th Street\\n- 2026-10-09 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 Mario's on Pine\\n\\n## Facts\\n\\n- **where**: Mario's on Pine Street  <!-- memcal 2026-10-15 -->\\n\", \"encounters\": {\"count\": 0, \"by_activity\": [], \"recent\": []}, \"sources\": {\"where\": [{\"id\": 25, \"ts\": \"2026-09-21T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"let's do pizza this Friday at noon at Mario's on Pine Street? something different from last week\", \"evidence\": true, \"source_heading\": \"Mon Sep 21, 2026 18:00 \\u00b7 iMessage with Friday crew\"}, {\"id\": 26, \"ts\": \"2026-09-21T18:19:02-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 27, \"ts\": \"2026-09-21T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"perfect, yeah that works\", \"evidence\": true}, {\"id\": 54, \"ts\": \"2026-09-28T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again on Friday?\", \"evidence\": true, \"source_heading\": \"Mon Sep 28, 2026 18:00 \\u00b7 iMessage with Maya \\u00b7 7 days later\"}, {\"id\": 55, \"ts\": \"2026-09-28T18:16:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes definitely, back to Rosa's on Oak Street?\", \"evidence\": true}, {\"id\": 56, \"ts\": \"2026-09-28T18:18:40-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes! is 12:30pm good for you?\", \"evidence\": true}, {\"id\": 57, \"ts\": \"2026-09-28T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 84, \"ts\": \"2026-10-05T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"wanna try Luigi's on 5th Street for pizza Friday at noon?\", \"evidence\": true, \"source_heading\": \"Mon Oct 5, 2026 18:00 \\u00b7 iMessage with Friday crew \\u00b7 7 days later\"}, {\"id\": 85, \"ts\": \"2026-10-05T18:00:29-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yes!! I'm in, could use something different from Mario's\", \"evidence\": true}, {\"id\": 86, \"ts\": \"2026-10-05T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I can actually make it this Friday\", \"evidence\": true}, {\"id\": 113, \"ts\": \"2026-10-12T17:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again Friday?\", \"evidence\": true, \"source_heading\": \"Mon Oct 12, 2026 17:00 \\u00b7 iMessage with Maya \\u00b7 7 days later\"}, {\"id\": 116, \"ts\": \"2026-10-12T17:19:03-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"Rosa's on Oak Street at 1pm?\", \"evidence\": true}, {\"id\": 117, \"ts\": \"2026-10-12T17:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 132, \"ts\": \"2026-10-13T09:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\", \"evidence\": true, \"source_heading\": \"Tue Oct 13, 2026 09:00 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 133, \"ts\": \"2026-10-13T09:00:57-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yep, still on for me\", \"evidence\": true}, {\"id\": 134, \"ts\": \"2026-10-13T09:10:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I'm in for Friday\", \"evidence\": true}, {\"id\": 150, \"ts\": \"2026-10-14T08:04:12-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"can we do Mario's on Pine Street Friday instead? same time?\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 08:04 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 151, \"ts\": \"2026-10-14T08:18:14-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"oh good backup, yep still good for me\", \"evidence\": true}, {\"id\": 152, \"ts\": \"2026-10-14T08:19:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works\", \"evidence\": true}]}, \"narrow\": {\"where\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.85,
+    "input_tokens": 12772,
+    "output_tokens": 497,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "marios-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "marios-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "marios-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "marios-includes-user",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "marios-includes-maya",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "marios-includes-leo",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "luigis-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "luigis-venue",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "luigis-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "luigis-includes-user",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "luigis-includes-devon",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 11,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 11,
+    "points": 11.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "marios-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "marios-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "marios-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "marios-includes-user",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "marios-includes-maya",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "marios-includes-leo",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "luigis-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "luigis-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "luigis-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "luigis-includes-user",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "luigis-includes-devon",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

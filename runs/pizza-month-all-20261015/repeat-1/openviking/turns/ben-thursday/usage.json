@@ -1,0 +1,140 @@
+{
+  "state": "captured",
+  "started": "2026-10-15T13:43:48.777938+00:00",
+  "finished": "2026-10-15T13:44:03.607964+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 2,
+      "input_tokens": 19387,
+      "output_tokens": 771,
+      "accounted_upper_bound_usd": 0.0020929,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 3,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.3244032,
+      "unsettled_calls": 3
+    }
+  },
+  "model_calls": [
+    {
+      "id": "062c4ee78e244c3ebe0b07847f32963b",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:43:51.290932+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "8c14097751784d2ca7d171767ecd60f1",
+      "project": "pacbench-7fb34b8b7c7a-openviking-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:43:54.675807+00:00",
+      "finished": "2026-10-15T13:43:59.860195+00:00",
+      "state": "settled",
+      "input_tokens": 9083,
+      "output_tokens": 520,
+      "accounted": 1012300,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0010123
+    },
+    {
+      "id": "3d3dcdbbdce2419fbe41f3e98a8e4d32",
+      "project": "pacbench-7fb34b8b7c7a-openviking-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:44:00.248859+00:00",
+      "finished": "2026-10-15T13:44:02.587009+00:00",
+      "state": "settled",
+      "input_tokens": 10304,
+      "output_tokens": 251,
+      "accounted": 1080600,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0010806
+    },
+    {
+      "id": "f2bef67188234274836e2e1c56183682",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:44:03.129599+00:00",
+      "finished": "2026-10-15T13:44:03.292768+00:00",
+      "state": "uncertain",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": 400,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "d811a24a36904e0c892e71e19b384dde",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:44:03.556944+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "33b0217338a74bff9b722d48830f6dfb",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:43:42.093890+00:00",
+      "finished": "2026-10-15T13:43:49.738150+00:00",
+      "state": "settled",
+      "input_tokens": 731,
+      "output_tokens": 1782,
+      "accounted": 429500,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0004295
+    },
+    {
+      "id": "d2ca5dd2a07c41b4ad9ea81ff1c1ec58",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:43:42.472469+00:00",
+      "finished": "2026-10-15T13:43:49.637630+00:00",
+      "state": "settled",
+      "input_tokens": 6494,
+      "output_tokens": 816,
+      "accounted": 812600,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0008126
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

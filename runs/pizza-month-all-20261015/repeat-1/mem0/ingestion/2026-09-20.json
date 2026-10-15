@@ -1,0 +1,80 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-09-20T16:20:00-04:00",
+  "processing_at": "2026-09-20T16:20:00-04:00",
+  "document_sha256": "5ab3c0ec326b9ceb744568e7ca783753135fe6a78b24fca46ff34775af466215",
+  "source_ids": [
+    "message-be92873785a233e1ea27b56c",
+    "message-704938f902275d0c034084d8",
+    "message-9f2554deff1c9ea4dadff740",
+    "message-1b92b22d748f5fb1708de4de"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"5cac179d-1f9d-4433-91bb-f4561a019126\", \"memory\": \"Alex bought a tiny basil plant with about 3 little leaves in a shot-sized pot on September 20, 2026, sharing a photo with keys for scale. Alex described it as small but mighty and already smelling amazing, while User jokingly replied there is more basil on a slice of pizza and wished Alex enjoyment of one leaf of pesto.\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-20.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "5cac179d-1f9d-4433-91bb-f4561a019126",
+          "memory": "Alex bought a tiny basil plant with about 3 little leaves in a shot-sized pot on September 20, 2026, sharing a photo with keys for scale. Alex described it as small but mighty and already smelling amazing, while User jokingly replied there is more basil on a slice of pizza and wished Alex enjoyment of one leaf of pesto.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-20.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 15.67,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:19:55.015487+00:00",
+    "finished": "2026-10-15T05:20:10.691014+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 9180,
+        "output_tokens": 1642,
+        "accounted_upper_bound_usd": 0.0012464,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "081a907cbfea4b3f92393a1e127ab071",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:19:58.440418+00:00",
+        "finished": "2026-10-15T05:20:09.657013+00:00",
+        "state": "settled",
+        "input_tokens": 9180,
+        "output_tokens": 1642,
+        "accounted": 1246400,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0012464
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

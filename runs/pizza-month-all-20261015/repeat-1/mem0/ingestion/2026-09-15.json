@@ -1,0 +1,80 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-09-15T18:20:00-04:00",
+  "processing_at": "2026-09-15T18:20:00-04:00",
+  "document_sha256": "f5ba4fe5497b9bd0fc333946083dc0f788377aa358c4d554c1da759ee6da028a",
+  "source_ids": [
+    "message-b2aad9cf8525cdc29300de6b",
+    "message-ea94a5acd2270e4118c73621",
+    "message-40a63897e1fc6e4aa68dadc9",
+    "message-71bfef0cc7c850bc2091f54c"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"532c20a2-37dc-410c-b3ab-6a45732abc90\", \"memory\": \"User and Maya planned a catch-up over pizza at Rosa's on Oak Street at 1pm on Friday, September 18, 2026, with Maya suggesting the restaurant and User proposing the 1pm time.\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-15.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "532c20a2-37dc-410c-b3ab-6a45732abc90",
+          "memory": "User and Maya planned a catch-up over pizza at Rosa's on Oak Street at 1pm on Friday, September 18, 2026, with Maya suggesting the restaurant and User proposing the 1pm time.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-15.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 14.67,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:18:08.605311+00:00",
+    "finished": "2026-10-15T05:18:23.272591+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 8347,
+        "output_tokens": 1417,
+        "accounted_upper_bound_usd": 0.0011181,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "72d572c9781d4be38f17405e7ea30229",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:18:11.643001+00:00",
+        "finished": "2026-10-15T05:18:22.245027+00:00",
+        "state": "settled",
+        "input_tokens": 8347,
+        "output_tokens": 1417,
+        "accounted": 1118100,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011181
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

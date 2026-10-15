@@ -1,0 +1,109 @@
+{
+  "state": "complete",
+  "plan_hash": "29e671463f2f51abaee68260a69931a0e620d080e223ff7d039259f21a2cec13",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E1"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792038849267,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E1  Get pizza\n\nwhen: Friday 16 October 2026 at 12:00\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nsource: person:Maya\n\nsources (10 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 18:19 · iMessage with Maya —\n * [9] Maya · Wed 14 Oct 18:19 · Maya: wanna do Mario's on Pine Street for pizza Friday instead? noon still good?\n  — Mon Oct 12, 2026 18:00 · iMessage with Maya · 2 days earlier —\n * [1] Maya · Mon 12 Oct 18:00 · me: wanna get pizza Friday?\n * [2] Maya · Mon 12 Oct 18:05 · Maya: yes please, I'm craving it. Rosa's on Oak Street?\n * [3] Maya · Mon 12 Oct 18:10 · me: perfect, 1 pm?\n * [4] Maya · Mon 12 Oct 18:20 · Maya: yeah that works, see you then\n  — Tue Oct 13, 2026 18:00 · iMessage with Maya · 1 day later —\n * [5] Maya · Tue 13 Oct 18:00 · Maya: can we do friday pizza at noon instead? still rosa's?\n * [6] Maya · Tue 13 Oct 18:19 · me: yeah noon works\n   [7] Maya · Tue 13 Oct 18:20 · Maya: awesome thank you!\n  — Wed Oct 14, 2026 18:00 · iMessage with Maya · 1 day later —\n   [8] Maya · Wed 14 Oct 18:00 · Maya: ugh just walked by Rosa's, they're closed for repairs\n * [10] Maya · Wed 14 Oct 18:20 · me: yeah that works, love Mario's\n\nchanges:\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'Get pizza' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Rosa's on Oak Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Maya\"]' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Maya' (by dream:nightly:born-day)\n  2026-10-14T03:00  time: '13:00' -> '12:00' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 7.89,
+    "input_tokens": 18742,
+    "output_tokens": 370,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "c1",
+      "kind": "provided",
+      "reason": "Fact correctly stated in answer."
+    },
+    {
+      "id": "c2",
+      "kind": "provided",
+      "reason": "Fact correctly stated in answer."
+    },
+    {
+      "id": "c3",
+      "kind": "provided",
+      "reason": "Fact correctly stated in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "c1",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "c2",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "c3",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

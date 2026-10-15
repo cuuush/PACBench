@@ -1,0 +1,108 @@
+{
+  "state": "captured",
+  "started": "2026-10-15T05:31:06.731932+00:00",
+  "finished": "2026-10-15T05:31:23.019398+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 3,
+      "input_tokens": 9287,
+      "output_tokens": 833,
+      "accounted_upper_bound_usd": 0.0010953,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 1,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.1081344,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "8494e273777f45dbb3e2ec76434894ce",
+      "project": "pacbench-da6c0828d451-mem0-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T05:31:11.872872+00:00",
+      "finished": "2026-10-15T05:31:13.949783+00:00",
+      "state": "settled",
+      "input_tokens": 3921,
+      "output_tokens": 352,
+      "accounted": 462500,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004625
+    },
+    {
+      "id": "b31079f743904e4ebb0d402ecd008bcb",
+      "project": "pacbench-da6c0828d451-mem0-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T05:31:11.873243+00:00",
+      "finished": "2026-10-15T05:31:13.333151+00:00",
+      "state": "settled",
+      "input_tokens": 321,
+      "output_tokens": 139,
+      "accounted": 59900,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 5.99e-05
+    },
+    {
+      "id": "61e9d7e33ca4423ea803c9457feb4489",
+      "project": "pacbench-da6c0828d451-mem0-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T05:31:14.287936+00:00",
+      "finished": "2026-10-15T05:31:17.213966+00:00",
+      "state": "settled",
+      "input_tokens": 5045,
+      "output_tokens": 342,
+      "accounted": 572900,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0005729
+    },
+    {
+      "id": "dd1152952b7940e1ad799a5babacb68b",
+      "project": "pacbench-da6c0828d451-mem0-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T05:31:17.372222+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1081344
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "d205a527f28240b8a96ff00d49389f74",
+      "project": "pacbench-da6c0828d451-mem0-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T05:30:52.788439+00:00",
+      "finished": "2026-10-15T05:31:14.536366+00:00",
+      "state": "settled",
+      "input_tokens": 7766,
+      "output_tokens": 2813,
+      "accounted": 1339200,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0013392
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

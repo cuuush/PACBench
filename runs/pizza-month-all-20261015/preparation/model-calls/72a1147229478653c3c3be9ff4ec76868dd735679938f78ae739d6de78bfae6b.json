@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-15T04:33:36.146163+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-27. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 17:00 and 17:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: A lazy Sunday chat about places to try someday. Leave it as idle speculation, with no date or acceptance.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Maya wonders if they should try pizza at the new place near the station sometime. They do not make a plan.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-09-15 Me: still up for a catch-up Friday?\n2026-09-15 Maya: yes! pizza at Rosa's on Oak Street?\n2026-09-15 Me: love it. 1pm work for you?\n2026-09-15 Maya: yeah that works\n2026-09-18 Maya: hey! gonna be about 5 minutes late for our 1pm pizza at Rosa's today, bus is dragging\n2026-09-18 Me: no worries at all, will grab us a table inside\n2026-09-18 Maya: perfect, see you just after 1!\n\nNew messages:\n1. Maya: such a lazy sunday, i've just been scrolling food pics on the couch\n2. Me: same here, zero energy to go anywhere\n3. Maya: saw that new pizza place near the station tho, wonder if we should try it sometime?\n4. Me: oh yeah i walked past it the other day, could be good for next pizza craving"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a13dd6-496b-747b-8892-f988bb4f59a6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 4], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792038816,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2047,
+      "prompt_tokens": 546,
+      "total_tokens": 2593,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1985
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 4], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 2047,
+    "prompt_tokens": 546,
+    "total_tokens": 2593,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1985
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

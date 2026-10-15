@@ -436,7 +436,12 @@ function render() {
   if (run.arms?.[page]) { selectedProvider = page; page = "timeline"; }
   if (!items.some(item => item[0] === page)) page = "timeline";
   const status = stateOf(run);
-  const alert = run.audit?.state === "fail" ?
+  const completionOnly = run.summary?.state === 'incomplete' && run.audit?.valid_for_comparison !== false &&
+    run.audit?.errors?.length && run.audit.errors.every(finding =>
+      typeof finding === 'string' && /^repeat-\d+\/[^:]+: incomplete arm$/.test(finding));
+  const alert = run.audit?.state === 'fail' && completionOnly ?
+    '<div class="alert warn"><strong>Some provider runs are incomplete.</strong> Completed answers keep their recorded grades.' + details('Execution findings', dump(run.audit.errors)) + '</div>' :
+    run.audit?.state === "fail" ?
     '<div class="alert bad"><strong>Run audit failed.</strong> Results need review.' + details('Audit findings', dump(run.audit.errors)) + '</div>' :
     run.audit?.valid_for_comparison === false ?
     '<div class="alert bad">Excluded: ' + esc(run.audit.finding) + "</div>" :

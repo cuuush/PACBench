@@ -1,0 +1,30 @@
+{
+  "correct": 0,
+  "missed": 2,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "postponed",
+      "verdict": "missed",
+      "reason": "Answer says 'no duck pond plan on record' and never states the meetup was postponed."
+    },
+    {
+      "id": "no-replacement",
+      "verdict": "missed",
+      "reason": "Answer does not mention a replacement date; only says no duck pond plan on record."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "postponed",
+      "kind": "unavailable",
+      "reason": "Answer claims it has no plan on record, i.e. cannot find the detail."
+    },
+    {
+      "id": "no-replacement",
+      "kind": "unavailable",
+      "reason": "Answer claims no plan on record rather than addressing replacement."
+    }
+  ],
+  "interaction": "answer"
+}

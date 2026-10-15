@@ -8,6 +8,6 @@ Memcal's normal `memcal_open` is retained event detail and receives normal credi
 
 `tool-policy.json` freezes the grant and penalty. `context.jsonl.tools.jsonl` records actual offered schemas. Dispatch guards reject all tools outside the exact native grant before execution; the audit checks schemas, calls and native saved prompt isolation. A prohibited-tool attempt still invalidates the check.
 
-The current published diagnostic used the earlier `retained-memory-only-v2` condition, which hid dedicated source readers and `viking_read`. Its saved permissions and grades are unchanged; it is not a live test of the new permission policy. The auditor recognizes that frozen receipt.
+The current Pizza Month cohort exercises v3. Audits validate each saved trial's frozen permissions; do not relabel an older policy or compare unlike tool grants as matched trials.
 
 This is a tool boundary, not OS isolation. Native provider internals can read their stores, run subprocesses and call models. All inference remains metered through the gateway; nested work is not assumed free.

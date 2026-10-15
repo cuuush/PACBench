@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "f994e0bd41317e3909f304c5beb6438cae0379d8a6cc0756ceda2474964f1301",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "pizza plan with Maya Saturday"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792042952156,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User, Maya, and Leo plan to try Luigi's on 5th Street for pizza at noon on October 9, 2026.\\n2. User and Maya plan to meet for a pizza catch-up at Rosa's on September 18, 2026 at 1pm.\\n3. User, Maya, and Leo ate pizza at Mario's on Pine Street on September 25, 2026, after rescheduling from noon to 1pm for Maya's morning appointment. The pizza was very good with excellent crust, but the olives were way too salty and left Maya and user drinking water all afternoon.\\n4. Maya's sister will celebrate her birthday with friends with pizza at Rosa's on October 17, 2026 at 4pm; user and Maya are not attending.\\n5. User has pizza at Mario's on Pine with Maya and Leo at noon on October 16, 2026.\\n6. User and Maya plan to meet for lunch at Rosa's on Oak Street at 12:30 on October 2, 2026.\\n7. User, Maya, and Leo plan to meet at Mario's on Pine Street on Friday, October 16, 2026 at noon, moved from Rosa's on Oak Street after Rosa's closed; originally 1pm rescheduled to noon at Maya's request because she has a 1:30 commitment.\\n8. User and Devon plan to have pizza at Luigi's on 5th Street at 6pm on September 18, 2026.\\n9. User and Devon plan to grab pizza at Rosa's on Oak Street at 7pm on September 25, 2026.\\n10. User and Devon plan to grab pizza to catch up at Mario's on Pine at 6pm on October 2, 2026.\\n11. User has pizza at Luigi's on 5th with Devon at 6pm on October 16, 2026.\\n12. User and Devon agreed to grab pizza at Rosa's on Oak Street at 6:30pm on October 9, 2026.\\n13. User and Devon declined to attend team pizza at Domino's on September 26, 2026 at 2pm.\\n14. Devon attended a team lunch on September 22, 2026 where 3 pizzas were ordered for 20 people and Devon got only one cold slice.\\n15. Rosa's is closed as of October 14, 2026, leading to changing the Friday dinner venue to Mario's.\\n16. User and Ben rescheduled dinner at Juniper Cafe from October 15, 2026 at 7pm to Saturday, October 17, 2026 at 7pm because Ben was stuck at work.\\n17. User and Devon plan to meet at Luigi's on 5th on Friday, October 16, 2026 at 6pm.\\n18. User prefers Luigi's over Domino's for pizza.\\n19. User and Alex plan to grab coffee at 11am on Friday, October 16, 2026 at birch.\\n20. User's family is visiting on Saturday, October 3, 2026, so user is unavailable that day.\\n21. User, Jen, and Alex planned a walk at the west entrance of the duck pond in Willow Park on October 16, 2026 at 2pm, postponed to another day because Jen and Alex can't make it.\\n22. Jen asked the user to review her almost-finished job application, and the user agreed to a quick call at 10 to review it after Jen sends it over.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.45,
+    "input_tokens": 4075,
+    "output_tokens": 666,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "no-sat-pizza-maya-user",
+      "kind": "provided",
+      "reason": "Correctly conveyed that no Saturday pizza with Maya exists."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "no-sat-pizza-maya-user",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

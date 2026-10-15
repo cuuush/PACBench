@@ -130,6 +130,14 @@ def publish(sources,destination,*,preflight=None,selection=None):
                 if read(source/relative/'source.json')['fixture_hashes']!=read(sources[0]/relative/'source.json')['fixture_hashes']:
                     raise ValueError('Native source fixtures differ between components')
         reference['results']=results;reference['other_attempts']=attempts
+        # Native execution imports the portable corpus into ordinary files.
+        # Re-export those audited, frozen bytes so a clean checkout can reuse
+        # the same corpus without any authoring or verification model calls.
+        from .prepare import export_week
+        for name in ('bundle.json','contract.json','resolved-spec.json'):
+            if (staging/'preparation'/name).read_bytes()!=(staging/name).read_bytes():
+                raise ValueError('Published preparation differs from the executed frozen files')
+        export_week(staging/'preparation',staging/'preparation/week.json')
         latest=max(zip(sources,summaries),key=lambda item:(item[0]/'summary.json').stat().st_mtime)[1]
         if latest.get('gateway_after'):reference['gateway_after']=latest['gateway_after']
         blocked=[]

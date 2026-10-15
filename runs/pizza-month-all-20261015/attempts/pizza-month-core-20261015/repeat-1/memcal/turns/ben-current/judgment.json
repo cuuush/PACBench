@@ -1,0 +1,36 @@
+{
+  "checkpoint": "ben-current",
+  "question": "[Simulated now: 2026-10-15T10:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did Ben and I settle on for dinner?",
+  "answer": "Saturday Oct 17 at 7pm at Juniper Cafe.",
+  "claims": [
+    {
+      "id": "day",
+      "description": "The dinner with Ben upcoming as of Oct 15, 2026 is on Saturday, Oct 17, 2026.",
+      "evidence": [
+        "message-3ecf396cc111e033e75ab5f9",
+        "message-bb84b4bb5c47dd030fac2e8b",
+        "message-324c4c94db1fc9feeabdf77a"
+      ]
+    },
+    {
+      "id": "time",
+      "description": "The dinner with Ben upcoming on Saturday, Oct 17, 2026 is at 7 pm.",
+      "evidence": [
+        "message-bb84b4bb5c47dd030fac2e8b",
+        "message-324c4c94db1fc9feeabdf77a"
+      ]
+    },
+    {
+      "id": "venue",
+      "description": "The dinner with Ben upcoming on Saturday, Oct 17, 2026 is at Juniper Cafe.",
+      "evidence": [
+        "message-bb84b4bb5c47dd030fac2e8b",
+        "message-324c4c94db1fc9feeabdf77a"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-15T10:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did Ben and I settle on for dinner?\nAnswer: Saturday Oct 17 at 7pm at Juniper Cafe.\nClaims (hidden from the assistant): [{\"id\": \"day\", \"claim\": \"The dinner with Ben upcoming as of Oct 15, 2026 is on Saturday, Oct 17, 2026.\", \"evidence\": [\"message-3ecf396cc111e033e75ab5f9\", \"message-bb84b4bb5c47dd030fac2e8b\", \"message-324c4c94db1fc9feeabdf77a\"]}, {\"id\": \"time\", \"claim\": \"The dinner with Ben upcoming on Saturday, Oct 17, 2026 is at 7 pm.\", \"evidence\": [\"message-bb84b4bb5c47dd030fac2e8b\", \"message-324c4c94db1fc9feeabdf77a\"]}, {\"id\": \"venue\", \"claim\": \"The dinner with Ben upcoming on Saturday, Oct 17, 2026 is at Juniper Cafe.\", \"evidence\": [\"message-bb84b4bb5c47dd030fac2e8b\", \"message-324c4c94db1fc9feeabdf77a\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"day\", \"verdict\": \"correct\", \"reason\": \"Answer states dinner is Saturday Oct 17, matching claim.\"}, {\"id\": \"time\", \"verdict\": \"correct\", \"reason\": \"Answer states 7pm, matching claim.\"}, {\"id\": \"venue\", \"verdict\": \"correct\", \"reason\": \"Answer states Juniper Cafe, matching claim.\"}], \"recovery\": [{\"id\": \"day\", \"kind\": \"provided\", \"reason\": \"Correct date conveyed in answer.\"}, {\"id\": \"time\", \"kind\": \"provided\", \"reason\": \"Correct time conveyed in answer.\"}, {\"id\": \"venue\", \"kind\": \"provided\", \"reason\": \"Correct venue conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-core-20261015/model-calls/42ea2ea0d0a783cf16740878928327210f2e851b609847318ce309759d7a4ac0.json"
+}

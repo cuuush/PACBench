@@ -1,0 +1,145 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "memcal",
+  "at": "2026-09-20T16:20:00-04:00",
+  "processing_at": "2026-09-21T03:00:00-04:00",
+  "document_sha256": "5ab3c0ec326b9ceb744568e7ca783753135fe6a78b24fca46ff34775af466215",
+  "source_ids": [
+    "message-be92873785a233e1ea27b56c",
+    "message-704938f902275d0c034084d8",
+    "message-9f2554deff1c9ea4dadff740",
+    "message-1b92b22d748f5fb1708de4de"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"native source readers + native nightly dream\", \"contacts\": {\"linked\": 8, \"report\": \"linked 8 handles from 1 source(s)\"}, \"ingest\": {\"channel\": \"imessage\", \"read\": 4, \"archived\": 4, \"passed\": 4, \"error\": null, \"notes\": [], \"unknown_handles\": [], \"more\": false, \"muted\": 0, \"too_old\": 0, \"horizon_days\": 30, \"progress\": null, \"collection_id\": null, \"last_rowid\": 24, \"floor\": \"2026-09-19T11:20:00-04:00\"}, \"bundles\": [{\"run_id\": 6, \"entity\": \"person:Alex\", \"bundle_id\": \"c1547d\", \"label\": \"Alex\", \"kind\": \"person\", \"lines\": 4, \"state\": \"reading\", \"updated_at\": \"2026-09-21T03:00:00-04:00\"}], \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-memcal-open-first-20261015/repeat-1/memcal/ingestion-model-calls/2026-09-20.json\", \"native_event_state\": [{\"key\": \"pizza-after-work@2026-09-18\", \"date\": \"2026-09-18\", \"time\": \"18:00\", \"title\": \"pizza after work\", \"location\": \"Luigi's on 5th Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Devon\\\"]\", \"subject\": \"me\"}, {\"key\": \"pizza-catch-up@2026-09-18\", \"date\": \"2026-09-18\", \"time\": \"13:00\", \"title\": \"pizza catch-up\", \"location\": \"Rosa's on Oak Street\", \"status\": \"confirmed\", \"participants\": \"[\\\"Maya\\\"]\", \"subject\": \"me\"}], \"processing\": {\"run_id\": 6, \"errors\": [], \"report\": \"dream run #6 — 1 bundles, 4 items, 0 writes\\n  usage: 2 calls · 4293 in (0 cached) · 867 out · cost not reported\"}, \"readiness\": \"Native dream completion without errors\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 8,
+      "report": "linked 8 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 4,
+      "archived": 4,
+      "passed": 4,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 24,
+      "floor": "2026-09-19T11:20:00-04:00"
+    },
+    "bundles": [
+      {
+        "run_id": 6,
+        "entity": "person:Alex",
+        "bundle_id": "c1547d",
+        "label": "Alex",
+        "kind": "person",
+        "lines": 4,
+        "state": "reading",
+        "updated_at": "2026-09-21T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-memcal-open-first-20261015/repeat-1/memcal/ingestion-model-calls/2026-09-20.json",
+    "native_event_state": [
+      {
+        "key": "pizza-after-work@2026-09-18",
+        "date": "2026-09-18",
+        "time": "18:00",
+        "title": "pizza after work",
+        "location": "Luigi's on 5th Street",
+        "status": "confirmed",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza-catch-up@2026-09-18",
+        "date": "2026-09-18",
+        "time": "13:00",
+        "title": "pizza catch-up",
+        "location": "Rosa's on Oak Street",
+        "status": "confirmed",
+        "participants": "[\"Maya\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 6,
+      "errors": [],
+      "report": "dream run #6 — 1 bundles, 4 items, 0 writes\n  usage: 2 calls · 4293 in (0 cached) · 867 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "latency_s": 11.19,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T13:01:07.006289+00:00",
+    "finished": "2026-10-15T13:01:18.199576+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 4293,
+        "output_tokens": 867,
+        "accounted_upper_bound_usd": 0.0006027000000000001,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "ff5e62674f254e5c86cc95df1cd5ae7e",
+        "project": "pacbench-6b3778f2840a-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T13:01:07.180551+00:00",
+        "finished": "2026-10-15T13:01:11.703212+00:00",
+        "state": "settled",
+        "input_tokens": 3636,
+        "output_tokens": 317,
+        "accounted": 427000,
+        "reserved": 108082400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.000427
+      },
+      {
+        "id": "c32246beefd94a3f919fc5e9a6d41cdc",
+        "project": "pacbench-6b3778f2840a-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T13:01:11.725946+00:00",
+        "finished": "2026-10-15T13:01:18.079080+00:00",
+        "state": "settled",
+        "input_tokens": 657,
+        "output_tokens": 550,
+        "accounted": 175700,
+        "reserved": 108096600,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0001757
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

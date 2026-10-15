@@ -1,0 +1,83 @@
+{
+  "state": "complete",
+  "plan_hash": "f0d69c56b7572af0d495ae8e009ae5694e3fff60485d3f85c85a2dc2ffc34026",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "viking_search",
+        "arguments": {
+          "limit": 5,
+          "mode": "fast",
+          "query": "Maya Domino's too far"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792071753983,
+        "result": {
+          "tool": "viking_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"uri\": \"viking://resources/2026-09-28/.abstract.md\", \"type\": \"resource\", \"score\": 0.764, \"abstract\": \"This directory documents a brief personal chat arranging a pizza meetup on Friday, preserved as an iMessage message log. It covers four sequential exchanges in the same thread between Me and Maya, including timestamps, sender information, and message text.\"}, {\"uri\": \"viking://resources/2026-10-10/.overview.md\", \"type\": \"resource\", \"score\": 0.747, \"abstract\": \"# 2026-10-10\\n\\nThis directory captures a personal iMessage conversation log from October 10, 2026 between Me and Maya documenting a birthday plan update. It focuses on Maya's sister finally choosing a birthday plan and the details of that celebration, including pizza at Rosa's next Saturday at 4pm. The exchange clarifies that the outing is just her sister's group of friends and that Maya and Me are not going, closing with a friendly wish for a good time. Centered on keywords such as birthday plan, pizza, Rosa's, Saturday 4pm, iMessage, and Maya, the material serves as a concise chat archive for record keeping. It requires no specialized background or prerequisite knowledge and is suitable for general readers seeking a simple personal reference for everyday plans.\\n\\n## Directory Coverage\\n\\nThis directory contains 1 direct entry. All direct entries are represented in this overview, with complete coverage of the files listed below. There are no subdirectories and no additional entries beyond what is documented here.\\n\\n## Quick Navigation\\n\\nWhat do you want to learn?\\n\\n- To see the birthday plan update, pizza details, and Rosa's Saturday 4pm timing → [2026-10-10.md](viking://resources/2026-10-10/2026-10-10.md)\\n- To review the iMessage exchange between Me and Maya, including attendance clarification → [2026-10-10.md](viking://resources/2026-10-10/2026-10-10.md)\\n- To keep a personal chat archive for record keeping with no specialized background needed → [2026-10-10.md](viking://resources/2026-10-10/2026-10-10.md)\\n\\n## Detailed Description\\n\\n### [2026-10-10.md](viking://resources/2026-10-10/2026-10-10.md)\\n\\nThis entry preserves a short iMessage conversation log from October 10, 2026. The participants are Me and Maya, and the log documents a birthday plan update. It is maintained as a personal chat archive for record keeping, rather than as formal documentation.\\n\\nThe main topics covered are Maya's sister finally choosing a birthday plan and the details of that celebration. Maya communicates the update to Me, providing the essential information about what was chosen and how the celebration will take place. The focus remains on conveying the birthday plan clearly and completely.\\n\\nKey information is that Maya's sister is taking her friends for pizza at Rosa's next Saturday at 4pm. Maya clarifies that it is just her sister's group and that she and Me are not going. The exchange is followed by Me wishing a good time. Together, these points record the venue, time, guest group, non-attendance, and closing well wishes.\\n\\nIn terms of search and reference value, the file centers on birthday plan, pizza, Rosa's, Saturday 4pm, iMessage, and Maya. It requires no specialized audience and no prerequisite knowledge. It is accessible to general readers as a straightforward record of a personal update about Maya's sister and the planned pizza gathering.\"}, {\"uri\": \"viking://resources/2026-09-24/.abstract.md\", \"type\": \"resource\", \"score\": 0.74, \"abstract\": \"This directory captures a brief informal personal coordination record centered on a Friday crew iMessage group conversation among Me, Maya, and Leo about rescheduling a pizza meetup.\"}], \"total\": 3}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.93,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": true,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "domino-reason",
+      "kind": "provided",
+      "reason": "Reason correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "domino-reason",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

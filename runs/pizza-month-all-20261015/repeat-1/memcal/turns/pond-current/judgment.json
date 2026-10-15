@@ -1,0 +1,32 @@
+{
+  "checkpoint": "pond-current",
+  "question": "[Simulated now: 2026-10-15T10:40:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAre we still meeting at the duck pond tomorrow?",
+  "answer": "No — you postponed it. Jen and Alex both cancelled for Friday 2pm at the duck pond, and you agreed to do another day.",
+  "claims": [
+    {
+      "id": "postponed",
+      "description": "The Friday, October 16, 2026 duck-pond meetup with Jen and Alex was postponed.",
+      "evidence": [
+        "message-90cb0b68de8caaf4d63847e0",
+        "message-42534ed52a2a621fc5186497",
+        "message-921f6f4d4f19d5b6650fa412",
+        "message-32974fa792adaf2fa0da31ff",
+        "message-e2a90baae9e4532decc8fe51",
+        "message-1e03a3e6a23c566b28dd5baf"
+      ]
+    },
+    {
+      "id": "no-replacement",
+      "description": "No replacement date was agreed for the Friday, October 16, 2026 duck-pond meetup with Jen and Alex.",
+      "evidence": [
+        "message-32974fa792adaf2fa0da31ff",
+        "message-e2a90baae9e4532decc8fe51",
+        "message-1e03a3e6a23c566b28dd5baf"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-15T10:40:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAre we still meeting at the duck pond tomorrow?\nAnswer: No — you postponed it. Jen and Alex both cancelled for Friday 2pm at the duck pond, and you agreed to do another day.\nClaims (hidden from the assistant): [{\"id\": \"postponed\", \"claim\": \"The Friday, October 16, 2026 duck-pond meetup with Jen and Alex was postponed.\", \"evidence\": [\"message-90cb0b68de8caaf4d63847e0\", \"message-42534ed52a2a621fc5186497\", \"message-921f6f4d4f19d5b6650fa412\", \"message-32974fa792adaf2fa0da31ff\", \"message-e2a90baae9e4532decc8fe51\", \"message-1e03a3e6a23c566b28dd5baf\"]}, {\"id\": \"no-replacement\", \"claim\": \"No replacement date was agreed for the Friday, October 16, 2026 duck-pond meetup with Jen and Alex.\", \"evidence\": [\"message-32974fa792adaf2fa0da31ff\", \"message-e2a90baae9e4532decc8fe51\", \"message-1e03a3e6a23c566b28dd5baf\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"postponed\", \"verdict\": \"correct\", \"reason\": \"Answer states 'you postponed it' for 'Friday 2pm at the duck pond' with Jen and Alex, matching postponement.\"}, {\"id\": \"no-replacement\", \"verdict\": \"missed\", \"reason\": \"Answer says 'agreed to do another day' but never states that no specific replacement date was agreed.\"}], \"recovery\": [{\"id\": \"postponed\", \"kind\": \"provided\", \"reason\": \"Postponement fact was correctly conveyed in answer.\"}, {\"id\": \"no-replacement\", \"kind\": \"implicit_omission\", \"reason\": \"User asked only if meeting still on tomorrow, not explicitly about replacement date, and answer omitted that no date was set.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-memcal-open-first-20261015/model-calls/834fa3086da567052f009fd1823ddc9038022f4e443e1bd1db143be9bff279a8.json"
+}

@@ -1,0 +1,85 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-09-19T11:20:00-04:00",
+  "processing_at": "2026-09-19T11:20:00-04:00",
+  "document_sha256": "6743c8948c5757dd17d02fca4acedcc799fa39fce17c8a17ed8527d0124121f7",
+  "source_ids": [
+    "message-1f86558279ed255ade7a21b6",
+    "message-2547854ed9bd6d8ae9a0ae1f",
+    "message-61e64c8ca7ec4a8e561c3dab",
+    "message-2282a3ba0edffad2d8908a23"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"9ddb9454-15e7-4c03-81f5-4a2bda20c835\", \"memory\": \"User and Devon had pizza from Luigi's on September 18, 2026, confirmed when Devon reheated yesterday's Luigi's leftovers on September 19, 2026 and said they were so good\", \"event\": \"ADD\"}, {\"id\": \"27ac698f-61f4-489d-b830-597d939bf0ab\", \"memory\": \"User and Devon discussed reheating leftover pizza in a pan with a lid on September 19, 2026, with Devon noting the crust got crispy again and User stating the pan method is way better than the microwave\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-19.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "9ddb9454-15e7-4c03-81f5-4a2bda20c835",
+          "memory": "User and Devon had pizza from Luigi's on September 18, 2026, confirmed when Devon reheated yesterday's Luigi's leftovers on September 19, 2026 and said they were so good",
+          "event": "ADD"
+        },
+        {
+          "id": "27ac698f-61f4-489d-b830-597d939bf0ab",
+          "memory": "User and Devon discussed reheating leftover pizza in a pan with a lid on September 19, 2026, with Devon noting the crust got crispy again and User stating the pan method is way better than the microwave",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-19.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 25.94,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:19:29.069127+00:00",
+    "finished": "2026-10-15T05:19:55.008590+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 8939,
+        "output_tokens": 3185,
+        "accounted_upper_bound_usd": 0.0015309,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "247f239e26ad48538f0b59d02cccd97a",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:19:32.414268+00:00",
+        "finished": "2026-10-15T05:19:53.922046+00:00",
+        "state": "settled",
+        "input_tokens": 8939,
+        "output_tokens": 3185,
+        "accounted": 1530900,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0015309
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

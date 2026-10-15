@@ -1,0 +1,90 @@
+{
+  "state": "captured",
+  "started": "2026-10-15T04:37:23.456898+00:00",
+  "finished": "2026-10-15T04:37:31.448757+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 3,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.10882180000000001,
+      "unsettled_calls": 1
+    },
+    "memory_provider": {
+      "model_calls": 1,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.1176576,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "acfb4b8b54a84ecfb1c272174f0ea583",
+      "project": "pacbench-3edda5885e88-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T04:37:26.419875+00:00",
+      "finished": "2026-10-15T04:37:28.075290+00:00",
+      "state": "settled",
+      "input_tokens": 3073,
+      "output_tokens": 141,
+      "accounted": 335500,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0003355
+    },
+    {
+      "id": "5910a636e66c46ecbf8415c6b707a149",
+      "project": "pacbench-3edda5885e88-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T04:37:26.420372+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 108134400,
+      "reserved": 108134400,
+      "http_status": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.1081344
+    },
+    {
+      "id": "cf2663f0ccc84e5aab01ebcac74da3e8",
+      "project": "pacbench-3edda5885e88-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T04:37:29.111859+00:00",
+      "finished": "2026-10-15T04:37:30.564224+00:00",
+      "state": "settled",
+      "input_tokens": 3241,
+      "output_tokens": 139,
+      "accounted": 351900,
+      "reserved": 108134400,
+      "http_status": 200,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0003519
+    },
+    {
+      "id": "d3f0879fc7fc467eaf3a6b5f8cac8f0b",
+      "project": "pacbench-3edda5885e88-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T04:37:30.738499+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 117657600,
+      "reserved": 117657600,
+      "http_status": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.1176576
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

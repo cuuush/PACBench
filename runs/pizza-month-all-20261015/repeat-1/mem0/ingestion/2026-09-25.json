@@ -1,0 +1,80 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-09-25T08:20:00-04:00",
+  "processing_at": "2026-09-25T08:20:00-04:00",
+  "document_sha256": "7209e1b8a7cec7bc8a58860af4dbb59265bbb57653556f7d57859057e027400f",
+  "source_ids": [
+    "message-d11fd3a2149db858d3dde851",
+    "message-10509868584961344df05185",
+    "message-a9d9c8be21abd103c012342f",
+    "message-3db6b98fd3dda773361cec68"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"9dd02857-7036-40d0-99eb-7ad6c33afce3\", \"memory\": \"Jen's umbrella broke during her walk to work on the morning of September 25, 2026 when wind flipped it inside out and snapped one of the spokes, leaving her a little damp as she was almost at the office\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-25.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "9dd02857-7036-40d0-99eb-7ad6c33afce3",
+          "memory": "Jen's umbrella broke during her walk to work on the morning of September 25, 2026 when wind flipped it inside out and snapped one of the spokes, leaving her a little damp as she was almost at the office",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-25.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 18.99,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:21:06.389741+00:00",
+    "finished": "2026-10-15T05:21:25.380994+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 10144,
+        "output_tokens": 2094,
+        "accounted_upper_bound_usd": 0.0014332,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "3f3a839cd8744665b8e50200022c5e65",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:21:09.654656+00:00",
+        "finished": "2026-10-15T05:21:24.434969+00:00",
+        "state": "settled",
+        "input_tokens": 10144,
+        "output_tokens": 2094,
+        "accounted": 1433200,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0014332
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

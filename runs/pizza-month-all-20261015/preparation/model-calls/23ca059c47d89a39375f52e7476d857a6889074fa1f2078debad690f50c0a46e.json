@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T04:49:33.906926+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya, Leo. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-13. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 09:00 and 09:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-24 Leo: sounds good, see you at 1\n2026-09-24 Maya: perfect thank you!!\n2026-09-26 Leo: yesterday's pizza at Mario's was so good\n2026-09-26 Leo: those olives were way too salty tho\n2026-09-26 Maya: lmao yeah I was drinking water all afternoon after\n2026-09-26 Me: hahaha same, that crust totally saved it tho\n2026-10-05 Me: wanna try Luigi's on 5th Street for pizza Friday at noon?\n2026-10-05 Maya: yes!! I'm in, could use something different from Mario's\n2026-10-05 Leo: yeah that works, I can actually make it this Friday\n2026-10-08 Leo: quick check, we still on for Luigi's on 5th Street tomorrow?\n2026-10-08 Maya: yep! still in\n2026-10-08 Me: yep, see you there tomorrow\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya brings the Friday pizza plan from her DM into the group so Leo can join. Natural short coordination; establish continuity with that same outing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Leo joins Maya and the user's already arranged Friday pizza at noon at Rosa's on Oak Street. It is the same outing from the DM, not an extra pizza plan or a venue change.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad05b5dcfd0d9c405014657",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792039763.0,
+    "completed_at": 1792039773.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad05b5dcfd0d9c405014657:rs_01a13de4bf3a75f9a2a1f559cae3b40c",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Interpreting speaker-label constraints for an iMessage format and ruling out disallowed aliases."
+          },
+          {
+            "type": "summary_text",
+            "text": "Resolving a venue conflict between Luigi's on 5th Street and Rosa's on Oak Street while keeping pronoun usage consistent."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short multi-message exchange that anchors the Rosa's plan and adds Leo's acceptance."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13de4e470716eb895264d8f2ce3a9",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\\nMe: yep, still on for me\\nLeo: yeah that works, I'm in for Friday\\nMaya: perfect thank you!!\", \"writer_note\": \"Maya explicitly frames Rosa's as the moved DM plan to show continuity, states the full proposal once, then Me confirms and Leo accepts with his characteristic 'yeah that works'.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 811,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1490,
+      "output_tokens_details": {
+        "reasoning_tokens": 1302
+      },
+      "total_tokens": 2301
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\\nMe: yep, still on for me\\nLeo: yeah that works, I'm in for Friday\\nMaya: perfect thank you!!\", \"writer_note\": \"Maya explicitly frames Rosa's as the moved DM plan to show continuity, states the full proposal once, then Me confirms and Leo accepts with his characteristic 'yeah that works'.\"}",
+  "usage": {
+    "input_tokens": 811,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1490,
+    "output_tokens_details": {
+      "reasoning_tokens": 1302
+    },
+    "total_tokens": 2301
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

@@ -1,0 +1,77 @@
+{
+  "scene_id": "w1-ordinary-sunday",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-15T04:25:07+00:00",
+  "spec": {
+    "id": "w1-ordinary-sunday",
+    "channel": "imessage",
+    "thread": "alex",
+    "scene": "Alex sends a picture description of a comically small houseplant and the user teases him. No plans are made.",
+    "test_intent": "",
+    "facts": [
+      "Alex bought a tiny basil plant."
+    ],
+    "at": "2026-09-20T16:00:00-04:00",
+    "window_start": "2026-09-20T16:00:00-04:00",
+    "window_end": "2026-09-20T16:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Alex"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v16",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Alex: just bought this tiny basil plant lol it's like 3 little leaves in a shot-sized pot next to my keys for scale",
+    "Me: lol is that for ants? there's more basil on a slice of pizza",
+    "Alex: hey it's small but mighty, it already smells amazing",
+    "Me: enjoy your one leaf of pesto"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-20. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 16:00 and 16:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Alex sends a picture description of a comically small houseplant and the user teases him. No plans are made.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Alex bought a tiny basil plant.\n\nNew messages:\n1. Alex: just bought this tiny basil plant lol it's like 3 little leaves in a shot-sized pot next to my keys for scale\n2. Me: lol is that for ants? there's more basil on a slice of pizza\n3. Alex: hey it's small but mighty, it already smells amazing\n4. Me: enjoy your one leaf of pesto",
+  "judge_response": "{\"supported\":true,\"evidence\":[1,2,4],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      4
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 1808,
+  "response_chars": 117,
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-prep-20261015/model-calls/5aaab3210bc58f929ca316e7f889877c106c6b2ff6597f538fc3485e286c9da8.json",
+  "usage": {
+    "completion_tokens": 1542,
+    "prompt_tokens": 378,
+    "total_tokens": 1920,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1499
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

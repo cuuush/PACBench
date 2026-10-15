@@ -1,0 +1,81 @@
+{
+  "scene_id": "w1-friday-pizza",
+  "attempt": 2,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-15T04:43:41+00:00",
+  "spec": {
+    "id": "w1-friday-pizza",
+    "channel": "imessage",
+    "thread": "maya",
+    "scene": "Maya and the user arrange an easy Friday catch-up over pizza. They know each other; keep it casual.",
+    "test_intent": "",
+    "facts": [
+      "They agree to pizza this Friday at 1 pm at Rosa's on Oak Street."
+    ],
+    "at": "2026-09-15T18:00:00-04:00",
+    "window_start": "2026-09-15T18:00:00-04:00",
+    "window_end": "2026-09-15T18:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Maya"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v16",
+    "judge_prompt_version": "scene-judge-v9"
+  },
+  "dialogue": [
+    "Me: still up for a catch-up Friday?",
+    "Maya: yes! pizza at Rosa's on Oak Street?",
+    "Me: love it. 1pm work for you?",
+    "Maya: yeah that works"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-15. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:00 and 18:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Maya and the user arrange an easy Friday catch-up over pizza. They know each other; keep it casual.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. They agree to pizza this Friday at 1 pm at Rosa's on Oak Street.\n\nNew messages:\n1. Me: still up for a catch-up Friday?\n2. Maya: yes! pizza at Rosa's on Oak Street?\n3. Me: love it. 1pm work for you?\n4. Maya: yeah that works",
+  "judge_response": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 1839,
+  "response_chars": 145,
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-prep-20261015/model-calls/c97759e1c5f0ee9e753dfb1ac1779323f986bc0b88256552c2b3a113342d09b8.json",
+  "usage": {
+    "completion_tokens": 1757,
+    "prompt_tokens": 389,
+    "total_tokens": 2146,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1689
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

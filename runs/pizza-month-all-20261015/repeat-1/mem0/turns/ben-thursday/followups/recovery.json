@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "740fd1bfe6f1af41e7ce0b7fed332a1b5b1288145caaa38c637d7d1fb421b0ec",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Ben dinner Thursday Saturday rescheduled",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792042179758,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"90d0e596-9a12-4456-9d1b-2f8f5170e0a3\", \"memory\": \"User and Ben rescheduled their dinner from Thursday to 7pm on Saturday, October 17, 2026 at Juniper Cafe after Ben said on October 13, 2026 he was stuck at work, with User proposing Saturday at 7pm at Juniper Cafe and Ben confirming.\", \"score\": 0.9205183877746225}, {\"id\": \"2c050aab-967d-457e-8f37-ea4ece0ff162\", \"memory\": \"User and Ben planned dinner at Juniper Cafe at 7pm on Thursday, October 15, 2026, with Ben proposing the restaurant and time on October 12, 2026 and User agreeing.\", \"score\": 0.8625213323376348}, {\"id\": \"802886a3-8401-41be-b719-36ca2c8d5707\", \"memory\": \"On October 2, 2026, Ben asked User if User had seen Ben's blue keyring, saying Ben thought Ben had left it by the door but could not find it there, then shortly after Ben found the blue keyring in Ben's coat pocket and User responded glad Ben found it.\", \"score\": 0.5506060137456018}, {\"id\": \"b4bb26b8-1bf1-4085-9faf-d56237dcb70f\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group rescheduled their pizza at Mario's on Pine Street on Friday, September 25, 2026 from noon to 1pm, after Maya requested the change on September 24, 2026 due to a morning appointment, with User and Leo both agreeing to the new time.\", \"score\": 0.5420198933096685}, {\"id\": \"4fbc7d23-9910-44fa-a66b-0c905bf779d6\", \"memory\": \"User and Maya rescheduled their pizza at Rosa's on Oak Street on Friday, October 16, 2026 from 1pm to noon on October 13, 2026 after Maya requested the change because she has something at 1:30, with User agreeing.\", \"score\": 0.5402376582470785}, {\"id\": \"0d43b45e-730b-487d-93b9-409e55604699\", \"memory\": \"Alex proposed testing the grown basil with pizza at Mario's at 6pm on Saturday, October 3, 2026, but User declined on September 29, 2026 because User's family was visiting that Saturday.\", \"score\": 0.4801549022392612}, {\"id\": \"6f7af765-1dae-4778-bdb8-17bdd1ff40ad\", \"memory\": \"On October 9, 2026, User told Ben that User finally watched the space movie they had discussed, thought it was pretty bad with a messy ending, and agreed with Ben that the spaceship effects were terrible, like PS2 cutscene level, which took User out of the movie completely\", \"score\": 0.4538112652477107}, {\"id\": \"b16d0a91-c0d6-4e05-b5bb-ef6a910c9d1c\", \"memory\": \"Devon's team proposed getting pizza at Domino's at 2pm on Saturday, September 26, 2026, and Devon told them on September 22, 2026 that neither Devon nor User would be coming.\", \"score\": 0.43707057049701725}, {\"id\": \"4dd065f2-ff35-42f3-be74-35fb09db398c\", \"memory\": \"Maya's sister planned to celebrate her birthday with friends with pizza at Rosa's at 4pm on Saturday, October 17, 2026, with Maya noting on October 10, 2026 that just her sister's group is going and User and Maya are not attending\", \"score\": 0.39588805323059006}, {\"id\": \"377ab4be-a848-4f4c-8b41-97b97767daf2\", \"memory\": \"Alex joked on October 7, 2026 that if he ever wins the lottery he would rent out Mario's every Saturday to offer free pizza for everyone, and User responded enthusiastically that User would be down for fantasy free pizza every week\", \"score\": 0.37787569923711667}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.12,
+    "input_tokens": null,
+    "output_tokens": 15,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "tonight-no-dinner",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "tonight-no-dinner",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

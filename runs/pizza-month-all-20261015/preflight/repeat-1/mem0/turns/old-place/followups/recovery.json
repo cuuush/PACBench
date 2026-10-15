@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "83875fd5d2524294c5967b1acd39c2c02bc6d658c6a2ea6d6e57505327b47c88",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Maya pizza meetup Rosa's Mario's location",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792038949914,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"9debec8b-8d34-405b-b3d8-f9c0ee22ced4\", \"memory\": \"User and Maya changed their Friday, October 16, 2026 noon pizza meetup venue from Rosa's on Oak Street to Mario's on Pine Street after learning Rosa's was closed for repairs, as proposed by Maya and agreed to by User.\", \"score\": 0.541670929518256}, {\"id\": \"060a700f-acda-437a-8d6b-5bc885d008da\", \"memory\": \"User loves Mario's pizza restaurant, as expressed on October 14, 2026 when agreeing to Maya's suggestion to meet at Mario's on Pine Street for pizza on Friday.\", \"score\": 0.4506341512203517}, {\"id\": \"22322856-501c-4022-8b60-7e7844ccb519\", \"memory\": \"User and Maya rescheduled their pizza meetup at Rosa's on Oak Street to noon on Friday, October 16, 2026, after Maya requested moving it earlier from 1 pm and User agreed\", \"score\": 0.42370245389016137}, {\"id\": \"3e54a7a2-b515-49db-86d8-bfdd7ed70c62\", \"memory\": \"User and Maya planned to meet for pizza at Rosa's on Oak Street at 1 pm on Friday, October 16, 2026, after Maya said she was craving pizza and suggested Rosa's.\", \"score\": 0.42168300428086186}, {\"id\": \"3ecc11fd-e968-4efc-9a37-c6c376bc5cd2\", \"memory\": \"Maya reported on October 14, 2026 that Rosa's on Oak Street is closed for repairs after walking by, affecting the planned Friday pizza meetup.\", \"score\": 0.40583610716661067}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 15.45,
+    "input_tokens": 1290,
+    "output_tokens": 393,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "friday-rosas-no",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "friday-rosas-no",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

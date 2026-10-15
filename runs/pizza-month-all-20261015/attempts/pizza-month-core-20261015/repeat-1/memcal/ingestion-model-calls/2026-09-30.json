@@ -1,0 +1,242 @@
+{
+  "bundles": [
+    {
+      "run_id": 16,
+      "entity": "person:Devon",
+      "bundle_id": "517eb9",
+      "label": "Devon",
+      "kind": "person",
+      "lines": 4,
+      "state": "reading",
+      "updated_at": "2026-10-01T03:00:00-04:00"
+    }
+  ],
+  "calls": [
+    {
+      "generation_id": "chatcmpl-01a13df5-bfda-72ef-8021-be46ebe18e67",
+      "run_id": 16,
+      "stage": "propose",
+      "label": "person:Devon",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-01T03:00:00-04:00",
+      "max_tokens": 16067,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 3564,
+        "completion_tokens": 2136,
+        "cached_tokens": 0,
+        "reasoning_tokens": 1927,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "517eb9",
+          "entity": "person:Devon",
+          "label": "Devon",
+          "lines": 4
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho actually joined or spoke as participants, not an entire room roster.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Thursday 2026-10-01.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Wed 30 Sep · Thu 1 Oct (TODAY) · Fri 2 Oct · Sat 3 Oct · Sun 4 Oct · Mon 5 Oct · Tue 6 Oct · Wed 7 Oct · Thu 8 Oct · Fri 9 Oct · Sat 10 Oct · Sun 11 Oct · Mon 12 Oct · Tue 13 Oct · Wed 14 Oct · Thu 15 Oct · Fri 16 Oct · Sat 17 Oct\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  pizza@2026-10-02 | 2026-10-02 | commitment/confirmed | Pizza | 12:30 | Rosa's on Oak Street | with Maya\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Alex, Devon, Jen, Leo, Maya\n\nWIKI PAGES: pizza",
+      "suffix": "1 bundle(s) follow:\n  517eb9  Devon\nList all 1 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID 517eb9   (Devon)\none-to-one on imessage · 4 lines\n-- Wed 2026-09-30 --\n  L1 18:00 (imessage) Devon: hey wanna grab pizza friday to catch up?\n  L2 18:01 (imessage) Devon: mario's on pine at 6?\n  L3 18:02 (imessage) me: yeah that works, see you there\n  L4 18:20 (imessage) Devon: perfect, i'm craving their pepperoni anyway\nNO PAGE YET FOR: Devon — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\"diffs\": [{\"bundle\": \"517eb9\", \"events\": [{\"cites\": [\"L1\", \"L2\", \"L3\"], \"date\": \"2026-10-02\", \"field_cites\": {\"date\": [\"L1\"], \"location\": [\"L2\"], \"participants\": [\"L1\"], \"status\": [\"L3\"], \"time\": [\"L2\"], \"title\": [\"L1\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": \"Mario's on Pine\", \"note\": null, \"participants\": [\"Devon\"], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"18:00\", \"title\": \"Pizza\", \"until\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}], \"reviewed\": [\"517eb9\"]}",
+      "parsed": {
+        "diffs": [
+          {
+            "bundle": "517eb9",
+            "events": [
+              {
+                "cites": [
+                  "L1",
+                  "L2",
+                  "L3"
+                ],
+                "date": "2026-10-02",
+                "field_cites": {
+                  "date": [
+                    "L1"
+                  ],
+                  "location": [
+                    "L2"
+                  ],
+                  "participants": [
+                    "L1"
+                  ],
+                  "status": [
+                    "L3"
+                  ],
+                  "time": [
+                    "L2"
+                  ],
+                  "title": [
+                    "L1"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": "Mario's on Pine",
+                "note": null,
+                "participants": [
+                  "Devon"
+                ],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "18:00",
+                "title": "Pizza",
+                "until": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          }
+        ],
+        "reviewed": [
+          "517eb9"
+        ]
+      },
+      "echoed": [
+        "517eb9"
+      ],
+      "routed": [
+        {
+          "id": "517eb9",
+          "entity": "person:Devon",
+          "label": "Devon",
+          "lines": 4
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "chatcmpl-01a13df6-7d25-707b-b0f2-092351370536",
+      "run_id": 16,
+      "stage": "merge",
+      "label": "person:Devon, person:Maya",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-01T03:00:00-04:00",
+      "max_tokens": 16384,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 1547,
+        "completion_tokens": 6112,
+        "cached_tokens": 0,
+        "reasoning_tokens": 5913,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "Several conversations described what may be the same event. Each was read on its own, so\neach proposal only knows its own thread — one of them may have been guessing about a\ndetail another one states outright.\n\nDecide what is actually true. Return one row only when the evidence describes one\noccasion. A cancelled old booking followed by a newly booked date is two occasions:\nanswer same_event false so the declined old row and confirmed new row both survive.\n\nWEIGH THE SOURCE, NOT THE COUNT\nThree fragments repeating a guess do not outvote one that was there. Prefer:\n  - a detail stated by the people arranging it over one mentioned in passing elsewhere\n  - a specific date (\"sunday after 6\") over one derived from a vague phrase (\"next\n    weekend\", \"sometime soon\"), whichever is more common\n  - a correction over what it corrected — later beats earlier when they conflict\nThe timestamped source lines behind each fragment are given. A plan discussed in its own thread is\nbetter evidence about that plan than a reference to it inside a thread about something\nelse entirely.\n\nWHEN YOU CANNOT TELL, SAY SO\nAnswer `\"unresolved\"` rather than choosing. Two rows the user can see and merge later\nis a recoverable mistake; one row assembled out of two real plans is not.\n\nPOOL WHAT DOES NOT CONFLICT\nGuest lists especially: each thread knows the people in it, and none knows everyone.\nUnion the participants unless a fragment says someone is not coming. Take the most\nspecific title, location and time available from any fragment.\n\nIF THEY ARE NOT THE SAME EVENT\nSay so with same_event false, and every proposal is kept as its own row. Two poker\nnights a week apart are two poker nights. Only merge what is genuinely one occasion.\nThe schema still requires the other fields, so fill them from any one fragment and put\nthe reason in `why`. Do not stitch two answers into one field: \"Go running; Go to a bar\"\nis not a title and \"confirmed; mentioned\" is not a status.\nUse observation_targets and pending_targets to identify\nwhich dated proposal each cancellation concerns, including when same_event is false.\nLeave those arrays empty when the evidence cannot identify a target. SOURCE ids support\nfields through citations; a stored summary or the time it was written is not new evidence.",
+      "suffix": "PROPOSALS\nPROPOSAL 1\n  - Pizza  [from person:Devon; date 2026-10-02; time 18:00; location Mario's on Pine; status confirmed; kind commitment; with Devon]\n    SOURCE 63 at 2026-09-30T18:00:00-04:00 — Devon: hey wanna grab pizza friday to catch up?\n    SOURCE 64 at 2026-09-30T18:01:44-04:00 — Devon: mario's on pine at 6?\n    SOURCE 65 at 2026-09-30T18:02:36-04:00 — me: yeah that works, see you there\nPROPOSAL 2\n  - Pizza  [from person:Maya; date 2026-10-02; key pizza@2026-10-02; time 12:30; location Rosa's on Oak Street; status confirmed; kind commitment; with Maya]\n    SOURCE 54 at 2026-09-28T18:00:00-04:00 — Maya: wanna get pizza again on Friday?\n    SOURCE 55 at 2026-09-28T18:16:00-04:00 — me: yes definitely, back to Rosa's on Oak Street?\n    SOURCE 56 at 2026-09-28T18:18:40-04:00 — Maya: yes! is 12:30pm good for you?\n    SOURCE 57 at 2026-09-28T18:20:00-04:00 — me: yeah that works\n    STORED STATE at 2026-09-29T03:00:00-04:00 — confirmed on 2026-10-02\n    STORED HISTORY at 2026-09-29T03:00:00-04:00 — status:  -> confirmed\n    STORED HISTORY at 2026-09-29T03:00:00-04:00 — participants:  -> [\"Maya\"]\n    STORED HISTORY at 2026-09-29T03:00:00-04:00 — series:  -> pizza\n    STORED HISTORY at 2026-09-29T03:00:00-04:00 — source:  -> person:Maya\n\nUNDATED OBSERVATIONS — context only; decide which target they name\nPENDING 2 at 2026-09-29T18:17:25-04:00 from person:Alex — Pizza on 2026-10-03 [Pizza; 2026-10-03; 18:00; Mario's]\n\nOne row, or same_event false to preserve distinct targets.",
+      "completion": "{\"citations\":[{\"field\":\"date\",\"source_ids\":[63]},{\"field\":\"time\",\"source_ids\":[64]},{\"field\":\"title\",\"source_ids\":[63]},{\"field\":\"location\",\"source_ids\":[64]},{\"field\":\"kind\",\"source_ids\":[65]},{\"field\":\"status\",\"source_ids\":[65]},{\"field\":\"participants\",\"source_ids\":[63]}],\"date\":\"2026-10-02\",\"kind\":\"commitment\",\"links\":[],\"location\":\"Mario's on Pine\",\"note\":null,\"observation_targets\":[],\"participants\":[\"Devon\"],\"pending_targets\":[{\"pending_id\":2,\"proposal\":1}],\"same_event\":false,\"status\":\"confirmed\",\"time\":\"18:00\",\"title\":\"Pizza\",\"until\":null,\"why\":\"Devon's thread explicitly arranges Friday at Mario's at 6 while Maya's thread explicitly arranges Friday at Rosa's at 12:30 so conflicting times locations and hosts prove two separate pizza occasions.\"}",
+      "parsed": {
+        "citations": [
+          {
+            "field": "date",
+            "source_ids": [
+              63
+            ]
+          },
+          {
+            "field": "time",
+            "source_ids": [
+              64
+            ]
+          },
+          {
+            "field": "title",
+            "source_ids": [
+              63
+            ]
+          },
+          {
+            "field": "location",
+            "source_ids": [
+              64
+            ]
+          },
+          {
+            "field": "kind",
+            "source_ids": [
+              65
+            ]
+          },
+          {
+            "field": "status",
+            "source_ids": [
+              65
+            ]
+          },
+          {
+            "field": "participants",
+            "source_ids": [
+              63
+            ]
+          }
+        ],
+        "date": "2026-10-02",
+        "kind": "commitment",
+        "links": [],
+        "location": "Mario's on Pine",
+        "note": null,
+        "observation_targets": [],
+        "participants": [
+          "Devon"
+        ],
+        "pending_targets": [
+          {
+            "pending_id": 2,
+            "proposal": 1
+          }
+        ],
+        "same_event": false,
+        "status": "confirmed",
+        "time": "18:00",
+        "title": "Pizza",
+        "until": null,
+        "why": "Devon's thread explicitly arranges Friday at Mario's at 6 while Maya's thread explicitly arranges Friday at Rosa's at 12:30 so conflicting times locations and hosts prove two separate pizza occasions."
+      }
+    },
+    {
+      "generation_id": "chatcmpl-01a13df6-8b43-75e7-97e8-a221cc99c5cc",
+      "run_id": 16,
+      "stage": "sweep",
+      "label": "state review",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-01T03:00:00-04:00",
+      "max_tokens": 16194,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "",
+      "usage": {
+        "prompt_tokens": 666,
+        "completion_tokens": 391,
+        "cached_tokens": 0,
+        "reasoning_tokens": 365,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "You are reviewing the state of a personal memory system right after a batch of writes.\nYou are not adding anything new. You are looking for damage:\n\n  duplicate    two rows that are plainly the same event -> drop the worse-worded one\n  junk         a row or fact that should never have been stored (banter, affection,\n               newsletter events, facts about software, other people's opinions)\n  contradiction  two rows that cannot both be true -> raise a question\n\nA booking that was really made and then called off is a `declined` row, not a duplicate\nor junk. Both rows stay. This summary has no source evidence, so it cannot authorize a\nstatus correction. Leave corrections to Merge and Apply, which can compare source lines.\n\nKEYS ARE OPAQUE\nA row's key is an identifier, not data. It is minted once from the title and the date\nthe row was first seen, and it never changes afterwards — so a row that moved to a new\ndate keeps its original suffix, and `beer-garden@2026-08-01` dated 2026-08-02 is a row\nthat moved, working exactly as intended. The date field is the truth; the key is a\nname. Never raise a question about a key disagreeing with a date.\n\nQUESTIONS ARE FOR THE USER\nEvery question you raise is shown to a person and costs them a reply. Ask only about\ntheir life — never about this system's bookkeeping, formatting, or internal\nconsistency. If the only person who could act on the answer is the system itself, it\nis not a question.\n\nBe conservative. Deleting a real row is worse than leaving a slightly awkward one.\nReturn empty arrays when the state looks fine, which is the common case.\n",
+      "suffix": "MEMCAL AFTER THIS RUN\n  pizza@2026-10-02 | 2026-10-02 | commitment/confirmed | Pizza | 12:30 | Rosa's on Oak Street | with Maya\n  pizza@2026-10-02~2 | 2026-10-02 | commitment/confirmed | Pizza | 18:00 | Mario's on Pine | with Devon\n\nOPEN TO-DOS\n  (none)\n\nQUESTIONS ALREADY OPEN — do not ask any of these again\n  (none)\n\nWRITES IN THIS RUN\n  inserted  2026-10-02 Pizza [pizza@2026-10-02~2]\n\nReview this state.",
+      "completion": "{\"drop_events\": [], \"drop_todos\": [], \"questions\": []}",
+      "parsed": {
+        "drop_events": [],
+        "drop_todos": [],
+        "questions": []
+      }
+    }
+  ]
+}

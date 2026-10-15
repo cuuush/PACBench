@@ -1,0 +1,79 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-10-05T18:20:00-04:00",
+  "processing_at": "2026-10-05T18:20:00-04:00",
+  "document_sha256": "751caf1e967436ba8e9660e549f3e7e0409004f500127963f061203aa0dd1de1",
+  "source_ids": [
+    "message-8c55d593acc6f9b8e68a2c29",
+    "message-8e65a688855949ae5c457c48",
+    "message-b8c69ea64179dc54d70c79e6"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"00d60457-1b23-4625-8f1a-02189a6042b2\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group planned to have pizza at Luigi's on 5th Street at noon on Friday, October 9, 2026, with User proposing the restaurant and time on October 5, 2026, Maya agreeing and noting she wanted something different from Mario's, and Leo agreeing and confirming he could make it.\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-10-05.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "00d60457-1b23-4625-8f1a-02189a6042b2",
+          "memory": "User, Maya, and Leo in the 'Friday crew' group planned to have pizza at Luigi's on 5th Street at noon on Friday, October 9, 2026, with User proposing the restaurant and time on October 5, 2026, Maya agreeing and noting she wanted something different from Mario's, and Leo agreeing and confirming he could make it.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-10-05.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 15.48,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:24:08.968011+00:00",
+    "finished": "2026-10-15T05:24:24.449210+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 10042,
+        "output_tokens": 1552,
+        "accounted_upper_bound_usd": 0.0013146,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "a4d4582697c74980a803c789596cf4f3",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:24:11.832535+00:00",
+        "finished": "2026-10-15T05:24:22.872627+00:00",
+        "state": "settled",
+        "input_tokens": 10042,
+        "output_tokens": 1552,
+        "accounted": 1314600,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013146
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

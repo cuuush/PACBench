@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nIs Rosa’s still the place?",
+  "at": "2026-10-15T10:02:00-04:00",
+  "answer": "No — it's Mario's on Pine Street. Rosa's is closed for repairs.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "Maya pizza meetup Rosa's Mario's location",
+        "top_k": 10
+      },
+      "timestamp": 1792038949914
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"9debec8b-8d34-405b-b3d8-f9c0ee22ced4\", \"memory\": \"User and Maya changed their Friday, October 16, 2026 noon pizza meetup venue from Rosa's on Oak Street to Mario's on Pine Street after learning Rosa's was closed for repairs, as proposed by Maya and agreed to by User.\", \"score\": 0.541670929518256}, {\"id\": \"060a700f-acda-437a-8d6b-5bc885d008da\", \"memory\": \"User loves Mario's pizza restaurant, as expressed on October 14, 2026 when agreeing to Maya's suggestion to meet at Mario's on Pine Street for pizza on Friday.\", \"score\": 0.4506341512203517}, {\"id\": \"22322856-501c-4022-8b60-7e7844ccb519\", \"memory\": \"User and Maya rescheduled their pizza meetup at Rosa's on Oak Street to noon on Friday, October 16, 2026, after Maya requested moving it earlier from 1 pm and User agreed\", \"score\": 0.42370245389016137}, {\"id\": \"3e54a7a2-b515-49db-86d8-bfdd7ed70c62\", \"memory\": \"User and Maya planned to meet for pizza at Rosa's on Oak Street at 1 pm on Friday, October 16, 2026, after Maya said she was craving pizza and suggested Rosa's.\", \"score\": 0.42168300428086186}, {\"id\": \"3ecc11fd-e968-4efc-9a37-c6c376bc5cd2\", \"memory\": \"Maya reported on October 14, 2026 that Rosa's on Oak Street is closed for repairs after walking by, affecting the planned Friday pizza meetup.\", \"score\": 0.40583610716661067}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 15.45,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261015_003514_42357d \"Confirm plan with Maya tomorrow\" (1 user message, 2 total messages)\n\nsession_id: 20261015_003514_42357d",
+  "raw_events": 7,
+  "session_id": "20261015_003514_42357d",
+  "stderr_full": "↻ Resumed session 20261015_003514_42357d \"Confirm plan with Maya tomorrow\" (1 user message, 2 total messages)\n\nsession_id: 20261015_003514_42357d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_003514_42357d\", \"timestamp\": 1792038943451}\n{\"type\": \"text\", \"text\": \"No — checking the latest plan.\", \"timestamp\": 1792038949420}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"Maya pizza meetup Rosa's Mario's location\", \"top_k\": 10}, \"timestamp\": 1792038949914}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"9debec8b-8d34-405b-b3d8-f9c0ee22ced4\\\", \\\"memory\\\": \\\"User and Maya changed their Friday, October 16, 2026 noon pizza meetup venue from Rosa's on Oak Street to Mario's on Pine Street after learning Rosa's was closed for repairs, as proposed by Maya and agreed to by User.\\\", \\\"score\\\": 0.541670929518256}, {\\\"id\\\": \\\"060a700f-acda-437a-8d6b-5bc885d008da\\\", \\\"memory\\\": \\\"User loves Mario's pizza restaurant, as expressed on October 14, 2026 when agreeing to Maya's suggestion to meet at Mario's on Pine Street for pizza on Friday.\\\", \\\"score\\\": 0.4506341512203517}, {\\\"id\\\": \\\"22322856-501c-4022-8b60-7e7844ccb519\\\", \\\"memory\\\": \\\"User and Maya rescheduled their pizza meetup at Rosa's on Oak Street to noon on Friday, October 16, 2026, after Maya requested moving it earlier from 1 pm and User agreed\\\", \\\"score\\\": 0.42370245389016137}, {\\\"id\\\": \\\"3e54a7a2-b515-49db-86d8-bfdd7ed70c62\\\", \\\"memory\\\": \\\"User and Maya planned to meet for pizza at Rosa's on Oak Street at 1 pm on Friday, October 16, 2026, after Maya said she was craving pizza and suggested Rosa's.\\\", \\\"score\\\": 0.42168300428086186}, {\\\"id\\\": \\\"3ecc11fd-e968-4efc-9a37-c6c376bc5cd2\\\", \\\"memory\\\": \\\"Maya reported on October 14, 2026 that Rosa's on Oak Street is closed for repairs after walking by, affecting the planned Friday pizza meetup.\\\", \\\"score\\\": 0.40583610716661067}], \\\"count\\\": 5}\", \"duration_ms\": 31, \"is_error\": false, \"timestamp\": 1792038949945}\n{\"type\": \"text\", \"text\": \"\\n\\nNo — it's Mario's on Pine Street.\", \"timestamp\": 1792038951797}\n{\"type\": \"text\", \"text\": \" Rosa's is closed for repairs.\", \"timestamp\": 1792038951823}\n{\"type\": \"result\", \"session_id\": \"20261015_003514_42357d\", \"exit_code\": 0, \"text\": \"No — it's Mario's on Pine Street. Rosa's is closed for repairs.\", \"tokens\": {\"input\": 4834, \"output\": 819, \"total\": 9094, \"cache_read\": 3441, \"cache_write\": 0}, \"duration_ms\": 8427, \"timestamp\": 1792038951879}",
+  "session_input_tokens": 4834,
+  "session_output_tokens": 819,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User and Maya rescheduled their pizza meetup at Rosa's on Oak Street to noon on Friday, October 16, 2026, after Maya requested moving it earlier from 1 pm and User agreed\n- User and Maya changed their Friday, October 16, 2026 noon pizza meetup venue from Rosa's on Oak Street to Mario's on Pine Street after learning Rosa's was closed for repairs, as proposed by Maya and agreed to by User.\n- User and Maya planned to meet for pizza at Rosa's on Oak Street at 1 pm on Friday, October 16, 2026, after Maya said she was craving pizza and suggested Rosa's.\n- Maya reported on October 14, 2026 that Rosa's on Oak Street is closed for repairs after walking by, affecting the planned Friday pizza meetup.\n- User loves Mario's pizza restaurant, as expressed on October 14, 2026 when agreeing to Maya's suggestion to meet at Mario's on Pine Street for pizza on Friday.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-0_aeijd2",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-0_aeijd2",
+    "system_prompt_sha256": "90b6d2623b91f2555109ec2f90ecd84e345fe8c7fd2d1614d6880259e9d25012",
+    "reason": "No project context in native saved system prompt"
+  }
+}

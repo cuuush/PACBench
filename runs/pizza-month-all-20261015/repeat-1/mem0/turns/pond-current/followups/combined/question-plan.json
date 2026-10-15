@@ -1,0 +1,54 @@
+{
+  "contract_hash": "8a42a03c699f3d686632be3399d496eb960f9fd29ba1f494575eb41d0ce0c9f7",
+  "component_plan_hash": "44e93524da6080322308d87689cc2a0a8020e05d35378ca7d4281bf47a392d23",
+  "claim_ids": [
+    "no-replacement"
+  ],
+  "authoring_version": "scoped-recovery-v3",
+  "known_context": [
+    "No — that walk is off.\n\nYou, Jen, and Alex were set for tomorrow (Fri) 2pm at the west entrance of the duck pond in Willow Park, but Jen and Alex both cancelled Wednesday and you agreed to postpone."
+  ],
+  "context_source": "actual-initial-answer",
+  "question": "Was a replacement date agreed for tomorrow's 2pm walk at the west entrance of the duck pond in Willow Park with Jen and Alex?",
+  "review": {
+    "safe": true,
+    "covers_claim_ids": [
+      "no-replacement"
+    ],
+    "reason": "The message asks yes/no about replacement-date status without asserting it, using only answer-provided anchors (2pm, west entrance, Jen/Alex) and not supplying the missing date or prescribing tools."
+  },
+  "origin": "spark-combined-message",
+  "authoring_calls": [
+    {
+      "model": "muse-spark-1.3-contributor",
+      "usage": {
+        "completion_tokens": 2451,
+        "prompt_tokens": 177,
+        "total_tokens": 2628,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2409
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "record_path": "/workspace/PACBench/artifacts/pizza-month-core-20261015/model-calls/318996b7da6d67958abbdd5a883877bcd8ac25c1d85cfc67825b7a46a4316807.json"
+    },
+    {
+      "model": "muse-spark-1.3-contributor",
+      "usage": {
+        "completion_tokens": 1350,
+        "prompt_tokens": 270,
+        "total_tokens": 1620,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1283
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "record_path": "/workspace/PACBench/artifacts/pizza-month-core-20261015/model-calls/58743b9641d493d0b01d7449a76194f06bee46540f607639cb3fd27e8598f38e.json"
+    }
+  ],
+  "question_hash": "6260237f21e9e3ca0af8823562d3a1871a109102858b181398a088233b078639"
+}

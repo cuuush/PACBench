@@ -1,0 +1,81 @@
+{
+  "scene_id": "w3-friday-invite",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-15T04:33:51+00:00",
+  "spec": {
+    "id": "w3-friday-invite",
+    "channel": "imessage",
+    "thread": "maya",
+    "scene": "Maya and the user arrange their next Friday meal. Their short replies sound like familiar friends.",
+    "test_intent": "",
+    "facts": [
+      "Maya and the user agree to pizza Friday at 12:30 pm at Rosa's on Oak Street."
+    ],
+    "at": "2026-09-28T18:00:00-04:00",
+    "window_start": "2026-09-28T18:00:00-04:00",
+    "window_end": "2026-09-28T18:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Maya"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v16",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Maya: wanna get pizza again on Friday?",
+    "Me: yes definitely, back to Rosa's on Oak Street?",
+    "Maya: yes! is 12:30pm good for you?",
+    "Me: yeah that works"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-28. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:00 and 18:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Maya and the user arrange their next Friday meal. Their short replies sound like familiar friends.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Maya and the user agree to pizza Friday at 12:30 pm at Rosa's on Oak Street.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-09-15 Me: still up for a catch-up Friday?\n2026-09-15 Maya: yes! pizza at Rosa's on Oak Street?\n2026-09-15 Me: love it. 1pm work for you?\n2026-09-15 Maya: yeah that works\n2026-09-18 Maya: hey! gonna be about 5 minutes late for our 1pm pizza at Rosa's today, bus is dragging\n2026-09-18 Me: no worries at all, will grab us a table inside\n2026-09-18 Maya: perfect, see you just after 1!\n2026-09-27 Maya: such a lazy sunday, i've just been scrolling food pics on the couch\n2026-09-27 Me: same here, zero energy to go anywhere\n2026-09-27 Maya: saw that new pizza place near the station tho, wonder if we should try it sometime?\n2026-09-27 Me: oh yeah i walked past it the other day, could be good for next pizza craving\n\nNew messages:\n1. Maya: wanna get pizza again on Friday?\n2. Me: yes definitely, back to Rosa's on Oak Street?\n3. Maya: yes! is 12:30pm good for you?\n4. Me: yeah that works",
+  "judge_response": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2541,
+  "response_chars": 145,
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-prep-20261015/model-calls/6ce3011a9bdc64934f16b7ae490392e148eb95e2b017cb358f1bba32f7e7f862.json",
+  "usage": {
+    "completion_tokens": 1987,
+    "prompt_tokens": 606,
+    "total_tokens": 2593,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1919
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

@@ -1,0 +1,84 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:42:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nDoes that affect my call with Jen or coffee with Alex?",
+  "at": "2026-10-15T10:42:00-04:00",
+  "answer": "No — both are still on. The 10am call with Jen and 11am coffee with Alex are separate from the postponed 2pm walk, and there's been no cancellation for either.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E13"
+      },
+      "timestamp": 1792070754237
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_archive",
+      "input": {
+        "limit": 20,
+        "person": "Jen",
+        "since": "2026-10-14",
+        "until": "2026-10-15"
+      },
+      "timestamp": 1792070758256
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_archive",
+      "input": {
+        "limit": 20,
+        "person": "Alex",
+        "since": "2026-10-14",
+        "until": "2026-10-15"
+      },
+      "timestamp": 1792070758264
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E13  job application review\n\nwhen: Friday 16 October 2026 at 10:00\nstate: You're going\nwho: Jen\nsource: person:Jen\n\nsources (8 line(s); * = what the row was built from):\n  — Sun Oct 4, 2026 17:15 · iMessage with Jen —\n   [82] Jen · Sun 4 Oct 17:15 · Jen: good until the last like 20 pages, hated the ending\n   [83] Jen · Sun 4 Oct 17:20 · me: ugh that's the worst, ruins the whole thing\n  — Tue Oct 13, 2026 11:00 · iMessage with Jen · 9 days later —\n * [136] Jen · Tue 13 Oct 11:00 · Jen: hey are you free friday morning for a little favor?\n   [137] Jen · Tue 13 Oct 11:01 · me: yeah probably, what's up?\n * [138] Jen · Tue 13 Oct 11:13 · Jen: can you help me go over my job application? it's almost done i just want a second pair of eyes\n   [139] Jen · Tue 13 Oct 11:17 · me: of course\n * [140] Jen · Tue 13 Oct 11:19 · Jen: could we do a quick call at 10 to review it?\n * [141] Jen · Tue 13 Oct 11:20 · me: yeah that works, send it over before and i'll take a look\n\nchanges:\n  2026-10-14T03:00  date: '' -> '2026-10-16' (by dream:nightly:born)\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'job application review' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-14T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_archive",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"line_id\": 154, \"when\": \"2026-10-14T09:00\", \"who\": \"Jen\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"text\": \"hey guys sorry but I can't make it Friday after all\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_archive",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"line_id\": 155, \"when\": \"2026-10-14T09:00\", \"who\": \"Alex\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"text\": \"all good, me too, let's just do this another day, this week got hectic\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 14.24,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261015_092407_60649c \"Confirm duck pond meeting tomorrow\" (2 user messages, 16 total messages)\n\nsession_id: 20261015_092407_60649c",
+  "raw_events": 19,
+  "session_id": "20261015_092407_60649c",
+  "stderr_full": "↻ Resumed session 20261015_092407_60649c \"Confirm duck pond meeting tomorrow\" (2 user messages, 16 total messages)\n\nsession_id: 20261015_092407_60649c\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_092407_60649c\", \"timestamp\": 1792070746657}\n{\"type\": \"text\", \"text\": \"Good question — I'll check if those are still on.\", \"timestamp\": 1792070753641}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E13\"}, \"timestamp\": 1792070754237}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E13  job application review\\n\\nwhen: Friday 16 October 2026 at 10:00\\nstate: You're going\\nwho: Jen\\nsource: person:Jen\\n\\nsources (8 line(s); * = what the row was built from):\\n  — Sun Oct 4, 2026 17:15 · iMessage with Jen —\\n   [82] Jen · Sun 4 Oct 17:15 · Jen: good until the last like 20 pages, hated the ending\\n   [83] Jen · Sun 4 Oct 17:20 · me: ugh that's the worst, ruins the whole thing\\n  — Tue Oct 13, 2026 11:00 · iMessage with Jen · 9 days later —\\n * [136] Jen · Tue 13 Oct 11:00 · Jen: hey are you free friday morning for a little favor?\\n   [137] Jen · Tue 13 Oct 11:01 · me: yeah probably, what's up?\\n * [138] Jen · Tue 13 Oct 11:13 · Jen: can you help me go over my job application? it's almost done i just want a second pair of eyes\\n   [139] Jen · Tue 13 Oct 11:17 · me: of course\\n * [140] Jen · Tue 13 Oct 11:19 · Jen: could we do a quick call at 10 to review it?\\n * [141] Jen · Tue 13 Oct 11:20 · me: yeah that works, send it over before and i'll take a look\\n\\nchanges:\\n  2026-10-14T03:00  date: '' -> '2026-10-16' (by dream:nightly:born)\\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-14T03:00  title: '' -> 'job application review' (by dream:nightly:born)\\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\\n  2026-10-14T03:00  participants: '' -> '[\\\"Jen\\\"]' (by dream:nightly:born)\\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\\n\", \"duration_ms\": 11, \"is_error\": false, \"timestamp\": 1792070754248}\n{\"type\": \"text\", \"text\": \"\\n\\nThose look separate, but I'll verify there's been no late change to either one.\", \"timestamp\": 1792070757815}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_archive\", \"input\": {\"limit\": 20, \"person\": \"Jen\", \"since\": \"2026-10-14\", \"until\": \"2026-10-15\"}, \"timestamp\": 1792070758256}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_archive\", \"output\": \"{\\\"results\\\": [{\\\"line_id\\\": 154, \\\"when\\\": \\\"2026-10-14T09:00\\\", \\\"who\\\": \\\"Jen\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"Park pals\\\", \\\"text\\\": \\\"hey guys sorry but I can't make it Friday after all\\\"}]}\", \"duration_ms\": 6, \"is_error\": false, \"timestamp\": 1792070758262}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_archive\", \"input\": {\"limit\": 20, \"person\": \"Alex\", \"since\": \"2026-10-14\", \"until\": \"2026-10-15\"}, \"timestamp\": 1792070758264}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_archive\", \"output\": \"{\\\"results\\\": [{\\\"line_id\\\": 155, \\\"when\\\": \\\"2026-10-14T09:00\\\", \\\"who\\\": \\\"Alex\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"Park pals\\\", \\\"text\\\": \\\"all good, me too, let's just do this another day, this week got hectic\\\"}]}\", \"duration_ms\": 5, \"is_error\": false, \"timestamp\": 1792070758270}\n{\"type\": \"text\", \"text\": \"\\n\\nNo — both are\", \"timestamp\": 1792070758794}\n{\"type\": \"text\", \"text\": \" still on. The 10am call with Jen and \", \"timestamp\": 1792070758837}\n{\"type\": \"text\", \"text\": \"11am coffee with Alex are\", \"timestamp\": 1792070758880}\n{\"type\": \"text\", \"text\": \" separate from\", \"timestamp\": 1792070758924}\n{\"type\": \"text\", \"text\": \" the postponed\", \"timestamp\": 1792070758967}\n{\"type\": \"text\", \"text\": \" \", \"timestamp\": 1792070759010}\n{\"type\": \"text\", \"text\": \"2pm walk, and there's been\", \"timestamp\": 1792070759053}\n{\"type\": \"text\", \"text\": \" no cancellation for\", \"timestamp\": 1792070759097}\n{\"type\": \"text\", \"text\": \" either.\", \"timestamp\": 1792070759147}\n{\"type\": \"result\", \"session_id\": \"20261015_092407_60649c\", \"exit_code\": 0, \"text\": \"No — both are still on. The 10am call with Jen and 11am coffee with Alex are separate from the postponed 2pm walk, and there's been no cancellation for either.\", \"tokens\": {\"input\": 19480, \"output\": 1009, \"total\": 51051, \"cache_read\": 30562, \"cache_write\": 0}, \"duration_ms\": 12542, \"timestamp\": 1792070759200}",
+  "session_input_tokens": 19480,
+  "session_output_tokens": 1009,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-15T10:42:00-04:00 [id=67d96b1b3c003ce9212a6ebce547598c0fe58f01] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Thursday 15 October 2026)\n〔E13〕 Fri Oct 16  \"job application review\", 10am — confirmed · with Jen\n〔E14〕 Fri Oct 16  \"coffee\", 11am — confirmed · with Alex\n〔E9〕 Fri Oct 16  \"pizza\", 12pm — confirmed · with Leo, Maya\n〔E11〕 Fri Oct 16  \"walk\", 2pm — not going · with Jen, Alex\n〔E10〕 Fri Oct 16  \"pizza\", 6pm — confirmed · with Devon\n〔E12〕 Sat Oct 17  \"dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-12 – 2026-11-14; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n\n## People and facts\nPages: pizza (where)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-bmjr2t82",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-bmjr2t82",
+    "system_prompt_sha256": "26d98a3497dfe5cd314836fb8b06401c504ef88dcc43e65ba5575cbdb57e741a",
+    "reason": "No project context in native saved system prompt"
+  }
+}

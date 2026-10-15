@@ -6,6 +6,10 @@ import subprocess
 import pytest
 from pacbench import publish_run
 from pacbench.followups import save
+from pacbench.followups import digest,freeze_policy
+from pacbench.frozen import write_bundle
+from pacbench.semantic_contract import ContractClaim,EvaluationContract
+from tests.test_document_ingestion import message
 
 
 @pytest.fixture
@@ -19,12 +23,26 @@ def repo(tmp_path,monkeypatch):
 
 def component(repo,name,provider):
     root=repo/'artifacts'/name
+    prep=root/'preparation';prep.mkdir(parents=True)
+    messages=[message('m1')]
+    hashed=write_bundle({'lives':{'one':{'lineage':'one','messages':messages}}},prep/'bundle.json')
+    contract={'claims':[{'id':'fact-1','statement':'Friday dinner at seven.','evidence':['m1']}],
+        'question':'What is the dinner plan?','evidence_hash':digest(messages)}
+    contract['contract_hash']=digest(contract)
+    save(prep/'contract.json',contract)
+    save(prep/'summary.json',{'state':'prepared','results':[],
+        'bundle_hash':hashed,'contract_hash':contract['contract_hash']})
+    save(prep/'resolved-spec.json',{'question_at':'2026-09-11T09:00:00-04:00',
+        'timezone':'America/New_York','checks':[]})
+    freeze_policy(EvaluationContract((ContractClaim('fact-1','Friday dinner at seven.',('m1',)),),
+        contract['question'],digest(messages),contract['contract_hash']),prep/'followup-plan.json')
     save(root/'summary.json',{'mode':'native-hermes','state':'diagnostic','input_hash':'same-input',
-        'bundle_hash':'same-bundle','contract_hash':'same-contract','tool_policy':'same-policy',
+        'bundle_hash':hashed,'contract_hash':contract['contract_hash'],'tool_policy':'same-policy',
         'source':'preparation','results':[{'provider':provider,'repetition':1,'state':'diagnostic'}],
         'ingestion_schedule':[]})
-    for file in ('bundle.json','contract.json','resolved-spec.json','evaluation-plan.json'):
-        save(root/file,{'synthetic':True})
+    for file in ('bundle.json','contract.json','resolved-spec.json'):
+        save(root/file,json.loads((prep/file).read_text()))
+    save(root/'evaluation-plan.json',{'synthetic':True})
     save(root/'native-audit.json',{'state':'pass','errors':[]})
     save(root/'preparation/spec.json',{'synthetic':True})
     save(root/'repeat-1'/provider/'status.json',{'state':'diagnostic'})
@@ -34,7 +52,12 @@ def component(repo,name,provider):
     return root
 
 
-def test_publishing_preserves_colliding_model_records_and_excludes_private_state(repo):
+def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo,monkeypatch):
+    from pacbench.model_calls import ModelClient
+    from pacbench.prepare import import_week
+    from pacbench.native_pilot import read_prepared
+    def forbid(*args,**kwargs):raise AssertionError('Publishing/reusing a corpus must not call a model')
+    monkeypatch.setattr(ModelClient,'__call__',forbid)
     first=component(repo,'core','memcal');second=component(repo,'other','honcho')
     output=publish_run.publish([first,second],repo/'runs/current')
     summary=json.loads((output/'summary.json').read_text())
@@ -45,9 +68,12 @@ def test_publishing_preserves_colliding_model_records_and_excludes_private_state
         'selected_providers':['honcho']}
     assert not list(output.rglob('hermes-home')) and not list(output.rglob('private'))
     assert 'DO-NOT-PUBLISH' not in ''.join(p.read_text() for p in output.rglob('*.json'))
+    imported=import_week(output/'preparation/week.json',repo/'reused')
+    received,_,_=read_prepared(imported,100)
+    assert received==[message('m1')]
 
 
-@pytest.mark.parametrize('change',['hash','file','duplicate','unfinished'])
+@pytest.mark.parametrize('change',['hash','file','duplicate','unfinished','preparation'])
 def test_publishing_rejects_mixed_or_unfinished_evidence_without_partial_public_run(repo,change):
     first=component(repo,'first','memcal');second=component(repo,'second','honcho')
     s=json.loads((second/'summary.json').read_text())
@@ -55,6 +81,10 @@ def test_publishing_rejects_mixed_or_unfinished_evidence_without_partial_public_
     elif change=='file':save(second/'bundle.json',{'synthetic':'different'})
     elif change=='duplicate':s['results'][0]['provider']='memcal'
     elif change=='unfinished':s['state']='running'
+    elif change=='preparation':
+        resolved=json.loads((first/'preparation/resolved-spec.json').read_text())
+        resolved['question_at']='2026-09-11T10:00:00-04:00'
+        save(first/'preparation/resolved-spec.json',resolved)
     save(second/'summary.json',s)
     with pytest.raises(ValueError):publish_run.publish([first,second],repo/'runs/current')
     assert not (repo/'runs/current').exists()

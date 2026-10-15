@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T04:38:54.808424+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-13. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 08:00 and 08:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-01 Maya: wait duh, we're still doing Rosa's on Oak Street at 12:30 tomorrow right?\n2026-10-01 Me: haha yeah, Rosa's at 12:30\n2026-10-01 Maya: ok good, i was so confused for a sec\n2026-10-10 Maya: my sister finally picked a birthday plan\n2026-10-10 Maya: she's taking her friends for pizza at Rosa's next Saturday at 4pm\n2026-10-10 Maya: just her group tho so you and me aren't going lol\n2026-10-10 Me: ah nice, hope she has a good time\n2026-10-12 Maya: wanna get pizza again Friday?\n2026-10-12 Me: yeah I'm down\n2026-10-12 Maya: I thought about Domino's but that's too far lol\n2026-10-12 Maya: Rosa's on Oak Street at 1pm?\n2026-10-12 Me: yeah that works\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya asks about moving the meal this Friday earlier. Rely on the ongoing DM for which meal; no unnecessary date or restaurant recap.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Maya asks 'about Friday, can we do noon instead?' and the user agrees. Only the time changes.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad058de0820e632f53c4f21",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792039128.0,
+    "completed_at": 1792039134.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad058de0820e632f53c4f21:rs_01a13ddb0cc4730e9760443dd8fae2ec",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Analyzing conversation formatting constraints and speaker label rules for the API developer."
+          },
+          {
+            "type": "summary_text",
+            "text": "Clarifying speaker label usage and time-window constraints for the message formatting."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short dialogue with the exact proposal phrase and minimal incidental chatter."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13ddb245a71abbf765850bf5c8a8a",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: morning! about Friday, can we do noon instead?\\nMaya: i just realized i have something at 1:30\\nMe: yeah that works, noon is fine\\nMaya: awesome ty!!\", \"writer_note\": \"Kept it to a quick morning reschedule relying on prior context, with Maya's casual lowercase voice and a brief reason for moving earlier.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 792,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1421,
+      "output_tokens_details": {
+        "reasoning_tokens": 1267
+      },
+      "total_tokens": 2213
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: morning! about Friday, can we do noon instead?\\nMaya: i just realized i have something at 1:30\\nMe: yeah that works, noon is fine\\nMaya: awesome ty!!\", \"writer_note\": \"Kept it to a quick morning reschedule relying on prior context, with Maya's casual lowercase voice and a brief reason for moving earlier.\"}",
+  "usage": {
+    "input_tokens": 792,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1421,
+    "output_tokens_details": {
+      "reasoning_tokens": 1267
+    },
+    "total_tokens": 2213
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

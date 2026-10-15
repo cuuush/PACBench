@@ -1,0 +1,157 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:20:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHave Maya and I actually made a pizza plan for Saturday?",
+  "at": "2026-10-15T10:20:00-04:00",
+  "answer": "No — your pizza plans with Maya are for Friday, Oct 16, not Saturday.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "honcho_search",
+      "input": {
+        "peer": "user",
+        "query": "Maya pizza Saturday plan"
+      },
+      "timestamp": 1792042746840
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "honcho_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"[assistant \\u00b7 pacbench-chat-ujleuhd9] Tomorrow, Friday Oct 16, you have 2 pizza plans:\\n\\n1. Noon with Maya + Leo at Mario's on Pine Street. Rosa's at noon is off - Rosa's is closed, moved to Mario's same time.\\n\\n2. 6pm with Devon at Luigi's on 5th Street.\\n\\n[user \\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhy did Maya rule out Domino\\u2019s?\\n\\n[user \\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat\\u2019s the deal with pizza tomorrow?\\n\\n[user \\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:10:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nHow many separate pizza trips have I agreed to tomorrow?\\n\\n[assistant \\u00b7 pacbench-chat-ujleuhd9] 2 \\u2014 noon at Mario's and 6pm at Luigi's.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 25.45,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261015_013858_290e9e",
+  "raw_events": 8,
+  "session_id": "20261015_013858_290e9e",
+  "stderr_full": "\nsession_id: 20261015_013858_290e9e\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_013858_290e9e\", \"timestamp\": 1792042738398}\n{\"type\": \"text\", \"text\": \"No Saturday plan in what I have — let me double-check your history with Maya to be sure.\", \"timestamp\": 1792042746283}\n{\"type\": \"tool_use\", \"name\": \"honcho_search\", \"input\": {\"peer\": \"user\", \"query\": \"Maya pizza Saturday plan\"}, \"timestamp\": 1792042746840}\n{\"type\": \"tool_result\", \"name\": \"honcho_search\", \"output\": \"{\\\"result\\\": \\\"[assistant \\\\u00b7 pacbench-chat-ujleuhd9] Tomorrow, Friday Oct 16, you have 2 pizza plans:\\\\n\\\\n1. Noon with Maya + Leo at Mario's on Pine Street. Rosa's at noon is off - Rosa's is closed, moved to Mario's same time.\\\\n\\\\n2. 6pm with Devon at Luigi's on 5th Street.\\\\n\\\\n[user \\\\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\\\n\\\\nWhy did Maya rule out Domino\\\\u2019s?\\\\n\\\\n[user \\\\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\\\n\\\\nWhat\\\\u2019s the deal with pizza tomorrow?\\\\n\\\\n[user \\\\u00b7 pacbench-chat-ujleuhd9] [Simulated now: 2026-10-15T10:10:00-04:00. Treat this as the current date and time for everything in this turn.]\\\\n\\\\nHow many separate pizza trips have I agreed to tomorrow?\\\\n\\\\n[assistant \\\\u00b7 pacbench-chat-ujleuhd9] 2 \\\\u2014 noon at Mario's and 6pm at Luigi's.\\\"}\", \"duration_ms\": 58, \"is_error\": false, \"timestamp\": 1792042746901}\n{\"type\": \"text\", \"text\": \"\\n\\nNo — your\", \"timestamp\": 1792042751349}\n{\"type\": \"text\", \"text\": \" pizza plans\", \"timestamp\": 1792042751381}\n{\"type\": \"text\", \"text\": \" with Maya are for Friday, Oct 16, not Saturday.\", \"timestamp\": 1792042751420}\n{\"type\": \"result\", \"session_id\": \"20261015_013858_290e9e\", \"exit_code\": 0, \"text\": \"No — your pizza plans with Maya are for Friday, Oct 16, not Saturday.\", \"tokens\": {\"input\": 13594, \"output\": 1030, \"total\": 14624, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 13388, \"timestamp\": 1792042751786}",
+  "session_input_tokens": 13594,
+  "session_output_tokens": 1030,
+  "provider_traces": [
+    {
+      "provider": "honcho",
+      "attribution": "background-or-prefetch",
+      "record": {
+        "timestamp": 1792042762.1351242,
+        "model": "muse-spark-1.3-contributor",
+        "query": "Who is this person? What are their preferences, goals, and working style? Focus on facts that would help an AI assistant be immediately useful.",
+        "toolCalls": [
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "person preferences likes working style goals",
+              "top_k": 20
+            },
+            "result": "Found 20 observations for query 'person preferences likes working style goals':\n\nEXPLICIT:\n\n1. [2026-10-12 22:30:57] user agreed with Alex that 2 works for user.\n2. [2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n3. [2026-10-07 22:20:00] user joked about someone going from basil guy to pizza guy\n4. [2026-09-22 22:20:00] user prefers Luigi's for pizza.\n5. [2026-10-13 15:50:00] user agreed to grab coffee on Friday, October 16, 2026 before work.\n6. [2026-09-27 21:20:00] user believes the new pizza place near the station could be good for user's next pizza craving.\n7. [2026-10-12 22:30:57] user stated user will be present at the location associated with Alex's proposal.\n8. [2026-09-23 22:20:00] user agreed to grab pizza with Devon after work on Friday, September 25, 2026.\n9. [2026-10-13 15:20:00] user requested Jen send Jen's job application to user before the quick call at 10:00 AM on Friday 2026-10-16.\n10. [2026-10-13 15:20:00] user agreed to a quick call at 10:00 AM on Friday 2026-10-16 to review Jen's job application.\n11. [2026-09-18 00:08:34] user loved the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message on 2026-09-18 00:08:34.\n12. [2026-09-24 23:08:00] user agreed to have pizza with Maya at 1pm on 2026-09-25 at the same place as originally planned instead of at noon\n13. [2026-10-14 13:20:00] user agreed with Alex to postpone the activity referenced by Alex to another day.\n14. [2026-09-18 00:08:34] user found the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message to be dumb on 2026-09-18 00:08:34.\n15. [2026-09-28 22:20:00] user accepted Maya's proposal to get pizza together on Friday, October 2, 2026.\n16. [2026-10-14 12:18:14] user agreed to meet at Mario's on Pine Street on Friday, October 16, 2026 at the same time as originally planned.\n17. [2026-10-07 22:20:00] user would be down for fantasy free pizza every week\n18. [2026-10-13 15:20:00] user will look at Jen's job application before the quick call at 10:00 AM on Friday 2026-10-16.\n19. [2026-10-13 12:19:45] user stated that 12:00 on 2026-10-13 is fine for user.\n20. [2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 6,
+              "results_count": 20
+            }
+          },
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "who is user bio identity",
+              "top_k": 20
+            },
+            "result": "Found 20 observations for query 'who is user bio identity':\n\nEXPLICIT:\n\n1. [2026-10-12 22:30:57] user stated user will be present at the location associated with Alex's proposal.\n2. [2026-10-12 22:30:57] user agreed with Alex that 2 works for user.\n3. [2026-09-18 16:30:23] user will grab a table inside Rosa's for user and peer Maya.\n4. [2026-10-13 15:50:00] user is free on the morning of Friday, October 16, 2026.\n5. [2026-10-13 15:50:00] user agreed to meet at Birch at 11:00 AM on Friday, October 16, 2026.\n6. [2026-10-07 22:20:00] user joked about someone going from basil guy to pizza guy\n7. [2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n8. [2026-10-06 22:20:00] user agreed to meet at Rosa's on Oak Street at 6:30pm on 2026-10-09.\n9. [2026-10-13 14:19:02] user is available on Saturday, October 17, 2026 for dinner with Ben.\n10. [2026-10-08 23:20:00] user will see Maya at an unspecified location on 2026-10-09.\n11. [2026-10-13 12:19:45] user stated that 12:00 on 2026-10-13 is fine for user.\n12. [2026-10-12 21:20:00] user agreed to meet Maya at Rosa's on Oak Street at 1pm on Friday, October 16, 2026.\n13. [2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n14. [2026-10-14 22:50:00] user agreed to meet Devon at Luigi's on 5th on Friday, 2026-10-16 at 6.\n15. [2026-09-23 22:20:00] user agreed to meet Devon at Rosa's on Oak Street at 7pm on Friday, September 25, 2026.\n16. [2026-09-16 22:18:31] user agreed to meet at Luigi's on 5th Street at 6pm on Friday, September 18, 2026.\n17. [2026-09-23 22:20:00] user agreed to grab pizza with Devon after work on Friday, September 25, 2026.\n18. [2026-09-29 22:17:25] user has family visiting coinciding with Saturday, October 3, 2026.\n19. [2026-09-26 19:20:00] user drank water all afternoon on 2026-09-26.\n20. [2026-09-27 21:20:00] user had zero energy to go anywhere on 2026-09-27.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 20
+            }
+          },
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "user goals plans work",
+              "top_k": 20
+            },
+            "result": "Found 20 observations for query 'user goals plans work':\n\nEXPLICIT:\n\n1. [2026-10-12 22:30:57] user agreed with Alex that 2 works for user.\n2. [2026-10-12 22:30:57] user stated user will be present at the location associated with Alex's proposal.\n3. [2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n4. [2026-10-14 12:18:14] user agreed to meet at Mario's on Pine Street on Friday, October 16, 2026 at the same time as originally planned.\n5. [2026-10-13 15:50:00] user is free on the morning of Friday, October 16, 2026.\n6. [2026-10-14 12:18:14] user described the plan to meet at Mario's on Pine Street on Friday, October 16, 2026 as a good backup.\n7. [2026-10-13 15:50:00] user agreed to meet at Birch at 11:00 AM on Friday, October 16, 2026.\n8. [2026-09-18 16:30:23] user will grab a table inside Rosa's for user and peer Maya.\n9. [2026-10-06 22:20:00] user agreed to meet at Rosa's on Oak Street at 6:30pm on 2026-10-09.\n10. [2026-09-28 22:20:00] user accepted Maya's proposal to get pizza together on Friday, October 2, 2026.\n11. [2026-10-13 15:20:00] user requested Jen send Jen's job application to user before the quick call at 10:00 AM on Friday 2026-10-16.\n12. [2026-09-24 23:08:00] user agreed to have pizza with Maya at 1pm on 2026-09-25 at the same place as originally planned instead of at noon\n13. [2026-10-13 12:19:45] user stated that 12:00 on 2026-10-13 is fine for user.\n14. [2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n15. [2026-10-13 15:50:00] user agreed to grab coffee on Friday, October 16, 2026 before work.\n16. [2026-09-28 22:20:00] user confirmed that 12:30pm on October 2, 2026 works for pizza with Maya.\n17. [2026-09-15 22:13:20] user proposed to Maya 1pm on Friday, 2026-09-18 for the catch-up.\n18. [2026-10-07 22:20:00] user would be down for fantasy free pizza every week\n19. [2026-10-13 15:20:00] user agreed to a quick call at 10:00 AM on Friday 2026-10-16 to review Jen's job application.\n20. [2026-09-23 22:20:00] user agreed to grab pizza with Devon after work on Friday, September 25, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 4,
+              "results_count": 20
+            }
+          },
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "communication style instruction always never prefer",
+              "top_k": 20
+            },
+            "result": "Found 20 observations for query 'communication style instruction always never prefer':\n\nEXPLICIT:\n\n1. [2026-09-18 00:08:34] user found the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message to be dumb on 2026-09-18 00:08:34.\n2. [2026-10-12 22:30:57] user agreed with Alex that 2 works for user.\n3. [2026-09-18 00:08:34] user loved the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message on 2026-09-18 00:08:34.\n4. [2026-10-14 13:20:00] user agreed with Alex to postpone the activity referenced by Alex to another day.\n5. [2026-09-22 22:20:00] user prefers Luigi's for pizza.\n6. [2026-10-07 22:20:00] user joked about someone going from basil guy to pizza guy\n7. [2026-09-19 15:20:00] user believes reheating with a pan with a lid is way better than reheating with a microwave.\n8. [2026-10-10 00:20:00] user thought the ending of the space movie discussed with Ben was a mess.\n9. [2026-10-13 15:20:00] user requested Jen send Jen's job application to user before the quick call at 10:00 AM on Friday 2026-10-16.\n10. [2026-09-18 16:30:23] user will grab a table inside Rosa's for user and peer Maya.\n11. [2026-10-10 00:20:00] user thought the space movie discussed with Ben was pretty bad.\n12. [2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n13. [2026-09-24 23:08:00] user agreed to have pizza with Maya at 1pm on 2026-09-25 at the same place as originally planned instead of at noon\n14. [2026-09-15 22:13:20] user proposed to Maya 1pm on Friday, 2026-09-18 for the catch-up.\n15. [2026-10-12 22:30:57] user stated user will be present at the location associated with Alex's proposal.\n16. [2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n17. [2026-10-10 00:20:00] user watched the space movie discussed with Ben.\n18. [2026-10-13 15:20:00] user agreed to a quick call at 10:00 AM on Friday 2026-10-16 to review Jen's job application.\n19. [2026-09-16 22:18:31] user agreed to meet at Luigi's on 5th Street at 6pm on Friday, September 18, 2026.\n20. [2026-10-12 21:20:00] user agreed to get pizza again with Maya on Friday, October 16, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 6,
+              "results_count": 20
+            }
+          },
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "work job schedule morning availability",
+              "top_k": 20
+            },
+            "result": "Found 20 observations for query 'work job schedule morning availability':\n\nEXPLICIT:\n\n1. [2026-10-13 15:20:00] user will look at Jen's job application before the quick call at 10:00 AM on Friday 2026-10-16.\n2. [2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n3. [2026-10-13 15:50:00] user agreed to grab coffee on Friday, October 16, 2026 before work.\n4. [2026-10-13 15:20:00] user requested Jen send Jen's job application to user before the quick call at 10:00 AM on Friday 2026-10-16.\n5. [2026-10-13 15:20:00] user agreed to a quick call at 10:00 AM on Friday 2026-10-16 to review Jen's job application.\n6. [2026-10-13 12:19:45] user stated that 12:00 on 2026-10-13 is fine for user.\n7. [2026-09-28 22:20:00] user confirmed that 12:30pm on October 2, 2026 works for pizza with Maya.\n8. [2026-10-13 15:50:00] user is free on the morning of Friday, October 16, 2026.\n9. [2026-10-13 13:00:57] user is still on for Rosa's on Oak Street on Friday, 2026-10-16 at noon.\n10. [2026-10-13 14:19:02] user is available on Saturday, October 17, 2026 for dinner with Ben.\n11. [2026-09-23 22:20:00] user agreed to grab pizza with Devon after work on Friday, September 25, 2026.\n12. [2026-10-13 14:19:02] user proposed 7 pm on Saturday, October 17, 2026 at Juniper Cafe for dinner with Ben instead of Thursday, October 15, 2026.\n13. [2026-10-05 22:00:00] user wants to try Luigi's on 5th Street for pizza on Friday, October 9, 2026 at noon.\n14. [2026-09-24 23:08:00] user agreed to have pizza with Maya at 1pm on 2026-09-25 at the same place as originally planned instead of at noon\n15. [2026-10-08 23:20:00] user will see Maya at an unspecified location on 2026-10-09.\n16. [2026-10-01 23:16:00] user plans to go to Rosa's on Oak Street at 12:30 on 2026-10-02.\n17. [2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n18. [2026-09-26 19:20:00] user drank water all afternoon on 2026-09-26.\n19. [2026-10-06 22:20:00] user agreed to grab pizza on Friday, 2026-10-09.\n20. [2026-09-15 22:13:20] user proposed to Maya 1pm on Friday, 2026-09-18 for the catch-up.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 20
+            }
+          },
+          {
+            "toolName": "search_messages",
+            "args": {
+              "limit": 10,
+              "query": "user preferences working style goals"
+            },
+            "result": "Found 10 matching messages in 8 conversation snippets for query 'user preferences working style goals'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-1b8c6f98359998ca5f99d38d, 1 match(es)) ---\n2026-09-18 00:00:00 Leo: caught that office sketch last night where the intern just goes \"we should get pizza on Saturday and never go back to work\"\n2026-09-18 00:05:42 Maya: lmao stop that's perfect\n2026-09-18 00:08:34 user: hahaha that's so dumb I love it\n\n--- Snippet 2 (session: source-1b8c6f98359998ca5f99d38d, 2 match(es)) ---\n2026-09-21 22:00:00 Maya: let's do pizza this Friday at noon at Mario's on Pine Street? something different from last week\n2026-09-21 22:19:02 Leo: yeah that works\n2026-09-21 22:20:00 user: perfect, yeah that works\n2026-09-24 23:00:00 Maya: can we push pizza tomorrow to 1pm instead of noon? have an appointment in the morning, same place tho\n2026-09-24 23:08:00 user: yep 1 works for me\n2026-09-24 23:12:00 Leo: sounds good, see you at 1\n2026-09-24 23:20:00 Maya: perfect thank you!!\n\n--- Snippet 3 (session: source-0271a659b5c595253594467d, 1 match(es)) ---\n2026-09-15 22:00:00 user: still up for a catch-up Friday?\n2026-09-15 22:06:40 Maya: yes! pizza at Rosa's on Oak Street?\n2026-09-15 22:13:20 user: love it. 1pm work for you?\n2026-09-15 22:20:00 Maya: yeah that works\n2026-09-18 16:15:00 Maya: hey! gonna be about 5 minutes late for our 1pm pizza at Rosa's today, bus is dragging\n\n--- Snippet 4 (session: source-a5f4786b38592498169d594c, 1 match(es)) ---\n2026-09-16 22:00:00 Devon: want to do pizza after work Friday?\n2026-09-16 22:00:44 user: yes definitely\n2026-09-16 22:09:37 Devon: Luigi's on 5th Street at 6pm?\n\n--- Snippet 5 (session: source-a5f4786b38592498169d594c, 1 match(es)) ---\n2026-10-12 21:30:00 Devon: kitchen still smells like burnt crust lol\n2026-10-12 21:40:00 Devon: let's skip rosa's and do luigi's on 5th street for pizza friday instead? 6pm?\n2026-10-12 21:50:00 user: yeah that works, you clearly need a pro to show you how its done\n2026-10-14 22:30:00 Devon: this week feels so long, tomorrow's thursday right?\n2026-10-14 22:36:00 user: yeah, only thursday lol\n\n--- Snippet 6 (session: source-7a559bae55310cf6056a7082, 1 match(es)) ---\n2026-10-12 22:30:00 Jen: anyone up for a quick walk on Friday? was thinking 2pm at the west entrance of the duck pond in Willow Park\n2026-10-12 22:30:28 Alex: yes please, I need the fresh air. 2 works for me\n2026-10-12 22:30:57 user: yeah that works, I'll be there\n2026-10-12 22:50:00 Jen: great, see you both then\n\n--- Snippet 7 (session: source-aef511c10bb40b63eb50d712, 1 match(es)) ---\n2026-10-07 22:00:00 Alex: if i ever win the lottery i'm just renting out mario's every saturday lol\n2026-10-07 22:08:00 Alex: free pizza for literally everyone\n2026-10-07 22:16:00 user: lol from basil guy to pizza guy\n2026-10-07 22:20:00 user: i'd be so down for fantasy free pizza every week\n2026-10-13 15:30:00 Alex: hey wanna grab coffee friday before work?\n\n--- Snippet 8 (session: pacbench-chat-ujleuhd9, 2 match(es)) ---\n2026-10-15 05:37:29 user: [Simulated now: 2026-10-15T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat’s the deal with pizza tomorrow?\n2026-10-15 05:37:29 hermes: Tomorrow, Friday Oct 16, you have 2 pizza plans:\n\n1. Noon with Maya + Leo at Mario's on Pine Street. Rosa's at noon is off - Rosa's is closed, moved to Mario's same time.\n\n2. 6pm with Devon at Luigi's on 5th Street.\n2026-10-15 05:37:56 user: [Simulated now: 2026-10-15T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhy did Maya rule out Domino’s?\n2026-10-15 05:37:56 hermes: She said it was too far.\n2026-10-15 05:38:34 user: [Simulated now: 2026-10-15T10:10:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHow many separate pizza trips have I agreed to tomorrow?\n2026-10-15 05:38:34 hermes: 2 — noon at Mario's and 6pm at Luigi's.",
+            "metadata": {
+              "top_k": 10,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 8
+            }
+          }
+        ]
+      },
+      "scope": "Native reasoning completed during the turn. Query matching identifies explicit Hermes requests; other work may be asynchronous.",
+      "path_attribution": {
+        "version": "native-completion-v1",
+        "affects_answer": false,
+        "final_hermes_input_at": "2026-10-15T05:39:06.906504+00:00",
+        "native_completed_at": "2026-10-15T05:39:22.135124+00:00",
+        "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+      }
+    }
+  ],
+  "prefetch_context": "## User Representation\n## Explicit Observations\n\n[2026-09-15 22:13:20] user agreed with Maya to have pizza at Rosa's on Oak Street.\n[2026-09-15 22:13:20] user proposed to Maya 1pm on Friday, 2026-09-18 for the catch-up.\n[2026-09-15 22:13:20] user proposed to Maya a catch-up on Friday, 2026-09-18.\n[2026-09-16 22:18:31] user agreed to meet at Luigi's on 5th Street at 6pm on Friday, September 18, 2026.\n[2026-09-18 00:08:34] user loved the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message on 2026-09-18 00:08:34.\n[2026-09-18 00:08:34] user found the thing Maya described as perfect in Maya's 2026-09-18 00:05:42 message to be dumb on 2026-09-18 00:08:34.\n[2026-09-18 16:30:23] user will grab a table inside Rosa's for user and peer Maya.\n[2026-09-19 15:20:00] user believes reheating with a pan with a lid is way better than reheating with a microwave.\n[2026-09-22 22:20:00] user will not attend the pizza at Domino's on Saturday, September 26, 2026 at 2pm.\n[2026-09-22 22:20:00] user prefers Luigi's for pizza.\n[2026-09-23 22:20:00] user agreed to grab pizza with Devon after work on Friday, September 25, 2026.\n[2026-09-23 22:20:00] user agreed to meet Devon at Rosa's on Oak Street at 7pm on Friday, September 25, 2026.\n[2026-09-24 23:08:00] user agreed to have pizza with Maya at 1pm on 2026-09-25 at the same place as originally planned instead of at noon\n[2026-09-26 19:20:00] user drank water all afternoon on 2026-09-26.\n[2026-09-27 21:20:00] user had zero energy to go anywhere on 2026-09-27.\n[2026-09-27 21:20:00] user believes the new pizza place near the station could be good for user's next pizza craving.\n[2026-09-27 21:20:00] user walked past the new pizza place near the station before 2026-09-27 21:20:00.\n[2026-09-28 22:20:00] user suggested going to Rosa's on Oak Street for pizza with Maya on Friday, October 2, 2026.\n[2026-09-28 22:20:00] user confirmed that 12:30pm on October 2, 2026 works for pizza with Maya.\n[2026-09-28 22:20:00] user had been to Rosa's on Oak Street before September 28, 2026.\n[2026-09-28 22:20:00] user accepted Maya's proposal to get pizza together on Friday, October 2, 2026.\n[2026-09-29 22:17:25] user has family visiting coinciding with Saturday, October 3, 2026.\n[2026-09-29 22:17:25] user is unable to attend pizza at Mario's on Saturday, October 3, 2026 at 6 because user's family is visiting.\n[2026-09-30 22:02:36] user will be at Mario's on Pine at 6 to meet Devon.\n[2026-10-01 23:16:00] user plans to go to Rosa's on Oak Street at 12:30 on 2026-10-02.\n[2026-10-02 13:20:00] user had not seen Ben's blue keyring as of 2026-10-02 13:00:48.\n[2026-10-03 18:20:00] user thinks Luigi's is on 5th Street.\n[2026-10-05 22:00:00] user wants to try Luigi's on 5th Street for pizza on Friday, October 9, 2026 at noon.\n[2026-10-06 22:20:00] user agreed to grab pizza on Friday, 2026-10-09.\n[2026-10-06 22:20:00] user agreed to meet at Rosa's on Oak Street at 6:30pm on 2026-10-09.\n[2026-10-07 22:20:00] user would be down for fantasy free pizza every week\n[2026-10-07 22:20:00] user joked about someone going from basil guy to pizza guy\n[2026-10-08 23:20:00] user will see Maya at an unspecified location on 2026-10-09.\n[2026-10-10 00:20:00] user thought the space movie discussed with Ben was pretty bad.\n[2026-10-10 00:20:00] user thought the ending of the space movie discussed with Ben was a mess.\n[2026-10-10 00:20:00] user watched the space movie discussed with Ben.\n[2026-10-10 00:20:00] user felt the spaceship effects in the space movie discussed with Ben took user out of the space movie completely.\n[2026-10-12 21:20:00] user agreed to meet Maya at Rosa's on Oak Street at 1pm on Friday, October 16, 2026.\n[2026-10-12 21:20:00] user agreed to get pizza again with Maya on Friday, October 16, 2026.\n[2026-10-12 21:50:00] user agreed to skip Rosa's for pizza on Friday, October 16, 2026.\n[2026-10-12 21:50:00] user agreed to have pizza at Luigi's on 5th Street at 6pm on Friday, October 16, 2026.\n[2026-10-12 22:10:00] user agreed to have dinner with Ben at Juniper Cafe at 7 on Thursday, October 15, 2026.\n[2026-10-12 22:30:57] user stated user will be present at the location associated with Alex's proposal.\n[2026-10-12 22:30:57] user agreed with Alex that 2 works for user.\n[2026-10-13 12:19:45] user stated that 12:00 on 2026-10-13 is fine for user.\n[2026-10-13 13:00:57] user is still on for Rosa's on Oak Street on Friday, 2026-10-16 at noon.\n[2026-10-13 14:19:02] user proposed 7 pm on Saturday, October 17, 2026 at Juniper Cafe for dinner with Ben instead of Thursday, October 15, 2026.\n[2026-10-13 14:19:02] user is available on Saturday, October 17, 2026 for dinner with Ben.\n[2026-10-13 15:20:00] user will look at Jen's job application before the quick call at 10:00 AM on Friday 2026-10-16.\n[2026-10-13 15:20:00] user is probably free on Friday morning 2026-10-16.\n[2026-10-13 15:20:00] user agreed to help Jen go over Jen's job application.\n[2026-10-13 15:20:00] user agreed to a quick call at 10:00 AM on Friday 2026-10-16 to review Jen's job application.\n[2026-10-13 15:20:00] user requested Jen send Jen's job application to user before the quick call at 10:00 AM on Friday 2026-10-16.\n[2026-10-13 15:50:00] user agreed to grab coffee on Friday, October 16, 2026 before work.\n[2026-10-13 15:50:00] user agreed to meet at Birch at 11:00 AM on Friday, October 16, 2026.\n[2026-10-13 15:50:00] user is free on the morning of Friday, October 16, 2026.\n[2026-10-14 12:18:14] user agreed to meet at Mario's on Pine Street on Friday, October 16, 2026 at the same time as originally planned.\n[2026-10-14 12:18:14] user described the plan to meet at Mario's on Pine Street on Friday, October 16, 2026 as a good backup.\n[2026-10-14 13:20:00] user agreed with Alex to postpone the activity referenced by Alex to another day.\n[2026-10-14 22:50:00] user agreed to meet Devon at Luigi's on 5th on Friday, 2026-10-16 at 6.\n",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-ujleuhd9",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-ujleuhd9",
+    "system_prompt_sha256": "f3429458b0384b26e03b33f2df42f526110cb964c1e46126a2908d9b4e036150",
+    "reason": "No project context in native saved system prompt"
+  }
+}

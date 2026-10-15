@@ -1,0 +1,120 @@
+{
+  "provider": "openviking",
+  "repetition": 1,
+  "input_hash": "144328b79fae68e719d60fa934861cd2319b56ce5cd84f10f2e744c867341bcd",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "viking_search",
+      "viking_read",
+      "viking_browse",
+      "viking_remember",
+      "viking_forget",
+      "viking_add_resource"
+    ],
+    "provider": "openviking",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": "viking_search",
+      "arguments": {
+        "query": "native read-only capability check"
+      },
+      "output": "{\"results\": [{\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.774, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}, {\"uri\": \"viking://user/default/resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.764, \"abstract\": \"User-owned resource storage. Contains private documents and knowledge resources owned by the current User.\"}, {\"uri\": \"viking://user/default/skills/.abstract.md\", \"type\": \"skill\", \"score\": 0.753, \"abstract\": \"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\"}, {\"uri\": \"viking://agent/skills/.overview.md\", \"type\": \"skill\", \"score\": 0.751, \"abstract\": \"Shared skill registry. Stores callable skill definitions available across the account.\"}, {\"uri\": \"viking://agent/.overview.md\", \"type\": \"resource\", \"score\": 0.745, \"abstract\": \"Shared agent capabilities and configuration available across the account.\"}, {\"uri\": \"viking://agent/tools/.abstract.md\", \"type\": \"resource\", \"score\": 0.734, \"abstract\": \"Shared tool configuration for agent capabilities.\"}, {\"uri\": \"viking://user/default/privacy/.abstract.md\", \"type\": \"resource\", \"score\": 0.734, \"abstract\": \"User privacy config root. Stores user-scoped sensitive configuration snapshots by category and target key.\"}], \"total\": 7}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "checks": [
+    {
+      "id": "current",
+      "at": "2026-10-15T10:00:00-04:00",
+      "session": "details",
+      "contract_hash": "70ca2ca208661f65e26433565510da2c85a6b0118916546313c4ae8fe0e42ddb",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 3,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 3,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "c1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "c2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "c3",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "old-place",
+      "at": "2026-10-15T10:02:00-04:00",
+      "session": "details",
+      "contract_hash": "f2efb64d604ad657bb957bbec58564f8fbdad4dc887b84213b1e1df0c6f9f874",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "friday-rosas-no",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

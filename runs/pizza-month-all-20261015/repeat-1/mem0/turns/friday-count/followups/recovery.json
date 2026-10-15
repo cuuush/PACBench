@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "08fdbfa2e2350f10515620b2ec8a38641ac52ef8d09245d3ac35749b846eef1d",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza plans October 16 2026",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792042117962,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"c594bf5d-f7cd-4026-96a8-ca93347de6e5\", \"memory\": \"User and Maya planned to get pizza again at Rosa's on Oak Street at 1pm on Friday, October 16, 2026, with Maya proposing the restaurant and time on October 12, 2026 and User agreeing. Maya had considered Domino's but dismissed it as too far.\", \"score\": 0.7536021702305742}, {\"id\": \"7cc87f18-abad-462f-a4ad-0e58a9c120e6\", \"memory\": \"User and Devon planned pizza at Luigi's on 5th Street at 6pm on Friday, October 16, 2026, with Devon proposing Luigi's instead of Rosa's on October 12, 2026 and User agreeing.\", \"score\": 0.7535934878129602}, {\"id\": \"df616597-12a3-4caa-beff-bb8e6ba63d9d\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group confirmed on October 13, 2026 they are still on for pizza at Rosa's on Oak Street at noon on Friday, October 16, 2026, with Maya moving the DM plan to the group and both User and Leo agreeing.\", \"score\": 0.7418306507348779}, {\"id\": \"ff53f4bb-2a20-499d-a34f-926f20d1048b\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group changed their pizza plan for noon on Friday, October 16, 2026 from Rosa's on Oak Street to Mario's on Pine Street after learning Rosa's is closed, with Maya proposing Mario's on October 14, 2026 and both User and Leo agreeing.\", \"score\": 0.7289040374131235}, {\"id\": \"74215fe8-f10d-4957-8b19-0d1cb1998699\", \"memory\": \"User and Alex planned to grab coffee at 11am on Friday, October 16, 2026 at Birch, with Alex proposing the meetup on October 13, 2026 and User agreeing that morning works and confirming.\", \"score\": 0.6294150168963402}, {\"id\": \"81c9b99a-5c8d-441e-ae76-3ba079d83440\", \"memory\": \"User, Jen, and Alex in the 'Park pals' group planned a walk at 2pm on Friday, October 16, 2026 at the west entrance of the duck pond in Willow Park, with Jen proposing on October 12, 2026 and both Alex and User agreeing.\", \"score\": 0.6091581900325739}, {\"id\": \"4fbc7d23-9910-44fa-a66b-0c905bf779d6\", \"memory\": \"User and Maya rescheduled their pizza at Rosa's on Oak Street on Friday, October 16, 2026 from 1pm to noon on October 13, 2026 after Maya requested the change because she has something at 1:30, with User agreeing.\", \"score\": 0.5847734694346671}, {\"id\": \"c07a639a-e694-4267-80e8-63f8e13463a8\", \"memory\": \"User and Devon confirmed on October 14, 2026 they are still on for Luigi's on 5th Street at 6pm on Friday, October 16, 2026, with Devon asking to confirm and User agreeing and joking Devon needs the pros after Devon's pizza dough incident.\", \"score\": 0.543932314300313}, {\"id\": \"cd5b0dbb-e5ee-4183-bafe-9aebfb06bcd9\", \"memory\": \"User and Devon planned to grab pizza at Rosa's on Oak Street at 6:30pm on Friday, October 9, 2026, with Devon proposing the meetup, restaurant and time on October 6, 2026 and User agreeing.\", \"score\": 0.47687597928056297}, {\"id\": \"00d60457-1b23-4625-8f1a-02189a6042b2\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group planned to have pizza at Luigi's on 5th Street at noon on Friday, October 9, 2026, with User proposing the restaurant and time on October 5, 2026, Maya agreeing and noting she wanted something different from Mario's, and Leo agreeing and confirming he could make it.\", \"score\": 0.47345793495356325}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.83,
+    "input_tokens": 5801,
+    "output_tokens": 1158,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "friday-pizza-count",
+      "kind": "provided",
+      "reason": "Count 2 directly given in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "friday-pizza-count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

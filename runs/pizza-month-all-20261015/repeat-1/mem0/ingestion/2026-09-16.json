@@ -1,0 +1,81 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-09-16T18:20:00-04:00",
+  "processing_at": "2026-09-16T18:20:00-04:00",
+  "document_sha256": "ad59464eb2f103848c10bd406e0655ae663d2f24076671d3a094befad61a64fb",
+  "source_ids": [
+    "message-6b37673cb103e20918146b74",
+    "message-e30867241dcc2b6c49b280d2",
+    "message-b12bd832ddf1348db32ee0a2",
+    "message-63d5d96a820366a4bb72ffd8",
+    "message-dd1bc8b878588d7d3a0ba6da"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"b58cb06f-4afd-4859-9ea6-dd66c036bcd6\", \"memory\": \"User and Devon planned to have pizza after work at Luigi's on 5th Street at 6pm on Friday, September 18, 2026, with Devon proposing the restaurant and time and User agreeing\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-16.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "b58cb06f-4afd-4859-9ea6-dd66c036bcd6",
+          "memory": "User and Devon planned to have pizza after work at Luigi's on 5th Street at 6pm on Friday, September 18, 2026, with Devon proposing the restaurant and time and User agreeing",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-09-16.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 18.67,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:18:23.280186+00:00",
+    "finished": "2026-10-15T05:18:41.949355+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 8673,
+        "output_tokens": 1648,
+        "accounted_upper_bound_usd": 0.0011969,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "dc6fe657632343d58d8a7c5925a6339d",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:18:26.859912+00:00",
+        "finished": "2026-10-15T05:18:41.030103+00:00",
+        "state": "settled",
+        "input_tokens": 8673,
+        "output_tokens": 1648,
+        "accounted": 1196900,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011969
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

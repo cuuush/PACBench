@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-15T04:51:26.129607+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-14. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-10 Maya: she's taking her friends for pizza at Rosa's next Saturday at 4pm\n2026-10-10 Maya: just her group tho so you and me aren't going lol\n2026-10-10 Me: ah nice, hope she has a good time\n2026-10-12 Maya: wanna get pizza again Friday?\n2026-10-12 Me: yeah I'm down\n2026-10-12 Maya: I thought about Domino's but that's too far lol\n2026-10-12 Maya: Rosa's on Oak Street at 1pm?\n2026-10-12 Me: yeah that works\n2026-10-13 Maya: morning! about Friday, can we do noon instead?\n2026-10-13 Maya: i just realized i have something at 1:30\n2026-10-13 Me: yeah that works, noon is fine\n2026-10-13 Maya: awesome ty!!\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya quotes a silly pizza joke from a podcast and the user riffs on it. The exchange is clearly about something heard, not making an invitation. Do not add an explanatory disclaimer.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Maya quotes a podcast joke along the lines of 'we should get pizza on Saturday, then tell Monday we're still chewing'. They laugh; no Saturday pizza outing between them is agreed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad05bce7f13124016164f08",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792039876.0,
+    "completed_at": 1792039886.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad05bce7f13124016164f08:rs_01a13de6762170ac8de311e6fb2feabd",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating an iMessage conversation with speaker labels Me and Maya, using 2026-10-14 as the reference date and evening timestamps between 18:00 and 18:20."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the iMessage thread with a quoted podcast joke and a laugh while keeping the Friday plan unchanged."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a 2–12 line iMessage exchange that quotes the podcast joke without implying Saturday acceptance."
+          },
+          {
+            "type": "summary_text",
+            "text": "Refining the iMessage draft to avoid the capitalized label while keeping natural lowercase pronouns."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13de6985072918e024fa74a29f57e",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: omg this podcast just said \\\"we should get pizza on Saturday, then tell Monday we're still chewing\\\" lmao\\nMe: hahaha that's so dumb\\nMaya: right? like just one slice for three days straight\\nMe: yeah good luck explaining that to your stomach lol\", \"writer_note\": \"Framed the Saturday line explicitly as a podcast quote with laughing reactions so it's clearly a joke being shared, not a plan, and kept the riff light without touching the real Friday plan.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 799,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1587,
+      "output_tokens_details": {
+        "reasoning_tokens": 1350
+      },
+      "total_tokens": 2386
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: omg this podcast just said \\\"we should get pizza on Saturday, then tell Monday we're still chewing\\\" lmao\\nMe: hahaha that's so dumb\\nMaya: right? like just one slice for three days straight\\nMe: yeah good luck explaining that to your stomach lol\", \"writer_note\": \"Framed the Saturday line explicitly as a podcast quote with laughing reactions so it's clearly a joke being shared, not a plan, and kept the riff light without touching the real Friday plan.\"}",
+  "usage": {
+    "input_tokens": 799,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1587,
+    "output_tokens_details": {
+      "reasoning_tokens": 1350
+    },
+    "total_tokens": 2386
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

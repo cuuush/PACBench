@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-15T04:40:07.481457+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-13. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 11:00 and 11:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Jen asks the user for a little help with an application Friday morning. This is separate from the park group.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Jen and the user agree to a phone call Friday at 10 am to review her job application.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-09-25 Jen: ugh my umbrella just broke on my walk to work\n2026-09-25 Jen: wind flipped it inside out and snapped one of the spokes\n2026-09-25 Me: nooo are you soaked?\n2026-09-25 Jen: a little damp, I'm almost at the office though\n2026-10-04 Jen: finally finished that detective novel btw\n2026-10-04 Me: oh yeah how was it?\n2026-10-04 Jen: good until the last like 20 pages, hated the ending\n2026-10-04 Me: ugh that's the worst, ruins the whole thing\n\nNew messages:\n1. Jen: hey are you free friday morning for a little favor?\n2. Me: yeah probably, what's up?\n3. Jen: can you help me go over my job application? it's almost done i just want a second pair of eyes\n4. Me: of course\n5. Jen: could we do a quick call at 10 to review it?\n6. Me: yeah that works, send it over before and i'll take a look"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a13ddc-420e-75b5-90a7-63e2303359e7",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [3, 5, 6], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 5, 6], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792039207,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 1589,
+      "prompt_tokens": 569,
+      "total_tokens": 2158,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1527
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [3, 5, 6], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [3, 5, 6], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 1589,
+    "prompt_tokens": 569,
+    "total_tokens": 2158,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1527
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

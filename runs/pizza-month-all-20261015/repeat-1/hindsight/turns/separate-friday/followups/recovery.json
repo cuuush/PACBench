@@ -1,0 +1,114 @@
+{
+  "state": "complete",
+  "plan_hash": "8ae41323b2f6ec644f0f8963629ba60b19bdc68ba520faf40cd3f95577c8efca",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "call with Jen job application review time"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792043028052,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. Jen asked the user to review her almost-finished job application, and the user agreed to a quick call at 10 to review it after Jen sends it over.\\n2. User, Jen, and Alex planned a walk at the west entrance of the duck pond in Willow Park on October 16, 2026 at 2pm, postponed to another day because Jen and Alex can't make it.\\n3. Meeting at the duck pond on October 16, 2026 was postponed because Jen and Alex can't make it.\\n4. User, Maya, and Leo plan to meet at Mario's on Pine Street on Friday, October 16, 2026 at noon, moved from Rosa's on Oak Street after Rosa's closed; originally 1pm rescheduled to noon at Maya's request because she has a 1:30 commitment.\\n5. User and Ben rescheduled dinner at Juniper Cafe from October 15, 2026 at 7pm to Saturday, October 17, 2026 at 7pm because Ben was stuck at work.\\n6. User and Devon plan to meet at Luigi's on 5th on Friday, October 16, 2026 at 6pm.\\n7. User's family is visiting on Saturday, October 3, 2026, so user is unavailable that day.\\n8. User prefers Luigi's over Domino's for pizza.\\n9. User and Alex plan to grab coffee at 11am on Friday, October 16, 2026 at birch.\\n10. User, Maya, and Leo ate pizza at Mario's on Pine Street on September 25, 2026, after rescheduling from noon to 1pm for Maya's morning appointment. The pizza was very good with excellent crust, but the olives were way too salty and left Maya and user drinking water all afternoon.\\n11. User and Ben settled on dinner at Juniper Cafe at 7pm on October 17, 2026, rescheduled from October 15 because Ben was stuck at work.\\n12. Maya's sister will celebrate her birthday with friends with pizza at Rosa's on October 17, 2026 at 4pm; user and Maya are not attending.\\n13. User and Maya plan to meet for lunch at Rosa's on Oak Street at 12:30 on October 2, 2026.\\n14. User's only plan for Saturday, October 17, 2026 is dinner with Ben at Juniper Cafe at 7pm.\\n15. User and Maya plan to meet for a pizza catch-up at Rosa's on September 18, 2026 at 1pm.\\n16. User and Devon agreed to grab pizza at Rosa's on Oak Street at 6:30pm on October 9, 2026.\\n17. Rosa's is closed as of October 14, 2026, leading to changing the Friday dinner venue to Mario's.\\n18. User has pizza with Maya and Leo at Mario's at noon on Friday, October 16, 2026.\\n19. User agreed to pizza trip at noon on October 16, 2026 at Mario's with Maya and Leo.\\n20. User agreed to pizza trip at 6pm on October 16, 2026 at Luigi's with Devon.\\n21. User has pizza at Luigi's on 5th with Devon at 6pm on October 16, 2026.\\n22. User has pizza at Mario's on Pine with Maya and Leo at noon on October 16, 2026.\\n23. Devon attended a team lunch on September 22, 2026 where 3 pizzas were ordered for 20 people and Devon got only one cold slice.\\n24. User, Maya, and Leo plan to try Luigi's on 5th Street for pizza at noon on October 9, 2026.\\n25. User and Devon plan to grab pizza at Rosa's on Oak Street at 7pm on September 25, 2026.\\n26. User and Devon plan to have pizza at Luigi's on 5th Street at 6pm on September 18, 2026.\\n27. User and Devon plan to grab pizza to catch up at Mario's on Pine at 6pm on October 2, 2026.\\n28. User and Devon declined to attend team pizza at Domino's on September 26, 2026 at 2pm.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "coffee with Alex Friday birch 11am"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792043029183,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User and Alex plan to grab coffee at 11am on Friday, October 16, 2026 at birch.\\n2. User, Jen, and Alex planned a walk at the west entrance of the duck pond in Willow Park on October 16, 2026 at 2pm, postponed to another day because Jen and Alex can't make it.\\n3. User's only plan for Saturday, October 17, 2026 is dinner with Ben at Juniper Cafe at 7pm.\\n4. Meeting at the duck pond on October 16, 2026 was postponed because Jen and Alex can't make it.\\n5. User and Ben rescheduled dinner at Juniper Cafe from October 15, 2026 at 7pm to Saturday, October 17, 2026 at 7pm because Ben was stuck at work.\\n6. User and Ben settled on dinner at Juniper Cafe at 7pm on October 17, 2026, rescheduled from October 15 because Ben was stuck at work.\\n7. User has pizza with Maya and Leo at Mario's at noon on Friday, October 16, 2026.\\n8. User, Maya, and Leo plan to meet at Mario's on Pine Street on Friday, October 16, 2026 at noon, moved from Rosa's on Oak Street after Rosa's closed; originally 1pm rescheduled to noon at Maya's request because she has a 1:30 commitment.\\n9. Rosa's is closed as of October 14, 2026, leading to changing the Friday dinner venue to Mario's.\\n10. User and Devon plan to meet at Luigi's on 5th on Friday, October 16, 2026 at 6pm.\\n11. User and Maya plan to meet for lunch at Rosa's on Oak Street at 12:30 on October 2, 2026.\\n12. User and Devon agreed to grab pizza at Rosa's on Oak Street at 6:30pm on October 9, 2026.\\n13. Maya's sister will celebrate her birthday with friends with pizza at Rosa's on October 17, 2026 at 4pm; user and Maya are not attending.\\n14. User's family is visiting on Saturday, October 3, 2026, so user is unavailable that day.\\n15. User, Maya, and Leo ate pizza at Mario's on Pine Street on September 25, 2026, after rescheduling from noon to 1pm for Maya's morning appointment. The pizza was very good with excellent crust, but the olives were way too salty and left Maya and user drinking water all afternoon.\\n16. User agreed to pizza trip at 6pm on October 16, 2026 at Luigi's with Devon.\\n17. Devon attended a team lunch on September 22, 2026 where 3 pizzas were ordered for 20 people and Devon got only one cold slice.\\n18. User has pizza at Luigi's on 5th with Devon at 6pm on October 16, 2026.\\n19. User agreed to pizza trip at noon on October 16, 2026 at Mario's with Maya and Leo.\\n20. User, Maya, and Leo plan to try Luigi's on 5th Street for pizza at noon on October 9, 2026.\\n21. User and Devon plan to grab pizza at Rosa's on Oak Street at 7pm on September 25, 2026.\\n22. User has pizza at Mario's on Pine with Maya and Leo at noon on October 16, 2026.\\n23. User and Devon plan to have pizza at Luigi's on 5th Street at 6pm on September 18, 2026.\\n24. User and Maya plan to meet for a pizza catch-up at Rosa's on September 18, 2026 at 1pm.\\n25. User prefers Luigi's over Domino's for pizza.\\n26. Jen asked the user to review her almost-finished job application, and the user agreed to a quick call at 10 to review it after Jen sends it over.\\n27. User and Devon declined to attend team pizza at Domino's on September 26, 2026 at 2pm.\\n28. User and Devon plan to grab pizza to catch up at Mario's on Pine at 6pm on October 2, 2026.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.73,
+    "input_tokens": null,
+    "output_tokens": 348,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-active",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still standing."
+    },
+    {
+      "id": "alex-coffee-active",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still standing."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-active",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-active",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

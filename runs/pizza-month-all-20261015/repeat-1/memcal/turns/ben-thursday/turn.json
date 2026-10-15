@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T10:32:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nSo am I seeing him for dinner tonight as well?",
+  "at": "2026-10-15T10:32:00-04:00",
+  "answer": "No — Thursday moved to Saturday, so just Saturday at 7pm at Juniper Cafe.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 9.81,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261015_092327_701b29 \"Recall dinner decision with Ben\" (1 user message, 4 total messages)\n\nsession_id: 20261015_092327_701b29",
+  "raw_events": 5,
+  "session_id": "20261015_092327_701b29",
+  "stderr_full": "↻ Resumed session 20261015_092327_701b29 \"Recall dinner decision with Ben\" (1 user message, 4 total messages)\n\nsession_id: 20261015_092327_701b29\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_092327_701b29\", \"timestamp\": 1792070628088}\n{\"type\": \"text\", \"text\": \"No — Thursday moved\", \"timestamp\": 1792070635807}\n{\"type\": \"text\", \"text\": \" to Saturday, so just\", \"timestamp\": 1792070635867}\n{\"type\": \"text\", \"text\": \" Saturday at 7pm at Juniper Cafe.\", \"timestamp\": 1792070635923}\n{\"type\": \"result\", \"session_id\": \"20261015_092327_701b29\", \"exit_code\": 0, \"text\": \"No — Thursday moved to Saturday, so just Saturday at 7pm at Juniper Cafe.\", \"tokens\": {\"input\": 443, \"output\": 337, \"total\": 10493, \"cache_read\": 9713, \"cache_write\": 0}, \"duration_ms\": 7962, \"timestamp\": 1792070636050}",
+  "session_input_tokens": 443,
+  "session_output_tokens": 337,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-15T10:32:00-04:00 [id=67d96b1b3c003ce9212a6ebce547598c0fe58f01] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Thursday 15 October 2026)\n〔E13〕 Fri Oct 16  \"job application review\", 10am — confirmed · with Jen\n〔E14〕 Fri Oct 16  \"coffee\", 11am — confirmed · with Alex\n〔E9〕 Fri Oct 16  \"pizza\", 12pm — confirmed · with Leo, Maya\n〔E11〕 Fri Oct 16  \"walk\", 2pm — not going · with Jen, Alex\n〔E10〕 Fri Oct 16  \"pizza\", 6pm — confirmed · with Devon\n〔E12〕 Sat Oct 17  \"dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-12 – 2026-11-14; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n\n## People and facts\nPages: pizza (where)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-bmjr2t82",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-bmjr2t82",
+    "system_prompt_sha256": "26d98a3497dfe5cd314836fb8b06401c504ef88dcc43e65ba5575cbdb57e741a",
+    "reason": "No project context in native saved system prompt"
+  }
+}

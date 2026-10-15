@@ -1,0 +1,128 @@
+{
+  "state": "complete",
+  "plan_hash": "ab97b9c5724c49f4e3c40d3c22f23160b70910f978c29ccb19a86fe8b275777d",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 2
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E12"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041363990,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E12  Dinner\n\nwhen: Saturday 17 October 2026 at 19:00\nstate: You're going\nwhere: Juniper Cafe\nwho: Ben\nsource: person:Ben\n\nsources (8 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 10:20 · email · Ben —\n * [148] Ben · Tue 13 Oct 10:20 · Ben: Re: Dinner Perfect, see you Saturday at 7 at Juniper!\n  — Fri Oct 9, 2026 20:19 · iMessage with Ben · 4 days earlier —\n   [102] Ben · Fri 9 Oct 20:19 · Ben: like straight up ps2 cutscene level\n   [103] Ben · Fri 9 Oct 20:20 · me: haha yeah that part took me out of it completely\n  — Mon Oct 12, 2026 18:00 · iMessage with Ben · 3 days later —\n * [121] Ben · Mon 12 Oct 18:00 · Ben: want to do dinner Thursday? was thinking Juniper Cafe at 7\n * [122] Ben · Mon 12 Oct 18:10 · me: yeah that works\n   [123] Ben · Mon 12 Oct 18:20 · Ben: perfect, see you there\n  — Tue Oct 13, 2026 10:00 · email · Ben · 1 day later —\n * [147] Ben · Tue 13 Oct 10:00 · Ben: Dinner Hi, stuck at work and Thursday's looking impossible - can we move our dinner to Saturday instead?\n * [146] Ben · Tue 13 Oct 10:19 · me: Re: Dinner No worries, Saturday works. Let's do 7 pm at Juniper Cafe instead of Thursday?\n\nchanges:\n  2026-10-13T03:00  title: '' -> 'Dinner' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> 'Juniper Cafe' (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Ben\"]' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Ben' (by dream:nightly:born-day)\n  2026-10-14T03:00  date: '2026-10-15' -> '2026-10-17' (by dream:nightly)\n  2026-10-14T03:00  time: '19:00' -> '19:00' (by dream:nightly)\n  2026-10-14T03:00  location: 'Juniper Cafe' -> 'Juniper Cafe' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "pizza"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041364004,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"pizza\", \"title\": \"Pizza\", \"section\": \"projects\", \"is_self\": false, \"answers\": [\"where\"], \"facts\": [{\"slot\": \"where\", \"value\": \"Mario's on Pine Street\", \"source\": \"memcal\", \"ts\": \"2026-10-15\", \"lines\": []}], \"cited_ids\": {\"where\": []}, \"provenance\": {\"where\": {\"entity\": \"event:pizza@2026-10-16\", \"bundle\": \"a783e7\", \"run\": null, \"gen\": \"\", \"verb\": \"derived\", \"at\": \"2026-10-15T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Pizza\\n\\nRecent instances:\\n- 2026-10-16 \\u2014 Mario's on Pine Street\\n- 2026-10-16 \\u2014 Luigi's on 5th Street\\n- 2026-10-09 \\u2014 Luigi's on 5th Street\\n- 2026-10-09 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 Mario's on Pine\\n\\n## Facts\\n\\n- **where**: Mario's on Pine Street  <!-- memcal 2026-10-15 -->\\n\", \"encounters\": {\"count\": 0, \"by_activity\": [], \"recent\": []}, \"sources\": {\"where\": [{\"id\": 25, \"ts\": \"2026-09-21T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"let's do pizza this Friday at noon at Mario's on Pine Street? something different from last week\", \"evidence\": true, \"source_heading\": \"Mon Sep 21, 2026 18:00 \\u00b7 iMessage with Friday crew\"}, {\"id\": 26, \"ts\": \"2026-09-21T18:19:02-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 27, \"ts\": \"2026-09-21T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"perfect, yeah that works\", \"evidence\": true}, {\"id\": 54, \"ts\": \"2026-09-28T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again on Friday?\", \"evidence\": true, \"source_heading\": \"Mon Sep 28, 2026 18:00 \\u00b7 iMessage with Maya \\u00b7 7 days later\"}, {\"id\": 55, \"ts\": \"2026-09-28T18:16:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes definitely, back to Rosa's on Oak Street?\", \"evidence\": true}, {\"id\": 56, \"ts\": \"2026-09-28T18:18:40-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes! is 12:30pm good for you?\", \"evidence\": true}, {\"id\": 57, \"ts\": \"2026-09-28T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 84, \"ts\": \"2026-10-05T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"wanna try Luigi's on 5th Street for pizza Friday at noon?\", \"evidence\": true, \"source_heading\": \"Mon Oct 5, 2026 18:00 \\u00b7 iMessage with Friday crew \\u00b7 7 days later\"}, {\"id\": 85, \"ts\": \"2026-10-05T18:00:29-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yes!! I'm in, could use something different from Mario's\", \"evidence\": true}, {\"id\": 86, \"ts\": \"2026-10-05T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I can actually make it this Friday\", \"evidence\": true}, {\"id\": 113, \"ts\": \"2026-10-12T17:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again Friday?\", \"evidence\": true, \"source_heading\": \"Mon Oct 12, 2026 17:00 \\u00b7 iMessage with Maya \\u00b7 7 days later\"}, {\"id\": 116, \"ts\": \"2026-10-12T17:19:03-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"Rosa's on Oak Street at 1pm?\", \"evidence\": true}, {\"id\": 117, \"ts\": \"2026-10-12T17:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 132, \"ts\": \"2026-10-13T09:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\", \"evidence\": true, \"source_heading\": \"Tue Oct 13, 2026 09:00 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 133, \"ts\": \"2026-10-13T09:00:57-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yep, still on for me\", \"evidence\": true}, {\"id\": 134, \"ts\": \"2026-10-13T09:10:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I'm in for Friday\", \"evidence\": true}, {\"id\": 150, \"ts\": \"2026-10-14T08:04:12-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"can we do Mario's on Pine Street Friday instead? same time?\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 08:04 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 151, \"ts\": \"2026-10-14T08:18:14-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"oh good backup, yep still good for me\", \"evidence\": true}, {\"id\": 152, \"ts\": \"2026-10-14T08:19:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works\", \"evidence\": true}]}, \"narrow\": {\"where\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 6.03,
+    "input_tokens": 20942,
+    "output_tokens": 379,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

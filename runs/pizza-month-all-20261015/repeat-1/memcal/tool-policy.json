@@ -1,0 +1,36 @@
+{
+  "version": "provider-memory-with-source-penalty-v3",
+  "provider": "memcal",
+  "allowed_tools": [
+    "memcal_activity",
+    "memcal_add",
+    "memcal_alias",
+    "memcal_answer",
+    "memcal_conversation",
+    "memcal_drop",
+    "memcal_list_days",
+    "memcal_list_month",
+    "memcal_merge",
+    "memcal_move_once",
+    "memcal_note",
+    "memcal_open",
+    "memcal_open_page",
+    "memcal_open_source",
+    "memcal_refresh",
+    "memcal_reviewed",
+    "memcal_schedule",
+    "memcal_search_archive",
+    "memcal_search_wiki",
+    "memcal_todo",
+    "memcal_update"
+  ],
+  "blocked_source_tools": [],
+  "source_argument_rules": {},
+  "builtin_memory": false,
+  "os_sandbox": false,
+  "source_fallback_penalty": {
+    "retention_weight": 0.0,
+    "answer_correctness_unchanged": true,
+    "scope": "Source retrieval is permitted, logged and charged. A source-assisted turn earns no retention credit; actual costs are never inferred from the penalty."
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "mem0",
+  "at": "2026-10-08T19:20:00-04:00",
+  "processing_at": "2026-10-08T19:20:00-04:00",
+  "document_sha256": "73783cfed050a2e8a491129d4acc82e0fa3d3d19c12b3df46c086effc9d6cbcb",
+  "source_ids": [
+    "message-1918fc903e8041cd7ebee981",
+    "message-09a9e9b0e54b47ec43e90fa9",
+    "message-9eab3b042203e7e2af94dec5"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": [{\"id\": \"f9a00807-d7dc-4a7b-a985-69482e35f70a\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group confirmed on October 8, 2026 that they were still on for pizza at Luigi's on 5th Street on Friday, October 9, 2026, with Leo asking for a check, and both Maya and User confirming they were still in.\", \"event\": \"ADD\"}]}, \"native_errors\": [], \"model_output_truncated\": false, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-10-08.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "f9a00807-d7dc-4a7b-a985-69482e35f70a",
+          "memory": "User, Maya, and Leo in the 'Friday crew' group confirmed on October 8, 2026 that they were still on for pizza at Luigi's on 5th Street on Friday, October 9, 2026, with Leo asking for a check, and both Maya and User confirming they were still in.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-core-20261015/repeat-1/mem0/ingestion-model-calls/2026-10-08.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "latency_s": 15.33,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:25:05.873323+00:00",
+    "finished": "2026-10-15T05:25:21.200249+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 10050,
+        "output_tokens": 1627,
+        "accounted_upper_bound_usd": 0.0013304,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "3358bb1a14844cc5a6dd5e6a95e7cc32",
+        "project": "pacbench-da6c0828d451-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:25:09.089711+00:00",
+        "finished": "2026-10-15T05:25:20.046834+00:00",
+        "state": "settled",
+        "input_tokens": 10050,
+        "output_tokens": 1627,
+        "accounted": 1330400,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013304
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "provider": "supermemory",
+  "repetition": 1,
+  "input_hash": "144328b79fae68e719d60fa934861cd2319b56ce5cd84f10f2e744c867341bcd",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "supermemory_store",
+      "supermemory_search",
+      "supermemory_forget",
+      "supermemory_profile",
+      "supermemory-save",
+      "supermemory-search",
+      "supermemory-forget",
+      "supermemory-profile"
+    ],
+    "provider": "supermemory",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "supermemory-profile",
+      "arguments": {},
+      "output": "{\"profile\": \"\", \"static_count\": 0, \"dynamic_count\": 0}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "checks": [
+    {
+      "id": "current",
+      "at": "2026-10-15T10:00:00-04:00",
+      "session": "details",
+      "contract_hash": "70ca2ca208661f65e26433565510da2c85a6b0118916546313c4ae8fe0e42ddb",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "old-place",
+      "at": "2026-10-15T10:02:00-04:00",
+      "session": "details",
+      "contract_hash": "f2efb64d604ad657bb957bbec58564f8fbdad4dc887b84213b1e1df0c6f9f874",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Repeated provider-side HTTP 400/422 responses; stop further paid checks in this arm. Native completion alone does not establish healthy model execution.",
+      "error_type": "execution_or_judge"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

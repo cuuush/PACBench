@@ -1,0 +1,257 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "honcho",
+  "at": "2026-10-04T17:20:00-04:00",
+  "processing_at": "2026-10-04T17:20:00-04:00",
+  "document_sha256": "d9aac4e4ff8ff3bbffb6e4a66da96c231388c12d6e7ebb685e1048af361a120e",
+  "source_ids": [
+    "message-8da11b1039a546dc5bf26ac5",
+    "message-4f153dc47e63c023714e47d4",
+    "message-33f8a9ef9276c6bc2e35a025",
+    "message-781682e9e62a57ee6b5dc165"
+  ],
+  "delivery": "native-messages",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"Native Honcho session.add_messages(real source peers and timestamps)\", \"result\": [{\"session_id\": \"source-2ebfae8040d86ad7fcbbb765\", \"processing_baseline\": {\"total_work_units\": 4, \"completed_work_units\": 4, \"in_progress_work_units\": 0, \"pending_work_units\": 0, \"sessions\": null}, \"minimum_work_units\": 8, \"observer\": {\"peer_id\": \"hermes\", \"observe_me\": false, \"observe_others\": true}, \"messages\": [{\"id\": \"r0JEmhBT5r1gRD_CEV_nt\", \"session_id\": \"source-2ebfae8040d86ad7fcbbb765\", \"peer_id\": \"Jen\", \"content\": \"finally finished that detective novel btw\", \"created_at\": \"2026-10-04T17:00:00-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-04T17:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-04T17:00:00-04:00\", \"from_owner\": false, \"sender\": \"Jen\", \"source_id\": \"message-8da11b1039a546dc5bf26ac5\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Jen\"]}, \"thread\": \"thread-b03a149a909536c1a85613e8\", \"written_at\": \"2026-10-04T17:00:00-04:00\"}}, {\"id\": \"VVjNPWDrCMgxWZXEoa-GE\", \"session_id\": \"source-2ebfae8040d86ad7fcbbb765\", \"peer_id\": \"user\", \"content\": \"oh yeah how was it?\", \"created_at\": \"2026-10-04T17:01:10-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-04T17:01:10-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-04T17:01:10-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"message-4f153dc47e63c023714e47d4\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Jen\"]}, \"thread\": \"thread-b03a149a909536c1a85613e8\", \"written_at\": \"2026-10-04T17:01:10-04:00\"}}, {\"id\": \"0xsg1IdAWIDD-X41w0cah\", \"session_id\": \"source-2ebfae8040d86ad7fcbbb765\", \"peer_id\": \"Jen\", \"content\": \"good until the last like 20 pages, hated the ending\", \"created_at\": \"2026-10-04T17:15:17-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-04T17:15:17-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-04T17:15:17-04:00\", \"from_owner\": false, \"sender\": \"Jen\", \"source_id\": \"message-33f8a9ef9276c6bc2e35a025\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Jen\"]}, \"thread\": \"thread-b03a149a909536c1a85613e8\", \"written_at\": \"2026-10-04T17:15:17-04:00\"}}, {\"id\": \"9etYj6lvd-pXsCjDc3H-X\", \"session_id\": \"source-2ebfae8040d86ad7fcbbb765\", \"peer_id\": \"user\", \"content\": \"ugh that's the worst, ruins the whole thing\", \"created_at\": \"2026-10-04T17:20:00-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-04T17:20:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-04T17:20:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"message-781682e9e62a57ee6b5dc165\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Jen\"]}, \"thread\": \"thread-b03a149a909536c1a85613e8\", \"written_at\": \"2026-10-04T17:20:00-04:00\"}}]}], \"processing_status\": [{\"elapsed_s\": 0.01, \"sessions\": {\"source-2ebfae8040d86ad7fcbbb765\": {\"total_work_units\": 8, \"completed_work_units\": 4, \"in_progress_work_units\": 0, \"pending_work_units\": 4, \"sessions\": null}}}, {\"elapsed_s\": 2.04, \"sessions\": {\"source-2ebfae8040d86ad7fcbbb765\": {\"total_work_units\": 8, \"completed_work_units\": 4, \"in_progress_work_units\": 2, \"pending_work_units\": 2, \"sessions\": null}}}, {\"elapsed_s\": 12.18, \"sessions\": {\"source-2ebfae8040d86ad7fcbbb765\": {\"total_work_units\": 8, \"completed_work_units\": 6, \"in_progress_work_units\": 2, \"pending_work_units\": 0, \"sessions\": null}}}, {\"elapsed_s\": 34.41, \"sessions\": {\"source-2ebfae8040d86ad7fcbbb765\": {\"total_work_units\": 8, \"completed_work_units\": 8, \"in_progress_work_units\": 0, \"pending_work_units\": 0, \"sessions\": null}}}], \"model_health\": {\"state\": \"captured\", \"failed_requests\": [], \"reason\": \"\", \"scope\": \"Execution/cost barrier, not a semantic memory grade. Held charges remain held.\"}, \"readiness\": \"Native acknowledgments, new work enrollment and submitted-session processing complete\", \"readiness_scope\": \"Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "Native Honcho session.add_messages(real source peers and timestamps)",
+    "result": [
+      {
+        "session_id": "source-2ebfae8040d86ad7fcbbb765",
+        "processing_baseline": {
+          "total_work_units": 4,
+          "completed_work_units": 4,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 8,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": false,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "r0JEmhBT5r1gRD_CEV_nt",
+            "session_id": "source-2ebfae8040d86ad7fcbbb765",
+            "peer_id": "Jen",
+            "content": "finally finished that detective novel btw",
+            "created_at": "2026-10-04T17:00:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-04T17:00:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-04T17:00:00-04:00",
+              "from_owner": false,
+              "sender": "Jen",
+              "source_id": "message-8da11b1039a546dc5bf26ac5",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Jen"
+                ]
+              },
+              "thread": "thread-b03a149a909536c1a85613e8",
+              "written_at": "2026-10-04T17:00:00-04:00"
+            }
+          },
+          {
+            "id": "VVjNPWDrCMgxWZXEoa-GE",
+            "session_id": "source-2ebfae8040d86ad7fcbbb765",
+            "peer_id": "user",
+            "content": "oh yeah how was it?",
+            "created_at": "2026-10-04T17:01:10-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-04T17:01:10-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-04T17:01:10-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-4f153dc47e63c023714e47d4",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Jen"
+                ]
+              },
+              "thread": "thread-b03a149a909536c1a85613e8",
+              "written_at": "2026-10-04T17:01:10-04:00"
+            }
+          },
+          {
+            "id": "0xsg1IdAWIDD-X41w0cah",
+            "session_id": "source-2ebfae8040d86ad7fcbbb765",
+            "peer_id": "Jen",
+            "content": "good until the last like 20 pages, hated the ending",
+            "created_at": "2026-10-04T17:15:17-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-04T17:15:17-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-04T17:15:17-04:00",
+              "from_owner": false,
+              "sender": "Jen",
+              "source_id": "message-33f8a9ef9276c6bc2e35a025",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Jen"
+                ]
+              },
+              "thread": "thread-b03a149a909536c1a85613e8",
+              "written_at": "2026-10-04T17:15:17-04:00"
+            }
+          },
+          {
+            "id": "9etYj6lvd-pXsCjDc3H-X",
+            "session_id": "source-2ebfae8040d86ad7fcbbb765",
+            "peer_id": "user",
+            "content": "ugh that's the worst, ruins the whole thing",
+            "created_at": "2026-10-04T17:20:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-04T17:20:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-04T17:20:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-781682e9e62a57ee6b5dc165",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Jen"
+                ]
+              },
+              "thread": "thread-b03a149a909536c1a85613e8",
+              "written_at": "2026-10-04T17:20:00-04:00"
+            }
+          }
+        ]
+      }
+    ],
+    "processing_status": [
+      {
+        "elapsed_s": 0.01,
+        "sessions": {
+          "source-2ebfae8040d86ad7fcbbb765": {
+            "total_work_units": 8,
+            "completed_work_units": 4,
+            "in_progress_work_units": 0,
+            "pending_work_units": 4,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 2.04,
+        "sessions": {
+          "source-2ebfae8040d86ad7fcbbb765": {
+            "total_work_units": 8,
+            "completed_work_units": 4,
+            "in_progress_work_units": 2,
+            "pending_work_units": 2,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 12.18,
+        "sessions": {
+          "source-2ebfae8040d86ad7fcbbb765": {
+            "total_work_units": 8,
+            "completed_work_units": 6,
+            "in_progress_work_units": 2,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 34.41,
+        "sessions": {
+          "source-2ebfae8040d86ad7fcbbb765": {
+            "total_work_units": 8,
+            "completed_work_units": 8,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      }
+    ],
+    "model_health": {
+      "state": "captured",
+      "failed_requests": [],
+      "reason": "",
+      "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
+    },
+    "readiness": "Native acknowledgments, new work enrollment and submitted-session processing complete",
+    "readiness_scope": "Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier"
+  },
+  "latency_s": 35.25,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:18:34.232390+00:00",
+    "finished": "2026-10-15T05:19:09.488040+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 1385,
+        "output_tokens": 3820,
+        "accounted_upper_bound_usd": 0.0009025000000000001,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "ed43f718a1db460fb313cc6d76b1ad35",
+        "project": "pacbench-5f55760d43fe-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:18:35.731887+00:00",
+        "finished": "2026-10-15T05:18:42.735998+00:00",
+        "state": "settled",
+        "input_tokens": 672,
+        "output_tokens": 1015,
+        "accounted": 270200,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0002702
+      },
+      {
+        "id": "f4f755421a12417ab3c3540f5a878b58",
+        "project": "pacbench-5f55760d43fe-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:18:46.053113+00:00",
+        "finished": "2026-10-15T05:19:07.444780+00:00",
+        "state": "settled",
+        "input_tokens": 713,
+        "output_tokens": 2805,
+        "accounted": 632300,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0006323
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

@@ -1,0 +1,661 @@
+{
+  "id": "pizza-month-natural-traps-low",
+  "timezone": "America/New_York",
+  "noise": "low",
+  "ingestion_days": 30,
+  "channels": {
+    "devon": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Devon"
+      ]
+    },
+    "maya": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya"
+      ]
+    },
+    "friday-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "name": "Friday crew"
+    },
+    "pond-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen",
+        "Alex"
+      ],
+      "name": "Park pals"
+    },
+    "jen": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen"
+      ]
+    },
+    "alex": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Alex"
+      ]
+    },
+    "ben": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Ben"
+      ]
+    },
+    "ben-email": {
+      "type": "email",
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "subject": "Dinner"
+    }
+  },
+  "weeks": [
+    {
+      "monday": {},
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "friday-pizza",
+            "channel": "maya",
+            "time": "6 pm",
+            "scene": "Maya and the user arrange an easy Friday catch-up over pizza. They know each other; keep it casual.",
+            "facts": [
+              "They agree to pizza this Friday at 1 pm at Rosa's on Oak Street."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "evening-pizza",
+            "channel": "devon",
+            "time": "6 pm",
+            "scene": "Devon suggests pizza after work Friday and the user agrees. One ordinary aside is fine.",
+            "facts": [
+              "They agree to pizza this Friday at 6 pm at Luigi's on 5th Street."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "scenes": [
+          {
+            "id": "old-joke",
+            "channel": "friday-crew",
+            "time": "8 pm",
+            "scene": "Leo shares a ridiculous pizza slogan he heard in a sketch, with Maya and the user reacting. Make the joke sound like a quote, not an invitation.",
+            "facts": [
+              "Leo quotes a sketch saying 'we should get pizza on Saturday and never go back to work'. The group laughs; they make no Saturday plan."
+            ]
+          }
+        ]
+      },
+      "friday": {
+        "scenes": [
+          {
+            "id": "running-late",
+            "channel": "maya",
+            "time": "12:15 pm",
+            "scene": "Maya is a few minutes behind for the lunch already arranged in this DM; the user is relaxed.",
+            "facts": [
+              "Maya says she is five minutes late for their 1 pm pizza at Rosa's today; the meeting is not rescheduled."
+            ]
+          }
+        ]
+      },
+      "saturday": {
+        "scenes": [
+          {
+            "id": "leftovers",
+            "channel": "devon",
+            "time": "11 am",
+            "scene": "A short exchange about leftover pizza and whether it reheats better in a pan. No new outing.",
+            "facts": [
+              "Devon says yesterday's Luigi's leftovers were good reheated."
+            ]
+          }
+        ]
+      },
+      "sunday": {
+        "scenes": [
+          {
+            "id": "ordinary-sunday",
+            "channel": "alex",
+            "time": "4 pm",
+            "scene": "Alex sends a picture description of a comically small houseplant and the user teases him. No plans are made.",
+            "facts": [
+              "Alex bought a tiny basil plant."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "next-friday",
+            "channel": "friday-crew",
+            "time": "6 pm",
+            "scene": "Maya, Leo and the user plan this Friday together, agreeing on a different place than last week.",
+            "facts": [
+              "The user, Maya and Leo agree to pizza this Friday at noon at Mario's on Pine Street."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "coworker-pizza",
+            "channel": "devon",
+            "time": "6 pm",
+            "scene": "Devon complains about a work lunch and the user sympathizes. This is a story about his team, not an invitation.",
+            "facts": [
+              "Devon's coworkers are getting pizza Saturday at 2 pm at Domino's. Neither Devon nor the user is joining them."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "friday-dinner",
+            "channel": "devon",
+            "time": "6 pm",
+            "scene": "Devon asks if the user wants pizza this Friday after work. They settle the details without recapping other chats.",
+            "facts": [
+              "Devon and the user agree to Friday pizza at 7 pm at Rosa's on Oak Street."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "scenes": [
+          {
+            "id": "one-change",
+            "channel": "friday-crew",
+            "time": "7 pm",
+            "scene": "Maya has an appointment and asks to move tomorrow’s group meal an hour later. Others agree. The place stays as it was; avoid a full recap.",
+            "facts": [
+              "Tomorrow's group pizza moves from noon to 1 pm. The venue is unchanged."
+            ]
+          }
+        ]
+      },
+      "friday": {
+        "scenes": [
+          {
+            "id": "ordinary-weather",
+            "channel": "jen",
+            "time": "8 am",
+            "scene": "Jen complains that her umbrella broke; a short ordinary exchange. No invitation or reschedule.",
+            "facts": [
+              "Jen's umbrella broke on her walk to work."
+            ]
+          }
+        ]
+      },
+      "saturday": {
+        "scenes": [
+          {
+            "id": "weekend-recap",
+            "channel": "friday-crew",
+            "time": "3 pm",
+            "scene": "Leo comments on yesterday’s pizza, and the others react. It is a retrospective food opinion, not another booking.",
+            "facts": [
+              "Leo liked yesterday's pizza at Mario's but thought the olives were too salty."
+            ]
+          }
+        ]
+      },
+      "sunday": {
+        "scenes": [
+          {
+            "id": "tentative-idea",
+            "channel": "maya",
+            "time": "5 pm",
+            "scene": "A lazy Sunday chat about places to try someday. Leave it as idle speculation, with no date or acceptance.",
+            "facts": [
+              "Maya wonders if they should try pizza at the new place near the station sometime. They do not make a plan."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "friday-invite",
+            "channel": "maya",
+            "time": "6 pm",
+            "scene": "Maya and the user arrange their next Friday meal. Their short replies sound like familiar friends.",
+            "facts": [
+              "Maya and the user agree to pizza Friday at 12:30 pm at Rosa's on Oak Street."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "declined-invite",
+            "channel": "alex",
+            "time": "6 pm",
+            "scene": "Alex invites the user out this Saturday, but the user already has family plans. Alex accepts the no without negotiating another day.",
+            "facts": [
+              "Alex invites the user to pizza Saturday at 6 pm at Mario's. The user declines because of a family visit; no pizza outing is agreed."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "devon-friday",
+            "channel": "devon",
+            "time": "6 pm",
+            "scene": "Devon arranges a pizza catch-up this Friday. Keep it compact and ordinary.",
+            "facts": [
+              "Devon and the user agree to Friday pizza at 6 pm at Mario's on Pine Street."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "scenes": [
+          {
+            "id": "wrong-restaurant",
+            "channel": "maya",
+            "time": "7 pm",
+            "scene": "Maya notices she has been looking at the wrong restaurant menu for tomorrow. She corrects herself in the chat; this is not a venue change.",
+            "facts": [
+              "Maya briefly mentions Luigi's menu, then realizes tomorrow's agreed pizza is still at Rosa's on Oak Street at 12:30 pm."
+            ]
+          }
+        ]
+      },
+      "friday": {
+        "scenes": [
+          {
+            "id": "ordinary-key",
+            "channel": "ben",
+            "time": "9 am",
+            "scene": "Ben asks whether the user has seen his blue keyring. They chat briefly; no arrangement to meet.",
+            "facts": [
+              "Ben finds his blue keyring in his coat pocket."
+            ]
+          }
+        ]
+      },
+      "saturday": {
+        "scenes": [
+          {
+            "id": "quoted-old-plan",
+            "channel": "devon",
+            "time": "2 pm",
+            "scene": "Devon scrolls back and quotes an old Friday invitation while looking for the street name. Let the date make clear it belongs to an earlier week.",
+            "facts": [
+              "Devon quotes his September 16 message about Friday 6 pm at Luigi's on 5th Street, to remember the street name. He is not arranging a new trip."
+            ]
+          }
+        ]
+      },
+      "sunday": {
+        "scenes": [
+          {
+            "id": "ordinary-weekend",
+            "channel": "jen",
+            "time": "5 pm",
+            "scene": "A normal brief exchange about a book Jen has finished. No plans.",
+            "facts": [
+              "Jen finished a detective novel and disliked the ending."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "friday-lunch",
+            "channel": "friday-crew",
+            "time": "6 pm",
+            "scene": "The group settles on this Friday pizza, with Leo available this time. One small aside is fine.",
+            "facts": [
+              "The user, Maya and Leo agree to pizza Friday at noon at Luigi's on 5th Street."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "friday-evening",
+            "channel": "devon",
+            "time": "6 pm",
+            "scene": "Devon suggests Friday pizza and the user agrees. Do not recap earlier weeks.",
+            "facts": [
+              "Devon and the user agree to Friday pizza at 6:30 pm at Rosa's on Oak Street."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "only-hypothetical",
+            "channel": "alex",
+            "time": "6 pm",
+            "scene": "Alex jokes that if he won the lottery he would rent out a pizza restaurant every Saturday. The user plays along. It is a hypothetical fantasy, not an invitation.",
+            "facts": [
+              "Alex imagines buying everyone pizza every Saturday if he won the lottery. No actual Saturday gathering is agreed."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "scenes": [
+          {
+            "id": "lunch-confirmation",
+            "channel": "friday-crew",
+            "time": "7 pm",
+            "scene": "Leo briefly checks the meeting point for tomorrow; someone answers without a ceremonial restatement of all the details.",
+            "facts": [
+              "Tomorrow's group pizza is still at Luigi's on 5th Street."
+            ]
+          }
+        ]
+      },
+      "friday": {
+        "scenes": [
+          {
+            "id": "ordinary-film",
+            "channel": "ben",
+            "time": "8 pm",
+            "scene": "Ben and the user trade quick opinions about a bad movie they watched separately. No new plans.",
+            "facts": [
+              "Ben thought the spaceship effects were terrible."
+            ]
+          }
+        ]
+      },
+      "saturday": {
+        "scenes": [
+          {
+            "id": "family-pizza",
+            "channel": "maya",
+            "time": "3 pm",
+            "scene": "Maya tells the user about her sister’s birthday meal. The user responds politely; they are not invited.",
+            "facts": [
+              "Maya's sister is taking her own friends for pizza next Saturday at 4 pm at Rosa's. Maya and the user are not going to that meal."
+            ]
+          }
+        ]
+      },
+      "sunday": {
+        "scenes": [
+          {
+            "id": "ordinary-recipe",
+            "channel": "devon",
+            "time": "5 pm",
+            "scene": "Devon burned some homemade dough; a short exchange with mild teasing. No restaurant plans.",
+            "facts": [
+              "Devon burned his homemade pizza dough."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "maya-friday",
+            "channel": "maya",
+            "time": "5 pm",
+            "scene": "Maya and the user agree to pizza Friday. Maya dismisses a distant option before settling on their usual area.",
+            "facts": [
+              "The user and Maya agree to Friday pizza at 1 pm at Rosa's on Oak Street. Maya rejects Domino's because it is too far."
+            ]
+          },
+          {
+            "id": "devon-friday",
+            "channel": "devon",
+            "time": "5:30 pm",
+            "scene": "Devon and the user agree on Friday evening pizza. This is independent of the other chat.",
+            "facts": [
+              "The user and Devon agree to Friday pizza at 6 pm at Luigi's on 5th Street."
+            ]
+          },
+          {
+            "id": "ben-dinner",
+            "channel": "ben",
+            "time": "6 pm",
+            "scene": "Ben and the user arrange dinner Thursday. They sometimes use email while Ben is at his desk.",
+            "facts": [
+              "Ben and the user agree to Thursday dinner at 7 pm at Juniper Cafe."
+            ]
+          },
+          {
+            "id": "pond-invite",
+            "channel": "pond-crew",
+            "time": "6:30 pm",
+            "scene": "Jen and Alex arrange a quick Friday walk with the user in their existing group.",
+            "facts": [
+              "The user, Jen and Alex agree to Friday at 2 pm at the west entrance of the duck pond in Willow Park."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "maya-time",
+            "channel": "maya",
+            "time": "8 am",
+            "scene": "Maya asks about moving the meal this Friday earlier. Rely on the ongoing DM for which meal; no unnecessary date or restaurant recap.",
+            "facts": [
+              "Maya asks 'about Friday, can we do noon instead?' and the user agrees. Only the time changes."
+            ]
+          },
+          {
+            "id": "leo-joins",
+            "channel": "friday-crew",
+            "time": "9 am",
+            "scene": "Maya brings the Friday pizza plan from her DM into the group so Leo can join. Natural short coordination; establish continuity with that same outing.",
+            "facts": [
+              "Leo joins Maya and the user's already arranged Friday pizza at noon at Rosa's on Oak Street. It is the same outing from the DM, not an extra pizza plan or a venue change."
+            ]
+          },
+          {
+            "id": "ben-email-change",
+            "channel": "ben-email",
+            "time": "10 am",
+            "scene": "Ben emails from work about moving their already arranged dinner; the user replies. Use an ordinary reply chain, not an introduction.",
+            "facts": [
+              "Ben asks to move their Thursday dinner to Saturday. The user agrees to Saturday at 7 pm at Juniper Cafe, replacing Thursday."
+            ]
+          },
+          {
+            "id": "jen-separate-call",
+            "channel": "jen",
+            "time": "11 am",
+            "scene": "Jen asks the user for a little help with an application Friday morning. This is separate from the park group.",
+            "facts": [
+              "Jen and the user agree to a phone call Friday at 10 am to review her job application."
+            ]
+          },
+          {
+            "id": "alex-coffee",
+            "channel": "alex",
+            "time": "11:30 am",
+            "scene": "Alex suggests coffee Friday before work and the user agrees. Keep it casual.",
+            "facts": [
+              "Alex and the user agree to Friday coffee at 11 am at Birch Cafe."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "group-venue",
+            "channel": "friday-crew",
+            "time": "8 am",
+            "scene": "Maya says the original place is closed and suggests a replacement for Friday. Everyone agrees, with short contextual replies rather than a full recap.",
+            "facts": [
+              "Friday's group pizza changes from Rosa's to Mario's on Pine Street. Noon and the three participants are unchanged."
+            ]
+          },
+          {
+            "id": "pond-cancel",
+            "channel": "pond-crew",
+            "time": "9 am",
+            "scene": "A continuation of the Friday walk chat. Jen cannot make it; Alex cannot either, and the user agrees to postpone. Do not name the activity, park, or the separate DM appointments in these replies.",
+            "facts": [
+              "Jen says she cannot make it Friday. Alex says 'me too, let's just do this another day'. The user agrees to postpone. No replacement date is chosen."
+            ]
+          },
+          {
+            "id": "saturday-joke",
+            "channel": "maya",
+            "time": "6 pm",
+            "scene": "Maya quotes a silly pizza joke from a podcast and the user riffs on it. The exchange is clearly about something heard, not making an invitation. Do not add an explanatory disclaimer.",
+            "facts": [
+              "Maya quotes a podcast joke along the lines of 'we should get pizza on Saturday, then tell Monday we're still chewing'. They laugh; no Saturday pizza outing between them is agreed."
+            ]
+          },
+          {
+            "id": "devon-confirm",
+            "channel": "devon",
+            "time": "6:30 pm",
+            "scene": "Devon checks tomorrow is Thursday because his week feels long, then confirms the existing Friday plan. No time or venue change.",
+            "facts": [
+              "Devon confirms Friday at 6 pm at Luigi's on 5th Street, not tomorrow Thursday."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "conversations": [
+          {
+            "id": "friday-recap",
+            "time": "10 am",
+            "turns": [
+              {
+                "id": "friday-pizza",
+                "prompt": "What’s the deal with pizza tomorrow?",
+                "expect": "For Friday there are exactly two agreed pizza outings: the user, Maya and Leo at noon at Mario's on Pine Street, and the user with Devon at 6 pm at Luigi's on 5th Street. Judge the two outings' participants, times and venues/streets, not a lunch or dinner label."
+              },
+              {
+                "id": "maya-options",
+                "prompt": "Why did Maya rule out Domino’s?",
+                "expect": "Maya rejected Domino's because it was too far. Only the reason is judged."
+              }
+            ]
+          },
+          {
+            "id": "count-fresh",
+            "time": "10:10 am",
+            "turns": [
+              {
+                "id": "friday-count",
+                "prompt": "How many separate pizza trips have I agreed to tomorrow?",
+                "expect": "Exactly two distinct pizza outings for Friday. Only the count is judged; older Fridays, venue changes, jokes, coworkers and other people's invitations are not additional outings."
+              }
+            ]
+          },
+          {
+            "id": "saturday-fresh",
+            "time": "10:20 am",
+            "turns": [
+              {
+                "id": "saturday-pizza",
+                "prompt": "Have Maya and I actually made a pizza plan for Saturday?",
+                "expect": "No Saturday pizza outing between the user and Maya is agreed. Her podcast quote and her sister's birthday meal are not their own plan. Only whether an outing is agreed is judged."
+              }
+            ]
+          },
+          {
+            "id": "ben-fresh",
+            "time": "10:30 am",
+            "turns": [
+              {
+                "id": "ben-current",
+                "prompt": "What did Ben and I settle on for dinner?",
+                "expect": "The upcoming dinner with Ben is Saturday at 7 pm at Juniper Cafe. Judge the current day, time and venue."
+              },
+              {
+                "id": "ben-thursday",
+                "prompt": "So am I seeing him for dinner tonight as well?",
+                "expect": "No. Thursday's dinner was moved to Saturday; there is only one agreed dinner, not a second Thursday meal. Only whether tonight remains agreed is judged."
+              }
+            ]
+          },
+          {
+            "id": "pond-fresh",
+            "time": "10:40 am",
+            "turns": [
+              {
+                "id": "pond-current",
+                "prompt": "Are we still meeting at the duck pond tomorrow?",
+                "expect": "No, the Friday duck-pond meetup with Jen and Alex was postponed, with no replacement date agreed. Judge cancellation and replacement status."
+              },
+              {
+                "id": "separate-friday",
+                "prompt": "Does that affect my call with Jen or coffee with Alex?",
+                "expect": "No. The separate Friday 10 am job-application call with Jen and Friday 11 am coffee with Alex at Birch Cafe are still agreed. Judge whether each was cancelled, not extra appointment details."
+              }
+            ]
+          },
+          {
+            "id": "friday-jen-fresh",
+            "time": "10:50 am",
+            "turns": [
+              {
+                "id": "jen-call",
+                "prompt": "When am I calling Jen tomorrow, and what’s it for?",
+                "expect": "The Friday call with Jen is at 10 am, to review her job application. Judge the time and purpose."
+              }
+            ]
+          },
+          {
+            "id": "friday-alex-fresh",
+            "time": "11 am",
+            "turns": [
+              {
+                "id": "alex-coffee",
+                "prompt": "Where and when am I getting coffee with Alex tomorrow?",
+                "expect": "Friday coffee with Alex is at 11 am at Birch Cafe. Judge the time and venue."
+              }
+            ]
+          }
+        ]
+      },
+      "friday": {},
+      "saturday": {},
+      "sunday": {}
+    }
+  ]
+}

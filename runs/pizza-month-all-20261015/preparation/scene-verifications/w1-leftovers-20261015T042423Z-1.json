@@ -1,0 +1,78 @@
+{
+  "scene_id": "w1-leftovers",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-15T04:24:23+00:00",
+  "spec": {
+    "id": "w1-leftovers",
+    "channel": "imessage",
+    "thread": "devon",
+    "scene": "A short exchange about leftover pizza and whether it reheats better in a pan. No new outing.",
+    "test_intent": "",
+    "facts": [
+      "Devon says yesterday's Luigi's leftovers were good reheated."
+    ],
+    "at": "2026-09-19T11:00:00-04:00",
+    "window_start": "2026-09-19T11:00:00-04:00",
+    "window_end": "2026-09-19T11:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      12
+    ],
+    "participants": [
+      "Me",
+      "Devon"
+    ],
+    "chat_name": "",
+    "noise": "low",
+    "messages_per_person": null,
+    "prompt_version": "scene-v16",
+    "judge_prompt_version": "scene-judge-v8"
+  },
+  "dialogue": [
+    "Devon: just reheated yesterday's Luigi's leftovers, so good",
+    "Me: oh nice did you do the pan thing?",
+    "Devon: yeah pan with a lid, crust got crispy again",
+    "Me: way better than microwave"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-19. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 11:00 and 11:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: A short exchange about leftover pizza and whether it reheats better in a pan. No new outing.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Devon says yesterday's Luigi's leftovers were good reheated.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-09-16 Devon: want to do pizza after work Friday?\n2026-09-16 Me: yes definitely\n2026-09-16 Devon: Luigi's on 5th Street at 6pm?\n2026-09-16 Me: yeah that works\n2026-09-16 Devon: nice, I need to stop for gas on the way home tonight\n\nNew messages:\n1. Devon: just reheated yesterday's Luigi's leftovers, so good\n2. Me: oh nice did you do the pan thing?\n3. Devon: yeah pan with a lid, crust got crispy again\n4. Me: way better than microwave",
+  "judge_response": "{\"supported\": true, \"evidence\": [1,2,3,4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2068,
+  "response_chars": 133,
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-prep-20261015/model-calls/f39f298fdc6a938ab1f72ca11cf2fba29c1acd973a35aa0ea387c54fa5eff67e.json",
+  "usage": {
+    "completion_tokens": 1720,
+    "prompt_tokens": 458,
+    "total_tokens": 2178,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1664
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

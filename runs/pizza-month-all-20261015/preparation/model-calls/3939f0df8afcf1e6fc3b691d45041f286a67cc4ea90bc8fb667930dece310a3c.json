@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T04:50:34.622048+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya, Leo. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-14. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 08:00 and 08:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-26 Maya: lmao yeah I was drinking water all afternoon after\n2026-09-26 Me: hahaha same, that crust totally saved it tho\n2026-10-05 Me: wanna try Luigi's on 5th Street for pizza Friday at noon?\n2026-10-05 Maya: yes!! I'm in, could use something different from Mario's\n2026-10-05 Leo: yeah that works, I can actually make it this Friday\n2026-10-08 Leo: quick check, we still on for Luigi's on 5th Street tomorrow?\n2026-10-08 Maya: yep! still in\n2026-10-08 Me: yep, see you there tomorrow\n2026-10-13 Maya: moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\n2026-10-13 Me: yep, still on for me\n2026-10-13 Leo: yeah that works, I'm in for Friday\n2026-10-13 Maya: perfect thank you!!\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya says the original place is closed and suggests a replacement for Friday. Everyone agrees, with short contextual replies rather than a full recap.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Friday's group pizza changes from Rosa's to Mario's on Pine Street. Noon and the three participants are unchanged.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad05b9a2ae53524ee6c4fdb",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792039824.0,
+    "completed_at": 1792039834.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad05b9a2ae53524ee6c4fdb:rs_01a13de5ad2677c49aaac223b973b5e6",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Drafting a short iMessage conversation with consistent timestamps and agreed replacement plan for Friday."
+          },
+          {
+            "type": "summary_text",
+            "text": "Composing a short multi-speaker iMessage thread with consistent timing and venue change."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a brief multi-speaker iMessage continuation that swaps the venue while keeping time and participants implicit."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13de5d0dd766c96e58f9bcb9fe400",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: bad news guys just saw Rosa's is closed\\nMaya: can we do Mario's on Pine Street Friday instead? same time?\\nMe: oh good backup, yep still good for me\\nLeo: yeah that works\\nMaya: perfect thank you!!\", \"writer_note\": \"Kept Maya as the driver with enthusiastic bursts, used 'same time' to lock noon without recapping, and let Me and Leo accept with short contextual replies matching their earlier voices.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 808,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1560,
+      "output_tokens_details": {
+        "reasoning_tokens": 1375
+      },
+      "total_tokens": 2368
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: bad news guys just saw Rosa's is closed\\nMaya: can we do Mario's on Pine Street Friday instead? same time?\\nMe: oh good backup, yep still good for me\\nLeo: yeah that works\\nMaya: perfect thank you!!\", \"writer_note\": \"Kept Maya as the driver with enthusiastic bursts, used 'same time' to lock noon without recapping, and let Me and Leo accept with short contextual replies matching their earlier voices.\"}",
+  "usage": {
+    "input_tokens": 808,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1560,
+    "output_tokens_details": {
+      "reasoning_tokens": 1375
+    },
+    "total_tokens": 2368
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

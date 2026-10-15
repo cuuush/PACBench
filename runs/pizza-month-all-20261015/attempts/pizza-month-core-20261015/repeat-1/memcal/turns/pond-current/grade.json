@@ -1,0 +1,30 @@
+{
+  "correct": 1,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "postponed",
+      "verdict": "correct",
+      "reason": "Answer states 'that walk is off' and 'you agreed to postpone' for the Fri meetup with Jen and Alex."
+    },
+    {
+      "id": "no-replacement",
+      "verdict": "missed",
+      "reason": "Answer says postponed but never states whether a replacement date was or was not agreed."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "postponed",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "no-replacement",
+      "kind": "implicit_omission",
+      "reason": "User asked only if meeting still on; replacement status not requested and not mentioned."
+    }
+  ],
+  "interaction": "answer"
+}

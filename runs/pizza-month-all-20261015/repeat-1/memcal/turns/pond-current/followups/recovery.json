@@ -1,0 +1,309 @@
+{
+  "state": "complete",
+  "plan_hash": "44e93524da6080322308d87689cc2a0a8020e05d35378ca7d4281bf47a392d23",
+  "attempts": [
+    {
+      "claim_ids": [
+        "no-replacement"
+      ],
+      "question": "Was a replacement date agreed for tomorrow's 2pm walk at the west entrance of the duck pond in Willow Park with Jen and Alex?",
+      "state": "graded",
+      "verdicts": [
+        {
+          "id": "no-replacement",
+          "verdict": "correct",
+          "reason": "Answer states it was postponed to 'another day' with no new date set, conveying no replacement date for the referenced meetup."
+        }
+      ],
+      "metrics": {
+        "top_level_calls": 4,
+        "total_tool_operations": 4,
+        "provider_internal_tool_calls": null,
+        "provider_task_records": 0,
+        "provider_internal_operations": [],
+        "provider_internal_source_fallback_confirmed": false,
+        "provider_internal_path_needs_review": false,
+        "categories": {
+          "source_evidence": 3,
+          "archive_search": 1
+        },
+        "operations": [
+          {
+            "name": "memcal_activity",
+            "arguments": {
+              "handle": "E11"
+            },
+            "category": "source_evidence",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1792070732390,
+            "result": {
+              "tool": "memcal_activity",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"handle\": \"E11\", \"kind\": \"event\", \"ref\": \"walk@2026-10-16\", \"mark\": 156, \"total\": 0, \"omitted\": 0, \"next_cursor\": 0, \"items\": [], \"possibly_related\": [], \"note\": \"reading changes nothing; cite line ids in a correction\"}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          },
+          {
+            "name": "memcal_open_source",
+            "arguments": {
+              "source": "E11"
+            },
+            "category": "source_evidence",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1792070732398,
+            "result": {
+              "tool": "memcal_open_source",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"source\": \"E11\", \"kind\": \"event\", \"ref\": \"walk@2026-10-16\", \"label\": \"walk\", \"citations\": {\"lines\": 6, \"conversations\": [\"Park pals\"], \"first\": \"2026-10-12T18:30\", \"last\": \"2026-10-14T09:20\", \"first_said\": \"Mon 12 Oct 18:30\", \"last_said\": \"Wed 14 Oct 09:20\", \"narrow\": true}, \"evidence\": [{\"id\": 156, \"ts\": \"2026-10-14T09:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"me\", \"text\": \"yeah totally, let's just postpone\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 09:20 \\u00b7 iMessage with Park pals\"}, {\"id\": 124, \"ts\": \"2026-10-12T18:30:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"anyone up for a quick walk on Friday? was thinking 2pm at the west entrance of the duck pond in Willow Park\", \"evidence\": true, \"source_heading\": \"Mon Oct 12, 2026 18:30 \\u00b7 iMessage with Park pals \\u00b7 2 days earlier\"}, {\"id\": 125, \"ts\": \"2026-10-12T18:30:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Alex\", \"text\": \"yes please, I need the fresh air. 2 works for me\", \"evidence\": true}, {\"id\": 126, \"ts\": \"2026-10-12T18:30:57-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"me\", \"text\": \"yeah that works, I'll be there\", \"evidence\": true}, {\"id\": 127, \"ts\": \"2026-10-12T18:50:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"great, see you both then\", \"evidence\": false}, {\"id\": 154, \"ts\": \"2026-10-14T09:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"hey guys sorry but I can't make it Friday after all\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 09:00 \\u00b7 iMessage with Park pals \\u00b7 2 days later\"}, {\"id\": 155, \"ts\": \"2026-10-14T09:00:57-04:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Alex\", \"text\": \"all good, me too, let's just do this another day, this week got hectic\", \"evidence\": true}]}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          },
+          {
+            "name": "memcal_conversation",
+            "arguments": {
+              "after": 12,
+              "before": 12,
+              "line_id": 156
+            },
+            "category": "source_evidence",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1792070736908,
+            "result": {
+              "tool": "memcal_conversation",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"channel\": \"imessage\", \"thread\": \"Park pals\", \"conversation\": [{\"id\": 124, \"ts\": \"2026-10-12T18:30\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"anyone up for a quick walk on Friday? was thinking 2pm at the west entrance of the duck pond in Willow Park\"}, {\"id\": 125, \"ts\": \"2026-10-12T18:30\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Alex\", \"text\": \"yes please, I need the fresh air. 2 works for me\"}, {\"id\": 126, \"ts\": \"2026-10-12T18:30\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"me\", \"text\": \"yeah that works, I'll be there\"}, {\"id\": 127, \"ts\": \"2026-10-12T18:50\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"great, see you both then\"}, {\"id\": 154, \"ts\": \"2026-10-14T09:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Jen\", \"text\": \"hey guys sorry but I can't make it Friday after all\"}, {\"id\": 155, \"ts\": \"2026-10-14T09:00\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"Alex\", \"text\": \"all good, me too, let's just do this another day, this week got hectic\"}, {\"id\": 156, \"ts\": \"2026-10-14T09:20\", \"channel\": \"imessage\", \"thread\": \"Park pals\", \"who\": \"me\", \"text\": \"yeah totally, let's just postpone\"}]}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          },
+          {
+            "name": "memcal_search_archive",
+            "arguments": {
+              "limit": 20,
+              "query": "duck pond walk postpone another day",
+              "since": "2026-10-14",
+              "until": "2026-10-15"
+            },
+            "category": "archive_search",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1792070736914,
+            "result": {
+              "tool": "memcal_search_archive",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"results\": []}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          }
+        ],
+        "failed_operations": 0,
+        "repeated_operations": 0,
+        "unmatched_tool_results": [],
+        "source_fallback_attempted": true,
+        "unclassified_operations": 0,
+        "latency_s": 15.95,
+        "input_tokens": 30662,
+        "output_tokens": 23,
+        "policy_blocks": 0,
+        "returncode": 0
+      },
+      "question_authoring_reused": true,
+      "question_hash": "6260237f21e9e3ca0af8823562d3a1871a109102858b181398a088233b078639",
+      "gateway_window": {
+        "projects": [
+          {
+            "project": "pacbench-6b3778f2840a-memcal-driver",
+            "calls_delta": 3,
+            "settled_upper_bound_usd_delta": 0.004682499999999999,
+            "held_usd_delta": 0.0,
+            "input_tokens_delta": 44699,
+            "output_tokens_delta": 1063
+          }
+        ],
+        "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+      }
+    }
+  ],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 5,
+    "total_tool_operations": 5,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 5
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "pizza"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792070660311,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"pizza\", \"title\": \"Pizza\", \"section\": \"projects\", \"is_self\": false, \"answers\": [\"where\"], \"facts\": [{\"slot\": \"where\", \"value\": \"Mario's on Pine Street\", \"source\": \"memcal\", \"ts\": \"2026-10-15\", \"lines\": []}], \"cited_ids\": {\"where\": []}, \"provenance\": {\"where\": {\"entity\": \"event:pizza@2026-10-16\", \"bundle\": \"a783e7\", \"run\": null, \"gen\": \"\", \"verb\": \"derived\", \"at\": \"2026-10-15T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Pizza\\n\\nRecent instances:\\n- 2026-10-16 \\u2014 Mario's on Pine Street\\n- 2026-10-16 \\u2014 Luigi's on 5th street\\n- 2026-10-09 \\u2014 Luigi's on 5th Street\\n- 2026-10-09 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 Rosa's on Oak Street\\n- 2026-10-02 \\u2014 mario's on pine\\n\\n## Facts\\n\\n- **where**: Mario's on Pine Street  <!-- memcal 2026-10-15 -->\\n\", \"encounters\": {\"count\": 0, \"by_activity\": [], \"recent\": []}, \"sources\": {\"where\": [{\"id\": 54, \"ts\": \"2026-09-28T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again on Friday?\", \"evidence\": true, \"source_heading\": \"Mon Sep 28, 2026 18:00 \\u00b7 iMessage with Maya\"}, {\"id\": 55, \"ts\": \"2026-09-28T18:16:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes definitely, back to Rosa's on Oak Street?\", \"evidence\": true}, {\"id\": 56, \"ts\": \"2026-09-28T18:18:40-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes! is 12:30pm good for you?\", \"evidence\": true}, {\"id\": 57, \"ts\": \"2026-09-28T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 84, \"ts\": \"2026-10-05T18:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"wanna try Luigi's on 5th Street for pizza Friday at noon?\", \"evidence\": true, \"source_heading\": \"Mon Oct 5, 2026 18:00 \\u00b7 iMessage with Friday crew \\u00b7 7 days later\"}, {\"id\": 85, \"ts\": \"2026-10-05T18:00:29-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yes!! I'm in, could use something different from Mario's\", \"evidence\": true}, {\"id\": 86, \"ts\": \"2026-10-05T18:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I can actually make it this Friday\", \"evidence\": true}, {\"id\": 113, \"ts\": \"2026-10-12T17:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again Friday?\", \"evidence\": true, \"source_heading\": \"Mon Oct 12, 2026 17:00 \\u00b7 iMessage with Maya \\u00b7 7 days later\"}, {\"id\": 116, \"ts\": \"2026-10-12T17:19:03-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"Rosa's on Oak Street at 1pm?\", \"evidence\": true}, {\"id\": 117, \"ts\": \"2026-10-12T17:20:00-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\", \"evidence\": true}, {\"id\": 132, \"ts\": \"2026-10-13T09:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\", \"evidence\": true, \"source_heading\": \"Tue Oct 13, 2026 09:00 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 133, \"ts\": \"2026-10-13T09:00:57-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yep, still on for me\", \"evidence\": true}, {\"id\": 134, \"ts\": \"2026-10-13T09:10:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, I'm in for Friday\", \"evidence\": true}, {\"id\": 149, \"ts\": \"2026-10-14T08:00:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"bad news guys just saw Rosa's is closed\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 08:00 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 150, \"ts\": \"2026-10-14T08:04:12-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"can we do Mario's on Pine Street Friday instead? same time?\", \"evidence\": true}, {\"id\": 151, \"ts\": \"2026-10-14T08:18:14-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"oh good backup, yep still good for me\", \"evidence\": true}, {\"id\": 152, \"ts\": \"2026-10-14T08:19:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works\", \"evidence\": true}]}, \"narrow\": {\"where\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E9"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792070660333,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E9  pizza\n\nwhen: Friday 16 October 2026 at 12:00\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Leo, Maya\nsource: person:Maya\n\npages: pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 08:04 · iMessage with Friday crew —\n * [150] Friday crew · Wed 14 Oct 08:04 · Maya: can we do Mario's on Pine Street Friday instead? same time?\n  — Mon Oct 12, 2026 17:20 · iMessage with Maya · 2 days earlier —\n * [117] Maya · Mon 12 Oct 17:20 · me: yeah that works\n  — Tue Oct 13, 2026 08:00 · iMessage with Maya · 1 day later —\n   [128] Maya · Tue 13 Oct 08:00 · Maya: morning! about Friday, can we do noon instead?\n   [129] Maya · Tue 13 Oct 08:09 · Maya: i just realized i have something at 1:30\n  — Tue Oct 13, 2026 09:00 · iMessage with Friday crew —\n * [132] Friday crew · Tue 13 Oct 09:00 · Maya: moving our dm plan here so we're all together - still on for Rosa's on Oak Street Friday at noon?\n * [133] Friday crew · Tue 13 Oct 09:00 · me: yep, still on for me\n * [134] Friday crew · Tue 13 Oct 09:10 · Leo: yeah that works, I'm in for Friday\n   [135] Friday crew · Tue 13 Oct 09:20 · Maya: perfect thank you!!\n  — Wed Oct 14, 2026 08:00 · iMessage with Friday crew · 1 day later —\n * [149] Friday crew · Wed 14 Oct 08:00 · Maya: bad news guys just saw Rosa's is closed\n * [151] Friday crew · Wed 14 Oct 08:18 · me: oh good backup, yep still good for me\n * [152] Friday crew · Wed 14 Oct 08:19 · Leo: yeah that works\n   [153] Friday crew · Wed 14 Oct 08:20 · Maya: perfect thank you!!\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  location: '' -> \"Rosa's on Oak Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Maya\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Maya' (by dream:nightly:born-day)\n  2026-10-14T03:00  time: '13:00' -> '12:00' (by dream:nightly)\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E10"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792070660347,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E10  pizza\n\nwhen: Friday 16 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th street\nwho: Devon\nsource: person:Devon\n\npages: pizza (series)\n\nsources (6 line(s); * = what the row was built from):\n  — Sun Oct 11, 2026 17:20 · iMessage with Devon —\n   [112] Devon · Sun 11 Oct 17:20 · me: nice, master chef over here\n  — Mon Oct 12, 2026 17:30 · iMessage with Devon · 1 day later —\n   [118] Devon · Mon 12 Oct 17:30 · Devon: kitchen still smells like burnt crust lol\n * [119] Devon · Mon 12 Oct 17:40 · Devon: let's skip rosa's and do luigi's on 5th street for pizza friday instead? 6pm?\n * [120] Devon · Mon 12 Oct 17:50 · me: yeah that works, you clearly need a pro to show you how its done\n  — Wed Oct 14, 2026 18:30 · iMessage with Devon · 2 days later —\n   [161] Devon · Wed 14 Oct 18:30 · Devon: this week feels so long, tomorrow's thursday right?\n   [162] Devon · Wed 14 Oct 18:36 · me: yeah, only thursday lol\n\nchanges:\n  2026-10-13T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'pizza' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E14"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792070660360,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E14  coffee\n\nwhen: Friday 16 October 2026 at 11:00\nstate: You're going\nwhere: birch\nwho: Alex\nsource: person:Alex\n\nsources (6 line(s); * = what the row was built from):\n  — Wed Oct 7, 2026 18:16 · iMessage with Alex —\n   [93] Alex · Wed 7 Oct 18:16 · me: lol from basil guy to pizza guy\n   [94] Alex · Wed 7 Oct 18:20 · me: i'd be so down for fantasy free pizza every week\n  — Tue Oct 13, 2026 11:30 · iMessage with Alex · 6 days later —\n * [142] Alex · Tue 13 Oct 11:30 · Alex: hey wanna grab coffee friday before work?\n   [143] Alex · Tue 13 Oct 11:35 · me: yes pls, i'm free that morning\n * [144] Alex · Tue 13 Oct 11:45 · Alex: perfect, 11am at birch?\n * [145] Alex · Tue 13 Oct 11:50 · me: yeah that works, see you there\n\nchanges:\n  2026-10-14T03:00  time: '' -> '11:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'coffee' (by dream:nightly:born)\n  2026-10-14T03:00  location: '' -> 'birch' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-14T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E11"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792070660373,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E11  walk\n\nwhen: Friday 16 October 2026 at 14:00\nstate: You're not going\nwhere: west entrance of the duck pond in Willow Park\nwho: Jen, Alex\nsource: thread:imessage:Park pals\n\nsources (7 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 09:20 · iMessage with Park pals —\n * [156] Park pals · Wed 14 Oct 09:20 · me: yeah totally, let's just postpone\n  — Mon Oct 12, 2026 18:30 · iMessage with Park pals · 2 days earlier —\n * [124] Park pals · Mon 12 Oct 18:30 · Jen: anyone up for a quick walk on Friday? was thinking 2pm at the west entrance of the duck pond in Willow Park\n * [125] Park pals · Mon 12 Oct 18:30 · Alex: yes please, I need the fresh air. 2 works for me\n * [126] Park pals · Mon 12 Oct 18:30 · me: yeah that works, I'll be there\n   [127] Park pals · Mon 12 Oct 18:50 · Jen: great, see you both then\n  — Wed Oct 14, 2026 09:00 · iMessage with Park pals · 2 days later —\n * [154] Park pals · Wed 14 Oct 09:00 · Jen: hey guys sorry but I can't make it Friday after all\n * [155] Park pals · Wed 14 Oct 09:00 · Alex: all good, me too, let's just do this another day, this week got hectic\n\nchanges:\n  2026-10-13T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'walk' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> 'west entrance of the duck pond in Willow Park' (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Jen\", \"Alex\"]' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'thread:imessage:Park pals' (by dream:nightly:born-day)\n  2026-10-15T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 19.26,
+    "input_tokens": 14037,
+    "output_tokens": 1040,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "postponed",
+      "kind": "provided",
+      "reason": "Postponement fact was correctly conveyed in answer."
+    },
+    {
+      "id": "no-replacement",
+      "kind": "implicit_omission",
+      "reason": "User asked only if meeting still on tomorrow, not explicitly about replacement date, and answer omitted that no date was set."
+    }
+  ],
+  "eligible_claim_ids": [
+    "no-replacement"
+  ],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 1,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "postponed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "no-replacement",
+        "initial_verdict": "missed",
+        "followup_verdict": "correct",
+        "recovered_answer": true,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

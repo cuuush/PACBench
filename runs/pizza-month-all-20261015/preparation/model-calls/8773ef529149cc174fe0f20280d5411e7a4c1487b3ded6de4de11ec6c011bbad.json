@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-15T04:28:19.718838+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya, Leo. Use only these speaker labels. Members can be silent.\nConversation date: 2026-09-24. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 19:00 and 19:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-17 Leo: caught that office sketch last night where the intern just goes \"we should get pizza on Saturday and never go back to work\"\n2026-09-17 Maya: lmao stop that's perfect\n2026-09-17 Me: hahaha that's so dumb I love it\n2026-09-17 Leo: his delivery was unreal\n2026-09-21 Maya: let's do pizza this Friday at noon at Mario's on Pine Street? something different from last week\n2026-09-21 Leo: yeah that works\n2026-09-21 Me: perfect, yeah that works\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya has an appointment and asks to move tomorrow’s group meal an hour later. Others agree. The place stays as it was; avoid a full recap.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Tomorrow's group pizza moves from noon to 1 pm. The venue is unchanged.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0566354222a2056c6489f",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792038484.0,
+    "completed_at": 1792038499.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0566354222a2056c6489f:rs_01a13dd138c9763e86d49f2ebd8dcc8f",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Balancing speaker label rules for Me versus natural pronouns inside message bodies."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending speaker label constraints to handle a rescheduling request relative to the conversation date."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short dialogue with time shift and venue confirmation while avoiding a full plan recap."
+          },
+          {
+            "type": "summary_text",
+            "text": "Composing a minimal three-message exchange with relative time and venue confirmation while keeping speaker voices consistent."
+          },
+          {
+            "type": "summary_text",
+            "text": "Finalizing a four-line dialogue with explicit acceptance from both participants and a brief incidental closing."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13dd172d374e98aba32e4f34cb688",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: can we push pizza tomorrow to 1pm instead of noon? have an appointment in the morning, same place tho\\nMe: yeah that works\\nLeo: yeah that works\\nMaya: perfect thank you!!\", \"writer_note\": \"Put the time change, appointment reason, and same-place cue all in Maya's opener so no recap was needed, then closed with short matching acceptances in their established voices.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 705,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3122,
+      "output_tokens_details": {
+        "reasoning_tokens": 2909
+      },
+      "total_tokens": 3827
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: can we push pizza tomorrow to 1pm instead of noon? have an appointment in the morning, same place tho\\nMe: yeah that works\\nLeo: yeah that works\\nMaya: perfect thank you!!\", \"writer_note\": \"Put the time change, appointment reason, and same-place cue all in Maya's opener so no recap was needed, then closed with short matching acceptances in their established voices.\"}",
+  "usage": {
+    "input_tokens": 705,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 3122,
+    "output_tokens_details": {
+      "reasoning_tokens": 2909
+    },
+    "total_tokens": 3827
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

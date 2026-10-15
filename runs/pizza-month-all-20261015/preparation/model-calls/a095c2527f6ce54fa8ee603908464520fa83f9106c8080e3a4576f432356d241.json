@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-15T04:27:30.228571+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-09-22. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-16 Devon: want to do pizza after work Friday?\n2026-09-16 Me: yes definitely\n2026-09-16 Devon: Luigi's on 5th Street at 6pm?\n2026-09-16 Me: yeah that works\n2026-09-16 Devon: nice, I need to stop for gas on the way home tonight\n2026-09-19 Devon: just reheated yesterday's Luigi's leftovers, so good\n2026-09-19 Me: oh nice did you do the pan thing?\n2026-09-19 Devon: yeah pan with a lid, crust got crispy again\n2026-09-19 Me: way better than microwave\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Devon complains about a work lunch and the user sympathizes. This is a story about his team, not an invitation.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Devon's coworkers are getting pizza Saturday at 2 pm at Domino's. Neither Devon nor the user is joining them.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "medium",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad05632454bbee9f4454402",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792038434.0,
+    "completed_at": 1792038450.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad05632454bbee9f4454402:rs_01a13dd076667150ab7c61a95d901e8f",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Constructing an iMessage conversation with labeled speakers Me and Devon, timestamps, and date constraints while avoiding the word Me inside message bodies."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the iMessage thread with consistent evening timestamps and a non-invitation pizza reference."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding a weekday derivation from the conversation date and enforcing a non-invitation constraint for the pizza plan."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a short Devon and Me dialogue with explicit coworker Domino's plan and non-joining stance while keeping casual voice and speaker labels."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13dd0b2c075c1bf7add18c87c7f26",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Devon: ugh team lunch today was such a joke\\nMe: oh no what happened?\\nDevon: they ordered like 3 pizzas for 20 people, I got one cold slice\\nMe: that's the worst\\nDevon: and now they wanna get pizza at Domino's Saturday at 2pm, I told them neither of us are coming\\nMe: thank you lol I'm definitely out, still prefer Luigi's\", \"writer_note\": \"Let Devon vent in short bursts with Me sympathizing first, then introduced the Saturday Domino's plan as team gossip with an explicit opt-out for both so it's clearly not an invitation.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 723,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 3000,
+      "output_tokens_details": {
+        "reasoning_tokens": 2741
+      },
+      "total_tokens": 3723
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Devon: ugh team lunch today was such a joke\\nMe: oh no what happened?\\nDevon: they ordered like 3 pizzas for 20 people, I got one cold slice\\nMe: that's the worst\\nDevon: and now they wanna get pizza at Domino's Saturday at 2pm, I told them neither of us are coming\\nMe: thank you lol I'm definitely out, still prefer Luigi's\", \"writer_note\": \"Let Devon vent in short bursts with Me sympathizing first, then introduced the Saturday Domino's plan as team gossip with an explicit opt-out for both so it's clearly not an invitation.\"}",
+  "usage": {
+    "input_tokens": 723,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 3000,
+    "output_tokens_details": {
+      "reasoning_tokens": 2741
+    },
+    "total_tokens": 3723
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

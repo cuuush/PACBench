@@ -1,0 +1,608 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "hindsight",
+  "at": "2026-09-21T18:20:00-04:00",
+  "processing_at": "2026-09-21T18:20:00-04:00",
+  "document_sha256": "bd595d5fe23e4aab7e2ac26cc4792bbb563225c5b88ba9035548010cf4d943cc",
+  "source_ids": [
+    "message-e11a6e2c922774d45526b54e",
+    "message-06eb066aa6bc48fef0ef2fc6",
+    "message-9c7c7620d6e736d19f28fef5"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"Hindsight.retain(content,document_id,retain_async=False)\", \"result\": {\"success\": true, \"bank_id\": \"pacbench-a4a4017e75b2\", \"items_count\": 1, \"var_async\": false, \"operation_id\": null, \"operation_ids\": null, \"usage\": {\"input_tokens\": 3422, \"output_tokens\": 168, \"total_tokens\": 3590}}, \"processing_status\": [{\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"pending\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}, {\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"processing\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}, {\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"processing\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}, {\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"processing\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}, {\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"processing\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}, {\"bank_id\": \"pacbench-a4a4017e75b2\", \"total\": 7, \"limit\": 100, \"offset\": 0, \"operations\": [{\"id\": \"cfea6db2-738f-4bbc-a5ef-8fe3b973243c\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:37.197077+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"f45d16ce-06c7-4c96-ba88-bf0b7f249b1f\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:26.727133+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"7eab64f9-511d-474c-b7f2-7b1c6bfda2a2\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:17.945496+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"4adf4b37-ccf9-4dae-ad78-21674367fc00\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:10.645300+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"675e776d-f344-4675-889c-87eb6f711fa7\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:33:00.662419+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"42a2ce3f-a405-49fb-b1c7-4315d4f4940e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:46.402278+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}, {\"id\": \"1dc9fb9f-11aa-41d7-b29b-61a43a63d35e\", \"task_type\": \"consolidation\", \"items_count\": 0, \"document_id\": null, \"created_at\": \"2026-10-15T05:32:32.201757+00:00\", \"status\": \"completed\", \"error_message\": null, \"retry_count\": 0, \"next_retry_at\": null}]}], \"readiness\": \"Native retain and observation consolidation completion via Operations API\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "Hindsight.retain(content,document_id,retain_async=False)",
+    "result": {
+      "success": true,
+      "bank_id": "pacbench-a4a4017e75b2",
+      "items_count": 1,
+      "var_async": false,
+      "operation_id": null,
+      "operation_ids": null,
+      "usage": {
+        "input_tokens": 3422,
+        "output_tokens": 168,
+        "total_tokens": 3590
+      }
+    },
+    "processing_status": [
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "pending",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      },
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "processing",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      },
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "processing",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      },
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "processing",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      },
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "processing",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      },
+      {
+        "bank_id": "pacbench-a4a4017e75b2",
+        "total": 7,
+        "limit": 100,
+        "offset": 0,
+        "operations": [
+          {
+            "id": "cfea6db2-738f-4bbc-a5ef-8fe3b973243c",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:37.197077+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "f45d16ce-06c7-4c96-ba88-bf0b7f249b1f",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:26.727133+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "7eab64f9-511d-474c-b7f2-7b1c6bfda2a2",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:17.945496+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "4adf4b37-ccf9-4dae-ad78-21674367fc00",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:10.645300+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "675e776d-f344-4675-889c-87eb6f711fa7",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:33:00.662419+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "42a2ce3f-a405-49fb-b1c7-4315d4f4940e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:46.402278+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          },
+          {
+            "id": "1dc9fb9f-11aa-41d7-b29b-61a43a63d35e",
+            "task_type": "consolidation",
+            "items_count": 0,
+            "document_id": null,
+            "created_at": "2026-10-15T05:32:32.201757+00:00",
+            "status": "completed",
+            "error_message": null,
+            "retry_count": 0,
+            "next_retry_at": null
+          }
+        ]
+      }
+    ],
+    "readiness": "Native retain and observation consolidation completion via Operations API"
+  },
+  "latency_s": 14.39,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:33:27.978646+00:00",
+    "finished": "2026-10-15T05:33:42.371205+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 7761,
+        "output_tokens": 1876,
+        "accounted_upper_bound_usd": 0.0011513,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "e3a1d23694634aadbd5a651880c54c2f",
+        "project": "pacbench-a4a4017e75b2-hindsight-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:33:29.278026+00:00",
+        "finished": "2026-10-15T05:33:37.119132+00:00",
+        "state": "settled",
+        "input_tokens": 3422,
+        "output_tokens": 1234,
+        "accounted": 589000,
+        "reserved": 117657600,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.000589
+      },
+      {
+        "id": "420e42ba78324022982e265272639cfb",
+        "project": "pacbench-a4a4017e75b2-hindsight-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:33:37.765591+00:00",
+        "finished": "2026-10-15T05:33:41.428381+00:00",
+        "state": "settled",
+        "input_tokens": 4339,
+        "output_tokens": 642,
+        "accounted": 562300,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005623
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

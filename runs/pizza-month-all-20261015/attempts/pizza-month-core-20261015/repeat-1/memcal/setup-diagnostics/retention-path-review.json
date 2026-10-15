@@ -1,0 +1,22 @@
+{
+  "method": "Manual inspection of frozen source, native brief, actual event-opening results, source searches and semantic judgments. No source, answer or grade changed.",
+  "findings": [
+    {
+      "check": "friday-pizza",
+      "finding": "Native E9 correctly carries the same upcoming outing from Maya DM into the three-person group, changes 13:00 to 12:00, and changes Rosas to Marios. E10 remains a separate 18:00 outing with Devon. No false merge with older Fridays was observed."
+    },
+    {
+      "check": "maya-options",
+      "finding": "The rejected option reason is present in original line 115. The retained event opener exposes the final structured plan and a bounded evidence preview, not that earlier non-cited rationale. Hermes searched archive and opened the conversation; semantic answer correct, retention penalty applies. This is an observed retention/discovery limitation, not a proven deterministic merge or ingest bug."
+    },
+    {
+      "check": "pond-current",
+      "finding": "Native E11 retained the correct Friday walk as declined; it is already visible as Walk / not going / Jen, Alex in the injected brief. Its opener exposes cancellation context. Hermes searched original messages before opening E11. The initial answer omitted replacement status; the single follow-up recovered no new date through original-source tools. Retention penalty applies."
+    },
+    {
+      "check": "separate-friday",
+      "finding": "E13 job-application call and E14 coffee remain confirmed, correctly separate from E11. The answer opened retained events, but source use in the preceding same-session question carries the frozen context penalty."
+    }
+  ],
+  "product_decision": "Do not patch Memcal prompts or expand event evidence merely to make this corpus pass. No deterministic product bug has been demonstrated by these traces; retain the observed limits and measured fallback costs."
+}

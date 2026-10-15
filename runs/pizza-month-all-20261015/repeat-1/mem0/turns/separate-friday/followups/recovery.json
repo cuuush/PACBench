@@ -1,0 +1,116 @@
+{
+  "state": "complete",
+  "plan_hash": "8ae41323b2f6ec644f0f8963629ba60b19bdc68ba520faf40cd3f95577c8efca",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Jen job application call 10am Friday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792042248660,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"a500a8bb-29f0-4cad-b33b-0754d3d4685a\", \"memory\": \"User agreed on October 13, 2026 to help Jen review her nearly finished job application with a second pair of eyes on a quick call at 10am on Friday morning, October 16, 2026, with User asking Jen to send the application beforehand.\", \"score\": 0.8834478624650783}, {\"id\": \"12c0bffe-8b72-4ef8-a372-6c75210ba16c\", \"memory\": \"User, Jen, and Alex in the 'Park pals' group postponed their Friday plan on October 14, 2026 after Jen said she couldn't make it Friday and Alex said he also couldn't make it because the week got hectic, with User agreeing to postpone to another day.\", \"score\": 0.6323371792581407}, {\"id\": \"81c9b99a-5c8d-441e-ae76-3ba079d83440\", \"memory\": \"User, Jen, and Alex in the 'Park pals' group planned a walk at 2pm on Friday, October 16, 2026 at the west entrance of the duck pond in Willow Park, with Jen proposing on October 12, 2026 and both Alex and User agreeing.\", \"score\": 0.59795457411979}, {\"id\": \"9dd02857-7036-40d0-99eb-7ad6c33afce3\", \"memory\": \"Jen's umbrella broke during her walk to work on the morning of September 25, 2026 when wind flipped it inside out and snapped one of the spokes, leaving her a little damp as she was almost at the office\", \"score\": 0.3887024525730124}, {\"id\": \"2dc466fe-ae9c-4bab-9225-ec7af03055ce\", \"memory\": \"Jen finished reading a detective novel on October 4, 2026, telling User she liked it until the last 20 pages but hated the ending, and User agreed that a bad ending ruins the whole book\", \"score\": 0.34099679064422916}, {\"id\": \"b4bb26b8-1bf1-4085-9faf-d56237dcb70f\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group rescheduled their pizza at Mario's on Pine Street on Friday, September 25, 2026 from noon to 1pm, after Maya requested the change on September 24, 2026 due to a morning appointment, with User and Leo both agreeing to the new time.\", \"score\": 0.2978428083694358}, {\"id\": \"b45f868a-7144-4280-8cc1-af8cce1b987e\", \"memory\": \"User and Maya planned to get pizza again at Rosa's on Oak Street at 12:30pm on Friday, October 2, 2026, with Maya proposing the Friday meetup on September 28, 2026, User suggesting Rosa's, Maya proposing 12:30pm, and User agreeing.\", \"score\": 0.2954919226193288}, {\"id\": \"cbcd9d5a-8f60-4355-bdea-b99f19c1f225\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group agreed on September 21, 2026 to have pizza at noon on Friday, September 25, 2026 at Mario's on Pine Street, with Maya proposing the restaurant as something different from last week and both Leo and User agreeing.\", \"score\": 0.29374559218483687}, {\"id\": \"74215fe8-f10d-4957-8b19-0d1cb1998699\", \"memory\": \"User and Alex planned to grab coffee at 11am on Friday, October 16, 2026 at Birch, with Alex proposing the meetup on October 13, 2026 and User agreeing that morning works and confirming.\", \"score\": 0.2931936328772218}, {\"id\": \"df616597-12a3-4caa-beff-bb8e6ba63d9d\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group confirmed on October 13, 2026 they are still on for pizza at Rosa's on Oak Street at noon on Friday, October 16, 2026, with Maya moving the DM plan to the group and both User and Leo agreeing.\", \"score\": 0.2928849376069401}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Alex coffee Birch 11am Friday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792042248707,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"74215fe8-f10d-4957-8b19-0d1cb1998699\", \"memory\": \"User and Alex planned to grab coffee at 11am on Friday, October 16, 2026 at Birch, with Alex proposing the meetup on October 13, 2026 and User agreeing that morning works and confirming.\", \"score\": 0.8898593289785456}, {\"id\": \"12c0bffe-8b72-4ef8-a372-6c75210ba16c\", \"memory\": \"User, Jen, and Alex in the 'Park pals' group postponed their Friday plan on October 14, 2026 after Jen said she couldn't make it Friday and Alex said he also couldn't make it because the week got hectic, with User agreeing to postpone to another day.\", \"score\": 0.5451934513325685}, {\"id\": \"81c9b99a-5c8d-441e-ae76-3ba079d83440\", \"memory\": \"User, Jen, and Alex in the 'Park pals' group planned a walk at 2pm on Friday, October 16, 2026 at the west entrance of the duck pond in Willow Park, with Jen proposing on October 12, 2026 and both Alex and User agreeing.\", \"score\": 0.49172373870599495}, {\"id\": \"5cac179d-1f9d-4433-91bb-f4561a019126\", \"memory\": \"Alex bought a tiny basil plant with about 3 little leaves in a shot-sized pot on September 20, 2026, sharing a photo with keys for scale. Alex described it as small but mighty and already smelling amazing, while User jokingly replied there is more basil on a slice of pizza and wished Alex enjoyment of one leaf of pesto.\", \"score\": 0.39912654038558726}, {\"id\": \"377ab4be-a848-4f4c-8b41-97b97767daf2\", \"memory\": \"Alex joked on October 7, 2026 that if he ever wins the lottery he would rent out Mario's every Saturday to offer free pizza for everyone, and User responded enthusiastically that User would be down for fantasy free pizza every week\", \"score\": 0.36020769729006497}, {\"id\": \"0d43b45e-730b-487d-93b9-409e55604699\", \"memory\": \"Alex proposed testing the grown basil with pizza at Mario's at 6pm on Saturday, October 3, 2026, but User declined on September 29, 2026 because User's family was visiting that Saturday.\", \"score\": 0.35105273544675564}, {\"id\": \"8766bd58-7f11-4a0e-ade9-2cd515c113e9\", \"memory\": \"Alex's tiny basil plant had grown enough to use by September 29, 2026, up from about 3 little leaves in a shot-sized pot when bought on September 20, 2026.\", \"score\": 0.33201814040458705}, {\"id\": \"cbcd9d5a-8f60-4355-bdea-b99f19c1f225\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group agreed on September 21, 2026 to have pizza at noon on Friday, September 25, 2026 at Mario's on Pine Street, with Maya proposing the restaurant as something different from last week and both Leo and User agreeing.\", \"score\": 0.3136604973331473}, {\"id\": \"b4bb26b8-1bf1-4085-9faf-d56237dcb70f\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group rescheduled their pizza at Mario's on Pine Street on Friday, September 25, 2026 from noon to 1pm, after Maya requested the change on September 24, 2026 due to a morning appointment, with User and Leo both agreeing to the new time.\", \"score\": 0.30837332113767707}, {\"id\": \"df616597-12a3-4caa-beff-bb8e6ba63d9d\", \"memory\": \"User, Maya, and Leo in the 'Friday crew' group confirmed on October 13, 2026 they are still on for pizza at Rosa's on Oak Street at noon on Friday, October 16, 2026, with Maya moving the DM plan to the group and both User and Leo agreeing.\", \"score\": 0.2960537057865653}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.26,
+    "input_tokens": 2279,
+    "output_tokens": 329,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-active",
+      "kind": "provided",
+      "reason": "Active status directly stated as still on."
+    },
+    {
+      "id": "alex-coffee-active",
+      "kind": "provided",
+      "reason": "Active status directly stated as still on."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-active",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-active",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

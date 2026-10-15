@@ -1,0 +1,257 @@
+{
+  "version": "daily-source-documents-v1",
+  "provider": "honcho",
+  "at": "2026-10-03T14:20:00-04:00",
+  "processing_at": "2026-10-03T14:20:00-04:00",
+  "document_sha256": "38e40258764896eeb78343783e6d010a64d79d24ca049145bb4490b810d4eeaa",
+  "source_ids": [
+    "message-08002edaf6d9afcec696c039",
+    "message-f4c42e5797408cf882724c28",
+    "message-72cf408e3db9987f373f56de",
+    "message-a0f56d73668428e2790d496e"
+  ],
+  "delivery": "native-messages",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "{\"ready\": true, \"interface\": \"Native Honcho session.add_messages(real source peers and timestamps)\", \"result\": [{\"session_id\": \"source-a5f4786b38592498169d594c\", \"processing_baseline\": {\"total_work_units\": 24, \"completed_work_units\": 24, \"in_progress_work_units\": 0, \"pending_work_units\": 0, \"sessions\": null}, \"minimum_work_units\": 28, \"observer\": {\"peer_id\": \"hermes\", \"observe_me\": false, \"observe_others\": true}, \"messages\": [{\"id\": \"39cOuUrqQvmX8qKzYDrV8\", \"session_id\": \"source-a5f4786b38592498169d594c\", \"peer_id\": \"Devon\", \"content\": \"do you remember what street luigi's is on?\", \"created_at\": \"2026-10-03T14:00:00-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-03T14:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-03T14:00:00-04:00\", \"from_owner\": false, \"sender\": \"Devon\", \"source_id\": \"message-08002edaf6d9afcec696c039\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Devon\"]}, \"thread\": \"thread-c6cc8dbe2e38036bac59cefd\", \"written_at\": \"2026-10-03T14:00:00-04:00\"}}, {\"id\": \"glEhw44dWzWTjBfqa2SMF\", \"session_id\": \"source-a5f4786b38592498169d594c\", \"peer_id\": \"user\", \"content\": \"i think 5th?\", \"created_at\": \"2026-10-03T14:00:54-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-03T14:00:54-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-03T14:00:54-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"message-f4c42e5797408cf882724c28\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Devon\"]}, \"thread\": \"thread-c6cc8dbe2e38036bac59cefd\", \"written_at\": \"2026-10-03T14:00:54-04:00\"}}, {\"id\": \"vM7D7ADb5W0RnPalc3MJo\", \"session_id\": \"source-a5f4786b38592498169d594c\", \"peer_id\": \"Devon\", \"content\": \"yeah u right, i scrolled back and on sept 16 i'd sent \\\"friday 6pm at luigi's on 5th street?\\\"\", \"created_at\": \"2026-10-03T14:01:49-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-03T14:01:49-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-03T14:01:49-04:00\", \"from_owner\": false, \"sender\": \"Devon\", \"source_id\": \"message-72cf408e3db9987f373f56de\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Devon\"]}, \"thread\": \"thread-c6cc8dbe2e38036bac59cefd\", \"written_at\": \"2026-10-03T14:01:49-04:00\"}}, {\"id\": \"wX1P-aB8TmdV5sdhIGMZd\", \"session_id\": \"source-a5f4786b38592498169d594c\", \"peer_id\": \"user\", \"content\": \"yep that's the one\", \"created_at\": \"2026-10-03T14:20:00-04:00\", \"metadata\": {\"arrived_at\": \"2026-10-03T14:20:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-03T14:20:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"message-a0f56d73668428e2790d496e\", \"structured\": {\"chat_name\": \"\", \"participants\": [\"Me\", \"Devon\"]}, \"thread\": \"thread-c6cc8dbe2e38036bac59cefd\", \"written_at\": \"2026-10-03T14:20:00-04:00\"}}]}], \"processing_status\": [{\"elapsed_s\": 0.02, \"sessions\": {\"source-a5f4786b38592498169d594c\": {\"total_work_units\": 28, \"completed_work_units\": 24, \"in_progress_work_units\": 0, \"pending_work_units\": 4, \"sessions\": null}}}, {\"elapsed_s\": 2.05, \"sessions\": {\"source-a5f4786b38592498169d594c\": {\"total_work_units\": 28, \"completed_work_units\": 24, \"in_progress_work_units\": 2, \"pending_work_units\": 2, \"sessions\": null}}}, {\"elapsed_s\": 46.47, \"sessions\": {\"source-a5f4786b38592498169d594c\": {\"total_work_units\": 28, \"completed_work_units\": 26, \"in_progress_work_units\": 2, \"pending_work_units\": 0, \"sessions\": null}}}, {\"elapsed_s\": 60.57, \"sessions\": {\"source-a5f4786b38592498169d594c\": {\"total_work_units\": 28, \"completed_work_units\": 28, \"in_progress_work_units\": 0, \"pending_work_units\": 0, \"sessions\": null}}}], \"model_health\": {\"state\": \"captured\", \"failed_requests\": [], \"reason\": \"\", \"scope\": \"Execution/cost barrier, not a semantic memory grade. Held charges remain held.\"}, \"readiness\": \"Native acknowledgments, new work enrollment and submitted-session processing complete\", \"readiness_scope\": \"Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier\"}\n",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "Native Honcho session.add_messages(real source peers and timestamps)",
+    "result": [
+      {
+        "session_id": "source-a5f4786b38592498169d594c",
+        "processing_baseline": {
+          "total_work_units": 24,
+          "completed_work_units": 24,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 28,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": false,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "39cOuUrqQvmX8qKzYDrV8",
+            "session_id": "source-a5f4786b38592498169d594c",
+            "peer_id": "Devon",
+            "content": "do you remember what street luigi's is on?",
+            "created_at": "2026-10-03T14:00:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-03T14:00:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-03T14:00:00-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-08002edaf6d9afcec696c039",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-c6cc8dbe2e38036bac59cefd",
+              "written_at": "2026-10-03T14:00:00-04:00"
+            }
+          },
+          {
+            "id": "glEhw44dWzWTjBfqa2SMF",
+            "session_id": "source-a5f4786b38592498169d594c",
+            "peer_id": "user",
+            "content": "i think 5th?",
+            "created_at": "2026-10-03T14:00:54-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-03T14:00:54-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-03T14:00:54-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-f4c42e5797408cf882724c28",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-c6cc8dbe2e38036bac59cefd",
+              "written_at": "2026-10-03T14:00:54-04:00"
+            }
+          },
+          {
+            "id": "vM7D7ADb5W0RnPalc3MJo",
+            "session_id": "source-a5f4786b38592498169d594c",
+            "peer_id": "Devon",
+            "content": "yeah u right, i scrolled back and on sept 16 i'd sent \"friday 6pm at luigi's on 5th street?\"",
+            "created_at": "2026-10-03T14:01:49-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-03T14:01:49-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-03T14:01:49-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-72cf408e3db9987f373f56de",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-c6cc8dbe2e38036bac59cefd",
+              "written_at": "2026-10-03T14:01:49-04:00"
+            }
+          },
+          {
+            "id": "wX1P-aB8TmdV5sdhIGMZd",
+            "session_id": "source-a5f4786b38592498169d594c",
+            "peer_id": "user",
+            "content": "yep that's the one",
+            "created_at": "2026-10-03T14:20:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-03T14:20:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-10-03T14:20:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-a0f56d73668428e2790d496e",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-c6cc8dbe2e38036bac59cefd",
+              "written_at": "2026-10-03T14:20:00-04:00"
+            }
+          }
+        ]
+      }
+    ],
+    "processing_status": [
+      {
+        "elapsed_s": 0.02,
+        "sessions": {
+          "source-a5f4786b38592498169d594c": {
+            "total_work_units": 28,
+            "completed_work_units": 24,
+            "in_progress_work_units": 0,
+            "pending_work_units": 4,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 2.05,
+        "sessions": {
+          "source-a5f4786b38592498169d594c": {
+            "total_work_units": 28,
+            "completed_work_units": 24,
+            "in_progress_work_units": 2,
+            "pending_work_units": 2,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 46.47,
+        "sessions": {
+          "source-a5f4786b38592498169d594c": {
+            "total_work_units": 28,
+            "completed_work_units": 26,
+            "in_progress_work_units": 2,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 60.57,
+        "sessions": {
+          "source-a5f4786b38592498169d594c": {
+            "total_work_units": 28,
+            "completed_work_units": 28,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      }
+    ],
+    "model_health": {
+      "state": "captured",
+      "failed_requests": [],
+      "reason": "",
+      "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
+    },
+    "readiness": "Native acknowledgments, new work enrollment and submitted-session processing complete",
+    "readiness_scope": "Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier"
+  },
+  "latency_s": 61.14,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-15T05:17:33.080883+00:00",
+    "finished": "2026-10-15T05:18:34.223079+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 1437,
+        "output_tokens": 9607,
+        "accounted_upper_bound_usd": 0.0020651,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "2211b6a7f68246ba8d451efd5a44c353",
+        "project": "pacbench-5f55760d43fe-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:17:34.603083+00:00",
+        "finished": "2026-10-15T05:18:18.594636+00:00",
+        "state": "settled",
+        "input_tokens": 701,
+        "output_tokens": 7537,
+        "accounted": 1577500,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0015775
+      },
+      {
+        "id": "1d8bf53780b044dba18420e111519465",
+        "project": "pacbench-5f55760d43fe-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-15T05:18:19.327201+00:00",
+        "finished": "2026-10-15T05:18:32.552715+00:00",
+        "state": "settled",
+        "input_tokens": 736,
+        "output_tokens": 2070,
+        "accounted": 487600,
+        "reserved": 108134400,
+        "http_status": 200,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0004876
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

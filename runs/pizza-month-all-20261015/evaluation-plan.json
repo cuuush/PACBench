@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "context": "shared",
+  "checks": [
+    {
+      "id": "friday-pizza",
+      "at": "2026-10-15T10:00:00-04:00",
+      "contract_hash": "679223505e5b823e06096d7b521ca2de7d560e725ee6cd6099fec180a1049362",
+      "policy_hash": "e719b2dc4c72e3966ad135920a04e94a7eefda2ba941b4270132e3af2683a801",
+      "session": "friday-recap",
+      "expect": "For Friday there are exactly two agreed pizza outings: the user, Maya and Leo at noon at Mario's on Pine Street, and the user with Devon at 6 pm at Luigi's on 5th Street. Judge the two outings' participants, times and venues/streets, not a lunch or dinner label."
+    },
+    {
+      "id": "maya-options",
+      "at": "2026-10-15T10:02:00-04:00",
+      "contract_hash": "422ee4110a40582b06337dbc1fd9bb56487212a2880f66208fdf0090524abc75",
+      "policy_hash": "f0d69c56b7572af0d495ae8e009ae5694e3fff60485d3f85c85a2dc2ffc34026",
+      "session": "friday-recap",
+      "expect": "Maya rejected Domino's because it was too far. Only the reason is judged."
+    },
+    {
+      "id": "friday-count",
+      "at": "2026-10-15T10:10:00-04:00",
+      "contract_hash": "05e15ae428452b4b51ceb54f685e01c3b4e2893159d15f38a904e31d84546fbe",
+      "policy_hash": "08fdbfa2e2350f10515620b2ec8a38641ac52ef8d09245d3ac35749b846eef1d",
+      "session": "count-fresh",
+      "expect": "Exactly two distinct pizza outings for Friday. Only the count is judged; older Fridays, venue changes, jokes, coworkers and other people's invitations are not additional outings."
+    },
+    {
+      "id": "saturday-pizza",
+      "at": "2026-10-15T10:20:00-04:00",
+      "contract_hash": "61fd91e7d9fe02e4699ef5fabb31bfd5dcb35ba3475fcceea7578931b38d43a8",
+      "policy_hash": "f994e0bd41317e3909f304c5beb6438cae0379d8a6cc0756ceda2474964f1301",
+      "session": "saturday-fresh",
+      "expect": "No Saturday pizza outing between the user and Maya is agreed. Her podcast quote and her sister's birthday meal are not their own plan. Only whether an outing is agreed is judged."
+    },
+    {
+      "id": "ben-current",
+      "at": "2026-10-15T10:30:00-04:00",
+      "contract_hash": "7e9728ab84b4086ca3b720f84d1026bc17b5c2ace501f8555395d73503649259",
+      "policy_hash": "ab97b9c5724c49f4e3c40d3c22f23160b70910f978c29ccb19a86fe8b275777d",
+      "session": "ben-fresh",
+      "expect": "The upcoming dinner with Ben is Saturday at 7 pm at Juniper Cafe. Judge the current day, time and venue."
+    },
+    {
+      "id": "ben-thursday",
+      "at": "2026-10-15T10:32:00-04:00",
+      "contract_hash": "8bfffefdc3b6652a245117afec4aaa2ec924d4088b67f571404716ea5c42560a",
+      "policy_hash": "740fd1bfe6f1af41e7ce0b7fed332a1b5b1288145caaa38c637d7d1fb421b0ec",
+      "session": "ben-fresh",
+      "expect": "No. Thursday's dinner was moved to Saturday; there is only one agreed dinner, not a second Thursday meal. Only whether tonight remains agreed is judged."
+    },
+    {
+      "id": "pond-current",
+      "at": "2026-10-15T10:40:00-04:00",
+      "contract_hash": "8a42a03c699f3d686632be3399d496eb960f9fd29ba1f494575eb41d0ce0c9f7",
+      "policy_hash": "44e93524da6080322308d87689cc2a0a8020e05d35378ca7d4281bf47a392d23",
+      "session": "pond-fresh",
+      "expect": "No, the Friday duck-pond meetup with Jen and Alex was postponed, with no replacement date agreed. Judge cancellation and replacement status."
+    },
+    {
+      "id": "separate-friday",
+      "at": "2026-10-15T10:42:00-04:00",
+      "contract_hash": "fe5a31672800e3df107f83168e8a538e7a3f4eba17ec15137d6c98b6a1c10ae9",
+      "policy_hash": "8ae41323b2f6ec644f0f8963629ba60b19bdc68ba520faf40cd3f95577c8efca",
+      "session": "pond-fresh",
+      "expect": "No. The separate Friday 10 am job-application call with Jen and Friday 11 am coffee with Alex at Birch Cafe are still agreed. Judge whether each was cancelled, not extra appointment details."
+    },
+    {
+      "id": "jen-call",
+      "at": "2026-10-15T10:50:00-04:00",
+      "contract_hash": "ad00120764d7ff011bea66e4abb9df5e2d2e0826f9b363996bb4480a1af67e6d",
+      "policy_hash": "4967173ea202603f95ac90bff38840f0a01f6baae93de5cc8265e2fbac14ea7e",
+      "session": "friday-jen-fresh",
+      "expect": "The Friday call with Jen is at 10 am, to review her job application. Judge the time and purpose."
+    },
+    {
+      "id": "alex-coffee",
+      "at": "2026-10-15T11:00:00-04:00",
+      "contract_hash": "f55ea29d23e9da4f73938d8255d6cc72849a1caf4a151d17e4adcbb0d3c28dff",
+      "policy_hash": "cbb206b53456d29b381490553cc0220d341a88bfea0fc639c031d0286ea5ac28",
+      "session": "friday-alex-fresh",
+      "expect": "Friday coffee with Alex is at 11 am at Birch Cafe. Judge the time and venue."
+    }
+  ],
+  "plan_hash": "708623ef5941b1f103414c47e4d7d7715ff2efc31528a5c9b6eff9c9b127c144"
+}

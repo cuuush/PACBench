@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "context": "shared",
+  "checks": [
+    {
+      "id": "current",
+      "at": "2026-10-15T10:00:00-04:00",
+      "contract_hash": "70ca2ca208661f65e26433565510da2c85a6b0118916546313c4ae8fe0e42ddb",
+      "policy_hash": "29e671463f2f51abaee68260a69931a0e620d080e223ff7d039259f21a2cec13",
+      "session": "details",
+      "expect": "Pizza Friday with Maya at noon at Mario's on Pine Street. Only the current time, venue and street are judged."
+    },
+    {
+      "id": "old-place",
+      "at": "2026-10-15T10:02:00-04:00",
+      "contract_hash": "f2efb64d604ad657bb957bbec58564f8fbdad4dc887b84213b1e1df0c6f9f874",
+      "policy_hash": "83875fd5d2524294c5967b1acd39c2c02bc6d658c6a2ea6d6e57505327b47c88",
+      "session": "details",
+      "expect": "No. Mario's replaced Rosa's for the same Friday outing. Only whether Rosa's remains the venue is judged."
+    }
+  ],
+  "plan_hash": "78a76976c0c75bbc9d723ee6f1836be33b4300328dcd5c3e07822f37c6edc1d5"
+}

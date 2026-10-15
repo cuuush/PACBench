@@ -32,9 +32,8 @@ Offline tests establish harness integrity, not provider accuracy. A passing save
 Recall exposes only the selected provider's shipped tools. New trials permit
 native message/source search: correct answers keep their grade, while source-assisted
 turns earn no retention credit and all observed costs are recorded. Memcal event
-opening receives normal credit. The published diagnostic used the earlier stricter
-condition. See [the tool boundary](docs/provider-tool-boundary.md).
+opening receives normal credit. See [the tool boundary](docs/provider-tool-boundary.md).
 
-Independent provider jobs can share `--question-dir` to reuse reviewed recovery wording safely. Publish source-identical terminal runs with `python -m pacbench.publish_run <run> [<run> ...] --preflight <canary-run> --output runs/<current>`, then `python -m pacbench.cost_review runs/<current>`. Publication excludes private state, preserves colliding model-call filenames under component paths, and keeps failed native canaries separate from month answers.
+Independent provider jobs can share `--question-dir` to reuse reviewed recovery wording safely. Publish source-identical terminal runs with `python -m pacbench.publish_run <run> [<run> ...] --preflight <canary-run> --output runs/<current>`, then `python -m pacbench.cost_review runs/<current>`. Publication excludes private state, preserves colliding model-call filenames under component paths, and keeps failed native canaries separate from month answers. Its audited `preparation/week.json` can be reused directly with `--prepared`, without regenerating or reverifying messages.
 
 For reruns, use `--select provider=<run-path>` to select an arm explicitly. Earlier attempts stay separate with their original evidence and costs; completed arms in an interrupted matrix can be audited with `python -m pacbench.native_audit <run> --providers mem0 hindsight`.

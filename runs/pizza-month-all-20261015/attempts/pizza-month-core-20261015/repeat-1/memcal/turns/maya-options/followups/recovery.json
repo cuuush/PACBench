@@ -1,0 +1,102 @@
+{
+  "state": "complete",
+  "plan_hash": "f0d69c56b7572af0d495ae8e009ae5694e3fff60485d3f85c85a2dc2ffc34026",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "archive_search": 1,
+      "source_evidence": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "query": "Domino"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041323812,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 115, \"when\": \"2026-10-12T17:09\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"text\": \"I thought about Domino's but that's too far lol\"}, {\"line_id\": 32, \"when\": \"2026-09-22T18:15\", \"who\": \"Devon\", \"channel\": \"imessage\", \"thread\": \"5d63d6f176e35400@example.test\", \"text\": \"and now they wanna get pizza at Domino's Saturday at 2pm, I told them neither of us are coming\"}, {\"line_id\": 167, \"when\": \"2026-10-15T10:02\", \"who\": \"me\", \"channel\": \"agent\", \"thread\": \"hermes:20261015_011505_19f91c\", \"text\": \"[Simulated now: 2026-10-15T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhy did Maya rule out Domino\\u2019s?\", \"note\": \"written by you earlier this session \\u2014 not independent evidence, do not cite it as confirmation\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_conversation",
+        "arguments": {
+          "line_id": 115
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792041325455,
+        "result": {
+          "tool": "memcal_conversation",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"conversation\": [{\"id\": 55, \"ts\": \"2026-09-28T18:16\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes definitely, back to Rosa's on Oak Street?\"}, {\"id\": 56, \"ts\": \"2026-09-28T18:18\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes! is 12:30pm good for you?\"}, {\"id\": 57, \"ts\": \"2026-09-28T18:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\"}, {\"id\": 67, \"ts\": \"2026-10-01T19:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"omg i've been scrolling luigi's menu for tomorrow and nothing looked right lol\"}, {\"id\": 68, \"ts\": \"2026-10-01T19:04\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wait duh, we're still doing Rosa's on Oak Street at 12:30 tomorrow right?\"}, {\"id\": 69, \"ts\": \"2026-10-01T19:16\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"haha yeah, Rosa's at 12:30\"}, {\"id\": 70, \"ts\": \"2026-10-01T19:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"ok good, i was so confused for a sec\"}, {\"id\": 104, \"ts\": \"2026-10-10T15:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"my sister finally picked a birthday plan\"}, {\"id\": 105, \"ts\": \"2026-10-10T15:17\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"she's taking her friends for pizza at Rosa's next Saturday at 4pm\"}, {\"id\": 106, \"ts\": \"2026-10-10T15:18\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"just her group tho so you and me aren't going lol\"}, {\"id\": 107, \"ts\": \"2026-10-10T15:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"ah nice, hope she has a good time\"}, {\"id\": 113, \"ts\": \"2026-10-12T17:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"wanna get pizza again Friday?\"}, {\"id\": 114, \"ts\": \"2026-10-12T17:09\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah I'm down\"}, {\"id\": 115, \"ts\": \"2026-10-12T17:09\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"I thought about Domino's but that's too far lol\"}, {\"id\": 116, \"ts\": \"2026-10-12T17:19\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"Rosa's on Oak Street at 1pm?\"}, {\"id\": 117, \"ts\": \"2026-10-12T17:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works\"}, {\"id\": 128, \"ts\": \"2026-10-13T08:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"morning! about Friday, can we do noon instead?\"}, {\"id\": 129, \"ts\": \"2026-10-13T08:09\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i just realized i have something at 1:30\"}, {\"id\": 130, \"ts\": \"2026-10-13T08:19\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah that works, noon is fine\"}, {\"id\": 131, \"ts\": \"2026-10-13T08:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"awesome ty!!\"}, {\"id\": 157, \"ts\": \"2026-10-14T18:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"omg this podcast just said \\\"we should get pizza on Saturday, then tell Monday we're still chewing\\\" lmao\"}, {\"id\": 158, \"ts\": \"2026-10-14T18:19\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"hahaha that's so dumb\"}, {\"id\": 159, \"ts\": \"2026-10-14T18:19\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"right? like just one slice for three days straight\"}, {\"id\": 160, \"ts\": \"2026-10-14T18:20\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah good luck explaining that to your stomach lol\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 8.74,
+    "input_tokens": 16248,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "domino-reason",
+      "kind": "provided",
+      "reason": "Reason correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "domino-reason",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

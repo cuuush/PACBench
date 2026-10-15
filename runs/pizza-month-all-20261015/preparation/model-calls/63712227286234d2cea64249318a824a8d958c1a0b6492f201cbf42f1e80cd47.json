@@ -1,0 +1,117 @@
+{
+  "created_at": "2026-10-15T04:33:58.154997+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex. Use only these speaker labels. Members can be silent.\nConversation date: 2026-09-29. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-20 Alex: just bought this tiny basil plant lol it's like 3 little leaves in a shot-sized pot next to my keys for scale\n2026-09-20 Me: lol is that for ants? there's more basil on a slice of pizza\n2026-09-20 Alex: hey it's small but mighty, it already smells amazing\n2026-09-20 Me: enjoy your one leaf of pesto\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Alex invites the user out this Saturday, but the user already has family plans. Alex accepts the no without negotiating another day.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex invites the user to pizza Saturday at 6 pm at Mario's. The user declines because of a family visit; no pizza outing is agreed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: low. Use the shortest natural exchange with a little incidental chatter. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 12 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad057b664307233e68642df",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792038831.0,
+    "completed_at": 1792038838.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad057b664307233e68642df:rs_01a13dd686a97395baa3ee7b65832c9f",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Checking formatting and speaker-label constraints for a fictional dialogue."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating speaker-label rules and date consistency for a fictional dialogue."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a13dd69c8d76d695b791d6fe24efd9",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Alex: hey my little basil plant actually grew enough to use now lol\\nAlex: wanna test it out with pizza at Mario's Saturday at 6?\\nMe: oh nice, it's not for ants anymore\\nMe: can't Saturday though, my family is visiting\\nAlex: all good, have fun with them!\", \"writer_note\": \"Opened with a basil update to bridge the 9-day gap and keep their teasing tone, then kept the invite, decline, and gracious acceptance tight and casual.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 669,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1237,
+      "output_tokens_details": {
+        "reasoning_tokens": 1085
+      },
+      "total_tokens": 1906
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Alex: hey my little basil plant actually grew enough to use now lol\\nAlex: wanna test it out with pizza at Mario's Saturday at 6?\\nMe: oh nice, it's not for ants anymore\\nMe: can't Saturday though, my family is visiting\\nAlex: all good, have fun with them!\", \"writer_note\": \"Opened with a basil update to bridge the 9-day gap and keep their teasing tone, then kept the invite, decline, and gracious acceptance tight and casual.\"}",
+  "usage": {
+    "input_tokens": 669,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1237,
+    "output_tokens_details": {
+      "reasoning_tokens": 1085
+    },
+    "total_tokens": 1906
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

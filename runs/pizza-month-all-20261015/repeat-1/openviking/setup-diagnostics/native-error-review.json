@@ -1,0 +1,69 @@
+{
+  "scope": "Safe gateway protocol metadata only; no raw upstream error bodies or prompts.",
+  "finding": "All three rejected native background model requests forced a named function through tool_choice. The upstream named that parameter in invalid_request_error. Source imports completed; no native payload rewrite or model substitution was attempted.",
+  "failed_requests": [
+    {
+      "id": "938d26b5caba49c6b019e306ffa211d8",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:42:40.909888+00:00",
+      "finished": "2026-10-15T13:42:41.086755+00:00",
+      "state": "uncertain",
+      "http_status": 400,
+      "diagnostic": {
+        "upstream_diagnostic": {
+          "mentioned_fields": [
+            "tool_choice"
+          ],
+          "response_format": "absent",
+          "tool_choice": "forced_function",
+          "tools_count": 1,
+          "upstream_param": "tool_choice",
+          "upstream_type": "invalid_request_error"
+        }
+      }
+    },
+    {
+      "id": "f2bef67188234274836e2e1c56183682",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:44:03.129599+00:00",
+      "finished": "2026-10-15T13:44:03.292768+00:00",
+      "state": "uncertain",
+      "http_status": 400,
+      "diagnostic": {
+        "upstream_diagnostic": {
+          "mentioned_fields": [
+            "tool_choice"
+          ],
+          "response_format": "absent",
+          "tool_choice": "forced_function",
+          "tools_count": 1,
+          "upstream_param": "tool_choice",
+          "upstream_type": "invalid_request_error"
+        }
+      }
+    },
+    {
+      "id": "ccf60b44f74a4c5d93aeeb574ac8647e",
+      "project": "pacbench-7fb34b8b7c7a-openviking-memory",
+      "endpoint": "chat/completions",
+      "started": "2026-10-15T13:46:36.423121+00:00",
+      "finished": "2026-10-15T13:46:36.536755+00:00",
+      "state": "uncertain",
+      "http_status": 400,
+      "diagnostic": {
+        "upstream_diagnostic": {
+          "mentioned_fields": [
+            "tool_choice"
+          ],
+          "response_format": "absent",
+          "tool_choice": "forced_function",
+          "tools_count": 1,
+          "upstream_param": "tool_choice",
+          "upstream_type": "invalid_request_error"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-15T04:28:03.703918+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-09-23. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 18:00 and 18:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Devon asks if the user wants pizza this Friday after work. They settle the details without recapping other chats.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Devon and the user agree to Friday pizza at 7 pm at Rosa's on Oak Street.\n\nEarlier messages in this thread, for interpreting references (cite only the numbered new messages below):\n2026-09-16 Devon: want to do pizza after work Friday?\n2026-09-16 Me: yes definitely\n2026-09-16 Devon: Luigi's on 5th Street at 6pm?\n2026-09-16 Me: yeah that works\n2026-09-16 Devon: nice, I need to stop for gas on the way home tonight\n2026-09-19 Devon: just reheated yesterday's Luigi's leftovers, so good\n2026-09-19 Me: oh nice did you do the pan thing?\n2026-09-19 Devon: yeah pan with a lid, crust got crispy again\n2026-09-19 Me: way better than microwave\n2026-09-22 Devon: ugh team lunch today was such a joke\n2026-09-22 Me: oh no what happened?\n2026-09-22 Devon: they ordered like 3 pizzas for 20 people, I got one cold slice\n2026-09-22 Me: that's the worst\n2026-09-22 Devon: and now they wanna get pizza at Domino's Saturday at 2pm, I told them neither of us are coming\n2026-09-22 Me: thank you lol I'm definitely out, still prefer Luigi's\n\nNew messages:\n1. Devon: want to grab pizza Friday after work?\n2. Me: yeah I'm down\n3. Devon: Rosa's on Oak Street? like 7pm?\n4. Me: yeah that works"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a13dd1-36d5-70c5-aad0-53748bba949a",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792038483,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2127,
+      "prompt_tokens": 645,
+      "total_tokens": 2772,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2059
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [1, 2, 3, 4], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 2127,
+    "prompt_tokens": 645,
+    "total_tokens": 2772,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2059
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

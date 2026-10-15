@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-15T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhere and when am I getting coffee with Alex tomorrow?",
+  "at": "2026-10-15T11:00:00-04:00",
+  "answer": "11am tomorrow at Birch Cafe, side entrance on Mill Lane.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E17"
+      },
+      "timestamp": 1792098365431
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E17  Coffee\n\nwhen: Friday 16 October 2026 at 11:00\nstate: You're going\nwhere: Birch Cafe, side entrance on Mill Lane\nwho: Alex\nsource: person:Alex\n\nsources (12 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 12:18 · iMessage with Alex —\n   [2310] Alex · Tue 13 Oct 12:18 · me: their pastries are dangerous too\n   [2311] Alex · Tue 13 Oct 12:19 · Alex: don't tempt me, i just ate salad and i'm already sad\n   [2312] Alex · Tue 13 Oct 12:19 · me: lol get the almond croissant, salad who?\n * [2314] Alex · Tue 13 Oct 12:20 · Alex: noted. hey can we do the side entrance on Mill Lane?\n   [2315] Alex · Tue 13 Oct 12:23 · me: yeah sure, is that the one by the parking lot?\n   [2322] Alex · Tue 13 Oct 12:32 · Alex: yeah that one, it's step-free. front has those steps and my ankle is still healing\n   [2346] Alex · Tue 13 Oct 13:15 · Alex: at this point just frame it\n   [2347] Alex · Tue 13 Oct 13:24 · me: might as well, modern art\n * [2348] Alex · Tue 13 Oct 13:33 · Alex: anyway friday 11 still good? i have to request off my morning errands\n * [2349] Alex · Tue 13 Oct 13:42 · me: yeah i'm good, see you at the side\n   [2350] Alex · Tue 13 Oct 13:43 · Alex: perfect. i'll bring ankle brace fashion to the cafe\n   [2351] Alex · Tue 13 Oct 13:44 · me: and i'll bring gossip, i have work drama to tell you\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  time: '' -> '11:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'Coffee' (by dream:nightly:born)\n  2026-10-14T03:00  location: '' -> 'Birch Cafe, side entrance on Mill Lane' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-14T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 7.06,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261015_170602_82e332",
+  "raw_events": 7,
+  "session_id": "20261015_170602_82e332",
+  "stderr_full": "\nsession_id: 20261015_170602_82e332\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261015_170602_82e332\", \"timestamp\": 1792098362651}\n{\"type\": \"text\", \"text\": \"Pulling the coffee plan details now.\", \"timestamp\": 1792098365029}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E17\"}, \"timestamp\": 1792098365431}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E17  Coffee\\n\\nwhen: Friday 16 October 2026 at 11:00\\nstate: You're going\\nwhere: Birch Cafe, side entrance on Mill Lane\\nwho: Alex\\nsource: person:Alex\\n\\nsources (12 line(s); * = what the row was built from):\\n  — Tue Oct 13, 2026 12:18 · iMessage with Alex —\\n   [2310] Alex · Tue 13 Oct 12:18 · me: their pastries are dangerous too\\n   [2311] Alex · Tue 13 Oct 12:19 · Alex: don't tempt me, i just ate salad and i'm already sad\\n   [2312] Alex · Tue 13 Oct 12:19 · me: lol get the almond croissant, salad who?\\n * [2314] Alex · Tue 13 Oct 12:20 · Alex: noted. hey can we do the side entrance on Mill Lane?\\n   [2315] Alex · Tue 13 Oct 12:23 · me: yeah sure, is that the one by the parking lot?\\n   [2322] Alex · Tue 13 Oct 12:32 · Alex: yeah that one, it's step-free. front has those steps and my ankle is still healing\\n   [2346] Alex · Tue 13 Oct 13:15 · Alex: at this point just frame it\\n   [2347] Alex · Tue 13 Oct 13:24 · me: might as well, modern art\\n * [2348] Alex · Tue 13 Oct 13:33 · Alex: anyway friday 11 still good? i have to request off my morning errands\\n * [2349] Alex · Tue 13 Oct 13:42 · me: yeah i'm good, see you at the side\\n   [2350] Alex · Tue 13 Oct 13:43 · Alex: perfect. i'll bring ankle brace fashion to the cafe\\n   [2351] Alex · Tue 13 Oct 13:44 · me: and i'll bring gossip, i have work drama to tell you\\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\\n\\nchanges:\\n  2026-10-14T03:00  time: '' -> '11:00' (by dream:nightly:born)\\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-14T03:00  title: '' -> 'Coffee' (by dream:nightly:born)\\n  2026-10-14T03:00  location: '' -> 'Birch Cafe, side entrance on Mill Lane' (by dream:nightly:born)\\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\\n  2026-10-14T03:00  participants: '' -> '[\\\"Alex\\\"]' (by dream:nightly:born)\\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\\n\", \"duration_ms\": 22, \"is_error\": false, \"timestamp\": 1792098365453}\n{\"type\": \"text\", \"text\": \"\\n\\n11am tomorrow at Birch Cafe, side entrance on Mill\", \"timestamp\": 1792098367898}\n{\"type\": \"text\", \"text\": \" Lane.\", \"timestamp\": 1792098367936}\n{\"type\": \"result\", \"session_id\": \"20261015_170602_82e332\", \"exit_code\": 0, \"text\": \"11am tomorrow at Birch Cafe, side entrance on Mill Lane.\", \"tokens\": {\"input\": 9964, \"output\": 437, \"total\": 19346, \"cache_read\": 8945, \"cache_write\": 0}, \"duration_ms\": 5324, \"timestamp\": 1792098367975}",
+  "session_input_tokens": 9964,
+  "session_output_tokens": 437,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-15T11:00:00-04:00 [id=26f0de4c5e39071f6b9c668234e507823831581f] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Thursday 15 October 2026)\n〔E16〕 Fri Oct 16  \"Call\", 10am — confirmed · with Jen\n〔E17〕 Fri Oct 16  \"Coffee\", 11am — confirmed · with Alex\n〔E13〕 Fri Oct 16  \"Lunch\", 12pm — confirmed · with Maya\n〔E14〕 Fri Oct 16  \"Walk\", 2pm — not going · with Jen, Alex\n〔E15〕 Fri Oct 16  \"Pizza\", 6pm — confirmed · with Devon\n〔E18〕 Sat Oct 17  \"Pizza\" — could go · with Maya\n〔E12〕 Sat Oct 17  \"Dinner\", 7pm — confirmed · with Ben\n[complete for 2026-10-12 – 2026-11-14; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n\n## People and facts\nPages: dinner (where) · lunch (where) · maya (diet) · pizza (where) · pizza-lunch (where)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-2tw05nit",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-2tw05nit",
+    "system_prompt_sha256": "18a99171ec9fc5d04f23918e2cb03b88c4972116a28612ad52294a9cde3ae92c",
+    "reason": "No project context in native saved system prompt"
+  }
+}

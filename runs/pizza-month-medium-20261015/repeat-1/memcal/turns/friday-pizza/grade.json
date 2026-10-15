@@ -1,0 +1,100 @@
+{
+  "correct": 4,
+  "missed": 5,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "friday-count",
+      "verdict": "missed",
+      "reason": "Answer lists only the 6pm Luigi's outing and does not convey two outings for Oct 16."
+    },
+    {
+      "id": "noon-time",
+      "verdict": "missed",
+      "reason": "Answer mentions only 6pm Luigi's outing; no noon time or Mario's outing mentioned."
+    },
+    {
+      "id": "noon-venue",
+      "verdict": "missed",
+      "reason": "Answer mentions only Luigi's; no noon Mario's outing mentioned."
+    },
+    {
+      "id": "noon-street",
+      "verdict": "missed",
+      "reason": "Answer mentions only 5th Street for Luigi's; no Pine Street or noon outing mentioned."
+    },
+    {
+      "id": "noon-attendees",
+      "verdict": "missed",
+      "reason": "Answer mentions only Devon; no Maya/noon attendee list mentioned."
+    },
+    {
+      "id": "evening-time",
+      "verdict": "correct",
+      "reason": "Answer states 'Tomorrow (Fri Oct 16) 6pm: Pizza... at Luigi's'."
+    },
+    {
+      "id": "evening-venue",
+      "verdict": "correct",
+      "reason": "Answer states 6pm pizza is 'at Luigi's'."
+    },
+    {
+      "id": "evening-street",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's outing is 'on 5th Street'."
+    },
+    {
+      "id": "evening-attendees",
+      "verdict": "correct",
+      "reason": "Answer states 'Pizza with Devon', conveying user+Devon with no others."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "friday-count",
+      "kind": "implicit_omission",
+      "reason": "Omitted without saying unknown; broad 'deal with pizza' is not explicit request for count."
+    },
+    {
+      "id": "noon-time",
+      "kind": "implicit_omission",
+      "reason": "Omitted without saying unknown; broad question not explicit request for noon time."
+    },
+    {
+      "id": "noon-venue",
+      "kind": "implicit_omission",
+      "reason": "Omitted without saying unknown; broad question not explicit request for noon venue."
+    },
+    {
+      "id": "noon-street",
+      "kind": "implicit_omission",
+      "reason": "Omitted without saying unknown; broad question not explicit request for street."
+    },
+    {
+      "id": "noon-attendees",
+      "kind": "implicit_omission",
+      "reason": "Omitted without saying unknown; broad question not explicit request for attendees."
+    },
+    {
+      "id": "evening-time",
+      "kind": "provided",
+      "reason": "Answer explicitly gives 6pm for Fri Oct 16 Luigi's outing."
+    },
+    {
+      "id": "evening-venue",
+      "kind": "provided",
+      "reason": "Answer explicitly gives Luigi's for 6pm outing."
+    },
+    {
+      "id": "evening-street",
+      "kind": "provided",
+      "reason": "Answer explicitly gives 5th Street."
+    },
+    {
+      "id": "evening-attendees",
+      "kind": "provided",
+      "reason": "Answer explicitly gives with Devon with no others."
+    }
+  ],
+  "interaction": "answer"
+}

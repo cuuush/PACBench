@@ -1,0 +1,64 @@
+{
+  "input_hash": "cd859969e4db41673d77cbc1397d49ca6eb8d96beafe8e60b4956d069277198f",
+  "original_grades_unchanged": true,
+  "findings": [
+    {
+      "provider": "memcal",
+      "kind": "storage-bug",
+      "fixed_in": "cuuush/memcal@477ac83",
+      "observation": "The final source proposal correctly listed Maya alone, but native storage retained Leo and Maya through roster union.",
+      "evidence": [
+        "attempts/pizza-month-medium-v3-memcal-20261015/repeat-1/memcal/ingestion-model-calls/2026-10-14.json",
+        "attempts/pizza-month-medium-v3-memcal-20261015/repeat-1/memcal/ingestion/2026-10-14.json",
+        "repeat-1/memcal/ingestion/2026-10-14.json"
+      ],
+      "rerun": "Fresh native store, same corpus: final source-ingestion receipt has Maya alone. Initial 12/14 and retention 17/29 remain unchanged."
+    },
+    {
+      "provider": "memcal",
+      "kind": "recall-failure",
+      "checks": [
+        "friday-pizza",
+        "friday-count"
+      ],
+      "observation": "Initial answers returned only the evening outing. The noon outing was retained as Lunch. The combined omission follow-up did not recover it; the wrong explicit count received no follow-up."
+    },
+    {
+      "provider": "hindsight",
+      "kind": "upstream-execution-error",
+      "day": "2026-10-12",
+      "evidence": "repeat-1/hindsight/ingestion/2026-10-12.json",
+      "observation": "The 28th daily retain returned HTTP 500 after an upstream model authentication_error (401). Earlier 27 batches were ready. Recall was withheld; all 14 checks remain ungraded. Unknown request cost is preserved."
+    },
+    {
+      "provider": "memcal",
+      "kind": "tool-guidance-fix",
+      "fixed_in": "cuuush/memcal@f03b6e0",
+      "observation": "Empty wiki results suggested archive search while retained calendar details could still answer. MCP and Hermes now share retained-record-first guidance. The copied native plugin was updated before any recall.",
+      "evidence": [
+        "repeat-1/memcal/provider-update.json",
+        "repeat-1/memcal/turns/alex-entrance/turn.json"
+      ],
+      "result": "Hermes still used archive searches on the four source-assisted checks. No retention-score improvement."
+    },
+    {
+      "provider": "memcal",
+      "kind": "upstream-cost-uncertainty",
+      "observation": "Two provider-model requests ended HTTP 502 after transport timeouts. Native retries completed ingestion; both unknown costs retain their full bounds.",
+      "held_usd": 0.2166364,
+      "evidence": "repeat-1/memcal/model-usage.json"
+    },
+    {
+      "kind": "benchmark-display-fix",
+      "observation": "Per-message costs now refresh the same request IDs from saved later arm receipts, preserving original windows and unknown charges. No ledger or grade edit."
+    }
+  ],
+  "decisions": [
+    "No source or criterion adjustment to favor a provider.",
+    "Event opening keeps full retention credit; original archive/message lookup loses retention credit separately from answer correctness.",
+    "Plain JSON and a file-hash manifest replace duplicated evidence; no compression.",
+    "Native batching and output defaults remain intact. Honcho has not completed this medium month; older non-default trials do not qualify."
+  ],
+  "tested_memcal_revision": "f03b6e0",
+  "initial_memcal_revision": "a7044d0"
+}

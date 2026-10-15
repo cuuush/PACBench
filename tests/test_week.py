@@ -188,16 +188,46 @@ def test_frozen_week_preserves_readable_calls_without_private_replay(tmp_path, m
     monkeypatch.setattr(preparation, 'audit_prepared', lambda _: {'state':'pass'})
     root=tmp_path/'authoring';(root/'model-calls/private').mkdir(parents=True)
     record={'text':'Synthetic draft','response':{'encrypted_content':'opaque-replay'}}
-    (root/'model-calls/call.json').write_text(json.dumps(record))
+    (root/'model-calls/call.json').write_text(json.dumps({**record,'response':{'encrypted_content':ENCRYPTED_REDACTION}}))
     (root/'model-calls/private/call.json').write_text(json.dumps(record))
-    frozen=tmp_path/'week.json';preparation.export_week(root,frozen)
+    frozen=root/'week.json';preparation.export_week(root,frozen)
     payload=json.loads(frozen.read_text())
+    assert payload['version']==2
+    assert len(frozen.read_bytes())<500
     assert 'opaque-replay' not in frozen.read_text()
     assert not any('/private/' in name for name in payload['files'])
     imported=import_week(frozen,tmp_path/'imported')
     call=json.loads((imported/'model-calls/call.json').read_text())
     assert call['text']=='Synthetic draft'
     assert call['response']['encrypted_content']==ENCRYPTED_REDACTION
+
+
+@pytest.mark.parametrize('change',['content','missing','escape'])
+def test_manifest_checks_all_references_before_creating_import(tmp_path,monkeypatch,change):
+    from pacbench.prepare import export_week
+    import pacbench.prepare as preparation
+    monkeypatch.setattr(preparation,'audit_prepared',lambda _: {'state':'pass'})
+    root=tmp_path/'original';root.mkdir()
+    data=root/'spec.json';data.write_text('{"noise":"medium"}')
+    export_week(root,root/'week.json')
+    if change=='content':data.write_text('{"noise":"high"}')
+    elif change=='missing':data.unlink()
+    else:
+        outside=tmp_path/'private.json';outside.write_bytes(data.read_bytes())
+        data.unlink();data.symlink_to(outside)
+    with pytest.raises((ValueError,OSError)):
+        import_week(root/'week.json',tmp_path/'imported')
+    assert not (tmp_path/'imported').exists()
+
+
+def test_manifest_refuses_unredacted_replay(tmp_path,monkeypatch):
+    import pacbench.prepare as preparation
+    monkeypatch.setattr(preparation,'audit_prepared',lambda _: {'state':'pass'})
+    (tmp_path/'model-calls').mkdir()
+    (tmp_path/'model-calls/call.json').write_text('{"encrypted_content":"private"}')
+    with pytest.raises(ValueError,match='Private replay'):
+        preparation.export_week(tmp_path,tmp_path/'week.json')
+    assert not (tmp_path/'week.json').exists()
 
 
 def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_path):
@@ -284,10 +314,10 @@ def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
     (root/'summary.json').write_text(json.dumps({'state':'prepared','results':[],'bundle_hash':hashed,'contract_hash':contract['contract_hash']}))
     (root/'resolved-spec.json').write_text(json.dumps({'question_at':'2026-09-11T09:00:00-04:00','timezone':'America/New_York','checks':[]}))
     freeze_policy(EvaluationContract((ContractClaim('fact-1','Friday dinner at seven.',('m1',)),),contract['question'],digest(messages),contract['contract_hash']),root/'followup-plan.json')
-    export_week(root,tmp_path/'week.json')
+    export_week(root,root/'week.json')
     def forbid(*a,**kw):raise AssertionError('Executing a frozen corpus must not call an author or verifier')
     monkeypatch.setattr(ModelClient,'__call__',forbid)
-    copy=import_week(tmp_path/'week.json',tmp_path/'copy')
+    copy=import_week(root/'week.json',tmp_path/'copy')
     received,_,_=read_prepared(copy,100)
     assert received==messages
 

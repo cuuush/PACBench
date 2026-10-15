@@ -1,6 +1,7 @@
 """Prepare verified source messages and question contracts without provider execution."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import os
 from datetime import datetime, timedelta, time, timezone
@@ -384,31 +385,52 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
 
 
 def export_week(root, destination):
-    """One portable, hash-bound corpus; execution never calls its writer/checker."""
+    """Index existing JSON evidence once; copy the directory to reuse the corpus."""
+    root, destination = Path(root), Path(destination)
+    if destination.parent.resolve() != root.resolve():
+        raise ValueError('Keep the frozen week manifest beside its prepared files')
     if audit_prepared(root)['state']!='pass':raise ValueError('Cannot freeze incomplete preparation')
     from .followups import digest
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json',
            'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json']
-    files={name:json.loads((root/name).read_text()) for name in names if (root/name).exists()}
+    paths=[root/name for name in names if (root/name).exists()]
     for folder in ('evaluations','scene-verifications','model-calls'):
-        paths = ((root/folder).glob('*.json') if folder == 'model-calls'
-                 else (root/folder).rglob('*.json'))
-        for path in paths:
-            value = json.loads(path.read_text())
-            files[str(path.relative_to(root))] = public_record(value) if folder == 'model-calls' else value
-    body={'version':1,'files':files}
+        paths.extend((root/folder).glob('*.json') if folder == 'model-calls'
+                     else (root/folder).rglob('*.json'))
+    files={}
+    for path in sorted(paths):
+        raw=path.read_bytes()
+        value=json.loads(raw)
+        if public_record(value) != value:
+            raise ValueError('Private replay content cannot enter a frozen week manifest')
+        files[str(path.relative_to(root))]=hashlib.sha256(raw).hexdigest()
+    body={'version':2,'files':files}
     save(destination,{**body,'corpus_hash':digest(body)})
 
 
 def import_week(source, root):
     from .followups import digest
+    source, root = Path(source), Path(root)
     body=json.loads(source.read_text());claimed=body.pop('corpus_hash')
-    if body.get('version')!=1 or digest(body)!=claimed:raise ValueError('Frozen week hash/version mismatch')
-    root.mkdir(parents=True,exist_ok=False)
+    if body.get('version') not in (1,2) or digest(body)!=claimed:raise ValueError('Frozen week hash/version mismatch')
+    files={}
     for name,value in body['files'].items():
         path=Path(name)
         if path.is_absolute() or '..' in path.parts or path.suffix!='.json':raise ValueError('Unsafe frozen week path')
-        save(root/path,value)
+        if body['version']==2:
+            original=source.parent/path
+            if not original.resolve().is_relative_to(source.parent.resolve()):raise ValueError('Unsafe frozen week path')
+            raw=original.read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=value:raise ValueError('Frozen week file hash mismatch: '+name)
+            json.loads(raw)
+            files[path]=raw
+        else:
+            files[path]=(json.dumps(value,indent=2,ensure_ascii=False)+'\n').encode()
+    # Check every reference before creating a destination or starting paid work.
+    root.mkdir(parents=True,exist_ok=False)
+    for path,raw in files.items():
+        destination=root/path;destination.parent.mkdir(parents=True,exist_ok=True)
+        destination.write_bytes(raw)
     report=audit_prepared(root)
     if report['state']!='pass':raise ValueError('Frozen week failed preparation audit: '+str(report['errors']))
     return root

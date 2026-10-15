@@ -19,7 +19,8 @@ const sourceLink = id => {
 };
 
 function stateOf(run) {
-  if (run.audit?.valid_for_comparison === false || run.audit?.state === "fail") return "excluded";
+  if (run.audit?.valid_for_comparison === false) return "excluded";
+  if (run.audit?.state === "fail") return run.summary?.state === 'incomplete' ? 'incomplete' : 'needs review';
   if (run.summary?.state) return run.summary.state;
   if (run.experiment_status?.state && run.experiment_status.state !== "running")
     return run.experiment_status.state;
@@ -401,7 +402,8 @@ function costPage(run) {
     review.providers.map(row => {
       const h = row.cost?.hermes, p = row.cost?.memory_provider, counts = row.initial_counts;
       const held = h && p && h.held_usd != null && p.held_usd != null ? h.held_usd + p.held_usd : null;
-      return '<tr><td>' + esc(row.provider) + '</td><td>' + esc(counts ? [counts.pass, counts.fail, counts.ungraded].join(' / ') : 'not run') +
+      const counted = counts && ['pass','fail','ungraded'].every(key => Number.isInteger(counts[key]));
+      return '<tr><td>' + esc(row.provider) + '</td><td>' + esc(counted ? [counts.pass, counts.fail, counts.ungraded].join(' / ') : row.state === 'not-run' ? 'not run' : 'ungraded') +
         '</td><td>' + esc(row.retention_max_graded ? row.retention_points + ' / ' + row.retention_max_graded : 'ungraded') +
         '</td><td>' + money(h?.settled_upper_bound_usd) + '</td><td>' + money(p?.settled_upper_bound_usd) +
         '</td><td>' + money(held) + '</td><td>' + esc(h && p ? h.model_requests + p.model_requests : 'unknown') +

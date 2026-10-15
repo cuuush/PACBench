@@ -126,6 +126,24 @@ def memcal(source, root, at, processing_at):
     finally:conn.close()
 
 
+def hindsight_operations(provider,client,bank_id,deadline):
+    """Read all native operation pages; completed history is not a failure."""
+    pages=[];operations=[];total=None
+    while total is None or len(operations)<total:
+        if time.monotonic()>=deadline:break
+        status=provider._run_sync(client.operations.list_operations(
+            bank_id=bank_id,type='consolidation',limit=100,offset=len(operations)))
+        page=status.model_dump(mode='json');pages.append(page)
+        if total is None:total=page['total']
+        if page['total']!=total:break  # A shifting listing cannot prove readiness.
+        rows=page['operations']
+        if not rows:break
+        operations.extend(rows)
+    complete=(total is not None and len(operations)==total and
+        len({o['id'] for o in operations})==len(operations))
+    return {'pages':pages,'total':total,'operations':operations,'pagination_complete':complete}
+
+
 def hindsight(source,root,at,processing_at):
     from plugins.memory.hindsight import HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
@@ -147,11 +165,11 @@ def hindsight(source,root,at,processing_at):
         deadline=time.monotonic()+180
         statuses=[]
         while True:
-            status=provider._run_sync(client.operations.list_operations(bank_id=cfg['bank_id'],type='consolidation',limit=100))
-            data=status.model_dump(mode='json');statuses.append(data)
+            data=hindsight_operations(provider,client,cfg['bank_id'],deadline)
+            if not statuses or data!=statuses[-1]:statuses.append(data)
             operations=data['operations']
             pending=any(o['status'] in {'pending','processing'} for o in operations)
-            failed=data['total']>len(operations) or any(
+            failed=not data['pagination_complete'] or any(
                 o['status'] not in {'pending','processing','completed'} for o in operations)
             if failed or not pending or time.monotonic()>=deadline:break
             time.sleep(1)

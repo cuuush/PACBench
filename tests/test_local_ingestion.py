@@ -10,6 +10,31 @@ from pacbench import harness
 from provider_adapters.document_connector import byterover
 
 
+def test_hindsight_does_not_fail_at_one_hundred_operations_or_miss_later_pending_work():
+    import time
+    from provider_adapters.document_connector import hindsight_operations
+    history=[{'id':str(i),'status':'completed'} for i in range(100)]
+    history.append({'id':'pending-later-page','status':'pending'})
+    requests=[]
+    def listing(**kwargs):
+        requests.append(kwargs)
+        return SimpleNamespace(model_dump=lambda **kw:{'total':len(history),
+            'operations':history[kwargs['offset']:kwargs['offset']+kwargs['limit']]})
+    client=SimpleNamespace(operations=SimpleNamespace(list_operations=listing))
+    provider=SimpleNamespace(_run_sync=lambda value:value)
+    result=hindsight_operations(provider,client,'bank',time.monotonic()+10)
+    assert result['pagination_complete'] and len(result['operations'])==101
+    assert [r['offset'] for r in requests]==[0,100]
+    assert result['operations'][-1]['status']=='pending'
+    history[-1]['status']='completed'
+    assert all(o['status']=='completed' for o in hindsight_operations(
+        provider,client,'bank',time.monotonic()+10)['operations'])
+    # Truncated native pagination cannot silently become "ready".
+    client.operations.list_operations=lambda **kw:SimpleNamespace(
+        model_dump=lambda **unused:{'total':101,'operations':[]})
+    assert not hindsight_operations(provider,client,'bank',time.monotonic()+10)['pagination_complete']
+
+
 @pytest.mark.parametrize('status,pending,expected', [('completed',None,True),
     ('completed',{'pendingCount':1},False),('error',None,False),('queued',None,False)])
 def test_byterover_native_progress_is_not_readiness(tmp_path,monkeypatch,status,pending,expected):

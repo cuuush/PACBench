@@ -9,6 +9,42 @@ from .semantic_contract import load_contract
 from .followups import load_questions
 
 
+def audit_scenes(root, resolved, life_id, messages):
+    """Bind frozen message bodies to the actual saved passing checker input."""
+    if not resolved.get('scenes'):return []  # Older minimal portable corpora.
+    from dataclasses import fields
+    from .authoring import ScenePlan,build_scene_observations
+    from .followups import digest
+    names={f.name for f in fields(ScenePlan)}
+    rows=json.loads((root/'scenes.json').read_text())['scenes']
+    if [r['scene_id'] for r in rows]!=[s['id'] for s in resolved['scenes']]:
+        return ['Source realization list differs from resolved scene order']
+    expected=[];errors=[]
+    for row,spec in zip(rows,resolved['scenes']):
+        plan=ScenePlan(**{k:v for k,v in spec.items() if k in names})
+        built=[o.public() for o in build_scene_observations(life_id,plan,row['lines'])]
+        expected.extend(built)
+        if row['source_ids']!=[m['source_id'] for m in built] or row['record']['status']!='ok' or row['verdict'].get('supported') is not True:
+            errors.append(f"{plan.id}: incomplete source verification")
+        if not row.get('verification_binding'):continue  # Legacy receipts keep their original protocol.
+        paths=row['record'].get('judgment_paths',[])
+        review=json.loads((root/'scene-verifications'/Path(paths[-1]).name).read_text()) if paths else {}
+        binding=digest({'version':review.get('spec',{}).get('judge_prompt_version'),
+                        'prompt':review.get('judge_prompt')})
+        if (review.get('passed') is not True or review.get('spec')!=spec or
+                review.get('dialogue')!=[f'{s}: {t}' for s,t in row['lines']] or
+                review.get('verdict')!=row['verdict'] or binding!=row['verification_binding']):
+            errors.append(f'{plan.id}: source differs from its passing checker input')
+        if review.get('model_call'):
+            call=json.loads((root/'model-calls'/Path(review['model_call']).name).read_text())
+            if (call.get('status')!='ok' or call.get('text')!=review.get('judge_response') or
+                    call.get('request',{}).get('messages')!=[{'role':'user','content':review.get('judge_prompt')}]):
+                errors.append(f'{plan.id}: checker receipt differs from actual model call')
+        else:errors.append(f'{plan.id}: missing actual checker model receipt')
+    if expected!=messages:errors.append('Frozen source bodies or metadata differ from verified scenes')
+    return errors
+
+
 def audit_prepared(root: Path) -> dict:
     errors = []
     try:
@@ -31,6 +67,16 @@ def audit_prepared(root: Path) -> dict:
             errors.append('Claim cites unavailable source messages')
         load_questions(root / 'followup-plan.json', contract)
         resolved = json.loads((root / 'resolved-spec.json').read_text())
+        errors.extend(audit_scenes(root,resolved,next(iter(bundle['lives'])),messages))
+        if (root/'realism-review.json').exists():
+            from .followups import digest
+            quality=json.loads((root/'realism-review.json').read_text())
+            intent={'scenes':[{k:s[k] for k in ('id','at','thread','scene','facts')} for s in resolved['scenes']],
+                    'checks':resolved['checks']}
+            if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
+                    quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues') or
+                    any(quality.get('review',{}).get(k) is not True for k in ('consistent','expectations_supported','natural_enough'))):
+                errors.append('Corpus realism review is stale or unresolved')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime
             from .document_ingestion import daily_batches
@@ -55,7 +101,7 @@ def audit_prepared(root: Path) -> dict:
                 errors.append('Evaluation plan differs from summary')
             if plan['checks'][-1]['contract_hash']!=contract.contract_hash:
                 errors.append('Root contract differs from final checkpoint')
-    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError, AttributeError, IndexError) as exc:
         errors.append(f'{type(exc).__name__}: {exc}')
     return {'state': 'pass' if not errors else 'fail', 'errors': errors,
             'scope': 'frozen preparation integrity; no provider quality claim'}

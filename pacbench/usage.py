@@ -70,6 +70,43 @@ def tracked_turn(run_turn, prompt, *, usage_path, **kwargs):
     roles = json.loads((kwargs.get('extra_env') or {}).get('PACBENCH_USAGE_ROLES','{}'))
     before = snapshot(roles)
     try:
-        return run_turn(prompt, **kwargs)
+        result=run_turn(prompt, **kwargs)
     finally:
-        save(usage_path, window(before,snapshot(roles)))
+        capture=window(before,snapshot(roles))
+        capture['path_attribution_version']='native-completion-v1'
+        save(usage_path,capture)
+    attribute_provider_paths(result,capture)
+    return result
+
+
+def attribute_provider_paths(turn, capture):
+    """A native response completed after every Hermes input cannot supply it.
+
+    Only Honcho's native journal currently proves completion timestamps. Keep
+    all its operations and model cost, but do not turn unrelated late profile
+    work into an answer's source-search penalty. Missing proof stays unknown.
+    """
+    starts=[]
+    for call in capture.get('model_calls',[]):
+        if call.get('role')!='hermes':continue
+        try:starts.append(datetime.fromisoformat(call['started']).timestamp())
+        except (KeyError,TypeError,ValueError):return
+    if not starts:return
+    cutoff=max(starts)
+    for trace in getattr(turn,'provider_traces',[]) or []:
+        completed=trace.get('record',{}).get('timestamp')
+        if (trace.get('provider')=='honcho' and type(completed) in (int,float) and completed>cutoff):
+            trace['path_attribution']={
+                'version':'native-completion-v1','affects_answer':False,
+                'final_hermes_input_at':datetime.fromtimestamp(cutoff,timezone.utc).isoformat(),
+                'native_completed_at':datetime.fromtimestamp(completed,timezone.utc).isoformat(),
+                'reason':'Native response completed after the final Hermes request input; background operations and costs remain recorded'}
+
+
+def provider_paths_match(turn, capture):
+    if capture.get('path_attribution_version')!='native-completion-v1':return True
+    from copy import deepcopy
+    expected=deepcopy(turn)
+    for trace in expected.provider_traces:trace.pop('path_attribution',None)
+    attribute_provider_paths(expected,capture)
+    return expected.provider_traces==turn.provider_traces

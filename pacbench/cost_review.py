@@ -1,0 +1,93 @@
+"""Observed run costs by phase and role; no invented per-tool causal prices."""
+from __future__ import annotations
+import argparse
+from datetime import datetime,timezone
+import json
+from pathlib import Path
+import sqlite3
+
+from .followups import save
+from .gateway_client import STATE
+
+
+def read(path):
+    return json.loads(path.read_text())
+
+
+def summarize(calls):
+    unknown=[c for c in calls if c is None]
+    known=[c for c in calls if c is not None]
+    return {'model_requests':len(calls),'unobserved_requests':len(unknown),
+        'settled_upper_bound_usd':sum(c['accounted_upper_bound_usd'] for c in known if c['state']=='settled') if not unknown else None,
+        'held_usd':sum(c['accounted_upper_bound_usd'] for c in known if c['state']!='settled') if not unknown else None,
+        'input_tokens':sum(c['input_tokens'] for c in known) if not unknown and all(c.get('input_tokens') is not None for c in known) else None,
+        'output_tokens':sum(c['output_tokens'] for c in known) if not unknown and all(c.get('output_tokens') is not None for c in known) else None,
+        'unsettled_requests':sum(c['state']!='settled' for c in known)}
+
+
+def review(root,*,ledger=STATE/'ledger.sqlite3'):
+    summary=read(root/'summary.json');results=[];connection=None
+    if ledger.exists():
+        connection=sqlite3.connect(f'file:{ledger}?mode=ro',uri=True);connection.row_factory=sqlite3.Row
+    try:
+        for result in summary['results']:
+            arm=root/f"repeat-{result['repetition']}"/result['provider']
+            if result['state']=='preflight-failed':
+                results.append({'provider':result['provider'],'state':'not-run','reason':result['reason'],
+                    'complete_for_cost_comparison':False,'cost':None});continue
+            snapshot=read(arm/'model-usage.json') if (arm/'model-usage.json').exists() else {'calls':[]}
+            capture_available=snapshot.get('state')=='captured'
+            actual={}
+            for call in snapshot['calls']:
+                current=connection.execute('SELECT state,accounted,input_tokens,output_tokens,http_status FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
+                actual[call['id']]={**call,**({**dict(current),'accounted_upper_bound_usd':current['accounted']/1e9} if current else {})}
+            phases={}
+            patterns={'ingestion':'ingestion/*.json','initial':'turns/*/usage.json','followups':'turns/*/followups/*/usage.json'}
+            assigned=set()
+            for phase,pattern in patterns.items():
+                ids=set()
+                for path in arm.glob(pattern):
+                    data=read(path);usage=data.get('usage',data)
+                    ids.update(c['id'] for c in usage.get('model_calls',[]))
+                    for call in usage.get('model_calls',[]):actual.setdefault(call['id'],call)
+                phases[phase]=ids;assigned.update(ids)
+            phases['outside_captured_windows']=set(actual)-assigned
+            def totals(ids):
+                return {role:summarize([actual.get(id) for id in ids if actual.get(id,{}).get('role')==role])
+                        for role in ('hermes','memory_provider')}
+            records=[read(p) for p in sorted((arm/'ingestion').glob('*.json'))]
+            evaluation=read(arm/'evaluation.json') if (arm/'evaluation.json').exists() else {'checks':[],'counts':{}}
+            scores=[c.get('recovery',{}).get('score',{}) for c in evaluation['checks']]
+            expected=len(read(root/'evaluation-plan.json')['checks'])
+            results.append({'provider':result['provider'],'state':result['state'],
+                'daily_batches_attempted':len(records),'daily_batches_ready':sum(r.get('ready') is True for r in records),
+                'ingestion_wall_s':round(sum(r.get('latency_s',0) for r in records),2),
+                'initial_counts':evaluation.get('counts',{}),
+                'retention_points':sum(s.get('points',0) for s in scores),'retention_max_graded':sum(s.get('max_points',0) for s in scores),
+                'complete_for_cost_comparison':len(records)==len(summary['ingestion_schedule']) and all(r.get('ready') is True for r in records)
+                    and len(evaluation['checks'])==expected and all(c.get('verdict') in ('pass','fail') for c in evaluation['checks']),
+                'cost':totals(set(actual)) if capture_available else None,
+                'phases':{phase:totals(ids) for phase,ids in phases.items()},
+                'terminal_snapshot_missing_requests':sorted(assigned-{c['id'] for c in snapshot['calls']}),
+                'overlapping_phase_request_ids':{id:[p for p,ids in phases.items() if id in ids]
+                    for id in assigned if sum(id in ids for ids in phases.values())>1}})
+    finally:
+        if connection:connection.close()
+    report={'captured_at':datetime.now(timezone.utc).isoformat(),'providers':results,
+        'ledger_refreshed':connection is not None,'input_hash':summary['input_hash'],
+        'scope':['All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.',
+            'Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.',
+            'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown charges remain reservations.',
+            'Only arms completing identical daily batches and all initial questions can be compared as full-run costs.',
+            'Native canary execution and failed attempts are separate from month costs. Semantic correctness and source-assisted retention are separate scores.']}
+    save(root/'cost-comparison.json',report)
+    return report
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('root',type=Path)
+    args=parser.parse_args();report=review(args.root)
+    print(json.dumps(report,indent=2));return 0
+
+
+if __name__=='__main__':raise SystemExit(main())

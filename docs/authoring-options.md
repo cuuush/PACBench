@@ -6,6 +6,8 @@ Define each chat once under `channels`, with its source `type`, `participants` a
 
 Email channels use `type: "email"` and a `subject`. Each generated entry becomes an RFC 5322 email body with From/To, Date, Message-ID and reply references. Messaging and email addresses are distinct accounts on the same separate Contacts card. Memcal consumes Inbox/Sent through its native secure IMAP reader against a synthetic local mailbox; this is a protocol fixture, not a running Proton Bridge. No native reader methods or archive writes are substituted. The email checker can see earlier source dialogue across channels; the writer receives only its own thread history and authored scene requirements.
 
+Every scene checker sees preceding cross-channel source context. Its cache binds the actual checked transcript and context, not just the scene description. A changed checker/context can reverify cached text without rewriting it; only a rejected realization needs a new draft. The private scene cache preserves unvisited renders through interrupted revisions. Frozen-source audits compare message bodies and metadata with the saved passing checker input and model receipt.
+
 ```json
 {
   "channels": {

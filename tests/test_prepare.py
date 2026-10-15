@@ -163,3 +163,68 @@ def test_ambiguous_local_clock_rejected(tmp_path):
     spec["scenes"][0]["at"] = "2026-11-01T01:30:00-05:00"
     scenes, _, _ = resolve_spec(spec, tmp_path)
     assert scenes[0].at == "2026-11-01T01:30:00-05:00"
+
+
+def test_cached_text_is_reverified_after_cross_chat_context_changes(tmp_path):
+    from pacbench.prepare import reuse_realization,realization_binding
+    from pacbench.authoring import SceneRecord,SceneJudgeError
+    plan=ScenePlan(id='group',channel='imessage',thread='group',participants=('Me','Maya','Leo'),
+        scene='Leo joins the already agreed outing.',facts=("They are going to Rosa's.",),at='2026-10-13T09:00:00-04:00')
+    lines=(('Maya',"Join us at Luigi's?"),('Me','Yes.'),('Leo','Count me in.'))
+    prior=(('2026-10-12T17:00:00-04:00','imessage:maya','Maya',"Rosa's Friday?"),)
+    record=vars(SceneRecord(scene_id='group',status='ok',judge_calls=1))
+    previous={'lines':lines,'record':record,'verdict':{'supported':True},
+              'verification_binding':realization_binding(plan,lines,())}
+    prompts=[]
+    def reject(prompt):
+        prompts.append(prompt)
+        assert "[imessage:maya] Maya: Rosa's Friday?" in prompt
+        return json.dumps({'supported':False,'evidence':[1], 'problem':'Wrong venue from an older week.',
+            'facts':[{'index':1,'supported':False,'evidence':[1],'problem':'Wrong venue.'}]})
+    with pytest.raises(SceneJudgeError,match='Wrong venue'):
+        reuse_realization(plan,previous,reject,model='test',record_dir=tmp_path,verification_lines=prior)
+    assert len(prompts)==1
+    # Identical reviewed context uses the frozen text and verdict, with no calls.
+    previous['verification_binding']=realization_binding(plan,lines,prior)
+    reused=reuse_realization(plan,previous,lambda _:pytest.fail('Repeated unchanged verification'),
+        model='test',record_dir=tmp_path,verification_lines=prior)
+    assert reused.lines==lines
+
+
+def test_resume_checkpoint_preserves_unvisited_scenes_and_their_original_specs(tmp_path):
+    from pacbench.prepare import load_scene_cache
+    from pacbench.followups import save
+    old={'scenes':[{'id':'first','facts':['Old fact.']},{'id':'later','facts':['Later fact.']}]}
+    rows=[{'scene_id':'first','lines':[['Me','First']]},{'scene_id':'later','lines':[['Me','Keep this render']]}]
+    save(tmp_path/'resolved-spec.json',old);save(tmp_path/'scenes.json',{'scenes':rows})
+    cache=load_scene_cache(tmp_path);save(tmp_path/'model-cache/scene-realizations.json',cache)
+    save(tmp_path/'resolved-spec.json',{'scenes':[{'id':'first','facts':['Changed fact.']}]})
+    save(tmp_path/'scenes.json',{'scenes':[rows[0]]})  # Interrupted after first recheck.
+    recovered=load_scene_cache(tmp_path)
+    assert recovered['later']['realization']==rows[1]
+    assert recovered['first']['spec']['facts']==['Old fact.']
+
+
+def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
+    from pacbench.preparation_audit import audit_scenes
+    from pacbench.authoring import build_scene_observations,scene_spec
+    from pacbench.followups import save,digest
+    plan=ScenePlan(id='one',thread='chat',participants=('Me','Maya'),scene='Agree on pizza.',
+        at='2026-10-12T18:00:00-04:00')
+    lines=[['Me','Pizza Friday?'],['Maya','Yes.']];spec=scene_spec(plan)
+    verdict={'supported':True};prompt='Synthetic independent checker input'
+    review={'passed':True,'spec':spec,'dialogue':['Me: Pizza Friday?','Maya: Yes.'],
+        'verdict':verdict,'judge_prompt':prompt,'judge_response':'supported','model_call':'original/path/call.json'}
+    save(tmp_path/'scene-verifications/check.json',review)
+    save(tmp_path/'model-calls/call.json',{'status':'ok','text':'supported',
+        'request':{'messages':[{'role':'user','content':prompt}]}})
+    messages=[o.public() for o in build_scene_observations('life',plan,lines)]
+    row={'scene_id':'one','lines':lines,'source_ids':[m['source_id'] for m in messages],
+        'record':{'status':'ok','judgment_paths':['original/path/check.json']},'verdict':verdict,
+        'verification_binding':digest({'version':spec['judge_prompt_version'],'prompt':prompt})}
+    save(tmp_path/'scenes.json',{'scenes':[row]})
+    assert audit_scenes(tmp_path,{'scenes':[spec]},'life',messages)==[]
+    messages[0]['text']='A different unchecked message'
+    assert 'Frozen source bodies or metadata differ from verified scenes' in audit_scenes(tmp_path,{'scenes':[spec]},'life',messages)
+    row['lines'][0][1]='An unchecked edit';save(tmp_path/'scenes.json',{'scenes':[row]})
+    assert 'one: source differs from its passing checker input' in audit_scenes(tmp_path,{'scenes':[spec]},'life',messages)

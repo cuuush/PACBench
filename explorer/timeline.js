@@ -102,7 +102,7 @@ function dayTimeline(run) {
   const providers = keys.map(key => '<button type="button" data-provider="' + esc(key) + '" aria-pressed="' + (key===selectedProvider) +
     '" class="' + (key===selectedProvider?'active':'') + '">' + esc(run.arms[key].label || key) + '</button>').join("");
   const status = arm?.status;
-  const blocked = status?.state === 'blocked' || status?.capability?.available === false;
+  const blocked = ['blocked','preflight-failed'].includes(status?.state) || status?.capability?.available === false;
   const planned = (run.evaluations || []).filter(check => dayKey(check.at,run)===selectedDay);
   const empty = blocked ? notice('Provider unavailable: ' + (status.reason || status.capability?.execution_blocker || status.capability?.reason || 'setup incomplete')) :
     notice(arm ? 'No ingestion or Hermes interaction recorded for this provider on this day.' : 'Prepared dialogue; no provider has run yet.');

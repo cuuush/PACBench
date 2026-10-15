@@ -314,7 +314,7 @@ def test_rejected_draft_gets_one_revision_before_one_agent_followup(tmp_path):
     assert len(rejected['drafts'])==1
 
 
-def test_recovery_anchors_use_correct_context_and_are_bound_to_cache(tmp_path):
+def test_recovery_uses_actual_answer_and_reuses_matching_missing_fact_sets(tmp_path):
     c=contract();p=freeze_policy(c,tmp_path/'policy.json');prompts=[]
     def model(prompt):
         prompts.append(prompt)
@@ -323,11 +323,12 @@ def test_recovery_anchors_use_correct_context_and_are_bound_to_cache(tmp_path):
         return json.dumps({'question':'What time is the Friday pizza with Maya?'})
     directory=tmp_path/'questions'
     first=combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Maya.'])
-    assert all('Already correct: ["Friday pizza with Maya."]' in s for s in prompts)
+    assert all('Actual answer: ["Friday pizza with Maya."]' in s for s in prompts)
     combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Maya.'])
     assert len(prompts)==2
-    second=combined_plan(c,p,[c.claims[1]],model,directory,known_context=['Friday pizza with Devon.'])
-    assert len(prompts)==4 and first['question_hash']!=second['question_hash']
+    second=combined_plan(c,p,[c.claims[1]],model,directory,known_context=['You have pizza with Maya on Friday.'])
+    assert len(prompts)==2 and first['question_hash']==second['question_hash']
+    assert first['known_context']==['Friday pizza with Maya.'] and first['context_source']=='actual-initial-answer'
 
 
 def test_failed_checkpoint_serialization_preserves_last_complete_state(tmp_path):
@@ -336,3 +337,21 @@ def test_failed_checkpoint_serialization_preserves_last_complete_state(tmp_path)
     with pytest.raises(TypeError):save(file,{'state':object()})
     assert json.loads(file.read_text())=={'state':'running','completed':4}
     assert list(tmp_path.iterdir())==[file]
+
+
+def test_parallel_arms_author_one_neutral_question_for_the_same_missing_facts(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    import time
+    c=contract();policy=freeze_policy(c,tmp_path/'policy.json');calls=[]
+    def model(prompt):
+        calls.append(prompt);time.sleep(.01)
+        if 'Proposed message:' in prompt:
+            return json.dumps({'safe':True,'covers_claim_ids':['time'],'reason':'Asks for omitted time.'})
+        return json.dumps({'question':'What time is it?'})
+    states=[{},{}]
+    def run(index):
+        return combined_plan(c,policy,[c.claims[1]],model,tmp_path/'shared',
+            known_context=['It is Friday.'],cache_state=states[index])
+    with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(run,(0,1)))
+    assert len(calls)==2 and results[0]['question_hash']==results[1]['question_hash']
+    assert sorted(s['reused'] for s in states)==[False,True]

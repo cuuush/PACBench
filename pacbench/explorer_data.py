@@ -14,7 +14,7 @@ def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
-def native_run(run_dir: Path, runs_dir: Path):
+def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
     summary = read_json(run_dir / 'summary.json') or {}
     if summary.get('mode') != 'native-hermes' and summary.get('state') != 'prepared':
         return None
@@ -34,6 +34,7 @@ def native_run(run_dir: Path, runs_dir: Path):
                    for row in (plan or {}).get('checks', [])]
     contract = read_json(run_dir / 'contract.json')
     messages = messages_for(bundle, next(iter(bundle['lives'])))
+    source_by_id = {m['source_id']:m for m in messages}
     arms = {}
     for arm in sorted(run_dir.glob('repeat-*/*')):
         if not arm.is_dir():
@@ -75,7 +76,7 @@ def native_run(run_dir: Path, runs_dir: Path):
             for row in summary.get('ingestion_schedule',[]):
                 record=read_json(arm/row['file'])
                 if not record:continue
-                packet=[m for m in messages if m['source_id'] in row['source_ids']]
+                packet=[source_by_id[source_id] for source_id in row['source_ids']]
                 document=(run_dir/row['source_file']).read_text()
                 exposures.append({'label':row['id'],'at':record['at'],'delivery':record['delivery'],
                     'record':record,'usage':record.get('usage'),'packet':packet,
@@ -96,9 +97,22 @@ def native_run(run_dir: Path, runs_dir: Path):
             'turn': exchanges[0]['turn'] if exchanges else None}
         arms[f'{provider}-{repetition}']['evaluation'] = read_json(arm / 'evaluation.json')
     records = {}
-    for folder in (source, run_dir, run_dir / 'judge-scope-review'):
+    components=summary.get('component_runs',[])
+    folders=[source,run_dir,run_dir/'judge-scope-review']
+    for component in components:
+        folder=(run_dir/component['public_root']).resolve()
+        if not folder.is_relative_to(run_dir.resolve()):raise ValueError('component records must stay inside run')
+        folders.extend((folder,folder/'judge-scope-review'))
+    for folder in folders:
         for path in sorted((folder / 'model-calls').glob('*.json')):
-            records[path.name] = {'file': path.name, 'record': public_record(read_json(path))}
+            relative=(str(path.resolve().relative_to(run_dir.resolve()))
+                      if path.resolve().is_relative_to(run_dir.resolve()) else 'preparation/model-calls/'+path.name)
+            aliases=[str(path)]
+            for component in components:
+                public=(run_dir/component['public_root']).resolve()
+                if path.resolve().is_relative_to(public):
+                    aliases.append(str(Path(component['original_root'])/path.resolve().relative_to(public)))
+            records[relative] = {'file':relative,'aliases':aliases,'record':public_record(read_json(path))}
     captured_times = []
     for arm in arms.values():
         try:
@@ -113,6 +127,8 @@ def native_run(run_dir: Path, runs_dir: Path):
         'messages': messages, 'bundle': bundle,
         'bundle_hash': actual_hash, 'contract': contract, 'evaluation_plan': plan,
         'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
+        'preflight':(native_run(run_dir/'preflight',runs_dir,include_preflight=False)
+                     if include_preflight and (run_dir/'preflight/summary.json').exists() else None),
         'scenes': read_json(source / 'scenes.json'), 'arms': arms,
         'verifications': [{'file': p.name, 'record': read_json(p)} for p in sorted((source / 'scene-verifications').glob('*.json'))],
         'model_calls': list(records.values()),

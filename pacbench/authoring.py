@@ -318,7 +318,7 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
 # ------------------------------------------------------------------ judging --
 
 #: Approved narrow-judge prompter (verdicts only, never ground truth).
-JUDGE_PROMPT_VERSION = "scene-judge-v8"
+JUDGE_PROMPT_VERSION = "scene-judge-v9"
 
 def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
@@ -349,6 +349,8 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
         "each asserted participant's commitment is clear in context; "
         "do not count mere interest, uncertainty or silence as agreement. "
         "Cite evidence of commitment without requiring a scripted confirmation order. Check that "
+        "continuations agree with the current plan across DMs, group chats and email; "
+        "an old week's venue is not the current venue unless someone changes it. "
         "`Me` consistently represents the user. Judge meaning, not token "
         "overlap. Return only JSON with keys supported (boolean), evidence "
         "(array of numbered dialogue line integers), and problem (short "

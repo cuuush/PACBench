@@ -6,7 +6,8 @@ import os
 from datetime import datetime, timedelta, time, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from .authoring import ScenePlan, SceneRecord, SceneRealization, build_scene_observations, realize_scene, scene_spec
+from .authoring import (ScenePlan, SceneRecord, SceneRealization, SceneJudgeError,
+    build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
 from .creds import load_driver
 from .gateway_client import client_settings
 from .gateway_client import SpendingBlocked
@@ -224,15 +225,52 @@ def normalize_week(spec, week_start=None):
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
         'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
 
+
+def generation_spec(plan):
+    """A checker revision can reverify text without paying to rewrite it."""
+    return {k:v for k,v in scene_spec(plan).items() if k!='judge_prompt_version'}
+
+
+def realization_binding(plan, lines, verification_lines):
+    from .authoring import JUDGE_PROMPT_VERSION
+    from .followups import digest
+    return digest({'version':JUDGE_PROMPT_VERSION,
+        'prompt':judge_prompt(plan,list(lines),verification_lines)})
+
+
+def reuse_realization(plan, previous, judge, *, model, record_dir, verification_lines):
+    """Recheck cached text when its actual evidence context or checker changes."""
+    lines=tuple(tuple(line) for line in previous['lines'])
+    record=SceneRecord(**previous['record'])
+    if previous.get('verification_binding')==realization_binding(plan,lines,verification_lines):
+        return SceneRealization(plan.id,lines,record,previous['verdict'])
+    verdict,pc,rc,path=judge_scene(plan,list(lines),judge,model=model,record_dir=record_dir,
+        attempt=record.judge_calls+1,prior_lines=verification_lines)
+    record.judge_calls+=1;record.prompt_chars+=pc;record.response_chars+=rc
+    if path:record.judgment_paths.append(path)
+    return SceneRealization(plan.id,lines,record,verdict)
+
+
+def load_scene_cache(root):
+    path=root/'model-cache/scene-realizations.json'
+    if path.exists():return json.loads(path.read_text())
+    if not (root/'scenes.json').exists():return {}
+    plans={p['id']:p for p in json.loads((root/'resolved-spec.json').read_text())['scenes']}
+    return {r['scene_id']:{'spec':plans[r['scene_id']],'realization':r}
+        for r in json.loads((root/'scenes.json').read_text())['scenes'] if r['scene_id'] in plans}
+
+
 def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     scenes, target, resolved = resolve_spec(spec, root,week_start=progress.get("week_start"))
-    reusable={}
-    if progress.get('resume') and (root/'scenes.json').exists():
-        old=json.loads((root/'resolved-spec.json').read_text())
-        plans={p['id']:p for p in old['scenes']}
-        reusable={r['scene_id']:r for r in json.loads((root/'scenes.json').read_text())['scenes']
-                  if r['record']['status']=='ok' and r['verdict'].get('supported') is True and
-                  any(s.id==r['scene_id'] and scene_spec(s)==plans.get(s.id) for s in scenes)}
+    cache=load_scene_cache(root) if progress.get('resume') else {}
+    reusable={sid:entry['realization'] for sid,entry in cache.items()
+        if entry['realization']['record']['status']=='ok' and entry['realization']['verdict'].get('supported') is True and
+        any(s.id==sid and generation_spec(s)=={k:v for k,v in entry['spec'].items()
+            if k!='judge_prompt_version'} for s in scenes)}
+    if progress.get('resume'):
+        # Preserve *all* completed renders before publishing partial progress or
+        # a revised spec. Interrupting a recheck must not erase later scenes.
+        save(root/'model-cache/scene-realizations.json',cache)
         for name in ('evaluation-plan.json','evaluation-errors.json','contract.json','followup-plan.json','week.json','scene-errors.json'):
             (root/name).unlink(missing_ok=True)
     save(root / "resolved-spec.json", resolved)
@@ -260,21 +298,25 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     failures, blocked_threads = [], set()
     for plan in scenes:
         key = (plan.channel, plan.thread)
+        verification_lines=tuple((m['written_at'],m['channel']+':'+m['thread'],m['sender'],m['text'])
+            for m in observations if datetime.fromisoformat(m['written_at'])<datetime.fromisoformat(plan.at))
         if key in blocked_threads:
             failures.append({'scene_id':plan.id,'state':'skipped','reason':'Earlier scene in this thread failed'})
             continue
         try:
+            realized=None
             if plan.id in reusable:
                 previous=reusable[plan.id]
-                realized=SceneRealization(plan.id,tuple(tuple(line) for line in previous['lines']),
-                    SceneRecord(**previous['record']),previous['verdict'])
-            else:
+                try:
+                    realized=reuse_realization(plan,previous,judge,model=driver.model_id,
+                        record_dir=root/'scene-verifications',verification_lines=verification_lines)
+                except SceneJudgeError:
+                    pass  # Preserve the rejected review; redraw only this inconsistent scene.
+            if realized is None:
                 realized = realize_scene(plan, writer, judge, model=driver.model_id,
                                      record_dir=root / "scene-verifications",
                                      prior_lines=tuple(thread_history.get(key, ())),
-                                     verification_lines=(tuple((m['written_at'],m['channel']+':'+m['thread'],m['sender'],m['text'])
-                                        for m in observations if datetime.fromisoformat(m['written_at'])<datetime.fromisoformat(plan.at))
-                                        if plan.channel=='email' else None))
+                                     verification_lines=verification_lines)
         except SpendingBlocked as exc:
             failures.append({'scene_id':plan.id,'state':'ungraded','reason':str(exc)})
             save(root/'scene-errors.json',failures)
@@ -288,10 +330,14 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
         thread_history.setdefault(key, []).extend(
             (o.written_at, o.sender, o.text) for o in new_messages)
         observations.extend(o.public() for o in new_messages)
-        scene_records.append({"scene_id": plan.id, "lines": realized.lines,
+        row={"scene_id": plan.id, "lines": realized.lines,
                               "source_ids": [o.source_id for o in new_messages],
                               "record": vars(realized.record),
-                              "verdict": realized.verdict})
+                              "verdict": realized.verdict,
+                              'verification_binding':realization_binding(plan,realized.lines,verification_lines)}
+        scene_records.append(row)
+        cache[plan.id]={'spec':scene_spec(plan),'realization':row}
+        save(root/'model-cache/scene-realizations.json',cache)
         save(root / "scenes.json", {"scenes": scene_records})
     bundle = {"bundle_version": "0.3.0", "lives": {life_id: {
         "lineage": life_id, "messages": observations}}}
@@ -341,7 +387,7 @@ def export_week(root, destination):
     if audit_prepared(root)['state']!='pass':raise ValueError('Cannot freeze incomplete preparation')
     from .followups import digest
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json',
-           'contract.json','followup-plan.json','summary.json','evaluation-plan.json']
+           'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json']
     files={name:json.loads((root/name).read_text()) for name in names if (root/name).exists()}
     for folder in ('evaluations','scene-verifications','model-calls'):
         paths = ((root/folder).glob('*.json') if folder == 'model-calls'

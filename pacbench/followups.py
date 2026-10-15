@@ -172,11 +172,13 @@ def tool_profile(turn, *, source_tools=()) -> dict:
             category=('memory_search' if name=='search_memory' else
                       'memory_detail' if name in {'get_reasoning_chain','get_peer_card'} else
                       tool_category(name,call.get('args',{}),source_tools))
-            native_operations.append({**call,'category':category,'attribution':trace.get('attribution')})
+            native_operations.append({**call,'category':category,'attribution':trace.get('attribution'),
+                **({'path_attribution':trace['path_attribution']} if 'path_attribution' in trace else {})})
+    answer_operations=[op for op in native_operations if op.get('path_attribution',{}).get('affects_answer') is not False]
     native_source=any(op['category'] in SOURCE_CATEGORIES and op['attribution']=='explicit-query-match'
-                      for op in native_operations)
+                      for op in answer_operations)
     native_unknown=sum(bool(t.get('error')) for t in traces if t.get('provider')=='honcho')+sum(op['category']=='unclassified' or
-        op['category'] in SOURCE_CATEGORIES and op['attribution']!='explicit-query-match' for op in native_operations)
+        op['category'] in SOURCE_CATEGORIES and op['attribution']!='explicit-query-match' for op in answer_operations)
     return {'top_level_calls': len(turn.tool_calls), 'total_tool_operations': len(operations),
         'provider_internal_tool_calls': len(native_calls) if traces and all(
             'toolCalls' in trace.get('record', {}) for trace in traces) else None,
@@ -259,16 +261,26 @@ def _covers_all(review, claim_ids):
             and len(covered) == len(claim_ids) and set(covered) == set(claim_ids))
 
 
-def combined_binding(contract, component_plan, selected, known_context=()):
+def combined_binding(contract, component_plan, selected):
     return {'contract_hash':contract.contract_hash,'component_plan_hash':component_plan['plan_hash'],
-            'claim_ids':[c.id for c in selected], 'authoring_version':'scoped-recovery-v2',
-            'known_context':list(known_context)}
+            'claim_ids':[c.id for c in selected], 'authoring_version':'scoped-recovery-v3'}
 
 
-def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path, *, known_context=()) -> dict:
+def combined_plan(contract, component_plan: dict, selected: list, model, directory: Path, *, known_context=(), cache_state=None) -> dict:
+    """Share one reviewed wording across concurrent arms without duplicate calls."""
+    import fcntl
+    binding=combined_binding(contract,component_plan,selected)
+    directory.mkdir(parents=True,exist_ok=True)
+    with (directory/(digest(binding)+'.lock')).open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        if cache_state is not None:cache_state['reused']=(directory/(digest(binding)+'.json')).exists()
+        return _combined_plan(contract,component_plan,selected,model,directory,known_context=known_context)
+
+
+def _combined_plan(contract, component_plan: dict, selected: list, model, directory: Path, *, known_context=()) -> dict:
     """Spark authors one message for an observed missing-fact set; reuse it across arms."""
     claim_ids = [c.id for c in selected]
-    binding = combined_binding(contract, component_plan, selected, known_context)
+    binding = combined_binding(contract, component_plan, selected)
     path = directory / (digest(binding) + '.json')
     if path.exists():
         return load_combined_plan(path, binding)
@@ -277,18 +289,18 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     write_prompt = (
         'Write one short user message asking for each missing detail. Ask for its value, '
         'preserving current versus historical meaning. Do not supply answers or tool instructions. '
-        'Use already-correct context to identify the event; avoid private ordinals like first outing. '
+        'Use the actual answer to identify the event; avoid private ordinals like first outing. '
         'Return ONLY JSON {"question":"message"}.\n'
-        f'Original question: {contract.question}\nAlready correct: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}')
+        f'Original question: {contract.question}\nActual answer: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}')
     review_prompt = (
         'Does this message naturally ask for all missing information without stating its answers, '
         'supplying a missing name/time/place as a confirmation, or prescribing tools? '
         'Object-specific why/how/what-happened questions are valid. A yes/no question about a '
         'boolean status does not assert that status is true. Preserve the missing facts\' own '
         'current/historical meaning, including historical reasons for a current state. '
-        'Reject ambiguous event anchors; already-correct details may identify the event, missing values may not. '
+        'Reject ambiguous event anchors; details actually in the answer may identify the event, missing values may not. '
         'Return ONLY JSON {"safe":true,"covers_claim_ids":["covered IDs"],"reason":"explanation"}.\n'
-        f'Original question: {contract.question}\nAlready correct: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}\n')
+        f'Original question: {contract.question}\nActual answer: {json.dumps(known_context)}\nMissing facts: {json.dumps(hidden)}\n')
     rejected = []
     for _ in range(2):
         feedback = ('\nRevise the rejected draft using this independent review: '
@@ -307,7 +319,8 @@ def combined_plan(contract, component_plan: dict, selected: list, model, directo
     else:
         raise ValueError('combined follow-up failed neutral/complete coverage review')
     origin = 'spark-combined-message'
-    body = {**binding, 'question': question, 'review': review, 'origin': origin, 'authoring_calls': authoring_calls}
+    body = {**binding, 'known_context':list(known_context),'context_source':'actual-initial-answer',
+            'question': question, 'review': review, 'origin': origin, 'authoring_calls': authoring_calls}
     result = {**body, 'question_hash': digest(body)}
     save(path, result)
     return result
@@ -359,7 +372,6 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
     # A restarted caller cannot ask the same questions again or replace a failed attempt.
     with (output / 'recovery.json').open('x') as record:
         record.write(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
-    slots = {s.id: s for s in grade.slots}
     selected_ids, skip_reason = natural_eligibility(grade)
     report['eligibility'] = grade.recovery
     report['eligible_claim_ids'] = selected_ids
@@ -378,11 +390,13 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                 raise ValueError('cannot follow up without the real recall session')
             budget_snapshot()
             question_root = question_dir or output / 'question-plans'
-            known_context = [c.statement for c in contract.claims if slots[c.id].verdict == 'correct']
-            binding = combined_binding(contract, plan, selected, known_context)
-            attempt['question_authoring_reused'] = (question_root / (digest(binding) + '.json')).exists()
+            # A hidden claim's scope may contain another omitted value. Only
+            # the public answer is safe anchoring context for question writing.
+            known_context = [initial_turn.answer]
+            reuse_state={}
             authored = combined_plan(contract, plan, selected, question_model or judge, question_root,
-                                     known_context=known_context)
+                                     known_context=known_context,cache_state=reuse_state)
+            attempt['question_authoring_reused']=reuse_state['reused']
             question = authored['question']
             attempt.update(question=question, question_hash=authored['question_hash'])
             save(directory / 'question-plan.json', authored)
@@ -459,12 +473,23 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                 'claim_ids': failed})
             if frozen_question.get('authoring_version') == 'scoped-recovery-v2':
                 known = [c.statement for c in contract.claims if next(s for s in grade.slots if s.id == c.id).verdict == 'correct']
-                load_combined_plan(directory / 'question-plan.json',
-                    combined_binding(contract, plan, [c for c in contract.claims if c.id in failed], known))
+                load_combined_plan(directory / 'question-plan.json',{
+                    'contract_hash':contract.contract_hash,'component_plan_hash':plan['plan_hash'],
+                    'claim_ids':failed,'authoring_version':'scoped-recovery-v2','known_context':known})
+            elif frozen_question.get('authoring_version') == 'scoped-recovery-v3':
+                load_combined_plan(directory/'question-plan.json',
+                    combined_binding(contract,plan,[c for c in contract.claims if c.id in failed]))
+                check(frozen_question.get('context_source')=='actual-initial-answer', 'follow-up used hidden anchoring context')
+                if not attempt.get('question_authoring_reused'):
+                    check(frozen_question.get('known_context')==[initial_turn.answer], 'follow-up context differs from actual answer')
             check(attempt['question_hash'] == frozen_question['question_hash'], 'combined question hash mismatch')
             question = frozen_question['question']
             check(attempt['question'] == question, 'follow-up question changed')
             turn = harness.TurnResult(**read(directory / 'turn.json'))
+            from .usage import provider_paths_match
+            if (directory/'usage.json').exists():
+                check(provider_paths_match(turn,read(directory/'usage.json')),
+                    'follow-up provider path timing differs from recorded inference inputs')
             expected_prompt = (f'[Simulated now: {initial_turn.at}. Treat this as the current date and '
                                f'time for everything in this turn.]\n\n{question}')
             check(turn.prompt == expected_prompt and turn.at == initial_turn.at, 'follow-up clock/prompt mismatch')

@@ -150,3 +150,18 @@ def test_http_reads_runs_on_every_request_and_blocks_raw_private_paths(tmp_path,
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+def test_parallel_component_records_with_identical_filenames_keep_exact_aliases(tmp_path):
+    root,_=trial(tmp_path)
+    summary=json.loads((root/'summary.json').read_text())
+    summary['component_runs']=[{'original_root':'/original/core','public_root':'.'},
+        {'original_root':'/original/honcho','public_root':'components/honcho'}]
+    save(root/'summary.json',summary)
+    save(root/'model-calls/same.json',{'text':'core judgment'})
+    save(root/'components/honcho/model-calls/same.json',{'text':'honcho judgment'})
+    run=explorer.native_run(root,tmp_path/'runs')
+    records=run['model_calls'];assert len(records)==2
+    lookup={alias:r['record']['text'] for r in records for alias in r['aliases']}
+    assert lookup['/original/core/model-calls/same.json']=='core judgment'
+    assert lookup['/original/honcho/model-calls/same.json']=='honcho judgment'

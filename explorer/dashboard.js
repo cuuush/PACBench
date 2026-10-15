@@ -130,8 +130,11 @@ function conversations(run) {
   }).join("");
 }
 function modelCall(run, path) {
+  const exact = (run.model_calls || []).find(call => call.aliases?.includes(path) || call.file === path);
+  if (exact) return exact.record;
   const name = String(path || "").split("/").pop();
-  return (run.model_calls || []).find(call => call.file === name)?.record;
+  const matches = (run.model_calls || []).filter(call => call.file.split('/').pop() === name);
+  return matches.length === 1 ? matches[0].record : undefined;
 }
 function modelReasoningSummary(call) {
   const summaries = (call?.response?.output || []).filter(item => item.type === "reasoning")
@@ -394,7 +397,7 @@ function technicalPage(run) {
     details("Original and resolved author spec", dump({author: run.spec, resolved: run.resolved_spec})) +
     details("Frozen bundle and contract", dump({bundle: run.bundle, contract: run.contract})) +
     details("Model requests and responses · " + (run.model_calls || []).length,
-      (run.model_calls || []).map(call => details(call.record?.model + " · " + call.file.slice(0, 12),
+      (run.model_calls || []).map(call => details(call.record?.model + " · " + call.file.split('/').pop().slice(0, 12),
         renderModelCall(call.record))).join("")) +
     details("Allowed and blocked recall tools", dump(Object.fromEntries(Object.entries(run.arms || {}).map(([key,arm]) => [key,arm.tool_policy])))) +
     details("Experiment status and run audit", dump({status: run.experiment_status,
@@ -403,7 +406,8 @@ function technicalPage(run) {
 function render() {
   const run = selected();
   if (!run) { el("content").innerHTML = notice("No saved run selected."); return; }
-  const items = [["timeline", "Day by day"], ["story", "Authoring"], ["judge", "Criteria & judges"], ["details", "Saved files"]];
+  const items = [["timeline", "Day by day"], ["story", "Authoring"], ["judge", "Criteria & judges"],
+    ...(run.preflight ? [["preflight","Native canary"]] : []), ["details", "Saved files"]];
   if (run.arms?.[page]) { selectedProvider = page; page = "timeline"; }
   if (!items.some(item => item[0] === page)) page = "timeline";
   const status = stateOf(run);
@@ -413,7 +417,8 @@ function render() {
     '<div class="alert bad">Excluded: ' + esc(run.audit.finding) + "</div>" :
     run.summary?.error ? '<div class="alert bad">Stopped during ' +
       esc(run.summary.failed_stage || "experiment") + ": " + esc(run.summary.error) + "</div>" : "";
-  const body = page === "timeline" ? dayTimeline(run) : page === "story" ? semanticStory(run) :
+  const body = page === "preflight" ? '<section class="stage"><h2>Native canary</h2><p>A separate small corpus checks ingestion and recall before the month. These answers are not month scores.</p></section>' + dayTimeline(run.preflight) :
+    page === "timeline" ? dayTimeline(run) : page === "story" ? semanticStory(run) :
     page === "judge" ? judgePage(run) : page === "details" ? technicalPage(run) : dayTimeline(run);
   el("content").innerHTML = '<div class="run-heading"><div><span class="eyebrow">' +
     "Experiment" + '</span><h1>' +

@@ -325,7 +325,8 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
-        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None) -> dict:
+        repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
+        question_dir: Path | None = None) -> dict:
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 100000:
         raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")
@@ -334,6 +335,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         raise ValueError("invalid or duplicate provider selection")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
+    question_dir=(question_dir or output/'combined-questions').resolve()
     # Registered first, so native server shutdown hooks run before this final
     # fallback for CLI grandchildren left behind by timed-out provider tools.
     import atexit
@@ -497,7 +499,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             if evaluations:
                 try:
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
-                                          question_dir=output / 'combined-questions', before_check=import_before_check)
+                                          question_dir=question_dir, before_check=import_before_check)
                     result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
                     capability['live_verified'] = sequence['state'] == 'diagnostic'
@@ -535,7 +537,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     recovery = run_followups(contract=contract, plan=plan, grade=grade,
                         initial_turn=turn, output=root / "followups", judge=judge,
                         home=root / "hermes-home", allowlist=allowlist, extra_env=env,
-                        question_dir=output / "combined-questions")
+                        question_dir=question_dir)
                     result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
                         "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
                                       "metrics": a["metrics"]} for a in recovery["attempts"]]}
@@ -576,8 +578,10 @@ def main() -> int:
     parser.add_argument("--repetitions", type=int, default=1)
     parser.add_argument("--smoke", action="store_true", help="bounded native read-only tool checks")
     parser.add_argument("--providers", nargs="+", help="select native arms; omitted inventories every provider")
+    parser.add_argument('--question-dir',type=Path,help='Shared reviewed recovery cache for concurrent source-identical arms')
     args = parser.parse_args()
-    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers)
+    report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers,
+                 question_dir=args.question_dir)
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))

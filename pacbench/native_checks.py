@@ -157,6 +157,10 @@ def audit_checks(checks, context, root):
                 check(item['state']=='ungraded' and bool(item.get('reason')),f"{row['id']}: missing turn evidence")
                 continue
             turn=harness.TurnResult(**read(directory/'turn.json'))
+            from .usage import provider_paths_match
+            if (directory/'usage.json').exists():
+                check(provider_paths_match(turn,read(directory/'usage.json')),
+                    f"{row['id']}: provider path timing differs from recorded inference inputs")
             expected=f"[Simulated now: {row['at']}. Treat this as the current date and time for everything in this turn.]\n\n{contract.question}"
             check(turn.at==row['at'] and turn.prompt==expected,f"{row['id']}: evaluation question/clock mismatch")
             if item['state']!='diagnostic':

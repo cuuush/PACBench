@@ -123,3 +123,35 @@ class RedactKeepsTokenCounts(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_late_native_profile_work_keeps_cost_but_does_not_poison_retention():
+    from types import SimpleNamespace
+    from datetime import datetime,timezone
+    from pacbench.usage import attribute_provider_paths,provider_paths_match
+    from pacbench.followups import tool_profile
+    complete=datetime(2026,10,15,10,0,10,tzinfo=timezone.utc).timestamp()
+    def make_turn():
+        return SimpleNamespace(tool_calls=[],tool_results=[],provider_traces=[{
+            'provider':'honcho','attribution':'background-or-prefetch','record':{
+                'timestamp':complete,'toolCalls':[{'toolName':'search_messages','args':{'query':'pizza'}}]}}])
+    t=make_turn()
+    assert tool_profile(t)['provider_internal_path_needs_review'] is True
+    usage={'model_calls':[{'role':'hermes','started':'2026-10-15T10:00:02+00:00'}]}
+    attribute_provider_paths(t,usage)
+    profile=tool_profile(t)
+    assert profile['provider_internal_tool_calls']==1  # Never erase the work.
+    assert profile['provider_internal_operations'][0]['category']=='source_messages'
+    assert profile['provider_internal_path_needs_review'] is False
+    assert profile['source_fallback_attempted'] is False
+    assert t.provider_traces[0]['path_attribution']['affects_answer'] is False
+    usage['path_attribution_version']='native-completion-v1'
+    assert provider_paths_match(t,usage)
+    t.provider_traces[0]['path_attribution']['final_hermes_input_at']='changed'
+    assert not provider_paths_match(t,usage)
+    # If a later Hermes input could consume the response, attribution stays unknown.
+    early=make_turn()
+    attribute_provider_paths(early,{'model_calls':[{'role':'hermes','started':'2026-10-15T10:00:11+00:00'}]})
+    assert tool_profile(early)['provider_internal_path_needs_review'] is True
+    absent=make_turn();attribute_provider_paths(absent,{'model_calls':[]})
+    assert tool_profile(absent)['provider_internal_path_needs_review'] is True

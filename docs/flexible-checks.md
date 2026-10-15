@@ -23,6 +23,8 @@ Preparation derives independently assessable criteria from each expectation, ver
 
 Keep `expect` to the facts being graded. Put background and traps in the source scenes: for a yes/no question, a correct yes/no need not retell a joke or explain every rejected option. Inspect the derived criteria before provider execution; an English scope limit can still be misread by the draft and review models.
 
+When a list is complete, say so explicitly and check the derived claim preserves that meaning. “Maya is attending” cannot rule out an invented extra attendee. Spot-check the actual judge with a plausible wrong answer before scaling a new condition; keep that receipt separate from provider results.
+
 Use factual recall for the memory benchmark. Do not use an ambiguous cancellation plus a mandatory clarification as proof of memory quality. Separately, `kind: behavior` can grade an authored observable reply or clarification and gets no omission recovery. An acknowledgement does not prove a retained update or external calendar action. A later fresh conversation checks persistence. `trigger: clarification` sends its scripted reply only when the semantic judge identifies a clarification request; replies are not invented to rescue the agent. Use `depends_on` for later checks that require that reply. Contracts also bind conditional evidence dependencies, so an undelivered instruction cannot become assumed truth.
 
 Each turn gets pass/fail for judged behavior. Malformed judges, missing script truth and execution errors remain ungraded with a reason. Independent conversations continue; unavailable dependent turns skip with a cause. A wrong answer remains a failure and does not stop unrelated checks. Review passes as well as failures while developing.

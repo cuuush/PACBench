@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-15T14:49:06.655536+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Jen. Use only these speaker labels.\nConversation date: 2026-10-04. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 17:00 and 18:40 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-25 Jen: ugh morning from hell\n2026-09-25 Me: oh no what happened\n2026-09-25 Jen: my umbrella broke on my walk to work\n2026-09-25 Jen: like one second it was fine then gust just flipped it inside out\n2026-09-25 Me: nooo not the cute polka dot one\n2026-09-25 Jen: yeah that one, one of the spokes just snapped\n2026-09-25 Me: that's so annoying, are you soaked?\n2026-09-25 Jen: half soaked lol left shoulder is drenched\n2026-09-25 Me: do you have a change at the office?\n2026-09-25 Jen: I have a sweater in my drawer thank god\n2026-09-25 Me: good, coffee will help too\n2026-09-25 Jen: already in line for the big one\n2026-09-25 Me: lol same, I'm on my second cup at my desk\n2026-09-25 Jen: how are you even awake already\n2026-09-25 Me: could not sleep, cat woke me at like 6\n2026-09-25 Me: she was sitting on my pillow staring at me\n2026-09-25 Jen: creepy little gremlin\n2026-09-25 Me: right?? then she wanted breakfast immediately\n2026-09-25 Jen: priorities\n2026-09-25 Jen: btw did that package ever show up for you\n2026-09-25 Me: yes finally came yesterday\n2026-09-25 Me: the box was all dented but stuff inside was fine\n2026-09-25 Jen: classic delivery guys just tossing it\n2026-09-25 Me: seriously\n2026-09-25 Jen: my shoes are squeaking so loud in the hallway now\n2026-09-25 Me: hahaha everyone knows you're coming\n2026-09-25 Jen: I hate it, I'm trying to be sneaky and check email\n2026-09-25 Me: any fires this morning?\n2026-09-25 Jen: like 40 unread, mostly just cc nonsense\n2026-09-25 Me: same, I just archive half of them without reading\n2026-09-25 Jen: wish I could, my boss actually checks\n2026-09-25 Me: ugh micromanager energy\n2026-09-25 Jen: yep. oh and facilities said the lobby is leaking again\n2026-09-25 Me: again?? that building is falling apart\n2026-09-25 Jen: literally buckets out by the elevators\n2026-09-25 Me: be careful walking in there with wet shoes\n2026-09-25 Jen: I know I'm gonna wipe out in front of everyone\n2026-09-25 Me: please don't, I can't laugh through text that hard\n2026-09-25 Jen: rude\n2026-09-25 Me: lovingly rude\n2026-09-25 Jen: okay I need to dry off and pretend to work\n2026-09-25 Me: go get that coffee first\n2026-09-25 Jen: yes, and I'm tossing this umbrella in the trash\n2026-09-25 Me: rip umbrella, it served well\n2026-09-25 Jen: it did for like two years\n2026-09-25 Me: maybe grab a cheap one at the drugstore for the way home?\n2026-09-25 Jen: yeah there's one across the street, I'll check at lunch\n2026-09-25 Me: good plan, hope it stops raining by then\n2026-09-25 Jen: forecast says no, of course\n2026-09-25 Me: of course, it's Friday\n2026-09-25 Jen: talk later, my turn to order\n2026-09-25 Me: go go, stay dry-ish\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: A normal brief exchange about a book Jen has finished. No plans.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Jen finished a detective novel and disliked the ending.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e7e25c326dd611b4423c",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075729.0,
+    "completed_at": 1792075746.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e7e25c326dd611b4423c:rs_01a140098c6a77a4b31d9a97073e87c7",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a 40-80 message iMessage-style conversation with two speakers about a book ending, using only specified labels and time window."
+          },
+          {
+            "type": "summary_text",
+            "text": "Resolving the conflict between no-plans constraint and noise side plans while enforcing speaker label rules."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending speaker label handling and adding time-aware opener while drafting casual low-stakes dialogue without plans."
+          },
+          {
+            "type": "summary_text",
+            "text": "Verifying message counts and speaker balance against the 20-40 range constraint."
+          },
+          {
+            "type": "summary_text",
+            "text": "Confirming the dialogue meets the revised length and timing constraints."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a14009c7cd7312977b2a87e5fbc9b9",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Jen: finally finished that book on the couch\\nMe: oh the detective one?\\nJen: yeah that one\\nJen: took me forever lol\\nMe: did you like it??\\nJen: no the ending sucked so bad\\nMe: nooo really?\\nJen: like the killer was just some random neighbor we met once\\nMe: hate when they do that\\nJen: right? no clues or anything\\nMe: that's so unsatisfying\\nJen: i wanted to throw it across the room\\nMe: did you??\\nJen: no my tea was on the coffee table i didn't want to risk it\\nMe: smart priorities\\nJen: lol exactly\\nMe: what are you having for dinner btw\\nJen: just leftover soup, you?\\nMe: thinking pasta but i'm too lazy to boil water\\nJen: that's literally the easiest part\\nMe: still feels like work rn\\nJen: fair, it's sunday evening brain\\nMe: my cat is back on staring duty\\nJen: creepy gremlin is back\\nMe: yep sitting on the armrest just watching me\\nJen: she knows about the pasta indecision\\nMe: she's judging hard\\nJen: as she should\\nMe: did you end up getting a new umbrella after last time?\\nJen: yeah grabbed a cheap black one at lunch that next monday\\nMe: nice, is it holding up?\\nJen: so far, hasn't even rained much since\\nMe: watch, now that you have one it won't rain\\nJen: literally how it works\\nMe: are you gonna read anything else next or break?\\nJen: gonna take a break i think\\nJen: still annoyed about that ending\\nMe: yeah i would be too, such a waste of a good setup\\nJen: exactly! the first half was actually good\\nMe: maybe donate that one and move on\\nJen: yeah it's going in the donate pile\\nMe: soup and trash tv tonight then?\\nJen: yep soup then early bed\\nMe: same, pasta or cereal, we'll see\", \"writer_note\": \"Kept the voices casual and lowercase like the September thread and buried the book payoff in evening chatter about dinner, the cat, and the replacement umbrella to feel like real Sunday catch-up with no future plans made.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 1420,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2709,
+      "output_tokens_details": {
+        "reasoning_tokens": 2100
+      },
+      "total_tokens": 4129
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Jen: finally finished that book on the couch\\nMe: oh the detective one?\\nJen: yeah that one\\nJen: took me forever lol\\nMe: did you like it??\\nJen: no the ending sucked so bad\\nMe: nooo really?\\nJen: like the killer was just some random neighbor we met once\\nMe: hate when they do that\\nJen: right? no clues or anything\\nMe: that's so unsatisfying\\nJen: i wanted to throw it across the room\\nMe: did you??\\nJen: no my tea was on the coffee table i didn't want to risk it\\nMe: smart priorities\\nJen: lol exactly\\nMe: what are you having for dinner btw\\nJen: just leftover soup, you?\\nMe: thinking pasta but i'm too lazy to boil water\\nJen: that's literally the easiest part\\nMe: still feels like work rn\\nJen: fair, it's sunday evening brain\\nMe: my cat is back on staring duty\\nJen: creepy gremlin is back\\nMe: yep sitting on the armrest just watching me\\nJen: she knows about the pasta indecision\\nMe: she's judging hard\\nJen: as she should\\nMe: did you end up getting a new umbrella after last time?\\nJen: yeah grabbed a cheap black one at lunch that next monday\\nMe: nice, is it holding up?\\nJen: so far, hasn't even rained much since\\nMe: watch, now that you have one it won't rain\\nJen: literally how it works\\nMe: are you gonna read anything else next or break?\\nJen: gonna take a break i think\\nJen: still annoyed about that ending\\nMe: yeah i would be too, such a waste of a good setup\\nJen: exactly! the first half was actually good\\nMe: maybe donate that one and move on\\nJen: yeah it's going in the donate pile\\nMe: soup and trash tv tonight then?\\nJen: yep soup then early bed\\nMe: same, pasta or cereal, we'll see\", \"writer_note\": \"Kept the voices casual and lowercase like the September thread and buried the book payoff in evening chatter about dinner, the cat, and the replacement umbrella to feel like real Sunday catch-up with no future plans made.\"}",
+  "usage": {
+    "input_tokens": 1420,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2709,
+    "output_tokens_details": {
+      "reasoning_tokens": 2100
+    },
+    "total_tokens": 4129
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

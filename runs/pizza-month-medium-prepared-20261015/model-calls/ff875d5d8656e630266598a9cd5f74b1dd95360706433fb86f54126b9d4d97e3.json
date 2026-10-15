@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-15T14:40:52.245147+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels.\nConversation date: 2026-09-19. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 11:00 and 13:25 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-16 Devon: you still at work or home already\n2026-09-16 Me: just walked in like 10 mins ago\n2026-09-16 Devon: same, traffic on 5th was stupid\n2026-09-16 Me: oh yeah they're doing construction again?\n2026-09-16 Devon: yeah by the bank, took forever\n2026-09-16 Me: I just threw laundry in, what's up\n2026-09-16 Devon: was thinking we should grab pizza after work Friday\n2026-09-16 Me: oh that sounds good actually\n2026-09-16 Devon: like Luigi's on 5th Street?\n2026-09-16 Me: yes I've been craving their garlic knots\n2026-09-16 Devon: lol same, 6 pm work?\n2026-09-16 Me: yeah that works for me\n2026-09-16 Devon: perfect, we can beat the dinner rush a little\n2026-09-16 Me: did you end up finishing that report today\n2026-09-16 Devon: ugh almost, still have like one chart to fix\n2026-09-16 Me: I hate when it's just one dumb thing left\n2026-09-16 Devon: right? my boss kept pinging me about it too\n2026-09-16 Me: mine asked me to cover Saturday morning, I said no\n2026-09-16 Devon: good for you, you work too many weekends\n2026-09-16 Me: seriously, I need an actual weekend\n2026-09-16 Devon: so Friday pizza will be like a kickoff\n2026-09-16 Me: exactly, no cooking for me that night\n2026-09-16 Devon: you want to just meet there or carpool?\n2026-09-16 Me: meet there is easier, I'll be coming from office\n2026-09-16 Devon: same, I can park in back like last time\n2026-09-16 Me: oh did your mom ever call back about Sunday?\n2026-09-16 Devon: yeah we're doing lunch at hers, you're invited btw\n2026-09-16 Me: oh nice, tell her I said thanks, I might come\n2026-09-16 Devon: she makes that potato salad you like\n2026-09-16 Me: okay now I definitely have to come lol\n2026-09-16 Devon: lol I told her you'd say that\n2026-09-16 Me: wait did you see the game last night\n2026-09-16 Devon: only the highlights, that ending was wild\n2026-09-16 Me: I screamed so loud the cat ran off\n2026-09-16 Devon: hahaha poor cat\n2026-09-16 Me: she forgave me with treats\n2026-09-16 Devon: so Friday 6 still good? I have to leave work a little early\n2026-09-16 Me: yep, I'll head straight there after I clock out\n2026-09-16 Devon: cool, I'll grab us a table if I get there first\n2026-09-16 Me: sounds good, I'll text when I'm parking\n2026-09-16 Devon: btw did you pay the electric bill? I forgot last month\n2026-09-16 Me: yeah I did autopay finally, so tired of late fees\n2026-09-16 Devon: smart, I should do that too\n2026-09-16 Me: it took like 5 mins online\n2026-09-16 Devon: I'll do it tomorrow on lunch\n2026-09-16 Me: okay, pizza Friday then\n2026-09-16 Devon: yep, can't wait honestly\n2026-09-16 Me: me too, been too long since Luigi's\n2026-09-16 Devon: for real, like a month?\n2026-09-16 Me: at least, see you at 6\n2026-09-16 Devon: see ya\n2026-09-16 Me: night!\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: A short exchange about leftover pizza and whether it reheats better in a pan. No new outing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Devon says yesterday's Luigi's leftovers were good reheated.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e5f46b44126d28e244dd",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075238.0,
+    "completed_at": 1792075252.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e5f46b44126d28e244dd:rs_01a140020ba27122afb4752745bd223c",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Constructing an iMessage dialogue with Me and Devon labels, ensuring Me is only the speaker label and Devon references yesterday's Luigi's leftovers."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting the 40-80 message iMessage thread with consistent labels and medium noise."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the iMessage thread with speaker labels, reheating details, and time references while keeping pronoun use inside messages."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating speaker turn counts and temporal consistency while confirming no new outing is introduced."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a140023c607457bf35ee5936db3451",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Devon: you up yet\\nMe: yeah just put coffee on\\nDevon: nice, I'm on cup two already\\nMe: damn slow down lol\\nDevon: can't, cat was screaming at 8am for food\\nMe: mine did laps around the bed at 7\\nDevon: they should hang out and leave us alone\\nMe: fr, you eat breakfast yet\\nDevon: not yet, just had that leftover slice from yesterday\\nMe: ohh from Luigi's?\\nDevon: yeah, yesterday's Luigi's leftovers were so good reheated\\nMe: how'd you reheat it? microwave?\\nDevon: nah did the pan trick with a lid\\nMe: oh does that actually work better?\\nDevon: way better, crust stays crispy\\nMe: I always just nuke it and it goes soggy\\nDevon: yeah microwave kills it, pan is like 5 mins and done\\nMe: do you put oil or just dry pan?\\nDevon: just dry on medium, then splash of water and lid at the end\\nMe: wait water in a hot pan? doesn't that steam it?\\nDevon: yeah that's the point, melts the cheese without burning bottom\\nMe: huh smart, I have two slices left in the fridge\\nDevon: try it, you'll never go back\\nMe: I might for lunch in a bit, starving\\nDevon: same, that one slice was just a tease\\nMe: lol you want to come grab mine? jk\\nDevon: tempting tbh, garlic knots are already gone tho right\\nMe: oh yeah those didn't survive the night\\nDevon: same here, I ate mine in the car almost\\nMe: no self control with those\\nDevon: zero, btw did you finish laundry from the other day\\nMe: mostly, still have a load in the dryer\\nDevon: I still need to do mine, no clean socks\\nMe: classic, you always run out of socks first\\nDevon: it's a talent honestly\\nMe: you still doing lunch at your mom's tomorrow?\\nDevon: yeah, she texted this morning about it\\nMe: still making that potato salad?\\nDevon: yep, she said she's making extra cause of you lol\\nMe: tell her I love her, I'll probably come by after noon\\nDevon: I'll let her know, no pressure tho\\nMe: did work ever bug you about that chart again?\\nDevon: nope finished it yesterday before I left, thank god\\nMe: nice, okay I'm gonna try that pan thing now\", \"writer_note\": \"Anchored the chat in a lazy Saturday late-morning with coffee and cats, then let the leftover pizza and pan-reheat tip emerge naturally before drifting into laundry and Sunday lunch callbacks.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 1459,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2235,
+      "output_tokens_details": {
+        "reasoning_tokens": 1524
+      },
+      "total_tokens": 3694
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Devon: you up yet\\nMe: yeah just put coffee on\\nDevon: nice, I'm on cup two already\\nMe: damn slow down lol\\nDevon: can't, cat was screaming at 8am for food\\nMe: mine did laps around the bed at 7\\nDevon: they should hang out and leave us alone\\nMe: fr, you eat breakfast yet\\nDevon: not yet, just had that leftover slice from yesterday\\nMe: ohh from Luigi's?\\nDevon: yeah, yesterday's Luigi's leftovers were so good reheated\\nMe: how'd you reheat it? microwave?\\nDevon: nah did the pan trick with a lid\\nMe: oh does that actually work better?\\nDevon: way better, crust stays crispy\\nMe: I always just nuke it and it goes soggy\\nDevon: yeah microwave kills it, pan is like 5 mins and done\\nMe: do you put oil or just dry pan?\\nDevon: just dry on medium, then splash of water and lid at the end\\nMe: wait water in a hot pan? doesn't that steam it?\\nDevon: yeah that's the point, melts the cheese without burning bottom\\nMe: huh smart, I have two slices left in the fridge\\nDevon: try it, you'll never go back\\nMe: I might for lunch in a bit, starving\\nDevon: same, that one slice was just a tease\\nMe: lol you want to come grab mine? jk\\nDevon: tempting tbh, garlic knots are already gone tho right\\nMe: oh yeah those didn't survive the night\\nDevon: same here, I ate mine in the car almost\\nMe: no self control with those\\nDevon: zero, btw did you finish laundry from the other day\\nMe: mostly, still have a load in the dryer\\nDevon: I still need to do mine, no clean socks\\nMe: classic, you always run out of socks first\\nDevon: it's a talent honestly\\nMe: you still doing lunch at your mom's tomorrow?\\nDevon: yeah, she texted this morning about it\\nMe: still making that potato salad?\\nDevon: yep, she said she's making extra cause of you lol\\nMe: tell her I love her, I'll probably come by after noon\\nDevon: I'll let her know, no pressure tho\\nMe: did work ever bug you about that chart again?\\nDevon: nope finished it yesterday before I left, thank god\\nMe: nice, okay I'm gonna try that pan thing now\", \"writer_note\": \"Anchored the chat in a lazy Saturday late-morning with coffee and cats, then let the leftover pizza and pan-reheat tip emerge naturally before drifting into laundry and Sunday lunch callbacks.\"}",
+  "usage": {
+    "input_tokens": 1459,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2235,
+    "output_tokens_details": {
+      "reasoning_tokens": 1524
+    },
+    "total_tokens": 3694
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

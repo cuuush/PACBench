@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T14:39:09.994964+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels.\nConversation date: 2026-09-16. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 21:10 local time. Keep references to the current time of day consistent with that window.\nScenario: Devon suggests pizza after work Friday and the user agrees. One ordinary aside is fine.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. They agree to pizza this Friday at 6 pm at Luigi's on 5th Street.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e58dbba45fcb6b044989",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075138.0,
+    "completed_at": 1792075149.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e58dbba45fcb6b044989:rs_01a140008428730fb6afeb88426cd8a5",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Verifying date and message count constraints while framing an iMessage conversation with balanced turns and evening timestamps."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding speaker label constraints and a concrete evening meetup proposal with location and time."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the dialogue with acceptance phrasing, message count, and side chatter while keeping the evening setting."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a14000ac5e772088a03d9b3bdcd4e1",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Devon: you still at work or home already\\nMe: just walked in like 10 mins ago\\nDevon: same, traffic on 5th was stupid\\nMe: oh yeah they're doing construction again?\\nDevon: yeah by the bank, took forever\\nMe: I just threw laundry in, what's up\\nDevon: was thinking we should grab pizza after work Friday\\nMe: oh that sounds good actually\\nDevon: like Luigi's on 5th Street?\\nMe: yes I've been craving their garlic knots\\nDevon: lol same, 6 pm work?\\nMe: yeah that works for me\\nDevon: perfect, we can beat the dinner rush a little\\nMe: did you end up finishing that report today\\nDevon: ugh almost, still have like one chart to fix\\nMe: I hate when it's just one dumb thing left\\nDevon: right? my boss kept pinging me about it too\\nMe: mine asked me to cover Saturday morning, I said no\\nDevon: good for you, you work too many weekends\\nMe: seriously, I need an actual weekend\\nDevon: so Friday pizza will be like a kickoff\\nMe: exactly, no cooking for me that night\\nDevon: you want to just meet there or carpool?\\nMe: meet there is easier, I'll be coming from office\\nDevon: same, I can park in back like last time\\nMe: oh did your mom ever call back about Sunday?\\nDevon: yeah we're doing lunch at hers, you're invited btw\\nMe: oh nice, tell her I said thanks, I might come\\nDevon: she makes that potato salad you like\\nMe: okay now I definitely have to come lol\\nDevon: lol I told her you'd say that\\nMe: wait did you see the game last night\\nDevon: only the highlights, that ending was wild\\nMe: I screamed so loud the cat ran off\\nDevon: hahaha poor cat\\nMe: she forgave me with treats\\nDevon: so Friday 6 still good? I have to leave work a little early\\nMe: yep, I'll head straight there after I clock out\\nDevon: cool, I'll grab us a table if I get there first\\nMe: sounds good, I'll text when I'm parking\\nDevon: btw did you pay the electric bill? I forgot last month\\nMe: yeah I did autopay finally, so tired of late fees\\nDevon: smart, I should do that too\\nMe: it took like 5 mins online\\nDevon: I'll do it tomorrow on lunch\\nMe: okay, pizza Friday then\\nDevon: yep, can't wait honestly\\nMe: me too, been too long since Luigi's\\nDevon: for real, like a month?\\nMe: at least, see you at 6\\nDevon: see ya\\nMe: night!\", \"writer_note\": \"Built the plan in small steps across evening chatter so the time and place feel settled naturally, and used work, family lunch, and everyday errands as medium noise around it.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 513,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2505,
+      "output_tokens_details": {
+        "reasoning_tokens": 1764
+      },
+      "total_tokens": 3018
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Devon: you still at work or home already\\nMe: just walked in like 10 mins ago\\nDevon: same, traffic on 5th was stupid\\nMe: oh yeah they're doing construction again?\\nDevon: yeah by the bank, took forever\\nMe: I just threw laundry in, what's up\\nDevon: was thinking we should grab pizza after work Friday\\nMe: oh that sounds good actually\\nDevon: like Luigi's on 5th Street?\\nMe: yes I've been craving their garlic knots\\nDevon: lol same, 6 pm work?\\nMe: yeah that works for me\\nDevon: perfect, we can beat the dinner rush a little\\nMe: did you end up finishing that report today\\nDevon: ugh almost, still have like one chart to fix\\nMe: I hate when it's just one dumb thing left\\nDevon: right? my boss kept pinging me about it too\\nMe: mine asked me to cover Saturday morning, I said no\\nDevon: good for you, you work too many weekends\\nMe: seriously, I need an actual weekend\\nDevon: so Friday pizza will be like a kickoff\\nMe: exactly, no cooking for me that night\\nDevon: you want to just meet there or carpool?\\nMe: meet there is easier, I'll be coming from office\\nDevon: same, I can park in back like last time\\nMe: oh did your mom ever call back about Sunday?\\nDevon: yeah we're doing lunch at hers, you're invited btw\\nMe: oh nice, tell her I said thanks, I might come\\nDevon: she makes that potato salad you like\\nMe: okay now I definitely have to come lol\\nDevon: lol I told her you'd say that\\nMe: wait did you see the game last night\\nDevon: only the highlights, that ending was wild\\nMe: I screamed so loud the cat ran off\\nDevon: hahaha poor cat\\nMe: she forgave me with treats\\nDevon: so Friday 6 still good? I have to leave work a little early\\nMe: yep, I'll head straight there after I clock out\\nDevon: cool, I'll grab us a table if I get there first\\nMe: sounds good, I'll text when I'm parking\\nDevon: btw did you pay the electric bill? I forgot last month\\nMe: yeah I did autopay finally, so tired of late fees\\nDevon: smart, I should do that too\\nMe: it took like 5 mins online\\nDevon: I'll do it tomorrow on lunch\\nMe: okay, pizza Friday then\\nDevon: yep, can't wait honestly\\nMe: me too, been too long since Luigi's\\nDevon: for real, like a month?\\nMe: at least, see you at 6\\nDevon: see ya\\nMe: night!\", \"writer_note\": \"Built the plan in small steps across evening chatter so the time and place feel settled naturally, and used work, family lunch, and everyday errands as medium noise around it.\"}",
+  "usage": {
+    "input_tokens": 513,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2505,
+    "output_tokens_details": {
+      "reasoning_tokens": 1764
+    },
+    "total_tokens": 3018
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

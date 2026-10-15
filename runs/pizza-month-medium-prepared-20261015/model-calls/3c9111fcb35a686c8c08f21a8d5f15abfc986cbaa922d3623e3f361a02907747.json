@@ -1,0 +1,125 @@
+{
+  "created_at": "2026-10-15T14:53:36.693716+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels.\nConversation date: 2026-09-18. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 12:15 and 12:55 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-09-15 Maya: finally home ugh\n2026-09-15 Me: same, took me forever to get out of the parking lot\n2026-09-15 Maya: did you end up staying late?\n2026-09-15 Me: yeah like 20 mins, nothing crazy\n2026-09-15 Maya: nice, I'm just heating up leftovers\n2026-09-15 Me: what'd you have?\n2026-09-15 Maya: that veggie stir fry from yesterday, still pretty good\n2026-09-15 Me: oh nice, I had a sad desk salad lol\n2026-09-15 Maya: lol classic\n2026-09-15 Maya: hey we still need to catch up properly soon\n2026-09-15 Me: yes! it's been too long\n2026-09-15 Maya: wanna do something easy like pizza on Friday?\n2026-09-15 Me: yes please, I'm craving pizza\n2026-09-15 Maya: same, how about Rosa's on Oak Street?\n2026-09-15 Me: oh I love that place\n2026-09-15 Maya: right? their garlic knots are dangerous\n2026-09-15 Me: seriously, I always eat too many\n2026-09-15 Maya: okay so Friday at 1 pm?\n2026-09-15 Me: yeah that works for me\n2026-09-15 Maya: perfect\n2026-09-15 Me: are you working from home that day?\n2026-09-15 Maya: yeah, so I can just walk over\n2026-09-15 Me: nice, I'm in office but I can slip out for lunch\n2026-09-15 Maya: how long can you stay?\n2026-09-15 Me: probably like an hour, hour and a half?\n2026-09-15 Maya: that's plenty\n2026-09-15 Me: did you see they redid the patio there?\n2026-09-15 Maya: no! is it nice now?\n2026-09-15 Me: yeah way more tables, less wobbly chairs lol\n2026-09-15 Maya: thank god those chairs were scary\n2026-09-15 Me: right?\n2026-09-15 Maya: btw are you still doing that pottery class?\n2026-09-15 Me: yeah tomorrow night is week 3\n2026-09-15 Maya: how's it going?\n2026-09-15 Me: messy but fun, my bowl looks lopsided\n2026-09-15 Maya: that's the charm tho\n2026-09-15 Me: that's what the teacher says too lol\n2026-09-15 Maya: my sister wants to join one, I'll send her your studio\n2026-09-15 Me: yes do it, Tuesday guy is super chill\n2026-09-15 Maya: oh cool, I'll tell her\n2026-09-15 Me: what are you up to tomorrow?\n2026-09-15 Maya: just work and laundry, thrilling stuff\n2026-09-15 Me: lol same, I need to water my plants too they're dying\n2026-09-15 Maya: oh no, my basil already gave up\n2026-09-15 Me: RIP basil\n2026-09-15 Maya: lol it'll be resurrected from the grocery store\n2026-09-15 Me: hahaha fair\n2026-09-15 Maya: okay so I'm excited for Friday, been craving their pepperoni\n2026-09-15 Me: same, I'm getting a side salad to pretend I'm healthy\n2026-09-15 Maya: lol get the knots too, balance\n2026-09-15 Me: exactly, perfect balance\n2026-09-15 Maya: okay gonna go eat before this gets cold, talk later?\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Maya is a few minutes behind for the lunch already arranged in this DM; the user is relaxed.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Maya says she is five minutes late for their 1 pm pizza at Rosa's today; the meeting is not rescheduled.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e8f07b11a031d7464b56",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792076000.0,
+    "completed_at": 1792076016.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e8f07b11a031d7464b56:rs_01a1400dab847790a3c41f266530bff5",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a fictional iMessage conversation with specified speaker labels and timestamp constraints."
+          },
+          {
+            "type": "summary_text",
+            "text": "Enforcing time-window consistency and message-count limits while keeping dialogue natural."
+          },
+          {
+            "type": "summary_text",
+            "text": "Structuring a 44-line dialogue with timestamped 12:15–12:55 chatter while embedding the 1pm Rosa’s plan and five-minute delay without rescheduling."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting 44 timestamped lines with alternating speaker bursts and a writer’s note."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a1400dcdb870bf9f5d8a24b9734e34",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: heyy still good for today?\\nMe: yess I'm counting down to pizza lol\\nMaya: same, my stomach already decided\\nMaya: heads up tho I'm running like 5 mins late for our 1pm at Rosa's\\nMe: oh totally fine, no rush at all\\nMaya: laundry took over my life and now I can't find my other shoe\\nMe: lol classic friday\\nMaya: right?? wfh problems\\nMe: I'm still stuck in office hell but I can slip out in a bit\\nMaya: how's your morning been?\\nMe: endless emails, I barely got anything real done\\nMaya: ugh same, I had like 3 calls that could've been texts\\nMe: literally always\\nMaya: did you end up watering your plants?\\nMe: I did yesterday and they already look less dramatic\\nMaya: proud of you, plant parent redemption\\nMe: how's your grocery store basil doing lol\\nMaya: hanging in there, I actually remembered to put it by the window\\nMe: growth\\nMaya: btw did I tell you my sister looked up that pottery studio?\\nMe: oh nice! did she like it?\\nMaya: yeah she said the Tuesday guy sounds perfect for her schedule\\nMe: he's super chill, she'll love him\\nMaya: how'd your lopsided bowl turn out this week?\\nMe: even more lopsided but the glaze saved it kinda\\nMaya: that's art tho\\nMe: that's what I'm telling myself\\nMaya: save me a spot on that new patio if you get there first?\\nMe: yes I'll grab us a table, I wanna test those non-wobbly chairs\\nMaya: lol please do, I don't trust my balance today\\nMe: I'll get us water and hold down the fort\\nMaya: you're the best, I'll walk over right after I find this shoe\\nMe: take your time, I'm still gonna need like 20 mins to escape here\\nMaya: perfect, then my 5 mins late won't even matter\\nMe: exactly, we'll basically arrive at the same time\\nMaya: are you still doing salad + knots for balance?\\nMe: you know me so well, gotta pretend to be healthy\\nMaya: I'm going full pepperoni today, no regrets\\nMe: as you should\\nMaya: oh did they still have that lunch special you mentioned?\\nMe: I think so, I'll check the board when I'm there\\nMaya: cool, if not I'm still getting the usual\\nMe: same, garlic knots are non-negotiable\\nMaya: dangerous but necessary\\nMe: okay I should actually do a little work before I sneak out lol\\nMaya: yeah me too, let me put laundry in the dryer real quick\\nMe: good luck with the shoe hunt\\nMaya: thank you, if I'm still shoeless I'll just show up in slippers\\nMe: honestly that would be iconic\", \"writer_note\": \"Kept Maya's delay casual and preemptive to fit the 12:15-12:55 window before the 1pm meetup, with Me relaxed and holding the table so the plan stays on. Wove in callbacks to pottery, plants, basil, and garlic knots for medium noise and continuity.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 1419,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2113,
+      "output_tokens_details": {
+        "reasoning_tokens": 1299
+      },
+      "total_tokens": 3532
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: heyy still good for today?\\nMe: yess I'm counting down to pizza lol\\nMaya: same, my stomach already decided\\nMaya: heads up tho I'm running like 5 mins late for our 1pm at Rosa's\\nMe: oh totally fine, no rush at all\\nMaya: laundry took over my life and now I can't find my other shoe\\nMe: lol classic friday\\nMaya: right?? wfh problems\\nMe: I'm still stuck in office hell but I can slip out in a bit\\nMaya: how's your morning been?\\nMe: endless emails, I barely got anything real done\\nMaya: ugh same, I had like 3 calls that could've been texts\\nMe: literally always\\nMaya: did you end up watering your plants?\\nMe: I did yesterday and they already look less dramatic\\nMaya: proud of you, plant parent redemption\\nMe: how's your grocery store basil doing lol\\nMaya: hanging in there, I actually remembered to put it by the window\\nMe: growth\\nMaya: btw did I tell you my sister looked up that pottery studio?\\nMe: oh nice! did she like it?\\nMaya: yeah she said the Tuesday guy sounds perfect for her schedule\\nMe: he's super chill, she'll love him\\nMaya: how'd your lopsided bowl turn out this week?\\nMe: even more lopsided but the glaze saved it kinda\\nMaya: that's art tho\\nMe: that's what I'm telling myself\\nMaya: save me a spot on that new patio if you get there first?\\nMe: yes I'll grab us a table, I wanna test those non-wobbly chairs\\nMaya: lol please do, I don't trust my balance today\\nMe: I'll get us water and hold down the fort\\nMaya: you're the best, I'll walk over right after I find this shoe\\nMe: take your time, I'm still gonna need like 20 mins to escape here\\nMaya: perfect, then my 5 mins late won't even matter\\nMe: exactly, we'll basically arrive at the same time\\nMaya: are you still doing salad + knots for balance?\\nMe: you know me so well, gotta pretend to be healthy\\nMaya: I'm going full pepperoni today, no regrets\\nMe: as you should\\nMaya: oh did they still have that lunch special you mentioned?\\nMe: I think so, I'll check the board when I'm there\\nMaya: cool, if not I'm still getting the usual\\nMe: same, garlic knots are non-negotiable\\nMaya: dangerous but necessary\\nMe: okay I should actually do a little work before I sneak out lol\\nMaya: yeah me too, let me put laundry in the dryer real quick\\nMe: good luck with the shoe hunt\\nMaya: thank you, if I'm still shoeless I'll just show up in slippers\\nMe: honestly that would be iconic\", \"writer_note\": \"Kept Maya's delay casual and preemptive to fit the 12:15-12:55 window before the 1pm meetup, with Me relaxed and holding the table so the plan stays on. Wove in callbacks to pottery, plants, basil, and garlic knots for medium noise and continuity.\"}",
+  "usage": {
+    "input_tokens": 1419,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2113,
+    "output_tokens_details": {
+      "reasoning_tokens": 1299
+    },
+    "total_tokens": 3532
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

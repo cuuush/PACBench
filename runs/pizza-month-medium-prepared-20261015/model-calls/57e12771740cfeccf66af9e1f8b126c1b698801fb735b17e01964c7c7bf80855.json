@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T14:41:21.490146+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex. Use only these speaker labels.\nConversation date: 2026-09-20. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 16:00 and 19:10 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex sends a picture description of a comically small houseplant and the user teases him. No plans are made.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex bought a tiny basil plant.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e611e900a76c0c774c15",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075264.0,
+    "completed_at": 1792075281.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e611e900a76c0c774c15:rs_01a140027170717e8ec3e66956c70830",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Applying iMessage formatting rules for speaker labels and pronouns while separating user label from message content."
+          },
+          {
+            "type": "summary_text",
+            "text": "Enforcing speaker label constraints and time-of-day consistency while drafting short mixed-topic message bursts."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending constraints to forbid future plans and bracketed media while keeping message count and speaker format."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a140028ac07587b0fec5032fc83b7b",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Alex: dude you won't believe what i just brought home\\nMe: what did you do now\\nAlex: okay so i stopped at that little nursery by the grocery store\\nAlex: just to look, i swear\\nMe: uh huh, famous last words\\nAlex: they had this table of herbs for like 3 bucks\\nAlex: and i got a basil plant\\nMe: nice, are you becoming a chef now\\nAlex: wait till you see it tho\\nAlex: it's in this thimble sized pot, like literally shot glass size\\nAlex: i put it next to my mug and the mug is towering over it\\nMe: lol no way, how small are we talking\\nAlex: like three leaves small. THREE\\nAlex: the leaves are the size of my fingernail\\nMe: alex that's not a plant that's a garnish\\nAlex: shut up it's cute okay\\nMe: did you buy it for cooking or as a pet\\nAlex: both? i figured i'd put it on the windowsill\\nAlex: but now it looks ridiculous next to the succulent\\nMe: your succulent is gonna bully it for lunch money\\nAlex: seriously my coffee spoon is bigger than the pot\\nAlex: the cashier was like \\\"good luck with that one\\\"\\nMe: even she knew you got scammed\\nAlex: it was $3.50! for basil!\\nMe: you paid $3.50 for three leaves, that's like a dollar a leaf\\nAlex: don't do the math, it hurts\\nAlex: i watered it with like a tablespoon and i think i almost drowned it\\nMe: please tell me you took a picture of this crime\\nAlex: yeah i just sent you one in my head, picture my keys next to it and the keys win\\nMe: so you're saying your houseplant is smaller than your house keys\\nAlex: way smaller. the key fob is basically its big brother\\nMe: are you sure that's basil and not just a weed they sold you\\nAlex: it smells like basil! i rubbed one leaf and now i feel guilty\\nMe: you used up 33% of your plant for a smell test\\nAlex: omg stop, i'm trying to keep it alive\\nAlex: anyway how's your sunday going, mine is clearly very productive\\nMe: lol mine's just laundry hell right now\\nMe: washer's going, dryer is beeping at me\\nAlex: ugh sunday laundry is the worst\\nAlex: i still have that pile of shirts on my chair\\nMe: same, my couch is covered so i'm camped on the floor\\nAlex: priorities. did you see the game earlier?\\nMe: caught the second half, that call in the 4th was wild\\nAlex: right?? i yelled and scared the basil\\nMe: oh no, you blew it over with your yelling\\nAlex: almost, it's so light the pot moved when i sneezed\\nMe: you need to tie it down like a tent in the wind\\nAlex: i'm gonna have to repot it if it survives the week\\nMe: if? you already giving it a eulogy\\nAlex: i give it like a 50/50 chance tbh, my windowsill gets weird sun\\nMe: just don't overwater it again mr tablespoon\\nAlex: it looked thirsty! those three leaves were drooping\\nMe: it's dramatic already, fits right in with you\\nAlex: rude but fair\\nAlex: my mom would laugh so hard if she saw this\\nMe: send her the keys comparison, she'll think you're joking\\nAlex: i might, she keeps telling me to get more green stuff in the apartment\\nMe: well technically you did, like 2 grams of green\\nAlex: i'm counting it. one plant is one plant\\nMe: okay plant dad, go sing to your three leaves\\nAlex: i will, and when i make pesto in like 10 years you'll be sorry\", \"writer_note\": \"Made Alex describe the photo comparison in text instead of using an attachment marker, let Me's teasing build leaf-by-leaf, and wove in laundry and football chatter to keep the basil bit feeling like Sunday afternoon noise without making any plans.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 508,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2079,
+      "output_tokens_details": {
+        "reasoning_tokens": 1109
+      },
+      "total_tokens": 2587
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Alex: dude you won't believe what i just brought home\\nMe: what did you do now\\nAlex: okay so i stopped at that little nursery by the grocery store\\nAlex: just to look, i swear\\nMe: uh huh, famous last words\\nAlex: they had this table of herbs for like 3 bucks\\nAlex: and i got a basil plant\\nMe: nice, are you becoming a chef now\\nAlex: wait till you see it tho\\nAlex: it's in this thimble sized pot, like literally shot glass size\\nAlex: i put it next to my mug and the mug is towering over it\\nMe: lol no way, how small are we talking\\nAlex: like three leaves small. THREE\\nAlex: the leaves are the size of my fingernail\\nMe: alex that's not a plant that's a garnish\\nAlex: shut up it's cute okay\\nMe: did you buy it for cooking or as a pet\\nAlex: both? i figured i'd put it on the windowsill\\nAlex: but now it looks ridiculous next to the succulent\\nMe: your succulent is gonna bully it for lunch money\\nAlex: seriously my coffee spoon is bigger than the pot\\nAlex: the cashier was like \\\"good luck with that one\\\"\\nMe: even she knew you got scammed\\nAlex: it was $3.50! for basil!\\nMe: you paid $3.50 for three leaves, that's like a dollar a leaf\\nAlex: don't do the math, it hurts\\nAlex: i watered it with like a tablespoon and i think i almost drowned it\\nMe: please tell me you took a picture of this crime\\nAlex: yeah i just sent you one in my head, picture my keys next to it and the keys win\\nMe: so you're saying your houseplant is smaller than your house keys\\nAlex: way smaller. the key fob is basically its big brother\\nMe: are you sure that's basil and not just a weed they sold you\\nAlex: it smells like basil! i rubbed one leaf and now i feel guilty\\nMe: you used up 33% of your plant for a smell test\\nAlex: omg stop, i'm trying to keep it alive\\nAlex: anyway how's your sunday going, mine is clearly very productive\\nMe: lol mine's just laundry hell right now\\nMe: washer's going, dryer is beeping at me\\nAlex: ugh sunday laundry is the worst\\nAlex: i still have that pile of shirts on my chair\\nMe: same, my couch is covered so i'm camped on the floor\\nAlex: priorities. did you see the game earlier?\\nMe: caught the second half, that call in the 4th was wild\\nAlex: right?? i yelled and scared the basil\\nMe: oh no, you blew it over with your yelling\\nAlex: almost, it's so light the pot moved when i sneezed\\nMe: you need to tie it down like a tent in the wind\\nAlex: i'm gonna have to repot it if it survives the week\\nMe: if? you already giving it a eulogy\\nAlex: i give it like a 50/50 chance tbh, my windowsill gets weird sun\\nMe: just don't overwater it again mr tablespoon\\nAlex: it looked thirsty! those three leaves were drooping\\nMe: it's dramatic already, fits right in with you\\nAlex: rude but fair\\nAlex: my mom would laugh so hard if she saw this\\nMe: send her the keys comparison, she'll think you're joking\\nAlex: i might, she keeps telling me to get more green stuff in the apartment\\nMe: well technically you did, like 2 grams of green\\nAlex: i'm counting it. one plant is one plant\\nMe: okay plant dad, go sing to your three leaves\\nAlex: i will, and when i make pesto in like 10 years you'll be sorry\", \"writer_note\": \"Made Alex describe the photo comparison in text instead of using an attachment marker, let Me's teasing build leaf-by-leaf, and wove in laundry and football chatter to keep the basil bit feeling like Sunday afternoon noise without making any plans.\"}",
+  "usage": {
+    "input_tokens": 508,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2079,
+    "output_tokens_details": {
+      "reasoning_tokens": 1109
+    },
+    "total_tokens": 2587
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

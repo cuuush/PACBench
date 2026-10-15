@@ -61,3 +61,16 @@ def test_pending_native_capture_is_not_a_zero_future_cost(tmp_path):
     # Portable evidence keeps the observation without exporting the private DB.
     database.unlink()
     assert processing_debt(tmp_path,'memcal')==debt
+
+
+def test_replaced_attempt_cost_does_not_disappear_or_blend_into_selected_arm(tmp_path):
+    save(tmp_path/'summary.json',{'input_hash':'synthetic','results':[],
+        'other_attempts':[{'provider':'local','state':'interrupted','evidence':'attempts/old/local'}]})
+    old=tmp_path/'attempts/old/local'
+    save(old/'model-usage.json',{'state':'captured','calls':[call('before-restart','memory_provider','uncertain',.1)]})
+    save(old/'ingestion/one.json',{'ready':True})
+    report=review(tmp_path,ledger=tmp_path/'absent')
+    assert report['providers']==[]
+    attempt=report['other_attempts'][0]
+    assert attempt['daily_batches_ready']==1
+    assert attempt['cost']['memory_provider']['held_usd']==.1

@@ -36,3 +36,5 @@ opening receives normal credit. The published diagnostic used the earlier strict
 condition. See [the tool boundary](docs/provider-tool-boundary.md).
 
 Independent provider jobs can share `--question-dir` to reuse reviewed recovery wording safely. Publish source-identical terminal runs with `python -m pacbench.publish_run <run> [<run> ...] --preflight <canary-run> --output runs/<current>`, then `python -m pacbench.cost_review runs/<current>`. Publication excludes private state, preserves colliding model-call filenames under component paths, and keeps failed native canaries separate from month answers.
+
+For reruns, use `--select provider=<run-path>` to select an arm explicitly. Earlier attempts stay separate with their original evidence and costs; completed arms in an interrupted matrix can be audited with `python -m pacbench.native_audit <run> --providers mem0 hindsight`.

@@ -16,8 +16,9 @@ from .tool_policy import SUPPORTED_VERSIONS, policy_record
 from .source_policy import source_read_blocked
 
 
-def audit(root: Path) -> dict:
+def audit(root: Path, *, providers=None) -> dict:
     errors = []
+    selected=set(providers) if providers is not None else None
     def read(path):
         return json.loads(path.read_text())
     def check(ok, message):
@@ -50,7 +51,11 @@ def audit(root: Path) -> dict:
         check(contract.contract_hash == summary['contract_hash'], 'contract hash mismatch')
         check(len(messages) == summary['message_count'], 'message count mismatch')
         check(bool(summary['results']), 'no provider results')
+        if selected is not None:
+            check(bool(selected) and selected<={r['provider'] for r in summary['results']},
+                  'selected providers missing from run')
         for result in summary['results']:
+            if selected is not None and result['provider'] not in selected:continue
             label = f"repeat-{result.get('repetition', '?')}/{result.get('provider', '?')}"
             try:
                 arm = root / f"repeat-{result['repetition']}" / result['provider']
@@ -145,14 +150,16 @@ def audit(root: Path) -> dict:
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
         errors.append(f'{type(exc).__name__}: {exc}')
     return {'state': 'pass' if not errors else 'fail', 'errors': errors,
+            **({'selected_providers':sorted(selected)} if providers is not None else {}),
             'scope': 'native trace integrity, not calibrated provider quality'}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path)
+    parser.add_argument('--providers',nargs='+',help='Audit only these explicitly selected provider arms')
     args = parser.parse_args()
-    report = audit(args.run)
+    report = audit(args.run,providers=args.providers)
     print(json.dumps(report, indent=2))
     return int(bool(report['errors']))
 

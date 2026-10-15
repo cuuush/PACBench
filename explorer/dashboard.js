@@ -397,7 +397,7 @@ function costPage(run) {
   const money = value => value == null ? 'unknown' : '$' + Number(value).toFixed(6);
   return '<section class="stage"><h2>Observed costs</h2>' +
     '<p>These are costs through each arm’s recorded cutoff. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
-    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes</th><th>Provider internals</th><th>Held reservations</th><th>Model calls</th><th>Workload complete</th></tr></thead><tbody>' +
+    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes</th><th>Provider internals</th><th>Held reservations</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
     review.providers.map(row => {
       const h = row.cost?.hermes, p = row.cost?.memory_provider, counts = row.initial_counts;
       const held = h && p && h.held_usd != null && p.held_usd != null ? h.held_usd + p.held_usd : null;
@@ -405,9 +405,11 @@ function costPage(run) {
         '</td><td>' + esc(row.retention_max_graded ? row.retention_points + ' / ' + row.retention_max_graded : 'ungraded') +
         '</td><td>' + money(h?.settled_upper_bound_usd) + '</td><td>' + money(p?.settled_upper_bound_usd) +
         '</td><td>' + money(held) + '</td><td>' + esc(h && p ? h.model_requests + p.model_requests : 'unknown') +
-        '</td><td>' + (row.complete_for_cost_comparison ? 'yes' : 'no') + '</td></tr>';
+        '</td><td>' + (row.complete_for_cost_comparison ? 'yes' : 'no') + '</td><td>' +
+        esc(row.state === 'not-run' ? 'not run' : row.deferred_processing?.pending_items != null ? row.deferred_processing.pending_items + ' pending' : 'unobserved') + '</td></tr>';
     }).join('') + '</tbody></table></div>' +
     review.providers.map(row => details(row.provider + ' · phases, tokens and deferred work', dump(row))).join('') +
+    (review.other_attempts?.length ? details('Previous and interrupted attempts · separate costs',dump(review.other_attempts)) : '') +
     details('Cost scope and limitations', dump(review.scope)) + '</section>';
 }
 function technicalPage(run) {

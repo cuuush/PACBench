@@ -46,8 +46,21 @@ def processing_debt(arm,provider):
         'reason':'No native queue inspection receipt; the completed workload does not prove all deferred processing finished.'}
 
 
+def refreshed_calls(calls,connection):
+    actual={}
+    for call in calls:
+        current=connection.execute('SELECT state,accounted,input_tokens,output_tokens,http_status FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
+        actual[call['id']]={**call,**({**dict(current),'accounted_upper_bound_usd':current['accounted']/1e9} if current else {})}
+    return actual
+
+
+def role_totals(calls):
+    return {role:summarize([c for c in calls if c.get('role')==role])
+            for role in ('hermes','memory_provider')}
+
+
 def review(root,*,ledger=STATE/'ledger.sqlite3'):
-    summary=read(root/'summary.json');results=[];connection=None
+    summary=read(root/'summary.json');results=[];other_attempts=[];connection=None
     if ledger.exists():
         connection=sqlite3.connect(f'file:{ledger}?mode=ro',uri=True);connection.row_factory=sqlite3.Row
     try:
@@ -58,10 +71,7 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                     'complete_for_cost_comparison':False,'lifecycle_cost_complete':False,'cost':None});continue
             snapshot=read(arm/'model-usage.json') if (arm/'model-usage.json').exists() else {'calls':[]}
             capture_available=snapshot.get('state')=='captured'
-            actual={}
-            for call in snapshot['calls']:
-                current=connection.execute('SELECT state,accounted,input_tokens,output_tokens,http_status FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
-                actual[call['id']]={**call,**({**dict(current),'accounted_upper_bound_usd':current['accounted']/1e9} if current else {})}
+            actual=refreshed_calls(snapshot['calls'],connection)
             phases={}
             patterns={'ingestion':'ingestion/*.json','initial':'turns/*/usage.json','followups':'turns/*/followups/*/usage.json'}
             assigned=set()
@@ -74,8 +84,7 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                 phases[phase]=ids;assigned.update(ids)
             phases['outside_captured_windows']=set(actual)-assigned
             def totals(ids):
-                return {role:summarize([actual.get(id) for id in ids if actual.get(id,{}).get('role')==role])
-                        for role in ('hermes','memory_provider')}
+                return role_totals([actual[id] for id in ids])
             records=[read(p) for p in sorted((arm/'ingestion').glob('*.json'))]
             evaluation=read(arm/'evaluation.json') if (arm/'evaluation.json').exists() else {'checks':[],'counts':{}}
             scores=[c.get('recovery',{}).get('score',{}) for c in evaluation['checks']]
@@ -96,9 +105,17 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                 'terminal_snapshot_missing_requests':sorted(assigned-{c['id'] for c in snapshot['calls']}),
                 'overlapping_phase_request_ids':{id:[p for p,ids in phases.items() if id in ids]
                     for id in assigned if sum(id in ids for ids in phases.values())>1}})
+        for attempt in summary.get('other_attempts',[]):
+            arm=(root/attempt['evidence']).resolve()
+            if not arm.is_relative_to(root.resolve()):raise ValueError('Attempt evidence must stay inside the run')
+            captured=read(arm/'model-usage.json') if (arm/'model-usage.json').exists() else {}
+            calls=refreshed_calls(captured.get('calls',[]),connection)
+            other_attempts.append({**attempt,'cost':role_totals(list(calls.values())) if captured.get('state')=='captured' else None,
+                'daily_batches_ready':sum(read(p).get('ready') is True for p in (arm/'ingestion').glob('*.json')),
+                'scope':'Previous or interrupted attempt; excluded from the selected arm costs, preserved as real trial spending.'})
     finally:
         if connection:connection.close()
-    report={'captured_at':datetime.now(timezone.utc).isoformat(),'providers':results,
+    report={'captured_at':datetime.now(timezone.utc).isoformat(),'providers':results,'other_attempts':other_attempts,
         'ledger_refreshed':connection is not None,'input_hash':summary['input_hash'],
         'scope':['All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.',
             'Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.',

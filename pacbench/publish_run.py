@@ -42,9 +42,10 @@ def copy_public(source,destination,virtual):
             shutil.copyfile(here/name,target)
 
 
-def publish(sources,destination,*,preflight=None):
+def publish(sources,destination,*,preflight=None,selection=None):
     """Combine only source-identical terminal runs; preflight failures stay unscored."""
     sources=[p.resolve() for p in sources];destination=destination.resolve()
+    if len(set(sources))!=len(sources):raise ValueError('Duplicate component run paths')
     if destination.parent!=REPO/'runs' or destination.exists():
         raise ValueError('Use a new direct child of runs/ for public evidence')
     summaries=[read(p/'summary.json') for p in sources]
@@ -52,35 +53,67 @@ def publish(sources,destination,*,preflight=None):
     reference=deepcopy(summaries[0])
     if any(not reference.get(k) for k in ('input_hash','bundle_hash','contract_hash','tool_policy')):
         raise ValueError('Native run is missing frozen input/contract/policy identity')
-    providers=set()
-    for summary in summaries:
+    selection={name:Path(path).resolve() for name,path in (selection or {}).items()}
+    candidates={}
+    for source,summary in zip(sources,summaries):
         if summary.get('mode')!='native-hermes' or summary.get('state') in ('running','inventory'):
             raise ValueError('Only terminal native runs can be published')
         if any(summary.get(k)!=reference.get(k) for k in COMMON):
             raise ValueError('Cannot combine different frozen inputs, questions or execution policies')
         for row in summary['results']:
-            if row['provider'] in providers:raise ValueError('Duplicate provider arm; select one reviewed run explicitly')
-            providers.add(row['provider'])
+            options=candidates.setdefault(row['provider'],[])
+            if source not in options:options.append(source)
+    if any(name not in candidates or source not in candidates[name] for name,source in selection.items()):
+        raise ValueError('Provider selection must name a supplied run containing that provider')
+    choices={}
+    for name,options in candidates.items():
+        if len(options)>1 and name not in selection:
+            raise ValueError('Duplicate provider arm; select one reviewed run explicitly')
+        choices[name]=selection.get(name,options[0])
+    providers=set(choices)
     with tempfile.TemporaryDirectory(prefix='publish-',dir=REPO/'artifacts') as temporary:
         staging=Path(temporary)/'run';virtual=Path('runs')/destination.name
         copy_public(sources[0],staging,virtual)
+        # Remove nonselected arms before copying replacements. Old follow-ups or
+        # diagnostics must never survive inside a replacement's evidence folder.
+        for row in summaries[0]['results']:
+            if choices[row['provider']]!=sources[0]:
+                stale=staging/f"repeat-{row['repetition']}"/row['provider']
+                if stale.exists():shutil.rmtree(stale)
         # Normalize the preparation pointer for a clean checkout.
         preparation=(sources[0]/reference['source']).resolve()
         if preparation!=sources[0]/'preparation':copy_public(preparation,staging/'preparation',virtual/'preparation')
         reference['source']='preparation';reference['component_runs']=[]
-        results=[];audits=[]
+        results=[];audits=[];attempts=[]
         for index,(source,summary) in enumerate(zip(sources,summaries)):
+            chosen=[row for row in summary['results'] if choices[row['provider']]==source]
             public_root='.' if index==0 else 'components/'+source.name
-            reference['component_runs'].append({'original_root':str(source),'public_root':public_root})
+            reference['component_runs'].append({'original_root':str(source),'public_root':public_root,
+                'selected_providers':sorted({r['provider'] for r in chosen})})
             if index:
-                for row in summary['results']:
+                for row in chosen:
                     relative=Path(f"repeat-{row['repetition']}")/row['provider']
                     copy_public(source/relative,staging/relative,virtual/relative)
                 for name in ('model-calls','judge-scope-review'):
                     copy_public(source/name,staging/public_root/name,virtual/public_root/name)
             save(staging/'components'/source.name/'summary.json',summary)
-            results.extend(summary['results'])
-            audits.append({'component':source.name,'audit':read(source/'native-audit.json')})
+            results.extend(chosen)
+            if len(chosen)==len(summary['results']):component_audit=read(source/'native-audit.json')
+            elif chosen:
+                from .native_audit import audit as audit_selected
+                component_audit=audit_selected(source,providers=[r['provider'] for r in chosen])
+            else:component_audit={'state':'pass','errors':[],'selected_providers':[]}
+            save(staging/'components'/source.name/'native-audit.json',component_audit)
+            audits.append({'component':source.name,'audit':component_audit})
+            for row in summary['results']:
+                if row in chosen:continue
+                relative=Path(f"repeat-{row['repetition']}")/row['provider']
+                evidence=Path('attempts')/source.name/relative
+                copy_public(source/relative,staging/evidence,virtual/evidence)
+                attempts.append({'provider':row['provider'],'state':row['state'],
+                    'reason':'Explicitly replaced by another supplied run; original evidence and cost retained.',
+                    'original_root':str(source),'evidence':str(evidence),
+                    'selected_root':str(choices[row['provider']])})
             for name in ('bundle.json','contract.json','resolved-spec.json','evaluation-plan.json'):
                 if (source/name).read_bytes()!=(sources[0]/name).read_bytes():
                     raise ValueError('Component frozen files differ despite matching summary hashes')
@@ -91,7 +124,7 @@ def publish(sources,destination,*,preflight=None):
                         raise ValueError('Component delivery differs despite matching input hashes')
                 if read(source/relative/'source.json')['fixture_hashes']!=read(sources[0]/relative/'source.json')['fixture_hashes']:
                     raise ValueError('Native source fixtures differ between components')
-        reference['results']=results
+        reference['results']=results;reference['other_attempts']=attempts
         latest=max(zip(sources,summaries),key=lambda item:(item[0]/'summary.json').stat().st_mtime)[1]
         if latest.get('gateway_after'):reference['gateway_after']=latest['gateway_after']
         blocked=[]
@@ -125,7 +158,12 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('sources',type=Path,nargs='+');parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--preflight',type=Path)
-    args=parser.parse_args();print(publish(args.sources,args.output,preflight=args.preflight))
+    parser.add_argument('--select',action='append',default=[],metavar='PROVIDER=RUN',
+        help='Explicitly select a replacement arm; retain the other attempt separately')
+    args=parser.parse_args()
+    try:selection=dict(value.split('=',1) for value in args.select)
+    except ValueError:parser.error('--select requires PROVIDER=RUN')
+    print(publish(args.sources,args.output,preflight=args.preflight,selection=selection))
     return 0
 
 

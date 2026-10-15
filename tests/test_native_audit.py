@@ -89,6 +89,20 @@ def test_missing_native_ingestion_cannot_pass(trace):
     assert audit(root)['state'] == 'fail'
 
 
+def test_selected_completed_arm_can_be_audited_without_certifying_an_interrupted_one(trace):
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary['results'].append({'provider':'interrupted','repetition':1,'state':'interrupted'})
+    save(root/'summary.json',summary)
+    assert audit(root)['state']=='fail'
+    selected=audit(root,providers=['mem0'])
+    assert selected['state']=='pass' and selected['selected_providers']==['mem0']
+    assert audit(root,providers=['missing'])['state']=='fail'
+    saved=json.loads((arm/'judgment.json').read_text());saved['question']='wrong question'
+    save(arm/'judgment.json',saved)
+    assert audit(root,providers=['mem0'])['state']=='fail'
+
+
 def test_source_document_corruption_cannot_pass(trace):
     root, _ = trace
     next((root / 'sources').glob('*/messages.txt')).write_text('A preloaded answer')

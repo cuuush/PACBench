@@ -41,7 +41,8 @@ def test_publishing_preserves_colliding_model_records_and_excludes_private_state
     assert [r['provider'] for r in summary['results']]==['memcal','honcho']
     assert json.loads((output/'model-calls/same.json').read_text())['text'].endswith('core')
     assert json.loads((output/'components/other/model-calls/same.json').read_text())['text'].endswith('other')
-    assert summary['component_runs'][1]=={'original_root':str(second),'public_root':'components/other'}
+    assert summary['component_runs'][1]=={'original_root':str(second),'public_root':'components/other',
+        'selected_providers':['honcho']}
     assert not list(output.rglob('hermes-home')) and not list(output.rglob('private'))
     assert 'DO-NOT-PUBLISH' not in ''.join(p.read_text() for p in output.rglob('*.json'))
 
@@ -81,3 +82,21 @@ def test_healthy_canary_cannot_be_silently_omitted_from_month(repo):
     with pytest.raises(ValueError,match='healthy preflight'):
         publish_run.publish([first],repo/'runs/current',preflight=canary)
     assert not (repo/'runs/current').exists()
+
+
+def test_explicit_replacement_keeps_old_attempt_separate_and_removes_stale_files(repo):
+    first=component(repo,'interrupted','memcal');second=component(repo,'fresh','memcal')
+    old=first/'repeat-1/memcal'
+    save(old/'followups/old-only.json',{'original':'preserve separately'})
+    output=publish_run.publish([first,second],repo/'runs/current',selection={'memcal':second})
+    summary=json.loads((output/'summary.json').read_text())
+    assert len(summary['results'])==1
+    assert summary['component_runs'][0]['selected_providers']==[]
+    assert not (output/'repeat-1/memcal/followups/old-only.json').exists()
+    attempt=summary['other_attempts'][0]
+    assert attempt['selected_root']==str(second)
+    assert (output/attempt['evidence']/'followups/old-only.json').exists()
+    with pytest.raises(ValueError,match='selection'):
+        publish_run.publish([first,second],repo/'runs/invalid',selection={'other':first})
+    with pytest.raises(ValueError,match='Duplicate component'):
+        publish_run.publish([first,first],repo/'runs/duplicate',selection={'memcal':first})

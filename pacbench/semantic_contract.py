@@ -10,7 +10,7 @@ from typing import Callable
 
 from .model_calls import ModelOutput
 
-AUTHORING_VERSION = 'event-scoped-v3'
+AUTHORING_VERSION = 'event-scoped-v4'
 EVIDENCE_VERSION = 'assistant-session-fields-v2'
 
 
@@ -137,6 +137,8 @@ def build_contract(*, scene: str, test_intent: str,
         "Cite exact dialogue source IDs (including any assistant-user: prefix) for "
         "each. "
         "Each statement must identify its event and date scope without private ordinals such as 'the first outing'. "
+        "Preserve complete current lists and counts: including the right items alone "
+        "must not allow additional superseded or cancelled items. "
         "Do not add a redundant meal label when time and pizza already express the required plan. "
         "A proposed plan is different from an agreed plan. Do not include "
         "scenario details absent from the dialogue. Return only JSON: "
@@ -179,6 +181,8 @@ def build_contract(*, scene: str, test_intent: str,
         "participant. "
         "Reject redundant wording requirements and private ordinal event labels. "
         "Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. "
+        "A later rejected suggestion does not reinstate an earlier plan. Preserve "
+        "complete current-list and count requirements from the test intent. "
         "When required facts are supplied, verify that each matching claim "
         "faithfully covers exactly that one fact. Try answering one detail "
         "correctly while omitting another detail in the same claim: if this "

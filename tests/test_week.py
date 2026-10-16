@@ -326,12 +326,21 @@ def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_pa
     from pacbench.document_ingestion import daily_batches
     spec=json.loads(Path('weeks/pizza_month.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-14')
-    assert len(scenes)==45 and resolved['ingestion_days']==30 and resolved['noise']=='medium'
+    assert len(scenes)==48 and resolved['ingestion_days']==30 and resolved['noise']=='medium'
     assert scenes[0].at.startswith('2026-09-15') and scenes[-1].at.startswith('2026-10-14')
     assert len({s.id for s in scenes})==len(scenes)
     assert {s.thread for s in scenes if s.id.endswith('devon-friday')}=={'devon'}
-    assert len(resolved['checks'])==14
+    assert len(resolved['checks'])==16
     assert all(c['at'].startswith('2026-10-15') and c['at']>scenes[-1].window_end for c in resolved['checks'])
+    # Partial updates must have their preceding conversation available to the
+    # writer, with time to finish before the next scene in that same chat.
+    threads={}
+    for scene in scenes:
+        earlier=threads.get((scene.channel,scene.thread))
+        if earlier:assert earlier.window_end<scene.at
+        threads[scene.channel,scene.thread]=scene
+    assert {c['session'] for c in resolved['checks'] if c['id'] in
+            ('devon-friday','devon-current')}=={'devon-friday-fresh','devon-current-fresh'}
     rows=[{**message(str(i),thread=s.thread,stamp=s.at),'collected_at':s.at} for i,s in enumerate(scenes)]
     assert len(daily_batches(rows,'America/New_York'))==30
     spec['ingestion_days']=31

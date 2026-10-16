@@ -1,5 +1,5 @@
 {
-  "id": "pizza-month-state-medium",
+  "id": "pizza-month-state-revisions-medium",
   "timezone": "America/New_York",
   "noise": "medium",
   "ingestion_days": 30,
@@ -628,6 +628,26 @@
             "until": "3:40 pm"
           },
           {
+            "id": "maya-lunch-time-again",
+            "channel": "maya",
+            "time": "4 pm",
+            "scene": "The user gets a Friday meeting extended and asks Maya in their existing DM to slide lunch half an hour later. Maya agrees. Refer to the existing Friday lunch, without restating the restaurant or rebuilding the plan in one message.",
+            "facts": [
+              "The user asks to move Friday lunch half an hour later than the agreed noon because a work meeting now runs until 12:15. Maya agrees to 12:30 pm. Only the time changes; this is the same lunch that moved to Mario's in the group."
+            ],
+            "until": "5:30 pm"
+          },
+          {
+            "id": "alex-entrance-closed",
+            "channel": "alex",
+            "time": "4:30 pm",
+            "scene": "Alex has walked past Birch and noticed building work blocking the entrance they planned to use. He explains the cafe's temporary accessible route and the user agrees to use it Friday. Leave their coffee time unchanged.",
+            "facts": [
+              "Birch Cafe's side entrance on Mill Lane is closed for building work through the weekend. The cafe has installed a temporary step-free ramp at the front entrance on Birch Street, and Alex and the user agree to use that front entrance for Friday's coffee."
+            ],
+            "until": "5:55 pm"
+          },
+          {
             "id": "saturday-joke",
             "channel": "maya",
             "time": "6 pm",
@@ -639,14 +659,24 @@
             "until": "9:10 pm"
           },
           {
-            "id": "devon-confirm",
+            "id": "devon-moves-to-sunday",
             "channel": "devon",
             "time": "6:30 pm",
-            "scene": "Devon checks what day tomorrow is because the week feels long, then checks they are still on for the existing Friday outing. They rely on the DM history rather than repeating its details.",
+            "scene": "Devon has been put on the late shift Friday and asks to move their pizza to Sunday. The user agrees. They rely on the existing DM for the place and time, rather than repeating the whole arrangement.",
             "facts": [
-              "Devon confirms the already agreed Friday outing without changing its time or venue. Their existing Friday 6 pm pizza at Luigi's on 5th Street remains agreed."
+              "Devon asks to move their agreed Friday pizza to this Sunday because of a late shift. The user accepts Sunday, keeping the same time and place. This replaces Friday; it is not a second outing. The inherited details are 6 pm at Luigi's on 5th Street."
             ],
             "until": "10:15 pm"
+          },
+          {
+            "id": "ben-thursday-declined",
+            "channel": "ben",
+            "time": "7:15 pm",
+            "scene": "Ben's deadline has eased and he suggests reverting to Thursday. The user has already rearranged things and says no; Ben accepts. Keep the distinction between a suggestion and a mutual agreement clear through ordinary replies, without an explanatory recap.",
+            "facts": [
+              "Ben asks whether they could go back to Thursday dinner after all, but the user declines and asks to keep the revised booking. Ben agrees. Their existing Saturday dinner remains agreed; Thursday is not reinstated."
+            ],
+            "until": "9 pm"
           }
         ]
       },
@@ -659,7 +689,7 @@
               {
                 "id": "friday-pizza",
                 "prompt": "What’s the deal with pizza tomorrow?",
-                "expect": "For Friday there are exactly two agreed pizza outings. The complete attendee list for the noon outing at Mario's on Pine Street is exactly the user and Maya; Leo is not attending. The complete attendee list for the 6 pm outing at Luigi's on 5th Street is exactly the user and Devon. Judge these complete current attendee lists, times and venues/streets. Correct current attendees are sufficient without separately recounting Leo's withdrawal. No meal labels are required."
+                "expect": "For Friday there is exactly one agreed pizza outing, at 12:30 pm at Mario's on Pine Street. Its complete attendee list is exactly the user and Maya. Judge the complete current Friday outing count, time, venue/street and attendees. Devon's outing moved to Sunday; it must not be included as a current Friday outing. Correct current details are sufficient without recounting the changes or naming people who are not attending. Clearly labeled history or other days are fine; unresolved old/new alternatives for a current detail are not correct. No meal labels are required."
               },
               {
                 "id": "maya-options",
@@ -675,7 +705,7 @@
               {
                 "id": "friday-count",
                 "prompt": "How many separate pizza trips have I agreed to tomorrow?",
-                "expect": "Exactly two distinct pizza outings for Friday. Only the count is judged; older Fridays, venue changes, jokes, coworkers and other people's invitations are not additional outings."
+                "expect": "Exactly one distinct pizza outing for Friday. Only the current Friday count is judged. Devon's moved outing, older Fridays, venue changes, jokes, coworkers and other people's invitations are not additional Friday outings."
               }
             ]
           },
@@ -773,7 +803,7 @@
               {
                 "id": "alex-entrance",
                 "prompt": "Which entrance should we use at Birch tomorrow?",
-                "expect": "Use the side entrance on Mill Lane. It is step-free and avoids the front steps. Judge which entrance and street; correctly identifying the entrance is sufficient without explaining the injury or repeating that it is step-free."
+                "expect": "Use Birch Cafe's front entrance on Birch Street, where the temporary step-free ramp is. Judge which entrance and street. Correctly identifying the front entrance is sufficient without explaining the building work or injury. The side entrance on Mill Lane is closed; presenting it as another usable option is incorrect. Clearly labeled historical directions are fine."
               }
             ]
           },
@@ -783,8 +813,30 @@
             "turns": [
               {
                 "id": "ben-reason",
-                "prompt": "Why did Ben want to move our dinner?",
+                "prompt": "Why did we move dinner off Thursday again?",
                 "expect": "Ben's reason was a work deadline."
+              }
+            ]
+          },
+          {
+            "id": "devon-friday-fresh",
+            "time": "11:50 am",
+            "turns": [
+              {
+                "id": "devon-friday",
+                "prompt": "Am I still getting pizza with Devon tomorrow night?",
+                "expect": "No. There is no longer an agreed Friday pizza outing with Devon. Only the current Friday status is judged; explaining the new date is optional."
+              }
+            ]
+          },
+          {
+            "id": "devon-current-fresh",
+            "time": "12 pm",
+            "turns": [
+              {
+                "id": "devon-current",
+                "prompt": "When and where am I meeting Devon for pizza?",
+                "expect": "The one upcoming agreed pizza outing with Devon is Sunday at 6 pm at Luigi's on 5th Street. Judge the current day, time and venue/street. Friday is superseded. Correctly labeled history is fine; offering Friday and Sunday as unresolved possibilities or two current outings is incorrect."
               }
             ]
           }

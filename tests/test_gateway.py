@@ -175,3 +175,31 @@ def test_budget_refusal_blocks_before_upstream_and_has_terminal_label(tmp_path):
         assert error.value.code==429
         assert json.load(error.value)['error']['type']=='budget_refused'
         assert not calls
+
+
+def test_auth_circuit_blocks_paid_retries_until_free_model_inventory_succeeds(tmp_path):
+    calls=[]
+    def open_(request,**kwargs):
+        calls.append(request.full_url)
+        if request.get_method()=='GET':
+            return Response(json.dumps({'data':[{'id':MODEL}]}).encode())
+        raise urllib.error.HTTPError('upstream',401,'Unauthorized',{},io.BytesIO(b'private'))
+    with gateway(tmp_path,open_) as (server,base):
+        with pytest.raises(urllib.error.HTTPError) as first:post(base,{'model':MODEL})
+        assert first.value.code==401
+        before=server.ledger.health()['accounted_today_usd']
+        assert server.ledger.health()['upstream_auth_blocked']
+        for _ in range(3):
+            with pytest.raises(urllib.error.HTTPError) as retry:post(base,{'model':MODEL})
+            assert retry.value.code==503
+            assert json.load(retry.value)['error']['type']=='upstream_auth_blocked'
+        assert len(calls)==1 and server.ledger.health()['accounted_today_usd']==before
+        req=urllib.request.Request(base+'/p/test/v1/models',headers={'Authorization':'Bearer local-secret'})
+        with urllib.request.urlopen(req) as response:assert json.load(response)['data'][0]['id']==MODEL
+        assert not server.ledger.health()['upstream_auth_blocked']
+        assert server.ledger.health()['accounted_today_usd']==before
+
+
+def test_auth_circuit_persists_across_ledger_restart(tmp_path):
+    ledger=Ledger(tmp_path/'ledger.db');ledger.block_auth()
+    assert Ledger(tmp_path/'ledger.db').health()['upstream_auth_blocked']

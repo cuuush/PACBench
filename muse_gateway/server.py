@@ -88,7 +88,13 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError('Invalid model inventory')
             # Only this priced model is admitted for paid requests.
             value['data'] = [r for r in value['data'] if r.get('id') == MODEL]
+            if not value['data']:
+                raise ValueError('Priced model is unavailable')
+            self.server.ledger.confirm_auth()
             self.reply(200,value)
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401,403):self.server.ledger.block_auth()
+            self.error(exc.code,'upstream_error','Model inventory HTTP '+str(exc.code))
         except Exception:
             self.error(502,'upstream_error','Model inventory unavailable')
 
@@ -98,6 +104,9 @@ class Handler(BaseHTTPRequestHandler):
         route = ROUTE.fullmatch(self.path)
         if not route or route[2] not in ('chat/completions','responses'):
             self.error(404,'request_refused','Unsupported gateway path')
+            return
+        if self.server.ledger.health()['upstream_auth_blocked']:
+            self.error(503,'upstream_auth_blocked','Upstream authentication failed; paid work blocked until a successful model inventory')
             return
         try:
             length = int(self.headers.get('Content-Length','0'))
@@ -198,6 +207,7 @@ class Handler(BaseHTTPRequestHandler):
                         pass
         except urllib.error.HTTPError as exc:
             status, error = exc.code, 'upstream_http_'+str(exc.code)
+            if status in (401,403):self.server.ledger.block_auth()
             complete()
             if not headers_sent:
                 self.error(status,'upstream_error','Upstream model HTTP '+str(status))

@@ -38,6 +38,8 @@ class Ledger:
                     http_status INTEGER, error_label TEXT);
                 CREATE TABLE IF NOT EXISTS refusals (
                     day TEXT PRIMARY KEY, at TEXT NOT NULL, reason TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS service_state (
+                    key TEXT PRIMARY KEY, value TEXT NOT NULL);
             ''')
 
     def connect(self):
@@ -98,7 +100,18 @@ class Ledger:
             spent = self.spent(db, day)
             blocked = bool(db.execute('SELECT 1 FROM refusals WHERE day=?', (day,)).fetchone())
             active = db.execute("SELECT COUNT(*) FROM calls WHERE state='reserved'").fetchone()[0]
+            auth_blocked = bool(db.execute("SELECT 1 FROM service_state WHERE key='upstream_auth_blocked'").fetchone())
         return {'service':'muse-budget-gateway', 'daily_limit_usd':10.0,
                 'total_limit_usd':None, 'accounted_today_usd':spent/NANO,
                 'budget_blocked':blocked or spent >= DAILY_LIMIT,
-                'active_reservations':active, 'utc_day':day}
+                'active_reservations':active, 'utc_day':day,
+                'upstream_auth_blocked':auth_blocked}
+
+    def block_auth(self):
+        with self.connect() as db:
+            db.execute("INSERT OR REPLACE INTO service_state VALUES ('upstream_auth_blocked',?)",(self.now(),))
+
+    def confirm_auth(self):
+        # Called only after a successful free upstream model inventory.
+        with self.connect() as db:
+            db.execute("DELETE FROM service_state WHERE key='upstream_auth_blocked'")

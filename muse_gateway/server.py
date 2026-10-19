@@ -168,11 +168,20 @@ class Handler(BaseHTTPRequestHandler):
                 headers_sent = True
                 if stream:
                     total, event, disconnected = 0, [], False
+                    def event_usage():
+                        try:
+                            return usage_from(json.loads(b'\n'.join(event)))
+                        except (ValueError, TypeError, AttributeError):
+                            return None
                     while True:
                         if time.monotonic() > deadline:
                             raise TimeoutError('Bounded inference transport timeout')
                         line = response.readline(MAX_RESPONSE_BYTES+1)
                         if not line:
+                            # A complete final usage object can arrive without
+                            # an SSE blank-line terminator. Preserve the wire
+                            # bytes and still account for valid reported usage.
+                            if event:usage = event_usage() or usage
                             break
                         total += len(line)
                         if total > MAX_RESPONSE_BYTES:
@@ -180,10 +189,7 @@ class Handler(BaseHTTPRequestHandler):
                         if line.startswith(b'data:'):
                             event.append(line[5:].strip())
                         if not line.strip() and event:
-                            try:
-                                usage = usage_from(json.loads(b'\n'.join(event))) or usage
-                            except (ValueError, TypeError, AttributeError):
-                                pass
+                            usage = event_usage() or usage
                             event = []
                         if not disconnected:
                             try:
@@ -205,6 +211,8 @@ class Handler(BaseHTTPRequestHandler):
                         self.wfile.write(data)
                     except (BrokenPipeError,ConnectionResetError):
                         pass
+                if usage is None:
+                    error = 'missing_usage_sse' if stream else 'missing_usage_json'
         except urllib.error.HTTPError as exc:
             status, error = exc.code, 'upstream_http_'+str(exc.code)
             if status in (401,403):self.server.ledger.block_auth()

@@ -133,10 +133,11 @@ def test_json_passthrough_settles_tokens_without_logging_content(tmp_path):
 
 
 @pytest.mark.parametrize('endpoint', ['chat/completions','responses'])
-def test_native_sse_passthrough_and_final_usage(tmp_path,endpoint):
+@pytest.mark.parametrize('ending', [b'\n\ndata: [DONE]\n\n', b'\n', b''])
+def test_native_sse_passthrough_and_final_usage(tmp_path,endpoint,ending):
     value = ({'usage':{'prompt_tokens':123,'completion_tokens':45}} if endpoint.startswith('chat')
              else {'type':'response.completed','response':{'usage':{'input_tokens':123,'output_tokens':45}}})
-    body = b'data: {"choices": []}\n\n' + b'data: '+json.dumps(value).encode()+b'\n\ndata: [DONE]\n\n'
+    body = b'data: {"choices": []}\n\n' + b'data: '+json.dumps(value).encode()+ending
     calls=[]
     def open_(request,**kwargs):
         calls.append(json.loads(request.data))

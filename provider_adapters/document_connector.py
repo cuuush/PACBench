@@ -380,7 +380,7 @@ def supermemory(source,root,at,processing_at):
         time.sleep(1)
     return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
-            'readiness':'Native document processing and memory dreaming both done'}
+            'readiness_requirement':'Native document processing and memory dreaming both done'}
 
 
 def main(args=None):

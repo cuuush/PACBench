@@ -374,9 +374,14 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             observations=observations, generate=draft, verify=judge,
             question_generate=judge, output_path=root / "contract.json")
     progress["contract_frozen_at"] = datetime.now(timezone.utc).isoformat()
+    progress['stage'] = 'corpus realism review'
+    save(root / 'experiment-status.json', progress)
+    from .corpus_review import VERSION as REVIEW_VERSION, review_corpus
+    review_corpus(observations, resolved, judge, root)
     freeze_policy(contract, root / "followup-plan.json")
     summary = {"state": "prepared", "results": [], "message_count":len(observations),
                "noise":resolved['noise'],
+               "corpus_review_version": REVIEW_VERSION,
                "contract_hash": contract.contract_hash, "bundle_hash": bundle_hash(bundle)}
     if evaluation_plan:
         summary['evaluation_plan_hash'] = evaluation_plan['plan_hash']

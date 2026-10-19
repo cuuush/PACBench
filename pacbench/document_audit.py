@@ -8,6 +8,22 @@ from pathlib import Path
 from .document_ingestion import VERSION, SUPPORTED_VERSIONS, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
+def audit_supermemory_receipt(result, day, text):
+    statuses=result.get('processing_status',[])
+    final=statuses[-1] if statuses else {}
+    errors=[]
+    if (final.get('status')!='done' or
+            final.get('dreaming_status',final.get('dreamingStatus'))!='done'):
+        errors.append('Supermemory memory consolidation did not complete')
+    if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or
+            final.get('custom_id',final.get('customId'))!=day or
+            final.get('content')!=text or
+            not result.get('container_tag') or
+            result['container_tag'] not in final.get('container_tags',final.get('containerTags',[]))):
+        errors.append('Supermemory completion receipt differs from submitted source or namespace')
+    return errors
+
+
 def audit_honcho_receipt(batch, result, previous_work=None):
     """Independently bind native acknowledgments and readiness to frozen sources."""
     if previous_work is None:previous_work={}
@@ -113,6 +129,8 @@ def audit_ingestion(root, arm, messages, summary):
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York',version=version),'native processing clock mismatch')
         if arm.name=='honcho':
             errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
+        if arm.name=='supermemory':
+            errors.extend(audit_supermemory_receipt(record.get('result',{}),day,text))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

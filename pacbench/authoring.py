@@ -136,6 +136,7 @@ def scene_prompt(plan: ScenePlan,
                 + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
                    if plan.message_range else "Use a short exchange. ") +
                 "The subject is header metadata; do not put a Subject: prefix inside an email body. "
+                "Copy quoted earlier messages faithfully; never invent different addresses, dates or wording for them. "
                 'Return only JSON with dialogue (an array of {"sender": "Name", "body": "email text"}) '
                 'and writer_note (a short string). Bodies may contain paragraphs and quoted replies using escaped newlines.')
     return (

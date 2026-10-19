@@ -73,9 +73,10 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
     assert received==[message('m1')]
 
 
-@pytest.mark.parametrize('change',['none','override','failed','missing','malformed'])
+@pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
     from pacbench.preparation_audit import audit_prepared
+    from pacbench.corpus_review import VERSION, review_prompt
     root=component(repo,'review','memcal')/'preparation'
     resolved=json.loads((root/'resolved-spec.json').read_text())
     resolved['scenes']=[]
@@ -84,15 +85,28 @@ def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change)
             'issues':[],'notes':'Reviewed actual source.'}
     quality={'state':'pass','source_hash':digest([message('m1')]),
         'intent_hash':digest({'scenes':[],'checks':[]}),
-        'review':review,'model_call':'original/runtime/model-calls/realism.json'}
-    call={'status':'ok','text':json.dumps(review)}
+        'review_version':VERSION,'review':review,'model_call':'original/runtime/model-calls/realism.json'}
+    call={'status':'ok','text':json.dumps(review),'request':{'messages':[
+        {'role':'user','content':review_prompt([message('m1')],resolved)}]}}
     if change=='override':quality['review']={**review,'notes':'Silently replaced verdict.'}
     if change=='failed':call['status']='failed'
     if change=='malformed':call['text']='not a verdict'
+    if change=='wrong-source':call['request']['messages'][0]['content']='Reviewed a different corpus.'
     save(root/'realism-review.json',quality)
     if change!='missing':save(root/'model-calls/realism.json',call)
     result=audit_prepared(root)
     assert result['state']==('pass' if change=='none' else 'fail')
+
+
+def test_declared_corpus_review_cannot_be_deleted(repo):
+    from pacbench.preparation_audit import audit_prepared
+    from pacbench.corpus_review import VERSION
+    root=component(repo,'review-missing','memcal')/'preparation'
+    summary=json.loads((root/'summary.json').read_text())
+    save(root/'summary.json',{**summary,'corpus_review_version':VERSION})
+    result=audit_prepared(root)
+    assert result['state']=='fail'
+    assert 'Required corpus realism review is missing' in result['errors']
 
 
 @pytest.mark.parametrize('change',['hash','file','duplicate','unfinished','preparation','clock'])

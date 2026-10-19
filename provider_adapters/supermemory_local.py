@@ -57,7 +57,7 @@ def start(root, env, model, base, key):
         'installation':json.loads((runtime/'installation.json').read_text()),
         'endpoint':endpoint,'pid':process.pid,'model':model,'native_api_key_received':bool(native_key),
         'embedding':'local Ollama nomic-embed-text','starter_facts':False,
-        'network':'v0.0.8 binds all interfaces in the private execution environment; no public port published'}
+        'network':'Run-owned endpoint in the private execution environment; no public port published'}
     save(root/'native-server-setup.json',receipt)
     if not native_key:
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')

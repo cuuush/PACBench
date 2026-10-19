@@ -15,6 +15,20 @@ def message(id,sender='Devon',owner=False,thread='one',stamp='2026-09-10T18:00:0
             'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.','structured':None}
 
 
+@pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace'])
+def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage):
+    from pacbench.document_audit import audit_supermemory_receipt
+    final={'status':'done','dreaming_status':'done','id':'doc-1','custom_id':'2026-10-19',
+           'content':'Raw source text','container_tags':['native_tag']}
+    receipt={'result':{'id':'doc-1'},'container_tag':'native_tag','processing_status':[final]}
+    if damage=='index-only':final['dreaming_status']='dreaming'
+    if damage=='missing-status':final.pop('dreaming_status')
+    if damage=='wrong-source':final['content']='Different source'
+    if damage=='wrong-document':final['id']='other-doc'
+    if damage=='wrong-namespace':final['container_tags']=['other_tag']
+    assert bool(audit_supermemory_receipt(receipt,'2026-10-19','Raw source text'))==(damage!='none')
+
+
 def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):
     rows=[message('sent','Me',True),message('received')]
     path=tmp_path/'chat.db'

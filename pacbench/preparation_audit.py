@@ -68,9 +68,13 @@ def audit_prepared(root: Path) -> dict:
         load_questions(root / 'followup-plan.json', contract)
         resolved = json.loads((root / 'resolved-spec.json').read_text())
         errors.extend(audit_scenes(root,resolved,next(iter(bundle['lives'])),messages))
+        if summary.get('corpus_review_version') and not (root/'realism-review.json').exists():
+            errors.append('Required corpus realism review is missing')
         if (root/'realism-review.json').exists():
             from .followups import digest
             quality=json.loads((root/'realism-review.json').read_text())
+            if summary.get('corpus_review_version') and quality.get('review_version') != summary['corpus_review_version']:
+                errors.append('Corpus realism review version differs from preparation')
             intent={'scenes':[{k:s[k] for k in ('id','at','thread','scene','facts')} for s in resolved['scenes']],
                     'checks':resolved['checks']}
             if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
@@ -80,6 +84,10 @@ def audit_prepared(root: Path) -> dict:
             call=json.loads((root/'model-calls'/Path(quality.get('model_call','')).name).read_text())
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
                 errors.append('Corpus realism review differs from its actual model receipt')
+            from .corpus_review import VERSION, review_prompt
+            if quality.get('review_version') == VERSION and call.get('request', {}).get('messages') != [
+                    {'role': 'user', 'content': review_prompt(messages, resolved)}]:
+                errors.append('Corpus realism review did not receive the actual frozen source and expectations')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime
             from .document_ingestion import daily_batches

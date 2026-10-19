@@ -13,6 +13,10 @@ class SpendingBlocked(RuntimeError):
     """A monetary refusal is terminal for this live trial."""
 
 
+class ModelAccessBlocked(RuntimeError):
+    """Stop paid work until upstream authentication is confirmed by a free probe."""
+
+
 def client_settings(project: str) -> tuple[str, str]:
     key = (STATE / 'client-token').read_text().strip()
     base = json.loads((STATE / 'address.json').read_text())['base']
@@ -36,6 +40,8 @@ def require_live_cost_boundary() -> dict:
         raise RuntimeError('gateway cannot establish the $10 daily spending boundary')
     if health.get('budget_blocked') or health.get('accounted_today_usd', 0) >= daily:
         raise SpendingBlocked('shared daily spending gateway blocked; stop live work until reset')
+    if health.get('upstream_auth_blocked'):
+        raise ModelAccessBlocked('upstream model authentication failed; confirm access with a free model inventory before resuming')
     return health
 
 

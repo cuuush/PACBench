@@ -331,7 +331,7 @@ def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_pa
     assert len({s.id for s in scenes})==len(scenes)
     assert {s.thread for s in scenes if s.id.endswith('devon-friday')}=={'devon'}
     assert len(resolved['checks'])==16
-    assert all(c['at'].startswith('2026-10-15') and c['at']>scenes[-1].window_end for c in resolved['checks'])
+    assert all(c['at'].startswith('2026-10-19') and c['at']>scenes[-1].window_end for c in resolved['checks'])
     # Partial updates must have their preceding conversation available to the
     # writer, with time to finish before the next scene in that same chat.
     threads={}

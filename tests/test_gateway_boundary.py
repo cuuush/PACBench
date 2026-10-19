@@ -18,3 +18,12 @@ def test_daily_cost_boundary(extra,accepted):
         if accepted:assert require_live_cost_boundary()==payload
         else:
             with pytest.raises(RuntimeError,match='daily spending boundary|gateway blocked'):require_live_cost_boundary()
+
+
+def test_auth_block_is_distinct_from_daily_budget_refusal():
+    from pacbench.gateway_client import ModelAccessBlocked
+    payload={'service':'muse-budget-gateway','daily_limit_usd':10,'total_limit_usd':None,
+             'upstream_auth_blocked':True,'accounted_today_usd':0.1}
+    with patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/test/v1','key')),patch(
+            'pacbench.gateway_client.urllib.request.urlopen',return_value=io.BytesIO(json.dumps(payload).encode())):
+        with pytest.raises(ModelAccessBlocked,match='authentication'):require_live_cost_boundary()

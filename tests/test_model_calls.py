@@ -1,6 +1,8 @@
 """Failed model attempts remain separately inspectable after a retry."""
 
 import json
+import io
+import urllib.error
 from pathlib import Path
 from unittest import mock
 
@@ -8,6 +10,21 @@ import pytest
 
 from pacbench.authoring import AuthoringError, ScenePlan, realize_scene
 from pacbench.model_calls import ModelClient, ResponsesWriter, public_record
+
+
+@pytest.mark.parametrize('status,kind',[(401,'upstream_error'),(403,'upstream_error'),(503,'upstream_auth_blocked')])
+def test_auth_failure_is_terminal_without_retry_and_keeps_audit(tmp_path,status,kind):
+    from pacbench.gateway_client import ModelAccessBlocked
+    client=ModelClient(key='test',model='model',record_dir=tmp_path)
+    error=urllib.error.HTTPError(client.url,status,'Blocked',{},
+                                io.BytesIO(json.dumps({'error':{'type':kind}}).encode()))
+    with mock.patch('pacbench.model_calls.urllib.request.urlopen',side_effect=error) as call, mock.patch(
+            'pacbench.model_calls.time.sleep') as sleep:
+        with pytest.raises(ModelAccessBlocked):client('Check the source')
+    assert call.call_count==1
+    sleep.assert_not_called()
+    records=list(tmp_path.glob('*.json'))
+    assert len(records)==1 and json.loads(records[0].read_text())['status']=='failed'
 
 
 def test_same_request_retry_preserves_each_failed_call(tmp_path):

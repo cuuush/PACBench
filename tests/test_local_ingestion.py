@@ -98,7 +98,8 @@ def test_completed_run_cleanup_stops_only_its_owned_child(tmp_path):
             child.wait(timeout=2)
 
 
-def test_supermemory_ingestion_uses_native_namespace_resolver(tmp_path,monkeypatch):
+@pytest.mark.parametrize('dreaming_field',['dreaming_status','dreamingStatus',None])
+def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_path,monkeypatch,dreaming_field):
     from provider_adapters.document_connector import supermemory
     source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('Raw daily text\n')
     home=tmp_path/'arm/hermes-home';home.mkdir(parents=True)
@@ -108,14 +109,28 @@ def test_supermemory_ingestion_uses_native_namespace_resolver(tmp_path,monkeypat
         _resolve_container_tag=resolve))
     add=Mock(return_value=SimpleNamespace(
         id='doc-1',model_dump=lambda **kw:{'id':'doc-1'}))
-    documents=SimpleNamespace(add=add,get=lambda id:SimpleNamespace(model_dump=lambda **kw:{'status':'done'}))
+    statuses=iter([{'status':'done'}] if dreaming_field is None else [
+                  {'status':'done',dreaming_field:'dreaming'},
+                   {'status':'done',dreaming_field:'dreaming'},
+                   {'status':'done',dreaming_field:'done'}])
+    get=Mock(side_effect=lambda id:SimpleNamespace(model_dump=lambda **kw:next(statuses)))
+    documents=SimpleNamespace(add=add,get=get)
     monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=lambda **kw:SimpleNamespace(documents=documents)))
     monkeypatch.setenv('SUPERMEMORY_API_KEY','local-test-key')
+    monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
+    sleep=Mock();monkeypatch.setattr('provider_adapters.document_connector.time.sleep',sleep)
     result=supermemory(source,home.parent,'now','now')
     resolve.assert_called_once_with('raw-tag','default')
     assert add.call_args.kwargs['container_tags']==['native_canonical_tag']
     assert add.call_args.kwargs['content']=='Raw daily text\n'
-    assert result['ready'] and result['container_tag']=='native_canonical_tag'
+    assert result['container_tag']=='native_canonical_tag'
+    if dreaming_field is None:
+        assert not result['ready'] and 'unavailable' in result['reason']
+        assert get.call_count==1 and sleep.call_count==0
+    else:
+        assert result['ready']
+        assert get.call_count==3 and sleep.call_count==2
+        assert len(result['processing_status'])==2  # No duplicate polling records.
 
 
 def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monkeypatch):

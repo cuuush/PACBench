@@ -354,15 +354,33 @@ def supermemory(source,root,at,processing_at):
     result=client.documents.add(content=(source/'messages.txt').read_text(),
         container_tags=[tag],custom_id=source.name,
         metadata={'source':'daily-transcript','collected_at':at})
-    statuses=[];deadline=time.monotonic()+180
+    from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+    from pacbench.gateway_client import require_live_cost_boundary
+    from pacbench.usage import snapshot,provider_model_health
+    roles=json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))
+    statuses=[];deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
+    ready=False;reason='Native memory processing deadline exceeded'
     while True:
-        status=client.documents.get(result.id).model_dump(mode='json');statuses.append(status)
+        status=client.documents.get(result.id).model_dump(mode='json')
+        if not statuses or status!=statuses[-1]:statuses.append(status)
         state=status.get('status')
-        if state in {'done','failed','error'} or time.monotonic()>=deadline:break
+        dreaming=status.get('dreaming_status',status.get('dreamingStatus'))
+        if roles:
+            health=provider_model_health(snapshot(roles))
+            if health['state']=='stop':reason=health['reason'];break
+            try:require_live_cost_boundary()
+            except RuntimeError as exc:reason=str(exc);break
+        if state=='done' and dreaming=='done':
+            ready=True;reason='';break
+        if state in {'failed','error'} or dreaming in {'failed','error'}:
+            reason='Native document processing or memory dreaming failed';break
+        if state=='done' and dreaming is None:
+            reason='Native memory consolidation status unavailable';break
+        if time.monotonic()>=deadline:break
         time.sleep(1)
-    return {'ready':state=='done','interface':'Supermemory SDK documents.add(raw content) + documents.get',
+    return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
-            'readiness':'Native document processing status done'}
+            'readiness':'Native document processing and memory dreaming both done'}
 
 
 def main(args=None):

@@ -2,7 +2,26 @@
 
 - `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
 - `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
-  at that SHA, never patched (gitignored — 3GB-scale checkout, not committed).
+  at that SHA plus exactly `patches/hermes-isolated.diff`; integrity tests reject other edits.
 - `venv-hermes-isolated/`: isolated venv, editable install of that clone
   (gitignored). Use with a scratch home, never `~/.hermes`:
   `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`
+
+Install the pinned client integrations from `hermes-isolated-extra-requirements.txt`.
+Install the sibling Memcal checkout normally too, so its declared source-reader
+dependencies are present: `uv pip install --python vendor/venv-hermes-isolated/bin/python -e ../memcal`.
+Run native servers in their own environments: OpenViking requires MCP <2 whereas
+Hermes uses MCP 2. Keep Hindsight's API dependencies separate from Hermes' pinned
+clients too; its older API releases required an incompatible cryptography version.
+The Hindsight SDK stays in Hermes; provisioning starts/stops its real self-hosted
+daemon using `vendor/venv-hindsight/bin/python`:
+
+  uv venv --python 3.12 vendor/venv-hindsight
+  uv pip install --python vendor/venv-hindsight/bin/python torch --index-url https://download.pytorch.org/whl/cpu
+  uv pip install --python vendor/venv-hindsight/bin/python hindsight-all==1.0.0
+
+Use the official CPU PyTorch wheel on Linux CPU hosts; the default GPU wheel pulls
+several GB of unused CUDA dependencies. These are hardware/transport installations,
+not changes to provider extraction prompts or processing defaults.
+Hindsight's server version is separate from Hermes' pinned client version:
+the older 0.6.1 API does not implement the native Meta model adapter.

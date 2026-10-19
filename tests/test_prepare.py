@@ -1,5 +1,6 @@
 """Offline authoring integrity; these tests do not measure provider accuracy."""
 import json
+from types import SimpleNamespace
 from datetime import datetime
 import pytest
 from pacbench.prepare import resolve_spec, prepare
@@ -142,6 +143,31 @@ def test_failed_preparation_audit_marks_body_incomplete(tmp_path, monkeypatch):
     assert summary["state"] == "incomplete"
     assert json.loads((root / "run-audit.json").read_text())["errors"] == ["duplicate input"]
     assert json.loads((root / "experiment-status.json").read_text())["state"] == "incomplete"
+
+
+def test_auth_failure_stops_later_independent_scenes_without_freezing(tmp_path,monkeypatch):
+    import importlib
+    from pacbench.gateway_client import ModelAccessBlocked
+    module=importlib.import_module('pacbench.prepare')
+    calls=[]
+    def blocked(prompt):
+        calls.append(prompt)
+        raise ModelAccessBlocked('Upstream authentication failed')
+    monkeypatch.setenv('META_API_KEY','test-key')
+    monkeypatch.setattr(module,'load_driver',lambda:SimpleNamespace(model_id='test-model'))
+    monkeypatch.setattr(module,'client_settings',lambda _:('http://127.0.0.1:8099/p/test/v1','test-key'))
+    monkeypatch.setattr(module,'ResponsesWriter',lambda **_:blocked)
+    monkeypatch.setattr(module,'ModelClient',lambda **_:blocked)
+    spec={'id':'auth-stop','test_scene_id':'second','scenes':[
+        {'id':'first','thread':'one','at':'2026-10-12T18:00:00','scene':'Make a plan.','facts':['They agree to pizza.']},
+        {'id':'second','thread':'two','at':'2026-10-13T18:00:00','scene':'Make another plan.','facts':['They agree to coffee.']}]}
+    root=tmp_path/'preparation'
+    summary=module.prepare(spec,root)
+    assert len(calls)==1
+    assert summary['state']=='incomplete'
+    assert summary['errors'][0]['scene_id']=='first'
+    assert 'authentication' in summary['errors'][0]['reason']
+    assert not (root/'week.json').exists()
 
 def test_scene_clocks_and_ids_are_derived_from_one_occurrence_time(tmp_path):
     spec = {"id": "ice-cream", "scenes": [{

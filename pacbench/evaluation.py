@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from .followups import digest, freeze_policy, load_questions, save
 from .semantic_contract import AUTHORING_VERSION, EVIDENCE_VERSION, build_contract, load_contract
-from .gateway_client import SpendingBlocked
+from .gateway_client import SpendingBlocked, ModelAccessBlocked
 
 
 def resolve_checks(spec, question_at, timezone):
@@ -105,8 +105,8 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
                     observations=available, author_facts=tuple(check['facts']), generate=generate or model,
                     verify=model, question_generate=model, output_path=contract_path,
                     user_question=check['prompt'], question_at=check['at'],behavior=check.get('kind')=='behavior')
-        except SpendingBlocked as exc:
-            errors.append({'id':check['id'],'reason':str(exc),'remaining_checks':'not attempted after monetary refusal'})
+        except (SpendingBlocked,ModelAccessBlocked) as exc:
+            errors.append({'id':check['id'],'reason':str(exc),'remaining_checks':'not attempted after terminal inference refusal'})
             save(root/'evaluation-errors.json',errors)
             break
         except Exception as exc:

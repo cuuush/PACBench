@@ -197,6 +197,11 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         # Preserve failed embedded trials: the pinned plugin repeatedly restarts
         # the newer SDK daemon when it adds native profile environment fields.
         from .gateway_client import validate_route
+        backend_python = harness.REPO / 'vendor/venv-hindsight/bin/python'
+        if not backend_python.exists():
+            raise RuntimeError('Install the isolated Hindsight server runtime in vendor/venv-hindsight; see vendor/README')
+        from provider_adapters.tokenizer_cache import configure as configure_tokenizers
+        configure_tokenizers(root,env)
         base,key=client_settings(memory_project)
         validate_route(base,key)
         configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
@@ -223,7 +228,7 @@ try:
     print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json')}))
 finally:p.close()
 '''
-        proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',bootstrap,
+        proc=subprocess.run([str(backend_python),'-c',bootstrap,
                              str(home.resolve()),'pacbench-'+run_id],
                             env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
                             cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
@@ -240,7 +245,7 @@ finally:p.close()
         import atexit
         stop_script="from hindsight_embed import get_embed_manager; get_embed_manager().stop(__import__('sys').argv[1])"
         # Shutdown only this run-owned service, through the native manager.
-        stop = lambda:subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',stop_script,'pacbench-'+run_id],
+        stop = lambda:subprocess.run([str(backend_python),'-c',stop_script,'pacbench-'+run_id],
             env={**os.environ,**env},cwd=harness.ISOLATED_TREE,capture_output=True,timeout=30)
         atexit.register(stop)
         _ARM_SHUTDOWNS[root.resolve()] = stop

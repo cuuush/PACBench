@@ -107,6 +107,7 @@ class ModelClient:
             error = ""
             transient = False
             spending_refused = False
+            access_blocked = False
             try:
                 from .gateway_client import validate_route
                 validate_route(self.url, self.key)
@@ -124,11 +125,15 @@ class ModelClient:
                 error_response = exc.read().decode("utf-8", errors="replace")[:8000]
                 error = f"HTTP {exc.code}: {exc.reason}"
                 transient = exc.code == 429 or exc.code >= 500
+                access_blocked = exc.code in (401,403)
                 try:
                     refusal_type = json.loads(error_response).get('error', {}).get('type')
                     if refusal_type in ('budget_refused','request_refused'):
                         transient = False
                         spending_refused = refusal_type == 'budget_refused'
+                    if refusal_type == 'upstream_auth_blocked':
+                        access_blocked = True
+                        transient = False
                 except (ValueError, AttributeError):
                     pass
                 content = ""
@@ -150,6 +155,9 @@ class ModelClient:
             if spending_refused:
                 from .gateway_client import SpendingBlocked
                 raise SpendingBlocked(f'model call blocked by daily spending gateway; audit record {path}: {error}')
+            if access_blocked:
+                from .gateway_client import ModelAccessBlocked
+                raise ModelAccessBlocked(f'upstream model authentication blocked; audit record {path}: {error}')
             if not error:
                 if self.cache_dir is not None:
                     self.cache_dir.mkdir(parents=True, exist_ok=True)

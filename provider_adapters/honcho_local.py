@@ -5,7 +5,6 @@ import hashlib
 import json
 import os
 import socket
-import shutil
 import subprocess
 import time
 import urllib.request
@@ -86,18 +85,8 @@ print(json.dumps({'native_defaults_verified':True,'deriver':processing,
     # Use the exact tokenizer already bundled by the installed LiteLLM runtime.
     # Native tiktoken cache loading/hash verification is unchanged; no network
     # mirror or tokenizer substitute when this environment blocks the download.
-    bundled=source.parent/'venv-hermes-isolated/lib/python3.12/site-packages/litellm/litellm_core_utils/tokenizers'
-    required={'fb374d419588a4632f3f557e76b4b70aebbca790':'446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d',
-              '9b5ad71b2ce5302211f9c61530b329a4922fc6a4':'223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7'}
-    if all((bundled/name).exists() for name in required):
-        cache=root/'tokenizer-cache';cache.mkdir()
-        for name,expected in required.items():
-            digest=hashlib.sha256((bundled/name).read_bytes()).hexdigest()
-            if digest!=expected:raise RuntimeError('Bundled tokenizer hash differs from native tiktoken requirement')
-            shutil.copyfile(bundled/name,cache/name)
-        child['TIKTOKEN_CACHE_DIR']=str(cache)
-        save(root/'native-tokenizer-setup.json',{'source':'installed LiteLLM bundled tokenizers',
-            'sha256':required,'native_tiktoken_cache':True})
+    from provider_adapters.tokenizer_cache import configure as configure_tokenizers
+    configure_tokenizers(root,child)
     validated=subprocess.run([str(python),'-c',guard],env=child,cwd=root,capture_output=True,text=True,timeout=30)
     if validated.returncode:raise RuntimeError('Honcho model configuration validation failed: '+validated.stderr.replace(key,'<redacted>'))
     processing=json.loads(validated.stdout.strip().splitlines()[-1])

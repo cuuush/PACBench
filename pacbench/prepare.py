@@ -11,7 +11,7 @@ from .authoring import (ScenePlan, SceneRecord, SceneRealization, SceneJudgeErro
     build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
 from .creds import load_driver
 from .gateway_client import client_settings
-from .gateway_client import SpendingBlocked
+from .gateway_client import SpendingBlocked, ModelAccessBlocked
 from .frozen import bundle_hash, write_bundle
 from .model_calls import ModelClient, ResponsesWriter, public_record
 from .semantic_contract import build_contract, load_contract
@@ -319,7 +319,7 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
                                      record_dir=root / "scene-verifications",
                                      prior_lines=tuple(thread_history.get(key, ())),
                                      verification_lines=verification_lines)
-        except SpendingBlocked as exc:
+        except (SpendingBlocked,ModelAccessBlocked) as exc:
             failures.append({'scene_id':plan.id,'state':'ungraded','reason':str(exc)})
             save(root/'scene-errors.json',failures)
             break

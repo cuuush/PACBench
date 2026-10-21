@@ -35,8 +35,13 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
     contract = read_json(run_dir / 'contract.json')
     messages = messages_for(bundle, next(iter(bundle['lives'])))
     source_by_id = {m['source_id']:m for m in messages}
-    arms = {}
-    for arm in sorted(run_dir.glob('repeat-*/*')):
+    arms, excluded_arms = {}, {}
+    candidates=[(arm,None) for arm in sorted(run_dir.glob('repeat-*/*'))]
+    for excluded in summary.get('other_attempts', []):
+        arm=(run_dir/excluded['evidence']).resolve()
+        if not arm.is_relative_to(run_dir.resolve()):raise ValueError('attempt evidence must stay inside run')
+        candidates.append((arm,excluded))
+    for arm, excluded in candidates:
         if not arm.is_dir():
             continue
         repetition = arm.parent.name
@@ -74,7 +79,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         else:
             append_exchange(arm, contract, 'recall', 'recall.json')
         exposures = []
-        if summary.get('ingestion_mode')=='documents':
+        if summary.get('ingestion_mode')=='documents' and excluded is None:
             for row in summary.get('ingestion_schedule',[]):
                 record=read_json(arm/row['file'])
                 if not record:continue
@@ -93,14 +98,19 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         operations = [op for ex in exchanges for op in (ex.get('metrics') or {}).get('operations', [])]
         status['behavior'] = {**status.get('behavior', {}),
             'retrieval_called': any(op.get('category') in ('memory_detail', 'memory_search', 'archive_search', 'source_evidence', 'source_messages') for op in operations)}
-        arms[f'{provider}-{repetition}'] = {'provider': provider,
-            'label': f'{provider.title()} · {repetition.replace("-", " ")}',
+        collection=excluded_arms if excluded is not None else arms
+        key=excluded['evidence'] if excluded is not None else f'{provider}-{repetition}'
+        collection[key] = {'provider': provider,
+            'label': (f'{provider.title()} · excluded attempt · '+Path(excluded['original_root']).name
+                      if excluded is not None else f'{provider.title()} · {repetition.replace("-", " ")}'),
+            'exclusion':excluded,
+            'configuration_review':read_json(arm/'configuration-review.json'),
             'preflight': preflight, 'status': status, 'exchanges': exchanges, 'exposures': exposures,
             'tool_policy': read_json(arm / 'tool-policy.json'),
             'model_usage': model_usage,
             'model_usage_after_settlement': settled_usage,
             'turn': exchanges[0]['turn'] if exchanges else None}
-        arms[f'{provider}-{repetition}']['evaluation'] = read_json(arm / 'evaluation.json')
+        collection[key]['evaluation'] = read_json(arm / 'evaluation.json')
     records = {}
     components=summary.get('component_runs',[])
     folders=[source,run_dir,run_dir/'judge-scope-review']
@@ -110,6 +120,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         folders.extend((folder,folder/'judge-scope-review'))
     for folder in folders:
         for path in sorted((folder / 'model-calls').glob('*.json')):
+            if path.is_symlink() or (folder/'model-calls').is_symlink():continue
             relative=(str(path.resolve().relative_to(run_dir.resolve()))
                       if path.resolve().is_relative_to(run_dir.resolve()) else 'preparation/model-calls/'+path.name)
             aliases=[str(path)]
@@ -137,13 +148,13 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         'failure_review': read_json(run_dir / 'failure-review.json'),
         'preflight':(native_run(run_dir/'preflight',runs_dir,include_preflight=False)
                      if include_preflight and (run_dir/'preflight/summary.json').exists() else None),
-        'scenes': read_json(source / 'scenes.json'), 'arms': arms,
+        'scenes': read_json(source / 'scenes.json'), 'arms': arms, 'excluded_arms':excluded_arms,
         'verifications': [{'file': p.name, 'record': read_json(p)} for p in sorted((source / 'scene-verifications').glob('*.json'))],
         'model_calls': list(records.values()),
         'sort_time': max(captured_times, default=(run_dir / 'summary.json').stat().st_mtime)}
 
 
-def load_runs(root: Path) -> dict:
+def load_runs(root: Path, *, include_model_records=True) -> dict:
     runs_dir = root / 'runs'
     runs = []
     errors = []
@@ -153,6 +164,28 @@ def load_runs(root: Path) -> dict:
         try:
             run = native_run(run_dir, runs_dir)
             if run:
+                if not include_model_records:
+                    from urllib.parse import urlencode
+                    def index_records(item):
+                        for call in item.get('model_calls', []):
+                            record=call['record'] or {}
+                            location=Path(call['aliases'][0]).resolve().relative_to(runs_dir.resolve())
+                            call['record']={**{k:record[k] for k in
+                                ('model','status','usage') if k in record},
+                                'lazy_url':'/model-call?'+urlencode({
+                                    'run':location.parts[0],
+                                    'file':Path(*location.parts[1:]).as_posix()})}
+                        for review in item.get('verifications', []):
+                            record=review['record']
+                            if record.get('model_call'):
+                                # The exact checker prompt is available from
+                                # its indexed model call, without another copy
+                                # in every scene's initial response payload.
+                                review['record']={k:v for k,v in record.items() if k!='judge_prompt'}
+                                review['record']['review_index']=True
+                        if item.get('preflight'):
+                            index_records(item['preflight'])
+                    index_records(run)
                 runs.append(run)
         except (OSError, ValueError, KeyError, TypeError, RuntimeError, StopIteration) as exc:
             # A partial or malformed run must not hide the other saved results.

@@ -143,6 +143,7 @@ function modelReasoningSummary(call) {
   return summaries.length ? summaries.join("\n") : null;
 }
 function renderModelCall(call) {
+  if (call?.lazy_url) return '<div><button type="button" data-model-url="' + esc(call.lazy_url) + '">Load full saved model call</button></div>';
   if (!call) return notice("Model call record not captured.");
   const reasoning = modelReasoningSummary(call);
   return '<div class="model-meta">' + esc(call.model || "model not captured") +
@@ -182,7 +183,7 @@ function renderSceneReview(run, scene) {
       (factRows ? '<h4>Authored facts checked against this conversation</h4>' + factRows :
         '<p class="muted">This saved run had no authored fact list. The reviewer checked the scene description instead. Scenario evidence: ' +
         reviewedLines(run, scene.scene_id, verdict.evidence) + "</p>") +
-      details("Reviewer prompt and full decision", '<h4>Prompt</h4><pre>' +
+      details("Reviewer prompt and full decision", record.review_index ? renderModelCall(modelCall(run, record.model_call)) : '<h4>Prompt</h4><pre>' +
         esc(record.judge_prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
         esc(record.judge_response || "not captured") + "</pre>" +
         details("Full review record", dump(record))) + "</div>";
@@ -393,7 +394,12 @@ function judgePage(run) {
     '<p class="muted">Questions: ' + esc(run.evaluation_plan?.context || "isolated") + ' context. Earlier answers can resolve references; they do not earn credit for an omitted fact in a later answer.</p>' +
     renderContract(run) + '</section>' + Object.values(run.arms || {}).map(arm =>
       '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +
-      (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("");
+      (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("") +
+    (Object.keys(run.excluded_arms || {}).length ? details('Excluded attempts · separate configurations and interruptions',
+      '<p>These attempts are excluded from the selected provider results and cost comparison.</p>' +
+      Object.values(run.excluded_arms).map(arm => '<section class="stage"><h2>' + esc(arm.label) + '</h2>' +
+        (arm.configuration_review ? notice(arm.configuration_review.finding) : notice(arm.exclusion?.reason)) +
+        (arm.exchanges || []).map((ex,i) => providerExchange(run,arm,ex,i)).join('') + '</section>').join('')) : '');
 }
 function costPage(run) {
   const review = run.cost_review;
@@ -492,6 +498,16 @@ async function refresh() {
 }
 document.addEventListener("click", event => {
   const target = event.target;
+  const modelButton = target.closest("[data-model-url]");
+  if (modelButton) {
+    modelButton.disabled = true;
+    fetch(modelButton.dataset.modelUrl, {cache:"no-store"}).then(response => {
+      if (!response.ok) throw Error('HTTP ' + response.status);
+      return response.json();
+    }).then(record => { modelButton.parentElement.innerHTML = renderModelCall(record); })
+      .catch(error => { modelButton.disabled = false; modelButton.textContent = 'Could not load: ' + error.message + ' · Retry'; });
+    return;
+  }
   const pageButton = target.closest("[data-page]");
   if (pageButton) { page = pageButton.dataset.page; choose(current, page); return; }
   const dayButton = target.closest("[data-day]");

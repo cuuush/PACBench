@@ -7,10 +7,11 @@ Serves explorer/ on 127.0.0.1 and opens the browser. Stdlib only.
 
 import http.server
 import json
+import re
 import sys
 import webbrowser
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, parse_qs
 
 from pacbench.explorer_data import load_runs
 
@@ -28,15 +29,34 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
-        if urlsplit(self.path).path == "/runs":
-            body = json.dumps(load_runs(ROOT), ensure_ascii=False).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-            return
+        route=urlsplit(self.path)
+        if route.path == "/model-call":
+            from pacbench.model_calls import public_record
+            params=parse_qs(route.query)
+            run=params.get('run',[''])[0];name=params.get('file',[''])[0]
+            relative=Path(name)
+            base=ROOT/'runs'/run
+            path=base/relative
+            if (not run or Path(run).name!=run or run in ('.','..') or
+                    relative.is_absolute() or '..' in relative.parts or
+                    not re.fullmatch(r'(?:preflight/)?(?:preparation/|judge-scope-review/|components/[^/]+/(?:judge-scope-review/)?)?model-calls/[^/]+\.json',name) or
+                    not path.resolve().is_relative_to(base.resolve()) or
+                    any(p.is_symlink() for p in (path,*path.parents) if p!=ROOT)):
+                self.send_error(404);return
+            try:record=public_record(json.loads(path.read_text(encoding='utf-8')))
+            except (OSError,ValueError):self.send_error(404);return
+            self.send_json(record);return
+        if route.path == "/runs":
+            self.send_json(load_runs(ROOT,include_model_records=False));return
         super().do_GET()
+
+    def send_json(self, value):
+        body = json.dumps(value, ensure_ascii=False).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
 
 def main() -> None:

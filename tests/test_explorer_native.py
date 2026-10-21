@@ -145,6 +145,12 @@ def test_http_reads_runs_on_every_request_and_blocks_raw_private_paths(tmp_path,
     home = arm / 'hermes-home'
     home.mkdir()
     (home / '.env').write_text('PRIVATE=never-public')
+    save(root/'model-calls/saved.json',{'model':'test-model','text':'Exact saved output',
+        'request':{'messages':[{'role':'user','content':'Long saved prompt'}]}})
+    save(root/'preparation/scene-verifications/check.json',{'model_call':'model-calls/saved.json',
+        'scene_id':'check','judge_prompt':'Long saved prompt','verdict':{'supported':True}})
+    save(home/'model-calls/secret.json',{'text':'never-public'})
+    (root/'model-calls/link.json').symlink_to(home/'model-calls/secret.json')
     monkeypatch.setattr(serve_explorer, 'ROOT', tmp_path)
     server = ThreadingHTTPServer(('127.0.0.1', 0), serve_explorer.ExplorerHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -159,6 +165,21 @@ def test_http_reads_runs_on_every_request_and_blocks_raw_private_paths(tmp_path,
         with urllib.request.urlopen(base + '/runs') as response:
             data = json.load(response)
         assert data['runs'][0]['arms']['mem0-repeat-1']['turn']['answer'] == 'New answer'
+        calls=data['runs'][0]['model_calls']
+        saved=next(c for c in calls if c['file']=='model-calls/saved.json')
+        assert saved['record']['model']=='test-model'
+        assert 'request' not in saved['record'] and 'text' not in saved['record']
+        review=next(x['record'] for x in data['runs'][0]['verifications'] if x['record'].get('scene_id')=='check')
+        assert review['review_index'] and 'judge_prompt' not in review
+        assert review['verdict']=={'supported':True}
+        with urllib.request.urlopen(base+saved['record']['lazy_url']) as response:
+            assert json.load(response)['request']['messages'][0]['content']=='Long saved prompt'
+        for name in ('../trial/model-calls/saved.json','repeat-1/mem0/hermes-home/model-calls/secret.json',
+                     'model-calls/link.json','model-calls/private/secret.json'):
+            from urllib.parse import urlencode
+            with pytest.raises(urllib.error.HTTPError) as blocked:
+                urllib.request.urlopen(base+'/model-call?'+urlencode({'run':'trial','file':name}))
+            assert blocked.value.code==404
         with pytest.raises(urllib.error.HTTPError) as error:
             urllib.request.urlopen(base + '/runs/trial/repeat-1/mem0/hermes-home/.env')
         assert error.value.code == 404
@@ -185,3 +206,25 @@ def test_parallel_component_records_with_identical_filenames_keep_exact_aliases(
     lookup={alias:r['record']['text'] for r in records for alias in r['aliases']}
     assert lookup['/original/core/model-calls/same.json']=='core judgment'
     assert lookup['/original/honcho/model-calls/same.json']=='honcho judgment'
+
+
+def test_excluded_attempt_answers_remain_inspectable_without_replacing_selected_arm(tmp_path):
+    root,arm=trial(tmp_path)
+    evidence='attempts/old/repeat-1/mem0'
+    shutil.copytree(arm,root/evidence)
+    save(root/evidence/'recall.json',{'answer':'Excluded answer','tool_calls':[]})
+    save(root/evidence/'configuration-review.json',{'finding':'Non-default output limit'})
+    summary=json.loads((root/'summary.json').read_text())
+    summary['other_attempts']=[{'provider':'mem0','evidence':evidence,
+        'original_root':'/old/trial','reason':'Different configuration'}]
+    save(root/'summary.json',summary)
+    run=explorer.load_runs(tmp_path,include_model_records=False)['runs'][0]
+    assert list(run['arms'])==['mem0-repeat-1']
+    assert run['arms']['mem0-repeat-1']['turn']['answer']=='First fact'
+    old=run['excluded_arms'][evidence]
+    assert old['turn']['answer']=='Excluded answer'
+    assert old['configuration_review']['finding']=='Non-default output limit'
+    assert 'excluded attempt' in old['label']
+    summary['other_attempts'][0]['evidence']='../private'
+    save(root/'summary.json',summary)
+    assert explorer.load_runs(tmp_path)['errors'][0]['error']=='attempt evidence must stay inside run'

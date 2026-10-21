@@ -159,10 +159,8 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         if actual_url != extraction_url:
             raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
         config["sync_max_chars"] = 6000
-        # Spark's reasoning counts against the output budget. The SDK default
-        # 2,000 exhausted that budget before emitting extraction JSON. Use the
-        # documented model config, not a prompt or extraction workaround.
-        config['oss']['llm']['config']['max_tokens']=16384
+        # Leave model processing limits at native defaults. An incompatible
+        # output budget is an execution blocker, not grounds to tune an arm.
         save(home / "mem0.json", config)
         os.chmod(home / "mem0.json", 0o600)
         (home / ".env").write_text("OPENAI_API_KEY=" + client_key + "\n")

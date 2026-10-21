@@ -109,14 +109,16 @@ def audit_ingestion(root, arm, messages, summary):
                     check(rowdata==(recorded['guid'],m['text'],int(m['from_owner'])),'fixture text/owner/GUID differs from source')
                 check(not db.execute('SELECT m.ROWID FROM message m LEFT JOIN chat_message_join j ON j.message_id=m.ROWID WHERE j.chat_id IS NULL').fetchall(),'orphan source messages')
         if meta.get('mailbox'):
-            from email import message_from_string
+            from email import message_from_bytes
             from email.utils import parsedate_to_datetime,parseaddr
             from .email_fixture import mail_address
             mailbox=json.loads((source/'mailbox.json').read_text())
             check([r['source'] for r in mailbox['messages']]==cumulative_mail,
                   'mailbox has missing, changed or future source emails')
             for item in mailbox['messages']:
-                m=item['source'];mail=message_from_string(item['rfc822'])
+                # SMTP is a byte protocol. Parsing a Unicode string with the
+                # compat parser escapes 8-bit bodies (e.g. an em dash).
+                m=item['source'];mail=message_from_bytes(item['rfc822'].encode('utf-8'))
                 check(parseaddr(mail['From'])[1]==mail_address(m['sender']), 'email sender differs from source')
                 check(parsedate_to_datetime(mail['Date'])==datetime.fromisoformat(m['written_at']),
                       'email date differs from source')

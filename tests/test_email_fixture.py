@@ -70,6 +70,40 @@ def test_mailbox_rejects_inconsistent_owner_metadata(tmp_path):
         append_emails(tmp_path/'mailbox.json',[{**exchange()[0],'from_owner':True}])
 
 
+def test_document_audit_accepts_utf8_smtp_and_rejects_changed_body(tmp_path):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.document_ingestion import VERSION, processing_at
+    from pacbench.followups import save
+    rows=[email('unicode', 'Ben', 'Confirmed — café at seven.\nSee you there!',
+                '2026-10-06T07:00:00-04:00')]
+    schedule=prepare_sources(tmp_path,rows,'America/New_York')
+    arm=tmp_path/'repeat-1/mem0';row=schedule[0]
+    meta=json.loads((tmp_path/'sources'/row['id']/'source.json').read_text())
+    save(arm/row['file'], {'provider':'mem0','version':VERSION,'at':row['at'],
+         'source_ids':row['source_ids'],'document_sha256':meta['document_sha256'],
+         'hermes_ingestion_turns':0,'ready':True,'state':'ready','returncode':0,
+         'processing_at':processing_at(row['at'],'mem0','America/New_York')})
+    summary={'ingestion_schedule':schedule,'ingestion_version':VERSION,
+             'process_timezone':'America/New_York'}
+    save(arm/'pre-recall-isolation.json',{'hermes_sessions_before_recall':[],
+         'builtin_memory_before_recall':{}})
+    import sqlite3
+    (arm/'hermes-home').mkdir()
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute('CREATE TABLE messages (id,session_id,role,content)')
+        db.execute('CREATE TABLE sessions (id)')
+        db.execute("INSERT INTO messages VALUES (1,'recall','user','When is dinner?')")
+        db.execute("INSERT INTO sessions VALUES ('recall')")
+    save(arm/'recall.json',{'session_id':'recall','prompt':'When is dinner?',
+         'at':'2026-10-07T09:00:00-04:00'})
+    assert audit_ingestion(tmp_path,arm,rows,summary)==[]
+    path=tmp_path/'sources'/row['id']/'mailbox.json'
+    mailbox=json.loads(path.read_text())
+    mailbox['messages'][0]['rfc822']=mailbox['messages'][0]['rfc822'].replace('seven','eight')
+    save(path,mailbox)
+    assert 'email body differs from source' in audit_ingestion(tmp_path,arm,rows,summary)
+
+
 def test_native_memcal_imap_reader_and_contacts_resolve_two_accounts(tmp_path):
     repo=Path(__file__).resolve().parents[2]/'memcal'
     python=Path(__file__).resolve().parents[1]/'vendor/venv-hermes-isolated/bin/python'

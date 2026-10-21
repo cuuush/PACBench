@@ -53,6 +53,7 @@ def test_mem0_uses_distinct_native_profile_identities(tmp_path):
     assert a["oss"]["vector_store"]["provider"] == "qdrant"
     assert a["oss"]["embedder"]["provider"] == "ollama"
     assert a["oss"]["llm"]["config"]["model"].endswith("-contributor")
+    assert "max_tokens" not in a["oss"]["llm"]["config"]
     assert env["HOME"] == str(first / "fallback-home")
     assert env["PACBENCH_NO_BUILTIN_MEMORY"] == "1"
     assert env["PACBENCH_PROVIDER_ONLY"] == "1"

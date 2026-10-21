@@ -1,0 +1,116 @@
+{
+  "state": "complete",
+  "plan_hash": "4f5bd75fb5e24adf9a838d79fc19d7517b623c716be2a49644f34920dbaed436",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Jen phone call cover letter 10am Friday October 23",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549497373,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"01fb2fc1-7e3a-437d-b5b2-ee3818900cc2\", \"memory\": \"User agreed to a 10am phone call for 20 minutes max on Friday, October 23, 2026 to review Jen's cover letter draft, with Jen sending the draft on Thursday, October 22 so it is fresh. User will mark up weird parts with brutally honest but lovingly rude feedback.\", \"score\": 0.8036182707992335}, {\"id\": \"fd135643-5f5f-4d5d-a8c4-485b61fd9366\", \"memory\": \"On October 14, 2026 User, Jen, and Alex agreed to postpone their Friday get-together to another day with a raincheck after Jen said she can't make it because her sister arrives the night of October 15 and Alex said his week got weird, reassuring Jen of zero guilt.\", \"score\": 0.6190753438179519}, {\"id\": \"4cd8dbb9-3069-47df-b5d3-df35b060b214\", \"memory\": \"Jen is applying for an internal ops coordinator posting requiring a full application and stiff cover letter, keeping it secret from her micromanager boss who checks if emails were opened. The new team is on the second floor with no leaky lobby or buckets by elevators.\", \"score\": 0.6132902046408457}, {\"id\": \"48181bf2-5aab-4928-b969-ac9a8c6da9e9\", \"memory\": \"User, Jen and Alex set a walk for 2pm Friday next week, October 23, 2026 at Willow Park west entrance by duck pond by big lot off Willow Ave near playground, east entrance is tennis courts, for about an hour so Alex is back by 4:30, grab coffee at new cart after meeting, Alex will bring dog who chases squirrels with User bringing treats, and Jen's mom visits Saturday after.\", \"score\": 0.6108488641905153}, {\"id\": \"eec37c82-118a-4c7b-a479-8d5e20f4a2a6\", \"memory\": \"Jen had leftover soup for dinner on October 4, 2026 and planned soup then early bed\", \"score\": 0.5958849145991189}, {\"id\": \"45a54503-dcc0-4cf2-9d1e-9ca630667627\", \"memory\": \"On the morning of September 25, 2026, Jen arrived at work half-soaked with squeaking wet shoes, had a spare sweater in her office drawer, was getting a large coffee, faced about 40 unread emails mostly CC nonsense, and reported her building lobby was leaking again with buckets out by the elevators.\", \"score\": 0.5925749713888908}, {\"id\": \"1e50ecd1-c586-49e3-a580-9fadbe343fcc\", \"memory\": \"User, Maya and Leo planned one outing for noon on Friday, October 23, 2026 at Rosa's on Oak Street, not this Friday and not a second dinner. They will meet out front, User walks 10 minutes from office, Maya buses after morning gym, parking is better than Pine Street.\", \"score\": 0.5864751827902588}, {\"id\": \"235c264e-a3d8-41b1-8877-d93a42cc30ee\", \"memory\": \"The Friday crew of User, Maya, and Leo agreed on October 5, 2026 to have pizza lunch at noon on Friday, October 9, 2026 at Luigi's on 5th Street, with User walking from work, Maya bussing over, noting parking is better than Pine Street, and meeting out front\", \"score\": 0.5785588346537236}, {\"id\": \"b802fca9-257e-4449-9911-eba56d8e8dd0\", \"memory\": \"Maya planned gym in the morning then work on Friday, September 18, 2026, while Leo planned laundry and playing the co-op cooking game\", \"score\": 0.5762903736326356}, {\"id\": \"dfe056a4-d2cb-4f1f-8bf1-888a85730b4d\", \"memory\": \"User declined their boss's request to cover Saturday morning around September 16, 2026, saying no because they work too many weekends and need an actual weekend\", \"score\": 0.5731725427751024}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "coffee Alex new cart after meeting Willow Park",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549497464,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"48181bf2-5aab-4928-b969-ac9a8c6da9e9\", \"memory\": \"User, Jen and Alex set a walk for 2pm Friday next week, October 23, 2026 at Willow Park west entrance by duck pond by big lot off Willow Ave near playground, east entrance is tennis courts, for about an hour so Alex is back by 4:30, grab coffee at new cart after meeting, Alex will bring dog who chases squirrels with User bringing treats, and Jen's mom visits Saturday after.\", \"score\": 0.7217522573525996}, {\"id\": \"f6cfb912-fb48-4073-906f-99cecc0f3723\", \"memory\": \"User and Alex planned coffee at 11am on Friday, October 23, 2026 at Birch Cafe, meeting at the step-free Mill Lane side entrance instead of the front with three to four big steps to protect Alex's healing ankle. User will grab a table and save the good cushioned chair, with iced lattes.\", \"score\": 0.6773081610038588}, {\"id\": \"b56ceea4-9e09-44d9-8dcc-a76bafa2acbb\", \"memory\": \"For the Friday 11am meetup planned October 14, 2026, User and Alex agreed to use the front entrance on Birch Street with its temporary step-free metal ramp with rails instead of the Mill Lane side entrance closed through end of next week for back-wall construction with scaffolding and cones, with User arriving early to save Alex a cushioned chair for his limpy ankle.\", \"score\": 0.6296316088831758}, {\"id\": \"0f6b0234-64f1-4583-93f0-ea778f7b3d48\", \"memory\": \"User, Maya, and Leo planned to meet out front of Luigi's on 5th Street on October 9, 2026, with Maya taking the bus after early gym, User walking about 10 minutes from work, and Leo driving noting parking is way better than Pine Street where he circled forever last time\", \"score\": 0.5847765068260885}, {\"id\": \"a62ba874-84bd-41db-8021-5d568e91e9f5\", \"memory\": \"Alex bought a basil plant for $3.50 from a table of $3 herbs at the little nursery by the grocery store on September 20, 2026 and put it on his windowsill next to his succulent.\", \"score\": 0.5771674651988095}, {\"id\": \"d4665def-b3a9-4969-9e9e-d1f84eef575d\", \"memory\": \"Alex's basil plant is tiny in a thimble-sized, shot-glass-size pot with only three fingernail-size leaves, smaller than his house keys with the key fob as its big brother, dwarfed by his mug and coffee spoon, and light enough that the pot moved when he sneezed.\", \"score\": 0.5713689567392801}, {\"id\": \"a80bef99-248e-470a-a28f-6fea1865518d\", \"memory\": \"Alex's basil plant was alive and thriving with six leaves as of October 7, 2026, up from three to four leaves earlier, with Alex joking that basil picked his lottery numbers after he held the ticket up to the leaves for good luck\", \"score\": 0.5655498922897629}, {\"id\": \"ebfd30d6-66b5-4bb6-ac00-5879d6758b17\", \"memory\": \"On October 12, 2026 User went overboard at Trader Joe's with full fridge including two boxes of chocolate croissants, Alex reheated Sunday pasta saying better today, Jen's bus was 20 minutes late, all reported tragic step counts, Alex needs new sneakers and will check Fleet Feet downtown sale on Wednesday, and Jen got hers there last month.\", \"score\": 0.5606757757621894}, {\"id\": \"fc2f258c-74a6-42b5-8fcb-498d9c7787e9\", \"memory\": \"On October 14, 2026 Alex reported his basil has a tiny seventh leaf coming in, joking about pesto in seven years, while User moved a less-droopy plant to the windowsill on Maya's advice with Maya celebrating windowsill magic and User considering moving all plants.\", \"score\": 0.5573939469018371}, {\"id\": \"3d5c02ad-4b36-4a41-97f4-42058310739d\", \"memory\": \"On October 3, 2026, User planned to brave the store before it got busy, agreeing to text Devon if 5th Street is still blocked by bank construction and to take Oak instead if needed.\", \"score\": 0.5470397544226666}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.07,
+    "input_tokens": 3010,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-agreed",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed as still on."
+    },
+    {
+      "id": "alex-coffee-agreed",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed as still on."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-agreed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-agreed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

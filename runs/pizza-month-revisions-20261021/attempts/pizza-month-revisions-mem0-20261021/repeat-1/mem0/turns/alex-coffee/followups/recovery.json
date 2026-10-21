@@ -1,0 +1,96 @@
+{
+  "state": "complete",
+  "plan_hash": "5e6f1905a2ac9160501f97ad84320c7118d78eb67981edb69b285f972b6ed557",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "coffee with Alex Friday where when",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549549344,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"f6cfb912-fb48-4073-906f-99cecc0f3723\", \"memory\": \"User and Alex planned coffee at 11am on Friday, October 23, 2026 at Birch Cafe, meeting at the step-free Mill Lane side entrance instead of the front with three to four big steps to protect Alex's healing ankle. User will grab a table and save the good cushioned chair, with iced lattes.\", \"score\": 0.7496406289436822}, {\"id\": \"b56ceea4-9e09-44d9-8dcc-a76bafa2acbb\", \"memory\": \"For the Friday 11am meetup planned October 14, 2026, User and Alex agreed to use the front entrance on Birch Street with its temporary step-free metal ramp with rails instead of the Mill Lane side entrance closed through end of next week for back-wall construction with scaffolding and cones, with User arriving early to save Alex a cushioned chair for his limpy ankle.\", \"score\": 0.6556411916489806}, {\"id\": \"fd135643-5f5f-4d5d-a8c4-485b61fd9366\", \"memory\": \"On October 14, 2026 User, Jen, and Alex agreed to postpone their Friday get-together to another day with a raincheck after Jen said she can't make it because her sister arrives the night of October 15 and Alex said his week got weird, reassuring Jen of zero guilt.\", \"score\": 0.6479399114772628}, {\"id\": \"48181bf2-5aab-4928-b969-ac9a8c6da9e9\", \"memory\": \"User, Jen and Alex set a walk for 2pm Friday next week, October 23, 2026 at Willow Park west entrance by duck pond by big lot off Willow Ave near playground, east entrance is tennis courts, for about an hour so Alex is back by 4:30, grab coffee at new cart after meeting, Alex will bring dog who chases squirrels with User bringing treats, and Jen's mom visits Saturday after.\", \"score\": 0.6463277907310108}, {\"id\": \"235c264e-a3d8-41b1-8877-d93a42cc30ee\", \"memory\": \"The Friday crew of User, Maya, and Leo agreed on October 5, 2026 to have pizza lunch at noon on Friday, October 9, 2026 at Luigi's on 5th Street, with User walking from work, Maya bussing over, noting parking is better than Pine Street, and meeting out front\", \"score\": 0.6441260109559214}, {\"id\": \"11944632-49da-408d-871a-4cd3f85f2aa6\", \"memory\": \"User and Ben confirmed as of October 14, 2026 that dinner is 7pm Saturday at Juniper Cafe, 48 Maple Ave, replacing 7pm Thursday October 22, with Ben calling to revise the booking and User swapping a shift to make Saturday work and saying Thursday is now bad, sticking with Juniper and soup.\", \"score\": 0.6169860343799235}, {\"id\": \"ebaadf9a-de22-443e-9e97-43dcad03d8b9\", \"memory\": \"Ben moved dinner with User from 7pm Thursday, October 22, 2026 at Juniper Cafe, 48 Maple Ave to 7pm Saturday due to a work deadline, and User confirmed Saturday at 7pm at Juniper Cafe replacing Thursday.\", \"score\": 0.6151721611871004}, {\"id\": \"ff37dab0-9256-484f-9d75-fb65fe3617fb\", \"memory\": \"On October 14, 2026 Maya found Rosa's on Oak Street closed Friday for renovations all week, so User and Maya switched Friday lunch to Mario's on Pine Street at 12:30pm, pushed from noon because User's meeting runs until 12:15pm, with Leo out for a Friday deployment and just the two meeting out front.\", \"score\": 0.612864828189049}, {\"id\": \"a8bbda4d-b2c4-4d16-b051-60de76d83885\", \"memory\": \"User ordered tacos for dinner on October 7, 2026 because they were too tired to cook, from the taco truck near them known for a long line and a mountain of onions, with Alex saying he wants to come try it sometime\", \"score\": 0.6058720347386448}, {\"id\": \"7d40b1e2-b46c-4e97-8adb-1eac55b75e3d\", \"memory\": \"On October 14, 2026 the Friday crew reported freezing offices with fall and heavy jackets worn to desks all day, with Maya needing tea after coffee and remembering Leo's weird lemon tea and User's chamomile for virtual tea.\", \"score\": 0.6054989578035973}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.47,
+    "input_tokens": 5259,
+    "output_tokens": 743,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "alex-coffee-time",
+      "kind": "provided",
+      "reason": "Time correctly conveyed in answer."
+    },
+    {
+      "id": "alex-coffee-venue",
+      "kind": "provided",
+      "reason": "Venue correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "alex-coffee-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

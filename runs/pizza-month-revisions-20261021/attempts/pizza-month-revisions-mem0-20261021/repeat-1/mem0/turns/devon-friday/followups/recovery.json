@@ -1,0 +1,83 @@
+{
+  "state": "complete",
+  "plan_hash": "1bd64bcb1e3b5e22a2df69f41809f586827df22d3d6666cbcfa0c070a6cecbc9",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza with Devon Friday plan",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549714863,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"566873b1-38f2-4d69-b97e-7c51a0739d75\", \"memory\": \"User and Devon planned a pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 pm, both coming straight from the office and meeting there, with Devon to grab a table if early and User to text when parking, to beat the dinner rush and kick off the weekend with no cooking\", \"score\": 0.7627514482504479}, {\"id\": \"1fea9348-8692-428f-8896-977c8fcfdf3b\", \"memory\": \"User and Devon planned to meet for pizza at Rosa's on Oak Street on Friday, October 9, 2026 around 6:30pm, with Devon craving thin crust and User praising the margherita, planning to meet there using back lot parking and text when leaving work.\", \"score\": 0.7501268792068949}, {\"id\": \"bf81d635-20fc-4419-8fb0-645610120936\", \"memory\": \"User and Devon moved their Friday garlic-knots outing to Sunday at the same time and same place after Devon was put on a late shift Friday in a last-minute schedule change with chart hell, with User noting they can't do two pizza nights anyway and confirming they'll grab a table early as usual.\", \"score\": 0.744141118678651}, {\"id\": \"1e254379-cdc9-4791-b32c-0b5e82076b3b\", \"memory\": \"As of September 30, 2026, Devon's boss was out of office, so Devon expected no last-minute chart pressure and could leave work on time for the Friday pizza plan.\", \"score\": 0.7359482587178613}, {\"id\": \"87ed2b6a-072c-4018-bc47-535198decf16\", \"memory\": \"User and Devon planned to try Rosa's on Oak Street for pizza on Friday, September 25, 2026 at 7 pm, meeting there straight from the office with parking in the back and texting each other when leaving work.\", \"score\": 0.7073188318756882}, {\"id\": \"846647ec-e26a-4b42-ad0f-a1db7929e347\", \"memory\": \"On September 30, 2026, User and Devon agreed to try Mario's for pizza on Friday, October 2, 2026 at 6pm, with User heading straight from work, Devon able to leave on time, and both planning to text when leaving with Devon grabbing a table if first.\", \"score\": 0.7063485007857934}, {\"id\": \"96a6aa00-2d9d-4728-951f-580e2fbe3257\", \"memory\": \"User and Devon planned pizza at Luigi's on 5th Street at 6pm Friday next week, October 23, 2026, using back lot parking like last time because 5th traffic is dumb, User to head straight from office and text when parking, Devon to grab table and leave on time with no chart hell; User can't this Friday October 16 due to covering late after boss asked last minute.\", \"score\": 0.699370467020577}, {\"id\": \"a70ab46c-929c-42bc-b4f0-53530fa18906\", \"memory\": \"User and Devon confirmed their Luigi's pizza dinner on September 18, 2026 happened, with Devon eating a leftover slice for breakfast on September 19 and User having two slices left in the fridge for lunch; their garlic knots did not survive the night, with Devon eating his in the car.\", \"score\": 0.6769514721202934}, {\"id\": \"159fe47e-985b-4c96-aa29-93bb3df3f433\", \"memory\": \"Devon plans to help his mom with groceries on Saturday afternoon, September 26, 2026 instead of attending his work team lunch at Domino's, and User asked Devon to say hi to her.\", \"score\": 0.6734116548202196}, {\"id\": \"49d2f5ed-823a-4705-91b5-a07d40a94c60\", \"memory\": \"User and Devon previously had pizza from Rosa's before September 30, 2026 and both liked it, specifically praising the margherita with thin crust, and on September 30 discussed craving heavier, proper cheesy slices next time.\", \"score\": 0.6642410457513268}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 19.08,
+    "input_tokens": 1968,
+    "output_tokens": 908,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-friday-no-pizza",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite current state that outing is still on."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 0,
+    "initial_misrepresented": 1,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-friday-no-pizza",
+        "initial_verdict": "misrepresented",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

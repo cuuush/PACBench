@@ -1,0 +1,123 @@
+{
+  "state": "complete",
+  "plan_hash": "7768f3e29a758f0ccac5bddfde0afb46c25b39576bfa97bcaeaf970d696f68b9",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1,
+      "source_evidence": 1,
+      "archive_search": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E15"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549575752,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E15  pizza lunch\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nnote: Patio if weather allows; dairy-free veggie no-cheese\nsource: person:Maya\n\npages: maya (person) · pizza-lunch (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 17:23 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  — Wed Oct 14, 2026 13:17 · iMessage with Friday crew —\n   [2524] Friday crew · Wed 14 Oct 13:17 · Maya: same, meet out front still?\n   [2525] Friday crew · Wed 14 Oct 13:31 · me: yep i'll walk over\n  — Wed Oct 14, 2026 17:03 · iMessage with Maya —\n   [2604] Maya · Wed 14 Oct 17:03 · Maya: same, I closed mine halfway already\n   [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n   [2625] Maya · Wed 14 Oct 17:19 · Maya: ugh of course, Friday meetings love to expand\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n   [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n   [2631] Maya · Wed 14 Oct 17:25 · me: you're the best, still good for like an hour-ish?\n   [2633] Maya · Wed 14 Oct 17:25 · Maya: yeah plenty, my 2pm call is still there so that actually helps\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'pizza lunch' -> 'pizza lunch' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open_source",
+        "arguments": {
+          "source": "E15"
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549580751,
+        "result": {
+          "tool": "memcal_open_source",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"source\": \"E15\", \"kind\": \"event\", \"ref\": \"pizza-lunch@2026-10-23\", \"label\": \"pizza lunch\", \"citations\": {\"lines\": 24, \"conversations\": [\"Friday crew\", \"Maya\"], \"first\": \"2026-10-12T17:47\", \"last\": \"2026-10-14T17:23\", \"first_said\": \"Mon 12 Oct 17:47\", \"last_said\": \"Wed 14 Oct 17:23\", \"narrow\": true}, \"evidence\": [{\"id\": 2630, \"ts\": \"2026-10-14T17:23:57-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"perfect, no rush at all, I'll aim for 12:30 too\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 17:23 \\u00b7 iMessage with Maya\"}, {\"id\": 2163, \"ts\": \"2026-10-13T09:15:53-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"oh Rosa's on Oak Street, I've heard good things\", \"evidence\": false, \"source_heading\": \"Tue Oct 13, 2026 09:15 \\u00b7 iMessage with Friday crew \\u00b7 1 day earlier\"}, {\"id\": 2164, \"ts\": \"2026-10-13T09:16:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah we already picked noon for Friday next week\", \"evidence\": false}, {\"id\": 2165, \"ts\": \"2026-10-13T09:16:13-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"want to join us? same plan, not a second dinner\", \"evidence\": false}, {\"id\": 2166, \"ts\": \"2026-10-13T09:16:27-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yes please count me in for that\", \"evidence\": true}, {\"id\": 2167, \"ts\": \"2026-10-13T09:17:50-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yay, more cheese pull judges\", \"evidence\": false}, {\"id\": 2168, \"ts\": \"2026-10-13T09:22:26-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"lol always down to judge cheese\", \"evidence\": false}, {\"id\": 2169, \"ts\": \"2026-10-13T09:22:33-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"perfect so it's us three for that one outing\", \"evidence\": true}, {\"id\": 2170, \"ts\": \"2026-10-13T09:27:10-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"just to be clear, Friday next week, not this Friday?\", \"evidence\": false}, {\"id\": 2171, \"ts\": \"2026-10-13T09:27:16-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"right, next week, this Friday I'm slammed\", \"evidence\": false}, {\"id\": 2172, \"ts\": \"2026-10-13T09:31:53-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yep Friday next week at noon, same thing from our DM\", \"evidence\": true}, {\"id\": 2173, \"ts\": \"2026-10-13T09:36:29-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"that timing is actually perfect for me\", \"evidence\": false}, {\"id\": 2174, \"ts\": \"2026-10-13T09:37:52-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"nice\", \"evidence\": false}, {\"id\": 2390, \"ts\": \"2026-10-14T08:32:27-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"i know, i was already dreaming about the parmesan ones\", \"evidence\": false, \"source_heading\": \"Wed Oct 14, 2026 08:32 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 2391, \"ts\": \"2026-10-14T08:44:22-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"classic\", \"evidence\": false}, {\"id\": 2392, \"ts\": \"2026-10-14T08:56:17-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"what if we just do Mario's on Pine Street instead?\", \"evidence\": true}, {\"id\": 2393, \"ts\": \"2026-10-14T08:57:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"oh for Friday? yeah that works for me\", \"evidence\": true}, {\"id\": 2394, \"ts\": \"2026-10-14T08:58:04-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, i'm still in\", \"evidence\": true}, {\"id\": 2397, \"ts\": \"2026-10-14T09:01:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yay okay, thank god, i need pizza after this week\", \"evidence\": false}, {\"id\": 2400, \"ts\": \"2026-10-14T09:13:33-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"same, my laptop already froze once this morning\", \"evidence\": false}, {\"id\": 2512, \"ts\": \"2026-10-14T12:48:55-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah like noon through afternoon, i can't get away\", \"evidence\": false}, {\"id\": 2513, \"ts\": \"2026-10-14T12:49:17-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"damn that sucks\", \"evidence\": false}, {\"id\": 2514, \"ts\": \"2026-10-14T12:49:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"i know, so i can't make friday's pizza after all\", \"evidence\": true}, {\"id\": 2515, \"ts\": \"2026-10-14T12:51:05-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"ugh that's the worst timing\", \"evidence\": false}, {\"id\": 2516, \"ts\": \"2026-10-14T12:55:25-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah we were counting on you for parking circle commentary\", \"evidence\": false}, {\"id\": 2520, \"ts\": \"2026-10-14T13:12:23-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"classic friday trap\", \"evidence\": false}, {\"id\": 2521, \"ts\": \"2026-10-14T13:13:49-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"you guys should still go tho, don't skip on my account\", \"evidence\": false}, {\"id\": 2522, \"ts\": \"2026-10-14T13:15:16-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"oh we are, i still need pizza after this week\", \"evidence\": true}, {\"id\": 2523, \"ts\": \"2026-10-14T13:16:42-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah i'm still in for noon at Mario's\", \"evidence\": true}, {\"id\": 2524, \"ts\": \"2026-10-14T13:17:26-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"same, meet out front still?\", \"evidence\": false}, {\"id\": 2525, \"ts\": \"2026-10-14T13:31:52-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yep i'll walk over\", \"evidence\": false}, {\"id\": 2604, \"ts\": \"2026-10-14T17:03:32-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"same, I closed mine halfway already\", \"evidence\": false, \"source_heading\": \"Wed Oct 14, 2026 17:03 \\u00b7 iMessage with Maya\"}, {\"id\": 2615, \"ts\": \"2026-10-14T17:06:59-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"oh hey so annoying thing about Friday\", \"evidence\": false}, {\"id\": 2616, \"ts\": \"2026-10-14T17:07:17-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"my work meeting got extended, it runs til 12:15 now\", \"evidence\": true}, {\"id\": 2617, \"ts\": \"2026-10-14T17:07:34-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"can we slide like half an hour later than noon?\", \"evidence\": true}, {\"id\": 2625, \"ts\": \"2026-10-14T17:19:04-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"ugh of course, Friday meetings love to expand\", \"evidence\": false}, {\"id\": 2627, \"ts\": \"2026-10-14T17:22:31-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah 12:30 works for me, I'll just walk over a little later\", \"evidence\": true}, {\"id\": 2628, \"ts\": \"2026-10-14T17:23:40-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"thank youuu, I can still slip out right after, just need like 15 to get over there\", \"evidence\": false}, {\"id\": 2631, \"ts\": \"2026-10-14T17:25:06-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"you're the best, still good for like an hour-ish?\", \"evidence\": false}, {\"id\": 2633, \"ts\": \"2026-10-14T17:25:23-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah plenty, my 2pm call is still there so that actually helps\", \"evidence\": false}]}",
+          "truncated": false,
+          "capture": "hermes_session_db",
+          "stream_preview": "{\"source\": \"E15\", \"kind\": \"event\", \"ref\": \"pizza-lunch@2026-10-23\", \"label\": \"pizza lunch\", \"citations\": {\"lines\": 24, \"conversations\": [\"Friday crew\", \"Maya\"], \"first\": \"2026-10-12T17:47\", \"last\": \"2026-10-14T17:23\", \"first_said\": \"Mon 12 Oct 17:47\", \"last_said\": \"Wed 14 Oct 17:23\", \"narrow\": true}, \"evidence\": [{\"id\": 2630, \"ts\": \"2026-10-14T17:23:57-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"perfect, no rush at all, I'll aim for 12:30 too\", \"evidence\": true, \"source_heading\": \"Wed Oct 14, 2026 17:23 \\u00b7 iMessage with Maya\"}, {\"id\": 2163, \"ts\": \"2026-10-13T09:15:53-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"oh Rosa's on Oak Street, I've heard good things\", \"evidence\": false, \"source_heading\": \"Tue Oct 13, 2026 09:15 \\u00b7 iMessage with Friday crew \\u00b7 1 day earlier\"}, {\"id\": 2164, \"ts\": \"2026-10-13T09:16:00-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah we already picked noon for Friday next week\", \"evidence\": false}, {\"id\": 2165, \"ts\": \"2026-10-13T09:16:13-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"want to join us? same plan, not a second dinner\", \"evidence\": false}, {\"id\": 2166, \"ts\": \"2026-10-13T09:16:27-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yes please count me in for that\", \"evidence\": true}, {\"id\": 2167, \"ts\": \"2026-10-13T09:17:50-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yay, more cheese pull judges\", \"evidence\": false}, {\"id\": 2168, \"ts\": \"2026-10-13T09:22:26-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"lol always down to judge cheese\", \"evidence\": false}, {\"id\": 2169, \"ts\": \"2026-10-13T09:22:33-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"perfect so it's us three for that one outing\", \"evidence\": true}, {\"id\": 2170, \"ts\": \"2026-10-13T09:27:10-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"just to be clear, Friday next week, not this Friday?\", \"evidence\": false}, {\"id\": 2171, \"ts\": \"2026-10-13T09:27:16-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"right, next week, this Friday I'm slammed\", \"evidence\": false}, {\"id\": 2172, \"ts\": \"2026-10-13T09:31:53-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yep Friday next week at noon, same thing from our DM\", \"evidence\": true}, {\"id\": 2173, \"ts\": \"2026-10-13T09:36:29-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"that timing is actually perfect for me\", \"evidence\": false}, {\"id\": 2174, \"ts\": \"2026-10-13T09:37:52-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"nice\", \"evidence\": false}, {\"id\": 2390, \"ts\": \"2026-10-14T08:32:27-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"i know, i was already dreaming about the parmesan ones\", \"evidence\": false, \"source_heading\": \"Wed Oct 14, 2026 08:32 \\u00b7 iMessage with Friday crew \\u00b7 1 day later\"}, {\"id\": 2391, \"ts\": \"2026-10-14T08:44:22-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"classic\", \"evidence\": false}, {\"id\": 2392, \"ts\": \"2026-10-14T08:56:17-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"what if we just do Mario's on Pine Street instead?\", \"evidence\": true}, {\"id\": 2393, \"ts\": \"2026-10-14T08:57:28-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"oh for Friday? yeah that works for me\", \"evidence\": true}, {\"id\": 2394, \"ts\": \"2026-10-14T08:58:04-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah that works, i'm still in\", \"evidence\": true}, {\"id\": 2397, \"ts\": \"2026-10-14T09:01:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"yay okay, thank god, i need pizza after this week\", \"evidence\": false}, {\"id\": 2400, \"ts\": \"2026-10-14T09:13:33-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"same, my laptop already froze once this morning\", \"evidence\": false}, {\"id\": 2512, \"ts\": \"2026-10-14T12:48:55-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah like noon through afternoon, i can't get away\", \"evidence\": false}, {\"id\": 2513, \"ts\": \"2026-10-14T12:49:17-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"damn that sucks\", \"evidence\": false}, {\"id\": 2514, \"ts\": \"2026-10-14T12:49:38-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"i know, so i can't make friday's pizza after all\", \"evidence\": true}, {\"id\": 2515, \"ts\": \"2026-10-14T12:51:05-04:00\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"ugh that's the worst timing\", \"evidence\": false}, {\"id\": 2516, \"ts\": \"2026-10-14T12:55:25-04:00\", \"channel\": \"imessage\", \"thread..."
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "query": "Leo pizza Friday"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549580775,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 1308, \"when\": \"2026-10-05T19:35\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"yes please, wanna do pizza this Friday at noon?\"}, {\"line_id\": 107, \"when\": \"2026-09-17T20:00\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"its this fake ad for a pizza place\"}, {\"line_id\": 408, \"when\": \"2026-09-21T19:30\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"pizza? in honor of the crying suit guy\"}, {\"line_id\": 693, \"when\": \"2026-09-26T15:00\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"okay that pizza yesterday is still on my mind\"}, {\"line_id\": 2556, \"when\": \"2026-10-14T15:23\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"she remembers even when i'm bailing on pizza\"}, {\"line_id\": 2514, \"when\": \"2026-10-14T12:49\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"i know, so i can't make friday's pizza after all\"}, {\"line_id\": 697, \"when\": \"2026-09-26T15:12\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"i liked the pizza overall but man those olives were too salty\"}, {\"line_id\": 111, \"when\": \"2026-09-17T20:03\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"and he's like \\\"we should get pizza on Saturday and never go back to work\\\"\"}, {\"line_id\": 2825, \"when\": \"2026-10-19T11:10\", \"who\": \"me\", \"channel\": \"agent\", \"thread\": \"hermes:20261020_222611_f01835\", \"text\": \"[Simulated now: 2026-10-19T11:10:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nIs Leo joining us for pizza on Friday?\", \"note\": \"written by you earlier this session \\u2014 not independent evidence, do not cite it as confirmation\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 14.67,
+    "input_tokens": 23512,
+    "output_tokens": 1149,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "leo-friday-out",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "leo-friday-out",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

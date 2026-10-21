@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "77affc98e5df4e0abb48103bef89f319822e5f42461224728334041f924b64ad",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Ben dinner Thursday Saturday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549425576,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"ebaadf9a-de22-443e-9e97-43dcad03d8b9\", \"memory\": \"Ben moved dinner with User from 7pm Thursday, October 22, 2026 at Juniper Cafe, 48 Maple Ave to 7pm Saturday due to a work deadline, and User confirmed Saturday at 7pm at Juniper Cafe replacing Thursday.\", \"score\": 0.772043034036257}, {\"id\": \"11944632-49da-408d-871a-4cd3f85f2aa6\", \"memory\": \"User and Ben confirmed as of October 14, 2026 that dinner is 7pm Saturday at Juniper Cafe, 48 Maple Ave, replacing 7pm Thursday October 22, with Ben calling to revise the booking and User swapping a shift to make Saturday work and saying Thursday is now bad, sticking with Juniper and soup.\", \"score\": 0.7497285440634784}, {\"id\": \"07f6ed83-a541-42b8-8741-ace7b88614a5\", \"memory\": \"User and Ben confirmed dinner at Juniper Cafe, 48 Maple Ave at 7pm Thursday, October 22, 2026 via email, Ben craving soup, both put it in calendar and fridge note, User to buy two descalers with Ben paying back at dinner as transaction spot, and Ben has dentist appointment this Thursday October 15.\", \"score\": 0.7194688473842719}, {\"id\": \"b643cda6-2c05-4269-a3f1-3a9cecb60031\", \"memory\": \"Devon had cereal again for dinner on the evening of September 23, 2026, continuing his pattern of lazy cereal dinners after work.\", \"score\": 0.6471554609394149}, {\"id\": \"566873b1-38f2-4d69-b97e-7c51a0739d75\", \"memory\": \"User and Devon planned a pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 pm, both coming straight from the office and meeting there, with Devon to grab a table if early and User to text when parking, to beat the dinner rush and kick off the weekend with no cooking\", \"score\": 0.6062576055015683}, {\"id\": \"fda6c484-913d-48e6-960b-7351dc73684a\", \"memory\": \"User promised Ben to grab two coffee descalers on October 15, 2026 after forgetting yesterday while Ben's coffee maker sputtered and Ben noted he still owes User for dinner in their Juniper transaction, and Ben said his work deadline eased after his boss moved it so he is not slammed next week.\", \"score\": 0.5953998053652216}, {\"id\": \"dfff28e4-4d08-42cd-80bb-dbd9491ac978\", \"memory\": \"On the evening of September 22, 2026 User put lemon pepper chicken in the oven for an easy dinner while waiting, and Devon planned a lazy dinner of cereal after a long day of meetings.\", \"score\": 0.5937237003379989}, {\"id\": \"9fcc7ccb-ecb7-4803-856b-9cb2dc073692\", \"memory\": \"On October 6, 2026, Devon said his mom asked about User that morning and is hosting lunch again the weekend of October 10-11, 2026, likely making extra potato salad just in case, with User saying to tell her hi, that they love her, and that they might stop by after noon.\", \"score\": 0.5926029053827868}, {\"id\": \"76ef64a9-e94f-4269-ba3a-d8d493ebb90c\", \"memory\": \"Devon invited User to lunch at his mom's house on Sunday, September 20, 2026, noting she makes the potato salad User likes; User said to thank her and that they might come, then said they definitely have to come\", \"score\": 0.5902020867045202}, {\"id\": \"2b10c40e-9daf-4cd7-8e8c-29c72b0b1103\", \"memory\": \"User's parents planned a family visit for the weekend of October 3, 2026 including dinner at their place Saturday, and User's dad is known for lengthy grill stories including a 2-hour burger lecture.\", \"score\": 0.5888029481357997}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 14.18,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-no-thursday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-no-thursday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

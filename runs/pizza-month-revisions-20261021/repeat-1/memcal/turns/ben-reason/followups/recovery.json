@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "19d05049287b5003f0b9bae50e089cce2b8b845a563622355d22e2a081dce4f8",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E18"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549641900,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E18  dinner\n\nwhen: Saturday 24 October 2026 at 19:00\nstate: You're going\nwhere: Juniper Cafe, 48 Maple Ave\nwho: Ben\nsource: person:Ben\n\nsources (12 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 13:45 · email · Ben —\n * [2382] Ben · Tue 13 Oct 13:45 · me: Re: Dinner No worries, I get it. Saturday at 7pm at Juniper Cafe works for me — so we're replacing Thursday with Saturday. See you then!\n  — Mon Oct 12, 2026 19:12 · iMessage with Ben · 1 day earlier —\n   [1960] Ben · Mon 12 Oct 19:12 · me: ohh yes I love that place\n * [1964] Ben · Mon 12 Oct 19:14 · Ben: like 7pm?\n * [1968] Ben · Mon 12 Oct 19:16 · me: yeah that works\n   [1969] Ben · Mon 12 Oct 19:17 · Ben: nice, I'll put it in my calendar\n   [1970] Ben · Mon 12 Oct 19:18 · me: same, Thursday dinner is officially on my fridge note lol\n  — Mon Oct 12, 2026 20:00 · email · Ben —\n * [2092] Ben · Mon 12 Oct 20:00 · Ben: Dinner Hi! Following up on the dinner we arranged in DM to pass along the address. It's Juniper Cafe, 48 Maple Ave. Are we still good for 7pm next Thursday, Oct 22?\n * [2091] Ben · Mon 12 Oct 20:01 · me: Re: Dinner Hi Ben! Yes, that's the same one from our DMs. Confirming Thursday, Oct 22 at 7pm at Juniper Cafe. Thanks for sending the address — see you there!\n * [2093] Ben · Mon 12 Oct 21:15 · Ben: Re: Dinner Perfect, confirmed — 7pm Thursday at Juniper Cafe. See you then!\n  — Tue Oct 13, 2026 10:00 · email · Ben · 1 day later —\n * [2383] Ben · Tue 13 Oct 10:00 · Ben: Re: Dinner Hi — writing from work with a change to flag. A work deadline means I cannot get away Thursday evening — could we move dinner to Saturday instead?\n  — Wed Oct 14, 2026 10:15 · email · Ben · 1 day later —\n   [2814] Ben · Wed 14 Oct 10:15 · Ben: Re: Dinner Hi! Quick update — I called Juniper Cafe and they have our revised booking for Saturday at 7pm. We're all set for Saturday. Thanks again for being flexible about moving it yesterday!\n   [2813] Ben · Wed 14 Oct 11:45 · me: Re: Dinner Perfect, thanks for updating it! See you Saturday at Juniper Cafe!\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'dinner' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> 'Juniper Cafe, 48 Maple Ave' (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Ben\"]' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Ben' (by dream:nightly:born-day)\n  2026-10-14T03:00  date: '2026-10-22' -> '2026-10-24' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.74,
+    "input_tokens": 10315,
+    "output_tokens": 483,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-reason",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-reason",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

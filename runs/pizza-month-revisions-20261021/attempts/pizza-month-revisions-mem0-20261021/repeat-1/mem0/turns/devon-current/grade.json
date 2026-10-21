@@ -1,0 +1,60 @@
+{
+  "correct": 3,
+  "missed": 0,
+  "misrepresented": 2,
+  "claims": [
+    {
+      "id": "devon-day",
+      "verdict": "misrepresented",
+      "reason": "Answer states the Devon pizza is Friday, October 23, contradicting Sunday."
+    },
+    {
+      "id": "devon-time",
+      "verdict": "correct",
+      "reason": "Answer states 6pm for the Devon pizza outing, matching the 6 pm attribute."
+    },
+    {
+      "id": "devon-venue",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's for the Devon pizza outing, matching venue despite wrong day."
+    },
+    {
+      "id": "devon-street",
+      "verdict": "correct",
+      "reason": "Answer states on 5th Street for the Devon pizza outing, matching street despite wrong day."
+    },
+    {
+      "id": "devon-count",
+      "verdict": "misrepresented",
+      "reason": "Answer keeps Friday as the upcoming outing, contradicting moved-to-Sunday with Friday not kept."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-day",
+      "kind": "incorrect",
+      "reason": "Answer asserts wrong Friday day instead of Sunday."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Answer provides 6pm for Devon pizza."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Answer provides Luigi's for Devon pizza."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Answer provides 5th Street for Devon pizza."
+    },
+    {
+      "id": "devon-count",
+      "kind": "incorrect",
+      "reason": "Answer asserts Friday as current, contradicting move to Sunday."
+    }
+  ],
+  "interaction": "answer"
+}

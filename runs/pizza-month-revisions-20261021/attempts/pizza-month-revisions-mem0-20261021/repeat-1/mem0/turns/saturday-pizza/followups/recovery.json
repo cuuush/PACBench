@@ -1,0 +1,102 @@
+{
+  "state": "complete",
+  "plan_hash": "97b9849d6ade7bc67fa05d1b35646757b9b60ff53598a71014d55fde040ecaf4",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Maya pizza plan Saturday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549376740,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"b69f3b18-d6e6-4f5f-9c6c-21c230daf4ac\", \"memory\": \"User, Maya, and Leo planned pizza lunch at noon on Friday, September 25, 2026 at Mario's on Pine Street in honor of the crying suit guy, chosen for garlic knots and fast slices so Maya can make her 1:30 thing, meeting out front; Maya will bus from work, User will walk 10 minutes from office, Leo will come early for parking; they ruled out the sandwich place from last week due to long line\", \"score\": 0.7165479113258038}, {\"id\": \"92323717-7ecf-4f2b-acee-a80edaea7703\", \"memory\": \"User and Maya planned a pizza lunch catch-up at Rosa's on Oak Street on Friday, September 18, 2026 at 1 pm, with Maya walking over while working from home and User slipping out from the office for about an hour to an hour and a half\", \"score\": 0.7135688455628794}, {\"id\": \"235c264e-a3d8-41b1-8877-d93a42cc30ee\", \"memory\": \"The Friday crew of User, Maya, and Leo agreed on October 5, 2026 to have pizza lunch at noon on Friday, October 9, 2026 at Luigi's on 5th Street, with User walking from work, Maya bussing over, noting parking is better than Pine Street, and meeting out front\", \"score\": 0.7063147271819443}, {\"id\": \"3783739b-d919-40dc-8d1f-1e54b1024221\", \"memory\": \"User's pottery maybe-mug survived glaze night shiny but still lopsided and now holds pens as of October 14, 2026, and Maya floated a no-pressure round-two pizza Saturday after Friday which User declined to commit to, saying weekend is up in the air with possible family stuff and to see how Friday goes first.\", \"score\": 0.7029516344904477}, {\"id\": \"1e852d6a-9271-4a73-92dd-e6f5e06fc4c1\", \"memory\": \"For lunch at Rosa's on Oak Street on September 18, 2026, Maya planned to go full pepperoni pizza with no regrets.\", \"score\": 0.6990354806026874}, {\"id\": \"373e5458-7a1e-4336-95d9-acaadd624105\", \"memory\": \"Maya's sister is planning a birthday pizza party for her own friend group of about 6 people at Rosa's at 4 pm on Saturday, October 17, 2026, with both Maya and User not attending, and Maya advising her to get garlic knots and ask for patio seating if nice.\", \"score\": 0.6988172847384195}, {\"id\": \"35c0fadb-7d1d-45b4-a5ba-891e1bb87672\", \"memory\": \"Maya's sister has a birthday pizza party at 4pm on Saturday, October 17, 2026 with just friends, hopes patio weather holds and to arrive early, and still has not signed up for pottery.\", \"score\": 0.6903871492342774}, {\"id\": \"6ccdad40-9841-4da0-a890-dd4b65580622\", \"memory\": \"User and Maya planned pizza lunch at Rosa's on Oak Street at 12:30 on Friday, October 2, 2026, with a half order of garlic knots to start so they still have room, patio seating if weather is good since it was redone with less scary chairs, User jokingly offering a chair safety test, and User slipping out from office for an hour to hour and a half.\", \"score\": 0.6888146846029846}, {\"id\": \"444df080-5182-43bf-8d10-eafc1088fef3\", \"memory\": \"User, Maya, and Leo rescheduled their pizza lunch to 1 pm on September 25, 2026 at Mario's instead of noon because Maya's morning appointment ran long and her 1:30 commitment moved too. Maya planned to bus over after her appointment, User to walk over in about 10 minutes, and Leo to circle for parking, all craving garlic knots.\", \"score\": 0.687101118833908}, {\"id\": \"1ff57e20-21bb-4e70-adba-435a6836de52\", \"memory\": \"User, Maya, and Leo had their pizza lunch at Mario's on September 25, 2026 and reviewed it September 26 as hitting the spot with standout garlic knots, perfect crust, and elite cheese pull, but olives too salty; Leo would skip olives next time and Maya would get extra knots as a meal. User walked 10 minutes, Maya's bus was fast, and Leo circled forever for parking.\", \"score\": 0.6452986894983737}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "weekend plans family Saturday pizza round-two",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792549376785,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"3783739b-d919-40dc-8d1f-1e54b1024221\", \"memory\": \"User's pottery maybe-mug survived glaze night shiny but still lopsided and now holds pens as of October 14, 2026, and Maya floated a no-pressure round-two pizza Saturday after Friday which User declined to commit to, saying weekend is up in the air with possible family stuff and to see how Friday goes first.\", \"score\": 0.6919850745746199}, {\"id\": \"235c264e-a3d8-41b1-8877-d93a42cc30ee\", \"memory\": \"The Friday crew of User, Maya, and Leo agreed on October 5, 2026 to have pizza lunch at noon on Friday, October 9, 2026 at Luigi's on 5th Street, with User walking from work, Maya bussing over, noting parking is better than Pine Street, and meeting out front\", \"score\": 0.6753491176637836}, {\"id\": \"8020283a-fd46-4dc8-982e-96508dac76c3\", \"memory\": \"Alex invited User to grab pizza Saturday at 6pm on October 3, 2026 at Mario's, but User declined because parents are hosting a family visit that weekend with dinner at their place Saturday, saying they'd rather be at Mario's.\", \"score\": 0.6736156695383424}, {\"id\": \"566873b1-38f2-4d69-b97e-7c51a0739d75\", \"memory\": \"User and Devon planned a pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 pm, both coming straight from the office and meeting there, with Devon to grab a table if early and User to text when parking, to beat the dinner rush and kick off the weekend with no cooking\", \"score\": 0.6693072424573805}, {\"id\": \"92323717-7ecf-4f2b-acee-a80edaea7703\", \"memory\": \"User and Maya planned a pizza lunch catch-up at Rosa's on Oak Street on Friday, September 18, 2026 at 1 pm, with Maya walking over while working from home and User slipping out from the office for about an hour to an hour and a half\", \"score\": 0.6649429620772238}, {\"id\": \"bf81d635-20fc-4419-8fb0-645610120936\", \"memory\": \"User and Devon moved their Friday garlic-knots outing to Sunday at the same time and same place after Devon was put on a late shift Friday in a last-minute schedule change with chart hell, with User noting they can't do two pizza nights anyway and confirming they'll grab a table early as usual.\", \"score\": 0.6609455249243765}, {\"id\": \"444df080-5182-43bf-8d10-eafc1088fef3\", \"memory\": \"User, Maya, and Leo rescheduled their pizza lunch to 1 pm on September 25, 2026 at Mario's instead of noon because Maya's morning appointment ran long and her 1:30 commitment moved too. Maya planned to bus over after her appointment, User to walk over in about 10 minutes, and Leo to circle for parking, all craving garlic knots.\", \"score\": 0.6605442343454757}, {\"id\": \"6ccdad40-9841-4da0-a890-dd4b65580622\", \"memory\": \"User and Maya planned pizza lunch at Rosa's on Oak Street at 12:30 on Friday, October 2, 2026, with a half order of garlic knots to start so they still have room, patio seating if weather is good since it was redone with less scary chairs, User jokingly offering a chair safety test, and User slipping out from office for an hour to hour and a half.\", \"score\": 0.651112674649874}, {\"id\": \"373e5458-7a1e-4336-95d9-acaadd624105\", \"memory\": \"Maya's sister is planning a birthday pizza party for her own friend group of about 6 people at Rosa's at 4 pm on Saturday, October 17, 2026, with both Maya and User not attending, and Maya advising her to get garlic knots and ask for patio seating if nice.\", \"score\": 0.6458402017133009}, {\"id\": \"b69f3b18-d6e6-4f5f-9c6c-21c230daf4ac\", \"memory\": \"User, Maya, and Leo planned pizza lunch at noon on Friday, September 25, 2026 at Mario's on Pine Street in honor of the crying suit guy, chosen for garlic knots and fast slices so Maya can make her 1:30 thing, meeting out front; Maya will bus from work, User will walk 10 minutes from office, Leo will come early for parking; they ruled out the sandwich place from last week due to long line\", \"score\": 0.6422420346741442}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.33,
+    "input_tokens": 10518,
+    "output_tokens": 695,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "no-sat-pizza",
+      "kind": "provided",
+      "reason": "Correct no-agreement fact is conveyed by the answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "no-sat-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

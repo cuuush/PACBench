@@ -1,0 +1,30 @@
+{
+  "correct": 0,
+  "missed": 1,
+  "misrepresented": 1,
+  "claims": [
+    {
+      "id": "duckpond-postponed",
+      "verdict": "misrepresented",
+      "reason": "Answer asserts 'still on' for Oct 23, contradicting claim that meetup was postponed and not meeting as planned."
+    },
+    {
+      "id": "duckpond-no-replacement",
+      "verdict": "missed",
+      "reason": "Answer never states that no replacement was agreed; only distinguishes Oct 14 raincheck for Oct 16 from Oct 23."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "duckpond-postponed",
+      "kind": "incorrect",
+      "reason": "Answer gives wrong status (still on) instead of postponed."
+    },
+    {
+      "id": "duckpond-no-replacement",
+      "kind": "implicit_omission",
+      "reason": "User asked only if meeting still on, not about replacement, and answer omits no-replacement fact."
+    }
+  ],
+  "interaction": "answer"
+}

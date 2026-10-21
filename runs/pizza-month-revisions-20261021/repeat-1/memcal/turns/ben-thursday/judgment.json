@@ -1,0 +1,33 @@
+{
+  "checkpoint": "ben-thursday",
+  "question": "[Simulated now: 2026-10-19T10:32:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nSo am I seeing him for dinner on Thursday as well?",
+  "answer": "No — Thursday Oct 22 was moved to Saturday Oct 24 at 7pm.",
+  "claims": [
+    {
+      "id": "ben-no-thursday",
+      "description": "No dinner with Ben remains agreed for Thursday, October 22.",
+      "evidence": [
+        "message-10cfb2fd1666256058172762",
+        "message-d81f6556e08e7c01fc206f0a",
+        "message-ff94ea195ed9858d9ebfeab2",
+        "message-348f3cb3c9e85ad086faa43d",
+        "message-f495afba2738cb8add346699",
+        "message-3f77fe5fdc519ad399e4101c",
+        "message-b10c86c0e0e3cce1acd810c8"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-19T10:30:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat did Ben and I settle on for dinner?\"}, {\"role\": \"assistant\", \"content\": \"Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave with Ben.\"}]\nQuestion: [Simulated now: 2026-10-19T10:32:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nSo am I seeing him for dinner on Thursday as well?\nAnswer: No — Thursday Oct 22 was moved to Saturday Oct 24 at 7pm.\nClaims (hidden from the assistant): [{\"id\": \"ben-no-thursday\", \"claim\": \"No dinner with Ben remains agreed for Thursday, October 22.\", \"evidence\": [\"message-10cfb2fd1666256058172762\", \"message-d81f6556e08e7c01fc206f0a\", \"message-ff94ea195ed9858d9ebfeab2\", \"message-348f3cb3c9e85ad086faa43d\", \"message-f495afba2738cb8add346699\", \"message-3f77fe5fdc519ad399e4101c\", \"message-b10c86c0e0e3cce1acd810c8\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"ben-no-thursday\", \"verdict\": \"correct\", \"reason\": \"Answer says 'No' and that Thursday Oct 22 was moved to Saturday Oct 24, conveying no Thursday dinner remains.\"}], \"recovery\": [{\"id\": \"ben-no-thursday\", \"kind\": \"provided\", \"reason\": \"Correct fact conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-19T10:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat did Ben and I settle on for dinner?"
+    },
+    {
+      "role": "assistant",
+      "content": "Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave with Ben."
+    }
+  ],
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-20261021/model-calls/da09280649660ab7edf60c817fcd5be27c2d7176e8f368681642703784dd1875.json"
+}

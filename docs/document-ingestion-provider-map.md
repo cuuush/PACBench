@@ -9,7 +9,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 | Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings, gateway inference. |
 | Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank; native API `meta` adapter for Spark, using the gateway base URL. |
 | OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Native resource processing is distinct from interactive memory capture. Expose `viking_read`; original-source access earns no retention credit. Check model-health receipts independently of native completion. |
-| ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Current curation left a native pending review; recall was withheld. |
+| ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Completed curation is readable immediately. Its pending-review log is retrospective: native rejection restores prior files. Leave it unchanged; never auto-approve. Native diagnostic recall confirmed this behavior. |
 | Supermemory | `documents.add` with raw content, canonical container tags and custom ID; wait for indexing and memory consolidation | Published local server and native SDK, Ollama embeddings. Use the native namespace resolver. In the October 19 canary, indexing finished but `dreamingStatus` stayed `dreaming` through the nightly deadline; native profile/search returned no retained memories. Recall was withheld. This is an execution blocker, not a recall grade. |
 | Honcho | Real source peers, original timestamps and native configured recall observer through `session.add_messages` | Documented pgvector/API/deriver self-hosting. Native batching/output defaults; current setup defaults to directional observation, applied to the owner and non-speaking AI observer before messages. Require new work enrollment and completion. Allow its native accumulation delay before 15-minute processing/five-minute stall bounds. Report model incompatibilities instead of increasing limits. Host-clock assistant capture and original-message fallback remain visible; fallback earns no retention credit. |
 | Memcal | Native Messages SQLite and TLS IMAP readers, separate contacts, normal nightly processing | Provider-independent Apple schema and RFC 5322 fixtures; nightly processing at 03:00 scenario-local time. Version 0.8.2 with product fixes on `main`. |
@@ -40,3 +40,8 @@ per acknowledged source message before accepting an empty queue. Counts are
 periodically cleaned by Honcho; if that prevents proving enrollment, withhold
 readiness rather than guessing success. Native assistant capture uses host time;
 source-message capture explicitly preserves original timestamps.
+
+The native completion counter also includes terminally errored queue items.
+The local runner observes the run-owned PostgreSQL queue without modifying it,
+stops on submitted-source errors and saves their classes/hashes. A cleared queue
+alone must not turn failed extraction into successful ingestion.

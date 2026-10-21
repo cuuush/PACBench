@@ -22,6 +22,18 @@ def test_fallback_pending_missing_usage_other_roles_and_projects_do_not_stop():
     assert provider_model_health({'state': 'unavailable'})['state'] == 'unavailable'
 
 
+def test_repeated_unmetered_successes_stop_only_their_arm_without_claiming_http_failure():
+    missing=[call(n,status=200) for n in range(3)]
+    health=provider_model_health({'state':'captured','calls':missing})
+    assert health['state']=='stop' and not health['failed_requests']
+    assert len(health['unmetered_requests'])==3
+    assert 'cost-observability blocker' in health['reason']
+    assert provider_model_health({'state':'captured','calls':[
+        missing[0],missing[1],{**missing[2],'finished':None}]})['state']=='captured'
+    assert provider_model_health({'state':'captured','calls':[
+        missing[0],missing[1],{**missing[2],'project':'other'}]})['state']=='captured'
+
+
 def test_snapshot_includes_actual_http_status(tmp_path):
     with sqlite3.connect(tmp_path/'ledger.sqlite3') as db:
         db.execute('CREATE TABLE calls(id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,http_status)')

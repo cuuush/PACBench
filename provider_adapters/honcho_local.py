@@ -4,13 +4,45 @@ import atexit
 import hashlib
 import json
 import os
+import re
 import socket
 import subprocess
 import time
+import tomllib
 import urllib.request
 from pathlib import Path
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
+
+
+def queue_errors(root):
+    """Observe failed native work without changing the provider or its queue.
+
+    Honcho's public completed counter includes terminally errored items. Read
+    its local queue as telemetry; do not mistake that counter for success.
+    Keep error text private: public evidence contains only class and hash.
+    """
+    identity=hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
+    sql="""SELECT COALESCE(json_agg(t),'[]'::json) FROM (
+        SELECT q.id,q.task_type,s.name AS session_name,q.error
+        FROM queue q LEFT JOIN sessions s ON s.id=q.session_id
+        WHERE q.error IS NOT NULL AND q.task_type IN ('representation','summary','dream')
+        ) t"""
+    env={k:v for k,v in os.environ.items() if k not in {
+        'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+    p=subprocess.run(['docker','--host=unix:///var/run/docker.sock','exec',
+        'pacbench-honcho-db-'+identity,'psql','-U','postgres','-d','postgres',
+        '-X','-t','-A','-c',sql],env=env,capture_output=True,text=True,timeout=15)
+    if p.returncode:raise RuntimeError('Native Honcho queue error telemetry unavailable')
+    rows=json.loads(p.stdout)
+    for row in rows:
+        error=row.pop('error')
+        label,separator,_=error.partition(':')
+        row['error_class']=(label if separator and len(label)<=100 and
+                            re.fullmatch(r'[A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception)',label)
+                            else 'NativeError')
+        row['error_sha256']=hashlib.sha256(error.encode()).hexdigest()
+    return rows
 
 
 def start(root,env,model,base,key):
@@ -121,7 +153,8 @@ print(json.dumps({'native_defaults_verified':True,'deriver':processing,
             break
         except (OSError,ValueError):time.sleep(.2)
     save(root/'native-server-setup.json',{'route':'Documented manual self-hosting, native API + deriver + local pgvector',
-         'version':'3.2.2','endpoint':endpoint,'health':health,'models':model,
+         'version':tomllib.loads((source/'pyproject.toml').read_text())['project']['version'],
+         'endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
          'processing':processing,'processing_option':'Unmodified native batching and output defaults'})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')

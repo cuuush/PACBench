@@ -16,7 +16,8 @@ def snapshot(roles, state=STATE):
             marks = ','.join('?' for _ in roles)
             columns = {r['name'] for r in db.execute('PRAGMA table_info(calls)')}
             status = 'http_status' if 'http_status' in columns else 'NULL AS http_status'
-            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
+            error = 'error_label' if 'error_label' in columns else 'NULL AS error_label'
+            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status},{error} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
         return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[{**dict(r), 'role':roles[r['project']],
             'accounted_upper_bound_usd':r['accounted']/1e9} for r in rows]}
     except (OSError,sqlite3.Error) as exc:
@@ -28,21 +29,33 @@ def provider_model_health(capture):
 
     A single rejected request can be a successful native fallback. Count only
     completed, definitive 400/422 responses in this arm's provider projects;
-    pending requests and successful responses with missing usage aren't errors.
+    pending requests and successful responses with missing usage aren't HTTP
+    errors. Repeated completed unmetered requests have a separate cost stop.
     """
-    groups = {}
+    groups = {};unmetered={}
     for call in capture.get('calls', []):
         if (call.get('role') == 'memory_provider' and call.get('finished') and
                 call.get('http_status') in (400, 422)):
             groups.setdefault(call['project'], []).append(call)
+        if (call.get('role')=='memory_provider' and call.get('finished') and
+                call.get('state') in {'unknown','uncertain'} and call.get('http_status')==200 and
+                (call.get('input_tokens') is None or call.get('output_tokens') is None)):
+            unmetered.setdefault(call['project'],[]).append(call)
     repeated = [c for calls in groups.values() if len(calls) >= 3 for c in calls]
-    return {'state': 'stop' if repeated else capture.get('state', 'unavailable'),
+    unknown = [c for calls in unmetered.values() if len(calls)>=3 for c in calls]
+    return {'state': 'stop' if repeated or unknown else capture.get('state', 'unavailable'),
             'failed_requests': [{k: c.get(k) for k in
                 ('id', 'project', 'http_status', 'state', 'accounted_upper_bound_usd')}
                 for c in repeated],
+            'unmetered_requests':[{k:c.get(k) for k in
+                ('id','project','http_status','state','error_label','accounted_upper_bound_usd')}
+                for c in unknown],
             'reason': ('Repeated provider-side HTTP 400/422 responses; stop further paid checks '
                        'in this arm. Native completion alone does not establish healthy model execution.'
-                       if repeated else ''),
+                       if repeated else
+                       'Three completed provider requests lack usable token usage; stop this arm '
+                       'before unmetered work accumulates. This is a cost-observability blocker, '
+                       'not an HTTP or memory-recall failure.' if unknown else ''),
             'scope': 'Execution/cost barrier, not a semantic memory grade. Held charges remain held.'}
 
 

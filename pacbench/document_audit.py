@@ -55,6 +55,8 @@ def audit_honcho_receipt(batch, result, previous_work=None):
                 errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
     if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
     changes=result.get('processing_status',[])
+    if any(change.get('native_queue_errors') for change in changes):
+        errors.append('Honcho submitted-source work completed with native errors')
     final=changes[-1].get('sessions',{}) if changes else {}
     if set(final)!=sessions or not final or any(
             status.get('pending_work_units')!=0 or status.get('in_progress_work_units')!=0

@@ -214,7 +214,9 @@ def byterover(source,root,at,processing_at):
     target=project/'imports'/source.name/'messages.txt';target.parent.mkdir(parents=True)
     shutil.copyfile(source/'messages.txt',target)
     # No curate prompt: use the CLI's documented raw-file input and its own
-    # ordinary curation. Do not auto-approve pending native reviews or cloud sync.
+    # ordinary curation. Native review is retrospective (reject restores files
+    # from backup), not a barrier to reading already-applied changes. Leave the
+    # review log unchanged; do not approve reviews or perform cloud sync.
     p=subprocess.run(['brv','curate','--files',str(target.relative_to(project)),'--format','json'],
         cwd=project,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=220)
     # The real CLI emits progress plus a final JSON record, not one JSON value.
@@ -226,9 +228,10 @@ def byterover(source,root,at,processing_at):
             e.get('data',{}).get('status') in {'completed','error','cancelled'}]
     result=finals[-1] if finals else {}
     return {'ready':p.returncode==0 and result.get('success') is True and
-            result.get('data',{}).get('status')=='completed' and not result.get('data', {}).get('pendingReview'),
+            result.get('data',{}).get('status')=='completed',
             'interface':'brv curate --files (no custom prompt)',
-            'result':result,'events':events,'stdout':p.stdout,'stderr':p.stderr,'readiness':'Native curation completion; no pending review'}
+            'result':result,'events':events,'stdout':p.stdout,'stderr':p.stderr,
+            'readiness':'Native curation completed; retrospective review log preserved without approval'}
 
 
 def honcho(source,root,at,processing_at):
@@ -297,15 +300,16 @@ def honcho(source,root,at,processing_at):
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
     defaults=json.loads((root/'native-processing-settings.json').read_text())
     grace=defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
+    from provider_adapters.honcho_local import queue_errors
     statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work,
-        batch_grace_s=grace)
+        batch_grace_s=grace,read_errors=lambda:queue_errors(root))
     return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
         'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
         'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
 
 
-def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0):
+def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read_errors=None):
     minimum_work=minimum_work or {}
     # A finite, isolated import has no concurrent producers. This is a scoped
     # benchmark readiness barrier, not a production requirement that the entire
@@ -313,7 +317,7 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0):
     statuses=[];started=time.monotonic();last_progress=started
     done=False;reason='';health={}
     from pacbench.usage import provider_model_health, snapshot
-    previous=None
+    previous=None;last_error_check=None
     while True:
         status={session.id:session.queue_status().model_dump(mode='json') for session in sessions}
         elapsed=time.monotonic()-started
@@ -322,6 +326,12 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0):
             last_progress=time.monotonic();previous=status
         done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 and
             s.get('total_work_units',0)>=minimum_work.get(id,0) for id,s in status.items())
+        if read_errors and (done or last_error_check is None or elapsed-last_error_check>=10):
+            failures=read_errors();last_error_check=elapsed
+            failures=[r for r in failures if r.get('session_name') in status]
+            if failures:
+                statuses.append({'elapsed_s':round(elapsed,2),'sessions':status,'native_queue_errors':failures})
+                done=False;reason='Native Honcho submitted-source work failed; public completion counts include errors';break
         if roles:
             health=provider_model_health(snapshot(roles))
             if health['state']=='stop':

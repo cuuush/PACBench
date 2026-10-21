@@ -36,8 +36,9 @@ def test_hindsight_does_not_fail_at_one_hundred_operations_or_miss_later_pending
 
 
 @pytest.mark.parametrize('status,pending,expected', [('completed',None,True),
-    ('completed',{'pendingCount':1},False),('error',None,False),('queued',None,False)])
-def test_byterover_native_progress_is_not_readiness(tmp_path,monkeypatch,status,pending,expected):
+    ('completed',{'count':1},True),('completed',{'count':0},True),
+    ('error',None,False),('queued',None,False)])
+def test_byterover_requires_completion_without_approving_retrospective_review(tmp_path,monkeypatch,status,pending,expected):
     config=tmp_path/'config/brv';config.mkdir(parents=True)
     (config/'providers.json').write_text(json.dumps({'activeProvider':'openai-compatible',
         'providers':{'openai-compatible':{'activeModel':'muse-spark-1.3-contributor','baseUrl':'http://127.0.0.1:1/v1'}}}))
@@ -165,6 +166,7 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
     monkeypatch.setitem(sys.modules,'plugins.memory.honcho.client',SimpleNamespace(
         HonchoClientConfig=SimpleNamespace(from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
             user_observe_me=True,user_observe_others=True))))
+    monkeypatch.setattr('provider_adapters.honcho_local.queue_errors',lambda root:[])
     result=honcho(source,home.parent,'now','now')
     assert result['ready'] and len(pending)==len(messages)
     assert list(result['processing_status'][0]['sessions'])==['session-1']
@@ -175,6 +177,30 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
         assert native.content==original['text']
         assert native.created_at==datetime.fromisoformat(original['written_at'])
         assert native.metadata=={k:v for k,v in original.items() if k!='text'}
+
+
+@pytest.mark.parametrize('session_name',['source','unrelated'])
+def test_honcho_public_completed_counter_does_not_hide_failed_source_work(session_name):
+    from provider_adapters.document_connector import wait_honcho_sessions
+    session=SimpleNamespace(id='source',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{
+        'total_work_units':1,'completed_work_units':1,'pending_work_units':0,'in_progress_work_units':0}))
+    failure={'session_name':session_name,'error_class':'StructuredOutputError','error_sha256':'error-hash'}
+    records,ready,reason,_=wait_honcho_sessions([session],{}, {'source':1},read_errors=lambda:[failure])
+    assert ready==(session_name!='source')
+    if session_name=='source':
+        assert 'work failed' in reason and records[-1]['native_queue_errors']==[failure]
+
+
+def test_honcho_native_queue_telemetry_never_exports_raw_error_text(tmp_path,monkeypatch):
+    from provider_adapters.honcho_local import queue_errors
+    raw=[{'id':1,'error':'StructuredOutputError: secret-token in upstream diagnostic'},
+         {'id':2,'error':'secret-token'}]
+    monkeypatch.setattr('provider_adapters.honcho_local.subprocess.run',lambda *a,**kw:
+        SimpleNamespace(returncode=0,stdout=json.dumps(raw)))
+    rows=queue_errors(tmp_path)
+    assert [r['error_class'] for r in rows]==['StructuredOutputError','NativeError']
+    assert all(len(r['error_sha256'])==64 for r in rows)
+    assert 'secret-token' not in json.dumps(rows) and all('error' not in r for r in rows)
 
 
 def test_honcho_scoped_barrier_allows_progress_past_old_deadline(monkeypatch):

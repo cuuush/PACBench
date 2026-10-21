@@ -196,8 +196,10 @@ def openviking(source,root,at,processing_at):
             'source_name':source.name+'.txt','wait':True,'timeout':210},timeout=230)
         native=result.get('result',{})
         queues=native.get('queue_status')
-        ready=bool(native.get('root_uri')) and queues is not None and not any(
-            q.get('errors') for q in queues.values() if isinstance(q,dict))
+        ready=(native.get('status')=='success' and not native.get('errors') and
+            bool(native.get('root_uri')) and isinstance(queues,dict) and bool(queues) and not any(
+                not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
+                for q in queues.values()))
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
                 'result':result,'readiness':'Native completed semantic/vector processing with queue status and no errors'}
     finally:p.shutdown()

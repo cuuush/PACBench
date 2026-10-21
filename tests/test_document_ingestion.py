@@ -15,6 +15,18 @@ def message(id,sender='Devon',owner=False,thread='one',stamp='2026-09-10T18:00:0
             'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.','structured':None}
 
 
+@pytest.mark.parametrize('damage',['none','timeout','errors','counter-only','missing-queues'])
+def test_openviking_native_completion_rejects_error_counters_even_without_error_text(damage):
+    from pacbench.document_audit import audit_openviking_receipt
+    native={'status':'success','errors':[],'root_uri':'viking://resources/day',
+            'queue_status':{'Semantic':{'errors':[],'error_count':0}}}
+    if damage=='timeout':native['status']='timeout'
+    if damage=='errors':native['errors']=['failed']
+    if damage=='counter-only':native['queue_status']['Semantic']['error_count']=1
+    if damage=='missing-queues':native.pop('queue_status')
+    assert bool(audit_openviking_receipt({'result':{'result':native}}))==(damage!='none')
+
+
 @pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace'])
 def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage):
     from pacbench.document_audit import audit_supermemory_receipt

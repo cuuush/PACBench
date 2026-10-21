@@ -85,20 +85,22 @@ def provider_names() -> list[str]:
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
-              local_timezone: str = "") -> dict:
+              local_timezone: str = "", resume: bool = False) -> dict:
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
-    harness.provision_home(
+    if resume and (provider!='openviking' or not (home/'config.yaml').exists()):
+        raise ValueError('Only an existing OpenViking home supports verified ingestion resume')
+    if not resume:harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
         provider_name=provider, model=model, model_provider="meta-ai",
         model_base_url=driver_url)
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
-    fallback.mkdir()
+    fallback.mkdir(exist_ok=resume)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),

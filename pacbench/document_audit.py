@@ -24,6 +24,17 @@ def audit_supermemory_receipt(result, day, text):
     return errors
 
 
+def audit_openviking_receipt(result):
+    native=result.get('result',{}).get('result',{})
+    queues=native.get('queue_status')
+    if (native.get('status')!='success' or native.get('errors') or not native.get('root_uri') or
+            not isinstance(queues,dict) or not queues or any(
+                not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
+                for q in queues.values())):
+        return ['OpenViking native semantic/vector processing did not succeed']
+    return []
+
+
 def audit_honcho_receipt(batch, result, previous_work=None):
     """Independently bind native acknowledgments and readiness to frozen sources."""
     if previous_work is None:previous_work={}
@@ -135,6 +146,8 @@ def audit_ingestion(root, arm, messages, summary):
             errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
         if arm.name=='supermemory':
             errors.extend(audit_supermemory_receipt(record.get('result',{}),day,text))
+        if arm.name=='openviking':
+            errors.extend(audit_openviking_receipt(record.get('result',{})))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

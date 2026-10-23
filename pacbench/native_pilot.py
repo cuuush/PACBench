@@ -392,6 +392,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
             report['process_timezone'] or 'America/New_York', chronological=bool(evaluations))
         if evaluation_plan:
+            from .native_writes import VERSION as WRITE_READINESS
+            report['write_readiness_protocol']=WRITE_READINESS
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
             report.update(evaluation_plan_hash=evaluation_plan['plan_hash'], evaluation_context=evaluation_plan['context'])
@@ -454,6 +456,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                       "capability": capability, "state": (
                           "available-unverified" if capability["available"] and
                           not capability.get("execution_blocker") else "blocked")}
+            if report.get('write_readiness_protocol'):
+                result['write_readiness_protocol']=report['write_readiness_protocol']
             results.append(result)
             save(root / 'status.json', result)
             save(output / 'summary.json', report)
@@ -509,6 +513,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     ingested.append(batch['id'])
                     check_model_health()
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
+                if evaluations:
+                    from .native_writes import ensure_ready
+                    ensure_ready(provider,row,evaluations,evaluation_plan['context'],root,env,directory)
                 save(directory/'source-state.json',{'at':row['at'],'ingested_batches':list(ingested),
                     'source_ids':[sid for batch in needed for sid in batch['source_ids']]})
             if evaluations:

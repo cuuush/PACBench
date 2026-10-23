@@ -31,6 +31,8 @@ Use factual recall for the memory benchmark. Do not use an ambiguous cancellatio
 
 Use `requires: ["earlier-turn-id"]` when a later test assumes a public instruction was delivered, including across fresh sessions. Required IDs must be unique preceding turns. An acknowledged update is not proof of persistence; check it later through the provider in a fresh conversation. Undelivered or ungraded prerequisites skip dependent checks rather than inventing successful writes.
 
+For Supermemory and OpenViking, a dependent fresh session also waits for the accepted native document/task to finish processing. This uses read-only status APIs and saved receipts, without flushing or resubmitting data. A simulated hour does not advance a real backend's queue. A failed or unavailable completion receipt leaves the dependent question ungraded. Native defaults and the daily budget still apply.
+
 Each turn gets pass/fail for judged behavior. Malformed judges, missing script truth and execution errors remain ungraded with a reason. Independent conversations continue; unavailable dependent turns skip with a cause. A wrong answer remains a failure and does not stop unrelated checks. Review passes as well as failures while developing.
 
 [Omission recovery](followups.md) keeps its original policy: one combined question for silent implicit omissions, partial credit separately, and none for zero recall, incorrect details, explicit misses or admitted lookup failure. Tools, gateway cost windows, native provider work and actual session continuity remain logged. The explorer's **Criteria & judges** view shows the frozen criteria and decisions per answer.

@@ -136,7 +136,7 @@ def test_unfinished_arm_does_not_hide_later_trace_corruption(trace):
     assert 'judge lacks recall clock' in str(result['errors'])
 
 
-@pytest.mark.parametrize('corrupt_tools,unfinished', [(False, False), (True, False), (False, True)])
+@pytest.mark.parametrize('corrupt_tools,unfinished', [(False, False), (True, False), (False, True), (True, True)])
 def test_partial_story_audits_skips_without_bypassing_tool_boundary(trace, monkeypatch, corrupt_tools, unfinished):
     import pacbench.native_audit as native_audit
     root, arm = trace
@@ -158,7 +158,8 @@ def test_partial_story_audits_skips_without_bypassing_tool_boundary(trace, monke
     result = audit(root)
     if unfinished:
         assert 'incomplete arm' in str(result['errors'])
-        assert not inspected
+        assert inspected
+        if corrupt_tools:assert 'non-provider schema exposed' in str(result['errors'])
     else:
         assert inspected, result
         assert result['state'] == ('fail' if corrupt_tools else 'pass')

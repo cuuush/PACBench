@@ -80,8 +80,9 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(reviewable, f'{label}: incomplete arm')
                 check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
                 check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
-                if not reviewable:
-                    # A blocked arm has no live trace; keep the failure and audit later arms.
+                if not reviewable and not ((arm/'recall.json').exists() or list((arm/'turns').glob('*/turn.json'))):
+                    # Unfinished arms still need their existing live traces
+                    # checked; only a genuinely unexecuted arm has none.
                     continue
                 if summary.get('tool_policy') in SUPPORTED_VERSIONS:
                     from .context_isolation import actual_context, VERSION
@@ -124,9 +125,14 @@ def audit(root: Path, *, providers=None) -> dict:
                                     c.get('name'),c.get('input',c.get('arguments',{})),rules) for c in data['tool_calls']),
                                 f'{label}: non-provider tool attempted in {path.relative_to(arm)}')
                 from .document_audit import audit_ingestion
-                errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))
+                try:errors.extend(f'{label}: {e}' for e in audit_ingestion(root,arm,messages,summary))
+                except (OSError,ValueError,KeyError,TypeError) as exc:
+                    errors.append(f'{label}: ingestion audit {type(exc).__name__}')
                 if evaluations:
                     errors.extend(f'{label}: {e}' for e in audit_checks(evaluations, evaluation_plan['context'], arm))
+                    from .native_writes import audit_ready
+                    errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
+                        result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
                     check(result['checks'] == read(arm / 'evaluation.json')['checks'], f'{label}: evaluation summary mismatch')
                     continue
                 recall = read(arm / 'recall.json')

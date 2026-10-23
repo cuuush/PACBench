@@ -66,6 +66,16 @@ def test_checkpoint_references_bind_to_canonical_daily_manifests_without_repeati
         compact_source_state({**old,'source_ids':['m1','future-message']},schedule)
 
 
+@pytest.mark.parametrize('observed,original,expected',[
+    ('daily text','daily text\n',True),('daily text\n','daily text\n',True),
+    ('daily text','daily text\n\n',False),('daily text',' daily text\n',False),
+    ('daily text','daily  text\n',False),('different text','daily text\n',False),
+])
+def test_native_storage_may_drop_one_export_newline_but_never_change_messages(observed,original,expected):
+    from pacbench.document_audit import same_submitted_text
+    assert same_submitted_text(observed,original) is expected
+
+
 def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):
     rows=[message('sent','Me',True),message('received')]
     path=tmp_path/'chat.db'

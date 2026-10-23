@@ -8,6 +8,12 @@ from pathlib import Path
 from .document_ingestion import VERSION, SUPPORTED_VERSIONS, daily_batches, document_text, processing_at, validate_evaluation_clocks, ready_sources
 
 
+def same_submitted_text(observed,text):
+    # Native storage trims the export's single framing LF. Message bodies and
+    # all internal whitespace must still match; never normalize their text.
+    return isinstance(observed,str) and (observed==text or text.endswith('\n') and observed==text[:-1])
+
+
 def audit_supermemory_receipt(result, day, text):
     statuses=result.get('processing_status',[])
     final=statuses[-1] if statuses else {}
@@ -19,7 +25,7 @@ def audit_supermemory_receipt(result, day, text):
         errors.append('Supermemory memory consolidation did not complete')
     if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or
             final.get('custom_id',final.get('customId'))!=day or
-            final.get('content')!=text or
+            not same_submitted_text(final.get('content'),text) or
             not result.get('container_tag') or
             result['container_tag'] not in final.get('container_tags',final.get('containerTags',[]))):
         errors.append('Supermemory completion receipt differs from submitted source or namespace')

@@ -10,7 +10,7 @@ from typing import Callable
 
 from .model_calls import ModelOutput
 
-AUTHORING_VERSION = 'event-scoped-v5'
+AUTHORING_VERSION = 'event-scoped-v6'
 EVIDENCE_VERSION = 'assistant-session-fields-v2'
 
 
@@ -302,7 +302,6 @@ def build_contract(*, scene: str, test_intent: str,
     evidence_hash = hashlib.sha256(json.dumps(observations, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
     body = {"authoring_version":AUTHORING_VERSION,"evidence_version":EVIDENCE_VERSION,"claims": [vars(c) for c in claims], "question": question.strip(),
-            "source_aliases": aliases,
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,
             "author_fact_count": len(author_facts),"test_intent":test_intent}

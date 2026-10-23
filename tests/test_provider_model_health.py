@@ -41,6 +41,15 @@ def test_snapshot_includes_actual_http_status(tmp_path):
     capture = snapshot({'provider': 'memory_provider'}, tmp_path)
     assert capture['state'] == 'captured'
     assert capture['calls'][0]['http_status'] == 400
+    assert capture['calls'][0]['finish_reason'] is None
+    assert capture['calls'][0]['reasoning_tokens'] is None
+    with sqlite3.connect(tmp_path/'ledger.sqlite3') as db:
+        db.execute('ALTER TABLE calls ADD COLUMN finish_reason TEXT')
+        db.execute('ALTER TABLE calls ADD COLUMN reasoning_tokens INTEGER')
+        db.execute("UPDATE calls SET finish_reason='length',reasoning_tokens=2498")
+    updated=snapshot({'provider':'memory_provider'},tmp_path)['calls'][0]
+    assert updated['finish_reason']=='length' and updated['reasoning_tokens']==2498
+    assert updated['accounted']==capture['calls'][0]['accounted']
 
 
 def test_cost_stop_invokes_only_the_failed_arms_native_shutdown(tmp_path, monkeypatch):

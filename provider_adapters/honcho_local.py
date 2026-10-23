@@ -45,7 +45,20 @@ def queue_errors(root):
     return rows
 
 
-def start(root,env,model,base,key):
+def verify_persisted_messages(acknowledgments,actual):
+    from datetime import datetime
+    expected={m['id']:m for ack in acknowledgments for m in ack['messages']}
+    if not expected or len(actual)!=len(expected) or {m['id'] for m in actual}!=set(expected):
+        raise ValueError('Persisted Honcho message IDs differ from original acknowledgments')
+    for m in actual:
+        sent=expected[m['id']]
+        if (any(m[k]!=sent[k] for k in ('session_id','peer_id','content','metadata')) or
+                datetime.fromisoformat(m['created_at'])!=datetime.fromisoformat(sent['created_at'])):
+            raise ValueError('Persisted Honcho source differs from original acknowledgment')
+    return sorted(expected)
+
+
+def start(root,env,model,base,key,*,resume=False):
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
     python=source/'.venv/bin/python'
@@ -56,12 +69,20 @@ def start(root,env,model,base,key):
     api_port,db_port=ports
     identity=hashlib.sha256(str(root).encode()).hexdigest()[:12]
     name='pacbench-honcho-db-'+identity
-    dbdir=root/'honcho-db';dbdir.mkdir()
+    dbdir=root/'honcho-db'
+    if resume:
+        previous=json.loads((root/'native-server-setup.json').read_text())
+        if (not dbdir.is_dir() or previous['models']!=model or
+                previous['version']!=tomllib.loads((source/'pyproject.toml').read_text())['project']['version']):
+            raise ValueError('Honcho diagnostic restart requires its existing store and unchanged model/server version')
+    dbdir.mkdir(exist_ok=resume)
     docker=['docker','--host=unix:///var/run/docker.sock']
     docker_env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
     proc=subprocess.run([*docker,'run','--rm','-d','--name',name,
         '-p',f'127.0.0.1:{db_port}:5432','-e','POSTGRES_PASSWORD=postgres',
-        '-v',f'{dbdir}:/var/lib/postgresql/data','pgvector/pgvector:pg15'],
+        '-v',f'{dbdir}:/var/lib/postgresql/data',
+        *(['--entrypoint','/bin/sh'] if resume else []),'pgvector/pgvector:pg15',
+        *(['-c','test -f "$PGDATA/PG_VERSION" && exec /usr/local/bin/docker-entrypoint.sh postgres'] if resume else [])],
         env=docker_env,capture_output=True,text=True,timeout=60)
     processes=[]
     def stop():
@@ -128,6 +149,19 @@ print(json.dumps({'native_defaults_verified':True,'deriver':processing,
         ready=subprocess.run([*docker,'exec',name,'pg_isready','-U','postgres'],env=docker_env,capture_output=True,timeout=10)
         if ready.returncode==0:break
         time.sleep(.2)
+    if resume:
+        original=json.loads((root/'ingestion.json').read_text())
+        sql="""SELECT COALESCE(json_agg(json_build_object('id',public_id,'session_id',session_name,
+            'peer_id',peer_name,'content',content,'created_at',created_at,'metadata',metadata)),'[]'::json)
+            FROM messages WHERE session_name LIKE 'source-%'"""
+        p=subprocess.run([*docker,'exec',name,'psql','-U','postgres','-d','postgres','-X','-t','-A','-c',sql],
+                         env=docker_env,capture_output=True,text=True,timeout=15)
+        if p.returncode:raise RuntimeError('Cannot verify persisted Honcho source messages')
+        actual=json.loads(p.stdout)
+        ids=verify_persisted_messages(original['result']['result'],actual)
+        save(root/'diagnostic-store-reopen.json',{'scored':False,'verified_source_messages':len(actual),
+            'original_native_ids':ids,'source_resubmissions':0,'queue_edits':0,
+            'scope':'Diagnostic store reopen only; no scored benchmark resume protocol'})
     migrated=subprocess.run([str(python),str(source/'scripts/provision_db.py')],cwd=source,env=child,
                              capture_output=True,text=True,timeout=90)
     save(root/'native-database-setup.json',{'route':'Honcho manual self-hosting migrations',

@@ -17,7 +17,9 @@ def snapshot(roles, state=STATE):
             columns = {r['name'] for r in db.execute('PRAGMA table_info(calls)')}
             status = 'http_status' if 'http_status' in columns else 'NULL AS http_status'
             error = 'error_label' if 'error_label' in columns else 'NULL AS error_label'
-            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status},{error} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
+            diagnostics=','.join(name if name in columns else 'NULL AS '+name
+                                 for name in ('finish_reason','reasoning_tokens'))
+            rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status},{error},{diagnostics} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
         return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[{**dict(r), 'role':roles[r['project']],
             'accounted_upper_bound_usd':r['accounted']/1e9} for r in rows]}
     except (OSError,sqlite3.Error) as exc:

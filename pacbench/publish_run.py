@@ -42,7 +42,7 @@ def copy_public(source,destination,virtual):
             shutil.copyfile(here/name,target)
 
 
-def publish(sources,destination,*,preflight=None,selection=None):
+def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=True):
     """Combine only source-identical terminal runs; preflight failures stay unscored."""
     sources=[p.resolve() for p in sources];destination=destination.resolve()
     if len(set(sources))!=len(sources):raise ValueError('Duplicate component run paths')
@@ -112,6 +112,7 @@ def publish(sources,destination,*,preflight=None,selection=None):
             audits.append({'component':source.name,'audit':component_audit})
             for row in summary['results']:
                 if row in chosen:continue
+                if not retain_replaced:continue
                 relative=Path(f"repeat-{row['repetition']}")/row['provider']
                 evidence=Path('attempts')/source.name/relative
                 copy_public(source/relative,staging/evidence,virtual/evidence)
@@ -183,10 +184,13 @@ def main():
     parser.add_argument('--preflight',type=Path)
     parser.add_argument('--select',action='append',default=[],metavar='PROVIDER=RUN',
         help='Explicitly select a replacement arm; retain the other attempt separately')
+    parser.add_argument('--discard-replaced',action='store_true',
+        help='Publish only selected development arms; leave original evidence and the spending ledger untouched')
     args=parser.parse_args()
     try:selection=dict(value.split('=',1) for value in args.select)
     except ValueError:parser.error('--select requires PROVIDER=RUN')
-    print(publish(args.sources,args.output,preflight=args.preflight,selection=selection))
+    print(publish(args.sources,args.output,preflight=args.preflight,selection=selection,
+                  retain_replaced=not args.discard_replaced))
     return 0
 
 

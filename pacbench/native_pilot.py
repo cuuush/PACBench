@@ -227,6 +227,7 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
         bootstrap='''
 import json,sys
+from importlib.metadata import version
 from pathlib import Path
 from hindsight import HindsightEmbedded
 cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
@@ -234,7 +235,8 @@ p=HindsightEmbedded(profile=cfg['profile'],llm_provider=cfg['llm_provider'],llm_
     llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
     result=p.create_bank(bank_id=sys.argv[2])
-    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json')}))
+    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json'),
+        'runtime_versions':{name:version(name) for name in ('hindsight-api-slim','hindsight-client','hindsight-embed')}}))
 finally:p.close()
 '''
         proc=subprocess.run([str(backend_python),'-c',bootstrap,

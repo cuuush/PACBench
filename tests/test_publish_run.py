@@ -174,3 +174,14 @@ def test_explicit_replacement_keeps_old_attempt_separate_and_removes_stale_files
         publish_run.publish([first,second],repo/'runs/invalid',selection={'other':first})
     with pytest.raises(ValueError,match='Duplicate component'):
         publish_run.publish([first,first],repo/'runs/duplicate',selection={'memcal':first})
+
+
+def test_development_publication_can_omit_replaced_arm_without_deleting_original(repo):
+    first=component(repo,'old','memcal');second=component(repo,'new','memcal')
+    save(first/'repeat-1/memcal/followups/old.json',{'original':True})
+    output=publish_run.publish([first,second],repo/'runs/current',
+        selection={'memcal':second},retain_replaced=False)
+    assert not (output/'attempts').exists()
+    assert json.loads((output/'summary.json').read_text())['other_attempts']==[]
+    assert not (output/'repeat-1/memcal/followups/old.json').exists()
+    assert (first/'repeat-1/memcal/followups/old.json').exists()

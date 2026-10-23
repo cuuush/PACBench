@@ -154,6 +154,8 @@ print(json.dumps({'native_defaults_verified':True,'deriver':processing,
         except (OSError,ValueError):time.sleep(.2)
     save(root/'native-server-setup.json',{'route':'Documented manual self-hosting, native API + deriver + local pgvector',
          'version':tomllib.loads((source/'pyproject.toml').read_text())['project']['version'],
+         'source_revision':subprocess.run(['git','rev-parse','HEAD'],cwd=source,
+             capture_output=True,text=True,check=True,timeout=10).stdout.strip(),
          'endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
          'processing':processing,'processing_option':'Unmodified native batching and output defaults'})

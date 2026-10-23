@@ -11,6 +11,53 @@ SOURCE_ARGUMENT_RULES = {
 }
 
 
+def proven_viking_summary(arguments, result):
+    """Use the pinned native reader's receipt, which labels full-text fallback.
+
+    An overview request alone is insufficient: files can fall back to content/read.
+    Only complete successful receipts matching every requested URI establish that
+    the answer saw generated summaries rather than the original source.
+    """
+    import json
+    if (not isinstance(result, dict) or result.get('success') is not True or
+            result.get('policy_blocked') or result.get('truncated')):
+        return False
+    level = arguments.get('level') or 'overview'
+    if level not in {'abstract', 'overview'}:
+        return False
+    raw = arguments.get('uris') or arguments.get('uri')
+    values = raw if isinstance(raw, list) else [raw]
+    if not values or any(not isinstance(uri, str) or not uri.strip() for uri in values):
+        return False
+    uris = list(dict.fromkeys(uri.strip() for uri in values))
+    try:
+        payload = json.loads(result.get('text', ''))
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+    if isinstance(raw, list):
+        if (payload.get('level') != level or payload.get('requested') != len(uris) or
+                payload.get('returned') != len(uris) or payload.get('truncated') is not False):
+            return False
+        rows = payload.get('results')
+    else:
+        rows = [payload]
+    if not isinstance(rows, list) or len(rows) != len(uris):
+        return False
+    for uri, row in zip(uris, rows):
+        resolved = uri
+        for suffix in ('/.abstract.md', '/.overview.md', '/.read.md', '/.full.md'):
+            if uri.endswith(suffix):
+                resolved = uri[:-len(suffix)] or 'viking://'
+                break
+        if (not isinstance(row, dict) or row.get('uri') != uri or
+                row.get('resolved_uri') != resolved or row.get('level') != level or
+                'fallback' in row or 'error' in row or not isinstance(row.get('content'), str)):
+            return False
+    return True
+
+
 def source_read_blocked(name, arguments, rules):
     """Fail closed on original reads; allow native memory and generated summaries.
 

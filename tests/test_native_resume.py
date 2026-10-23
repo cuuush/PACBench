@@ -72,3 +72,21 @@ def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_p
          patch('pacbench.native_pilot.provision') as backend:
         with pytest.raises(ValueError,match='frozen input identity'):resume(tmp_path)
     boundary.assert_not_called();backend.assert_not_called()
+
+
+def test_resume_renews_deleted_workspace_only_before_any_native_session(tmp_path):
+    import sqlite3
+    from pacbench.native_resume import renew_empty_workspace
+    from pacbench.context_isolation import VERSION
+    root=tmp_path/'run';history=root/'resumes/1';history.mkdir(parents=True)
+    save(root/'recall-workspace.json',{'version':VERSION,'workspace':str(tmp_path/'deleted')})
+    workspace=renew_empty_workspace(root,history)
+    assert workspace.is_dir() and list(workspace.iterdir())==[]
+    assert json.loads((history/'recall-workspace.json').read_text())['workspace'].endswith('/deleted')
+    home=root/'hermes-home';home.mkdir()
+    with sqlite3.connect(home/'state.db') as db:
+        db.execute('CREATE TABLE sessions (id TEXT)');db.execute("INSERT INTO sessions VALUES ('existing')")
+    receipt=(root/'recall-workspace.json').read_bytes()
+    with pytest.raises(RuntimeError,match='without ingestion conversations'):
+        renew_empty_workspace(root,root/'resumes/2')
+    assert (root/'recall-workspace.json').read_bytes()==receipt

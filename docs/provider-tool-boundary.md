@@ -6,6 +6,12 @@ Answer correctness and retention are separate. A correct source-assisted answer 
 
 Memcal's normal `memcal_open` is retained event detail and receives normal credit. Native memory pages, generated summaries and attached citations remain unchanged. Apply the same rule to every provider. No generic messaging connector, filesystem, shell, browser, discovery/dispatch, built-in memory or Hermes session-search tools are added.
 
+For OpenViking, requesting `overview` alone does not prove a generated summary:
+the native reader can fall back to original file content. A complete successful
+result matching every requested URI and summary level, with no native fallback
+or error, establishes summary access. Full reads, fallback receipts and incomplete
+captures remain source-assisted. Preserve the actual result as evidence.
+
 `tool-policy.json` freezes the grant and penalty. `context.jsonl.tools.jsonl` records actual offered schemas. Dispatch guards reject all tools outside the exact native grant before execution; the audit checks schemas, calls and native saved prompt isolation. A prohibited-tool attempt still invalidates the check.
 
 The current Pizza Month cohort exercises v3. Audits validate each saved trial's frozen permissions; do not relabel an older policy or compare unlike tool grants as matched trials.

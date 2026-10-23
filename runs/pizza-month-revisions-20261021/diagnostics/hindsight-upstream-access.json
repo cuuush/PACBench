@@ -1,0 +1,38 @@
+{
+  "attempts": [
+    {
+      "attempt": "pizza-month-revisions-hindsight-20261021",
+      "daily_batch": "2026-10-12",
+      "document_sha256": "c7d90c9fb9b893307694c90eef88d3818625ffc90606129ab44ce0aadc58887d",
+      "ready_batches": 27,
+      "upstream_failures": [
+        {
+          "id": "83f0d360b837441e93cb4020c1ce67dc",
+          "started": "2026-10-21T02:51:06.892795+00:00",
+          "http_status": 401,
+          "error_label": "upstream_http_401",
+          "state": "unknown",
+          "accounted": 314572800
+        }
+      ]
+    },
+    {
+      "attempt": "pizza-month-revisions-hindsight-retry-20261021",
+      "daily_batch": "2026-10-12",
+      "document_sha256": "c7d90c9fb9b893307694c90eef88d3818625ffc90606129ab44ce0aadc58887d",
+      "ready_batches": 27,
+      "upstream_failures": [
+        {
+          "id": "7e4ca2a9c6d74f028a2f7b37a3e338a6",
+          "started": "2026-10-21T13:33:53.780516+00:00",
+          "http_status": 401,
+          "error_label": "upstream_http_401",
+          "state": "unknown",
+          "accounted": 314572800
+        }
+      ]
+    }
+  ],
+  "same_failed_document": true,
+  "finding": "Repeated upstream HTTP 401 on the same daily import. Recall withheld; cause unresolved. Successful free model inventory preceded the second attempt; charges remain held."
+}

@@ -192,8 +192,10 @@ def openviking(source,root,at,processing_at):
         # The native plugin's real upload/client preserves file bytes. Keep the
         # full API response (its tool wrapper discards processing evidence).
         upload=p._client.upload_temp_file(source/'messages.txt')
+        from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
         result=p._client.post('/api/v1/resources',{'temp_file_id':upload,
-            'source_name':source.name+'.txt','wait':True,'timeout':210},timeout=230)
+            'source_name':source.name+'.txt','wait':True,'timeout':PROCESSING_TIMEOUT_S-60},
+            timeout=PROCESSING_TIMEOUT_S-30)
         native=result.get('result',{})
         queues=native.get('queue_status')
         ready=(native.get('status')=='success' and not native.get('errors') and

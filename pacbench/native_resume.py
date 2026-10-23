@@ -20,6 +20,18 @@ def read(path):
     return json.loads(path.read_text())
 
 
+def renew_empty_workspace(root, history):
+    """A temporary workspace belongs to its runner's process lifetime."""
+    from .document_ingestion import record_recall_isolation
+    from .context_isolation import workspace_for
+    record_recall_isolation(root)
+    receipt=root/'recall-workspace.json'
+    if receipt.exists():shutil.move(receipt,history/'recall-workspace.json')
+    # Create this in the long-lived runner, so its atexit cleanup cannot run
+    # before the actual Hermes questions. Never delete the old directory.
+    return workspace_for(root/'hermes-home')
+
+
 def ready_prefix(output, report, messages):
     from .document_ingestion import daily_batches, document_text
     root=output/'repeat-1/openviking'
@@ -110,6 +122,7 @@ def resume(output, *, max_messages=4500, question_dir=None):
         if (output/name).exists():shutil.copyfile(output/name,history/name)
     for name in ('evaluation.json','model-usage.json','model-usage-after-settlement.json','native-server-setup.json'):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
+    renew_empty_workspace(root,history)
     env=None
     try:
         env=provision(root,'openviking',driver.model_id,local_timezone=report['process_timezone'],resume=True)

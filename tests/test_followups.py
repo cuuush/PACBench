@@ -186,6 +186,39 @@ def test_unknown_usage_is_not_zero_and_project_windows_do_not_claim_tool_prices(
     assert turn_metrics(turn(tokens=(None, None)))['input_tokens'] is None
     assert turn_metrics(turn(tokens=(99, 21)), turn())['input_tokens'] is None
     assert turn_metrics(turn(sid='wrong'), turn())['output_tokens'] is None
+
+
+@pytest.mark.parametrize('batch', [False, True])
+def test_viking_generated_summary_requires_matching_native_result(batch):
+    uris = ['viking://resources/day-1', 'viking://resources/day-2'] if batch else ['viking://resources/day-1']
+    args = {'uris': uris} if batch else {'uri': uris[0]}
+    rows = [{'uri': uri, 'resolved_uri': uri, 'level': 'overview', 'content': 'Generated summary'} for uri in uris]
+    payload = {'level': 'overview', 'results': rows, 'requested': 2, 'returned': 2, 'truncated': False} if batch else rows[0]
+    def profile(value, success=True):
+        return tool_profile(turn(calls=[{'name': 'viking_read', 'input': args}],
+            results=[{'success': success, 'text': json.dumps(value)}]))
+    assert profile(payload)['categories'] == {'memory_detail': 1}
+    assert profile(payload, False)['source_fallback_attempted']
+    for field, value in [('fallback', 'content/read'), ('error', 'failed'),
+                         ('uri', 'viking://resources/other'), ('resolved_uri', 'wrong'),
+                         ('level', 'full'), ('content', None)]:
+        broken = json.loads(json.dumps(payload))
+        (broken['results'][0] if batch else broken)[field] = value
+        assert profile(broken)['source_fallback_attempted']
+    assert profile({})['source_fallback_attempted']
+    args['level'] = 'full'
+    assert profile(payload)['source_fallback_attempted']
+
+
+def test_viking_summary_receipt_handles_native_pseudo_files_and_incomplete_capture():
+    from pacbench.source_policy import proven_viking_summary
+    args = {'uri': 'viking://resources/day/.abstract.md', 'level': 'overview'}
+    payload = {'uri': args['uri'], 'resolved_uri': 'viking://resources/day',
+               'level': 'overview', 'content': 'A generated overview'}
+    result = {'success': True, 'text': json.dumps(payload)}
+    assert proven_viking_summary(args, result)
+    assert not proven_viking_summary(args, {**result, 'truncated': True})
+    assert not proven_viking_summary(args, {**result, 'text': 'not json'})
     window = cost_window({'projects': [{'project': 'a', 'settled_upper_bound_usd': .1, 'held_usd': .2}]},
         {'projects': [{'project': 'a', 'settled_upper_bound_usd': .12, 'held_usd': 0}]})
     assert window['projects'][0]['held_usd_delta'] == -.2

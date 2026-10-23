@@ -136,8 +136,13 @@ def tool_profile(turn, *, source_tools=()) -> dict:
         if not isinstance(arguments, dict):
             arguments = {}
         result = turn.tool_results[index] if index < len(turn.tool_results) else {}
+        category = tool_category(name, arguments, source_tools)
+        if name == 'viking_read' and category == 'source_evidence' and name not in source_tools:
+            from .source_policy import proven_viking_summary
+            if proven_viking_summary(arguments, result):
+                category = 'memory_detail'
         operations.append({'name': name, 'arguments': arguments,
-            'category': tool_category(name, arguments, source_tools), 'dispatch_parent': None,
+            'category': category, 'dispatch_parent': None,
             'success': result.get('success'), 'policy_blocked': result.get('policy_blocked'),
             'timestamp': call.get('timestamp'), 'result': result})
         if name == 'tool_call':

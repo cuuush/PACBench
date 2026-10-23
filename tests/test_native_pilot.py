@@ -54,9 +54,28 @@ def test_mem0_uses_distinct_native_profile_identities(tmp_path):
     assert a["oss"]["embedder"]["provider"] == "ollama"
     assert a["oss"]["llm"]["config"]["model"].endswith("-contributor")
     assert "max_tokens" not in a["oss"]["llm"]["config"]
+    assert a['oss']['llm']['config']['is_reasoning_model'] is True
+    assert 'reasoning_effort' not in a['oss']['llm']['config']
     assert env["HOME"] == str(first / "fallback-home")
     assert env["PACBENCH_NO_BUILTIN_MEMORY"] == "1"
     assert env["PACBENCH_PROVIDER_ONLY"] == "1"
+
+
+def test_mem0_native_reasoning_parameters_do_not_inherit_legacy_chat_limit(tmp_path):
+    import os
+    import subprocess
+    from pacbench.harness import ISOLATED_BIN
+    script = '''
+from mem0.configs.llms.openai import OpenAIConfig
+from mem0.llms.openai import OpenAILLM
+cfg=OpenAIConfig(model='muse-spark-1.3-contributor',api_key='offline-test',is_reasoning_model=True)
+assert cfg.max_tokens==2000 and cfg.reasoning_effort is None
+params=OpenAILLM(cfg)._get_supported_params(messages=[{'role':'user','content':'offline probe'}])
+assert not {'max_tokens','max_completion_tokens','temperature','reasoning_effort'} & params.keys()
+'''
+    result=subprocess.run([str(ISOLATED_BIN.parent/'python'),'-c',script],
+        env={**os.environ,'HOME':str(tmp_path),'MEM0_TELEMETRY':'false'},capture_output=True,text=True,timeout=30)
+    assert result.returncode==0,result.stderr
 
 
 def test_live_budget_block_happens_before_any_model_call(tmp_path):

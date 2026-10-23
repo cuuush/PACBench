@@ -6,7 +6,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 
 | Provider | Native daily delivery | Local setup / current status |
 | --- | --- | --- |
-| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings, gateway inference and native output limits. Spark can exhaust the SDK's 2,000-token default before extraction JSON; preserve that as an execution blocker. Earlier larger-output trials are a different configuration. |
+| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings and gateway inference. Set the documented `is_reasoning_model: true` flag for Spark; the SDK then chooses its native reasoning-model parameters. No custom output budget or reasoning effort. The earlier legacy-chat classification was a setup error; larger-output trials remain a different configuration. |
 | Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank; native API `meta` adapter for Spark, using the gateway base URL. |
 | OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Native resource processing is distinct from interactive memory capture. Expose `viking_read`; original-source access earns no retention credit. Check model-health receipts independently of native completion. |
 | ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Completed curation is readable immediately. Its pending-review log is retrospective: native rejection restores prior files. Leave it unchanged; never auto-approve. Native diagnostic recall confirmed this behavior. |

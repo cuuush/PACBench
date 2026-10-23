@@ -161,8 +161,17 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         if actual_url != extraction_url:
             raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
         config["sync_max_chars"] = 6000
-        # Leave model processing limits at native defaults. An incompatible
-        # output budget is an execution blocker, not grounds to tune an arm.
+        # The README's manual setup documents this SDK flag for reasoning
+        # models. Its name heuristic knows GPT/o-series, but not Spark. Let
+        # the native SDK choose its reasoning-model request parameters rather
+        # than treating Spark as a legacy chat model with a 2,000-token cap.
+        if configured_model == 'muse-spark-1.3-contributor':
+            config['oss']['llm']['config']['is_reasoning_model'] = True
+            save(root/'model-compatibility.json',{
+                'model':configured_model,'is_reasoning_model':True,
+                'route':'Hermes Mem0 README manual OSS configuration; native SDK explicit model classification',
+                'output_budget_override':False,'reasoning_effort_override':False})
+        # Leave output budgets and reasoning effort to the native SDK.
         save(home / "mem0.json", config)
         os.chmod(home / "mem0.json", 0o600)
         (home / ".env").write_text("OPENAI_API_KEY=" + client_key + "\n")

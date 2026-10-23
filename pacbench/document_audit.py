@@ -190,10 +190,10 @@ def audit_ingestion(root, arm, messages, summary):
             state=json.loads((directory/'source-state.json').read_text())
             due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York',version=version)
             from .document_ingestion import source_state
-            expected=(source_state(row['at'],[r['id'] for r in due]) if state.get('reference_version')==2 else
+            expected_source_state=(source_state(row['at'],[r['id'] for r in due]) if state.get('reference_version')==2 else
                       {'at':row['at'],'ingested_batches':[r['id'] for r in due],
                        'source_ids':[sid for r in due for sid in r['source_ids']]})
-            check(state==expected,'Checkpoint source state has missing/future batches')
+            check(state==expected_source_state,'Checkpoint source state has missing/future batches')
             usage=json.loads((directory/'usage.json').read_text())
             if usage.get('state')=='captured':
                 for batch in schedule:

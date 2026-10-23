@@ -109,6 +109,35 @@ def test_source_document_corruption_cannot_pass(trace):
     assert 'delivered source text differs' in str(audit(root)['errors'])
 
 
+@pytest.mark.parametrize('compact',[False,True])
+def test_checkpoint_audit_keeps_native_conversation_and_source_state_independent(trace,compact):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.document_ingestion import source_state
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary['evaluation_plan_hash']='checkpoint-test'
+    turn=json.loads((arm/'recall.json').read_text())
+    directory=arm/'turns/check';directory.mkdir(parents=True)
+    (arm/'recall.json').rename(directory/'turn.json')
+    save(root/'evaluation-plan.json',{'checks':[{'id':'check','at':turn['at']}]})
+    days=summary['ingestion_schedule']
+    state=source_state(turn['at'],[d['id'] for d in days]) if compact else {
+        'at':turn['at'],'ingested_batches':[d['id'] for d in days],
+        'source_ids':[sid for d in days for sid in d['source_ids']]}
+    save(directory/'source-state.json',state)
+    save(directory/'usage.json',{'state':'unavailable'})
+    bundle=load_bundle(root/'bundle.json',summary['bundle_hash'])
+    messages=messages_for(bundle,'test')
+    assert audit_ingestion(root,arm,messages,summary)==[]
+    save(directory/'source-state.json',{**state,'ingested_batches':['future-day']})
+    assert 'Checkpoint source state has missing/future batches' in audit_ingestion(root,arm,messages,summary)
+    save(directory/'source-state.json',state)
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute("INSERT INTO messages VALUES (2,'recall','user','Source transcript')")
+    assert 'Native Hermes user messages differ from evaluation questions' in audit_ingestion(root,arm,messages,summary)
+
+
 def test_native_source_handoff_or_project_context_cannot_hide_behind_receipt(trace):
     root, arm = trace
     with sqlite3.connect(arm / 'hermes-home/state.db') as db:

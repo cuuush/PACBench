@@ -63,7 +63,7 @@
   "state": "failed",
   "ready": false,
   "returncode": 1,
-  "stdout": "{\"ready\": false, \"interface\": \"mem0.Memory.add(str,infer=True)\", \"result\": {\"results\": []}, \"native_errors\": [{\"logger\": \"mem0.memory.main\", \"message\": \"Error parsing extraction response: 'NoneType' object has no attribute 'strip'\"}], \"model_output_truncated\": true, \"model_call_record\": \"/workspace/PACBench/artifacts/pizza-month-revisions-mem0-defaults-20261021/repeat-1/mem0/ingestion-model-calls/2026-09-15.json\", \"readiness\": \"Synchronous OSS add with no native error or truncated model response\"}\n",
+  "stdout": "",
   "stderr": "",
   "result": {
     "ready": false,
@@ -124,5 +124,6 @@
     "late_settlements": [],
     "per_tool_tokens": null,
     "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
-  }
+  },
+  "stdout_json_in": "result"
 }

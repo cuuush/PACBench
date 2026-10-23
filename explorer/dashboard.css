@@ -87,8 +87,9 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;max-height:400px;b
 .source-link{background:transparent;border:0;color:#1764ad;padding:2px 3px;font-size:11px;text-decoration:underline}
 .contract-question{border-left:4px solid #0a84ff;background:#eff6ff;border-radius:6px;padding:13px 16px;margin:15px 0}
 .contract-question p{margin:6px 0 0;font-size:16px;font-weight:600}
-.contract-fact{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding:12px 0;font-size:13px}
-.contract-fact>span:last-child{white-space:nowrap}
+.contract-fact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;border-top:1px solid var(--line);padding:12px 0;font-size:13px}
+.contract-fact>span{min-width:0;overflow-wrap:anywhere}
+.contract-fact>span:last-child{display:flex;flex-wrap:wrap;align-content:start;gap:2px}
 .exchange{border:1px solid var(--line);background:#fff;border-radius:12px;padding:16px;margin:5px 0 18px}
 .exchange-label{text-align:center;color:#737e89;font-size:11px;margin:1px 0 16px}
 .exchange .chat-message{max-width:82%}

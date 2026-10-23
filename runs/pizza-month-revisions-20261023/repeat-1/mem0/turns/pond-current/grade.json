@@ -1,0 +1,30 @@
+{
+  "correct": 0,
+  "missed": 1,
+  "misrepresented": 1,
+  "claims": [
+    {
+      "id": "duckpond-postponed",
+      "verdict": "misrepresented",
+      "reason": "Answer asserts 'Yes' still meeting 2pm Friday Oct 23, directly contradicting postponed/not meeting claim."
+    },
+    {
+      "id": "duckpond-no-replacement",
+      "verdict": "missed",
+      "reason": "Answer gives Oct 23 as still-on time but says nothing about whether a replacement date was agreed."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "duckpond-postponed",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite that meeting is still on."
+    },
+    {
+      "id": "duckpond-no-replacement",
+      "kind": "implicit_omission",
+      "reason": "Replacement-date status not mentioned; user asked only if still meeting, not for replacement detail."
+    }
+  ],
+  "interaction": "answer"
+}

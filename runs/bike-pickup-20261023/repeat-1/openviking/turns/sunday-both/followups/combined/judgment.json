@@ -1,0 +1,29 @@
+{
+  "checkpoint": "sunday-both",
+  "question": "[Simulated now: 2026-10-22T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhere is the 11am Sunday bike pickup with Riley that was moved from Saturday 10am?",
+  "answer": "No confirmed location for the Sunday 11am pickup. The call only moved the time to Sunday at 11. Last known location was Spoke Cycles, 114 Maple Avenue for the Saturday 10am plan.",
+  "claims": [
+    {
+      "id": "pickup-place",
+      "description": "The Sunday bike pickup with Riley is at Spoke Cycles.",
+      "evidence": [
+        "message-00cb6e432d09131b8bf2fde4",
+        "message-9504d6cc76d94fb4060948e3",
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-22T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's my Sunday with Riley looking like?\"}, {\"role\": \"assistant\", \"content\": \"Sunday Oct 25 with Riley is two things:\\n\\n  9am - coffee at Maple Mug\\n  11am - bike pickup, moved from Saturday 10am at Spoke Cycles, 114 Maple Avenue per Riley's call today\"}]\nQuestion: [Simulated now: 2026-10-22T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhere is the 11am Sunday bike pickup with Riley that was moved from Saturday 10am?\nAnswer: No confirmed location for the Sunday 11am pickup. The call only moved the time to Sunday at 11. Last known location was Spoke Cycles, 114 Maple Avenue for the Saturday 10am plan.\nClaims (hidden from the assistant): [{\"id\": \"pickup-place\", \"claim\": \"The Sunday bike pickup with Riley is at Spoke Cycles.\", \"evidence\": [\"message-00cb6e432d09131b8bf2fde4\", \"message-9504d6cc76d94fb4060948e3\", \"assistant-user:pickup-change\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"pickup-place\", \"verdict\": \"missed\", \"reason\": \"Answer states no confirmed location for Sunday 11am pickup; Spoke Cycles cited only as last known Saturday 10am location, not confirmed for Sunday.\"}]}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-22T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's my Sunday with Riley looking like?"
+    },
+    {
+      "role": "assistant",
+      "content": "Sunday Oct 25 with Riley is two things:\n\n  9am - coffee at Maple Mug\n  11am - bike pickup, moved from Saturday 10am at Spoke Cycles, 114 Maple Avenue per Riley's call today"
+    }
+  ],
+  "model_call": "/workspace/PACBench/artifacts/bike-pickup-openviking-scoped-20261023/model-calls/f642f0a95f89074f318d6ff76cdc395ad22ce30a67035f80c6dc5b1605d6ef07.json"
+}

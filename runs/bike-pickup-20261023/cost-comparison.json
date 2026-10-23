@@ -1,0 +1,891 @@
+{
+  "captured_at": "2026-10-23T18:19:51.023451+00:00",
+  "providers": [
+    {
+      "provider": "memcal",
+      "state": "diagnostic",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 61.58,
+      "initial_counts": {
+        "pass": 4,
+        "fail": 1,
+        "ungraded": 0
+      },
+      "retention_points": 14.0,
+      "retention_max_graded": 15,
+      "complete_for_cost_comparison": true,
+      "deferred_processing": {
+        "state": "observed-pending",
+        "captured_at": "2026-10-23T18:11:48.496556+00:00",
+        "method": "Read-only native Memcal spool inspection after the benchmark workload",
+        "pending_by_channel": {
+          "agent": 6
+        },
+        "pending_items": 6,
+        "future_model_cost_usd": null
+      },
+      "lifecycle_cost_complete": false,
+      "cost": {
+        "hermes": {
+          "model_requests": 14,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.011439,
+          "held_usd": 0,
+          "input_tokens": 108826,
+          "output_tokens": 2782,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 4,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0022576,
+          "held_usd": 0,
+          "input_tokens": 10422,
+          "output_tokens": 6077,
+          "unsettled_requests": 0
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 4,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0022576,
+            "held_usd": 0,
+            "input_tokens": 10422,
+            "output_tokens": 6077,
+            "unsettled_requests": 0
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 12,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0094057,
+            "held_usd": 0,
+            "input_tokens": 88947,
+            "output_tokens": 2555,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 2,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0020333,
+            "held_usd": 0,
+            "input_tokens": 19879,
+            "output_tokens": 227,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    },
+    {
+      "provider": "mem0",
+      "state": "diagnostic",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 34.38,
+      "initial_counts": {
+        "pass": 5,
+        "fail": 0,
+        "ungraded": 0
+      },
+      "retention_points": 15.0,
+      "retention_max_graded": 15,
+      "complete_for_cost_comparison": true,
+      "deferred_processing": {
+        "state": "unobserved",
+        "future_model_cost_usd": null,
+        "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
+      },
+      "lifecycle_cost_complete": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 13,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.004975,
+          "held_usd": 0,
+          "input_tokens": 42370,
+          "output_tokens": 3690,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 7,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0075002,
+          "held_usd": 0,
+          "input_tokens": 55026,
+          "output_tokens": 9988,
+          "unsettled_requests": 0
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 2,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0022122,
+            "held_usd": 0,
+            "input_tokens": 16170,
+            "output_tokens": 2976,
+            "unsettled_requests": 0
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 13,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.004975,
+            "held_usd": 0,
+            "input_tokens": 42370,
+            "output_tokens": 3690,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 5,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.005288,
+            "held_usd": 0,
+            "input_tokens": 38856,
+            "output_tokens": 7012,
+            "unsettled_requests": 0
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    },
+    {
+      "provider": "byterover",
+      "state": "partial",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 69.55,
+      "initial_counts": {
+        "pass": 1,
+        "fail": 0,
+        "ungraded": 4
+      },
+      "retention_points": 3.0,
+      "retention_max_graded": 3,
+      "complete_for_cost_comparison": false,
+      "deferred_processing": {
+        "state": "unobserved",
+        "future_model_cost_usd": null,
+        "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
+      },
+      "lifecycle_cost_complete": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 4,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0011784,
+          "held_usd": 0,
+          "input_tokens": 10462,
+          "output_tokens": 661,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 20,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0241601,
+          "held_usd": 0.9437184,
+          "input_tokens": null,
+          "output_tokens": null,
+          "unsettled_requests": 3
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 13,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.017043,
+            "held_usd": 0.3145728,
+            "input_tokens": null,
+            "output_tokens": null,
+            "unsettled_requests": 1
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 4,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0011784,
+            "held_usd": 0,
+            "input_tokens": 10462,
+            "output_tokens": 661,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 7,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0071171,
+            "held_usd": 0.6291456,
+            "input_tokens": null,
+            "output_tokens": null,
+            "unsettled_requests": 2
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    },
+    {
+      "provider": "supermemory",
+      "state": "partial",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 119.75,
+      "initial_counts": {
+        "pass": 3,
+        "fail": 0,
+        "ungraded": 2
+      },
+      "retention_points": 7.0,
+      "retention_max_graded": 7,
+      "complete_for_cost_comparison": false,
+      "deferred_processing": {
+        "state": "unobserved",
+        "future_model_cost_usd": null,
+        "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
+      },
+      "lifecycle_cost_complete": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 5,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0019785000000000002,
+          "held_usd": 0,
+          "input_tokens": 17747,
+          "output_tokens": 1019,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 14,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0080831,
+          "held_usd": 0,
+          "input_tokens": 59815,
+          "output_tokens": 10508,
+          "unsettled_requests": 0
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 7,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0038575,
+            "held_usd": 0,
+            "input_tokens": 28107,
+            "output_tokens": 5234,
+            "unsettled_requests": 0
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 5,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0019785000000000002,
+            "held_usd": 0,
+            "input_tokens": 17747,
+            "output_tokens": 1019,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 7,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0042255999999999995,
+            "held_usd": 0,
+            "input_tokens": 31708,
+            "output_tokens": 5274,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    },
+    {
+      "provider": "openviking",
+      "state": "diagnostic",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 161.26,
+      "initial_counts": {
+        "pass": 4,
+        "fail": 1,
+        "ungraded": 0
+      },
+      "retention_points": 1.0,
+      "retention_max_graded": 15,
+      "complete_for_cost_comparison": true,
+      "deferred_processing": {
+        "state": "unobserved",
+        "future_model_cost_usd": null,
+        "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
+      },
+      "lifecycle_cost_complete": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 17,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0122415,
+          "held_usd": 0,
+          "input_tokens": 109121,
+          "output_tokens": 6647,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 24,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0209377,
+          "held_usd": 0.6291456,
+          "input_tokens": null,
+          "output_tokens": null,
+          "unsettled_requests": 2
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 6,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.005042,
+            "held_usd": 0,
+            "input_tokens": 5244,
+            "output_tokens": 22588,
+            "unsettled_requests": 0
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 14,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0084663,
+            "held_usd": 0,
+            "input_tokens": 75797,
+            "output_tokens": 4433,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 8,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0046301,
+            "held_usd": 0.3145728,
+            "input_tokens": null,
+            "output_tokens": null,
+            "unsettled_requests": 1
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 3,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0037752,
+            "held_usd": 0,
+            "input_tokens": 33324,
+            "output_tokens": 2214,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 2,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0021720999999999997,
+            "held_usd": 0,
+            "input_tokens": 7917,
+            "output_tokens": 6902,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 4,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0032597999999999998,
+            "held_usd": 0.3145728,
+            "input_tokens": null,
+            "output_tokens": null,
+            "unsettled_requests": 1
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 4,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0058337,
+            "held_usd": 0,
+            "input_tokens": 25811,
+            "output_tokens": 16263,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    },
+    {
+      "provider": "hindsight",
+      "state": "diagnostic",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 2,
+      "ingestion_wall_s": 77.77,
+      "initial_counts": {
+        "pass": 5,
+        "fail": 0,
+        "ungraded": 0
+      },
+      "retention_points": 15.0,
+      "retention_max_graded": 15,
+      "complete_for_cost_comparison": true,
+      "deferred_processing": {
+        "state": "unobserved",
+        "future_model_cost_usd": null,
+        "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
+      },
+      "lifecycle_cost_complete": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 13,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0041413,
+          "held_usd": 0,
+          "input_tokens": 35147,
+          "output_tokens": 3133,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 19,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0121314,
+          "held_usd": 0,
+          "input_tokens": 70770,
+          "output_tokens": 25272,
+          "unsettled_requests": 0
+        }
+      },
+      "phases": {
+        "ingestion": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 4,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0026673,
+            "held_usd": 0,
+            "input_tokens": 16199,
+            "output_tokens": 5237,
+            "unsettled_requests": 0
+          }
+        },
+        "initial": {
+          "hermes": {
+            "model_requests": 13,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0041413,
+            "held_usd": 0,
+            "input_tokens": 35147,
+            "output_tokens": 3133,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 12,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0082115,
+            "held_usd": 0,
+            "input_tokens": 45921,
+            "output_tokens": 18097,
+            "unsettled_requests": 0
+          }
+        },
+        "followups": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "write_processing": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          }
+        },
+        "outside_captured_windows": {
+          "hermes": {
+            "model_requests": 0,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0,
+            "held_usd": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "unsettled_requests": 0
+          },
+          "memory_provider": {
+            "model_requests": 3,
+            "unobserved_requests": 0,
+            "settled_upper_bound_usd": 0.0012526,
+            "held_usd": 0,
+            "input_tokens": 8650,
+            "output_tokens": 1938,
+            "unsettled_requests": 0
+          }
+        }
+      },
+      "terminal_snapshot_missing_requests": [],
+      "overlapping_phase_request_ids": {}
+    }
+  ],
+  "other_attempts": [],
+  "ledger_refreshed": true,
+  "input_hash": "47fe739fd6853c263efae2cda3b48151ff8404e1b751065e2b30b896af79d573",
+  "scope": [
+    "All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.",
+    "Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.",
+    "Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown charges remain reservations.",
+    "Only arms completing identical daily batches, initial questions and required recovery can be compared as observed workload costs.",
+    "Observed workload costs stop at the recorded arm cutoff. Pending or unobserved deferred processing prevents a full lifecycle cost claim; future costs are unknown, not zero.",
+    "Native canary execution and failed attempts are separate from month costs. Semantic correctness and source-assisted retention are separate scores."
+  ]
+}

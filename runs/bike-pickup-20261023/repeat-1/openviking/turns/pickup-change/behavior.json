@@ -1,0 +1,49 @@
+{
+  "state": "complete",
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_write": 1
+    },
+    "operations": [
+      {
+        "name": "viking_remember",
+        "arguments": {
+          "content": "User update on 2026-10-22: Bike pickup with Riley rescheduled by phone call to Sunday at 11 (instead of Saturday 10am at Spoke Cycles). Latest plan is Sunday 11am."
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792774472016,
+        "result": {
+          "tool": "viking_remember",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"status\": \"submitted\", \"session_id\": \"hermes-remember-99ccf719d686\", \"session_uri\": \"viking://user/default/sessions/hermes-remember-99ccf719d686\", \"message_status\": \"accepted\", \"extraction_status\": \"accepted\", \"message\": \"Memory source submitted to OpenViking session extraction. OpenViking may add, merge, or skip the final memory.\", \"task_id\": \"1387f6d8-5f68-42e2-a740-0f2e106743ff\", \"trace_id\": \"adf09d1ff814f88e7656e3a5e807ddce\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 22.4,
+    "input_tokens": 200,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": true,
+    "inherited_unclassified": false
+  },
+  "observable_only": true
+}

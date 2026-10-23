@@ -1,0 +1,58 @@
+{
+  "authoring_version": "event-scoped-v5",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "bike-not-saturday",
+      "statement": "The bike pickup is not on Saturday.",
+      "evidence": [
+        "message-5ddd797f194d5acf21a31448",
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "Am I still picking up the bike Saturday?",
+  "source_aliases": {
+    "s1": "message-ee79e270e1ec80113cd5492d",
+    "s2": "message-c46c71dfc0f601c55e8f72a5",
+    "s3": "message-41d2da750ae034bdd43c0d91",
+    "s4": "message-00cb6e432d09131b8bf2fde4",
+    "s5": "message-e8c3787c58677236a9230a65",
+    "s6": "message-4b26b2e5142b7f450fc1c923",
+    "s7": "message-199fe80c16e6217beee5302a",
+    "s8": "message-eea82fb15c07b9ece7c03c0a",
+    "s9": "message-265f9175f3f00be91dbef192",
+    "s10": "message-9504d6cc76d94fb4060948e3",
+    "s11": "message-5ddd797f194d5acf21a31448",
+    "s12": "assistant-user:pickup-before",
+    "s13": "assistant-user:pickup-change",
+    "s14": "assistant-user:coffee-same-chat",
+    "s15": "assistant-user:sunday-both",
+    "s16": "assistant-user:saturday-clear"
+  },
+  "evidence_hash": "6049f4d3864df6fb8d9894ea7a9cf9dafe1826ee6c08f1319de6028c828ebdca",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Single 'not Saturday' claim satisfies the required No; Sunday time is explicitly not required.",
+    "reviews": [
+      {
+        "id": "bike-not-saturday",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Latest user correction moves pickup to Sunday at 11, so Saturday pickup is no longer current; matches required No."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt asks if Saturday pickup still holds, directly inviting correction that it is not Saturday. It supplies no answer and its presupposition of a prior Saturday plan is supported by dialogue. Current meaning at question time is upcoming Saturday, and cross-session user instruction pickup-change persists as source fact, with message-5ddd showing old Saturday plan overridden by Sunday 11, supporting not-Saturday."
+  },
+  "author_fact_count": 0,
+  "test_intent": "No. The latest user correction moved bike pickup to Sunday. A clear no is sufficient; do not require restating Sunday's time.",
+  "question_source": "supplied",
+  "question_at": "2026-10-22T12:00:00-04:00",
+  "contract_hash": "6b045c110a7783c7677093a4bb4a4efab9dda58d969efd31584d75702ebf4e02"
+}

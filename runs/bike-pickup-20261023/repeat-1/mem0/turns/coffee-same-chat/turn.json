@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-22T10:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAnd coffee with Riley?",
+  "at": "2026-10-22T10:04:00-04:00",
+  "answer": "9am Sunday, October 25 at Maple Mug.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "coffee with Riley"
+      },
+      "timestamp": 1792772551571
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"028bfdce-f110-42a7-a999-38fed827c864\", \"memory\": \"User agreed to meet Riley for coffee away from work to catch up, scheduled for 9am on Sunday, October 25, 2026 at Maple Mug.\", \"score\": 0.7072191049489095}, {\"id\": \"48a59fec-684c-4965-8692-34f4ca9ab616\", \"memory\": \"User's bike repair was completed and ready for pickup as of October 19, 2026, with Riley notifying the user that it could be collected anytime.\", \"score\": 0.5418256965850686}, {\"id\": \"a4f20f92-6981-4796-84a9-a2b6e4d4f4fc\", \"memory\": \"User rescheduled bike pickup with Riley to 11am on Sunday, October 25, 2026 at Spoke Cycles, 114 Maple Avenue.\", \"score\": 0.5399075006467122}], \"count\": 3}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 15.54,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261023_122129_c1f689 \"Plan bike pickup\" (2 user messages, 9 total messages)\n\nsession_id: 20261023_122129_c1f689",
+  "raw_events": 7,
+  "session_id": "20261023_122129_c1f689",
+  "stderr_full": "↻ Resumed session 20261023_122129_c1f689 \"Plan bike pickup\" (2 user messages, 9 total messages)\n\nsession_id: 20261023_122129_c1f689\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_122129_c1f689\", \"timestamp\": 1792772546468}\n{\"type\": \"text\", \"text\": \"Checking your coffee plans with Riley.\", \"timestamp\": 1792772551124}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"coffee with Riley\"}, \"timestamp\": 1792772551571}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"028bfdce-f110-42a7-a999-38fed827c864\\\", \\\"memory\\\": \\\"User agreed to meet Riley for coffee away from work to catch up, scheduled for 9am on Sunday, October 25, 2026 at Maple Mug.\\\", \\\"score\\\": 0.7072191049489095}, {\\\"id\\\": \\\"48a59fec-684c-4965-8692-34f4ca9ab616\\\", \\\"memory\\\": \\\"User's bike repair was completed and ready for pickup as of October 19, 2026, with Riley notifying the user that it could be collected anytime.\\\", \\\"score\\\": 0.5418256965850686}, {\\\"id\\\": \\\"a4f20f92-6981-4796-84a9-a2b6e4d4f4fc\\\", \\\"memory\\\": \\\"User rescheduled bike pickup with Riley to 11am on Sunday, October 25, 2026 at Spoke Cycles, 114 Maple Avenue.\\\", \\\"score\\\": 0.5399075006467122}], \\\"count\\\": 3}\", \"duration_ms\": 33, \"is_error\": false, \"timestamp\": 1792772551604}\n{\"type\": \"text\", \"text\": \"\\n\\n9am Sunday,\", \"timestamp\": 1792772554815}\n{\"type\": \"text\", \"text\": \" October 25 at Maple Mug.\", \"timestamp\": 1792772554851}\n{\"type\": \"result\", \"session_id\": \"20261023_122129_c1f689\", \"exit_code\": 0, \"text\": \"9am Sunday, October 25 at Maple Mug.\", \"tokens\": {\"input\": 1485, \"output\": 349, \"total\": 10380, \"cache_read\": 8546, \"cache_write\": 0}, \"duration_ms\": 8470, \"timestamp\": 1792772554939}",
+  "session_input_tokens": 1485,
+  "session_output_tokens": 349,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User agreed to meet Riley for coffee away from work to catch up, scheduled for 9am on Sunday, October 25, 2026 at Maple Mug.\n- User rescheduled bike pickup with Riley to 11am on Sunday, October 25, 2026 at Spoke Cycles, 114 Maple Avenue.\n- User's bike repair was completed and ready for pickup as of October 19, 2026, with Riley notifying the user that it could be collected anytime.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-5_6dp3la",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-5_6dp3la",
+    "system_prompt_sha256": "d66540a64b113295f225584863eaaa089e333fd6f58b720083a2959080582775",
+    "reason": "No project context in native saved system prompt"
+  }
+}

@@ -5,23 +5,110 @@
   "protocol_version": 5,
   "minimum_initial_correct": 1,
   "initial_metrics": {
-    "top_level_calls": 0,
-    "total_tool_operations": 0,
+    "top_level_calls": 4,
+    "total_tool_operations": 4,
     "provider_internal_tool_calls": null,
     "provider_task_records": 0,
     "provider_internal_operations": [],
     "provider_internal_source_fallback_confirmed": false,
     "provider_internal_path_needs_review": false,
-    "categories": {},
-    "operations": [],
+    "categories": {
+      "memory_detail": 1,
+      "memory_search": 1,
+      "archive_search": 1,
+      "source_evidence": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E14"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772527179,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E14  Pizza lunch\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nnote: Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing Leo: not attending.\nsource: person:Maya\n\npages: maya (person) · pizza-lunch (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 17:22 · iMessage with Maya —\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n  — Wed Oct 14, 2026 13:13 · iMessage with Friday crew —\n * [2521] Friday crew · Wed 14 Oct 13:13 · Leo: you guys should still go tho, don't skip on my account\n * [2522] Friday crew · Wed 14 Oct 13:15 · Maya: oh we are, i still need pizza after this week\n * [2523] Friday crew · Wed 14 Oct 13:16 · me: yeah i'm still in for noon at Mario's\n * [2558] Friday crew · Wed 14 Oct 15:24 · me: so friday just us two then?\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\n * [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\n  — Wed Oct 14, 2026 17:06 · iMessage with Maya —\n * [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n * [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  note: 'Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing' -> 'Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing Leo: not attending.' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza lunch' -> 'Pizza lunch' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_list_days",
+        "arguments": {
+          "days": 1,
+          "when": "2026-10-24"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772527213,
+        "result": {
+          "tool": "memcal_list_days",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"from\": \"2026-10-24\", \"to\": \"2026-10-24\", \"weekday\": \"Saturday\", \"rows\": [], \"free\": true}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "person": "Maya",
+          "query": "pizza Saturday"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772531272,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 2673, \"when\": \"2026-10-14T19:04\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"and the host goes \\\"saturday is a state of mind, and that state is pizza\\\"\"}, {\"line_id\": 2694, \"when\": \"2026-10-14T19:25\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"idk it was so silly the way he said it, like saturday = legally required pizza day\"}, {\"line_id\": 2754, \"when\": \"2026-10-14T20:22\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"oh random thought - if stomach is still good, maybe we could do pizza again saturday after friday?\"}, {\"line_id\": 1631, \"when\": \"2026-10-10T15:14\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"yeah for her birthday thing, she's taking her own friends for pizza next Saturday at 4 pm at Rosa's\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_conversation",
+        "arguments": {
+          "after": 12,
+          "before": 12,
+          "line_id": 2754
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772533342,
+        "result": {
+          "tool": "memcal_conversation",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"conversation\": [{\"id\": 2672, \"ts\": \"2026-10-14T19:02\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"okay so i was listening to that dumb food podcast on my walk\"}, {\"id\": 2673, \"ts\": \"2026-10-14T19:04\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"and the host goes \\\"saturday is a state of mind, and that state is pizza\\\"\"}, {\"id\": 2693, \"ts\": \"2026-10-14T19:23\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"lol what does that even mean\"}, {\"id\": 2694, \"ts\": \"2026-10-14T19:25\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"idk it was so silly the way he said it, like saturday = legally required pizza day\"}, {\"id\": 2715, \"ts\": \"2026-10-14T19:44\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"podcast bro really thinks he solved weekends\"}, {\"id\": 2717, \"ts\": \"2026-10-14T19:45\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"right?? i laughed out loud on the sidewalk like a weirdo\"}, {\"id\": 2737, \"ts\": \"2026-10-14T20:04\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"what are you having by the way, soup again?\"}, {\"id\": 2739, \"ts\": \"2026-10-14T20:06\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah tomato, plain again cause dairy-free life\"}, {\"id\": 2741, \"ts\": \"2026-10-14T20:08\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"ugh still sad tomato with no grilled cheese\"}, {\"id\": 2742, \"ts\": \"2026-10-14T20:09\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"literally the saddest soup, but stomach is calm so worth it\"}, {\"id\": 2746, \"ts\": \"2026-10-14T20:15\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"that's good tho, day four and still working?\"}, {\"id\": 2752, \"ts\": \"2026-10-14T20:21\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah no bloated ugh feeling, oat milk for the win\"}, {\"id\": 2754, \"ts\": \"2026-10-14T20:22\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"oh random thought - if stomach is still good, maybe we could do pizza again saturday after friday?\"}, {\"id\": 2764, \"ts\": \"2026-10-14T20:28\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"ohh like this saturday?\"}, {\"id\": 2766, \"ts\": \"2026-10-14T20:30\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah like a round two if we feel like it, no pressure\"}, {\"id\": 2767, \"ts\": \"2026-10-14T20:31\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"i can't commit to that yet, don't book anything for me\"}, {\"id\": 2770, \"ts\": \"2026-10-14T20:33\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah totally, just an idea floating around\"}, {\"id\": 2775, \"ts\": \"2026-10-14T20:38\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"my weekend is kind of up in the air, family stuff maybe\"}, {\"id\": 2776, \"ts\": \"2026-10-14T20:39\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"got it, we'll just see how friday goes first\"}, {\"id\": 2780, \"ts\": \"2026-10-14T20:45\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah let's do that, friday first then see\"}, {\"id\": 2786, \"ts\": \"2026-10-14T20:50\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"perfect, i'm still excited for the no-butter knots experiment lol\"}, {\"id\": 2796, \"ts\": \"2026-10-14T21:10\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"same, dairy-free pizza but make it tasty\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
     "failed_operations": 0,
     "repeated_operations": 0,
     "unmatched_tool_results": [],
-    "source_fallback_attempted": false,
+    "source_fallback_attempted": true,
     "unclassified_operations": 0,
-    "latency_s": 7.92,
-    "input_tokens": 9355,
-    "output_tokens": 485,
+    "latency_s": 22.84,
+    "input_tokens": 22100,
+    "output_tokens": 1906,
     "policy_blocks": 0,
     "returncode": 0,
     "inherited_source_fallback": false,
@@ -32,7 +119,7 @@
     {
       "id": "no-sat-pizza",
       "kind": "provided",
-      "reason": "Fact correctly conveyed by the denial of Saturday pizza."
+      "reason": "Answer explicitly provides the no-agreed-Saturday fact."
     }
   ],
   "eligible_claim_ids": [],
@@ -41,7 +128,7 @@
     "initial_missed": 0,
     "initial_misrepresented": 0,
     "max_points": 1,
-    "points": 1.0,
+    "points": 0.0,
     "recovery_weight": 0.5,
     "claims": [
       {
@@ -49,9 +136,9 @@
         "initial_verdict": "correct",
         "followup_verdict": null,
         "recovered_answer": false,
-        "retention_failed": false,
+        "retention_failed": true,
         "path_needs_review": false,
-        "points": 1.0
+        "points": 0.0
       }
     ],
     "calibrated": false

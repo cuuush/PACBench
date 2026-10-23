@@ -88,66 +88,56 @@
         "bundle_id": "517eb9",
         "label": "Devon",
         "kind": "person",
-        "lines": 44,
+        "lines": 58,
         "state": "reading",
         "updated_at": "2026-09-20T03:00:00-04:00"
       }
     ],
-    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-retest-20261023/repeat-1/memcal/ingestion-model-calls/2026-09-19.json",
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-update-20261023/repeat-1/memcal/ingestion-model-calls/2026-09-19.json",
     "native_event_state": [
       {
         "key": "co-op-cooking-game@2026-09-18",
         "date": "2026-09-18",
         "time": null,
-        "title": "co-op cooking game",
+        "title": "Co-op cooking game",
         "location": null,
-        "status": "mentioned",
-        "participants": "[\"Leo\", \"Maya\"]",
+        "status": "tentative",
+        "participants": "[]",
         "subject": "me"
       },
       {
         "key": "lunch@2026-09-20",
         "date": "2026-09-20",
         "time": null,
-        "title": "lunch",
-        "location": "Devon's mom's",
+        "title": "Lunch",
+        "location": null,
         "status": "tentative",
         "participants": "[\"Devon\"]",
         "subject": "me"
       },
       {
-        "key": "pizza-dinner@2026-09-18",
+        "key": "pizza@2026-09-18",
         "date": "2026-09-18",
         "time": "18:00",
-        "title": "pizza dinner",
+        "title": "Pizza",
         "location": "Luigi's on 5th Street",
         "status": "happened",
-        "participants": "[\"Devon\"]",
-        "subject": "me"
-      },
-      {
-        "key": "pizza-lunch@2026-09-18",
-        "date": "2026-09-18",
-        "time": "13:00",
-        "title": "pizza lunch",
-        "location": "Rosa's on Oak Street",
-        "status": "confirmed",
-        "participants": "[\"Maya\"]",
+        "participants": "[\"Devon\", \"Maya\"]",
         "subject": "me"
       }
     ],
     "processing": {
       "run_id": 5,
       "errors": [],
-      "report": "dream run #5 — 1 bundles, 44 items, 2 writes\n  updated   2026-09-20 lunch [lunch@2026-09-20]\n  updated   2026-09-18 pizza dinner [pizza-dinner@2026-09-18]\n  usage: 2 calls · 5643 in (0 cached) · 4550 out · cost not reported"
+      "report": "dream run #5 — 1 bundles, 58 items, 2 writes\n  updated   2026-09-18 Pizza [pizza@2026-09-18]\n  updated   2026-09-20 Lunch [lunch@2026-09-20]\n  usage: 2 calls · 7008 in (0 cached) · 4854 out · cost not reported"
     },
     "readiness": "Native dream completion without errors"
   },
-  "latency_s": 40.38,
+  "latency_s": 43.85,
   "usage": {
     "state": "captured",
-    "started": "2026-10-23T14:07:13.927184+00:00",
-    "finished": "2026-10-23T14:07:54.304182+00:00",
+    "started": "2026-10-23T15:53:38.265490+00:00",
+    "finished": "2026-10-23T15:54:22.118061+00:00",
     "roles": {
       "hermes": {
         "model_calls": 0,
@@ -158,46 +148,46 @@
       },
       "memory_provider": {
         "model_calls": 2,
-        "input_tokens": 5643,
-        "output_tokens": 4550,
-        "accounted_upper_bound_usd": 0.0014743,
+        "input_tokens": 7008,
+        "output_tokens": 4854,
+        "accounted_upper_bound_usd": 0.0016716,
         "unsettled_calls": 0
       }
     },
     "model_calls": [
       {
-        "id": "cbb99de786914931a493e4c16e9e6b0b",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "7a6522a64dac4d228ab580a7cb5a2210",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:07:14.109958+00:00",
-        "finished": "2026-10-23T14:07:46.679243+00:00",
+        "started": "2026-10-23T15:53:38.487136+00:00",
+        "finished": "2026-10-23T15:54:14.942097+00:00",
         "state": "settled",
-        "input_tokens": 4875,
-        "output_tokens": 3686,
-        "accounted": 1224700,
+        "input_tokens": 6203,
+        "output_tokens": 4039,
+        "accounted": 1428100,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0012247
+        "accounted_upper_bound_usd": 0.0014281
       },
       {
-        "id": "16e983e57cfa49ccb4bb01f27d0606a6",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "1b9f476f84c14dfb9085ba00a768a460",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:07:46.747186+00:00",
-        "finished": "2026-10-23T14:07:54.234935+00:00",
+        "started": "2026-10-23T15:54:15.031628+00:00",
+        "finished": "2026-10-23T15:54:22.048713+00:00",
         "state": "settled",
-        "input_tokens": 768,
-        "output_tokens": 864,
-        "accounted": 249600,
+        "input_tokens": 805,
+        "output_tokens": 815,
+        "accounted": 243500,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0002496
+        "accounted_upper_bound_usd": 0.0002435
       }
     ],
     "late_settlements": [],

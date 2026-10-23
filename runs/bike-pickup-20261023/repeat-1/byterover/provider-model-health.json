@@ -1,0 +1,32 @@
+{
+  "state": "stop",
+  "failed_requests": [],
+  "unmetered_requests": [
+    {
+      "id": "964e93069e894f9fa820a720005773f8",
+      "project": "pacbench-cf584ae9c1f4-byterover-memory",
+      "http_status": 200,
+      "state": "unknown",
+      "error_label": "missing_usage_sse",
+      "accounted_upper_bound_usd": 0.3145728
+    },
+    {
+      "id": "e34b7e448fc147f9b7941786fb0a63a3",
+      "project": "pacbench-cf584ae9c1f4-byterover-memory",
+      "http_status": 200,
+      "state": "unknown",
+      "error_label": "missing_usage_sse",
+      "accounted_upper_bound_usd": 0.3145728
+    },
+    {
+      "id": "b6bb6ca46ae548799cf588fc33a991ee",
+      "project": "pacbench-cf584ae9c1f4-byterover-memory",
+      "http_status": 200,
+      "state": "unknown",
+      "error_label": "missing_usage_sse",
+      "accounted_upper_bound_usd": 0.3145728
+    }
+  ],
+  "reason": "Three completed provider requests lack usable token usage; stop this arm before unmetered work accumulates. This is a cost-observability blocker, not an HTTP or memory-recall failure.",
+  "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
+}

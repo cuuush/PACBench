@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-20T04:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat plans do you remember?",
+  "at": "2026-10-20T04:00:00-04:00",
+  "answer": "Coffee with Riley at Maple Mug at 9am on October 25, 2026.\n\nBike pickup at Spoke Cycles at 2pm on October 24, 2026.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "What plans do you remember? user plans"
+      },
+      "timestamp": 1792778954936
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User and Riley plan to grab coffee and catch up away from work at Maple Mug at 9am on October 25, 2026.\\n2. Riley fixed the user's bike; it is ready for pickup at Spoke Cycles at 2pm on October 24, 2026.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 11.63,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261023_140911_927095",
+  "raw_events": 11,
+  "session_id": "20261023_140911_927095",
+  "stderr_full": "\nsession_id: 20261023_140911_927095\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_140911_927095\", \"timestamp\": 1792778951417}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"I'll pull up what I remember about your plans.\", \"timestamp\": 1792778954218}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"What plans do you remember? user plans\"}, \"timestamp\": 1792778954936}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User and Riley plan to grab coffee and catch up away from work at Maple Mug at 9am on October 25, 2026.\\\\n2. Riley fixed the user's bike; it is ready for pickup at Spoke Cycles at 2pm on October 24, 2026.\\\"}\", \"duration_ms\": 827, \"is_error\": false, \"timestamp\": 1792778955763}\n{\"type\": \"text\", \"text\": \"\\n\\nCoffee with Riley at\", \"timestamp\": 1792778960644}\n{\"type\": \"text\", \"text\": \" Maple Mug at 9am on October\", \"timestamp\": 1792778960689}\n{\"type\": \"text\", \"text\": \" 25, 2026.\\n\\n\", \"timestamp\": 1792778960734}\n{\"type\": \"text\", \"text\": \"Bike pickup at Spoke Cycles at \", \"timestamp\": 1792778960778}\n{\"type\": \"text\", \"text\": \"2pm on October 24, \", \"timestamp\": 1792778960827}\n{\"type\": \"text\", \"text\": \"2026.\\n\", \"timestamp\": 1792778960876}\n{\"type\": \"result\", \"session_id\": \"20261023_140911_927095\", \"exit_code\": 0, \"text\": \"Coffee with Riley at Maple Mug at 9am on October 25, 2026.\\n\\nBike pickup at Spoke Cycles at 2pm on October 24, 2026.\", \"tokens\": {\"input\": 3314, \"output\": 578, \"total\": 6949, \"cache_read\": 3057, \"cache_write\": 0}, \"duration_ms\": 9513, \"timestamp\": 1792778960930}",
+  "session_input_tokens": 3314,
+  "session_output_tokens": 578,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-9xlsxq_w",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-9xlsxq_w",
+    "system_prompt_sha256": "f5d7df0d838abc18b8e8b8d5cf2c484bf1cff5487d0b063d34302dff137f4315",
+    "reason": "No project context in native saved system prompt"
+  }
+}

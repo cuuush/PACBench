@@ -115,14 +115,14 @@
       "session": "friday-recap",
       "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
       "state": "diagnostic",
-      "verdict": "fail",
+      "verdict": "pass",
       "reason": "",
       "interaction": "answer",
       "recovery": {
         "state": "complete",
         "score": {
-          "initial_correct": 0,
-          "initial_missed": 1,
+          "initial_correct": 1,
+          "initial_missed": 0,
           "initial_misrepresented": 0,
           "max_points": 1,
           "points": 0.0,
@@ -130,7 +130,7 @@
           "claims": [
             {
               "claim_id": "dominos-too-far",
-              "initial_verdict": "missed",
+              "initial_verdict": "correct",
               "followup_verdict": null,
               "recovered_answer": false,
               "retention_failed": true,
@@ -193,7 +193,7 @@
           "initial_missed": 0,
           "initial_misrepresented": 0,
           "max_points": 1,
-          "points": 1.0,
+          "points": 0.0,
           "recovery_weight": 0.5,
           "claims": [
             {
@@ -201,9 +201,9 @@
               "initial_verdict": "correct",
               "followup_verdict": null,
               "recovered_answer": false,
-              "retention_failed": false,
+              "retention_failed": true,
               "path_needs_review": false,
-              "points": 1.0
+              "points": 0.0
             }
           ],
           "calibrated": false
@@ -485,7 +485,7 @@
           "initial_missed": 0,
           "initial_misrepresented": 0,
           "max_points": 1,
-          "points": 0.0,
+          "points": 1.0,
           "recovery_weight": 0.5,
           "claims": [
             {
@@ -493,9 +493,9 @@
               "initial_verdict": "correct",
               "followup_verdict": null,
               "recovered_answer": false,
-              "retention_failed": true,
+              "retention_failed": false,
               "path_needs_review": false,
-              "points": 0.0
+              "points": 1.0
             }
           ],
           "calibrated": false

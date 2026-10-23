@@ -1,0 +1,80 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "mem0",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "0dc33d58ccac96fff9ee62633b527caa6fd0b70111c35169fc7f33b860e7cac2",
+  "source_ids": [
+    "message-9504d6cc76d94fb4060948e3",
+    "message-5ddd797f194d5acf21a31448"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "a4f20f92-6981-4796-84a9-a2b6e4d4f4fc",
+          "memory": "User rescheduled bike pickup with Riley from 2pm to 10am on Saturday, October 24, 2026 at Spoke Cycles, 114 Maple Avenue, after Riley notified on October 20, 2026 that the shop is closing early Saturday.",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench/artifacts/bike-pickup-native-20261023/repeat-1/mem0/ingestion-model-calls/2026-10-20.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 17.52,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-23T16:21:11.085637+00:00",
+    "finished": "2026-10-23T16:21:28.602898+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 8126,
+        "output_tokens": 1672,
+        "accounted_upper_bound_usd": 0.001147,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "42df0b68a1134f7eb39ac3d68bad4ae4",
+        "project": "pacbench-91e2dcf57496-mem0-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:21:13.095853+00:00",
+        "finished": "2026-10-23T16:21:27.805333+00:00",
+        "state": "settled",
+        "input_tokens": 8126,
+        "output_tokens": 1672,
+        "accounted": 1147000,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.001147
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

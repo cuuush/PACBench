@@ -5,45 +5,23 @@
   "protocol_version": 5,
   "minimum_initial_correct": 1,
   "initial_metrics": {
-    "top_level_calls": 1,
-    "total_tool_operations": 1,
+    "top_level_calls": 0,
+    "total_tool_operations": 0,
     "provider_internal_tool_calls": null,
     "provider_task_records": 0,
     "provider_internal_operations": [],
     "provider_internal_source_fallback_confirmed": false,
     "provider_internal_path_needs_review": false,
-    "categories": {
-      "memory_detail": 1
-    },
-    "operations": [
-      {
-        "name": "memcal_open",
-        "arguments": {
-          "ref": "E20"
-        },
-        "category": "memory_detail",
-        "dispatch_parent": null,
-        "success": true,
-        "policy_blocked": false,
-        "timestamp": 1792766073011,
-        "result": {
-          "tool": "memcal_open",
-          "success": true,
-          "policy_blocked": false,
-          "text": "E20  Cover letter call\n\nwhen: Friday 23 October 2026 at 10:00\nstate: You're going\nwho: Jen\nnote: Phone call to review ops coordinator cover letter draft\nsource: person:Jen\n\nsources (12 line(s); * = what the row was built from):\n  — Tue Oct 13, 2026 11:07 · iMessage with Jen —\n * [2248] Jen · Tue 13 Oct 11:07 · Jen: could we actually do a quick call to go through it?\n   [2249] Jen · Tue 13 Oct 11:07 · Jen: it's easier than like 50 texts back and forth\n   [2250] Jen · Tue 13 Oct 11:07 · me: yeah totally, when\n   [2251] Jen · Tue 13 Oct 11:09 · Jen: I'm still drafting this week\n * [2254] Jen · Tue 13 Oct 11:10 · Jen: what about next friday? not this friday, next one\n   [2259] Jen · Tue 13 Oct 11:12 · me: the 10am brain is still fresh kind of time?\n * [2261] Jen · Tue 13 Oct 11:13 · Jen: lol yes, would 10am work for you?\n * [2262] Jen · Tue 13 Oct 11:14 · me: yeah that works, phone call?\n * [2265] Jen · Tue 13 Oct 11:19 · Jen: yeah just a normal phone call, like 20 mins max\n * [2266] Jen · Tue 13 Oct 11:19 · me: perfect, I can do 10am next friday\n   [2267] Jen · Tue 13 Oct 11:19 · Jen: you're the best, I'll send you the draft before so you can skim\n   [2268] Jen · Tue 13 Oct 11:19 · me: yes please do, otherwise I'll just be like uh sounds great\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'Cover letter call' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-14T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-14T03:00  note: '' -> 'Phone call to review ops coordinator cover letter draft' (by dream:nightly:born-day)\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)\n",
-          "truncated": false,
-          "capture": "hermes_session_db"
-        }
-      }
-    ],
+    "categories": {},
+    "operations": [],
     "failed_operations": 0,
     "repeated_operations": 0,
     "unmatched_tool_results": [],
     "source_fallback_attempted": false,
     "unclassified_operations": 0,
-    "latency_s": 8.52,
-    "input_tokens": 1371,
-    "output_tokens": 362,
+    "latency_s": 12.57,
+    "input_tokens": 7438,
+    "output_tokens": 197,
     "policy_blocks": 0,
     "returncode": 0,
     "inherited_source_fallback": false,
@@ -59,7 +37,7 @@
     {
       "id": "jen-friday-purpose",
       "kind": "provided",
-      "reason": "Answer provides the review purpose."
+      "reason": "Answer provides the cover letter / job application review purpose."
     }
   ],
   "eligible_claim_ids": [],

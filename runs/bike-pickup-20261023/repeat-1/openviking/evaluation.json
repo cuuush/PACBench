@@ -1,0 +1,342 @@
+{
+  "state": "diagnostic",
+  "context": "shared",
+  "checks": [
+    {
+      "id": "pickup-before",
+      "at": "2026-10-22T10:00:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "ea56ce09e9eae85fab4b92389e448c653413558ca3acc0b6ef0e630771a260ab",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 3,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 3,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "pickup-date",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "pickup-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "pickup-shop",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "pickup-change",
+      "at": "2026-10-22T10:02:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "2c577091228608ba6c15594555026031594b2ef00473ca767f50aa683083a79c",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer"
+    },
+    {
+      "id": "coffee-same-chat",
+      "at": "2026-10-22T10:04:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "b4dc760687bc0ff8013b811c715aaf725a10c72bc921bfb287d4936dfed69b55",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 4,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 4,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "coffee-day",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-place",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-unchanged",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "sunday-both",
+      "at": "2026-10-22T11:00:00-04:00",
+      "session": "sunday-fresh",
+      "contract_hash": "801c73a3b410920c71d2fe6991b4e51e67957cc0fd6eae172b872491eeb1de6f",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 6,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 7,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "coffee-person",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-place",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "pickup-person",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "pickup-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "pickup-place",
+              "initial_verdict": "missed",
+              "followup_verdict": "missed",
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "sunday-total",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": [
+          {
+            "claim_ids": [
+              "pickup-place"
+            ],
+            "question": "Where is the 11am Sunday bike pickup with Riley that was moved from Saturday 10am?",
+            "state": "graded",
+            "verdicts": [
+              {
+                "id": "pickup-place",
+                "verdict": "missed",
+                "reason": "Answer states no confirmed location for Sunday 11am pickup; Spoke Cycles cited only as last known Saturday 10am location, not confirmed for Sunday."
+              }
+            ],
+            "metrics": {
+              "top_level_calls": 2,
+              "total_tool_operations": 2,
+              "provider_internal_tool_calls": null,
+              "provider_task_records": 0,
+              "provider_internal_operations": [],
+              "provider_internal_source_fallback_confirmed": false,
+              "provider_internal_path_needs_review": false,
+              "categories": {
+                "memory_search": 2
+              },
+              "operations": [
+                {
+                  "name": "viking_search",
+                  "arguments": {
+                    "limit": 10,
+                    "query": "bike pickup location Spoke Cycles address Saturday Sunday 11am"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1792774651649,
+                  "result": {
+                    "tool": "viking_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"results\": [{\"uri\": \"viking://user/default/memories/events/2026/10/23/bike_pickup_plan.md\", \"type\": \"memorie\", \"score\": 0.877, \"abstract\": \"# Summary\\nThe user asked about his bike pickup plan and the assistant confirmed it is scheduled for 2026-10-24 at 10:00 AM at Spoke Cycles, 114 Maple Avenue, rescheduled from 2:00 PM because the shop is closing early.\\n# 2026-10-23 (Friday) ChatLog:\\n**user**: [Simulated now: 2026-10-22T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\\n**assistant**: I'll pull up your bike pickup plan.\\n**assistant**: I found the relevant messages — now I'll pull the complete details to confirm the latest plan.\\n**assistant**: Saturday at 10am at Spoke Cycles, 114 Maple Avenue — updated from 2pm because the shop is closing early.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/23/bike_pickup_rescheduled.md\", \"type\": \"memorie\", \"score\": 0.856, \"abstract\": \"# Summary\\nRiley called the user on 2026-10-22 and they agreed to move the bike pickup to 11:00 on Sunday 2026-10-25.\\n# 2026-10-23 (Friday) ChatLog:\\n**user**: [Simulated now: 2026-10-22T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nRiley just called. We're doing the bike pickup Sunday at 11 instead.\\n**assistant**: Got it — I'll update your bike pickup plan.\\n**assistant**: Noted — bike pickup is now Sunday at 11.\"}, {\"uri\": \"viking://resources/2026-10-20/2026-10-20.md\", \"type\": \"resource\", \"score\": 0.852, \"abstract\": \"This document is a daily messages log capturing an email exchange about bike pickup collected through October 20 2026. It contains a single conversation identified as email thread-f4ec4726b7091f7639b90ad0 with subject Bike pickup between participants Me and Riley with timestamped entries. The key exchange is Riley's request to change collection time on Saturday from 2 pm as previously said by text to 10 am due to early shop closing, with same shop and address, followed by confirmation from Me agreeing to the earlier time. The file functions as a correspondence record rather than tutorial, reference, guide or API documentation, with keywords including bike pickup, shop closing, Saturday, 10 am, 2 pm. Its apparent use case is personal message tracking and audit for the owner and participants, requiring no specialized prerequisite knowledge.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/23/.overview.md\", \"type\": \"memorie\", \"score\": 0.852, \"abstract\": \"# Events Overview\\n\\n- [The user asked about his bike pickup plan and the assistant confirmed it is scheduled for 2026-10-24 at 10:00 AM at Spoke Cycles, 114 Maple Avenue, rescheduled from 2:00 PM because the shop is closing early.](./bike_pickup_plan.md)\\n\\n- [Riley called the user on 2026-10-22 and they agreed to move the bike pickup to 11:00 on Sunday 2026-10-25.](./bike_pickup_rescheduled.md)\\n\\n- [User asked about coffee with Riley, and assistant confirmed it is scheduled for 2026-10-25 at 9:00 AM at Maple Mug.](./coffee_meetup_confirmed.md)\"}, {\"uri\": \"viking://resources/2026-10-19/.overview.md\", \"type\": \"resource\", \"score\": 0.815, \"abstract\": \"# 2026-10-19\\n\\nThis directory provides a chronological log of daily iMessage exchanges collected through October 19 2026, focusing on personal communication and meetup planning. It covers a single conversation thread between Me and Riley with timestamped messages about bike repair pickup and a social coffee plan. Key topics include confirmation that the bike is fixed and ready, arrangements to meet at Spoke Cycles, and a follow-up coffee catch up at Maple Mug. The content supports personal record keeping and retrieval of message history and requires no specialized prerequisite knowledge, making it suitable for anyone seeking to review recent iMessage, bike pickup, and coffee catch up details.\\n\\n## Directory Coverage\\n\\nThis directory contains 1 direct entry. All direct entries are represented in the summaries below, consisting of 1 file and no subdirectories.\\n\\n## Quick Navigation\\n\\nWhat do you want to do?\\n\\n- To review the chronological iMessage log and timestamped exchanges collected through October 19 → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — daily log, message history, thread record\\n- To check bike repair status and Saturday pickup arrangements → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — bike pickup, fixed and ready, 2pm Saturday, Spoke Cycles 114 Maple Avenue\\n- To confirm the weekend social coffee plan → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — coffee catch up, away from work, 9am Sunday, Maple Mug\\n\\n## Detailed Description\\n\\n### [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md)\\n\\nThis file serves as a chronological log of daily iMessage exchanges collected through October 19 2026. Its primary purpose is personal record keeping and retrieval of message history, presented in a timestamped format that requires no specialized prerequisite knowledge to understand.\\n\\nThe content centers on a single conversation thread identified as thread-441d0ac734d29f50dbf3db9d between Me and Riley. Topics covered in the thread include:\\n\\n- **Bike repair pickup:** Riley confirms the bike is fixed and ready, with agreement to meet at 2pm this Saturday at Spoke Cycles 114 Maple Avenue.\\n- **Social coffee plan:** Riley proposes meeting for coffee away from work, with agreement to meet Sunday at 9am at Maple Mug.\\n\\nKey takeaways are the confirmed readiness of the bike, the specific Saturday pickup time and location, and the separate Sunday coffee arrangement. The file is indexed with keywords including iMessage, bike pickup, coffee catch up, Spoke Cycles, and Maple Mug, supporting easy searching and review of recent personal communications and plans.\"}, {\"uri\": \"viking://resources/2026-10-20/.overview.md\", \"type\": \"resource\", \"score\": 0.809, \"abstract\": \"# 2026-10-20\\n\\nThis directory is a daily messages log focused on personal correspondence collected through October 20 2026. It covers an email exchange about bike pickup with subject Bike pickup, documenting a schedule adjustment for Saturday collection due to early shop closing. Core topics include bike pickup, shop closing, Saturday timing, change from 2 pm to 10 am, same shop and address, and confirmation of the earlier time. The material functions as a correspondence record for personal message tracking and audit rather than tutorial, reference, guide, or API documentation. It is suitable for the owner and participants seeking a timestamped audit trail, requiring no specialized prerequisite knowledge. The log preserves the original timing context and the agreed adjustment for reliable follow-up.\\n\\n## Directory Coverage\\n\\nThis directory has a total of 1 direct entry. All direct entries are represented in the summaries used for this overview, so coverage is complete and no entries remain unexamined. The direct entry consists of a single file and there are no subdirectories. As a date-specific collection, the scope is narrowly focused on correspondence logged for that day, providing a complete record at the direct level without additional layers or hidden content. This structure supports straightforward retrieval of the day's correspondence without navigating nested folders.\\n\\n## Quick Navigation\\n\\nWhat do you want to do?\\n\\nUse the guide below to find the relevant record for your task.\\n\\n- To track a personal schedule change and audit confirmation for Saturday bike pickup, including early shop closing and time shift from 2 pm to 10 am → [2026-10-20.md](viking://resources/2026-10-20/2026-10-20.md) — daily messages log, email exchange, timestamped correspondence record\\n- To review participants, subject context, and confirmation with same shop and address for message tracking purposes → [2026-10-20.md](viking://resources/2026-10-20/2026-10-20.md) — Bike pickup keywords, audit use case, no prerequisites needed\\n\\n## Detailed Description\\n\\n### [2026-10-20.md](viking://resources/2026-10-20/2026-10-20.md)\\n\\nThis file is a daily messages log that captures an email exchange about bike pickup collected through October 20 2026. It contains a single conversation identified as email thread-f4ec4726b7091f7639b90ad0 with subject Bike pickup between participants Me and Riley, organized as timestamped entries. The key exchange documents Riley's request to change collection time on Saturday from 2 pm as previously said by text to 10 am due to early shop closing, noting the same shop and address. This request is followed by confirmation from Me agreeing to the earlier time. The file functions as a correspondence record rather than tutorial, reference, guide, or API documentation. Its keywords include bike pickup, shop closing, Saturday, 10 am, and 2 pm. Its apparent use case is personal message tracking and audit for the owner and participants, requiring no specialized prerequisite knowledge to interpret. The record supports reliable follow-up by preserving both the original plan communicated by text and the revised morning time. It is intended for straightforward review by the involved individuals without technical background.\"}, {\"uri\": \"viking://resources/2026-10-19/2026-10-19.md\", \"type\": \"resource\", \"score\": 0.804, \"abstract\": \"The document's primary purpose is to provide a chronological log of daily iMessage exchanges collected through October 19 2026. Main sections or topics covered include a single conversation thread identified as thread-441d0ac734d29f50dbf3db9d between Me and Riley, with timestamped messages about bike repair pickup and a social coffee plan. Key information or takeaways are Riley confirming the bike is fixed and ready, agreement to meet at 2pm this Saturday at Spoke Cycles 114 Maple Avenue, followed by Riley proposing coffee away from work and agreement to meet Sunday at 9am at Maple Mug. Intended audience or use case context appears to be personal record keeping and retrieval of message history, requiring no specialized prerequisite knowledge, with keywords including iMessage, bike pickup, coffee catch up, Spoke Cycles, Maple Mug.\"}, {\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.765, \"abstract\": \"The resources collection serves as a chronological archive of daily iMessage exchanges centered on personal communication. It covers daily messages logs organized by collection date, with emphasis on personal correspondence and meetup planning.\"}], \"total\": 8}",
+                    "truncated": false,
+                    "capture": "hermes_session_db",
+                    "stream_preview": "{\"results\": [{\"uri\": \"viking://user/default/memories/events/2026/10/23/bike_pickup_plan.md\", \"type\": \"memorie\", \"score\": 0.877, \"abstract\": \"# Summary\\nThe user asked about his bike pickup plan and the assistant confirmed it is scheduled for 2026-10-24 at 10:00 AM at Spoke Cycles, 114 Maple Avenue, rescheduled from 2:00 PM because the shop is closing early.\\n# 2026-10-23 (Friday) ChatLog:\\n**user**: [Simulated now: 2026-10-22T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\\n**assistant**: I'll pull up your bike pickup plan.\\n**assistant**: I found the relevant messages — now I'll pull the complete details to confirm the latest plan.\\n**assistant**: Saturday at 10am at Spoke Cycles, 114 Maple Avenue — updated from 2pm because the shop is closing early.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/23/bike_pickup_rescheduled.md\", \"type\": \"memorie\", \"score\": 0.856, \"abstract\": \"# Summary\\nRiley called the user on 2026-10-22 and they agreed to move the bike pickup to 11:00 on Sunday 2026-10-25.\\n# 2026-10-23 (Friday) ChatLog:\\n**user**: [Simulated now: 2026-10-22T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nRiley just called. We're doing the bike pickup Sunday at 11 instead.\\n**assistant**: Got it — I'll update your bike pickup plan.\\n**assistant**: Noted — bike pickup is now Sunday at 11.\"}, {\"uri\": \"viking://resources/2026-10-20/2026-10-20.md\", \"type\": \"resource\", \"score\": 0.852, \"abstract\": \"This document is a daily messages log capturing an email exchange about bike pickup collected through October 20 2026. It contains a single conversation identified as email thread-f4ec4726b7091f7639b90ad0 with subject Bike pickup between participants Me and Riley with timestamped entries. The key exchange is Riley's request to change collection time on Saturday from 2 pm as previously said by text to 10 am due to early shop closing, with same shop and address, followed by confirmation from Me agreeing to the earlier time. The file functions as a correspondence record rather than tutorial, reference, guide or API documentation, with keywords including bike pickup, shop closing, Saturday, 10 am, 2 pm. Its apparent use case is personal message tracking and audit for the owner and participants, requiring no specialized prerequisite knowledge.\"}, {\"uri\": \"viking://user/default/memories/events/2026/10/23/.overview.md\", \"type\": \"memorie\", \"score\": 0.852, \"abstract\": \"# Events Overview\\n\\n- [The user asked about his bike pickup plan and the assistant confirmed it is scheduled for 2026-10-24 at 10:00 AM at Spoke Cycles, 114 Maple Avenue, rescheduled from 2:00 PM because the shop is closing early.](./bike_pickup_plan.md)\\n\\n- [Riley called the user on 2026-10-22 and they agreed to move the bike pickup to 11:00 on Sunday 2026-10-25.](./bike_pickup_rescheduled.md)\\n\\n- [User asked about coffee with Riley, and assistant confirmed it is scheduled for 2026-10-25 at 9:00 AM at Maple Mug.](./coffee_meetup_confirmed.md)\"}, {\"uri\": \"viking://resources/2026-10-19/.overview.md\", \"type\": \"resource\", \"score\": 0.815, \"abstract\": \"# 2026-10-19\\n\\nThis directory provides a chronological log of daily iMessage exchanges collected through October 19 2026, focusing on personal communication and meetup planning. It covers a single conversation thread between Me and Riley with timestamped messages about bike repair pickup and a social coffee plan. Key topics include confirmation that the bike is fixed and ready, arrangements to meet at Spoke Cycles, and a follow-up coffee catch up at Maple Mug. The content supports personal record keeping and retrieval of message history and requires no specialized prerequisite knowledge, making it suitable for anyone seeking to review recent iMessage, bike pickup, and coffee catch up details.\\n\\n## Directory Coverage\\n\\nThis directory contains 1 direct entry. All direct entries are represented in the summaries below, consisting of 1 file and no subdirectories.\\n\\n## Quick Navigation\\n\\nWhat do you want to do?\\n\\n- To review the chronological iMessage log and timestamped exchanges collected through October 19 → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — daily log, message history, thread record\\n- To check bike repair status and Saturday pickup arrangements → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — bike pickup, fixed and ready, 2pm Saturday, Spoke Cycles 114 Maple Avenue\\n- To confirm the weekend social coffee plan → [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md) — coffee catch up, away from work, 9am Sunday, Maple Mug\\n\\n## Detailed Description\\n\\n### [2026-10-19.md](viking://resources/2026-10-19/2026-10-19.md)\\n\\nThis file serves as a chronological log of daily iMessage exchanges collected through October 19 2026. Its primary purpose is personal record keeping and retrieval of message history, presented in a timestamped format..."
+                  }
+                },
+                {
+                  "name": "viking_browse",
+                  "arguments": {
+                    "action": "list",
+                    "path": "viking://resources/"
+                  },
+                  "category": "memory_search",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1792774663418,
+                  "result": {
+                    "tool": "viking_browse",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"path\": \"viking://resources/\", \"entries\": [{\"name\": \"2026-10-19\", \"uri\": \"viking://resources/2026-10-19\", \"type\": \"dir\", \"abstract\": \"This directory provides a chronological log of daily iMessage exchanges collected through October 19 2026, focusing on personal communication and meetup planning.\"}, {\"name\": \"2026-10-20\", \"uri\": \"viking://resources/2026-10-20\", \"type\": \"dir\", \"abstract\": \"This directory is a daily messages log focused on personal correspondence collected through October 20 2026.\"}]}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                }
+              ],
+              "failed_operations": 0,
+              "repeated_operations": 0,
+              "unmatched_tool_results": [],
+              "source_fallback_attempted": false,
+              "unclassified_operations": 0,
+              "latency_s": 32.48,
+              "input_tokens": null,
+              "output_tokens": 818,
+              "policy_blocks": 0,
+              "returncode": 0
+            },
+            "question_authoring_reused": false,
+            "question_hash": "18feadc06f214d3f8fd5b5f4a27c1a3c41a185b8f4778eb75c312a23ca4e637c",
+            "gateway_window": {
+              "projects": [],
+              "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "saturday-clear",
+      "at": "2026-10-22T12:00:00-04:00",
+      "session": "saturday-fresh",
+      "contract_hash": "6b045c110a7783c7677093a4bb4a4efab9dda58d969efd31584d75702ebf4e02",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "bike-not-saturday",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "counts": {
+    "pass": 4,
+    "fail": 1,
+    "ungraded": 0
+  }
+}

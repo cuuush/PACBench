@@ -1,0 +1,80 @@
+{
+  "correct": 6,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-person",
+      "verdict": "correct",
+      "reason": "Answer frames Sunday Oct 25 with Riley as including the coffee item."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer lists the coffee as '9am - coffee'."
+    },
+    {
+      "id": "coffee-place",
+      "verdict": "correct",
+      "reason": "Answer lists the coffee as 'at Maple Mug'."
+    },
+    {
+      "id": "pickup-person",
+      "verdict": "correct",
+      "reason": "Answer frames the 11am bike pickup as part of 'Sunday Oct 25 with Riley'."
+    },
+    {
+      "id": "pickup-time",
+      "verdict": "correct",
+      "reason": "Answer lists the bike pickup as '11am'."
+    },
+    {
+      "id": "pickup-place",
+      "verdict": "missed",
+      "reason": "Answer attaches 'at Spoke Cycles, 114 Maple Avenue' to the prior 'Saturday 10am' origin, not as the Sunday location."
+    },
+    {
+      "id": "sunday-total",
+      "verdict": "correct",
+      "reason": "Answer states Sunday is 'two things' and lists only coffee and bike pickup."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-person",
+      "kind": "provided",
+      "reason": "Stated as part of Sunday with Riley."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Stated as 9am."
+    },
+    {
+      "id": "coffee-place",
+      "kind": "provided",
+      "reason": "Stated as Maple Mug."
+    },
+    {
+      "id": "pickup-person",
+      "kind": "provided",
+      "reason": "Stated as part of Sunday with Riley."
+    },
+    {
+      "id": "pickup-time",
+      "kind": "provided",
+      "reason": "Stated as 11am."
+    },
+    {
+      "id": "pickup-place",
+      "kind": "implicit_omission",
+      "reason": "Sunday location omitted; Spoke Cycles mentioned only for Saturday slot, and broad recap is not explicit request for location."
+    },
+    {
+      "id": "sunday-total",
+      "kind": "provided",
+      "reason": "Stated as exactly two things."
+    }
+  ],
+  "interaction": "answer"
+}

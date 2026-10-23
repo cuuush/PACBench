@@ -1,0 +1,42 @@
+{
+  "authoring_version": "event-scoped-v5",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The response accepts the user's correction with a brief acknowledgement, with no particular wording or restated details required",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "Riley just called. We're doing the bike pickup Sunday at 11 instead.",
+  "evidence_hash": "68c6513bb9911bef9f2f2b7ebbf60022e3c4efcd22f4066638ffb84bff53594d",
+  "review": {
+    "complete": true,
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "s13 provides an explicit user correction to Sunday at 11; a brief acknowledgement is observable in response text, requires no specific wording, and makes no persistence claim.",
+        "evidence": [
+          "s13"
+        ]
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Reviewed behavioral interaction"
+  },
+  "author_fact_count": 0,
+  "question_source": "supplied",
+  "question_at": "2026-10-22T10:02:00-04:00",
+  "kind": "behavior",
+  "test_intent": "Accept the user's correction. A brief acknowledgement without restating details is sufficient; require no particular wording.",
+  "contract_hash": "2c577091228608ba6c15594555026031594b2ef00473ca767f50aa683083a79c"
+}

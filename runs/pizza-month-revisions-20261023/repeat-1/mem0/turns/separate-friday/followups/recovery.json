@@ -1,0 +1,116 @@
+{
+  "state": "complete",
+  "plan_hash": "4f5bd75fb5e24adf9a838d79fc19d7517b623c716be2a49644f34920dbaed436",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "coffee with Alex Friday October 23 Birch Cafe",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772583088,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"c6acd54b-d394-43a8-99ab-e74c473e93e3\", \"memory\": \"User and Alex planned coffee at 11am on Friday, October 23, 2026 at Birch Cafe, which Alex has not visited in forever and User loves for iced lattes, agreeing to meet at the step-free Mill Lane side entrance instead of the three to four big front steps to protect Alex's healing ankle, with User saving the cushioned chair.\", \"score\": 0.8278109497327382}, {\"id\": \"5d02af3e-855b-472a-8175-de08e5d53103\", \"memory\": \"User and Alex plan to meet Friday October 16, 2026 at 11am using the Birch Street front ramp, with User arriving early to grab a table and save a cushioned chair; Alex's ankle is better than October 13 but still limpy with peas icing and no stairs until Friday.\", \"score\": 0.7294362058637207}, {\"id\": \"233a9e2a-6ef3-4136-9bae-a70c04aa7f4a\", \"memory\": \"User, Jen, and Alex planned a walk at 2pm on Friday October 23, 2026 at Willow Park west entrance by the duck pond in the big lot off Willow Ave near playground, for about an hour so Alex is back by 4:30, grabbing coffee at the new cart after meeting.\", \"score\": 0.6895365043621393}, {\"id\": \"ce45ef8d-c527-4321-9306-99a5ff63d6ff\", \"memory\": \"Alex's sneakers are dead and he will check Fleet Feet downtown sale on Wednesday October 14, where Jen got hers last month, while Jen has a dentist thing Friday October 16 and her bus was 20 minutes late on October 12.\", \"score\": 0.6313520023006972}, {\"id\": \"5438f0c6-c42f-4c89-9a7b-eb88436b104e\", \"memory\": \"Alex will bring his dog to the October 23 Willow Park walk with help for squirrel chasing and User bringing treats to be the favorite, while Jen's mom visits Saturday October 24 after the walk.\", \"score\": 0.6108758287098075}, {\"id\": \"0e6838ea-de0d-4b4d-985f-508d753fe668\", \"memory\": \"User's dinner with Ben at Juniper Cafe, 48 Maple Ave originally set for 7pm Thursday, October 22, 2026 was rescheduled due to Ben's work deadline, with User confirming on October 13 that 7pm Saturday, October 24 replaces Thursday.\", \"score\": 0.6001113885663668}, {\"id\": \"01076cc6-a515-41d0-bc90-d68861f12288\", \"memory\": \"User and Ben confirmed dinner at Juniper Cafe, 48 Maple Ave, for Saturday October 17, 2026 at 7pm, replacing the original Thursday October 22, 2026 plan, after Ben called to update the booking; User swapped a shift and said Thursday is now bad so they will keep Saturday.\", \"score\": 0.595550754195201}, {\"id\": \"91ecb129-3e6f-45ec-9556-71d167c0d063\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday October 22, 2026 at Juniper Cafe, 48 Maple Ave, with Ben craving their soup and User loving the place, noted on User's fridge note and calendars.\", \"score\": 0.5933441136598163}, {\"id\": \"01f05493-61af-46d1-bd43-28d248c23f59\", \"memory\": \"User and Maya planned lunch at 1pm on Friday October 23, 2026 at Rosa's on Oak Street, patio if not freezing, with User to grab a table like last time and do chair safety test, skipping Friday October 16 due to busy week.\", \"score\": 0.5909392798072725}, {\"id\": \"1cffc814-47e3-4452-ba4f-2b5a85c0ae65\", \"memory\": \"Alex sprained his ankle on October 12, 2026 missing the last step when his foot gave out, wrapped it, is limping around the apartment scaring the basil and icing with freezer peas on October 13, feeling a bit better but calling stairs the enemy in an all-stairs apartment.\", \"score\": 0.587606715614643}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "call with Jen cover letter Friday October 23",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772583927,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"5b5e2c7b-9985-4150-9e8c-c4059ca530d1\", \"memory\": \"User agreed to a 20-minute phone call at 10am on Friday, October 23, 2026 to review Jen's cover letter draft, with Jen to send the draft on Thursday, October 22 so it is fresh and User to mark up anything weird with brutally honest but lovingly rude feedback.\", \"score\": 0.8208994983994159}, {\"id\": \"2fadcea6-d886-4e6d-8798-e3e6d85f6357\", \"memory\": \"Jen is secretly applying for an internal ops coordinator posting to escape her micromanager boss who does not know yet and checks if emails are opened, finding the application form easy but her cover letter stiff and too formal.\", \"score\": 0.6676225513179342}, {\"id\": \"ce45ef8d-c527-4321-9306-99a5ff63d6ff\", \"memory\": \"Alex's sneakers are dead and he will check Fleet Feet downtown sale on Wednesday October 14, where Jen got hers last month, while Jen has a dentist thing Friday October 16 and her bus was 20 minutes late on October 12.\", \"score\": 0.6314803628416996}, {\"id\": \"233a9e2a-6ef3-4136-9bae-a70c04aa7f4a\", \"memory\": \"User, Jen, and Alex planned a walk at 2pm on Friday October 23, 2026 at Willow Park west entrance by the duck pond in the big lot off Willow Ave near playground, for about an hour so Alex is back by 4:30, grabbing coffee at the new cart after meeting.\", \"score\": 0.6231963386723027}, {\"id\": \"9beb00b6-a101-4168-992d-dcf6e99dbc13\", \"memory\": \"Park pals Friday plan for October 16, 2026 was postponed with raincheck after Jen said she cannot make it due to her sister arriving October 15 night and Alex said he cannot make it with a weird week, with User agreeing to figure it out later.\", \"score\": 0.6207718750511599}, {\"id\": \"75b4e241-d669-4b82-831e-fc81548b08df\", \"memory\": \"Jen is on episode 5 of the lighthouse show as of October 14, 2026 and says it is getting good, Alex is behind and plans to catch up that night, and User asked for no spoilers and needs something to watch while folding laundry.\", \"score\": 0.6040368225756245}, {\"id\": \"5d02af3e-855b-472a-8175-de08e5d53103\", \"memory\": \"User and Alex plan to meet Friday October 16, 2026 at 11am using the Birch Street front ramp, with User arriving early to grab a table and save a cushioned chair; Alex's ankle is better than October 13 but still limpy with peas icing and no stairs until Friday.\", \"score\": 0.603776483811641}, {\"id\": \"b1ccecd3-ccb0-4709-bc52-af93c15effba\", \"memory\": \"On the morning of September 25, 2026 Jen had about 40 unread emails mostly cc nonsense and said she could not archive them because her boss checks, while User said User archives half without reading; Jen had a backup sweater in her office drawer and was in line for a big coffee.\", \"score\": 0.599312154279598}, {\"id\": \"d84c3ae6-fc61-44b4-9d6e-c92f70d8cfcc\", \"memory\": \"User and Maya confirmed final Friday plan for October 16, 2026 is noon slid to 12:30pm at Mario's because User's work meeting runs until 12:15pm, to meet out front for about an hour before Maya's 2pm call, with User walking over.\", \"score\": 0.5976849374984192}, {\"id\": \"d6bd713b-c121-4934-a00d-126f61f764b2\", \"memory\": \"For Friday, September 18, 2026 Maya planned gym in the morning then work, while Leo planned laundry and playing a co-op cooking game.\", \"score\": 0.5958867673796406}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.17,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-agreed",
+      "kind": "provided",
+      "reason": "Answer provides current schedule implying still agreed."
+    },
+    {
+      "id": "alex-coffee-agreed",
+      "kind": "provided",
+      "reason": "Answer provides current schedule implying still agreed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-agreed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-agreed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

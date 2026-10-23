@@ -1,0 +1,110 @@
+{
+  "state": "complete",
+  "plan_hash": "6f7e37f1e003f839741061b8292deaf124e51c9382e197e34f3cb3b97ecf5c1c",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Birch Cafe entrance Friday meeting Alex",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772798386,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"c6acd54b-d394-43a8-99ab-e74c473e93e3\", \"memory\": \"User and Alex planned coffee at 11am on Friday, October 23, 2026 at Birch Cafe, which Alex has not visited in forever and User loves for iced lattes, agreeing to meet at the step-free Mill Lane side entrance instead of the three to four big front steps to protect Alex's healing ankle, with User saving the cushioned chair.\", \"score\": 0.7918950805157428}, {\"id\": \"5d02af3e-855b-472a-8175-de08e5d53103\", \"memory\": \"User and Alex plan to meet Friday October 16, 2026 at 11am using the Birch Street front ramp, with User arriving early to grab a table and save a cushioned chair; Alex's ankle is better than October 13 but still limpy with peas icing and no stairs until Friday.\", \"score\": 0.7583448099770485}, {\"id\": \"233a9e2a-6ef3-4136-9bae-a70c04aa7f4a\", \"memory\": \"User, Jen, and Alex planned a walk at 2pm on Friday October 23, 2026 at Willow Park west entrance by the duck pond in the big lot off Willow Ave near playground, for about an hour so Alex is back by 4:30, grabbing coffee at the new cart after meeting.\", \"score\": 0.6737435263627107}, {\"id\": \"5438f0c6-c42f-4c89-9a7b-eb88436b104e\", \"memory\": \"Alex will bring his dog to the October 23 Willow Park walk with help for squirrel chasing and User bringing treats to be the favorite, while Jen's mom visits Saturday October 24 after the walk.\", \"score\": 0.6084102065799744}, {\"id\": \"2ea88f6f-f64d-44c1-9a2c-6030ec4aae2e\", \"memory\": \"The Mill Lane side entrance User and Alex planned to use is closed through the end of next week around October 25, 2026 with scaffolding, cones and back-wall construction, but staff installed a temporary step-free metal ramp with rails over the Birch Street front entrance steps.\", \"score\": 0.5883946581987318}, {\"id\": \"18f850c7-f77d-4e67-83b1-f417646b0287\", \"memory\": \"User, Maya and Leo planned a single joint lunch at Rosa's on Oak Street at noon on Friday, October 23, 2026, moved from DMs to the Friday crew group to avoid two pizza plans, confirmed as next week not October 16, with Leo joining despite never having been to Rosa's.\", \"score\": 0.5777687007107173}, {\"id\": \"91ecb129-3e6f-45ec-9556-71d167c0d063\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday October 22, 2026 at Juniper Cafe, 48 Maple Ave, with Ben craving their soup and User loving the place, noted on User's fridge note and calendars.\", \"score\": 0.5759430549362974}, {\"id\": \"01f05493-61af-46d1-bd43-28d248c23f59\", \"memory\": \"User and Maya planned lunch at 1pm on Friday October 23, 2026 at Rosa's on Oak Street, patio if not freezing, with User to grab a table like last time and do chair safety test, skipping Friday October 16 due to busy week.\", \"score\": 0.5747935402106774}, {\"id\": \"0e6838ea-de0d-4b4d-985f-508d753fe668\", \"memory\": \"User's dinner with Ben at Juniper Cafe, 48 Maple Ave originally set for 7pm Thursday, October 22, 2026 was rescheduled due to Ben's work deadline, with User confirming on October 13 that 7pm Saturday, October 24 replaces Thursday.\", \"score\": 0.5739738283612463}, {\"id\": \"01076cc6-a515-41d0-bc90-d68861f12288\", \"memory\": \"User and Ben confirmed dinner at Juniper Cafe, 48 Maple Ave, for Saturday October 17, 2026 at 7pm, replacing the original Thursday October 22, 2026 plan, after Ben called to update the booking; User swapped a shift and said Thursday is now bad so they will keep Saturday.\", \"score\": 0.5738623930995418}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 24.3,
+    "input_tokens": 2065,
+    "output_tokens": 995,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "birch-front",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "birch-street",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    },
+    {
+      "id": "birch-side-closed",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "birch-front",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "birch-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "birch-side-closed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

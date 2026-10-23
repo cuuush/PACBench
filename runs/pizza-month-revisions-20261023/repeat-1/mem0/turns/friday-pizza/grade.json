@@ -1,0 +1,60 @@
+{
+  "correct": 0,
+  "missed": 0,
+  "misrepresented": 5,
+  "claims": [
+    {
+      "id": "count",
+      "verdict": "misrepresented",
+      "reason": "Answer asserts two Friday pizza plans (noon lunch and 6pm dinner), contradicting exactly one."
+    },
+    {
+      "id": "time",
+      "verdict": "misrepresented",
+      "reason": "Answer gives Friday times as noon and 6pm, not 12:30 pm."
+    },
+    {
+      "id": "venue",
+      "verdict": "misrepresented",
+      "reason": "Answer gives Friday venues as Rosa's and Luigi's, not Mario's."
+    },
+    {
+      "id": "street",
+      "verdict": "misrepresented",
+      "reason": "Answer gives streets as Oak Street and 5th Street, not Pine Street."
+    },
+    {
+      "id": "attendees",
+      "verdict": "misrepresented",
+      "reason": "Answer gives lunch with Maya and Leo and dinner with Devon, not exactly user and Maya."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "count",
+      "kind": "incorrect",
+      "reason": "Answer asserts two outings instead of one."
+    },
+    {
+      "id": "time",
+      "kind": "incorrect",
+      "reason": "Answer asserts noon and 6pm instead of 12:30 pm."
+    },
+    {
+      "id": "venue",
+      "kind": "incorrect",
+      "reason": "Answer asserts Rosa's and Luigi's instead of Mario's."
+    },
+    {
+      "id": "street",
+      "kind": "incorrect",
+      "reason": "Answer asserts Oak Street and 5th Street instead of Pine Street."
+    },
+    {
+      "id": "attendees",
+      "kind": "incorrect",
+      "reason": "Answer asserts Maya+Leo and Devon groups instead of exactly user and Maya."
+    }
+  ],
+  "interaction": "answer"
+}

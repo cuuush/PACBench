@@ -1,0 +1,397 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "byterover",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "0dc33d58ccac96fff9ee62633b527caa6fd0b70111c35169fc7f33b860e7cac2",
+  "source_ids": [
+    "message-9504d6cc76d94fb4060948e3",
+    "message-5ddd797f194d5acf21a31448"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "brv curate --files (no custom prompt)",
+    "result": {
+      "command": "curate",
+      "data": {
+        "event": "completed",
+        "logId": "cur-1792773121133",
+        "message": "Context curated successfully",
+        "status": "completed",
+        "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+      },
+      "success": true,
+      "timestamp": "2026-10-23T16:32:42.768Z"
+    },
+    "events": [
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:19.727Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Preview context head/tail for single-pass curation\n(async () => {\n  const ctx = __curate_ctx_9926dcb5_e306_417f_b573_20e571e7608c;\n  const hist = __curate_hist_9926dcb5_e306_417f_b573_20e571e7608c;\n  const meta = __curate_meta_9926dcb5_e306_417f_b573_20e571e7608c;\n  const head = ctx.slice(0, 1500);\n  const tail = ctx.slice(-500);\n  console.log(JSON.stringify({ headLen: head.length, preview_head: head.slice(0, 800), tail: tail.slice(0, 500), meta, histDomains: hist?.entries?.map(e=>e.domain)?.slice(-5), totalHist: hist?.entries?.length || 0 }));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:24.540Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:24.542Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:24.546Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Check existing bike_pickup knowledge before curating update\n(async () => {\n  const existing = await tools.glob('*.md', { path: '.brv/context-tree/commitments/bike_pickup' });\n  console.log(JSON.stringify(existing).slice(0, 2000));\n  const hits = await tools.searchKnowledge('bike pickup Riley time', { limit: 5 });\n  console.log(JSON.stringify(hits).slice(0, 3000));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:27.479Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:27.511Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:27.514Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Retrieve prior search output stored in var\n(async () => {\n  console.log(String(__stdout_1792773147508).slice(0, 4000));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:29.055Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:29.057Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:29.060Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Curate bike pickup time update 2pm -> 10am\n(async () => {\n  const result = await tools.curate([{\n    type: 'UPSERT',\n    path: 'commitments/bike_pickup',\n    title: 'Bike Pickup from Riley',\n    reason: 'Update bike pickup time from 2pm to 10am Saturday per 2026-10-20 email',\n    summary: 'Bike pickup Saturday 10am (updated from 2pm) at Spoke Cycles, 114 Maple Avenue with Riley',\n    content: {\n      facts: [\n        { statement: 'Bike pickup time is Saturday 10am, updated from 2pm', category: 'project', subject: 'bike_pickup_time', value: 'Saturday 10am' },\n        { statement: 'Bike pickup location is Spoke Cycles, 114 Maple Avenue (unchanged)', category: 'project', subject: 'bike_pickup_location', value: 'Spoke Cycles, 114 Maple Avenue' },\n        { statement: 'Shop closing early on Saturday prompted time change', category: 'other', subject: 'time_change_reason', value: 'shop closing early' }\n      ],\n      rawConcept: {\n        task: 'Bike pickup arrangement with Riley - updated time',\n        changes: ['Pickup time changed from 2pm to 10am Saturday', 'Owner confirmed 10am pickup on 2026-10-20'],\n        files: ['imports/2026-10-19/messages.txt', 'imports/2026-10-20/messages.txt'],\n        flow: 'Riley notified bike ready -> agreed 2pm Saturday at Spoke Cycles -> Riley requested 10am instead (shop closing early, email thread-f4ec4726b7091f7639b90ad0) -> owner confirmed 10am',\n        timestamp: '2026-10-20T10:20:00-04:00',\n        author: 'Riley / owner'\n      },\n      narrative: {\n        structure: 'Original iMessage agreement (2026-10-19): Saturday 2026-10-24 2pm at Spoke Cycles, 114 Maple Avenue. Updated by email thread-f4ec4726b7091f7639b90ad0 on 2026-10-20: Riley requested 10am instead of 2pm, same shop and address; owner confirmed 10am.',\n        dependencies: 'Location unchanged: Spoke Cycles, 114 Maple Avenue. Reason: shop closing early on Saturday.',\n        highlights: 'Current commitment: Saturday (2026-10-24) 10am pickup. Supersedes prior 2pm time. Confirmed by owner at 2026-10-20T10:20:00-04:00.',\n        rules: 'Pickup at 10am Saturday instead of 2pm. Same shop and address.',\n        examples: '[2026-10-20T10:00:00-04:00] Riley: Could you collect the bike at 10 am instead of 2 pm like we said by text? Same shop and address, just earlier. [2026-10-20T10:20:00-04:00] Me: Yes, I can do 10 am on Saturday instead of 2 pm.'\n      },\n      relations: ['@commitments/social_plans/coffee_with_riley.md']\n    },\n    topicContext: { overview: 'Bike pickup logistics with Riley including time, location, and confirmation status.', keyConcepts: ['Bike repair completion', 'Pickup time and location', 'Confirmation', 'Time change'] }\n  }]);\n  console.log(JSON.stringify(result));\n  const hist = __curate_hist_9926dcb5_e306_417f_b573_20e571e7608c;\n  tools.curation.recordProgress(hist, { domain: 'commitments/bike_pickup', title: 'Bike Pickup from Riley', keyFacts: ['Time updated 2pm->10am Saturday', 'Location unchanged Spoke Cycles'] });\n  console.log(JSON.stringify({ historyTotal: hist.totalProcessed, applied: result.applied?.map(a=>a.filePath) }));\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:39.145Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:39.155Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "thinking",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:39.161Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "args": {
+            "code": "// Final status report\n(async () => {\n  setFinalResult('Curation complete.\\n```json\\n{\"summary\": {\"added\": 0, \"updated\": 1, \"failed\": 0}, \"verification\": {\"checked\": 1, \"confirmed\": 1, \"missing\": []}}\\n```\\n\\nUpdated Bike Pickup from Riley: time changed from 2pm to 10am Saturday (2026-10-24) at Spoke Cycles per 2026-10-20 email; owner confirmed.');\n})()"
+          },
+          "event": "toolCall",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:42.760Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "toolResult",
+          "success": true,
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c",
+          "toolName": "code_exec"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:42.762Z"
+      },
+      {
+        "command": "curate",
+        "data": {
+          "event": "completed",
+          "logId": "cur-1792773121133",
+          "message": "Context curated successfully",
+          "status": "completed",
+          "taskId": "9926dcb5-e306-417f-b573-20e571e7608c"
+        },
+        "success": true,
+        "timestamp": "2026-10-23T16:32:42.768Z"
+      }
+    ],
+    "stdout": "{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:19.727Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Preview context head/tail for single-pass curation\\n(async () => {\\n  const ctx = __curate_ctx_9926dcb5_e306_417f_b573_20e571e7608c;\\n  const hist = __curate_hist_9926dcb5_e306_417f_b573_20e571e7608c;\\n  const meta = __curate_meta_9926dcb5_e306_417f_b573_20e571e7608c;\\n  const head = ctx.slice(0, 1500);\\n  const tail = ctx.slice(-500);\\n  console.log(JSON.stringify({ headLen: head.length, preview_head: head.slice(0, 800), tail: tail.slice(0, 500), meta, histDomains: hist?.entries?.map(e=>e.domain)?.slice(-5), totalHist: hist?.entries?.length || 0 }));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:24.540Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:24.542Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:24.546Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Check existing bike_pickup knowledge before curating update\\n(async () => {\\n  const existing = await tools.glob('*.md', { path: '.brv/context-tree/commitments/bike_pickup' });\\n  console.log(JSON.stringify(existing).slice(0, 2000));\\n  const hits = await tools.searchKnowledge('bike pickup Riley time', { limit: 5 });\\n  console.log(JSON.stringify(hits).slice(0, 3000));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:27.479Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:27.511Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:27.514Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Retrieve prior search output stored in var\\n(async () => {\\n  console.log(String(__stdout_1792773147508).slice(0, 4000));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:29.055Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:29.057Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:29.060Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Curate bike pickup time update 2pm -> 10am\\n(async () => {\\n  const result = await tools.curate([{\\n    type: 'UPSERT',\\n    path: 'commitments/bike_pickup',\\n    title: 'Bike Pickup from Riley',\\n    reason: 'Update bike pickup time from 2pm to 10am Saturday per 2026-10-20 email',\\n    summary: 'Bike pickup Saturday 10am (updated from 2pm) at Spoke Cycles, 114 Maple Avenue with Riley',\\n    content: {\\n      facts: [\\n        { statement: 'Bike pickup time is Saturday 10am, updated from 2pm', category: 'project', subject: 'bike_pickup_time', value: 'Saturday 10am' },\\n        { statement: 'Bike pickup location is Spoke Cycles, 114 Maple Avenue (unchanged)', category: 'project', subject: 'bike_pickup_location', value: 'Spoke Cycles, 114 Maple Avenue' },\\n        { statement: 'Shop closing early on Saturday prompted time change', category: 'other', subject: 'time_change_reason', value: 'shop closing early' }\\n      ],\\n      rawConcept: {\\n        task: 'Bike pickup arrangement with Riley - updated time',\\n        changes: ['Pickup time changed from 2pm to 10am Saturday', 'Owner confirmed 10am pickup on 2026-10-20'],\\n        files: ['imports/2026-10-19/messages.txt', 'imports/2026-10-20/messages.txt'],\\n        flow: 'Riley notified bike ready -> agreed 2pm Saturday at Spoke Cycles -> Riley requested 10am instead (shop closing early, email thread-f4ec4726b7091f7639b90ad0) -> owner confirmed 10am',\\n        timestamp: '2026-10-20T10:20:00-04:00',\\n        author: 'Riley / owner'\\n      },\\n      narrative: {\\n        structure: 'Original iMessage agreement (2026-10-19): Saturday 2026-10-24 2pm at Spoke Cycles, 114 Maple Avenue. Updated by email thread-f4ec4726b7091f7639b90ad0 on 2026-10-20: Riley requested 10am instead of 2pm, same shop and address; owner confirmed 10am.',\\n        dependencies: 'Location unchanged: Spoke Cycles, 114 Maple Avenue. Reason: shop closing early on Saturday.',\\n        highlights: 'Current commitment: Saturday (2026-10-24) 10am pickup. Supersedes prior 2pm time. Confirmed by owner at 2026-10-20T10:20:00-04:00.',\\n        rules: 'Pickup at 10am Saturday instead of 2pm. Same shop and address.',\\n        examples: '[2026-10-20T10:00:00-04:00] Riley: Could you collect the bike at 10 am instead of 2 pm like we said by text? Same shop and address, just earlier. [2026-10-20T10:20:00-04:00] Me: Yes, I can do 10 am on Saturday instead of 2 pm.'\\n      },\\n      relations: ['@commitments/social_plans/coffee_with_riley.md']\\n    },\\n    topicContext: { overview: 'Bike pickup logistics with Riley including time, location, and confirmation status.', keyConcepts: ['Bike repair completion', 'Pickup time and location', 'Confirmation', 'Time change'] }\\n  }]);\\n  console.log(JSON.stringify(result));\\n  const hist = __curate_hist_9926dcb5_e306_417f_b573_20e571e7608c;\\n  tools.curation.recordProgress(hist, { domain: 'commitments/bike_pickup', title: 'Bike Pickup from Riley', keyFacts: ['Time updated 2pm->10am Saturday', 'Location unchanged Spoke Cycles'] });\\n  console.log(JSON.stringify({ historyTotal: hist.totalProcessed, applied: result.applied?.map(a=>a.filePath) }));\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:39.145Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:39.155Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"thinking\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:39.161Z\"}\n{\"command\":\"curate\",\"data\":{\"args\":{\"code\":\"// Final status report\\n(async () => {\\n  setFinalResult('Curation complete.\\\\n```json\\\\n{\\\"summary\\\": {\\\"added\\\": 0, \\\"updated\\\": 1, \\\"failed\\\": 0}, \\\"verification\\\": {\\\"checked\\\": 1, \\\"confirmed\\\": 1, \\\"missing\\\": []}}\\\\n```\\\\n\\\\nUpdated Bike Pickup from Riley: time changed from 2pm to 10am Saturday (2026-10-24) at Spoke Cycles per 2026-10-20 email; owner confirmed.');\\n})()\"},\"event\":\"toolCall\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:42.760Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"toolResult\",\"success\":true,\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\",\"toolName\":\"code_exec\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:42.762Z\"}\n{\"command\":\"curate\",\"data\":{\"event\":\"completed\",\"logId\":\"cur-1792773121133\",\"message\":\"Context curated successfully\",\"status\":\"completed\",\"taskId\":\"9926dcb5-e306-417f-b573-20e571e7608c\"},\"success\":true,\"timestamp\":\"2026-10-23T16:32:42.768Z\"}\n",
+    "stderr": "",
+    "readiness": "Native curation completed; retrospective review log preserved without approval"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 42.71,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-23T16:32:00.092094+00:00",
+    "finished": "2026-10-23T16:32:42.802242+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 9,
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted_upper_bound_usd": 0.9534317999999999,
+        "unsettled_calls": 3
+      }
+    },
+    "model_calls": [
+      {
+        "id": "26797b71de484368bb205624efdc92a6",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:00.097108+00:00",
+        "finished": "2026-10-23T16:32:19.587369+00:00",
+        "state": "settled",
+        "input_tokens": 1083,
+        "output_tokens": 2044,
+        "accounted": 517100,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005171
+      },
+      {
+        "id": "964e93069e894f9fa820a720005773f8",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:00.102422+00:00",
+        "finished": "2026-10-23T16:32:07.235351+00:00",
+        "state": "unknown",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 314572800,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": "missing_usage_sse",
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.3145728
+      },
+      {
+        "id": "bef21578840d499cb988dadba55173b9",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:19.730671+00:00",
+        "finished": "2026-10-23T16:32:24.532954+00:00",
+        "state": "settled",
+        "input_tokens": 12206,
+        "output_tokens": 401,
+        "accounted": 1300800,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013008
+      },
+      {
+        "id": "e1a51ebf92fb41308a0485c4cc1ef9c7",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:24.551862+00:00",
+        "finished": "2026-10-23T16:32:27.469631+00:00",
+        "state": "settled",
+        "input_tokens": 13978,
+        "output_tokens": 236,
+        "accounted": 1445000,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.001445
+      },
+      {
+        "id": "ffe2fa8d27e549adaeca32ded822c7d1",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:27.519346+00:00",
+        "finished": "2026-10-23T16:32:29.047766+00:00",
+        "state": "settled",
+        "input_tokens": 16256,
+        "output_tokens": 105,
+        "accounted": 1646600,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0016466
+      },
+      {
+        "id": "ca8ff4abc3424c1ebb81adae0c77243d",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:29.065898+00:00",
+        "finished": "2026-10-23T16:32:39.136193+00:00",
+        "state": "settled",
+        "input_tokens": 19784,
+        "output_tokens": 1153,
+        "accounted": 2209000,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.002209
+      },
+      {
+        "id": "087737d49764467eba12aa46999c3e03",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:39.163300+00:00",
+        "finished": "2026-10-23T16:32:42.753600+00:00",
+        "state": "settled",
+        "input_tokens": 25611,
+        "output_tokens": 169,
+        "accounted": 2594900,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0025949
+      },
+      {
+        "id": "158a22c80fea4597991c70239c1ec67b",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:42.785185+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 314572800,
+        "reserved": 314572800,
+        "http_status": null,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.3145728
+      },
+      {
+        "id": "5e89a88653c34cc4851f7cac5b5a3ed4",
+        "project": "pacbench-cf584ae9c1f4-byterover-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:32:42.790333+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 314572800,
+        "reserved": 314572800,
+        "http_status": null,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.3145728
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

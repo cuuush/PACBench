@@ -1,0 +1,148 @@
+{
+  "authoring_version": "event-scoped-v5",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "coffee-person",
+      "statement": "The Sunday coffee arrangement is with Riley.",
+      "evidence": [
+        "message-eea82fb15c07b9ece7c03c0a",
+        "message-265f9175f3f00be91dbef192"
+      ]
+    },
+    {
+      "id": "coffee-time",
+      "statement": "The Sunday coffee with Riley is at 9 am.",
+      "evidence": [
+        "message-eea82fb15c07b9ece7c03c0a",
+        "message-265f9175f3f00be91dbef192"
+      ]
+    },
+    {
+      "id": "coffee-place",
+      "statement": "The Sunday coffee with Riley is at Maple Mug.",
+      "evidence": [
+        "message-eea82fb15c07b9ece7c03c0a",
+        "message-265f9175f3f00be91dbef192"
+      ]
+    },
+    {
+      "id": "pickup-person",
+      "statement": "The Sunday bike pickup arrangement is with Riley.",
+      "evidence": [
+        "message-00cb6e432d09131b8bf2fde4",
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "pickup-time",
+      "statement": "The Sunday bike pickup with Riley is at 11 am.",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "pickup-place",
+      "statement": "The Sunday bike pickup with Riley is at Spoke Cycles.",
+      "evidence": [
+        "message-00cb6e432d09131b8bf2fde4",
+        "message-9504d6cc76d94fb4060948e3",
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "sunday-total",
+      "statement": "Sunday with Riley comprises exactly two arrangements: coffee and bike pickup.",
+      "evidence": [
+        "message-eea82fb15c07b9ece7c03c0a",
+        "message-265f9175f3f00be91dbef192",
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "What's my Sunday with Riley looking like?",
+  "source_aliases": {
+    "s1": "message-ee79e270e1ec80113cd5492d",
+    "s2": "message-c46c71dfc0f601c55e8f72a5",
+    "s3": "message-41d2da750ae034bdd43c0d91",
+    "s4": "message-00cb6e432d09131b8bf2fde4",
+    "s5": "message-e8c3787c58677236a9230a65",
+    "s6": "message-4b26b2e5142b7f450fc1c923",
+    "s7": "message-199fe80c16e6217beee5302a",
+    "s8": "message-eea82fb15c07b9ece7c03c0a",
+    "s9": "message-265f9175f3f00be91dbef192",
+    "s10": "message-9504d6cc76d94fb4060948e3",
+    "s11": "message-5ddd797f194d5acf21a31448",
+    "s12": "assistant-user:pickup-before",
+    "s13": "assistant-user:pickup-change",
+    "s14": "assistant-user:coffee-same-chat",
+    "s15": "assistant-user:sunday-both"
+  },
+  "evidence_hash": "91c8fb915cf13aed3a33481d79fa79876fdc85300b65b71cf640bf96c5fb5907",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set provides independent claims for both identities, both times, both venues, plus exactly-two list, covering all intent-required details.",
+    "reviews": [
+      {
+        "id": "coffee-person",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed coffee and Me accepted, establishing Riley as coffee partner."
+      },
+      {
+        "id": "coffee-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed Sunday at 9am and Me accepted, establishing 9am."
+      },
+      {
+        "id": "coffee-place",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed Maple Mug and Me accepted, establishing venue with no address needed."
+      },
+      {
+        "id": "pickup-person",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original Riley pickup plus Me stating Riley called and we're doing Sunday pickup establishes Riley."
+      },
+      {
+        "id": "pickup-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Me states bike pickup Sunday at 11 instead, interpreted as 11am per intent."
+      },
+      {
+        "id": "pickup-place",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Venue Spoke Cycles from original proposal carried through same-shop email with no venue change in Sunday move."
+      },
+      {
+        "id": "sunday-total",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue establishes coffee Sunday and pickup moved to Sunday with no other Sunday plans, supporting exactly two."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt is open recap explicitly scoped to 'Sunday with Riley' at question time Thu 10/22, so upcoming Sunday. Casual recap naturally invites current outings/people/time/place for both coffee and bike pickup. No answers supplied. Coffee facts from imessage still current. Pickup Sunday 11 instruction persists across sessions as explicit user instruction, with place/person carried from original Spoke Cycles with Riley via 'same shop' and 'instead'. Exactly-two total follows from listing both Sunday arrangements."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses.",
+  "question_source": "supplied",
+  "question_at": "2026-10-22T11:00:00-04:00",
+  "contract_hash": "801c73a3b410920c71d2fe6991b4e51e67957cc0fd6eae172b872491eeb1de6f"
+}

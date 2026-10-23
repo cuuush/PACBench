@@ -1,0 +1,56 @@
+{
+  "state": "fail",
+  "errors": [
+    "repeat-1/byterover: incomplete arm",
+    "repeat-1/supermemory: incomplete arm",
+    "repeat-1/supermemory: Supermemory completion receipt differs from submitted source or namespace",
+    "repeat-1/supermemory: Supermemory completion receipt differs from submitted source or namespace"
+  ],
+  "component_audits": [
+    {
+      "component": "bike-pickup-native-20261023",
+      "audit": {
+        "state": "fail",
+        "errors": [
+          "repeat-1/byterover: incomplete arm"
+        ],
+        "selected_providers": [
+          "byterover",
+          "mem0",
+          "memcal"
+        ],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    },
+    {
+      "component": "bike-pickup-supermemory-readiness-20261023",
+      "audit": {
+        "state": "fail",
+        "errors": [
+          "repeat-1/supermemory: incomplete arm",
+          "repeat-1/supermemory: Supermemory completion receipt differs from submitted source or namespace",
+          "repeat-1/supermemory: Supermemory completion receipt differs from submitted source or namespace"
+        ],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    },
+    {
+      "component": "bike-pickup-openviking-scoped-20261023",
+      "audit": {
+        "state": "pass",
+        "errors": [],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    },
+    {
+      "component": "bike-pickup-hindsight-110-20261023",
+      "audit": {
+        "state": "pass",
+        "errors": [],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    }
+  ],
+  "preflight_failed_providers": [],
+  "scope": "Saved native trace audits of source-identical components; preflight failures have no month score"
+}

@@ -1,0 +1,26 @@
+{
+  "state": "pass",
+  "review_version": "source-realism-v4",
+  "source_hash": "47fe739fd6853c263efae2cda3b48151ff8404e1b751065e2b30b896af79d573",
+  "intent_hash": "a34feb95a3025d85f0c7be5f68d579200bfbbb53eebf0318521c962f337dbc7c",
+  "review": {
+    "consistent": true,
+    "expectations_supported": true,
+    "natural_enough": true,
+    "issues": [],
+    "current_upcoming": [],
+    "notes": "Verified chronology Oct19 text bike Sat 2pm Spoke Cycles, Oct19 text coffee Sun 9am Maple Mug, Oct20 email moves bike to Sat 10am same shop. pickup-before correctly expects Sat Oct24 10am Spoke Cycles. Scripted user correction to Sun 11am properly carries forward same venue by conversational context, supporting sunday-both and saturday-clear. Coffee remains separate and unchanged. No contradictions, no invented history, no date narration in body, relative-day refs natural."
+  },
+  "model_call": "/workspace/PACBench/artifacts/bike-pickup-prep-20261023/model-calls/733a704251c1ec849b45a05143ef7fac6672145e1acee54debe63f3de872dcc3.json",
+  "usage": {
+    "completion_tokens": 3249,
+    "prompt_tokens": 1893,
+    "total_tokens": 5142,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3100
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

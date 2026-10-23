@@ -19,18 +19,18 @@
       {
         "name": "memcal_open",
         "arguments": {
-          "ref": "E17"
+          "ref": "E16"
         },
         "category": "memory_detail",
         "dispatch_parent": null,
         "success": true,
         "policy_blocked": false,
-        "timestamp": 1792766238888,
+        "timestamp": 1792772832139,
         "result": {
           "tool": "memcal_open",
           "success": true,
           "policy_blocked": false,
-          "text": "E17  Pizza\n\nwhen: Sunday 25 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th Street\nwho: Devon\nsource: person:Devon\n\npages: pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 21:58 · iMessage with Devon —\n * [2809] Devon · Wed 14 Oct 21:58 · Devon: plan is plan, ok so we're good for sunday then?\n   [2718] Devon · Wed 14 Oct 19:45 · Devon: same, wallet says no\n   [2721] Devon · Wed 14 Oct 19:46 · me: sunday works for me, i have nothing going on\n * [2722] Devon · Wed 14 Oct 19:46 · Devon: same time same place just sunday?\n * [2723] Devon · Wed 14 Oct 19:47 · me: yeah that works, keep it easy\n   [2734] Devon · Wed 14 Oct 20:01 · Devon: perfect thank you, i felt bad asking\n   [2736] Devon · Wed 14 Oct 20:01 · me: no worries, late shift isn't your fault\n   [2807] Devon · Wed 14 Oct 21:53 · Devon: aired out, sweatshirt still smells like campfire tho\n   [2808] Devon · Wed 14 Oct 21:54 · me: toss it in with your socks tomorrow\n * [2810] Devon · Wed 14 Oct 21:59 · me: yep, see you then\n   [2811] Devon · Wed 14 Oct 22:13 · Devon: i'll text when i'm leaving that day\n   [2812] Devon · Wed 14 Oct 22:15 · me: sounds good, i'll grab table if i'm first like usual\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born)\n  2026-10-13T03:00  title: '' -> 'Pizza' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza' (by dream:nightly:born-day)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-25' (by dream:nightly)\n",
+          "text": "E16  Pizza dinner\n\nwhen: Sunday 25 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th Street\nwho: Devon\nnote: Parking in back lot like last time\nsource: person:Devon\n\npages: pizza-dinner (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 21:58 · iMessage with Devon —\n * [2809] Devon · Wed 14 Oct 21:58 · Devon: plan is plan, ok so we're good for sunday then?\n  — Mon Oct 12, 2026 19:21 · iMessage with Devon · 2 days earlier —\n * [1977] Devon · Mon 12 Oct 19:21 · Devon: ohh garlic knots, i'm in\n * [1979] Devon · Mon 12 Oct 19:21 · me: parking in back like last time is easier\n * [1983] Devon · Mon 12 Oct 19:22 · Devon: is 6 pm good for you that day?\n * [1986] Devon · Mon 12 Oct 19:28 · me: yeah that works\n * [1996] Devon · Mon 12 Oct 19:42 · Devon: i'll grab us a table if i get there first\n  — Wed Oct 14, 2026 19:29 · iMessage with Devon · 2 days later —\n * [2700] Devon · Wed 14 Oct 19:29 · Devon: got put on late shift friday, like till way late\n * [2705] Devon · Wed 14 Oct 19:36 · Devon: fr, can we move it to sunday instead?\n * [2713] Devon · Wed 14 Oct 19:41 · Devon: yeah just push it, not do both lol\n * [2722] Devon · Wed 14 Oct 19:46 · Devon: same time same place just sunday?\n * [2723] Devon · Wed 14 Oct 19:47 · me: yeah that works, keep it easy\n * [2810] Devon · Wed 14 Oct 21:59 · me: yep, see you then\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-13T03:00  title: '' -> 'Pizza dinner' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th Street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  note: '' -> 'Parking in back lot like last time' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-25' (by dream:nightly)",
           "truncated": false,
           "capture": "hermes_session_db"
         }
@@ -41,9 +41,9 @@
     "unmatched_tool_results": [],
     "source_fallback_attempted": false,
     "unclassified_operations": 0,
-    "latency_s": 11.95,
-    "input_tokens": 10924,
-    "output_tokens": 796,
+    "latency_s": 18.89,
+    "input_tokens": 1607,
+    "output_tokens": 733,
     "policy_blocks": 0,
     "returncode": 0,
     "inherited_source_fallback": false,
@@ -54,27 +54,27 @@
     {
       "id": "devon-day",
       "kind": "provided",
-      "reason": "Day correctly conveyed."
+      "reason": "Answer provides Sunday as the day."
     },
     {
       "id": "devon-time",
       "kind": "provided",
-      "reason": "Time correctly conveyed."
+      "reason": "Answer provides 6pm as the time."
     },
     {
       "id": "devon-venue",
       "kind": "provided",
-      "reason": "Venue correctly conveyed."
+      "reason": "Answer provides Luigi's as the venue."
     },
     {
       "id": "devon-street",
       "kind": "provided",
-      "reason": "Street correctly conveyed."
+      "reason": "Answer provides 5th Street as the street."
     },
     {
       "id": "devon-count",
       "kind": "provided",
-      "reason": "Single-outing list correctly conveyed with no extra Friday outing."
+      "reason": "Answer provides single Sunday outing with no additional Friday outing."
     }
   ],
   "eligible_claim_ids": [],

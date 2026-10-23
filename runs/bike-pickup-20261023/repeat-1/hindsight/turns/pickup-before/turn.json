@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-22T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?",
+  "at": "2026-10-22T10:00:00-04:00",
+  "answer": "You're picking it up from Riley on Oct 24 at 10am at Spoke Cycles — rescheduled from 2pm because the shop is closing early.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "bike pickup plan"
+      },
+      "timestamp": 1792779242664
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. Riley fixed the user's bike and it is ready for pickup.\\n2. User plans to pick up the fixed bike from Riley on October 24, 2026 at 10am at Spoke Cycles, rescheduled from 2pm per Riley's request because the shop is closing early.\\n3. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 25.96,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261023_141345_c99887",
+  "raw_events": 10,
+  "session_id": "20261023_141345_c99887",
+  "stderr_full": "\nsession_id: 20261023_141345_c99887\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_141345_c99887\", \"timestamp\": 1792779225743}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Checking your bike pickup plan.\", \"timestamp\": 1792779242055}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"bike pickup plan\"}, \"timestamp\": 1792779242664}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. Riley fixed the user's bike and it is ready for pickup.\\\\n2. User plans to pick up the fixed bike from Riley on October 24, 2026 at 10am at Spoke Cycles, rescheduled from 2pm per Riley's request because the shop is closing early.\\\\n3. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\\"}\", \"duration_ms\": 804, \"is_error\": false, \"timestamp\": 1792779243469}\n{\"type\": \"text\", \"text\": \"\\n\\nYou're picking it\", \"timestamp\": 1792779249248}\n{\"type\": \"text\", \"text\": \" up from Riley on Oct 24 at\", \"timestamp\": 1792779249291}\n{\"type\": \"text\", \"text\": \" 10am at Spoke Cycles —\", \"timestamp\": 1792779249338}\n{\"type\": \"text\", \"text\": \" rescheduled from 2pm because the\", \"timestamp\": 1792779249410}\n{\"type\": \"text\", \"text\": \" shop is closing early.\", \"timestamp\": 1792779249434}\n{\"type\": \"result\", \"session_id\": \"20261023_141345_c99887\", \"exit_code\": 0, \"text\": \"You're picking it up from Riley on Oct 24 at 10am at Spoke Cycles — rescheduled from 2pm because the shop is closing early.\", \"tokens\": {\"input\": 3380, \"output\": 319, \"total\": 6756, \"cache_read\": 3057, \"cache_write\": 0}, \"duration_ms\": 23762, \"timestamp\": 1792779249505}",
+  "session_input_tokens": 3380,
+  "session_output_tokens": 319,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-p1x5t07_",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-p1x5t07_",
+    "system_prompt_sha256": "1a13b9f67e08ac08422821259c073622565e94e0984a1ad534e20f4ed242654f",
+    "reason": "No project context in native saved system prompt"
+  }
+}

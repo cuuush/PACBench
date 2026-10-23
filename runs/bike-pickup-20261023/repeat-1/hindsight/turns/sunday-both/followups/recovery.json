@@ -1,0 +1,184 @@
+{
+  "state": "complete",
+  "plan_hash": "fdd219d223a6775c4361d09ffc5f78b2262a430790a8e7ff21f0cae2969ddf40",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 2
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "Sunday with Riley plans"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792779391570,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User plans to pick up the fixed bike from Riley at Spoke Cycles on Sunday, October 25, 2026 at 11am; originally scheduled for Saturday, October 24 at 2pm, then moved to 10am that day because the shop was closing early, then rescheduled to Sunday per Riley's call on October 22.\\n2. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\n3. Riley fixed the user's bike and it is ready for pickup.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "Riley"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792779392307,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. Riley fixed the user's bike and it is ready for pickup.\\n2. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\n3. User plans to pick up the fixed bike from Riley at Spoke Cycles on Sunday, October 25, 2026 at 11am; originally scheduled for Saturday, October 24 at 2pm, then moved to 10am that day because the shop was closing early, then rescheduled to Sunday per Riley's call on October 22.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 42.59,
+    "input_tokens": 3614,
+    "output_tokens": 483,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "coffee-person",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "coffee-place",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "pickup-person",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed via inherited scope."
+    },
+    {
+      "id": "pickup-time",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "pickup-place",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed."
+    },
+    {
+      "id": "sunday-total",
+      "kind": "provided",
+      "reason": "Complete list correctly conveyed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 7,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 7,
+    "points": 7.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "coffee-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-place",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-person",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "pickup-place",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "sunday-total",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -5,96 +5,32 @@
   "protocol_version": 5,
   "minimum_initial_correct": 1,
   "initial_metrics": {
-    "top_level_calls": 4,
-    "total_tool_operations": 4,
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
     "provider_internal_tool_calls": null,
     "provider_task_records": 0,
     "provider_internal_operations": [],
     "provider_internal_source_fallback_confirmed": false,
     "provider_internal_path_needs_review": false,
     "categories": {
-      "memory_detail": 1,
-      "archive_search": 1,
-      "source_evidence": 2
+      "memory_detail": 1
     },
     "operations": [
       {
         "name": "memcal_open",
         "arguments": {
-          "ref": "E16"
+          "ref": "E14"
         },
         "category": "memory_detail",
         "dispatch_parent": null,
         "success": true,
         "policy_blocked": false,
-        "timestamp": 1792766109831,
+        "timestamp": 1792772705189,
         "result": {
           "tool": "memcal_open",
           "success": true,
           "policy_blocked": false,
-          "text": "E16  Pizza\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nsource: person:Maya\n\npages: maya (person) · pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 17:23 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  — Wed Oct 14, 2026 15:39 · iMessage with Friday crew —\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\n   [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\n  — Wed Oct 14, 2026 17:03 · iMessage with Maya —\n   [2604] Maya · Wed 14 Oct 17:03 · Maya: same, I closed mine halfway already\n   [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n   [2625] Maya · Wed 14 Oct 17:19 · Maya: ugh of course, Friday meetings love to expand\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n   [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n   [2631] Maya · Wed 14 Oct 17:25 · me: you're the best, still good for like an hour-ish?\n   [2633] Maya · Wed 14 Oct 17:25 · Maya: yeah plenty, my 2pm call is still there so that actually helps\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza' -> 'Pizza' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)\n",
-          "truncated": false,
-          "capture": "hermes_session_db"
-        }
-      },
-      {
-        "name": "memcal_search_archive",
-        "arguments": {
-          "limit": 20,
-          "person": "Leo",
-          "query": "pizza Friday"
-        },
-        "category": "archive_search",
-        "dispatch_parent": null,
-        "success": true,
-        "policy_blocked": false,
-        "timestamp": 1792766114819,
-        "result": {
-          "tool": "memcal_search_archive",
-          "success": true,
-          "policy_blocked": false,
-          "text": "{\"results\": [{\"line_id\": 1308, \"when\": \"2026-10-05T19:35\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"yes please, wanna do pizza this Friday at noon?\"}, {\"line_id\": 107, \"when\": \"2026-09-17T20:00\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"its this fake ad for a pizza place\"}, {\"line_id\": 408, \"when\": \"2026-09-21T19:30\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"pizza? in honor of the crying suit guy\"}, {\"line_id\": 693, \"when\": \"2026-09-26T15:00\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"okay that pizza yesterday is still on my mind\"}, {\"line_id\": 2556, \"when\": \"2026-10-14T15:23\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"she remembers even when i'm bailing on pizza\"}, {\"line_id\": 2514, \"when\": \"2026-10-14T12:49\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"i know, so i can't make friday's pizza after all\"}, {\"line_id\": 697, \"when\": \"2026-09-26T15:12\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"i liked the pizza overall but man those olives were too salty\"}, {\"line_id\": 111, \"when\": \"2026-09-17T20:03\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"text\": \"and he's like \\\"we should get pizza on Saturday and never go back to work\\\"\"}]}",
-          "truncated": false,
-          "capture": "hermes_session_db"
-        }
-      },
-      {
-        "name": "memcal_activity",
-        "arguments": {
-          "handle": "E16",
-          "limit": 20
-        },
-        "category": "source_evidence",
-        "dispatch_parent": null,
-        "success": true,
-        "policy_blocked": false,
-        "timestamp": 1792766114828,
-        "result": {
-          "tool": "memcal_activity",
-          "success": true,
-          "policy_blocked": false,
-          "text": "{\"handle\": \"E16\", \"kind\": \"event\", \"ref\": \"pizza@2026-10-23\", \"mark\": 2796, \"total\": 0, \"omitted\": 0, \"next_cursor\": 0, \"items\": [], \"possibly_related\": [], \"note\": \"reading changes nothing; cite line ids in a correction\"}",
-          "truncated": false,
-          "capture": "hermes_session_db"
-        }
-      },
-      {
-        "name": "memcal_conversation",
-        "arguments": {
-          "after": 8,
-          "before": 8,
-          "line_id": 2514
-        },
-        "category": "source_evidence",
-        "dispatch_parent": null,
-        "success": true,
-        "policy_blocked": false,
-        "timestamp": 1792766118399,
-        "result": {
-          "tool": "memcal_conversation",
-          "success": true,
-          "policy_blocked": false,
-          "text": "{\"channel\": \"imessage\", \"thread\": \"Friday crew\", \"conversation\": [{\"id\": 2466, \"ts\": \"2026-10-14T10:58\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"never go back to leg day\"}, {\"id\": 2473, \"ts\": \"2026-10-14T11:10\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"hahaha still stuck in my head\"}, {\"id\": 2496, \"ts\": \"2026-10-14T12:15\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"never go back to workkkk\"}, {\"id\": 2498, \"ts\": \"2026-10-14T12:19\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"crying suit guy forever\"}, {\"id\": 2499, \"ts\": \"2026-10-14T12:19\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"ugh okay so update on my end\"}, {\"id\": 2500, \"ts\": \"2026-10-14T12:20\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"just got pulled into a deployment thing for friday\"}, {\"id\": 2507, \"ts\": \"2026-10-14T12:34\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"nooo on lunch??\"}, {\"id\": 2512, \"ts\": \"2026-10-14T12:48\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"yeah like noon through afternoon, i can't get away\"}, {\"id\": 2513, \"ts\": \"2026-10-14T12:49\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"damn that sucks\"}, {\"id\": 2514, \"ts\": \"2026-10-14T12:49\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"i know, so i can't make friday's pizza after all\"}, {\"id\": 2515, \"ts\": \"2026-10-14T12:51\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"ugh that's the worst timing\"}, {\"id\": 2516, \"ts\": \"2026-10-14T12:55\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"yeah we were counting on you for parking circle commentary\"}, {\"id\": 2517, \"ts\": \"2026-10-14T12:56\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"lol i know, you'll have to survive without me\"}, {\"id\": 2518, \"ts\": \"2026-10-14T12:56\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Maya\", \"text\": \"are you free at all later or just slammed all day?\"}, {\"id\": 2519, \"ts\": \"2026-10-14T13:10\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"Leo\", \"text\": \"slammed, my manager basically said don't move\"}, {\"id\": 2520, \"ts\": \"2026-10-14T13:12\", \"channel\": \"imessage\", \"thread\": \"Friday crew\", \"who\": \"me\", \"text\": \"classic friday trap\"}]}",
+          "text": "E14  Pizza lunch\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nnote: Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing Leo: not attending.\nsource: person:Maya\n\npages: maya (person) · pizza-lunch (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 17:22 · iMessage with Maya —\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n  — Wed Oct 14, 2026 13:13 · iMessage with Friday crew —\n * [2521] Friday crew · Wed 14 Oct 13:13 · Leo: you guys should still go tho, don't skip on my account\n * [2522] Friday crew · Wed 14 Oct 13:15 · Maya: oh we are, i still need pizza after this week\n * [2523] Friday crew · Wed 14 Oct 13:16 · me: yeah i'm still in for noon at Mario's\n * [2558] Friday crew · Wed 14 Oct 15:24 · me: so friday just us two then?\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\n * [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\n  — Wed Oct 14, 2026 17:06 · iMessage with Maya —\n * [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n * [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  note: 'Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing' -> 'Maya doing dairy-free test, plan veggie no-cheese; patio if not freezing Leo: not attending.' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza lunch' -> 'Pizza lunch' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)",
           "truncated": false,
           "capture": "hermes_session_db"
         }
@@ -103,11 +39,11 @@
     "failed_operations": 0,
     "repeated_operations": 0,
     "unmatched_tool_results": [],
-    "source_fallback_attempted": true,
+    "source_fallback_attempted": false,
     "unclassified_operations": 0,
-    "latency_s": 19.73,
-    "input_tokens": 21552,
-    "output_tokens": 1275,
+    "latency_s": 18.05,
+    "input_tokens": 9365,
+    "output_tokens": 558,
     "policy_blocks": 0,
     "returncode": 0,
     "inherited_source_fallback": false,
@@ -118,7 +54,7 @@
     {
       "id": "leo-friday-out",
       "kind": "provided",
-      "reason": "Answer correctly conveys Leo is out."
+      "reason": "Correct fact conveyed in answer."
     }
   ],
   "eligible_claim_ids": [],
@@ -127,7 +63,7 @@
     "initial_missed": 0,
     "initial_misrepresented": 0,
     "max_points": 1,
-    "points": 0.0,
+    "points": 1.0,
     "recovery_weight": 0.5,
     "claims": [
       {
@@ -135,9 +71,9 @@
         "initial_verdict": "correct",
         "followup_verdict": null,
         "recovered_answer": false,
-        "retention_failed": true,
+        "retention_failed": false,
         "path_needs_review": false,
-        "points": 0.0
+        "points": 1.0
       }
     ],
     "calibrated": false

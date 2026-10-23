@@ -1,0 +1,61 @@
+{
+  "state": "captured",
+  "started": "2026-10-23T16:44:30.818510+00:00",
+  "finished": "2026-10-23T16:44:39.328797+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 2,
+      "input_tokens": 4188,
+      "output_tokens": 438,
+      "accounted_upper_bound_usd": 0.0005064,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "990f75a240cc4599988c46ace21d5a57",
+      "project": "pacbench-8713453ce1da-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:44:34.732496+00:00",
+      "finished": "2026-10-23T16:44:36.406894+00:00",
+      "state": "settled",
+      "input_tokens": 318,
+      "output_tokens": 164,
+      "accounted": 64600,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 6.46e-05
+    },
+    {
+      "id": "6769d0efacfc4c28828106702146aaa2",
+      "project": "pacbench-8713453ce1da-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:44:34.735517+00:00",
+      "finished": "2026-10-23T16:44:37.600283+00:00",
+      "state": "settled",
+      "input_tokens": 3870,
+      "output_tokens": 274,
+      "accounted": 441800,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004418
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

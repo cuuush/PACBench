@@ -1,0 +1,19 @@
+{
+  "available": true,
+  "reason": "",
+  "tools": [
+    "mem0_search",
+    "mem0_add",
+    "mem0_update",
+    "mem0_delete"
+  ],
+  "provider": "mem0",
+  "live_verified": false,
+  "read_only_smoke": {
+    "tool": "mem0_search",
+    "arguments": {
+      "query": "native read-only capability check"
+    },
+    "output": "{\"result\": \"No relevant memories found.\"}"
+  }
+}

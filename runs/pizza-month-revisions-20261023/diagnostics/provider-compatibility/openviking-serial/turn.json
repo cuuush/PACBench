@@ -1,0 +1,151 @@
+{
+  "prompt": "[Simulated now: 2026-09-16T04:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat plans do you remember?",
+  "at": "2026-09-16T04:00:00-04:00",
+  "answer": "I don't have any plans saved for you.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "viking_search",
+      "input": {
+        "limit": 10,
+        "mode": "auto",
+        "query": "plans user remembers"
+      },
+      "timestamp": 1792768607595
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_browse",
+      "input": {
+        "action": "list",
+        "path": "viking://user/default/memories/"
+      },
+      "timestamp": 1792768607674
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_browse",
+      "input": {
+        "action": "tree",
+        "path": "viking://user/default/"
+      },
+      "timestamp": 1792768609761
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_read",
+      "input": {
+        "level": "overview",
+        "uri": "viking://user/default/memories/.overview.md"
+      },
+      "timestamp": 1792768609799
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_search",
+      "input": {
+        "limit": 10,
+        "mode": "deep",
+        "query": "user plans future intentions goals"
+      },
+      "timestamp": 1792768612539
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_browse",
+      "input": {
+        "action": "list",
+        "path": "viking://user/default/sessions/"
+      },
+      "timestamp": 1792768612608
+    },
+    {
+      "type": "tool_use",
+      "name": "viking_browse",
+      "input": {
+        "action": "list",
+        "path": "viking://user/default/resources/"
+      },
+      "timestamp": 1792768612637
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "viking_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"uri\": \"viking://user/default/.abstract.md\", \"type\": \"resource\", \"score\": 0.84, \"abstract\": \"User scope. Stores user's long-term memory, persisted across sessions.\"}, {\"uri\": \"viking://user/default/peers/.abstract.md\", \"type\": \"resource\", \"score\": 0.812, \"abstract\": \"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.805, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/skills/.abstract.md\", \"type\": \"skill\", \"score\": 0.794, \"abstract\": \"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\"}, {\"uri\": \"viking://user/default/resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.774, \"abstract\": \"User-owned resource storage. Contains private documents and knowledge resources owned by the current User.\"}, {\"uri\": \"viking://agent/skills/.abstract.md\", \"type\": \"skill\", \"score\": 0.772, \"abstract\": \"Shared skill registry. Stores callable skill definitions available across the account.\"}, {\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.763, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}], \"total\": 7}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_browse",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"path\": \"viking://user/default/memories/\", \"entries\": []}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_browse",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"path\": \"viking://user/default/\", \"entries\": [{\"name\": \"memories\", \"uri\": \"viking://user/default/memories\", \"type\": \"dir\", \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"name\": \"peers\", \"uri\": \"viking://user/default/peers\", \"type\": \"dir\", \"abstract\": \"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\"}, {\"name\": \"privacy\", \"uri\": \"viking://user/default/privacy\", \"type\": \"dir\", \"abstract\": \"User privacy config root. Stores user-scoped sensitive configuration snapshots by category and target key.\"}, {\"name\": \"resources\", \"uri\": \"viking://user/default/resources\", \"type\": \"dir\", \"abstract\": \"User-owned resource storage. Contains private documents and knowledge resources owned by the current User.\"}, {\"name\": \"sessions\", \"uri\": \"viking://user/default/sessions\", \"type\": \"dir\", \"abstract\": \"User session registry. Stores conversation state, live messages, tool outputs, and session history owned by the current User.\"}, {\"name\": \"skills\", \"uri\": \"viking://user/default/skills\", \"type\": \"dir\", \"abstract\": \"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_read",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"uri\": \"viking://user/default/memories/.overview.md\", \"resolved_uri\": \"viking://user/default/memories\", \"level\": \"overview\", \"content\": \"Use this directory to access user's personalized memories. Contains three main categories: 1) preferences-user preferences, 2) entities-entity memories, 3) events-event records.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"uri\": \"viking://user/default/.abstract.md\", \"type\": \"resource\", \"score\": 0.773, \"abstract\": \"User scope. Stores user's long-term memory, persisted across sessions.\"}, {\"uri\": \"viking://user/default/memories/.overview.md\", \"type\": \"memorie\", \"score\": 0.769, \"abstract\": \"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\"}, {\"uri\": \"viking://user/default/peers/.abstract.md\", \"type\": \"resource\", \"score\": 0.763, \"abstract\": \"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\"}, {\"uri\": \"viking://user/default/skills/.overview.md\", \"type\": \"skill\", \"score\": 0.758, \"abstract\": \"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\"}, {\"uri\": \"viking://agent/.overview.md\", \"type\": \"resource\", \"score\": 0.747, \"abstract\": \"Shared agent capabilities and configuration available across the account.\"}, {\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.743, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}], \"total\": 6}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_browse",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"path\": \"viking://user/default/sessions/\", \"entries\": []}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "viking_browse",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"path\": \"viking://user/default/resources/\", \"entries\": []}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 13.86,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261023_111642_267f38",
+  "raw_events": 21,
+  "session_id": "20261023_111642_267f38",
+  "stderr_full": "\nsession_id: 20261023_111642_267f38\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_111642_267f38\", \"timestamp\": 1792768603031}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"I'll search your memory for any saved plans.\", \"timestamp\": 1792768606490}\n{\"type\": \"tool_use\", \"name\": \"viking_search\", \"input\": {\"limit\": 10, \"mode\": \"auto\", \"query\": \"plans user remembers\"}, \"timestamp\": 1792768607595}\n{\"type\": \"tool_result\", \"name\": \"viking_search\", \"output\": \"{\\\"results\\\": [{\\\"uri\\\": \\\"viking://user/default/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.84, \\\"abstract\\\": \\\"User scope. Stores user's long-term memory, persisted across sessions.\\\"}, {\\\"uri\\\": \\\"viking://user/default/peers/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.812, \\\"abstract\\\": \\\"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\\\"}, {\\\"uri\\\": \\\"viking://user/default/memories/.overview.md\\\", \\\"type\\\": \\\"memorie\\\", \\\"score\\\": 0.805, \\\"abstract\\\": \\\"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\\\"}, {\\\"uri\\\": \\\"viking://user/default/skills/.abstract.md\\\", \\\"type\\\": \\\"skill\\\", \\\"score\\\": 0.794, \\\"abstract\\\": \\\"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\\\"}, {\\\"uri\\\": \\\"viking://user/default/resources/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.774, \\\"abstract\\\": \\\"User-owned resource storage. Contains private documents and knowledge resources owned by the current User.\\\"}, {\\\"uri\\\": \\\"viking://agent/skills/.abstract.md\\\", \\\"type\\\": \\\"skill\\\", \\\"score\\\": 0.772, \\\"abstract\\\": \\\"Shared skill registry. Stores callable skill definitions available across the account.\\\"}, {\\\"uri\\\": \\\"viking://resources/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.763, \\\"abstract\\\": \\\"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\\\"}], \\\"total\\\": 7}\", \"duration_ms\": 79, \"is_error\": false, \"timestamp\": 1792768607673}\n{\"type\": \"tool_use\", \"name\": \"viking_browse\", \"input\": {\"action\": \"list\", \"path\": \"viking://user/default/memories/\"}, \"timestamp\": 1792768607674}\n{\"type\": \"tool_result\", \"name\": \"viking_browse\", \"output\": \"{\\\"path\\\": \\\"viking://user/default/memories/\\\", \\\"entries\\\": []}\", \"duration_ms\": 33, \"is_error\": false, \"timestamp\": 1792768607709}\n{\"type\": \"text\", \"text\": \"\\n\\nNo specific plans surfaced; I'll check the broader memory structure.\", \"timestamp\": 1792768609042}\n{\"type\": \"tool_use\", \"name\": \"viking_browse\", \"input\": {\"action\": \"tree\", \"path\": \"viking://user/default/\"}, \"timestamp\": 1792768609761}\n{\"type\": \"tool_result\", \"name\": \"viking_browse\", \"output\": \"{\\\"path\\\": \\\"viking://user/default/\\\", \\\"entries\\\": [{\\\"name\\\": \\\"memories\\\", \\\"uri\\\": \\\"viking://user/default/memories\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\\\"}, {\\\"name\\\": \\\"peers\\\", \\\"uri\\\": \\\"viking://user/default/peers\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\\\"}, {\\\"name\\\": \\\"privacy\\\", \\\"uri\\\": \\\"viking://user/default/privacy\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User privacy config root. Stores user-scoped sensitive configuration snapshots by category and target key.\\\"}, {\\\"name\\\": \\\"resources\\\", \\\"uri\\\": \\\"viking://user/default/resources\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User-owned resource storage. Contains private documents and knowledge resources owned by the current User.\\\"}, {\\\"name\\\": \\\"sessions\\\", \\\"uri\\\": \\\"viking://user/default/sessions\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User session registry. Stores conversation state, live messages, tool outputs, and session history owned by the current User.\\\"}, {\\\"name\\\": \\\"skills\\\", \\\"uri\\\": \\\"viking://user/default/skills\\\", \\\"type\\\": \\\"dir\\\", \\\"abstract\\\": \\\"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\\\"}]}\", \"duration_ms\": 35, \"is_error\": false, \"timestamp\": 1792768609797}\n{\"type\": \"tool_use\", \"name\": \"viking_read\", \"input\": {\"level\": \"overview\", \"uri\": \"viking://user/default/memories/.overview.md\"}, \"timestamp\": 1792768609799}\n{\"type\": \"tool_result\", \"name\": \"viking_read\", \"output\": \"{\\\"uri\\\": \\\"viking://user/default/memories/.overview.md\\\", \\\"resolved_uri\\\": \\\"viking://user/default/memories\\\", \\\"level\\\": \\\"overview\\\", \\\"content\\\": \\\"Use this directory to access user's personalized memories. Contains three main categories: 1) preferences-user preferences, 2) entities-entity memories, 3) events-event records.\\\"}\", \"duration_ms\": 30, \"is_error\": false, \"timestamp\": 1792768609830}\n{\"type\": \"text\", \"text\": \"\\n\\nMemories are empty, so I'll search sessions and resources for plans.\", \"timestamp\": 1792768611458}\n{\"type\": \"tool_use\", \"name\": \"viking_search\", \"input\": {\"limit\": 10, \"mode\": \"deep\", \"query\": \"user plans future intentions goals\"}, \"timestamp\": 1792768612539}\n{\"type\": \"tool_result\", \"name\": \"viking_search\", \"output\": \"{\\\"results\\\": [{\\\"uri\\\": \\\"viking://user/default/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.773, \\\"abstract\\\": \\\"User scope. Stores user's long-term memory, persisted across sessions.\\\"}, {\\\"uri\\\": \\\"viking://user/default/memories/.overview.md\\\", \\\"type\\\": \\\"memorie\\\", \\\"score\\\": 0.769, \\\"abstract\\\": \\\"User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.\\\"}, {\\\"uri\\\": \\\"viking://user/default/peers/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.763, \\\"abstract\\\": \\\"User peer memory root. Stores the current User's long-term memory about stable interaction peers.\\\"}, {\\\"uri\\\": \\\"viking://user/default/skills/.overview.md\\\", \\\"type\\\": \\\"skill\\\", \\\"score\\\": 0.758, \\\"abstract\\\": \\\"User skill registry. Uses Claude Skills protocol format, flat storage of callable skill definitions owned by the current User.\\\"}, {\\\"uri\\\": \\\"viking://agent/.overview.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.747, \\\"abstract\\\": \\\"Shared agent capabilities and configuration available across the account.\\\"}, {\\\"uri\\\": \\\"viking://resources/.abstract.md\\\", \\\"type\\\": \\\"resource\\\", \\\"score\\\": 0.743, \\\"abstract\\\": \\\"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\\\"}], \\\"total\\\": 6}\", \"duration_ms\": 67, \"is_error\": false, \"timestamp\": 1792768612607}\n{\"type\": \"tool_use\", \"name\": \"viking_browse\", \"input\": {\"action\": \"list\", \"path\": \"viking://user/default/sessions/\"}, \"timestamp\": 1792768612608}\n{\"type\": \"tool_result\", \"name\": \"viking_browse\", \"output\": \"{\\\"path\\\": \\\"viking://user/default/sessions/\\\", \\\"entries\\\": []}\", \"duration_ms\": 26, \"is_error\": false, \"timestamp\": 1792768612636}\n{\"type\": \"tool_use\", \"name\": \"viking_browse\", \"input\": {\"action\": \"list\", \"path\": \"viking://user/default/resources/\"}, \"timestamp\": 1792768612637}\n{\"type\": \"tool_result\", \"name\": \"viking_browse\", \"output\": \"{\\\"path\\\": \\\"viking://user/default/resources/\\\", \\\"entries\\\": []}\", \"duration_ms\": 56, \"is_error\": false, \"timestamp\": 1792768612694}\n{\"type\": \"text\", \"text\": \"\\n\\nI don't have any\", \"timestamp\": 1792768614941}\n{\"type\": \"text\", \"text\": \" plans saved for you.\", \"timestamp\": 1792768614978}\n{\"type\": \"result\", \"session_id\": \"20261023_111642_267f38\", \"exit_code\": 0, \"text\": \"I don't have any plans saved for you.\", \"tokens\": {\"input\": 10030, \"output\": 941, \"total\": 20669, \"cache_read\": 9698, \"cache_write\": 0}, \"duration_ms\": 11995, \"timestamp\": 1792768615026}",
+  "session_input_tokens": 10030,
+  "session_output_tokens": 941,
+  "provider_traces": [],
+  "prefetch_context": "## OpenViking Context\n- [memory]\n  <uri>viking://user/default/memories/.abstract.md</uri>\n  User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-3alk7_po",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-3alk7_po",
+    "system_prompt_sha256": "109f733f70194035de9283faf5a4879bb9b906c71ec58859aa76eb28b0d5ade9",
+    "reason": "No project context in native saved system prompt"
+  }
+}

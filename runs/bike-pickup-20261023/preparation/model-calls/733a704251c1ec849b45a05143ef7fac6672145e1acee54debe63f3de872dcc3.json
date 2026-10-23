@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-10-23T16:13:28.453752+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "204df85a24caf75a660f5f1d9666bec1bbd12663cd2ab43c8bfb4c56ba75f4f8",
+            "f7b4ccbe825e03de00c4c41c41beee7b4c4dde52debdd6181f7f701a7faf6b80"
+          ],
+          "sha256": "6152172e78c95266b1a4061fff86f5b9e44edcbb573036aff212491efb2c2e9e"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a16989-e9bb-7006-a75b-78f215000ef6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"consistent\": true, \"expectations_supported\": true, \"natural_enough\": true, \"issues\": [], \"current_upcoming\": [], \"notes\": \"Verified chronology Oct19 text bike Sat 2pm Spoke Cycles, Oct19 text coffee Sun 9am Maple Mug, Oct20 email moves bike to Sat 10am same shop. pickup-before correctly expects Sat Oct24 10am Spoke Cycles. Scripted user correction to Sun 11am properly carries forward same venue by conversational context, supporting sunday-both and saturday-clear. Coffee remains separate and unchanged. No contradictions, no invented history, no date narration in body, relative-day refs natural.\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792772008,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3249,
+      "prompt_tokens": 1893,
+      "total_tokens": 5142,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3100
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"consistent\": true, \"expectations_supported\": true, \"natural_enough\": true, \"issues\": [], \"current_upcoming\": [], \"notes\": \"Verified chronology Oct19 text bike Sat 2pm Spoke Cycles, Oct19 text coffee Sun 9am Maple Mug, Oct20 email moves bike to Sat 10am same shop. pickup-before correctly expects Sat Oct24 10am Spoke Cycles. Scripted user correction to Sun 11am properly carries forward same venue by conversational context, supporting sunday-both and saturday-clear. Coffee remains separate and unchanged. No contradictions, no invented history, no date narration in body, relative-day refs natural.\"}",
+  "usage": {
+    "completion_tokens": 3249,
+    "prompt_tokens": 1893,
+    "total_tokens": 5142,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3100
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

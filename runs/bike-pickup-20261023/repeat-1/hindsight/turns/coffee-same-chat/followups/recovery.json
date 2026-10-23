@@ -1,0 +1,123 @@
+{
+  "state": "complete",
+  "plan_hash": "aac8a255973a428eff2d1a6c949a16f415ace74cff9203d4fac69a16b7c18326",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "coffee with Riley"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792779327509,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\n2. User plans to pick up the fixed bike from Riley at Spoke Cycles on October 25, 2026 at 11am, rescheduled from October 24, 2026 at 10am per Riley's call on October 22, 2026 (previously rescheduled from 2pm because the shop is closing early).\\n3. Riley fixed the user's bike and it is ready for pickup.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 10.26,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "coffee-day",
+      "kind": "provided",
+      "reason": "Day correctly conveyed as Oct 25/Sunday."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Time correctly conveyed as 9am."
+    },
+    {
+      "id": "coffee-place",
+      "kind": "provided",
+      "reason": "Place correctly conveyed as Maple Mug."
+    },
+    {
+      "id": "coffee-unchanged",
+      "kind": "provided",
+      "reason": "Unchanged coffee correctly retained separate from bike update."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 4,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 4,
+    "points": 4.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "coffee-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-place",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-unchanged",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

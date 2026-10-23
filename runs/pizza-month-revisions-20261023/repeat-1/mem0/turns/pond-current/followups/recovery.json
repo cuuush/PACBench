@@ -1,0 +1,97 @@
+{
+  "state": "complete",
+  "plan_hash": "836eb319cb838d8431f54c5ac0c93ac72d2cb0801136b33bb0a37d9e6744e1af",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "duck pond meeting Friday walk Jen Alex",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772528892,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"233a9e2a-6ef3-4136-9bae-a70c04aa7f4a\", \"memory\": \"User, Jen, and Alex planned a walk at 2pm on Friday October 23, 2026 at Willow Park west entrance by the duck pond in the big lot off Willow Ave near playground, for about an hour so Alex is back by 4:30, grabbing coffee at the new cart after meeting.\", \"score\": 0.7569760545843602}, {\"id\": \"5438f0c6-c42f-4c89-9a7b-eb88436b104e\", \"memory\": \"Alex will bring his dog to the October 23 Willow Park walk with help for squirrel chasing and User bringing treats to be the favorite, while Jen's mom visits Saturday October 24 after the walk.\", \"score\": 0.6611440518899303}, {\"id\": \"5d02af3e-855b-472a-8175-de08e5d53103\", \"memory\": \"User and Alex plan to meet Friday October 16, 2026 at 11am using the Birch Street front ramp, with User arriving early to grab a table and save a cushioned chair; Alex's ankle is better than October 13 but still limpy with peas icing and no stairs until Friday.\", \"score\": 0.6408719750520062}, {\"id\": \"9beb00b6-a101-4168-992d-dcf6e99dbc13\", \"memory\": \"Park pals Friday plan for October 16, 2026 was postponed with raincheck after Jen said she cannot make it due to her sister arriving October 15 night and Alex said he cannot make it with a weird week, with User agreeing to figure it out later.\", \"score\": 0.6138155210377273}, {\"id\": \"ce45ef8d-c527-4321-9306-99a5ff63d6ff\", \"memory\": \"Alex's sneakers are dead and he will check Fleet Feet downtown sale on Wednesday October 14, where Jen got hers last month, while Jen has a dentist thing Friday October 16 and her bus was 20 minutes late on October 12.\", \"score\": 0.5553524362907132}, {\"id\": \"c6acd54b-d394-43a8-99ab-e74c473e93e3\", \"memory\": \"User and Alex planned coffee at 11am on Friday, October 23, 2026 at Birch Cafe, which Alex has not visited in forever and User loves for iced lattes, agreeing to meet at the step-free Mill Lane side entrance instead of the three to four big front steps to protect Alex's healing ankle, with User saving the cushioned chair.\", \"score\": 0.5413907378450299}, {\"id\": \"d84c3ae6-fc61-44b4-9d6e-c92f70d8cfcc\", \"memory\": \"User and Maya confirmed final Friday plan for October 16, 2026 is noon slid to 12:30pm at Mario's because User's work meeting runs until 12:15pm, to meet out front for about an hour before Maya's 2pm call, with User walking over.\", \"score\": 0.5362334926965996}, {\"id\": \"d734c225-5d27-479e-8b9b-089fc673bc49\", \"memory\": \"User, Maya, and Leo planned to meet out front of Luigi's on 5th Street on October 9, 2026, with Leo driving and noting parking is way better than Pine Street where he circled forever last time, Maya taking the bus after gym, and User walking about 10 minutes from work, all agreeing to text when close.\", \"score\": 0.526724683174979}, {\"id\": \"01f05493-61af-46d1-bd43-28d248c23f59\", \"memory\": \"User and Maya planned lunch at 1pm on Friday October 23, 2026 at Rosa's on Oak Street, patio if not freezing, with User to grab a table like last time and do chair safety test, skipping Friday October 16 due to busy week.\", \"score\": 0.5250241887210516}, {\"id\": \"2254c245-b46e-46c3-97a4-7d81fe7dd7f7\", \"memory\": \"For the September 25, 2026 Mario's lunch plan, the group agreed to meet out front at noon, with User walking about 10 minutes from the office, Maya taking the bus from work, and Leo coming early to circle for parking which is awful there\", \"score\": 0.5229030895775699}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.48,
+    "input_tokens": 9100,
+    "output_tokens": 715,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "duckpond-postponed",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite that meeting is still on."
+    },
+    {
+      "id": "duckpond-no-replacement",
+      "kind": "implicit_omission",
+      "reason": "Replacement-date status not mentioned; user asked only if still meeting, not for replacement detail."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 1,
+    "initial_misrepresented": 1,
+    "max_points": 2,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "duckpond-postponed",
+        "initial_verdict": "misrepresented",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "duckpond-no-replacement",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

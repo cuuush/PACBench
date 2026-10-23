@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "2c5f1274d82813f4c88f6b1f15ed35b6787b704a420c0fc7f1af0cf6689c48d4",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "bike pickup reschedule date",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772614763,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"a4f20f92-6981-4796-84a9-a2b6e4d4f4fc\", \"memory\": \"User rescheduled bike pickup with Riley to 11am on Sunday, October 25, 2026 at Spoke Cycles, 114 Maple Avenue.\", \"score\": 0.825473478824273}, {\"id\": \"48a59fec-684c-4965-8692-34f4ca9ab616\", \"memory\": \"User's bike repair was completed and ready for pickup as of October 19, 2026, with Riley notifying the user that it could be collected anytime.\", \"score\": 0.6931827579086209}, {\"id\": \"028bfdce-f110-42a7-a999-38fed827c864\", \"memory\": \"User agreed to meet Riley for coffee away from work to catch up, scheduled for 9am on Sunday, October 25, 2026 at Maple Mug.\", \"score\": 0.5857697429652481}], \"count\": 3}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 18.3,
+    "input_tokens": 3873,
+    "output_tokens": 565,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "bike-not-saturday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "bike-not-saturday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

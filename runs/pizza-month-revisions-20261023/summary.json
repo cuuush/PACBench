@@ -2,6 +2,741 @@
   "state": "incomplete",
   "results": [
     {
+      "provider": "memcal",
+      "repetition": 1,
+      "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
+      "capability": {
+        "available": true,
+        "reason": "",
+        "tools": [
+          "memcal_open",
+          "memcal_open_page",
+          "memcal_search_wiki",
+          "memcal_open_source",
+          "memcal_conversation",
+          "memcal_list_days",
+          "memcal_list_month",
+          "memcal_search_archive",
+          "memcal_activity",
+          "memcal_refresh",
+          "memcal_add",
+          "memcal_update",
+          "memcal_schedule",
+          "memcal_move_once",
+          "memcal_merge",
+          "memcal_drop",
+          "memcal_todo",
+          "memcal_answer",
+          "memcal_note",
+          "memcal_alias",
+          "memcal_reviewed"
+        ],
+        "provider": "memcal",
+        "live_verified": true,
+        "read_only_smoke": {
+          "tool": "memcal_list_days",
+          "arguments": {},
+          "output": "{\"from\": \"2026-09-11\", \"to\": \"2026-09-11\", \"weekday\": \"Friday\", \"rows\": [], \"free\": true}"
+        },
+        "wiring_verified": true
+      },
+      "state": "diagnostic",
+      "checks": [
+        {
+          "id": "friday-pizza",
+          "at": "2026-10-19T10:00:00-04:00",
+          "session": "friday-recap",
+          "contract_hash": "ae86debdeb5d1a039007d95116be7b06f3efdebc645088f6381e58274b0821f8",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 5,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 5,
+              "points": 5.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "attendees",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "maya-options",
+          "at": "2026-10-19T10:02:00-04:00",
+          "session": "friday-recap",
+          "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "dominos-too-far",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "friday-count",
+          "at": "2026-10-19T10:10:00-04:00",
+          "session": "count-fresh",
+          "contract_hash": "2ad9d226fb5c51f23942c91049d795be9d77a23576f4397b105a1609f69b9cad",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "friday-pizza-count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "saturday-pizza",
+          "at": "2026-10-19T10:20:00-04:00",
+          "session": "saturday-fresh",
+          "contract_hash": "4190036cd063bc707503dcfe54bbe1b00190b113d0b11368ef5623a19f7ac532",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "no-sat-pizza",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "ben-current",
+          "at": "2026-10-19T10:30:00-04:00",
+          "session": "ben-fresh",
+          "contract_hash": "a0741ca34c77473bf09a4c9edeb21da90556f2e279adc61616e8a7bfea5bfc0c",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 3,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 3,
+              "points": 3.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-dinner-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "ben-dinner-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "ben-dinner-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "ben-thursday",
+          "at": "2026-10-19T10:32:00-04:00",
+          "session": "ben-fresh",
+          "contract_hash": "a3557952027f1c1b2bfb5805a127c0da3d9f96034a90a04d1254e3c8626c38bd",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-no-thursday",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "pond-current",
+          "at": "2026-10-19T10:40:00-04:00",
+          "session": "pond-fresh",
+          "contract_hash": "aa4a0f768921203d662c0297cbfe758a7a91ac5752e1bbb95b60fea5a2cdd9eb",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "duckpond-postponed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "duckpond-no-replacement",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "separate-friday",
+          "at": "2026-10-19T10:42:00-04:00",
+          "session": "pond-fresh",
+          "contract_hash": "9d6fe0e17c4370712c589b0906838280f8efac2e8542fa6d7304fc1a6f0e7b33",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "jen-call-agreed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "alex-coffee-agreed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "jen-call",
+          "at": "2026-10-19T10:50:00-04:00",
+          "session": "friday-jen-fresh",
+          "contract_hash": "aac4f35fb9408cd6fdd3e507ca432afacb73205f77f9f3f6018e5eda4e7a579d",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "jen-friday-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "jen-friday-purpose",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "alex-coffee",
+          "at": "2026-10-19T11:00:00-04:00",
+          "session": "friday-alex-fresh",
+          "contract_hash": "509b81aa4568db4c9ea895d811e45a159bada21a910b55c0ff56daa5bc88772c",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "alex-coffee-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "alex-coffee-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "leo-attending",
+          "at": "2026-10-19T11:10:00-04:00",
+          "session": "friday-leo-fresh",
+          "contract_hash": "7777c77797f717a272ecb5448f3bf15d04236c03ae66a8ac9dd0149d93eb761c",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "leo-friday-out",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "maya-food",
+          "at": "2026-10-19T11:20:00-04:00",
+          "session": "maya-food-fresh",
+          "contract_hash": "828e1b1a0e78084bd07865da3841774c087d1a88f6f6f3617c79cb924dc648b1",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "maya-dairy-free-friday",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "alex-entrance",
+          "at": "2026-10-19T11:30:00-04:00",
+          "session": "alex-entrance-fresh",
+          "contract_hash": "5ef894990cdd7c4364770c6ddbc9bf138278ecea37500f8c6321505cea5671bb",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 3,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 3,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "birch-front",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "birch-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "birch-side-closed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "ben-reason",
+          "at": "2026-10-19T11:40:00-04:00",
+          "session": "ben-reason-fresh",
+          "contract_hash": "6ee840bd23adf7c1f658c7ce6348412eb51e11f5ab37f870e1f77f9e1f0734e3",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-reason",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "devon-friday",
+          "at": "2026-10-19T11:50:00-04:00",
+          "session": "devon-friday-fresh",
+          "contract_hash": "b70932e1d65fa6ea0a58949953146a0253228c1f52f38d1364208f64841a9e84",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "devon-friday-no-pizza",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "devon-current",
+          "at": "2026-10-19T12:00:00-04:00",
+          "session": "devon-current-fresh",
+          "contract_hash": "831cd63a2e0cc6b658a3afc55a1e2d8ff7b4bd2f9dafee1e57c05126ad17239b",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 5,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 5,
+              "points": 5.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "devon-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        }
+      ],
+      "reason": "",
+      "behavior": {
+        "evaluation_context": "shared"
+      }
+    },
+    {
       "provider": "mem0",
       "repetition": 1,
       "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
@@ -15,7 +750,7 @@
           "mem0_delete"
         ],
         "provider": "mem0",
-        "live_verified": false,
+        "live_verified": true,
         "read_only_smoke": {
           "tool": "mem0_search",
           "arguments": {
@@ -25,361 +760,698 @@
         },
         "wiring_verified": true
       },
-      "state": "partial",
+      "state": "diagnostic",
       "checks": [
         {
           "id": "friday-pizza",
           "at": "2026-10-19T10:00:00-04:00",
           "session": "friday-recap",
           "contract_hash": "ae86debdeb5d1a039007d95116be7b06f3efdebc645088f6381e58274b0821f8",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Native source ingestion/processing failed; inspect saved record",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 0,
+              "initial_missed": 0,
+              "initial_misrepresented": 5,
+              "max_points": 5,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "count",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "time",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "venue",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "street",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "attendees",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "maya-options",
           "at": "2026-10-19T10:02:00-04:00",
           "session": "friday-recap",
           "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "dominos-too-far",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "friday-count",
           "at": "2026-10-19T10:10:00-04:00",
           "session": "count-fresh",
           "contract_hash": "2ad9d226fb5c51f23942c91049d795be9d77a23576f4397b105a1609f69b9cad",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 0,
+              "initial_missed": 0,
+              "initial_misrepresented": 1,
+              "max_points": 1,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "friday-pizza-count",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "saturday-pizza",
           "at": "2026-10-19T10:20:00-04:00",
           "session": "saturday-fresh",
           "contract_hash": "4190036cd063bc707503dcfe54bbe1b00190b113d0b11368ef5623a19f7ac532",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "no-sat-pizza",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "ben-current",
           "at": "2026-10-19T10:30:00-04:00",
           "session": "ben-fresh",
           "contract_hash": "a0741ca34c77473bf09a4c9edeb21da90556f2e279adc61616e8a7bfea5bfc0c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "clarification",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 1,
+              "max_points": 3,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-dinner-day",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "ben-dinner-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "ben-dinner-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "ben-thursday",
           "at": "2026-10-19T10:32:00-04:00",
           "session": "ben-fresh",
           "contract_hash": "a3557952027f1c1b2bfb5805a127c0da3d9f96034a90a04d1254e3c8626c38bd",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-no-thursday",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "pond-current",
           "at": "2026-10-19T10:40:00-04:00",
           "session": "pond-fresh",
           "contract_hash": "aa4a0f768921203d662c0297cbfe758a7a91ac5752e1bbb95b60fea5a2cdd9eb",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 0,
+              "initial_missed": 1,
+              "initial_misrepresented": 1,
+              "max_points": 2,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "duckpond-postponed",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "duckpond-no-replacement",
+                  "initial_verdict": "missed",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "separate-friday",
           "at": "2026-10-19T10:42:00-04:00",
           "session": "pond-fresh",
           "contract_hash": "9d6fe0e17c4370712c589b0906838280f8efac2e8542fa6d7304fc1a6f0e7b33",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "jen-call-agreed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "alex-coffee-agreed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "jen-call",
           "at": "2026-10-19T10:50:00-04:00",
           "session": "friday-jen-fresh",
           "contract_hash": "aac4f35fb9408cd6fdd3e507ca432afacb73205f77f9f3f6018e5eda4e7a579d",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "jen-friday-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "jen-friday-purpose",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "alex-coffee",
           "at": "2026-10-19T11:00:00-04:00",
           "session": "friday-alex-fresh",
           "contract_hash": "509b81aa4568db4c9ea895d811e45a159bada21a910b55c0ff56daa5bc88772c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 2,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 2,
+              "points": 2.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "alex-coffee-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "alex-coffee-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "leo-attending",
           "at": "2026-10-19T11:10:00-04:00",
           "session": "friday-leo-fresh",
           "contract_hash": "7777c77797f717a272ecb5448f3bf15d04236c03ae66a8ac9dd0149d93eb761c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 0,
+              "initial_missed": 0,
+              "initial_misrepresented": 1,
+              "max_points": 1,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "leo-friday-out",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "maya-food",
           "at": "2026-10-19T11:20:00-04:00",
           "session": "maya-food-fresh",
           "contract_hash": "828e1b1a0e78084bd07865da3841774c087d1a88f6f6f3617c79cb924dc648b1",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "maya-dairy-free-friday",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "alex-entrance",
           "at": "2026-10-19T11:30:00-04:00",
           "session": "alex-entrance-fresh",
           "contract_hash": "5ef894990cdd7c4364770c6ddbc9bf138278ecea37500f8c6321505cea5671bb",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 3,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 3,
+              "points": 3.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "birch-front",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "birch-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "birch-side-closed",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "ben-reason",
           "at": "2026-10-19T11:40:00-04:00",
           "session": "ben-reason-fresh",
           "contract_hash": "6ee840bd23adf7c1f658c7ce6348412eb51e11f5ab37f870e1f77f9e1f0734e3",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "ben-reason",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "devon-friday",
           "at": "2026-10-19T11:50:00-04:00",
           "session": "devon-friday-fresh",
           "contract_hash": "b70932e1d65fa6ea0a58949953146a0253228c1f52f38d1364208f64841a9e84",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 0,
+              "initial_missed": 0,
+              "initial_misrepresented": 1,
+              "max_points": 1,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "devon-friday-no-pizza",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         },
         {
           "id": "devon-current",
           "at": "2026-10-19T12:00:00-04:00",
           "session": "devon-current-fresh",
           "contract_hash": "831cd63a2e0cc6b658a3afc55a1e2d8ff7b4bd2f9dafee1e57c05126ad17239b",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
+          "state": "diagnostic",
+          "verdict": "fail",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 3,
+              "initial_missed": 0,
+              "initial_misrepresented": 2,
+              "max_points": 5,
+              "points": 3.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "devon-day",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "devon-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-street",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                },
+                {
+                  "claim_id": "devon-count",
+                  "initial_verdict": "misrepresented",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
         }
       ],
-      "reason": "evaluation sequence incomplete",
-      "behavior": {
-        "evaluation_context": "shared"
-      }
-    },
-    {
-      "provider": "honcho",
-      "repetition": 1,
-      "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
-      "capability": {
-        "available": true,
-        "reason": "",
-        "tools": [
-          "honcho_profile",
-          "honcho_search",
-          "honcho_reasoning",
-          "honcho_context",
-          "honcho_conclude"
-        ],
-        "provider": "honcho",
-        "live_verified": false,
-        "read_only_smoke": {
-          "tool": "honcho_profile",
-          "arguments": {},
-          "output": "{\"result\": \"No profile facts available yet.\", \"hint\": \"This is not an error.  this session has only 0 turn(s); peer cards accumulate as the dialectic layer reasons over conversation history (cadence every 1 turn(s)).  Try honcho_reasoning for a synthesized answer, or honcho_search to query raw conversation excerpts.\"}"
-        },
-        "wiring_verified": true
-      },
-      "state": "partial",
-      "checks": [
-        {
-          "id": "friday-pizza",
-          "at": "2026-10-19T10:00:00-04:00",
-          "session": "friday-recap",
-          "contract_hash": "ae86debdeb5d1a039007d95116be7b06f3efdebc645088f6381e58274b0821f8",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Native source ingestion/processing failed; inspect saved record",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "maya-options",
-          "at": "2026-10-19T10:02:00-04:00",
-          "session": "friday-recap",
-          "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "friday-count",
-          "at": "2026-10-19T10:10:00-04:00",
-          "session": "count-fresh",
-          "contract_hash": "2ad9d226fb5c51f23942c91049d795be9d77a23576f4397b105a1609f69b9cad",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "saturday-pizza",
-          "at": "2026-10-19T10:20:00-04:00",
-          "session": "saturday-fresh",
-          "contract_hash": "4190036cd063bc707503dcfe54bbe1b00190b113d0b11368ef5623a19f7ac532",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "ben-current",
-          "at": "2026-10-19T10:30:00-04:00",
-          "session": "ben-fresh",
-          "contract_hash": "a0741ca34c77473bf09a4c9edeb21da90556f2e279adc61616e8a7bfea5bfc0c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "ben-thursday",
-          "at": "2026-10-19T10:32:00-04:00",
-          "session": "ben-fresh",
-          "contract_hash": "a3557952027f1c1b2bfb5805a127c0da3d9f96034a90a04d1254e3c8626c38bd",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "pond-current",
-          "at": "2026-10-19T10:40:00-04:00",
-          "session": "pond-fresh",
-          "contract_hash": "aa4a0f768921203d662c0297cbfe758a7a91ac5752e1bbb95b60fea5a2cdd9eb",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "separate-friday",
-          "at": "2026-10-19T10:42:00-04:00",
-          "session": "pond-fresh",
-          "contract_hash": "9d6fe0e17c4370712c589b0906838280f8efac2e8542fa6d7304fc1a6f0e7b33",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "jen-call",
-          "at": "2026-10-19T10:50:00-04:00",
-          "session": "friday-jen-fresh",
-          "contract_hash": "aac4f35fb9408cd6fdd3e507ca432afacb73205f77f9f3f6018e5eda4e7a579d",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "alex-coffee",
-          "at": "2026-10-19T11:00:00-04:00",
-          "session": "friday-alex-fresh",
-          "contract_hash": "509b81aa4568db4c9ea895d811e45a159bada21a910b55c0ff56daa5bc88772c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "leo-attending",
-          "at": "2026-10-19T11:10:00-04:00",
-          "session": "friday-leo-fresh",
-          "contract_hash": "7777c77797f717a272ecb5448f3bf15d04236c03ae66a8ac9dd0149d93eb761c",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "maya-food",
-          "at": "2026-10-19T11:20:00-04:00",
-          "session": "maya-food-fresh",
-          "contract_hash": "828e1b1a0e78084bd07865da3841774c087d1a88f6f6f3617c79cb924dc648b1",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "alex-entrance",
-          "at": "2026-10-19T11:30:00-04:00",
-          "session": "alex-entrance-fresh",
-          "contract_hash": "5ef894990cdd7c4364770c6ddbc9bf138278ecea37500f8c6321505cea5671bb",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "ben-reason",
-          "at": "2026-10-19T11:40:00-04:00",
-          "session": "ben-reason-fresh",
-          "contract_hash": "6ee840bd23adf7c1f658c7ce6348412eb51e11f5ab37f870e1f77f9e1f0734e3",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "devon-friday",
-          "at": "2026-10-19T11:50:00-04:00",
-          "session": "devon-friday-fresh",
-          "contract_hash": "b70932e1d65fa6ea0a58949953146a0253228c1f52f38d1364208f64841a9e84",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        },
-        {
-          "id": "devon-current",
-          "at": "2026-10-19T12:00:00-04:00",
-          "session": "devon-current-fresh",
-          "contract_hash": "831cd63a2e0cc6b658a3afc55a1e2d8ff7b4bd2f9dafee1e57c05126ad17239b",
-          "state": "ungraded",
-          "verdict": null,
-          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
-          "error_type": "execution_or_judge"
-        }
-      ],
-      "reason": "evaluation sequence incomplete",
+      "reason": "",
       "behavior": {
         "evaluation_context": "shared"
       }
@@ -759,6 +1831,197 @@
           "state": "ungraded",
           "verdict": null,
           "reason": "RuntimeError: Three completed provider requests lack usable token usage; stop this arm before unmetered work accumulates. This is a cost-observability blocker, not an HTTP or memory-recall failure.",
+          "error_type": "execution_or_judge"
+        }
+      ],
+      "reason": "evaluation sequence incomplete",
+      "behavior": {
+        "evaluation_context": "shared"
+      }
+    },
+    {
+      "provider": "honcho",
+      "repetition": 1,
+      "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
+      "capability": {
+        "available": true,
+        "reason": "",
+        "tools": [
+          "honcho_profile",
+          "honcho_search",
+          "honcho_reasoning",
+          "honcho_context",
+          "honcho_conclude"
+        ],
+        "provider": "honcho",
+        "live_verified": false,
+        "read_only_smoke": {
+          "tool": "honcho_profile",
+          "arguments": {},
+          "output": "{\"result\": \"No profile facts available yet.\", \"hint\": \"This is not an error.  this session has only 0 turn(s); peer cards accumulate as the dialectic layer reasons over conversation history (cadence every 1 turn(s)).  Try honcho_reasoning for a synthesized answer, or honcho_search to query raw conversation excerpts.\"}"
+        },
+        "wiring_verified": true
+      },
+      "state": "partial",
+      "checks": [
+        {
+          "id": "friday-pizza",
+          "at": "2026-10-19T10:00:00-04:00",
+          "session": "friday-recap",
+          "contract_hash": "ae86debdeb5d1a039007d95116be7b06f3efdebc645088f6381e58274b0821f8",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Native source ingestion/processing failed; inspect saved record",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "maya-options",
+          "at": "2026-10-19T10:02:00-04:00",
+          "session": "friday-recap",
+          "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "friday-count",
+          "at": "2026-10-19T10:10:00-04:00",
+          "session": "count-fresh",
+          "contract_hash": "2ad9d226fb5c51f23942c91049d795be9d77a23576f4397b105a1609f69b9cad",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "saturday-pizza",
+          "at": "2026-10-19T10:20:00-04:00",
+          "session": "saturday-fresh",
+          "contract_hash": "4190036cd063bc707503dcfe54bbe1b00190b113d0b11368ef5623a19f7ac532",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "ben-current",
+          "at": "2026-10-19T10:30:00-04:00",
+          "session": "ben-fresh",
+          "contract_hash": "a0741ca34c77473bf09a4c9edeb21da90556f2e279adc61616e8a7bfea5bfc0c",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "ben-thursday",
+          "at": "2026-10-19T10:32:00-04:00",
+          "session": "ben-fresh",
+          "contract_hash": "a3557952027f1c1b2bfb5805a127c0da3d9f96034a90a04d1254e3c8626c38bd",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "pond-current",
+          "at": "2026-10-19T10:40:00-04:00",
+          "session": "pond-fresh",
+          "contract_hash": "aa4a0f768921203d662c0297cbfe758a7a91ac5752e1bbb95b60fea5a2cdd9eb",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "separate-friday",
+          "at": "2026-10-19T10:42:00-04:00",
+          "session": "pond-fresh",
+          "contract_hash": "9d6fe0e17c4370712c589b0906838280f8efac2e8542fa6d7304fc1a6f0e7b33",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "jen-call",
+          "at": "2026-10-19T10:50:00-04:00",
+          "session": "friday-jen-fresh",
+          "contract_hash": "aac4f35fb9408cd6fdd3e507ca432afacb73205f77f9f3f6018e5eda4e7a579d",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "alex-coffee",
+          "at": "2026-10-19T11:00:00-04:00",
+          "session": "friday-alex-fresh",
+          "contract_hash": "509b81aa4568db4c9ea895d811e45a159bada21a910b55c0ff56daa5bc88772c",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "leo-attending",
+          "at": "2026-10-19T11:10:00-04:00",
+          "session": "friday-leo-fresh",
+          "contract_hash": "7777c77797f717a272ecb5448f3bf15d04236c03ae66a8ac9dd0149d93eb761c",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "maya-food",
+          "at": "2026-10-19T11:20:00-04:00",
+          "session": "maya-food-fresh",
+          "contract_hash": "828e1b1a0e78084bd07865da3841774c087d1a88f6f6f3617c79cb924dc648b1",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "alex-entrance",
+          "at": "2026-10-19T11:30:00-04:00",
+          "session": "alex-entrance-fresh",
+          "contract_hash": "5ef894990cdd7c4364770c6ddbc9bf138278ecea37500f8c6321505cea5671bb",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "ben-reason",
+          "at": "2026-10-19T11:40:00-04:00",
+          "session": "ben-reason-fresh",
+          "contract_hash": "6ee840bd23adf7c1f658c7ce6348412eb51e11f5ab37f870e1f77f9e1f0734e3",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "devon-friday",
+          "at": "2026-10-19T11:50:00-04:00",
+          "session": "devon-friday-fresh",
+          "contract_hash": "b70932e1d65fa6ea0a58949953146a0253228c1f52f38d1364208f64841a9e84",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+          "error_type": "execution_or_judge"
+        },
+        {
+          "id": "devon-current",
+          "at": "2026-10-19T12:00:00-04:00",
+          "session": "devon-current-fresh",
+          "contract_hash": "831cd63a2e0cc6b658a3afc55a1e2d8ff7b4bd2f9dafee1e57c05126ad17239b",
+          "state": "ungraded",
+          "verdict": null,
+          "reason": "RuntimeError: Earlier native import failed; source state unavailable",
           "error_type": "execution_or_judge"
         }
       ],
@@ -1415,741 +2678,6 @@
       "behavior": {
         "evaluation_context": "shared"
       }
-    },
-    {
-      "provider": "memcal",
-      "repetition": 1,
-      "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
-      "capability": {
-        "available": true,
-        "reason": "",
-        "tools": [
-          "memcal_open",
-          "memcal_open_page",
-          "memcal_search_wiki",
-          "memcal_open_source",
-          "memcal_conversation",
-          "memcal_list_days",
-          "memcal_list_month",
-          "memcal_search_archive",
-          "memcal_activity",
-          "memcal_refresh",
-          "memcal_add",
-          "memcal_update",
-          "memcal_schedule",
-          "memcal_move_once",
-          "memcal_merge",
-          "memcal_drop",
-          "memcal_todo",
-          "memcal_answer",
-          "memcal_note",
-          "memcal_alias",
-          "memcal_reviewed"
-        ],
-        "provider": "memcal",
-        "live_verified": true,
-        "read_only_smoke": {
-          "tool": "memcal_list_days",
-          "arguments": {},
-          "output": "{\"from\": \"2026-09-11\", \"to\": \"2026-09-11\", \"weekday\": \"Friday\", \"rows\": [], \"free\": true}"
-        },
-        "wiring_verified": true
-      },
-      "state": "diagnostic",
-      "checks": [
-        {
-          "id": "friday-pizza",
-          "at": "2026-10-19T10:00:00-04:00",
-          "session": "friday-recap",
-          "contract_hash": "ae86debdeb5d1a039007d95116be7b06f3efdebc645088f6381e58274b0821f8",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 5,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 5,
-              "points": 5.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "count",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "time",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "venue",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "street",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "attendees",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "maya-options",
-          "at": "2026-10-19T10:02:00-04:00",
-          "session": "friday-recap",
-          "contract_hash": "4c0dbb817e63cc9391054e0b372569b84252013596de56c0454b53cfbc9e39cd",
-          "state": "diagnostic",
-          "verdict": "fail",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 0,
-              "initial_missed": 1,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 0.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "dominos-too-far",
-                  "initial_verdict": "missed",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": true,
-                  "path_needs_review": false,
-                  "points": 0.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "friday-count",
-          "at": "2026-10-19T10:10:00-04:00",
-          "session": "count-fresh",
-          "contract_hash": "2ad9d226fb5c51f23942c91049d795be9d77a23576f4397b105a1609f69b9cad",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "friday-pizza-count",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "saturday-pizza",
-          "at": "2026-10-19T10:20:00-04:00",
-          "session": "saturday-fresh",
-          "contract_hash": "4190036cd063bc707503dcfe54bbe1b00190b113d0b11368ef5623a19f7ac532",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "no-sat-pizza",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "ben-current",
-          "at": "2026-10-19T10:30:00-04:00",
-          "session": "ben-fresh",
-          "contract_hash": "a0741ca34c77473bf09a4c9edeb21da90556f2e279adc61616e8a7bfea5bfc0c",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 3,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 3,
-              "points": 3.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "ben-dinner-day",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "ben-dinner-time",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "ben-dinner-venue",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "ben-thursday",
-          "at": "2026-10-19T10:32:00-04:00",
-          "session": "ben-fresh",
-          "contract_hash": "a3557952027f1c1b2bfb5805a127c0da3d9f96034a90a04d1254e3c8626c38bd",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "ben-no-thursday",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "pond-current",
-          "at": "2026-10-19T10:40:00-04:00",
-          "session": "pond-fresh",
-          "contract_hash": "aa4a0f768921203d662c0297cbfe758a7a91ac5752e1bbb95b60fea5a2cdd9eb",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 2,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 2,
-              "points": 2.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "duckpond-postponed",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "duckpond-no-replacement",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "separate-friday",
-          "at": "2026-10-19T10:42:00-04:00",
-          "session": "pond-fresh",
-          "contract_hash": "9d6fe0e17c4370712c589b0906838280f8efac2e8542fa6d7304fc1a6f0e7b33",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 2,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 2,
-              "points": 2.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "jen-call-agreed",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "alex-coffee-agreed",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "jen-call",
-          "at": "2026-10-19T10:50:00-04:00",
-          "session": "friday-jen-fresh",
-          "contract_hash": "aac4f35fb9408cd6fdd3e507ca432afacb73205f77f9f3f6018e5eda4e7a579d",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 2,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 2,
-              "points": 2.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "jen-friday-time",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "jen-friday-purpose",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "alex-coffee",
-          "at": "2026-10-19T11:00:00-04:00",
-          "session": "friday-alex-fresh",
-          "contract_hash": "509b81aa4568db4c9ea895d811e45a159bada21a910b55c0ff56daa5bc88772c",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 2,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 2,
-              "points": 2.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "alex-coffee-time",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "alex-coffee-venue",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "leo-attending",
-          "at": "2026-10-19T11:10:00-04:00",
-          "session": "friday-leo-fresh",
-          "contract_hash": "7777c77797f717a272ecb5448f3bf15d04236c03ae66a8ac9dd0149d93eb761c",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 0.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "leo-friday-out",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": true,
-                  "path_needs_review": false,
-                  "points": 0.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "maya-food",
-          "at": "2026-10-19T11:20:00-04:00",
-          "session": "maya-food-fresh",
-          "contract_hash": "828e1b1a0e78084bd07865da3841774c087d1a88f6f6f3617c79cb924dc648b1",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "maya-dairy-free-friday",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "alex-entrance",
-          "at": "2026-10-19T11:30:00-04:00",
-          "session": "alex-entrance-fresh",
-          "contract_hash": "5ef894990cdd7c4364770c6ddbc9bf138278ecea37500f8c6321505cea5671bb",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 3,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 3,
-              "points": 0.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "birch-front",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": true,
-                  "path_needs_review": false,
-                  "points": 0.0
-                },
-                {
-                  "claim_id": "birch-street",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": true,
-                  "path_needs_review": false,
-                  "points": 0.0
-                },
-                {
-                  "claim_id": "birch-side-closed",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": true,
-                  "path_needs_review": false,
-                  "points": 0.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "ben-reason",
-          "at": "2026-10-19T11:40:00-04:00",
-          "session": "ben-reason-fresh",
-          "contract_hash": "6ee840bd23adf7c1f658c7ce6348412eb51e11f5ab37f870e1f77f9e1f0734e3",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "ben-reason",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "devon-friday",
-          "at": "2026-10-19T11:50:00-04:00",
-          "session": "devon-friday-fresh",
-          "contract_hash": "b70932e1d65fa6ea0a58949953146a0253228c1f52f38d1364208f64841a9e84",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 1,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 1,
-              "points": 1.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "devon-friday-no-pizza",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        },
-        {
-          "id": "devon-current",
-          "at": "2026-10-19T12:00:00-04:00",
-          "session": "devon-current-fresh",
-          "contract_hash": "831cd63a2e0cc6b658a3afc55a1e2d8ff7b4bd2f9dafee1e57c05126ad17239b",
-          "state": "diagnostic",
-          "verdict": "pass",
-          "reason": "",
-          "interaction": "answer",
-          "recovery": {
-            "state": "complete",
-            "score": {
-              "initial_correct": 5,
-              "initial_missed": 0,
-              "initial_misrepresented": 0,
-              "max_points": 5,
-              "points": 5.0,
-              "recovery_weight": 0.5,
-              "claims": [
-                {
-                  "claim_id": "devon-day",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "devon-time",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "devon-venue",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "devon-street",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                },
-                {
-                  "claim_id": "devon-count",
-                  "initial_verdict": "correct",
-                  "followup_verdict": null,
-                  "recovered_answer": false,
-                  "retention_failed": false,
-                  "path_needs_review": false,
-                  "points": 1.0
-                }
-              ],
-              "calibrated": false
-            },
-            "attempts": []
-          }
-        }
-      ],
-      "reason": "",
-      "behavior": {
-        "evaluation_context": "shared"
-      }
     }
   ],
   "mode": "native-hermes",
@@ -2161,10 +2689,10 @@
     "service": "muse-budget-gateway",
     "daily_limit_usd": 10.0,
     "total_limit_usd": null,
-    "accounted_today_usd": 0.0,
+    "accounted_today_usd": 2.2060152,
     "budget_blocked": false,
     "active_reservations": 0,
-    "utc_day": "2026-10-21",
+    "utc_day": "2026-10-23",
     "upstream_auth_blocked": false
   },
   "input_hash": "73ab6df26c724b53ef9627af1e60121138576cdf43f2907ab7486e87ee4d7eec",
@@ -2239,7 +2767,7 @@
       ],
       "source_file": "sources/2026-09-15/messages.txt",
       "file": "ingestion/2026-09-15.json",
-      "source_manifest_sha256": "b6a04db745c5afcb6b0366856688d9309808b715dd11dd0dd402557c32003478"
+      "source_manifest_sha256": "d624eedb794a2a01bbb5229b4ef0a81132900aa0d5a86b819c6960a1b13ae8e9"
     },
     {
       "id": "2026-09-16",
@@ -2300,7 +2828,7 @@
       ],
       "source_file": "sources/2026-09-16/messages.txt",
       "file": "ingestion/2026-09-16.json",
-      "source_manifest_sha256": "3093185692163f89c820b34820d1d668fef721b93a99e0ea8f00fb224f813dc6"
+      "source_manifest_sha256": "fc726d5764995f508d0d011a0d95e620c4f7e35ed98bc2b2cd8988899066ca93"
     },
     {
       "id": "2026-09-17",
@@ -2410,7 +2938,7 @@
       ],
       "source_file": "sources/2026-09-17/messages.txt",
       "file": "ingestion/2026-09-17.json",
-      "source_manifest_sha256": "256a1961e29a27527452f4dd105b4650d489133273069836ccd8dd8214608c95"
+      "source_manifest_sha256": "61c7428146912910d708206488783544eb41f7ba08839e840c6efd555c63df03"
     },
     {
       "id": "2026-09-18",
@@ -2468,7 +2996,7 @@
       ],
       "source_file": "sources/2026-09-18/messages.txt",
       "file": "ingestion/2026-09-18.json",
-      "source_manifest_sha256": "e203d0a758e7bf42e649c4678ec10167781205ba63b4bc59fc72ba7ae04be167"
+      "source_manifest_sha256": "23d013d02ff75798f1be77e34bc2b07ec875ce5e06c46658b651268ce664ca3a"
     },
     {
       "id": "2026-09-19",
@@ -2521,7 +3049,7 @@
       ],
       "source_file": "sources/2026-09-19/messages.txt",
       "file": "ingestion/2026-09-19.json",
-      "source_manifest_sha256": "b11fd0b6fa081ca0a7673b71dd49166c2898defd49d7519bebfed2ce272904ba"
+      "source_manifest_sha256": "8ba6c373abbe51f4a969955acf26310045a4e453e1c980caaf2fc6aaf006b1d0"
     },
     {
       "id": "2026-09-20",
@@ -2591,7 +3119,7 @@
       ],
       "source_file": "sources/2026-09-20/messages.txt",
       "file": "ingestion/2026-09-20.json",
-      "source_manifest_sha256": "c3fb8cf8efa38f83ef93919af1d5e1ba697af8124a060a49802292ce3610e942"
+      "source_manifest_sha256": "c9b717af757f7715f392509475b4d8ad34003ac429634874a9af14734319d6c2"
     },
     {
       "id": "2026-09-21",
@@ -2692,7 +3220,7 @@
       ],
       "source_file": "sources/2026-09-21/messages.txt",
       "file": "ingestion/2026-09-21.json",
-      "source_manifest_sha256": "a02cb69e25b46bd8cd4a5af22cae7749bbee42d0e6ec05bb3a1c91b63dc7cbb3"
+      "source_manifest_sha256": "b2d042663d234f830a1bd6d8c7d1993d1d3c7aa09719668bc8580f76beeccda9"
     },
     {
       "id": "2026-09-22",
@@ -2753,7 +3281,7 @@
       ],
       "source_file": "sources/2026-09-22/messages.txt",
       "file": "ingestion/2026-09-22.json",
-      "source_manifest_sha256": "46fc4db6ef3c47425e1ef4e90cb4f7472ba3334858080b47b109be918ebb9ff2"
+      "source_manifest_sha256": "409280164e6455fd78b78bad0c1e2246ec141334ff9e008228fbe5d90d97bb09"
     },
     {
       "id": "2026-09-23",
@@ -2816,7 +3344,7 @@
       ],
       "source_file": "sources/2026-09-23/messages.txt",
       "file": "ingestion/2026-09-23.json",
-      "source_manifest_sha256": "fe8a937d1742115235b589712ae8818d25a0e7f97438a1ff0284dd1697b85c41"
+      "source_manifest_sha256": "574ac40e188d8c0614bccd74f6fc5ca54018d5542aae0e03657e95e1265db8d9"
     },
     {
       "id": "2026-09-24",
@@ -2908,7 +3436,7 @@
       ],
       "source_file": "sources/2026-09-24/messages.txt",
       "file": "ingestion/2026-09-24.json",
-      "source_manifest_sha256": "3d2d437475d985e5aaf6e362df26aec6b5de7d9b647ad10640de98abdf651fde"
+      "source_manifest_sha256": "3e7545824df53c7a4141bfb002a36d3072efe091e3636abe3d7ef2aa0b72d0b9"
     },
     {
       "id": "2026-09-25",
@@ -2969,7 +3497,7 @@
       ],
       "source_file": "sources/2026-09-25/messages.txt",
       "file": "ingestion/2026-09-25.json",
-      "source_manifest_sha256": "ed0200ca3a7d84979fc01b6a45c337c0473dc9980a4b0d936ffe2ab64a31714d"
+      "source_manifest_sha256": "9026516e6315c0e26ec48dc96b606d190972f51ae4065e0a0f8cbb8d44f417c9"
     },
     {
       "id": "2026-09-26",
@@ -3052,7 +3580,7 @@
       ],
       "source_file": "sources/2026-09-26/messages.txt",
       "file": "ingestion/2026-09-26.json",
-      "source_manifest_sha256": "5b2b288208b146a792a0c6943a24f933d96ef0758aa435fc1594901c150e5a37"
+      "source_manifest_sha256": "e9bb30210c2e571a1bc7f29a746181b78db8083d87f1bbc6487ab83b80a49349"
     },
     {
       "id": "2026-09-27",
@@ -3113,7 +3641,7 @@
       ],
       "source_file": "sources/2026-09-27/messages.txt",
       "file": "ingestion/2026-09-27.json",
-      "source_manifest_sha256": "1a70242e145a8cd17907cfe10953a5eba533784901bdd20e50f4044f5e7b02d8"
+      "source_manifest_sha256": "e6026cd0d96bffa584cd4eaf05455958f8dfa5a20d7184d1192f7314c0ed701a"
     },
     {
       "id": "2026-09-28",
@@ -3194,7 +3722,7 @@
       ],
       "source_file": "sources/2026-09-28/messages.txt",
       "file": "ingestion/2026-09-28.json",
-      "source_manifest_sha256": "1597be691d8c6c5f49f17c89111c7430afd4fd0eccc6fe66593e3527ac70e6d8"
+      "source_manifest_sha256": "bb043cf94dcf8d226489df38d4b7e43f5c302c1393521b486a7d92a7aeda0c81"
     },
     {
       "id": "2026-09-29",
@@ -3256,7 +3784,7 @@
       ],
       "source_file": "sources/2026-09-29/messages.txt",
       "file": "ingestion/2026-09-29.json",
-      "source_manifest_sha256": "4ab8daa3682e426afe924993e8f1567f7b75b90ec943fd00162700a8a485c528"
+      "source_manifest_sha256": "0810c6fcad2a3bc465c347057772d4a1bd46ca1638368d2a2deb28cf3d595493"
     },
     {
       "id": "2026-09-30",
@@ -3324,7 +3852,7 @@
       ],
       "source_file": "sources/2026-09-30/messages.txt",
       "file": "ingestion/2026-09-30.json",
-      "source_manifest_sha256": "5bf9f432c3e89981992c54c98bdfcac1353965beeb465730e860c66cb0fa3694"
+      "source_manifest_sha256": "8922b212840d7ddb63e067493f0abab0cee11c0c3a7a5437855969bef0085976"
     },
     {
       "id": "2026-10-01",
@@ -3456,7 +3984,7 @@
       ],
       "source_file": "sources/2026-10-01/messages.txt",
       "file": "ingestion/2026-10-01.json",
-      "source_manifest_sha256": "f9b60c0e8df59ce70187a7ab9b7086d3a6889a918fc4fa1f551d70db33057643"
+      "source_manifest_sha256": "8139d24b16751780479e04b471ec93c35fa03bfe361022ddd2a63e0fbda4c982"
     },
     {
       "id": "2026-10-02",
@@ -3509,7 +4037,7 @@
       ],
       "source_file": "sources/2026-10-02/messages.txt",
       "file": "ingestion/2026-10-02.json",
-      "source_manifest_sha256": "fab4a7a7d7c242de33d6aff8d5fb0eca6dfdc240b3614ac17f9a0b09cf7cb59f"
+      "source_manifest_sha256": "7a5a38be9590eb6f55e9045943886bf5fc5a6cfb0bf24264c5248ead4158c606"
     },
     {
       "id": "2026-10-03",
@@ -3578,7 +4106,7 @@
       ],
       "source_file": "sources/2026-10-03/messages.txt",
       "file": "ingestion/2026-10-03.json",
-      "source_manifest_sha256": "0a131a2c9aa404d7b2d27108cafd053688ab65ec386911b0846463d210b6e7b0"
+      "source_manifest_sha256": "25bd05b52c34950b4b970168a8ade6d55e59b246ef0cae91eaf11917a513fa08"
     },
     {
       "id": "2026-10-04",
@@ -3631,7 +4159,7 @@
       ],
       "source_file": "sources/2026-10-04/messages.txt",
       "file": "ingestion/2026-10-04.json",
-      "source_manifest_sha256": "540d0ef2c8bab09006416d5c54aa5d71e74bb558bc93460bfe08f294a437cb18"
+      "source_manifest_sha256": "17c871081867b591875aa108942a04da8e2ceb89f1ecf9a0229d7686c003a6d3"
     },
     {
       "id": "2026-10-05",
@@ -3722,7 +4250,7 @@
       ],
       "source_file": "sources/2026-10-05/messages.txt",
       "file": "ingestion/2026-10-05.json",
-      "source_manifest_sha256": "83503436b2413aa05b0f7ea81b664844e6c66e0acad8e7ca0cba92168d7b58e9"
+      "source_manifest_sha256": "fa3a3aa2b93c1b8be67c7cc2d53c469f2cca4ba125688d2cb60b1a8c2cb7ed2b"
     },
     {
       "id": "2026-10-06",
@@ -3786,7 +4314,7 @@
       ],
       "source_file": "sources/2026-10-06/messages.txt",
       "file": "ingestion/2026-10-06.json",
-      "source_manifest_sha256": "0db05815150ec14cd38777e6cba97280dd5c410b49b4acf2e6c9264013f59b7d"
+      "source_manifest_sha256": "0d943f6797aa1b42959c87991e4aab8137217771eed4219c5e906915f24f68dc"
     },
     {
       "id": "2026-10-07",
@@ -3851,7 +4379,7 @@
       ],
       "source_file": "sources/2026-10-07/messages.txt",
       "file": "ingestion/2026-10-07.json",
-      "source_manifest_sha256": "c9f81674ef551f2583b22168dfae5b2f1f4f7aba5325fa2183aa02f91a78a5b6"
+      "source_manifest_sha256": "73a41bb800d06848eeb312140b5d50523761661e7a3ae8cfe27fb26dcb54c081"
     },
     {
       "id": "2026-10-08",
@@ -3951,7 +4479,7 @@
       ],
       "source_file": "sources/2026-10-08/messages.txt",
       "file": "ingestion/2026-10-08.json",
-      "source_manifest_sha256": "5e1352b0dd8734f64a58f171e6a6b51dd49a2bfa22070aa548295488411b537b"
+      "source_manifest_sha256": "ac58bb3a17eed6dddbeb3b68f17f0afa481a100f512fbba7f0eb5046846919d4"
     },
     {
       "id": "2026-10-09",
@@ -4012,7 +4540,7 @@
       ],
       "source_file": "sources/2026-10-09/messages.txt",
       "file": "ingestion/2026-10-09.json",
-      "source_manifest_sha256": "25bb07c9ec40999c8ea18600fbd17c109a768c4a85d3cb1518b9bcd37ab3fe4d"
+      "source_manifest_sha256": "c9acaf3b5e6a3eb99902357fff9c65410602d526836155fe5d38f74e5ef5daac"
     },
     {
       "id": "2026-10-10",
@@ -4087,7 +4615,7 @@
       ],
       "source_file": "sources/2026-10-10/messages.txt",
       "file": "ingestion/2026-10-10.json",
-      "source_manifest_sha256": "c3b385c2e7ae9e3fcfcf3f28b051d6704b4f2cd17d7402cfd13736e4af25d428"
+      "source_manifest_sha256": "4adea4b281e40c22babad9545f33b63639077a9a8ac7cdf5c166b92d363f6fd1"
     },
     {
       "id": "2026-10-11",
@@ -4218,7 +4746,7 @@
       ],
       "source_file": "sources/2026-10-11/messages.txt",
       "file": "ingestion/2026-10-11.json",
-      "source_manifest_sha256": "623900b8dc90b2d355af806c9d31b9906a83504db2041048fe6f526c5bf074ce"
+      "source_manifest_sha256": "2bdf0a4aa8ffb6896ceef27a7a051e793ea2f8299cce25d53214fd407149bfd7"
     },
     {
       "id": "2026-10-12",
@@ -4523,7 +5051,7 @@
       ],
       "source_file": "sources/2026-10-12/messages.txt",
       "file": "ingestion/2026-10-12.json",
-      "source_manifest_sha256": "cdf6595b9f3653bdc170eb91e648d55c2556efa15450a65452fb81774c32a11e"
+      "source_manifest_sha256": "62598dc15b05f6c787597ebb685f66bd8604ee9396ee8d0c3c2bd4b589fc969e"
     },
     {
       "id": "2026-10-13",
@@ -4822,7 +5350,7 @@
       ],
       "source_file": "sources/2026-10-13/messages.txt",
       "file": "ingestion/2026-10-13.json",
-      "source_manifest_sha256": "f3a552b3b1d150ed20760e35b5ab75a4ef4a47bd27a1dd47a06b37957104ef4d"
+      "source_manifest_sha256": "63a7022a29a62ef017c9bec13ff2c1d0d96b98e9aae541b27a7531d0980415d8"
     },
     {
       "id": "2026-10-14",
@@ -5262,7 +5790,7 @@
       ],
       "source_file": "sources/2026-10-14/messages.txt",
       "file": "ingestion/2026-10-14.json",
-      "source_manifest_sha256": "e62993b3590f6f2f84adf02e20b83dc2f2c0d1f811476a5e8c4388b35ba67672"
+      "source_manifest_sha256": "56ad85d659fb062e90503cccee524813fa1054fb28e349292123bb8d4caa5fec"
     }
   ],
   "evaluation_plan_hash": "cd1cda9643e6670dde0b40540016bb9fe59747a553f3adab2e88c17b41a30ba5",
@@ -5273,7 +5801,7 @@
     "service": "muse-budget-gateway",
     "daily_limit_usd": 10.0,
     "total_limit_usd": null,
-    "accounted_today_usd": 1.1895549,
+    "accounted_today_usd": 6.9452459,
     "budget_blocked": false,
     "active_reservations": 0,
     "utc_day": "2026-10-23",
@@ -5282,68 +5810,31 @@
   "audit": {
     "state": "fail",
     "errors": [
-      "repeat-1/mem0: incomplete arm",
-      "repeat-1/honcho: incomplete arm",
       "repeat-1/supermemory: incomplete arm",
       "repeat-1/byterover: incomplete arm",
+      "repeat-1/honcho: incomplete arm",
       "repeat-1/hindsight: incomplete arm",
       "repeat-1/openviking: incomplete arm"
     ],
     "component_audits": [
       {
-        "component": "pizza-month-revisions-memcal-20261021",
+        "component": "pizza-month-revisions-memcal-update-20261023",
         "audit": {
           "state": "pass",
           "errors": [],
-          "selected_providers": []
-        }
-      },
-      {
-        "component": "pizza-month-revisions-mem0-20261021",
-        "audit": {
-          "state": "pass",
-          "errors": [],
-          "selected_providers": []
-        }
-      },
-      {
-        "component": "pizza-month-revisions-mem0-defaults-20261021",
-        "audit": {
-          "state": "fail",
-          "errors": [
-            "repeat-1/mem0: incomplete arm"
-          ],
           "scope": "native trace integrity, not calibrated provider quality"
         }
       },
       {
-        "component": "pizza-month-revisions-honcho-20261021",
+        "component": "pizza-month-revisions-mem0-reasoning-retry-20261023",
         "audit": {
-          "state": "fail",
-          "errors": [
-            "repeat-1/honcho: incomplete arm"
-          ],
+          "state": "pass",
+          "errors": [],
           "scope": "native trace integrity, not calibrated provider quality"
         }
       },
       {
-        "component": "pizza-month-revisions-hindsight-20261021",
-        "audit": {
-          "state": "pass",
-          "errors": [],
-          "selected_providers": []
-        }
-      },
-      {
-        "component": "pizza-month-revisions-openviking-20261021",
-        "audit": {
-          "state": "pass",
-          "errors": [],
-          "selected_providers": []
-        }
-      },
-      {
-        "component": "pizza-month-revisions-supermemory-20261021",
+        "component": "pizza-month-revisions-supermemory-instant-20261023",
         "audit": {
           "state": "fail",
           "errors": [
@@ -5358,6 +5849,16 @@
           "state": "fail",
           "errors": [
             "repeat-1/byterover: incomplete arm"
+          ],
+          "scope": "native trace integrity, not calibrated provider quality"
+        }
+      },
+      {
+        "component": "pizza-month-revisions-honcho-20261021",
+        "audit": {
+          "state": "fail",
+          "errors": [
+            "repeat-1/honcho: incomplete arm"
           ],
           "scope": "native trace integrity, not calibrated provider quality"
         }
@@ -5381,14 +5882,6 @@
           ],
           "scope": "native trace integrity, not calibrated provider quality"
         }
-      },
-      {
-        "component": "pizza-month-revisions-memcal-retest-20261023",
-        "audit": {
-          "state": "pass",
-          "errors": [],
-          "scope": "native trace integrity, not calibrated provider quality"
-        }
       }
     ],
     "preflight_failed_providers": [],
@@ -5396,42 +5889,22 @@
   },
   "component_runs": [
     {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-20261021",
+      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-update-20261023",
       "public_root": ".",
-      "selected_providers": []
+      "selected_providers": [
+        "memcal"
+      ]
     },
     {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-mem0-20261021",
-      "public_root": "components/pizza-month-revisions-mem0-20261021",
-      "selected_providers": []
-    },
-    {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-mem0-defaults-20261021",
-      "public_root": "components/pizza-month-revisions-mem0-defaults-20261021",
+      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-mem0-reasoning-retry-20261023",
+      "public_root": "components/pizza-month-revisions-mem0-reasoning-retry-20261023",
       "selected_providers": [
         "mem0"
       ]
     },
     {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-honcho-20261021",
-      "public_root": "components/pizza-month-revisions-honcho-20261021",
-      "selected_providers": [
-        "honcho"
-      ]
-    },
-    {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-hindsight-20261021",
-      "public_root": "components/pizza-month-revisions-hindsight-20261021",
-      "selected_providers": []
-    },
-    {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-openviking-20261021",
-      "public_root": "components/pizza-month-revisions-openviking-20261021",
-      "selected_providers": []
-    },
-    {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-supermemory-20261021",
-      "public_root": "components/pizza-month-revisions-supermemory-20261021",
+      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-supermemory-instant-20261023",
+      "public_root": "components/pizza-month-revisions-supermemory-instant-20261023",
       "selected_providers": [
         "supermemory"
       ]
@@ -5441,6 +5914,13 @@
       "public_root": "components/pizza-month-revisions-byterover-20261021",
       "selected_providers": [
         "byterover"
+      ]
+    },
+    {
+      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-honcho-20261021",
+      "public_root": "components/pizza-month-revisions-honcho-20261021",
+      "selected_providers": [
+        "honcho"
       ]
     },
     {
@@ -5455,13 +5935,6 @@
       "public_root": "components/pizza-month-revisions-openviking-retry-20261021",
       "selected_providers": [
         "openviking"
-      ]
-    },
-    {
-      "original_root": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-retest-20261023",
-      "public_root": "components/pizza-month-revisions-memcal-retest-20261023",
-      "selected_providers": [
-        "memcal"
       ]
     }
   ],

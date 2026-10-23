@@ -1,0 +1,61 @@
+{
+  "state": "captured",
+  "started": "2026-10-23T16:44:50.540913+00:00",
+  "finished": "2026-10-23T16:44:59.737429+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 2,
+      "input_tokens": 8720,
+      "output_tokens": 396,
+      "accounted_upper_bound_usd": 0.0009511999999999999,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "7c600ce00fda4b7e9f3ce57373e96ca9",
+      "project": "pacbench-8713453ce1da-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:44:53.386888+00:00",
+      "finished": "2026-10-23T16:44:55.845168+00:00",
+      "state": "settled",
+      "input_tokens": 4265,
+      "output_tokens": 227,
+      "accounted": 471900,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004719
+    },
+    {
+      "id": "1e0bddeb265246ef87ffe61d1e3ba70a",
+      "project": "pacbench-8713453ce1da-supermemory-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:44:56.129313+00:00",
+      "finished": "2026-10-23T16:44:58.257764+00:00",
+      "state": "settled",
+      "input_tokens": 4455,
+      "output_tokens": 169,
+      "accounted": 479300,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004793
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

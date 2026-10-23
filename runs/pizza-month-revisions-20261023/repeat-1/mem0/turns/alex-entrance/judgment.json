@@ -1,0 +1,38 @@
+{
+  "checkpoint": "alex-entrance",
+  "question": "[Simulated now: 2026-10-19T11:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhich entrance should we use at Birch on Friday?",
+  "answer": "Use the Birch Street front entrance with the temporary step-free metal ramp — the Mill Lane side entrance is closed through ~Oct 25.",
+  "claims": [
+    {
+      "id": "birch-front",
+      "description": "For the coffee with Alex at Birch Cafe on Friday, October 23, the entrance to use is the front entrance.",
+      "evidence": [
+        "message-8c6b774f6f6eacaa67d7a7cb",
+        "message-3df90dbee5cc29415f4e3a3f",
+        "message-aca86e18a52659dbadf43ff2",
+        "message-d23fba4cec2be5d2dd6b5cdf"
+      ]
+    },
+    {
+      "id": "birch-street",
+      "description": "For the coffee with Alex at Birch Cafe on Friday, October 23, the entrance to use is on Birch Street.",
+      "evidence": [
+        "message-8c6b774f6f6eacaa67d7a7cb",
+        "message-3f05caca508218ccf4fe4058",
+        "message-3df90dbee5cc29415f4e3a3f"
+      ]
+    },
+    {
+      "id": "birch-side-closed",
+      "description": "For the coffee with Alex at Birch Cafe on Friday, October 23, the side entrance on Mill Lane is closed and is not a usable option.",
+      "evidence": [
+        "message-abbc7e8899c3d8425158835d",
+        "message-dc5b34ae1d0d10ac66533bf7"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nQuestion: [Simulated now: 2026-10-19T11:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhich entrance should we use at Birch on Friday?\nAnswer: Use the Birch Street front entrance with the temporary step-free metal ramp — the Mill Lane side entrance is closed through ~Oct 25.\nClaims (hidden from the assistant): [{\"id\": \"birch-front\", \"claim\": \"For the coffee with Alex at Birch Cafe on Friday, October 23, the entrance to use is the front entrance.\", \"evidence\": [\"message-8c6b774f6f6eacaa67d7a7cb\", \"message-3df90dbee5cc29415f4e3a3f\", \"message-aca86e18a52659dbadf43ff2\", \"message-d23fba4cec2be5d2dd6b5cdf\"]}, {\"id\": \"birch-street\", \"claim\": \"For the coffee with Alex at Birch Cafe on Friday, October 23, the entrance to use is on Birch Street.\", \"evidence\": [\"message-8c6b774f6f6eacaa67d7a7cb\", \"message-3f05caca508218ccf4fe4058\", \"message-3df90dbee5cc29415f4e3a3f\"]}, {\"id\": \"birch-side-closed\", \"claim\": \"For the coffee with Alex at Birch Cafe on Friday, October 23, the side entrance on Mill Lane is closed and is not a usable option.\", \"evidence\": [\"message-abbc7e8899c3d8425158835d\", \"message-dc5b34ae1d0d10ac66533bf7\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"birch-front\", \"verdict\": \"correct\", \"reason\": \"Answer directs to use the front entrance.\"}, {\"id\": \"birch-street\", \"verdict\": \"correct\", \"reason\": \"Answer specifies the entrance is the Birch Street front entrance.\"}, {\"id\": \"birch-side-closed\", \"verdict\": \"correct\", \"reason\": \"Answer states Mill Lane side entrance is closed through ~Oct 25.\"}], \"recovery\": [{\"id\": \"birch-front\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"birch-street\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}, {\"id\": \"birch-side-closed\", \"kind\": \"provided\", \"reason\": \"Fact correctly conveyed in answer.\"}], \"interaction\": \"answer\", \"benchmark_error\": null}",
+  "conversation": [],
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-revisions-mem0-reasoning-retry-20261023/model-calls/4bbd5bf5541ae3a8a5137fef76906a38fb10af63cf1f5f2d99f4e7b4354edfc6.json"
+}

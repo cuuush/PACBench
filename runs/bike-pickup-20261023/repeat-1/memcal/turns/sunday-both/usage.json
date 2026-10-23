@@ -1,0 +1,61 @@
+{
+  "state": "captured",
+  "started": "2026-10-23T16:19:27.574471+00:00",
+  "finished": "2026-10-23T16:19:35.835113+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 2,
+      "input_tokens": 9262,
+      "output_tokens": 424,
+      "accounted_upper_bound_usd": 0.001011,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "530ad0bcff364db9aebe81e9f730c981",
+      "project": "pacbench-174090aae1b9-memcal-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:19:30.508296+00:00",
+      "finished": "2026-10-23T16:19:35.027760+00:00",
+      "state": "settled",
+      "input_tokens": 8945,
+      "output_tokens": 255,
+      "accounted": 945500,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0009455
+    },
+    {
+      "id": "6fca9777e15a42f399ab47db90129b89",
+      "project": "pacbench-174090aae1b9-memcal-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-23T16:19:30.508517+00:00",
+      "finished": "2026-10-23T16:19:32.490348+00:00",
+      "state": "settled",
+      "input_tokens": 317,
+      "output_tokens": 169,
+      "accounted": 65500,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 6.55e-05
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

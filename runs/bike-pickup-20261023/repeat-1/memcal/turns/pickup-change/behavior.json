@@ -1,0 +1,51 @@
+{
+  "state": "complete",
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_write": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_update",
+        "arguments": {
+          "time": "11:00",
+          "when": "2026-10-25",
+          "which": "E1"
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772324887,
+        "result": {
+          "tool": "memcal_update",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"row\": \"Sun Oct 25  Pick up bike, 11am \\u2014 confirmed \\u00b7 Spoke Cycles, 114 Maple Avenue \\u00b7 with Riley\", \"changed\": [\"date: 2026-10-24 \\u2192 2026-10-25\", \"time: 10:00 \\u2192 11:00\"]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.71,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "observable_only": true
+}

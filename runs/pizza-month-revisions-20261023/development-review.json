@@ -1,16 +1,12 @@
 {
-  "source_reviews": [
-    {
-      "review": {
-        "answer": "No - the duck pond walk planned for Friday Oct 23 at 2pm at Willow Park west entrance was postponed on Oct 14 with a raincheck and was not rescheduled.",
-        "unambiguous": true,
-        "issues": [],
-        "reason": "On Oct 12 the group set next Friday - explicitly the 23rd week - 2pm Willow Park west entrance by the duck pond. On Oct 14 in the same thread Jen says 'i cant make it friday' / 'friday is a no for me', Alex says 'honestly me too, let's just do this another day', Me says 'yeah lets just postpone then', followed by mutual 'raincheck' / 'figure it out later'. No later reschedule appears. Asked Oct 19 about 'that duck pond walk on Friday' - i.e. Oct 23 - the follow-up is still postponed."
-      },
-      "source_hash": "18e6494f0cf553464a063811cff46a2af9e51c76f98cd5e0b82f2e33bbae3e70",
-      "model_call": "model-calls/1844fa638e0c9e4b055f2bfecb92143e9d34bec335f901b164f3dca77b326d79.json",
-      "scope": "Focused source audit without provider answers or authored expectations; original grades unchanged",
-      "original_model_call": "/workspace/PACBench/artifacts/pizza-month-pond-source-review-20261021/model-calls/1844fa638e0c9e4b055f2bfecb92143e9d34bec335f901b164f3dca77b326d79.json"
-    }
-  ]
+  "scope": "Development evidence, not calibrated provider rankings",
+  "limitations": [
+    "Frozen questions use simulated October 19; actual backend capture clocks are not universally simulated. Some October 23 plans elapsed during October 23 retries.",
+    "Accelerated daily backfill does not measure wall-clock memory aging.",
+    "Month failures and newer small compatibility canaries are separate conditions.",
+    "Deferred work and unknown usage prevent complete lifecycle cost comparisons."
+  ],
+  "memcal_revision": "8bb7ee1",
+  "mem0_model_configuration": "Documented is_reasoning_model=true, no output-limit override",
+  "supermemory_document_mode": "document body dreaming=instant, explicitly different from the old dynamic-mode attempt"
 }

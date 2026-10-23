@@ -1,0 +1,33 @@
+{
+  "state": "pass",
+  "controls": [
+    {
+      "control": "brief-ack",
+      "expected_pass": true,
+      "actual_pass": true,
+      "correct": 1,
+      "missed": 0,
+      "misrepresented": 0,
+      "control_passed": true
+    },
+    {
+      "control": "correct-fresh",
+      "expected_pass": true,
+      "actual_pass": true,
+      "correct": 7,
+      "missed": 0,
+      "misrepresented": 0,
+      "control_passed": true
+    },
+    {
+      "control": "stale-bike",
+      "expected_pass": false,
+      "actual_pass": false,
+      "correct": 4,
+      "missed": 1,
+      "misrepresented": 2,
+      "control_passed": true
+    }
+  ],
+  "provider_run": false
+}

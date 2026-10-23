@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "77affc98e5df4e0abb48103bef89f319822e5f42461224728334041f924b64ad",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Ben Thursday October 22 dinner cancelled replaced Saturday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772494731,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"01076cc6-a515-41d0-bc90-d68861f12288\", \"memory\": \"User and Ben confirmed dinner at Juniper Cafe, 48 Maple Ave, for Saturday October 17, 2026 at 7pm, replacing the original Thursday October 22, 2026 plan, after Ben called to update the booking; User swapped a shift and said Thursday is now bad so they will keep Saturday.\", \"score\": 0.7889876524321395}, {\"id\": \"0e6838ea-de0d-4b4d-985f-508d753fe668\", \"memory\": \"User's dinner with Ben at Juniper Cafe, 48 Maple Ave originally set for 7pm Thursday, October 22, 2026 was rescheduled due to Ben's work deadline, with User confirming on October 13 that 7pm Saturday, October 24 replaces Thursday.\", \"score\": 0.7663962112124432}, {\"id\": \"91ecb129-3e6f-45ec-9556-71d167c0d063\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday October 22, 2026 at Juniper Cafe, 48 Maple Ave, with Ben craving their soup and User loving the place, noted on User's fridge note and calendars.\", \"score\": 0.6780994684348265}, {\"id\": \"041ec719-85c3-4602-80af-ede718b8358d\", \"memory\": \"Devon said on September 30, 2026 that his team dropped the Saturday 2 PM team lunches after everyone complained, following a disappointing Domino's sad team lunch.\", \"score\": 0.6690112072154477}, {\"id\": \"41fba586-b546-4418-a887-edfd9b464214\", \"memory\": \"User and Devon's Friday pizza plan was moved to Sunday October 18, 2026 same time same place because Devon was put on late shift Friday until way late with chart hell; User agreed, said Sunday works and garlic knots will hit better Sunday.\", \"score\": 0.663556242602574}, {\"id\": \"00f9d195-0d44-41df-afb4-e856cef8479e\", \"memory\": \"User and Devon moved their Friday dinner from 6 to 7 p.m. on October 2, 2026 at Mario's on Pine because Devon was stuck until about 6:30, both craving heavy cheesy slices after Rosa's thin crust did not fill User up, with User planning to try the pepperoni that Devon's coworker said was huge.\", \"score\": 0.6422810630652991}, {\"id\": \"49990bbb-66a0-4d04-884b-72f6aaeb5940\", \"memory\": \"For dinner around September 25-26, 2026, Leo had canned soup on the night of September 25 and said he would do it again, while User debated between soup and toast or leftover pasta for September 26, with Maya calling it a cozy food weekend and Leo joking grandma gang rise up.\", \"score\": 0.6305615969148698}, {\"id\": \"26071064-c2e3-4ee2-b752-7efd80105481\", \"memory\": \"For dinner on September 17, 2026 User had honey nut cereal, Leo had leftover pasta, and Maya had soup and toast. User said Thursday felt very long and Maya and Leo agreed Thursdays drag.\", \"score\": 0.6303536348364329}, {\"id\": \"01f05493-61af-46d1-bd43-28d248c23f59\", \"memory\": \"User and Maya planned lunch at 1pm on Friday October 23, 2026 at Rosa's on Oak Street, patio if not freezing, with User to grab a table like last time and do chair safety test, skipping Friday October 16 due to busy week.\", \"score\": 0.6302792565055062}, {\"id\": \"fd66e5fb-347a-4f9a-bcaa-48dc77fd4050\", \"memory\": \"User and Devon planned a pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 pm to beat the dinner rush and kick off the weekend. Both will come from the office and meet there, with Devon leaving work early, parking in back like last time, and grabbing a table if first, while User will head straight after clocking out and text when parking.\", \"score\": 0.6274575388232433}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 35.79,
+    "input_tokens": null,
+    "output_tokens": 421,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-no-thursday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed that Thursday dinner was replaced."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-no-thursday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "provider": "byterover",
+  "repetition": 1,
+  "input_hash": "47fe739fd6853c263efae2cda3b48151ff8404e1b751065e2b30b896af79d573",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "brv_query",
+      "brv_curate",
+      "brv_status"
+    ],
+    "provider": "byterover",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "brv_status",
+      "arguments": {},
+      "output": "{\"status\": \"CLI Version: 3.16.1\\nAccount: Not connected (optional \\u2014 login for push/pull sync)\\nProject: /workspace/PACBench/artifacts/bike-pickup-native-20261023/repeat-1/byterover/hermes-home/byterover\\nSpace: Not connected\\nContext Tree: Managed by Byterover version control (use brv vc commands)\\n\\nTip: Version control is now available for your context tree.\\nLearn more: https://docs.byterover.dev/git-semantic/overview\"}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "checks": [
+    {
+      "id": "pickup-before",
+      "at": "2026-10-22T10:00:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "ea56ce09e9eae85fab4b92389e448c653413558ca3acc0b6ef0e630771a260ab",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 3,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 3,
+          "points": 3.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "pickup-date",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "pickup-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "pickup-shop",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "pickup-change",
+      "at": "2026-10-22T10:02:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "2c577091228608ba6c15594555026031594b2ef00473ca767f50aa683083a79c",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Three completed provider requests lack usable token usage; stop this arm before unmetered work accumulates. This is a cost-observability blocker, not an HTTP or memory-recall failure.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "coffee-same-chat",
+      "at": "2026-10-22T10:04:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "b4dc760687bc0ff8013b811c715aaf725a10c72bc921bfb287d4936dfed69b55",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Three completed provider requests lack usable token usage; stop this arm before unmetered work accumulates. This is a cost-observability blocker, not an HTTP or memory-recall failure.",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "sunday-both",
+      "at": "2026-10-22T11:00:00-04:00",
+      "session": "sunday-fresh",
+      "contract_hash": "801c73a3b410920c71d2fe6991b4e51e67957cc0fd6eae172b872491eeb1de6f",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "pickup-change"
+    },
+    {
+      "id": "saturday-clear",
+      "at": "2026-10-22T12:00:00-04:00",
+      "session": "saturday-fresh",
+      "contract_hash": "6b045c110a7783c7677093a4bb4a4efab9dda58d969efd31584d75702ebf4e02",
+      "state": "skipped",
+      "verdict": null,
+      "reason": "Dependency unavailable",
+      "cause": "pickup-change"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

@@ -5,33 +5,35 @@
   "protocol_version": 5,
   "minimum_initial_correct": 1,
   "initial_metrics": {
-    "top_level_calls": 2,
-    "total_tool_operations": 2,
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
     "provider_internal_tool_calls": null,
     "provider_task_records": 0,
     "provider_internal_operations": [],
     "provider_internal_source_fallback_confirmed": false,
     "provider_internal_path_needs_review": false,
     "categories": {
-      "memory_detail": 1,
-      "archive_search": 1
+      "memory_search": 1,
+      "archive_search": 1,
+      "source_evidence": 1
     },
     "operations": [
       {
-        "name": "memcal_open",
+        "name": "memcal_search_wiki",
         "arguments": {
-          "ref": "maya"
+          "limit": 10,
+          "query": "Domino's"
         },
-        "category": "memory_detail",
+        "category": "memory_search",
         "dispatch_parent": null,
         "success": true,
         "policy_blocked": false,
-        "timestamp": 1792765897341,
+        "timestamp": 1792772478843,
         "result": {
-          "tool": "memcal_open",
+          "tool": "memcal_search_wiki",
           "success": true,
           "policy_blocked": false,
-          "text": "{\"slug\": \"maya\", \"title\": \"Maya\", \"section\": \"people\", \"is_self\": false, \"answers\": [\"diet\"], \"facts\": [{\"slot\": \"diet\", \"value\": \"dairy-free for a few weeks\", \"source\": \"person:Maya\", \"ts\": \"2026-10-12\", \"lines\": [1698, 1708]}], \"cited_ids\": {\"diet\": [1698, 1708]}, \"provenance\": {\"diet\": {\"entity\": \"person:Maya\", \"bundle\": \"aff481\", \"run\": 27, \"gen\": \"chatcmpl-01a16925-c45b-744e-8371-bbcec68ce916\", \"verb\": \"slot\", \"at\": \"2026-10-12T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Maya\\n\\n## Facts\\n\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1698 #1708 -->\\n\", \"encounters\": {\"count\": 1, \"by_activity\": [{\"activity\": \"lunch\", \"count\": 1}], \"recent\": [{\"key\": \"lunch@2026-09-25\", \"date\": \"2026-09-25\", \"title\": \"lunch\", \"location\": \"Mario's on Pine Street\", \"with\": [\"Leo\"]}]}, \"sources\": {\"diet\": [{\"id\": 1698, \"ts\": \"2026-10-11T13:55:12-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i'm gonna try going dairy-free for the next few weeks and see if it helps\", \"evidence\": true, \"source_heading\": \"Sun Oct 11, 2026 13:55 \\u00b7 iMessage with Maya\"}, {\"id\": 1708, \"ts\": \"2026-10-11T14:29:05-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like no milk, cheese, butter, all of it for a few weeks\", \"evidence\": true}]}, \"narrow\": {\"diet\": true}}",
+          "text": "{\"query\": \"Domino's\", \"results\": [], \"message\": \"No matching wiki fact for \\\"Domino's\\\". This means no wiki fact matched \\u2014 not that the user never told us. Open relevant events/pages with memcal_open; find calendar entries with memcal_list_days or memcal_list_month. Use memcal_search_archive only if retained details cannot answer.\"}",
           "truncated": false,
           "capture": "hermes_session_db"
         }
@@ -40,18 +42,39 @@
         "name": "memcal_search_archive",
         "arguments": {
           "limit": 20,
-          "query": "Domino's Dominos"
+          "query": "Domino's"
         },
         "category": "archive_search",
         "dispatch_parent": null,
         "success": true,
         "policy_blocked": false,
-        "timestamp": 1792765900120,
+        "timestamp": 1792772478895,
         "result": {
           "tool": "memcal_search_archive",
           "success": true,
           "policy_blocked": false,
-          "text": "{\"results\": []}",
+          "text": "{\"results\": [{\"line_id\": 1844, \"when\": \"2026-10-12T17:49\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"yeah no, Domino's is too out of the way\"}, {\"line_id\": 1842, \"when\": \"2026-10-12T17:49\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"i was scrolling and saw Domino's has a deal but honestly it's too far for us\"}, {\"line_id\": 971, \"when\": \"2026-09-30T18:40\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"better than domino's lol\"}, {\"line_id\": 499, \"when\": \"2026-09-22T20:53\", \"who\": \"Devon\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"yeah no way, 2pm Domino's with coworkers? hard pass\"}, {\"line_id\": 472, \"when\": \"2026-09-22T19:07\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"let them have their sad Domino's\"}, {\"line_id\": 463, \"when\": \"2026-09-22T18:32\", \"who\": \"Devon\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"exactly, and it's Domino's like come on\"}, {\"line_id\": 457, \"when\": \"2026-09-22T18:04\", \"who\": \"Devon\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"at Domino's over by the office\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_conversation",
+        "arguments": {
+          "after": 6,
+          "before": 6,
+          "line_id": 1842
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772482375,
+        "result": {
+          "tool": "memcal_conversation",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"conversation\": [{\"id\": 1831, \"ts\": \"2026-10-12T17:42\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes please, i need something to look forward to\"}, {\"id\": 1832, \"ts\": \"2026-10-12T17:43\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"this friday is kinda crazy for me, back to back stuff\"}, {\"id\": 1837, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"same, i'm slammed this week too, friday's gonna be a rush\"}, {\"id\": 1838, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"what if we do not this friday but next friday?\"}, {\"id\": 1839, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"oh like friday next week?\"}, {\"id\": 1840, \"ts\": \"2026-10-12T17:48\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah the one after this coming one, when things calm down\"}, {\"id\": 1841, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"that works way better for me actually\"}, {\"id\": 1842, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i was scrolling and saw Domino's has a deal but honestly it's too far for us\"}, {\"id\": 1843, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like i'm not driving across town for that when Rosa's is right here\"}, {\"id\": 1844, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah no, Domino's is too out of the way\"}, {\"id\": 1845, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"exactly, ruling that out, let's just do our usual spot\"}, {\"id\": 1846, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"Rosa's on Oak Street?\"}]}",
           "truncated": false,
           "capture": "hermes_session_db"
         }
@@ -62,8 +85,8 @@
     "unmatched_tool_results": [],
     "source_fallback_attempted": true,
     "unclassified_operations": 0,
-    "latency_s": 11.18,
-    "input_tokens": 2546,
+    "latency_s": 12.94,
+    "input_tokens": null,
     "output_tokens": null,
     "policy_blocks": 0,
     "returncode": 0,
@@ -74,15 +97,14 @@
   "eligibility": [
     {
       "id": "dominos-too-far",
-      "kind": "unavailable",
-      "reason": "Answer explicitly says it doesn't have that information in memory."
+      "kind": "provided",
+      "reason": "Correct reason conveyed in answer."
     }
   ],
   "eligible_claim_ids": [],
-  "skip_reason": "no_initial_correct_facts",
   "score": {
-    "initial_correct": 0,
-    "initial_missed": 1,
+    "initial_correct": 1,
+    "initial_missed": 0,
     "initial_misrepresented": 0,
     "max_points": 1,
     "points": 0.0,
@@ -90,7 +112,7 @@
     "claims": [
       {
         "claim_id": "dominos-too-far",
-        "initial_verdict": "missed",
+        "initial_verdict": "correct",
         "followup_verdict": null,
         "recovered_answer": false,
         "retention_failed": true,

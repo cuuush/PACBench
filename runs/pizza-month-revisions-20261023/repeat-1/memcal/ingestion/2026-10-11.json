@@ -166,7 +166,7 @@
         "bundle_id": "517eb9",
         "label": "Devon",
         "kind": "person",
-        "lines": 59,
+        "lines": 65,
         "state": "reading",
         "updated_at": "2026-10-12T03:00:00-04:00"
       },
@@ -176,21 +176,21 @@
         "bundle_id": "aff481",
         "label": "Maya",
         "kind": "person",
-        "lines": 64,
+        "lines": 70,
         "state": "reading",
         "updated_at": "2026-10-12T03:00:00-04:00"
       }
     ],
-    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-retest-20261023/repeat-1/memcal/ingestion-model-calls/2026-10-11.json",
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-update-20261023/repeat-1/memcal/ingestion-model-calls/2026-10-11.json",
     "native_event_state": [
       {
         "key": "co-op-cooking-game@2026-09-18",
         "date": "2026-09-18",
         "time": null,
-        "title": "co-op cooking game",
+        "title": "Co-op cooking game",
         "location": null,
-        "status": "mentioned",
-        "participants": "[\"Leo\", \"Maya\"]",
+        "status": "tentative",
+        "participants": "[]",
         "subject": "me"
       },
       {
@@ -200,15 +200,15 @@
         "title": "Cooking game",
         "location": null,
         "status": "mentioned",
-        "participants": "[\"Leo\", \"Maya\"]",
+        "participants": "[]",
         "subject": "me"
       },
       {
-        "key": "family-dinner@2026-10-03",
+        "key": "family-visit@2026-10-03",
         "date": "2026-10-03",
         "time": null,
-        "title": "Family dinner",
-        "location": "parents' place",
+        "title": "Family visit",
+        "location": null,
         "status": "confirmed",
         "participants": "[]",
         "subject": "me"
@@ -217,20 +217,10 @@
         "key": "lunch@2026-09-20",
         "date": "2026-09-20",
         "time": null,
-        "title": "lunch",
-        "location": "Devon's mom's",
-        "status": "tentative",
-        "participants": "[\"Devon\"]",
-        "subject": "me"
-      },
-      {
-        "key": "lunch@2026-09-25",
-        "date": "2026-09-25",
-        "time": "13:00",
-        "title": "lunch",
-        "location": "Mario's on Pine Street",
+        "title": "Lunch",
+        "location": null,
         "status": "happened",
-        "participants": "[\"Maya\", \"Leo\"]",
+        "participants": "[\"Devon\"]",
         "subject": "me"
       },
       {
@@ -238,19 +228,9 @@
         "date": "2026-10-04",
         "time": null,
         "title": "Lunch",
-        "location": "Mario's on Pine Street",
+        "location": null,
         "status": "confirmed",
-        "participants": "[\"Devon\"]",
-        "subject": "me"
-      },
-      {
-        "key": "pizza-dinner@2026-09-18",
-        "date": "2026-09-18",
-        "time": "18:00",
-        "title": "pizza dinner",
-        "location": "Luigi's on 5th Street",
-        "status": "happened",
-        "participants": "[\"Devon\"]",
+        "participants": "[]",
         "subject": "me"
       },
       {
@@ -264,13 +244,13 @@
         "subject": "me"
       },
       {
-        "key": "pizza-lunch@2026-09-18",
-        "date": "2026-09-18",
+        "key": "pizza-lunch@2026-09-25",
+        "date": "2026-09-25",
         "time": "13:00",
-        "title": "pizza lunch",
-        "location": "Rosa's on Oak Street",
-        "status": "confirmed",
-        "participants": "[\"Maya\"]",
+        "title": "Pizza lunch",
+        "location": "Mario's on Pine Street",
+        "status": "happened",
+        "participants": "[\"Leo\", \"Maya\"]",
         "subject": "me"
       },
       {
@@ -290,14 +270,24 @@
         "title": "Pizza lunch",
         "location": "Luigi's on 5th Street",
         "status": "confirmed",
-        "participants": "[\"Maya\", \"Leo\"]",
+        "participants": "[\"Leo\", \"Maya\"]",
+        "subject": "me"
+      },
+      {
+        "key": "pizza@2026-09-18",
+        "date": "2026-09-18",
+        "time": "18:00",
+        "title": "Pizza",
+        "location": "Luigi's on 5th Street",
+        "status": "happened",
+        "participants": "[\"Devon\", \"Maya\"]",
         "subject": "me"
       },
       {
         "key": "pizza@2026-09-25",
         "date": "2026-09-25",
         "time": "19:00",
-        "title": "pizza",
+        "title": "Pizza",
         "location": "Rosa's on Oak Street",
         "status": "confirmed",
         "participants": "[\"Devon\"]",
@@ -314,10 +304,10 @@
         "subject": "me"
       },
       {
-        "key": "potato-salad@2026-10-12",
+        "key": "potato-salad-pickup@2026-10-12",
         "date": "2026-10-12",
         "time": null,
-        "title": "Potato salad",
+        "title": "Potato salad pickup",
         "location": null,
         "status": "mentioned",
         "participants": "[]",
@@ -327,15 +317,15 @@
     "processing": {
       "run_id": 27,
       "errors": [],
-      "report": "dream run #27 — 2 bundles, 123 items, 2 writes\n  slot      maya.diet = dairy-free for a few weeks\n  inserted  2026-10-12 Potato salad [potato-salad@2026-10-12]\n  series    pizza-lunch\n  series    pizza-dinner\n  series    lunch\n  series    pizza\n  asked: Did Cooking game happen on Friday?\n  note: asked again about 1 bundle(s) the gate or event graph read as plans and the model said nothing about (Devon)\n  usage: 3 calls · 12940 in (3057 cached) · 12427 out · cost not reported"
+      "report": "dream run #27 — 2 bundles, 135 items, 2 writes\n  slot      maya.diet = dairy-free for a few weeks\n  inserted  2026-10-12 Potato salad pickup [potato-salad-pickup@2026-10-12]\n  series    pizza\n  series    lunch\n  series    pizza-lunch\n  asked: Q1  Did Cooking game happen on Friday? who with?\n  usage: 2 calls · 9452 in (0 cached) · 17172 out · cost not reported"
     },
     "readiness": "Native dream completion without errors"
   },
-  "latency_s": 113.68,
+  "latency_s": 156.64,
   "usage": {
     "state": "captured",
-    "started": "2026-10-23T14:23:14.704912+00:00",
-    "finished": "2026-10-23T14:25:08.387258+00:00",
+    "started": "2026-10-23T16:11:40.470371+00:00",
+    "finished": "2026-10-23T16:14:17.111767+00:00",
     "roles": {
       "hermes": {
         "model_calls": 0,
@@ -345,64 +335,47 @@
         "unsettled_calls": 0
       },
       "memory_provider": {
-        "model_calls": 3,
-        "input_tokens": 12940,
-        "output_tokens": 12427,
-        "accounted_upper_bound_usd": 0.0037794,
+        "model_calls": 2,
+        "input_tokens": 9452,
+        "output_tokens": 17172,
+        "accounted_upper_bound_usd": 0.004379600000000001,
         "unsettled_calls": 0
       }
     },
     "model_calls": [
       {
-        "id": "29f11d11a5a346c9aab2677aa9cb064c",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "b1ded4df72bc43a3a42427f08a44ddcd",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:23:14.925459+00:00",
-        "finished": "2026-10-23T14:24:05.271472+00:00",
+        "started": "2026-10-23T16:11:40.841616+00:00",
+        "finished": "2026-10-23T16:14:05.490619+00:00",
         "state": "settled",
-        "input_tokens": 6954,
-        "output_tokens": 5412,
-        "accounted": 1777800,
+        "input_tokens": 8599,
+        "output_tokens": 16050,
+        "accounted": 4069900,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0017778
+        "accounted_upper_bound_usd": 0.0040699
       },
       {
-        "id": "ca64ed799c0f465cb00c15074e8967eb",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "4d8becad7d9c4cf79186e4825d28f029",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:24:05.291738+00:00",
-        "finished": "2026-10-23T14:24:56.025928+00:00",
+        "started": "2026-10-23T16:14:05.543591+00:00",
+        "finished": "2026-10-23T16:14:16.687082+00:00",
         "state": "settled",
-        "input_tokens": 5233,
-        "output_tokens": 5571,
-        "accounted": 1637500,
+        "input_tokens": 853,
+        "output_tokens": 1122,
+        "accounted": 309700,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0016375
-      },
-      {
-        "id": "1c1cfc9ed3144c31b59cfa5dfebe611f",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
-        "model": "muse-spark-1.3-contributor",
-        "endpoint": "chat/completions",
-        "started": "2026-10-23T14:24:56.060068+00:00",
-        "finished": "2026-10-23T14:25:08.287474+00:00",
-        "state": "settled",
-        "input_tokens": 753,
-        "output_tokens": 1444,
-        "accounted": 364100,
-        "reserved": 314572800,
-        "http_status": 200,
-        "error_label": null,
-        "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0003641
+        "accounted_upper_bound_usd": 0.0003097
       }
     ],
     "late_settlements": [],

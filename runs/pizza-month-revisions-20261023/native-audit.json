@@ -1,68 +1,31 @@
 {
   "state": "fail",
   "errors": [
-    "repeat-1/mem0: incomplete arm",
-    "repeat-1/honcho: incomplete arm",
     "repeat-1/supermemory: incomplete arm",
     "repeat-1/byterover: incomplete arm",
+    "repeat-1/honcho: incomplete arm",
     "repeat-1/hindsight: incomplete arm",
     "repeat-1/openviking: incomplete arm"
   ],
   "component_audits": [
     {
-      "component": "pizza-month-revisions-memcal-20261021",
+      "component": "pizza-month-revisions-memcal-update-20261023",
       "audit": {
         "state": "pass",
         "errors": [],
-        "selected_providers": []
-      }
-    },
-    {
-      "component": "pizza-month-revisions-mem0-20261021",
-      "audit": {
-        "state": "pass",
-        "errors": [],
-        "selected_providers": []
-      }
-    },
-    {
-      "component": "pizza-month-revisions-mem0-defaults-20261021",
-      "audit": {
-        "state": "fail",
-        "errors": [
-          "repeat-1/mem0: incomplete arm"
-        ],
         "scope": "native trace integrity, not calibrated provider quality"
       }
     },
     {
-      "component": "pizza-month-revisions-honcho-20261021",
+      "component": "pizza-month-revisions-mem0-reasoning-retry-20261023",
       "audit": {
-        "state": "fail",
-        "errors": [
-          "repeat-1/honcho: incomplete arm"
-        ],
+        "state": "pass",
+        "errors": [],
         "scope": "native trace integrity, not calibrated provider quality"
       }
     },
     {
-      "component": "pizza-month-revisions-hindsight-20261021",
-      "audit": {
-        "state": "pass",
-        "errors": [],
-        "selected_providers": []
-      }
-    },
-    {
-      "component": "pizza-month-revisions-openviking-20261021",
-      "audit": {
-        "state": "pass",
-        "errors": [],
-        "selected_providers": []
-      }
-    },
-    {
-      "component": "pizza-month-revisions-supermemory-20261021",
+      "component": "pizza-month-revisions-supermemory-instant-20261023",
       "audit": {
         "state": "fail",
         "errors": [
@@ -77,6 +40,16 @@
         "state": "fail",
         "errors": [
           "repeat-1/byterover: incomplete arm"
+        ],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    },
+    {
+      "component": "pizza-month-revisions-honcho-20261021",
+      "audit": {
+        "state": "fail",
+        "errors": [
+          "repeat-1/honcho: incomplete arm"
         ],
         "scope": "native trace integrity, not calibrated provider quality"
       }
@@ -98,14 +71,6 @@
         "errors": [
           "repeat-1/openviking: incomplete arm"
         ],
-        "scope": "native trace integrity, not calibrated provider quality"
-      }
-    },
-    {
-      "component": "pizza-month-revisions-memcal-retest-20261023",
-      "audit": {
-        "state": "pass",
-        "errors": [],
         "scope": "native trace integrity, not calibrated provider quality"
       }
     }

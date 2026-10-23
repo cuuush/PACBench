@@ -1,0 +1,150 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "supermemory",
+  "at": "2026-10-19T18:20:00-04:00",
+  "processing_at": "2026-10-20T03:00:00-04:00",
+  "document_sha256": "f17e11b541faf0efd5c4d36979a3bf7318892aac25906cd8e727365035392df5",
+  "source_ids": [
+    "message-ee79e270e1ec80113cd5492d",
+    "message-c46c71dfc0f601c55e8f72a5",
+    "message-41d2da750ae034bdd43c0d91",
+    "message-00cb6e432d09131b8bf2fde4",
+    "message-e8c3787c58677236a9230a65",
+    "message-4b26b2e5142b7f450fc1c923",
+    "message-199fe80c16e6217beee5302a",
+    "message-eea82fb15c07b9ece7c03c0a",
+    "message-265f9175f3f00be91dbef192"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "reason": "",
+    "interface": "Supermemory SDK documents.add(raw content) + documents.get",
+    "result": {
+      "id": "JN76aWyTtYMY28URyV2VSE",
+      "status": "queued"
+    },
+    "container_tag": "supermemory_data_repeat_1_supermemory",
+    "processing_status": [
+      {
+        "id": "JN76aWyTtYMY28URyV2VSE",
+        "custom_id": "2026-10-19",
+        "content": null,
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "queued",
+        "dreaming_status": "dreaming"
+      },
+      {
+        "id": "JN76aWyTtYMY28URyV2VSE",
+        "custom_id": "2026-10-19",
+        "content": "Daily messages — collected through 2026-10-19T18:20:00-04:00\n\nConversation: imessage | thread-441d0ac734d29f50dbf3db9d\nParticipants: Me, Riley\n\n[2026-10-19T11:00:00-04:00] Riley\nhey good news, your bike's all fixed and ready\n\n[2026-10-19T11:01:03-04:00] Riley\nyou can come grab it whenever\n\n[2026-10-19T11:03:09-04:00] Me (sent by owner)\namazing, thanks! could I come by this Saturday?\n\n[2026-10-19T11:15:47-04:00] Riley\nfor sure. how's 2pm this Saturday at Spoke Cycles, 114 Maple Avenue?\n\n[2026-10-19T11:20:00-04:00] Me (sent by owner)\nyeah that works, see you then\n\n[2026-10-19T18:00:00-04:00] Riley\nhey want to grab coffee sometime away from work and actually catch up?\n\n[2026-10-19T18:00:54-04:00] Me (sent by owner)\nyeah definitely, would love that\n\n[2026-10-19T18:19:05-04:00] Riley\nhow's Sunday at 9am at Maple Mug?\n\n[2026-10-19T18:20:00-04:00] Me (sent by owner)\nyeah that works, see you there",
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "done",
+        "dreaming_status": "dreaming"
+      },
+      {
+        "id": "JN76aWyTtYMY28URyV2VSE",
+        "custom_id": "2026-10-19",
+        "content": "Daily messages — collected through 2026-10-19T18:20:00-04:00\n\nConversation: imessage | thread-441d0ac734d29f50dbf3db9d\nParticipants: Me, Riley\n\n[2026-10-19T11:00:00-04:00] Riley\nhey good news, your bike's all fixed and ready\n\n[2026-10-19T11:01:03-04:00] Riley\nyou can come grab it whenever\n\n[2026-10-19T11:03:09-04:00] Me (sent by owner)\namazing, thanks! could I come by this Saturday?\n\n[2026-10-19T11:15:47-04:00] Riley\nfor sure. how's 2pm this Saturday at Spoke Cycles, 114 Maple Avenue?\n\n[2026-10-19T11:20:00-04:00] Me (sent by owner)\nyeah that works, see you then\n\n[2026-10-19T18:00:00-04:00] Riley\nhey want to grab coffee sometime away from work and actually catch up?\n\n[2026-10-19T18:00:54-04:00] Me (sent by owner)\nyeah definitely, would love that\n\n[2026-10-19T18:19:05-04:00] Riley\nhow's Sunday at 9am at Maple Mug?\n\n[2026-10-19T18:20:00-04:00] Me (sent by owner)\nyeah that works, see you there",
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "done",
+        "dreaming_status": "done"
+      }
+    ],
+    "delivery_options": {
+      "dreaming": "instant"
+    },
+    "readiness_requirement": "Native document processing and memory dreaming both done"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 48.69,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-23T16:42:31.056328+00:00",
+    "finished": "2026-10-23T16:43:19.748634+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 3,
+        "input_tokens": 9767,
+        "output_tokens": 2053,
+        "accounted_upper_bound_usd": 0.0013873,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "a876b98ac2964257a0ca2b796be72358",
+        "project": "pacbench-8713453ce1da-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:43:00.219977+00:00",
+        "finished": "2026-10-23T16:43:05.865736+00:00",
+        "state": "settled",
+        "input_tokens": 2625,
+        "output_tokens": 645,
+        "accounted": 391500,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0003915
+      },
+      {
+        "id": "f099ac4f70a542a683ca314fb8639dc5",
+        "project": "pacbench-8713453ce1da-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:43:06.242299+00:00",
+        "finished": "2026-10-23T16:43:16.040426+00:00",
+        "state": "settled",
+        "input_tokens": 3020,
+        "output_tokens": 1223,
+        "accounted": 546600,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005466
+      },
+      {
+        "id": "acce7922d6a14b6ebf8393cc052ec20c",
+        "project": "pacbench-8713453ce1da-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-23T16:43:16.923898+00:00",
+        "finished": "2026-10-23T16:43:19.503964+00:00",
+        "state": "settled",
+        "input_tokens": 4122,
+        "output_tokens": 185,
+        "accounted": 449200,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0004492
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

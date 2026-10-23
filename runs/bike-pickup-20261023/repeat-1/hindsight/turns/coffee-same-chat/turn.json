@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-22T10:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAnd coffee with Riley?",
+  "at": "2026-10-22T10:04:00-04:00",
+  "answer": "Oct 25 at 9am at Maple Mug.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "input": {
+        "query": "coffee with Riley"
+      },
+      "timestamp": 1792779327509
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\n2. User plans to pick up the fixed bike from Riley at Spoke Cycles on October 25, 2026 at 11am, rescheduled from October 24, 2026 at 10am per Riley's call on October 22, 2026 (previously rescheduled from 2pm because the shop is closing early).\\n3. Riley fixed the user's bike and it is ready for pickup.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 10.26,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261023_141345_c99887 \"Arrange bike pickup plan\" (2 user messages, 8 total messages)\n\nsession_id: 20261023_141345_c99887",
+  "raw_events": 8,
+  "session_id": "20261023_141345_c99887",
+  "stderr_full": "↻ Resumed session 20261023_141345_c99887 \"Arrange bike pickup plan\" (2 user messages, 8 total messages)\n\nsession_id: 20261023_141345_c99887\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_141345_c99887\", \"timestamp\": 1792779323006}\n{\"type\": \"text\", \"text\": \"Let me pull up your coffee plan with Riley.\", \"timestamp\": 1792779326678}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"input\": {\"query\": \"coffee with Riley\"}, \"timestamp\": 1792779327509}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"output\": \"{\\\"result\\\": \\\"1. User and Riley plan to grab coffee and catch up away from work on October 25, 2026 at 9am at Maple Mug.\\\\n2. User plans to pick up the fixed bike from Riley at Spoke Cycles on October 25, 2026 at 11am, rescheduled from October 24, 2026 at 10am per Riley's call on October 22, 2026 (previously rescheduled from 2pm because the shop is closing early).\\\\n3. Riley fixed the user's bike and it is ready for pickup.\\\"}\", \"duration_ms\": 778, \"is_error\": false, \"timestamp\": 1792779328287}\n{\"type\": \"text\", \"text\": \"\\n\\nOct\", \"timestamp\": 1792779331205}\n{\"type\": \"text\", \"text\": \" 25 at 9am at Maple\", \"timestamp\": 1792779331224}\n{\"type\": \"text\", \"text\": \" Mug.\", \"timestamp\": 1792779331270}\n{\"type\": \"result\", \"session_id\": \"20261023_141345_c99887\", \"exit_code\": 0, \"text\": \"Oct 25 at 9am at Maple Mug.\", \"tokens\": {\"input\": 677, \"output\": 450, \"total\": 8009, \"cache_read\": 6882, \"cache_write\": 0}, \"duration_ms\": 8321, \"timestamp\": 1792779331328}",
+  "session_input_tokens": 677,
+  "session_output_tokens": 450,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-p1x5t07_",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-p1x5t07_",
+    "system_prompt_sha256": "1a13b9f67e08ac08422821259c073622565e94e0984a1ad534e20f4ed242654f",
+    "reason": "No project context in native saved system prompt"
+  }
+}

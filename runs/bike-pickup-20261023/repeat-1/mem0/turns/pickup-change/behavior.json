@@ -1,0 +1,69 @@
+{
+  "state": "complete",
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_write": 2
+    },
+    "operations": [
+      {
+        "name": "mem0_update",
+        "arguments": {
+          "memory_id": "a4f20f92-6981-4796-84a9-a2b6e4d4f4fc",
+          "text": "User rescheduled bike pickup with Riley to 11am on Sunday, October 25, 2026 at Spoke Cycles, 114 Maple Avenue."
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772525877,
+        "result": {
+          "tool": "mem0_update",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"Memory updated.\", \"memory_id\": \"a4f20f92-6981-4796-84a9-a2b6e4d4f4fc\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_delete",
+        "arguments": {
+          "memory_id": "1f0fa6af-b30f-46b0-985a-cf6b794c6bf5"
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792772526214,
+        "result": {
+          "tool": "mem0_delete",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"Memory deleted.\", \"memory_id\": \"1f0fa6af-b30f-46b0-985a-cf6b794c6bf5\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 22.5,
+    "input_tokens": null,
+    "output_tokens": 468,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "observable_only": true
+}

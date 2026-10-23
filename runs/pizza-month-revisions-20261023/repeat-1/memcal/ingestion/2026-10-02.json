@@ -93,24 +93,24 @@
         "updated_at": "2026-10-03T03:00:00-04:00"
       }
     ],
-    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-retest-20261023/repeat-1/memcal/ingestion-model-calls/2026-10-02.json",
+    "model_call_record": "/workspace/PACBench/artifacts/pizza-month-revisions-memcal-update-20261023/repeat-1/memcal/ingestion-model-calls/2026-10-02.json",
     "native_event_state": [
       {
         "key": "co-op-cooking-game@2026-09-18",
         "date": "2026-09-18",
         "time": null,
-        "title": "co-op cooking game",
+        "title": "Co-op cooking game",
         "location": null,
-        "status": "mentioned",
-        "participants": "[\"Leo\", \"Maya\"]",
+        "status": "tentative",
+        "participants": "[]",
         "subject": "me"
       },
       {
-        "key": "family-dinner@2026-10-03",
+        "key": "family-visit@2026-10-03",
         "date": "2026-10-03",
         "time": null,
-        "title": "Family dinner",
-        "location": "parents' place",
+        "title": "Family visit",
+        "location": null,
         "status": "confirmed",
         "participants": "[]",
         "subject": "me"
@@ -119,28 +119,8 @@
         "key": "lunch@2026-09-20",
         "date": "2026-09-20",
         "time": null,
-        "title": "lunch",
-        "location": "Devon's mom's",
-        "status": "tentative",
-        "participants": "[\"Devon\"]",
-        "subject": "me"
-      },
-      {
-        "key": "lunch@2026-09-25",
-        "date": "2026-09-25",
-        "time": "13:00",
-        "title": "lunch",
-        "location": "Mario's on Pine Street",
-        "status": "happened",
-        "participants": "[\"Maya\", \"Leo\"]",
-        "subject": "me"
-      },
-      {
-        "key": "pizza-dinner@2026-09-18",
-        "date": "2026-09-18",
-        "time": "18:00",
-        "title": "pizza dinner",
-        "location": "Luigi's on 5th Street",
+        "title": "Lunch",
+        "location": null,
         "status": "happened",
         "participants": "[\"Devon\"]",
         "subject": "me"
@@ -156,13 +136,13 @@
         "subject": "me"
       },
       {
-        "key": "pizza-lunch@2026-09-18",
-        "date": "2026-09-18",
+        "key": "pizza-lunch@2026-09-25",
+        "date": "2026-09-25",
         "time": "13:00",
-        "title": "pizza lunch",
-        "location": "Rosa's on Oak Street",
-        "status": "confirmed",
-        "participants": "[\"Maya\"]",
+        "title": "Pizza lunch",
+        "location": "Mario's on Pine Street",
+        "status": "happened",
+        "participants": "[\"Leo\", \"Maya\"]",
         "subject": "me"
       },
       {
@@ -176,10 +156,20 @@
         "subject": "me"
       },
       {
+        "key": "pizza@2026-09-18",
+        "date": "2026-09-18",
+        "time": "18:00",
+        "title": "Pizza",
+        "location": "Luigi's on 5th Street",
+        "status": "happened",
+        "participants": "[\"Devon\", \"Maya\"]",
+        "subject": "me"
+      },
+      {
         "key": "pizza@2026-09-25",
         "date": "2026-09-25",
         "time": "19:00",
-        "title": "pizza",
+        "title": "Pizza",
         "location": "Rosa's on Oak Street",
         "status": "confirmed",
         "participants": "[\"Devon\"]",
@@ -189,15 +179,15 @@
     "processing": {
       "run_id": 18,
       "errors": [],
-      "report": "dream run #18 — 1 bundles, 44 items, 0 writes\n  series    pizza-lunch\n  series    pizza-dinner\n  series    lunch\n  usage: 2 calls · 5215 in (0 cached) · 1705 out · cost not reported"
+      "report": "dream run #18 — 1 bundles, 44 items, 0 writes\n  series    pizza\n  series    pizza-lunch\n  usage: 2 calls · 5964 in (3569 cached) · 2913 out · cost not reported"
     },
     "readiness": "Native dream completion without errors"
   },
-  "latency_s": 19.57,
+  "latency_s": 29.14,
   "usage": {
     "state": "captured",
-    "started": "2026-10-23T14:16:06.143923+00:00",
-    "finished": "2026-10-23T14:16:25.710534+00:00",
+    "started": "2026-10-23T16:03:37.031777+00:00",
+    "finished": "2026-10-23T16:04:06.169309+00:00",
     "roles": {
       "hermes": {
         "model_calls": 0,
@@ -208,46 +198,46 @@
       },
       "memory_provider": {
         "model_calls": 2,
-        "input_tokens": 5215,
-        "output_tokens": 1705,
-        "accounted_upper_bound_usd": 0.0008625,
+        "input_tokens": 5964,
+        "output_tokens": 2913,
+        "accounted_upper_bound_usd": 0.0011790000000000001,
         "unsettled_calls": 0
       }
     },
     "model_calls": [
       {
-        "id": "edec188e033a4eccb4a0591fa8b1717c",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "740bb6be9aa14e1fbc20866b8c3b483e",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:16:06.328806+00:00",
-        "finished": "2026-10-23T14:16:19.903527+00:00",
+        "started": "2026-10-23T16:03:37.255151+00:00",
+        "finished": "2026-10-23T16:04:00.138635+00:00",
         "state": "settled",
-        "input_tokens": 4531,
-        "output_tokens": 1208,
-        "accounted": 694700,
+        "input_tokens": 5196,
+        "output_tokens": 2305,
+        "accounted": 980600,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0006947
+        "accounted_upper_bound_usd": 0.0009806
       },
       {
-        "id": "db2c408483f144b68bbba7e06ccbdce7",
-        "project": "pacbench-fa7bdb69d709-memcal-memory",
+        "id": "e83d66fc34184c6ea54aa0c901f3a41b",
+        "project": "pacbench-eed286364f16-memcal-memory",
         "model": "muse-spark-1.3-contributor",
         "endpoint": "chat/completions",
-        "started": "2026-10-23T14:16:19.925031+00:00",
-        "finished": "2026-10-23T14:16:25.626779+00:00",
+        "started": "2026-10-23T16:04:00.160544+00:00",
+        "finished": "2026-10-23T16:04:06.084808+00:00",
         "state": "settled",
-        "input_tokens": 684,
-        "output_tokens": 497,
-        "accounted": 167800,
+        "input_tokens": 768,
+        "output_tokens": 608,
+        "accounted": 198400,
         "reserved": 314572800,
         "http_status": 200,
         "error_label": null,
         "role": "memory_provider",
-        "accounted_upper_bound_usd": 0.0001678
+        "accounted_upper_bound_usd": 0.0001984
       }
     ],
     "late_settlements": [],

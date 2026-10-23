@@ -151,6 +151,8 @@ def resume(output, *, max_messages=4500, question_dir=None):
         if policy!=read(root/'tool-policy.json'):raise ValueError('Resume tool policy changed')
         env['PACBENCH_SOURCE_ARGUMENT_RULES']=json.dumps(policy['source_argument_rules'])
         result=report['results'][0];result.update(state='available-unverified',capability=capability)
+        from .native_writes import VERSION as WRITE_READINESS
+        report['write_readiness_protocol']=result['write_readiness_protocol']=WRITE_READINESS
         capability['wiring_verified']=True
         report.pop('spending_stop',None);report['state']='running';save(output/'summary.json',report)
         ingested=[day for day,_ in completed];failed=False
@@ -171,8 +173,10 @@ def resume(output, *, max_messages=4500, question_dir=None):
                 health=provider_model_health(snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
                 if health['state']=='stop':failed=True;raise RuntimeError(health['reason'])
             if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
-            save(directory/'source-state.json',{'at':row['at'],'ingested_batches':ingested.copy(),
-                'source_ids':[sid for b in report['ingestion_schedule'] for sid in b['source_ids']]})
+            from .native_writes import ensure_ready
+            ensure_ready('openviking',row,checks,plan['context'],root,env,directory)
+            from .document_ingestion import source_state
+            save(directory/'source-state.json',source_state(row['at'],ingested))
         # No prior answers exist; preserve the earlier ungraded statuses.
         if (root/'turns').exists():shutil.move(root/'turns',history/'turns')
         (root/'evaluation.json').unlink(missing_ok=True)

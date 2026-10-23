@@ -141,6 +141,20 @@ def prepare_sources(output, messages, timezone):
     return schedule
 
 
+def source_state(at,ingested_batches):
+    """Reference the canonical per-day manifests instead of copying all IDs."""
+    return {'reference_version':2,'at':at,'ingested_batches':list(ingested_batches)}
+
+
+def compact_source_state(value,schedule):
+    if value.get('reference_version')==2:return value
+    by_id={row['id']:row for row in schedule}
+    expected=[sid for id in value['ingested_batches'] for sid in by_id[id]['source_ids']]
+    if set(value)!={'at','ingested_batches','source_ids'} or value['source_ids']!=expected:
+        raise ValueError('Source state differs from its canonical daily manifests')
+    return source_state(value['at'],value['ingested_batches'])
+
+
 def processing_at(at, provider, timezone, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unknown ingestion clock version')
     if version==LEGACY_VERSION and provider!='memcal':

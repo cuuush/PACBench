@@ -48,11 +48,16 @@ def test_supermemory_discovery_paginates_and_watches_only_the_required_session_a
     listing=Mock(side_effect=[model(v) for v in pages])
     get=Mock(side_effect=lambda id:model({'id':id,'status':'done','dreamingStatus':'done'}))
     c=SimpleNamespace(documents=SimpleNamespace(list=listing,get=get))
-    states=supermemory_status(c,'native-tag',['explicit'],['required'])
-    assert [s['id'] for s in states]==['captured','explicit']
-    assert get.call_count==2 and listing.call_count==2
+    states=supermemory_status(c,'native-tag',[],['required'])
+    assert [s['id'] for s in states]==['captured']
+    assert get.call_count==1 and listing.call_count==2
     assert all(call.kwargs['include_content'] is False for call in listing.call_args_list)
     assert complete('supermemory',states)==(True,False)
+    listing.reset_mock(side_effect=True)
+    listing.side_effect=AssertionError('Do not wait on unrelated capture when an explicit write exists')
+    assert supermemory_status(c,'native-tag',['explicit'],['required'])==[
+        {'id':'explicit','status':'done','dreaming_status':'done'}]
+    listing.assert_not_called()
 
 
 def test_openviking_observer_reads_actual_task_completion_and_keeps_native_errors(monkeypatch):
@@ -71,9 +76,13 @@ def test_openviking_observer_reads_actual_task_completion_and_keeps_native_error
             result={'task_id':id,'status':'completed','error':'native failure' if id=='explicit' else None}
         return io.BytesIO(json.dumps({'status':'ok','result':result}).encode())
     monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',get)
-    states=openviking_status('http://127.0.0.1:1234',{},['explicit'],['real-session'])
+    states=openviking_status('http://127.0.0.1:1234',{},[],['real-session'])
     assert all(r.get_method()=='GET' for r in calls)
-    assert [s['id'] for s in states]==['capture','explicit']
+    assert [s['id'] for s in states]==['capture']
+    assert complete('openviking',states)==(True,False)
+    calls.clear()
+    states=openviking_status('http://127.0.0.1:1234',{},['explicit'],['real-session'])
+    assert len(calls)==1 and '/tasks/explicit' in calls[0].full_url
     assert complete('openviking',states)==(False,True)
 
 

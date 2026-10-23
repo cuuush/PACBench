@@ -12,14 +12,16 @@ from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
 
-def start(root, env, model, base, key):
+def start(root, env, model, base, key, *, resume=False):
     validate_route(base, key)
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
     binary=runtime/'supermemory-server-linux-x64'
     if not binary.exists():raise RuntimeError('Install verified Supermemory local server first')
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
-    directory=root/'supermemory-data';directory.mkdir()
+    directory=root/'supermemory-data'
+    if resume and not (directory/'data').is_file():raise ValueError('No persisted native Supermemory store to reopen')
+    directory.mkdir(exist_ok=resume)
     endpoint=f'http://127.0.0.1:{port}'
     # Only local embeddings and the shared spending gateway. Do not inherit
     # alternative LLM providers from the host or use a hosted Supermemory key.
@@ -51,12 +53,16 @@ def start(root, env, model, base, key):
         output=re.sub(r'\x1b\[[0-9;]*m','',log_path.read_text(errors='replace'))
         match=re.search(r'api key\s+([A-Za-z0-9_.-]+)',output,re.I)
         if match:
+            try:
+                with socket.create_connection(('127.0.0.1',port),timeout=1):pass
+            except OSError:
+                time.sleep(.2);continue
             native_key=match.group(1);break
         time.sleep(.2)
     receipt={'route':'Published Supermemory local server; documented OpenAI-compatible inference and embeddings',
         'installation':json.loads((runtime/'installation.json').read_text()),
         'endpoint':endpoint,'pid':process.pid,'model':model,'native_api_key_received':bool(native_key),
-        'embedding':'local Ollama nomic-embed-text','starter_facts':False,
+        'embedding':'local Ollama nomic-embed-text','starter_facts':False,'resumed_store':resume,
         'network':'Run-owned endpoint in the private execution environment; no public port published'}
     save(root/'native-server-setup.json',receipt)
     save(root/'document-ingestion-config.json',{

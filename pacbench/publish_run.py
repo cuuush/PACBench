@@ -134,6 +134,9 @@ def publish(sources,destination,*,preflight=None,selection=None):
         for path in staging.rglob('ingestion/*.json'):
             record=read(path)
             if remove_duplicate_stdout(record):save(path,record)
+        from .document_ingestion import compact_source_state
+        for path in staging.rglob('source-state.json'):
+            save(path,compact_source_state(read(path),reference['ingestion_schedule']))
         # Native execution imports the portable corpus into ordinary files.
         # Re-export those audited, frozen bytes so a clean checkout can reuse
         # the same corpus without any authoring or verification model calls.

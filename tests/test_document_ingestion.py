@@ -55,6 +55,17 @@ def test_native_json_acknowledgment_is_stored_once_without_losing_other_output()
     assert changed['stdout']==json.dumps({'ready':False})
 
 
+def test_checkpoint_references_bind_to_canonical_daily_manifests_without_repeating_ids():
+    from pacbench.document_ingestion import source_state,compact_source_state
+    schedule=[{'id':'first','source_ids':['m1','m2']},{'id':'later','source_ids':['m3']}]
+    old={'at':'clock','ingested_batches':['first'],'source_ids':['m1','m2']}
+    small=compact_source_state(old,schedule)
+    assert small==source_state('clock',['first'])
+    assert 'source_ids' not in small and small['reference_version']==2
+    with pytest.raises(ValueError,match='canonical'):
+        compact_source_state({**old,'source_ids':['m1','future-message']},schedule)
+
+
 def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):
     rows=[message('sent','Me',True),message('received')]
     path=tmp_path/'chat.db'

@@ -54,6 +54,8 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
     if cached.exists():record=json.loads(cached.read_text())
     else:
         from .document_ingestion import PROCESSING_TIMEOUT_S
+        from .usage import snapshot,window
+        roles=json.loads(env.get('PACBENCH_USAGE_ROLES','{}'));before=snapshot(roles)
         worker='import sys;sys.path.insert(0,sys.argv[1]);from pacbench.native_writes import worker;worker(sys.argv[2:])'
         started=time.monotonic()
         try:p=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',worker,str(harness.REPO),
@@ -65,7 +67,8 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
         except (ValueError,IndexError):observed={}
         record={'version':VERSION,'binding':binding,'dependencies':[r['id'] for r in required],
                 'inputs':inputs,'turn_hashes':hashes,'latency_s':round(time.monotonic()-started,2),
-                'state':'ready' if observed.get('ready') is True else 'unavailable','observed':observed}
+                'state':'ready' if observed.get('ready') is True else 'unavailable','observed':observed,
+                'usage':window(before,snapshot(roles))}
         save(cached,record)
     save(directory/'write-readiness.json',record)
     if not ready_proof(record,bound):raise RuntimeError('Accepted native writes are not ready; inspect write-readiness.json')
@@ -115,7 +118,7 @@ def audit_ready(checks,context,root,version):
 
 def supermemory_status(client,tag,ids,sessions):
     found=set(ids);page=1
-    while True:
+    while not ids:
         response=client.documents.list(container_tags=[tag],include_content=False,limit=100,page=page)
         value=response.model_dump(mode='json')
         rows=value.get('memories');pagination=value.get('pagination',{})
@@ -146,7 +149,7 @@ def openviking_status(endpoint,headers,ids,sessions):
         if value.get('status')!='ok':raise ValueError('Native task status unavailable')
         return value['result']
     found=set(ids)
-    for session in sessions:
+    for session in sessions if not ids else []:
         cursor=None
         for _ in range(10000):
             query={'task_type':'session_commit','resource_id':session,'pagination':'cursor','limit':100}

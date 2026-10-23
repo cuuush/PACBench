@@ -73,7 +73,8 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
             capture_available=snapshot.get('state')=='captured'
             actual=refreshed_calls(snapshot['calls'],connection)
             phases={}
-            patterns={'ingestion':'ingestion/*.json','initial':'turns/*/usage.json','followups':'turns/*/followups/*/usage.json'}
+            patterns={'ingestion':'ingestion/*.json','initial':'turns/*/usage.json',
+                      'followups':'turns/*/followups/*/usage.json','write_processing':'turns/*/write-readiness.json'}
             assigned=set()
             for phase,pattern in patterns.items():
                 ids=set()

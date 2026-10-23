@@ -183,8 +183,11 @@ def audit_ingestion(root, arm, messages, summary):
             if not (directory/'turn.json').exists():continue
             state=json.loads((directory/'source-state.json').read_text())
             due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York',version=version)
-            check(state=={'at':row['at'],'ingested_batches':[r['id'] for r in due],
-                         'source_ids':[sid for r in due for sid in r['source_ids']]},'Checkpoint source state has missing/future batches')
+            from .document_ingestion import source_state
+            expected=(source_state(row['at'],[r['id'] for r in due]) if state.get('reference_version')==2 else
+                      {'at':row['at'],'ingested_batches':[r['id'] for r in due],
+                       'source_ids':[sid for r in due for sid in r['source_ids']]})
+            check(state==expected,'Checkpoint source state has missing/future batches')
             usage=json.loads((directory/'usage.json').read_text())
             if usage.get('state')=='captured':
                 for batch in schedule:

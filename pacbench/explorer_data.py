@@ -199,6 +199,7 @@ def load_runs(root: Path, *, include_model_records=True, run_id=None) -> dict:
                         # The source and contracts already exist once at run
                         # level. Keep references in provider views, not copies.
                         item['source_documents']={}
+                        batch_counts={b['id']:len(b['source_ids']) for b in item['summary'].get('ingestion_schedule',[])}
                         for contract in [item.get('contract'),*[e.get('contract') for e in item.get('evaluations',[])]]:
                             if contract:contract.pop('source_aliases',None)
                         for arm in [*item['arms'].values(),*item.get('excluded_arms',{}).values()]:
@@ -218,6 +219,8 @@ def load_runs(root: Path, *, include_model_records=True, run_id=None) -> dict:
                                 if ex.get('source_state'):
                                     state=ex['source_state'];ids=state.pop('source_ids',None)
                                     if ids is not None:state['source_count']=len(ids)
+                                    elif state.get('reference_version')==2:
+                                        state['source_count']=sum(batch_counts[id] for id in state['ingested_batches'])
                                 if ex.get('retention'):ex['retention'].pop('initial_metrics',None)
                                 if ex.get('status'):ex['status'].pop('recovery',None)
                         item.pop('bundle',None)

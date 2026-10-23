@@ -516,8 +516,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 if evaluations:
                     from .native_writes import ensure_ready
                     ensure_ready(provider,row,evaluations,evaluation_plan['context'],root,env,directory)
-                save(directory/'source-state.json',{'at':row['at'],'ingested_batches':list(ingested),
-                    'source_ids':[sid for batch in needed for sid in batch['source_ids']]})
+                from .document_ingestion import source_state
+                save(directory/'source-state.json',source_state(row['at'],ingested))
             if evaluations:
                 try:
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,

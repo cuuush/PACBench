@@ -164,7 +164,17 @@ def test_http_reads_runs_on_every_request_and_blocks_raw_private_paths(tmp_path,
         save(arm / 'recall.json', {'answer': 'New answer', 'tool_calls': []})
         with urllib.request.urlopen(base + '/runs') as response:
             data = json.load(response)
-        assert data['runs'][0]['arms']['mem0-repeat-1']['turn']['answer'] == 'New answer'
+        assert data['runs'][0]['arms']['mem0-repeat-1']['exchanges'][0]['turn']['answer'] == 'New answer'
+        with urllib.request.urlopen(base+'/runs?index=1') as response:
+            index=json.load(response)
+        assert index['runs'][0]['id']=='trial' and 'messages' not in index['runs'][0]
+        with urllib.request.urlopen(base+index['runs'][0]['detail_url']) as response:
+            assert json.load(response)['runs'][0]['arms']['mem0-repeat-1']['exchanges'][0]['turn']['answer']=='New answer'
+        with urllib.request.urlopen(base+'/bundle?run=trial') as response:
+            assert json.load(response)['bundle_hash']==data['runs'][0]['bundle_hash']
+        for route in ('/bundle?run=..','/bundle?run=trial&file=hermes-home/.env','/run?run=..'):
+            with pytest.raises(urllib.error.HTTPError) as blocked:urllib.request.urlopen(base+route)
+            assert blocked.value.code==404
         calls=data['runs'][0]['model_calls']
         saved=next(c for c in calls if c['file']=='model-calls/saved.json')
         assert saved['record']['model']=='test-model'
@@ -220,9 +230,9 @@ def test_excluded_attempt_answers_remain_inspectable_without_replacing_selected_
     save(root/'summary.json',summary)
     run=explorer.load_runs(tmp_path,include_model_records=False)['runs'][0]
     assert list(run['arms'])==['mem0-repeat-1']
-    assert run['arms']['mem0-repeat-1']['turn']['answer']=='First fact'
+    assert run['arms']['mem0-repeat-1']['exchanges'][0]['turn']['answer']=='First fact'
     old=run['excluded_arms'][evidence]
-    assert old['turn']['answer']=='Excluded answer'
+    assert old['exchanges'][0]['turn']['answer']=='Excluded answer'
     assert old['configuration_review']['finding']=='Non-default output limit'
     assert 'excluded attempt' in old['label']
     summary['other_attempts'][0]['evidence']='../private'

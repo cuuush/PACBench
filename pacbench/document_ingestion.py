@@ -35,6 +35,19 @@ raise SystemExit(main(sys.argv[2:]))
 '''
 
 
+def remove_duplicate_stdout(record):
+    """Store a parsed native JSON acknowledgment once, preserving other output."""
+    lines=(record.get('stdout') or '').splitlines(keepends=True)
+    last=next((i for i in range(len(lines)-1,-1,-1) if lines[i].strip()),None)
+    if last is None or not isinstance(record.get('result'),dict):return False
+    try:same=json.loads(lines[last])==record['result']
+    except (ValueError,TypeError):return False
+    if not same:return False
+    record['stdout']=''.join(lines[:last]+lines[last+1:])
+    record['stdout_json_in']='result'
+    return True
+
+
 def daily_batches(messages, timezone):
     zone = ZoneInfo(timezone)
     groups = {}
@@ -192,6 +205,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
                 result=None
             if isinstance(result,dict):
                 record.update(result=result,ready=proc.returncode==0 and result.get('ready') is True)
+                remove_duplicate_stdout(record)
             record['state']='ready' if record['ready'] else 'failed'
     except subprocess.TimeoutExpired as exc:
         record.update(reason='Native ingestion/processing deadline exceeded',stdout=(exc.stdout or b'').decode() if isinstance(exc.stdout,bytes) else exc.stdout,

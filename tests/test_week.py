@@ -13,6 +13,20 @@ from pacbench.harness import TurnResult
 from tests.test_document_ingestion import message
 
 
+def test_bike_pickup_correction_is_followed_by_independent_session_checks(tmp_path):
+    scenes,_,resolved=resolve_spec(json.loads(Path('weeks/bike_pickup.json').read_text()),tmp_path,week_start='2026-10-19')
+    checks={c['id']:c for c in resolved['checks']}
+    assert len(scenes)==3 and len(checks)==5
+    assert scenes[-1].channel=='email'
+    assert checks['pickup-before']['session']==checks['pickup-change']['session']==checks['coffee-same-chat']['session']
+    assert checks['sunday-both']['session']!=checks['pickup-change']['session']
+    assert checks['saturday-clear']['session']!=checks['sunday-both']['session']
+    assert checks['sunday-both']['requires']==['pickup-change']
+    assert checks['saturday-clear']['requires']==['pickup-change']
+    evidence=contract_evidence([],resolved['checks'],checks['sunday-both'])
+    assert any(m['source_id']=='assistant-user:pickup-change' for m in evidence)
+
+
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
     spec=json.loads(Path('weeks/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")

@@ -104,6 +104,7 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     from provider_adapters.document_connector import supermemory
     source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('Raw daily text\n')
     home=tmp_path/'arm/hermes-home';home.mkdir(parents=True)
+    (home.parent/'document-ingestion-config.json').write_text(json.dumps({'dreaming':'instant'}))
     resolve=Mock(return_value='native_canonical_tag')
     monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
@@ -124,6 +125,8 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     resolve.assert_called_once_with('raw-tag','default')
     assert add.call_args.kwargs['container_tags']==['native_canonical_tag']
     assert add.call_args.kwargs['content']=='Raw daily text\n'
+    assert add.call_args.kwargs['dreaming']=='instant'
+    assert result['delivery_options']=={'dreaming':'instant'}
     assert result['container_tag']=='native_canonical_tag'
     if dreaming_field is None:
         assert not result['ready'] and 'unavailable' in result['reason']

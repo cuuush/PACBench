@@ -12,6 +12,8 @@ def audit_supermemory_receipt(result, day, text):
     statuses=result.get('processing_status',[])
     final=statuses[-1] if statuses else {}
     errors=[]
+    if result.get('delivery_options') is not None and result['delivery_options']!={'dreaming':'instant'}:
+        errors.append('Supermemory ingestion mode differs from the declared daily-batch connector')
     if (final.get('status')!='done' or
             final.get('dreaming_status',final.get('dreamingStatus'))!='done'):
         errors.append('Supermemory memory consolidation did not complete')
@@ -146,6 +148,11 @@ def audit_ingestion(root, arm, messages, summary):
             errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
         if arm.name=='supermemory':
             errors.extend(audit_supermemory_receipt(record.get('result',{}),day,text))
+            config=arm/'document-ingestion-config.json'
+            if config.exists():
+                check(record.get('result',{}).get('delivery_options')==
+                      {'dreaming':json.loads(config.read_text()).get('dreaming')},
+                      'Supermemory delivery differs from its saved native SDK configuration')
         if arm.name=='openviking':
             errors.extend(audit_openviking_receipt(record.get('result',{})))
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):

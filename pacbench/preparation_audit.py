@@ -7,6 +7,7 @@ from pathlib import Path
 from .frozen import load_bundle, messages_for
 from .semantic_contract import load_contract
 from .followups import load_questions
+from .evidence_store import read_json
 
 
 def audit_scenes(root, resolved, life_id, messages):
@@ -28,7 +29,7 @@ def audit_scenes(root, resolved, life_id, messages):
             errors.append(f"{plan.id}: incomplete source verification")
         if not row.get('verification_binding'):continue  # Legacy receipts keep their original protocol.
         paths=row['record'].get('judgment_paths',[])
-        review=json.loads((root/'scene-verifications'/Path(paths[-1]).name).read_text()) if paths else {}
+        review=read_json(root/'scene-verifications'/Path(paths[-1]).name) if paths else {}
         binding=digest({'version':review.get('spec',{}).get('judge_prompt_version'),
                         'prompt':review.get('judge_prompt')})
         if (review.get('passed') is not True or review.get('spec')!=spec or
@@ -36,7 +37,7 @@ def audit_scenes(root, resolved, life_id, messages):
                 review.get('verdict')!=row['verdict'] or binding!=row['verification_binding']):
             errors.append(f'{plan.id}: source differs from its passing checker input')
         if review.get('model_call'):
-            call=json.loads((root/'model-calls'/Path(review['model_call']).name).read_text())
+            call=read_json(root/'model-calls'/Path(review['model_call']).name)
             if (call.get('status')!='ok' or call.get('text')!=review.get('judge_response') or
                     call.get('request',{}).get('messages')!=[{'role':'user','content':review.get('judge_prompt')}]):
                 errors.append(f'{plan.id}: checker receipt differs from actual model call')
@@ -81,12 +82,12 @@ def audit_prepared(root: Path) -> dict:
                     quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues') or
                     any(quality.get('review',{}).get(k) is not True for k in ('consistent','expectations_supported','natural_enough'))):
                 errors.append('Corpus realism review is stale or unresolved')
-            call=json.loads((root/'model-calls'/Path(quality.get('model_call','')).name).read_text())
+            call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
                 errors.append('Corpus realism review differs from its actual model receipt')
-            from .corpus_review import VERSION, review_prompt
-            if quality.get('review_version') == VERSION and call.get('request', {}).get('messages') != [
-                    {'role': 'user', 'content': review_prompt(messages, resolved)}]:
+            from .corpus_review import SUPPORTED_VERSIONS, review_prompt
+            if quality.get('review_version') in SUPPORTED_VERSIONS and call.get('request', {}).get('messages') != [
+                    {'role': 'user', 'content': review_prompt(messages, resolved,version=quality['review_version'])}]:
                 errors.append('Corpus realism review did not receive the actual frozen source and expectations')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime

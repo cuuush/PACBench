@@ -59,6 +59,11 @@ def start(root, env, model, base, key):
         'embedding':'local Ollama nomic-embed-text','starter_facts':False,
         'network':'Run-owned endpoint in the private execution environment; no public port published'}
     save(root/'native-server-setup.json',receipt)
+    save(root/'document-ingestion-config.json',{
+        'dreaming':'instant',
+        'route':'Native SDK documents.add documented per-document processing mode',
+        'reason':'Each document already contains a complete nightly batch; do not defer it for dynamic cross-document grouping',
+        'native_default':'dynamic','model_processing_overrides':False})
     if not native_key:
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.

@@ -4,6 +4,7 @@ let selectedDay = "";
 let selectedProvider = "";
 const dayFormatters = new Map();
 const timeFormatters = new Map();
+const sourceIndexes = new WeakMap();
 const readableDayFormatter = new Intl.DateTimeFormat("en-US", {timeZone:"UTC",weekday:"long",month:"short",day:"numeric"});
 
 function zoneOf(run) { return run.resolved_spec?.timezone || run.spec?.timezone || ""; }
@@ -83,7 +84,9 @@ function turnRecord(turn) {
     (turn.returncode ? details("Execution errors", '<pre>' + esc(turn.stderr_full || turn.stderr_tail || "not captured") + '</pre>') : ""));
 }
 function ingestionExchange(run, arm, item) {
-  const packet = item.packet || [];
+  if (!sourceIndexes.has(run)) sourceIndexes.set(run,new Map(sources(run).map(m=>[m.source_id,m])));
+  const packet = item.packet || (item.source_ids || []).map(id=>sourceIndexes.get(run).get(id)).filter(Boolean);
+  const document = item.document ?? run.source_documents?.[item.label];
   const delivered = packet.length;
   const packetChat = packet.length ? conversations({...run,messages:packet,observations:[]}) : notice(item.packet_problem || "Delivered texts were not captured.");
   return '<section class="exchange ingestion-exchange"><div class="exchange-label">Provider ingestion · ' +
@@ -91,7 +94,7 @@ function ingestionExchange(run, arm, item) {
     (item.record?.ready===false ? notice('Native ingestion or processing failed. Hermes recall was not run.') : '') +
     (['native-imessage','native-sources'].includes(item.delivery) ? '<p>Native Apple Messages database, contacts and email fixtures → provider readers → normal processing.</p>' : item.delivery==='native-messages' ? '<p>Real source speakers, threads and timestamps → native message-batch API. No fabricated assistant turns.</p>' : item.delivery==='document' ? '<p>Raw daily document → provider ingestion API. No Hermes ingestion turn.</p>' : '<p>Inspect the saved source packet and native acknowledgement.</p>') +
     (['native-imessage','native-sources'].includes(item.delivery) ? '<p class="muted">Source collected ' + esc(readableDay(dayKey(item.at,run))) + ' at ' + esc(localClock(item.at,run)) + '; nightly processing ' + esc(readableDay(dayKey(exposureAt(item),run))) + ' at ' + esc(localClock(exposureAt(item),run)) + '.</p>' : '') +
-    details("Delivered texts",packetChat) + (item.document ? details(item.delivery==='native-messages' ? 'Exact source batch before transport' : 'Exact raw source document','<pre>'+esc(item.document)+'</pre>') : '') +
+    details("Delivered texts",packetChat) + (document ? details(item.delivery==='native-messages' ? 'Exact source batch before transport' : 'Exact raw source document','<pre>'+esc(document)+'</pre>') : '') +
     usageDetails(item) + details("Provider packets, acknowledgement and parameters",dump(item.record)) + '</section>';
 
 }

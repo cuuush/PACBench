@@ -7,6 +7,16 @@ import pytest
 from pacbench.corpus_review import review_corpus, review_prompt
 
 
+def test_legacy_review_binding_is_unchanged_and_new_protocol_handles_scripted_inputs():
+    import hashlib
+    resolved={'scenes':[],'checks':[]}
+    legacy=review_prompt([],resolved,version='source-realism-v3')
+    assert hashlib.sha256(legacy.encode()).hexdigest()=='9dd33cc7e198102d1f795acd20a3a53047038a660007c9eadc4ed871d9af21b2'
+    current=review_prompt([],resolved)
+    assert 'Scripted public user messages are real planned inputs when delivered' in current
+    assert 'Do not assume the assistant successfully wrote memory' in current
+
+
 def test_realism_rejection_is_preserved_and_stops_preparation(tmp_path):
     messages=[{'source_id':'m1','written_at':'2026-10-19T09:00:00-04:00',
                'sender':'Jen','text':'Friday is off.'}]

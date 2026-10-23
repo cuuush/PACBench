@@ -29,8 +29,9 @@ def public_record(value: Any) -> Any:
 
 
 def _read_record(path: Path) -> dict:
+    from .evidence_store import read_json
     private = path.parent / "private" / path.name
-    return json.loads((private if private.exists() else path).read_text(encoding="utf-8"))
+    return read_json(private if private.exists() else path)
 
 
 @dataclass(frozen=True)

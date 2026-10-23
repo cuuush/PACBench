@@ -13,7 +13,7 @@ import webbrowser
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 
-from pacbench.explorer_data import load_runs
+from pacbench.explorer_data import load_runs,run_index
 
 ROOT = Path(__file__).resolve().parent
 
@@ -30,6 +30,18 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         route=urlsplit(self.path)
+        if route.path == '/bundle':
+            from pacbench.model_calls import public_record
+            run=parse_qs(route.query).get('run',[''])[0]
+            name=parse_qs(route.query).get('file',['bundle.json'])[0]
+            base=ROOT/'runs'/run;path=base/name
+            if (not run or Path(run).name!=run or run in ('.','..') or
+                    name not in {'bundle.json','preflight/bundle.json'} or
+                    any(p.is_symlink() for p in (path,*path.parents) if p!=ROOT)):
+                self.send_error(404);return
+            try:value=public_record(json.loads(path.read_text(encoding='utf-8')))
+            except (OSError,ValueError):self.send_error(404);return
+            self.send_json(value);return
         if route.path == "/model-call":
             from pacbench.model_calls import public_record
             params=parse_qs(route.query)
@@ -43,11 +55,19 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
                     not path.resolve().is_relative_to(base.resolve()) or
                     any(p.is_symlink() for p in (path,*path.parents) if p!=ROOT)):
                 self.send_error(404);return
-            try:record=public_record(json.loads(path.read_text(encoding='utf-8')))
+            from pacbench.evidence_store import read_json
+            try:record=public_record(read_json(path))
             except (OSError,ValueError):self.send_error(404);return
             self.send_json(record);return
         if route.path == "/runs":
-            self.send_json(load_runs(ROOT,include_model_records=False));return
+            self.send_json(run_index(ROOT) if parse_qs(route.query).get('index')==['1'] else
+                           load_runs(ROOT,include_model_records=False));return
+        if route.path == '/run':
+            run=parse_qs(route.query).get('run',[''])[0]
+            if (not run or Path(run).name!=run or run in ('.','..') or
+                    (ROOT/'runs'/run).is_symlink()):
+                self.send_error(404);return
+            self.send_json(load_runs(ROOT,include_model_records=False,run_id=run));return
         super().do_GET()
 
     def send_json(self, value):

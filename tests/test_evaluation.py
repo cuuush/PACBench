@@ -11,6 +11,14 @@ from pacbench.native_checks import audit_checks, run_checks
 from pacbench.semantic_contract import ContractClaim, EvaluationContract, build_contract
 
 
+@pytest.mark.parametrize('required', ['first', ['missing'], ['first','first'], ['second'], [None]])
+def test_authored_prerequisites_reject_unknown_forward_duplicate_or_invalid_ids(required):
+    rows=[{'id':'first','prompt':'Remember this.','expect':'Acknowledge.'},
+          {'id':'second','prompt':'What changed?','expect':'The earlier correction.','requires':required}]
+    with pytest.raises(ValueError,match='Required turns'):
+        resolve_checks({'checks':rows},'2026-10-22T10:00:00-04:00','America/New_York')
+
+
 @pytest.mark.parametrize('change', ['unchanged', 'source', 'prompt', 'expect', 'at', 'facts', 'corruption', 'authoring_version'])
 def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
     from pacbench.evaluation import freeze_evaluations
@@ -45,6 +53,51 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
     second = freeze_evaluations(resolved, observations, None, model, tmp_path, resume=True)
     assert not second.get('errors')
     assert len(calls)==(0 if change=='unchanged' else 3)
+
+
+def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_citations(tmp_path):
+    from pacbench.evaluation import freeze_evaluations,load_evaluations
+    from pacbench.followups import digest,save
+    at='2026-10-22T10:00:00-04:00'
+    rows=[{'id':'first','session':'early','prompt':'Remember breakfast is at the cafe.','expect':'Breakfast is at the cafe.'},
+          {'id':'later','session':'fresh','prompt':'Where is breakfast?','expect':'Breakfast is at the cafe.','requires':['first']}]
+    resolved={**resolve_checks({'checks':rows},at,'America/New_York'),
+              'question_at':at,'timezone':'America/New_York'}
+    observations=[{'source_id':'m1','written_at':at,'collected_at':at,'sender':'Me','text':'Breakfast is at the cafe.'}]
+    def model(prompt):
+        if 'Check this evaluation prompt' in prompt:return '{"safe":true,"faithful":true,"elicits_all":true,"reason":"Synthetic review"}'
+        if 'Review each proposed claim' in prompt:return '{"complete":true,"reviews":[{"id":"fact-1","supported":true,"relevant":true,"unambiguous":true,"reason":"Synthetic review"}]}'
+        return '{"claims":[{"id":"fact-1","statement":"Breakfast is at the cafe.","evidence":["m1"]}]}'
+    plan=freeze_evaluations(resolved,observations,None,model,tmp_path)
+    assert plan['checks'][1]['requires']==['first']
+    load_evaluations(tmp_path,observations,resolved)
+    plan['checks'][1]['requires']=[]
+    plan['plan_hash']=digest({k:v for k,v in plan.items() if k!='plan_hash'})
+    save(tmp_path/'evaluation-plan.json',plan)
+    with pytest.raises(ValueError,match='dependency mismatch'):load_evaluations(tmp_path,observations,resolved)
+
+
+def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contract(tmp_path):
+    from pacbench.evaluation import freeze_evaluations
+    at='2026-10-22T10:00:00-04:00'
+    row={'id':'correction','session':'morning','kind':'behavior','at':at,
+         'prompt':'Actually, Sunday at 11.','expect':'Acknowledge the correction.','facts':[]}
+    resolved={'checks':[row],'evaluation_context':'shared'}
+    messages=[{'source_id':'m1','written_at':at,'collected_at':at,'sender':'Me','text':'Pickup is Saturday.'}]
+    calls=[]
+    def model(prompt):
+        calls.append(prompt)
+        if 'Turn the English expectation' in prompt:return '{"criteria":["Acknowledge the correction."]}'
+        assert 's2 |' in prompt and 'assistant-user:correction |' not in prompt
+        return '{"complete":true,"reviews":[{"id":"fact-1","supported":true,"relevant":true,"unambiguous":true,"reason":"Observable acknowledgement.","evidence":["s2"]}]}'
+    first=freeze_evaluations(resolved,messages,None,model,tmp_path)
+    assert not first.get('errors') and len(calls)==2
+    body=json.loads((tmp_path/'evaluations/correction/contract.json').read_text())
+    assert body['author_fact_count']==0
+    assert body['claims'][0]['evidence']==['assistant-user:correction']
+    calls.clear()
+    assert freeze_evaluations(resolved,messages,None,model,tmp_path,resume=True)==first
+    assert calls==[]
 
 
 def checkpoints(tmp_path):

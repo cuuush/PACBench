@@ -27,7 +27,7 @@ def test_openviking_native_completion_rejects_error_counters_even_without_error_
     assert bool(audit_openviking_receipt({'result':{'result':native}}))==(damage!='none')
 
 
-@pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace'])
+@pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace','wrong-mode'])
 def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage):
     from pacbench.document_audit import audit_supermemory_receipt
     final={'status':'done','dreaming_status':'done','id':'doc-1','custom_id':'2026-10-19',
@@ -38,7 +38,21 @@ def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage
     if damage=='wrong-source':final['content']='Different source'
     if damage=='wrong-document':final['id']='other-doc'
     if damage=='wrong-namespace':final['container_tags']=['other_tag']
+    if damage=='wrong-mode':receipt['delivery_options']={'dreaming':'dynamic'}
     assert bool(audit_supermemory_receipt(receipt,'2026-10-19','Raw source text'))==(damage!='none')
+
+
+def test_native_json_acknowledgment_is_stored_once_without_losing_other_output():
+    from pacbench.document_ingestion import remove_duplicate_stdout
+    result={'ready':True,'result':{'memories':['café plans']}}
+    record={'stdout':'native progress\n'+json.dumps(result)+'\n\n','result':result,'stderr':'native warning'}
+    assert remove_duplicate_stdout(record)
+    assert record['stdout']=='native progress\n\n' and record['result']==result
+    assert record['stderr']=='native warning' and record['stdout_json_in']=='result'
+    assert not remove_duplicate_stdout(record)
+    changed={'stdout':json.dumps({'ready':False}), 'result':result}
+    assert not remove_duplicate_stdout(changed)
+    assert changed['stdout']==json.dumps({'ready':False})
 
 
 def test_apple_fixture_has_real_address_identity_and_preserves_source(tmp_path):

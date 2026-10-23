@@ -41,10 +41,29 @@ function renderRunPicker() {
     esc(stateOf(run)) + " · " + esc(idOf(run)) + "</option>").join("");
   el("run-select").value = current;
 }
-function choose(id, nextPage = "timeline", scroll = true) {
+let choiceSerial = 0;
+async function choose(id, nextPage = "timeline", scroll = true) {
+  const serial = ++choiceSerial;
   const priorScroll = window.scrollY;
   if (id !== current) { selectedDay = ""; selectedProvider = ""; }
-  if (!data.runs.some(run => idOf(run) === id)) return;
+  const index=data.runs.findIndex(run => idOf(run)===id);
+  if (index<0) return;
+  if (data.runs[index].detail_url) {
+    current=id; renderRunPicker();
+    el("content").innerHTML=notice("Loading saved run…");
+    try {
+      const response=await fetch(data.runs[index].detail_url,{cache:"no-store"});
+      if (!response.ok) throw Error('HTTP '+response.status);
+      const result=await response.json();
+      if (serial!==choiceSerial) return;
+      const loaded=result.runs?.find(run=>idOf(run)===id);
+      if (!loaded) throw Error(result.errors?.map(e=>e.error).join('; ') || 'Run unavailable');
+      data.runs[index]=loaded;
+    } catch(error) {
+      if (serial===choiceSerial) el("content").innerHTML=notice('Could not load run: '+error.message);
+      return;
+    }
+  }
   current = id;
   page = nextPage;
   renderRunPicker();
@@ -229,7 +248,7 @@ function semanticStory(run) {
   }).join("");
   return '<section class="stage"><h2>What the author asked for</h2>' + instructions + "</section>" +
     '<section class="stage"><h2>Rendered conversation</h2>' + conversations(run) +
-      details("Exact frozen bundle", run.bundle ? dump(run.bundle) : notice("Full bundle not captured.")) +
+      details("Exact frozen bundle", run.bundle ? dump(run.bundle) : run.bundle_url ? '<div><button data-record-url="'+esc(run.bundle_url)+'">Load full frozen bundle</button></div>' : notice("Full bundle not captured.")) +
     "</section>" + renderAudit +
     '<section class="stage"><h2>Facts ready for recall</h2><p class="muted">These claims were reviewed against the recall goal and cited dialogue, then frozen before either assistant answered.</p>' +
     renderContract(run) + "</section>";
@@ -469,7 +488,7 @@ function render() {
 async function refresh() {
   el("refresh").disabled = true;
   try {
-    const response = await fetch("/runs?at=" + Date.now(), {cache:"no-store"});
+    const response = await fetch("/runs?index=1&at=" + Date.now(), {cache:"no-store"});
     if (!response.ok) throw Error("HTTP " + response.status);
     data = await response.json();
     const params = new URLSearchParams(location.search);
@@ -480,7 +499,7 @@ async function refresh() {
       current = idOf(run);
       selectedDay = params.get("day") || selectedDay;
       selectedProvider = params.get("provider") || selectedProvider;
-      choose(current, params.get("view") || page);
+      await choose(current, params.get("view") || page);
     }
     else {
       current = "";
@@ -498,13 +517,13 @@ async function refresh() {
 }
 document.addEventListener("click", event => {
   const target = event.target;
-  const modelButton = target.closest("[data-model-url]");
+  const modelButton = target.closest("[data-model-url], [data-record-url]");
   if (modelButton) {
     modelButton.disabled = true;
-    fetch(modelButton.dataset.modelUrl, {cache:"no-store"}).then(response => {
+    fetch(modelButton.dataset.modelUrl || modelButton.dataset.recordUrl, {cache:"no-store"}).then(response => {
       if (!response.ok) throw Error('HTTP ' + response.status);
       return response.json();
-    }).then(record => { modelButton.parentElement.innerHTML = renderModelCall(record); })
+    }).then(record => { modelButton.parentElement.innerHTML = modelButton.dataset.modelUrl ? renderModelCall(record) : dump(record); })
       .catch(error => { modelButton.disabled = false; modelButton.textContent = 'Could not load: ' + error.message + ' · Retry'; });
     return;
   }

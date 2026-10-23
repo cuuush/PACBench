@@ -7,7 +7,8 @@ from pathlib import Path
 from .followups import digest, save
 from .semantic_contract import _dialogue
 
-VERSION = 'source-realism-v3'
+VERSION = 'source-realism-v4'
+SUPPORTED_VERSIONS = {'source-realism-v3', VERSION}
 
 
 def review_intent(resolved):
@@ -15,7 +16,8 @@ def review_intent(resolved):
                        for s in resolved['scenes']], 'checks': resolved['checks']}
 
 
-def review_prompt(messages, resolved):
+def review_prompt(messages, resolved, *, version=VERSION):
+    if version not in SUPPORTED_VERSIONS:raise ValueError('Unsupported corpus review version')
     return (
         'Audit this synthetic personal-message corpus and its intended checks. '
         'Read the actual messages; authored intentions do not establish facts. '
@@ -30,6 +32,13 @@ def review_prompt(messages, resolved):
         '"natural_enough":true,"issues":[],"current_upcoming":[],"notes":"..."}. '
         'If something is wrong, set the relevant flag false and describe the '
         'issue; do not repair or excuse it to satisfy the authored expectation.\n'
+        + ('Scripted public user messages are real planned inputs when delivered: '
+           'they may correct a plan or introduce a fact. Distinguish those inputs '
+           'from private expectations and invented assistant replies. Honor requires '
+           'and depends_on for conditional inputs. A behavior check may accept an '
+           'ordinary acknowledgement; only a later fresh-session question tests '
+           'persistence. Do not assume the assistant successfully wrote memory.\n'
+           if version==VERSION else '') +
         f'Authored intentions and questions:\n{json.dumps(review_intent(resolved), ensure_ascii=False)}\n'
         f'Actual source:\n{_dialogue(messages)}')
 

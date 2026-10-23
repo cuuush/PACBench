@@ -365,8 +365,10 @@ def supermemory(source,root,at,processing_at):
     if not cfg['base_url'].startswith('http://127.0.0.1:'):
         raise ValueError('Supermemory document ingest requires the run-owned local server')
     client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
+    delivery=json.loads((root/'document-ingestion-config.json').read_text())
+    if delivery.get('dreaming')!='instant':raise ValueError('Undeclared Supermemory ingestion mode')
     result=client.documents.add(content=(source/'messages.txt').read_text(),
-        container_tags=[tag],custom_id=source.name,
+        container_tags=[tag],custom_id=source.name,dreaming=delivery['dreaming'],
         metadata={'source':'daily-transcript','collected_at':at})
     from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
     from pacbench.gateway_client import require_live_cost_boundary
@@ -376,7 +378,12 @@ def supermemory(source,root,at,processing_at):
     ready=False;reason='Native memory processing deadline exceeded'
     while True:
         status=client.documents.get(result.id).model_dump(mode='json')
-        if not statuses or status!=statuses[-1]:statuses.append(status)
+        # SDK responses duplicate camel/snake aliases and may append complete
+        # memories on every poll. Keep the source witness and state changes,
+        # not repeated native memory dumps or duplicate spelling aliases.
+        observed={k:status.get(k) for k in ('id','custom_id','content','container_tags','status')}
+        observed['dreaming_status']=status.get('dreaming_status',status.get('dreamingStatus'))
+        if not statuses or observed!=statuses[-1]:statuses.append(observed)
         state=status.get('status')
         dreaming=status.get('dreaming_status',status.get('dreamingStatus'))
         if roles:
@@ -394,6 +401,7 @@ def supermemory(source,root,at,processing_at):
         time.sleep(1)
     return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
+            'delivery_options':{'dreaming':delivery['dreaming']},
             'readiness_requirement':'Native document processing and memory dreaming both done'}
 
 

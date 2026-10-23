@@ -40,11 +40,16 @@ def resolve_checks(spec, question_at, timezone):
         if at < previous:
             raise ValueError('evaluation turns must follow the first question in time order')
         previous = at
-        extra={k:row[k] for k in ('session','kind','trigger','depends_on','expect') if k in row}
+        extra={k:row[k] for k in ('session','kind','trigger','depends_on','requires','expect') if k in row}
         if extra.get('kind','recall') not in ('recall','behavior'):raise ValueError('Unknown assistant turn kind')
         if 'session' in extra and not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}',extra['session']):raise ValueError('Unsafe session id')
         if extra.get('trigger','always') not in ('always','clarification'):raise ValueError('Unknown turn trigger')
         if 'depends_on' in extra and extra['depends_on'] not in ids:raise ValueError('Turn dependency must precede it')
+        if 'requires' in extra:
+            required=extra['requires']
+            if (not isinstance(required,list) or any(not isinstance(r,str) or r not in ids for r in required)
+                    or len(set(required))!=len(required)):
+                raise ValueError('Required turns must be unique preceding turn ids')
         if extra.get('trigger')=='clarification' and 'depends_on' not in extra:raise ValueError('Conditional reply needs depends_on')
         ids.add(cid)
         result.append({'id': cid, 'prompt': prompt.strip(), 'facts': facts,
@@ -115,7 +120,7 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
             continue
         policy = freeze_policy(contract, path / 'followup-plan.json')
         conditional={r['id'] for r in resolved['checks'] if r.get('trigger')=='clarification'}
-        requires=sorted({e.split(':',1)[1] for c in contract.claims for e in c.evidence
+        requires=sorted(set(check.get('requires',[])) | {e.split(':',1)[1] for c in contract.claims for e in c.evidence
                          if e.startswith('assistant-user:') and e.split(':',1)[1] in conditional and e!='assistant-user:'+check['id']})
         rows.append({'id': check['id'], 'at': check['at'], 'contract_hash': contract.contract_hash,
                      'policy_hash': policy['plan_hash'],**({'requires':requires} if requires else {}),
@@ -156,7 +161,7 @@ def load_evaluations(root, messages, resolved):
         if any(not c.evidence or any(e not in visible for e in c.evidence) for c in c.claims):
             raise ValueError('evaluation cites unavailable evidence')
         conditional={r['id'] for r in resolved['checks'] if r.get('trigger')=='clarification'}
-        requires=sorted({e.split(':',1)[1] for claim in c.claims for e in claim.evidence
+        requires=sorted(set(spec.get('requires',[])) | {e.split(':',1)[1] for claim in c.claims for e in claim.evidence
                          if e.startswith('assistant-user:') and e.split(':',1)[1] in conditional and e!='assistant-user:'+spec['id']})
         if row.get('requires',[])!=requires:raise ValueError('Conditional evidence dependency mismatch')
         loaded.append((row, c, policy))

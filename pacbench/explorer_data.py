@@ -5,13 +5,15 @@ import datetime
 import hashlib
 import json
 from pathlib import Path
+from urllib.parse import quote
 
 from .frozen import bundle_hash, messages_for
 from .model_calls import public_record
 
 
 def read_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+    from .evidence_store import read_json as read_evidence
+    return read_evidence(path) if path.exists() else None
 
 
 def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
@@ -154,11 +156,38 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         'sort_time': max(captured_times, default=(run_dir / 'summary.json').stat().st_mtime)}
 
 
-def load_runs(root: Path, *, include_model_records=True) -> dict:
+def run_index(root: Path) -> dict:
+    """List saved runs without loading corpora, transcripts, or model requests."""
+    runs=[];errors=[];directory=root/'runs'
+    for path in directory.iterdir() if directory.is_dir() else []:
+        if not path.is_dir() or path.is_symlink():continue
+        try:
+            summary=read_json(path/'summary.json') or {}
+            if summary.get('mode')!='native-hermes' and summary.get('state')!='prepared':continue
+            spec=read_json(path/'resolved-spec.json') or {}
+            times=[]
+            for arm in path.glob('repeat-*/*'):
+                for name in ('model-usage-after-settlement.json','model-usage.json'):
+                    usage=read_json(arm/name) or {}
+                    if usage.get('at'):
+                        stamp=datetime.datetime.fromisoformat(usage['at'])
+                        if stamp.tzinfo:times.append(stamp.timestamp())
+                        break
+            runs.append({'id':path.name,'spec':{'id':spec.get('id',path.name)},
+                         'summary':{'state':summary.get('state')},
+                         'sort_time':max(times,default=(path/'summary.json').stat().st_mtime),
+                         'detail_url':'/run?run='+quote(path.name)})
+        except (OSError,ValueError,TypeError) as exc:errors.append({'run':path.name,'error':str(exc)})
+    runs.sort(key=lambda item:item['sort_time'],reverse=True)
+    return {'runs':runs,'errors':errors,'generated_at':datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')}
+
+
+def load_runs(root: Path, *, include_model_records=True, run_id=None) -> dict:
     runs_dir = root / 'runs'
     runs = []
     errors = []
     for run_dir in (runs_dir.iterdir() if runs_dir.is_dir() else []):
+        if run_id is not None and run_dir.name!=run_id:continue
         if not run_dir.is_dir() or run_dir.is_symlink():
             continue
         try:
@@ -166,7 +195,33 @@ def load_runs(root: Path, *, include_model_records=True) -> dict:
             if run:
                 if not include_model_records:
                     from urllib.parse import urlencode
-                    def index_records(item):
+                    def index_records(item,bundle_file='bundle.json'):
+                        # The source and contracts already exist once at run
+                        # level. Keep references in provider views, not copies.
+                        item['source_documents']={}
+                        for contract in [item.get('contract'),*[e.get('contract') for e in item.get('evaluations',[])]]:
+                            if contract:contract.pop('source_aliases',None)
+                        for arm in [*item['arms'].values(),*item.get('excluded_arms',{}).values()]:
+                            arm.pop('turn',None)
+                            if arm.get('status'):arm['status'].pop('checks',None)
+                            if arm.get('evaluation'):
+                                arm['evaluation']['checks']=[{k:v for k,v in c.items() if k in
+                                    ('id','at','session','state','verdict','reason','cause','error_type','contract_hash')}
+                                    for c in arm['evaluation'].get('checks',[])]
+                            for exposure in arm.get('exposures',[]):
+                                packet=exposure.pop('packet',[])
+                                exposure['source_ids']=[m['source_id'] for m in packet]
+                                document=exposure.pop('document',None)
+                                if document is not None:item['source_documents'][exposure['label']]=document
+                            for ex in arm.get('exchanges',[]):
+                                if ex.get('contract'):ex['contract'].pop('source_aliases',None)
+                                if ex.get('source_state'):
+                                    state=ex['source_state'];ids=state.pop('source_ids',None)
+                                    if ids is not None:state['source_count']=len(ids)
+                                if ex.get('retention'):ex['retention'].pop('initial_metrics',None)
+                                if ex.get('status'):ex['status'].pop('recovery',None)
+                        item.pop('bundle',None)
+                        item['bundle_url']='/bundle?'+urlencode({'run':run['id'],'file':bundle_file})
                         for call in item.get('model_calls', []):
                             record=call['record'] or {}
                             location=Path(call['aliases'][0]).resolve().relative_to(runs_dir.resolve())
@@ -184,7 +239,7 @@ def load_runs(root: Path, *, include_model_records=True) -> dict:
                                 review['record']={k:v for k,v in record.items() if k!='judge_prompt'}
                                 review['record']['review_index']=True
                         if item.get('preflight'):
-                            index_records(item['preflight'])
+                            index_records(item['preflight'],'preflight/bundle.json')
                     index_records(run)
                 runs.append(run)
         except (OSError, ValueError, KeyError, TypeError, RuntimeError, StopIteration) as exc:

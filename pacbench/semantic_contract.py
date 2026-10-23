@@ -10,7 +10,7 @@ from typing import Callable
 
 from .model_calls import ModelOutput
 
-AUTHORING_VERSION = 'event-scoped-v4'
+AUTHORING_VERSION = 'event-scoped-v5'
 EVIDENCE_VERSION = 'assistant-session-fields-v2'
 
 
@@ -83,6 +83,7 @@ def build_contract(*, scene: str, test_intent: str,
     aliases={f's{i}':o['source_id'] for i,o in enumerate(observations,1)}
     draft_dialogue=_dialogue(observations,{source:alias for alias,source in aliases.items()})
     if behavior:
+        authored_count=len(author_facts)
         if not author_facts:
             draft=_call_json(generate,
                 'Turn the English expectation into independently assessable criteria for the assistant answer. '
@@ -96,21 +97,24 @@ def build_contract(*, scene: str, test_intent: str,
             'Review this scripted assistant interaction before running it. Expected criteria describe observable '
             'answer behavior, not proof of external execution. Check each criterion is observable, objective, '
             'fairly requested, and supported by the available source and scripted user instructions. '
-            'An acknowledgement does not prove persistence. Cite source IDs supporting each '
+            'An acknowledgement does not prove persistence. Cite the exact s-number labels supporting each '
             'expectation. Return JSON {"complete":true,"reviews":[{"id":"fact-1","supported":true,'
             '"relevant":true,"unambiguous":true,"reason":"...","evidence":["source-id"]}]}.\n'
             f'Question time: {question_at}\nUser: {user_question}\n'
-            f'Criteria: {json.dumps(author_facts)}\nAvailable source and planned user turns:\n{dialogue}')
+            f'Criteria: {json.dumps([{"id":f"fact-{i}","statement":fact} for i,fact in enumerate(author_facts,1)])}\n'
+            f'Available source and planned user turns:\n{draft_dialogue}')
         reviews=reviewed.get('reviews',[])
         if (reviewed.get('complete') is not True or len(reviews)!=len(author_facts) or
             any(r.get('id')!=f'fact-{i}' or any(r.get(k) is not True for k in ('supported','relevant','unambiguous')) or
-                not r.get('reason') or not r.get('evidence') or set(r['evidence'])-ids for i,r in enumerate(reviews,1))):
+                not r.get('reason') or not isinstance(r.get('evidence'),list) or not r['evidence'] or
+                any(not isinstance(e,str) or aliases.get(e,e) not in ids for e in r['evidence'])
+                for i,r in enumerate(reviews,1))):
             raise ValueError(f'Behavior criteria rejected: {reviewed}')
-        claims=tuple(ContractClaim(r['id'],fact,tuple(r['evidence'])) for fact,r in zip(author_facts,reviews))
+        claims=tuple(ContractClaim(r['id'],fact,tuple(aliases.get(e,e) for e in r['evidence'])) for fact,r in zip(author_facts,reviews))
         body={'authoring_version':AUTHORING_VERSION,'evidence_version':EVIDENCE_VERSION,'claims':[vars(c) for c in claims],'question':user_question,
             'evidence_hash':hashlib.sha256(json.dumps(observations,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
             'review':reviewed,'question_review':{'safe':True,'faithful':True,'elicits_all':True,'reason':'Reviewed behavioral interaction'},
-            'author_fact_count':len(author_facts),'question_source':'supplied','question_at':question_at,'kind':'behavior','test_intent':test_intent}
+            'author_fact_count':authored_count,'question_source':'supplied','question_at':question_at,'kind':'behavior','test_intent':test_intent}
         hashed=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         output_path.parent.mkdir(parents=True,exist_ok=True)
         with output_path.open('x') as f:json.dump({**body,'contract_hash':hashed},f,indent=2,ensure_ascii=False)
@@ -273,8 +277,10 @@ def build_contract(*, scene: str, test_intent: str,
             "incidental background facts the question would not reasonably invite. "
             "Resolve references using earlier public questions in the same tagged assistant session; "
             "questions in other sessions do not supply conversational scope. "
+            "Explicit earlier user instructions remain source facts across sessions: "
+            "a fresh question can test their persistence without assuming the assistant stored them. "
             "For assistant-channel rows, thread identifies the session; source IDs identify turns. "
-            "A topic or time scope does not itself establish which events belong in it. "
+            "Event membership needs source evidence, not private authored intent. "
             'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
             f"Question time: {question_at}\nPrompt: {question}\n"
             f"Expected facts: {json.dumps([vars(c) for c in claims])}\nDialogue:\n{dialogue}")

@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-19T10:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat’s the deal with pizza on Friday?",
+  "at": "2026-10-19T10:00:00-04:00",
+  "answer": "Friday pizza is 12:30pm with Maya at Mario's on Pine Street — confirmed.\n\nYou moved it from noon because your work meeting runs til 12:15 now.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E16"
+      },
+      "timestamp": 1792765872589
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E16  Pizza\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nsource: person:Maya\n\npages: maya (person) · pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 17:23 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  — Wed Oct 14, 2026 15:39 · iMessage with Friday crew —\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\n   [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\n  — Wed Oct 14, 2026 17:03 · iMessage with Maya —\n   [2604] Maya · Wed 14 Oct 17:03 · Maya: same, I closed mine halfway already\n   [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n   [2625] Maya · Wed 14 Oct 17:19 · Maya: ugh of course, Friday meetings love to expand\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n   [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n   [2631] Maya · Wed 14 Oct 17:25 · me: you're the best, still good for like an hour-ish?\n   [2633] Maya · Wed 14 Oct 17:25 · Maya: yeah plenty, my 2pm call is still there so that actually helps\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza' -> 'Pizza' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)\n",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 12.38,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261023_103105_6e4504",
+  "raw_events": 11,
+  "session_id": "20261023_103105_6e4504",
+  "stderr_full": "\nsession_id: 20261023_103105_6e4504\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_103105_6e4504\", \"timestamp\": 1792765865850}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Pulling the Friday pizza details.\", \"timestamp\": 1792765871757}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E16\"}, \"timestamp\": 1792765872589}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E16  Pizza\\n\\nwhen: Friday 23 October 2026 at 12:30\\nstate: You're going\\nwhere: Mario's on Pine Street\\nwho: Maya\\nsource: person:Maya\\n\\npages: maya (person) · pizza (series)\\n\\nsources (12 line(s); * = what the row was built from):\\n  — Wed Oct 14, 2026 17:23 · iMessage with Maya —\\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\\n  — Wed Oct 14, 2026 15:39 · iMessage with Friday crew —\\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\\n   [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\\n  — Wed Oct 14, 2026 17:03 · iMessage with Maya —\\n   [2604] Maya · Wed 14 Oct 17:03 · Maya: same, I closed mine halfway already\\n   [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\\n   [2625] Maya · Wed 14 Oct 17:19 · Maya: ugh of course, Friday meetings love to expand\\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\\n   [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\\n   [2631] Maya · Wed 14 Oct 17:25 · me: you're the best, still good for like an hour-ish?\\n   [2633] Maya · Wed 14 Oct 17:25 · Maya: yeah plenty, my 2pm call is still there so that actually helps\\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\\n\\nchanges:\\n  2026-10-14T03:00  participants: '[\\\"Maya\\\"]' -> '[\\\"Leo\\\", \\\"Maya\\\"]' (by dream:nightly)\\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\\n  2026-10-15T03:00  location: \\\"Rosa's on Oak Street\\\" -> \\\"Mario's on Pine Street\\\" (by dream:nightly)\\n  2026-10-15T03:00  participants: '[\\\"Leo\\\", \\\"Maya\\\"]' -> '[\\\"Maya\\\"]' (by dream:nightly)\\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\\n  2026-10-15T03:00  title: 'Pizza' -> 'Pizza' (by dream:nightly)\\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)\\n\", \"duration_ms\": 49, \"is_error\": false, \"timestamp\": 1792765872637}\n{\"type\": \"text\", \"text\": \"\\n\\nFriday pizza is \", \"timestamp\": 1792765876122}\n{\"type\": \"text\", \"text\": \"12:30pm with Maya at Mario\", \"timestamp\": 1792765876159}\n{\"type\": \"text\", \"text\": \"'s on Pine Street — confirmed.\\n\\nYou\", \"timestamp\": 1792765876200}\n{\"type\": \"text\", \"text\": \" moved\", \"timestamp\": 1792765876242}\n{\"type\": \"text\", \"text\": \" it from noon because your work meeting runs\", \"timestamp\": 1792765876281}\n{\"type\": \"text\", \"text\": \" til 12:15 now.\", \"timestamp\": 1792765876326}\n{\"type\": \"result\", \"session_id\": \"20261023_103105_6e4504\", \"exit_code\": 0, \"text\": \"Friday pizza is 12:30pm with Maya at Mario's on Pine Street — confirmed.\\n\\nYou moved it from noon because your work meeting runs til 12:15 now.\", \"tokens\": {\"input\": 10242, \"output\": 655, \"total\": 20226, \"cache_read\": 9329, \"cache_write\": 0}, \"duration_ms\": 10537, \"timestamp\": 1792765876388}",
+  "session_input_tokens": 10242,
+  "session_output_tokens": 655,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-19T10:00:00-04:00 [id=698e0341d2cbed88d0697625c074310414cb2cd9] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 19 October 2026)\n〔E20〕 Fri Oct 23  \"Cover letter call\", 10am — confirmed · with Jen\n〔E19〕 Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex\n〔E16〕 Fri Oct 23  \"Pizza\", 12:30pm — confirmed · with Maya\n〔E15〕 Fri Oct 23  \"Walk\", 2pm — not going · with Alex, Jen\n〔E18〕 Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben\n〔E17〕 Sun Oct 25  \"Pizza\", 6pm — confirmed · with Devon\n[complete for 2026-10-16 – 2026-11-18; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no imessage 4 days, email 4 days — this week may be incomplete]\n\n## People and facts\nPages: lunch (where) · maya (diet) · pizza (where) · pizza-dinner (where) · pizza-lunch (where)\n\nWIKI PAGES MENTIONED THIS TURN\n\n# Pizza\n\nRecent instances:\n- 2026-10-25 — Luigi's on 5th Street\n- 2026-10-23 — Mario's on Pine Street\n- 2026-10-09 — Rosa's on Oak Street\n- 2026-09-25 — Rosa's on Oak Street\n\n## Facts\n\n- **where**: Luigi's on 5th Street  <!-- memcal 2026-10-15 -->\n\n---\n\n# Pizza Dinner\n\nRecent instances:\n- 2026-10-02 — Mario's on Pine Street\n- 2026-09-18 — Luigi's on 5th Street\n\n## Facts\n\n- **where**: Mario's on Pine Street  <!-- memcal 2026-10-01 -->\n\n---\n\n# Pizza Lunch\n\nRecent instances:\n- 2026-10-09 — Luigi's on 5th Street\n- 2026-10-02 — Rosa's on Oak Street\n- 2026-09-18 — Rosa's on Oak Street\n\n## Facts\n\n- **where**: Luigi's on 5th Street  <!-- memcal 2026-10-06 -->",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-5dpg37pu",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-5dpg37pu",
+    "system_prompt_sha256": "07f41f1ef8ce7721399a57931f9946943ee69df22b8330081b335d6faf820fc0",
+    "reason": "No project context in native saved system prompt"
+  }
+}

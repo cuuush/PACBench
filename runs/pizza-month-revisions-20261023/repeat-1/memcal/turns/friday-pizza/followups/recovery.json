@@ -1,0 +1,137 @@
+{
+  "state": "complete",
+  "plan_hash": "bc5a44504b5c70fe680c3cd011cba8437e9217ddba41d20003e6ea3153a67045",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E16"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792765872589,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E16  Pizza\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nsource: person:Maya\n\npages: maya (person) · pizza (series)\n\nsources (12 line(s); * = what the row was built from):\n  — Wed Oct 14, 2026 17:23 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 17:23 · Maya: perfect, no rush at all, I'll aim for 12:30 too\n  — Wed Oct 14, 2026 15:39 · iMessage with Friday crew —\n * [2559] Friday crew · Wed 14 Oct 15:39 · Maya: yep, still noon?\n   [2560] Friday crew · Wed 14 Oct 15:40 · me: yeah that works\n  — Wed Oct 14, 2026 17:03 · iMessage with Maya —\n   [2604] Maya · Wed 14 Oct 17:03 · Maya: same, I closed mine halfway already\n   [2615] Maya · Wed 14 Oct 17:06 · me: oh hey so annoying thing about Friday\n * [2616] Maya · Wed 14 Oct 17:07 · me: my work meeting got extended, it runs til 12:15 now\n * [2617] Maya · Wed 14 Oct 17:07 · me: can we slide like half an hour later than noon?\n   [2625] Maya · Wed 14 Oct 17:19 · Maya: ugh of course, Friday meetings love to expand\n * [2627] Maya · Wed 14 Oct 17:22 · Maya: yeah 12:30 works for me, I'll just walk over a little later\n   [2628] Maya · Wed 14 Oct 17:23 · me: thank youuu, I can still slip out right after, just need like 15 to get over there\n   [2631] Maya · Wed 14 Oct 17:25 · me: you're the best, still good for like an hour-ish?\n   [2633] Maya · Wed 14 Oct 17:25 · Maya: yeah plenty, my 2pm call is still there so that actually helps\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  participants: '[\"Maya\"]' -> '[\"Leo\", \"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza' -> 'Pizza' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)\n",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 12.38,
+    "input_tokens": 10242,
+    "output_tokens": 655,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "count",
+      "kind": "provided",
+      "reason": "Single outing correctly conveyed."
+    },
+    {
+      "id": "time",
+      "kind": "provided",
+      "reason": "Time correctly provided as 12:30pm."
+    },
+    {
+      "id": "venue",
+      "kind": "provided",
+      "reason": "Venue correctly provided as Mario's."
+    },
+    {
+      "id": "street",
+      "kind": "provided",
+      "reason": "Street correctly provided as Pine Street."
+    },
+    {
+      "id": "attendees",
+      "kind": "provided",
+      "reason": "Attendees correctly provided as user and Maya."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 5,
+    "points": 5.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "attendees",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

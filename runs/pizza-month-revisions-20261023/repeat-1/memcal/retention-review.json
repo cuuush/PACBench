@@ -1,0 +1,87 @@
+{
+  "captured_at": "2026-10-23T14:35:15.747188+00:00",
+  "method": "Read-only native SQLite event rows and saved native parsed extraction outputs; no changes to memory or benchmark judgments",
+  "upcoming_native_events": [
+    {
+      "key": "cover-letter-call@2026-10-23",
+      "title": "Cover letter call",
+      "date": "2026-10-23",
+      "time": "10:00",
+      "location": null,
+      "status": "confirmed",
+      "participants": "[\"Jen\"]",
+      "note": "Phone call to review ops coordinator cover letter draft"
+    },
+    {
+      "key": "coffee@2026-10-23",
+      "title": "Coffee",
+      "date": "2026-10-23",
+      "time": "11:00",
+      "location": "Birch Cafe, front entrance on Birch Street",
+      "status": "confirmed",
+      "participants": "[\"Alex\"]",
+      "note": null
+    },
+    {
+      "key": "pizza@2026-10-23",
+      "title": "Pizza",
+      "date": "2026-10-23",
+      "time": "12:30",
+      "location": "Mario's on Pine Street",
+      "status": "confirmed",
+      "participants": "[\"Maya\"]",
+      "note": null
+    },
+    {
+      "key": "walk@2026-10-23",
+      "title": "Walk",
+      "date": "2026-10-23",
+      "time": "14:00",
+      "location": "Willow Park, west entrance by the duck pond",
+      "status": "declined",
+      "participants": "[\"Alex\", \"Jen\"]",
+      "note": null
+    },
+    {
+      "key": "dinner@2026-10-22",
+      "title": "Dinner",
+      "date": "2026-10-24",
+      "time": "19:00",
+      "location": "Juniper Cafe, 48 Maple Ave",
+      "status": "confirmed",
+      "participants": "[\"Ben\"]",
+      "note": null
+    },
+    {
+      "key": "pizza@2026-10-23~2",
+      "title": "Pizza",
+      "date": "2026-10-25",
+      "time": "18:00",
+      "location": "Luigi's on 5th Street",
+      "status": "confirmed",
+      "participants": "[\"Devon\"]",
+      "note": null
+    }
+  ],
+  "native_parsed_outputs_naming_dominos": 0,
+  "findings": [
+    "Current event rows preserve the revised pizza, dinner, pond, coffee and call state.",
+    "The Domino reason was not found by Hermes. Its archive search returned no results; its two-term query does not establish that the source was absent.",
+    "No parsed extraction output names Domino. No evidence found that application storage discarded an extracted Domino fact.",
+    "Original grades are preserved; no product patch or recovery hint was applied."
+  ],
+  "limits": "This is a targeted diagnostic, not a complete audit of every stored statement or a new grading oracle.",
+  "navigation_review": {
+    "question": "[Simulated now: 2026-10-19T11:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhich entrance should we use at Birch on Friday?",
+    "prefetch_sha256": "cc237ab25d9652b12815b8381f8a9d75aa80096617190bddca72232fc87348f2",
+    "event_in_prefetch": "E19 Coffee, Friday 11am with Alex; upcoming lines omit venues",
+    "retained_record_guidance_present": true,
+    "tool_calls": 12,
+    "correct_event_open_position": 10,
+    "findings": [
+      "Hermes initially opened pizza/lunch pages and the pizza event despite the Birch question.",
+      "The correct coffee event was present in the brief. Its venue was absent from the upcoming summary.",
+      "This shows navigation friction, not proof of a storage failure or proof that changing the brief would fix it. No benchmark-specific navigation hint was supplied."
+    ]
+  }
+}

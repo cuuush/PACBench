@@ -1,0 +1,36 @@
+{
+  "id": "superseded-extra-outing",
+  "state": "pass",
+  "expected": [
+    "misrepresented"
+  ],
+  "actual": [
+    "misrepresented"
+  ],
+  "expected_eligible": null,
+  "actual_eligible": [],
+  "eligibility_reason": "no_initial_correct_facts",
+  "grade": {
+    "checkpoint": "superseded-extra-outing",
+    "slots": [
+      {
+        "id": "count",
+        "verdict": "misrepresented",
+        "reason": "Answer lists two Friday pizza outings (Maya at 12:30 and Devon at 6), contradicting exactly one."
+      }
+    ],
+    "correct": 0,
+    "missed": 0,
+    "misrepresented": 1,
+    "claim_coverage": 0.0,
+    "all_claims_correct": false,
+    "recovery": [
+      {
+        "id": "count",
+        "kind": "incorrect",
+        "reason": "Answer asserts two outings, so the exactly-one count is contradicted, not omitted."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

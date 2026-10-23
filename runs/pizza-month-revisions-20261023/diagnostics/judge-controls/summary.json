@@ -1,0 +1,600 @@
+{
+  "scope": "Synthetic judge controls, never provider scores",
+  "state": "pass",
+  "controls": [
+    {
+      "id": "natural-recap",
+      "state": "pass",
+      "expected": [
+        "correct",
+        "correct",
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "actual": [
+        "correct",
+        "correct",
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": null,
+      "grade": {
+        "checkpoint": "natural-recap",
+        "slots": [
+          {
+            "id": "count",
+            "verdict": "correct",
+            "reason": "Answer describes a single Friday pizza outing with Maya, with no other outing mentioned."
+          },
+          {
+            "id": "time",
+            "verdict": "correct",
+            "reason": "Answer gives 12:30 for the Friday pizza, matching 12:30 pm in lunch context."
+          },
+          {
+            "id": "venue",
+            "verdict": "correct",
+            "reason": "Answer places the Friday pizza at Mario's."
+          },
+          {
+            "id": "street",
+            "verdict": "correct",
+            "reason": "Answer places the Friday pizza on Pine Street."
+          },
+          {
+            "id": "attendees",
+            "verdict": "correct",
+            "reason": "Answer says pizza with Maya, indicating user and Maya with no others listed."
+          }
+        ],
+        "correct": 5,
+        "missed": 0,
+        "misrepresented": 0,
+        "claim_coverage": 1.0,
+        "all_claims_correct": true,
+        "recovery": [
+          {
+            "id": "count",
+            "kind": "provided",
+            "reason": "Count of one is conveyed by single outing description."
+          },
+          {
+            "id": "time",
+            "kind": "provided",
+            "reason": "Time 12:30 is stated in answer."
+          },
+          {
+            "id": "venue",
+            "kind": "provided",
+            "reason": "Venue Mario's is stated in answer."
+          },
+          {
+            "id": "street",
+            "kind": "provided",
+            "reason": "Street Pine Street is stated in answer."
+          },
+          {
+            "id": "attendees",
+            "kind": "provided",
+            "reason": "Attendees user and Maya conveyed by 'with Maya'."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "clearly-labelled-history",
+      "state": "pass",
+      "expected": [
+        "correct",
+        "correct",
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "actual": [
+        "correct",
+        "correct",
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": null,
+      "grade": {
+        "checkpoint": "clearly-labelled-history",
+        "slots": [
+          {
+            "id": "count",
+            "verdict": "correct",
+            "reason": "Answer describes one current Friday pizza with history clearly marked as superseded."
+          },
+          {
+            "id": "time",
+            "verdict": "correct",
+            "reason": "Answer states current settled time is 12:30, matching midday 12:30 pm."
+          },
+          {
+            "id": "venue",
+            "verdict": "correct",
+            "reason": "Answer states current venue is Mario's."
+          },
+          {
+            "id": "street",
+            "verdict": "correct",
+            "reason": "Answer states location is on Pine Street."
+          },
+          {
+            "id": "attendees",
+            "verdict": "correct",
+            "reason": "Answer says pizza with Maya with no other attendees, indicating user and Maya."
+          }
+        ],
+        "correct": 5,
+        "missed": 0,
+        "misrepresented": 0,
+        "claim_coverage": 1.0,
+        "all_claims_correct": true,
+        "recovery": [
+          {
+            "id": "count",
+            "kind": "provided",
+            "reason": "Single agreed outing conveyed."
+          },
+          {
+            "id": "time",
+            "kind": "provided",
+            "reason": "12:30 conveyed as settled time."
+          },
+          {
+            "id": "venue",
+            "kind": "provided",
+            "reason": "Mario's conveyed as current venue."
+          },
+          {
+            "id": "street",
+            "kind": "provided",
+            "reason": "Pine Street conveyed."
+          },
+          {
+            "id": "attendees",
+            "kind": "provided",
+            "reason": "User and Maya conveyed with no extras."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "stale-values",
+      "state": "pass",
+      "expected": [
+        "misrepresented",
+        "misrepresented",
+        "misrepresented"
+      ],
+      "actual": [
+        "misrepresented",
+        "misrepresented",
+        "misrepresented"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": "no_initial_correct_facts",
+      "grade": {
+        "checkpoint": "stale-values",
+        "slots": [
+          {
+            "id": "time",
+            "verdict": "misrepresented",
+            "reason": "Answer says noon, not 12:30 pm."
+          },
+          {
+            "id": "venue",
+            "verdict": "misrepresented",
+            "reason": "Answer says Rosa's, not Mario's."
+          },
+          {
+            "id": "street",
+            "verdict": "misrepresented",
+            "reason": "Answer says Oak Street, not Pine Street."
+          }
+        ],
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 3,
+        "claim_coverage": 0.0,
+        "all_claims_correct": false,
+        "recovery": [
+          {
+            "id": "time",
+            "kind": "incorrect",
+            "reason": "Answer gives wrong time noon."
+          },
+          {
+            "id": "venue",
+            "kind": "incorrect",
+            "reason": "Answer gives wrong venue Rosa's."
+          },
+          {
+            "id": "street",
+            "kind": "incorrect",
+            "reason": "Answer gives wrong street Oak Street."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "superseded-extra-outing",
+      "state": "pass",
+      "expected": [
+        "misrepresented"
+      ],
+      "actual": [
+        "misrepresented"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": "no_initial_correct_facts",
+      "grade": {
+        "checkpoint": "superseded-extra-outing",
+        "slots": [
+          {
+            "id": "count",
+            "verdict": "misrepresented",
+            "reason": "Answer lists two Friday pizza outings (Maya at 12:30 and Devon at 6), contradicting exactly one."
+          }
+        ],
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 1,
+        "claim_coverage": 0.0,
+        "all_claims_correct": false,
+        "recovery": [
+          {
+            "id": "count",
+            "kind": "incorrect",
+            "reason": "Answer asserts two outings, so the exactly-one count is contradicted, not omitted."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "unresolved-alternatives",
+      "state": "pass",
+      "expected": [
+        "misrepresented",
+        "misrepresented",
+        "misrepresented"
+      ],
+      "actual": [
+        "misrepresented",
+        "misrepresented",
+        "misrepresented"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": "no_initial_correct_facts",
+      "grade": {
+        "checkpoint": "unresolved-alternatives",
+        "slots": [
+          {
+            "id": "time",
+            "verdict": "misrepresented",
+            "reason": "Answer gives 'either noon or 12:30' as unresolved alternatives, not 12:30 as agreed."
+          },
+          {
+            "id": "venue",
+            "verdict": "misrepresented",
+            "reason": "Answer gives 'Rosa's or Mario's' as unresolved alternatives, not Mario's as agreed."
+          },
+          {
+            "id": "street",
+            "verdict": "misrepresented",
+            "reason": "Answer gives 'Oak or Pine Street' as unresolved alternatives, not Pine Street as agreed."
+          }
+        ],
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 3,
+        "claim_coverage": 0.0,
+        "all_claims_correct": false,
+        "recovery": [
+          {
+            "id": "time",
+            "kind": "incorrect",
+            "reason": "Wrong alternative noon asserted alongside 12:30 as current."
+          },
+          {
+            "id": "venue",
+            "kind": "incorrect",
+            "reason": "Wrong alternative Rosa's asserted alongside Mario's as current."
+          },
+          {
+            "id": "street",
+            "kind": "incorrect",
+            "reason": "Wrong alternative Oak asserted alongside Pine Street as current."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "current-only-dinner",
+      "state": "pass",
+      "expected": [
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "actual": [
+        "correct",
+        "correct",
+        "correct"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": null,
+      "grade": {
+        "checkpoint": "current-only-dinner",
+        "slots": [
+          {
+            "id": "ben-dinner-day",
+            "verdict": "correct",
+            "reason": "Answer states 'Saturday at 7 at Juniper Cafe' for Ben dinner."
+          },
+          {
+            "id": "ben-dinner-time",
+            "verdict": "correct",
+            "reason": "Answer states 'at 7' for dinner, meaning 7pm in context."
+          },
+          {
+            "id": "ben-dinner-venue",
+            "verdict": "correct",
+            "reason": "Answer states 'at Juniper Cafe' for Ben dinner."
+          }
+        ],
+        "correct": 3,
+        "missed": 0,
+        "misrepresented": 0,
+        "claim_coverage": 1.0,
+        "all_claims_correct": true,
+        "recovery": [
+          {
+            "id": "ben-dinner-day",
+            "kind": "provided",
+            "reason": "Day correctly stated in answer."
+          },
+          {
+            "id": "ben-dinner-time",
+            "kind": "provided",
+            "reason": "Time correctly stated in answer."
+          },
+          {
+            "id": "ben-dinner-venue",
+            "kind": "provided",
+            "reason": "Venue correctly stated in answer."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "simple-negative",
+      "state": "pass",
+      "expected": [
+        "correct"
+      ],
+      "actual": [
+        "correct"
+      ],
+      "expected_eligible": null,
+      "actual_eligible": [],
+      "eligibility_reason": null,
+      "grade": {
+        "checkpoint": "simple-negative",
+        "slots": [
+          {
+            "id": "ben-no-thursday",
+            "verdict": "correct",
+            "reason": "Answer says 'No' to Thursday dinner, only Saturday."
+          }
+        ],
+        "correct": 1,
+        "missed": 0,
+        "misrepresented": 0,
+        "claim_coverage": 1.0,
+        "all_claims_correct": true,
+        "recovery": [
+          {
+            "id": "ben-no-thursday",
+            "kind": "provided",
+            "reason": "Answer directly conveys no Thursday dinner."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "implicit-omission",
+      "state": "pass",
+      "expected": [
+        "correct",
+        "correct",
+        "missed",
+        "missed",
+        "correct"
+      ],
+      "actual": [
+        "correct",
+        "correct",
+        "missed",
+        "missed",
+        "correct"
+      ],
+      "expected_eligible": [
+        "venue",
+        "street"
+      ],
+      "actual_eligible": [
+        "venue",
+        "street"
+      ],
+      "eligibility_reason": null,
+      "grade": {
+        "checkpoint": "implicit-omission",
+        "slots": [
+          {
+            "id": "count",
+            "verdict": "correct",
+            "reason": "Answer presents a single Friday plan as 'just you and Maya at 12:30' with no second outing."
+          },
+          {
+            "id": "time",
+            "verdict": "correct",
+            "reason": "Answer states the Friday outing is 'at 12:30', matching 12:30 pm."
+          },
+          {
+            "id": "venue",
+            "verdict": "missed",
+            "reason": "Answer mentions no venue; Mario's is absent."
+          },
+          {
+            "id": "street",
+            "verdict": "missed",
+            "reason": "Answer mentions no street; Pine Street is absent."
+          },
+          {
+            "id": "attendees",
+            "verdict": "correct",
+            "reason": "Answer states 'just you and Maya', conveying exactly user and Maya."
+          }
+        ],
+        "correct": 3,
+        "missed": 2,
+        "misrepresented": 0,
+        "claim_coverage": 0.6,
+        "all_claims_correct": false,
+        "recovery": [
+          {
+            "id": "count",
+            "kind": "provided",
+            "reason": "Single outing description provided in answer."
+          },
+          {
+            "id": "time",
+            "kind": "provided",
+            "reason": "12:30 time provided in answer."
+          },
+          {
+            "id": "venue",
+            "kind": "implicit_omission",
+            "reason": "Broad 'deal' question did not specifically ask for venue and answer did not state it."
+          },
+          {
+            "id": "street",
+            "kind": "implicit_omission",
+            "reason": "Broad 'deal' question did not specifically ask for street and answer did not state it."
+          },
+          {
+            "id": "attendees",
+            "kind": "provided",
+            "reason": "Attendee list 'just you and Maya' provided in answer."
+          }
+        ],
+        "interaction": "answer"
+      }
+    },
+    {
+      "id": "admitted-failure",
+      "state": "pass",
+      "expected": [
+        "correct",
+        "correct",
+        "missed",
+        "missed",
+        "correct"
+      ],
+      "actual": [
+        "correct",
+        "correct",
+        "missed",
+        "missed",
+        "correct"
+      ],
+      "expected_eligible": [],
+      "actual_eligible": [],
+      "eligibility_reason": "admitted_retrieval_failure",
+      "grade": {
+        "checkpoint": "admitted-failure",
+        "slots": [
+          {
+            "id": "count",
+            "verdict": "correct",
+            "reason": "Answer presents a single Friday plan as 'Friday is just you and Maya at 12:30', conveying exactly one outing."
+          },
+          {
+            "id": "time",
+            "verdict": "correct",
+            "reason": "Answer states the Friday outing is 'at 12:30', matching 12:30 pm."
+          },
+          {
+            "id": "venue",
+            "verdict": "missed",
+            "reason": "Answer gives no venue name, stating \"I can't find where you're meeting.\""
+          },
+          {
+            "id": "street",
+            "verdict": "missed",
+            "reason": "Answer gives no street, stating location is unknown."
+          },
+          {
+            "id": "attendees",
+            "verdict": "correct",
+            "reason": "Answer states 'just you and Maya', conveying exactly user and Maya."
+          }
+        ],
+        "correct": 3,
+        "missed": 2,
+        "misrepresented": 0,
+        "claim_coverage": 0.6,
+        "all_claims_correct": false,
+        "recovery": [
+          {
+            "id": "count",
+            "kind": "provided",
+            "reason": "Single outing correctly conveyed."
+          },
+          {
+            "id": "time",
+            "kind": "provided",
+            "reason": "12:30 correctly conveyed."
+          },
+          {
+            "id": "venue",
+            "kind": "unavailable",
+            "reason": "Answer explicitly says it can't find where meeting is."
+          },
+          {
+            "id": "street",
+            "kind": "unavailable",
+            "reason": "Answer explicitly says it can't find where meeting is."
+          },
+          {
+            "id": "attendees",
+            "kind": "provided",
+            "reason": "User and Maya list correctly conveyed."
+          }
+        ],
+        "interaction": "answer"
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "stale-values",
+  "state": "pass",
+  "expected": [
+    "misrepresented",
+    "misrepresented",
+    "misrepresented"
+  ],
+  "actual": [
+    "misrepresented",
+    "misrepresented",
+    "misrepresented"
+  ],
+  "expected_eligible": null,
+  "actual_eligible": [],
+  "eligibility_reason": "no_initial_correct_facts",
+  "grade": {
+    "checkpoint": "stale-values",
+    "slots": [
+      {
+        "id": "time",
+        "verdict": "misrepresented",
+        "reason": "Answer says noon, not 12:30 pm."
+      },
+      {
+        "id": "venue",
+        "verdict": "misrepresented",
+        "reason": "Answer says Rosa's, not Mario's."
+      },
+      {
+        "id": "street",
+        "verdict": "misrepresented",
+        "reason": "Answer says Oak Street, not Pine Street."
+      }
+    ],
+    "correct": 0,
+    "missed": 0,
+    "misrepresented": 3,
+    "claim_coverage": 0.0,
+    "all_claims_correct": false,
+    "recovery": [
+      {
+        "id": "time",
+        "kind": "incorrect",
+        "reason": "Answer gives wrong time noon."
+      },
+      {
+        "id": "venue",
+        "kind": "incorrect",
+        "reason": "Answer gives wrong venue Rosa's."
+      },
+      {
+        "id": "street",
+        "kind": "incorrect",
+        "reason": "Answer gives wrong street Oak Street."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

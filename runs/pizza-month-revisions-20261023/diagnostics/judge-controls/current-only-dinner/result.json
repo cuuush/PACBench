@@ -1,0 +1,60 @@
+{
+  "id": "current-only-dinner",
+  "state": "pass",
+  "expected": [
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "actual": [
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "expected_eligible": null,
+  "actual_eligible": [],
+  "eligibility_reason": null,
+  "grade": {
+    "checkpoint": "current-only-dinner",
+    "slots": [
+      {
+        "id": "ben-dinner-day",
+        "verdict": "correct",
+        "reason": "Answer states 'Saturday at 7 at Juniper Cafe' for Ben dinner."
+      },
+      {
+        "id": "ben-dinner-time",
+        "verdict": "correct",
+        "reason": "Answer states 'at 7' for dinner, meaning 7pm in context."
+      },
+      {
+        "id": "ben-dinner-venue",
+        "verdict": "correct",
+        "reason": "Answer states 'at Juniper Cafe' for Ben dinner."
+      }
+    ],
+    "correct": 3,
+    "missed": 0,
+    "misrepresented": 0,
+    "claim_coverage": 1.0,
+    "all_claims_correct": true,
+    "recovery": [
+      {
+        "id": "ben-dinner-day",
+        "kind": "provided",
+        "reason": "Day correctly stated in answer."
+      },
+      {
+        "id": "ben-dinner-time",
+        "kind": "provided",
+        "reason": "Time correctly stated in answer."
+      },
+      {
+        "id": "ben-dinner-venue",
+        "kind": "provided",
+        "reason": "Venue correctly stated in answer."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

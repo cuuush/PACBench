@@ -1,0 +1,84 @@
+{
+  "id": "natural-recap",
+  "state": "pass",
+  "expected": [
+    "correct",
+    "correct",
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "actual": [
+    "correct",
+    "correct",
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "expected_eligible": null,
+  "actual_eligible": [],
+  "eligibility_reason": null,
+  "grade": {
+    "checkpoint": "natural-recap",
+    "slots": [
+      {
+        "id": "count",
+        "verdict": "correct",
+        "reason": "Answer describes a single Friday pizza outing with Maya, with no other outing mentioned."
+      },
+      {
+        "id": "time",
+        "verdict": "correct",
+        "reason": "Answer gives 12:30 for the Friday pizza, matching 12:30 pm in lunch context."
+      },
+      {
+        "id": "venue",
+        "verdict": "correct",
+        "reason": "Answer places the Friday pizza at Mario's."
+      },
+      {
+        "id": "street",
+        "verdict": "correct",
+        "reason": "Answer places the Friday pizza on Pine Street."
+      },
+      {
+        "id": "attendees",
+        "verdict": "correct",
+        "reason": "Answer says pizza with Maya, indicating user and Maya with no others listed."
+      }
+    ],
+    "correct": 5,
+    "missed": 0,
+    "misrepresented": 0,
+    "claim_coverage": 1.0,
+    "all_claims_correct": true,
+    "recovery": [
+      {
+        "id": "count",
+        "kind": "provided",
+        "reason": "Count of one is conveyed by single outing description."
+      },
+      {
+        "id": "time",
+        "kind": "provided",
+        "reason": "Time 12:30 is stated in answer."
+      },
+      {
+        "id": "venue",
+        "kind": "provided",
+        "reason": "Venue Mario's is stated in answer."
+      },
+      {
+        "id": "street",
+        "kind": "provided",
+        "reason": "Street Pine Street is stated in answer."
+      },
+      {
+        "id": "attendees",
+        "kind": "provided",
+        "reason": "Attendees user and Maya conveyed by 'with Maya'."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

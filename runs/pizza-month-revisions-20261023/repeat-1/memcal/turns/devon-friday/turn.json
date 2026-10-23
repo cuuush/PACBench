@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-19T11:50:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAm I still getting pizza with Devon on Friday night?",
+  "at": "2026-10-19T11:50:00-04:00",
+  "answer": "No — pizza with Devon is Sunday Oct 25 at 6pm, confirmed. Friday is pizza with Maya at 12:30pm.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 10.37,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261023_103651_600552",
+  "raw_events": 7,
+  "session_id": "20261023_103651_600552",
+  "stderr_full": "\nsession_id: 20261023_103651_600552\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_103651_600552\", \"timestamp\": 1792766211127}\n{\"type\": \"text\", \"text\": \"No — pizza with\", \"timestamp\": 1792766218236}\n{\"type\": \"text\", \"text\": \" Devon is Sunday Oct 25 at \", \"timestamp\": 1792766218273}\n{\"type\": \"text\", \"text\": \"6pm, confirmed.\", \"timestamp\": 1792766218312}\n{\"type\": \"text\", \"text\": \" Friday is pizza with Maya at\", \"timestamp\": 1792766218353}\n{\"type\": \"text\", \"text\": \" 12:30pm.\", \"timestamp\": 1792766218396}\n{\"type\": \"result\", \"session_id\": \"20261023_103651_600552\", \"exit_code\": 0, \"text\": \"No — pizza with Devon is Sunday Oct 25 at 6pm, confirmed. Friday is pizza with Maya at 12:30pm.\", \"tokens\": {\"input\": 9354, \"output\": 585, \"total\": 9939, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 8613, \"timestamp\": 1792766219740}",
+  "session_input_tokens": 9354,
+  "session_output_tokens": 585,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-19T11:50:00-04:00 [id=1af80134244c23056b661f959b1062f3a104c721] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 19 October 2026)\n〔E20〕 Fri Oct 23  \"Cover letter call\", 10am — confirmed · with Jen\n〔E19〕 Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex\n〔E16〕 Fri Oct 23  \"Pizza\", 12:30pm — confirmed · with Maya\n〔E15〕 Fri Oct 23  \"Walk\", 2pm — not going · with Alex, Jen\n〔E18〕 Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben\n〔E17〕 Sun Oct 25  \"Pizza\", 6pm — confirmed · with Devon\n[complete for 2026-10-16 – 2026-11-18; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no imessage 4 days, email 5 days — this week may be incomplete]\n\n## People and facts\nPages: lunch (where) · maya (diet) · pizza (where) · pizza-dinner (where) · pizza-lunch (where)\n\nWIKI PAGES MENTIONED THIS TURN\n\n# Pizza\n\nRecent instances:\n- 2026-10-25 — Luigi's on 5th Street\n- 2026-10-23 — Mario's on Pine Street\n- 2026-10-09 — Rosa's on Oak Street\n- 2026-09-25 — Rosa's on Oak Street\n\n## Facts\n\n- **where**: Luigi's on 5th Street  <!-- memcal 2026-10-15 -->\n\n---\n\n# Pizza Dinner\n\nRecent instances:\n- 2026-10-02 — Mario's on Pine Street\n- 2026-09-18 — Luigi's on 5th Street\n\n## Facts\n\n- **where**: Mario's on Pine Street  <!-- memcal 2026-10-01 -->\n\n---\n\n# Pizza Lunch\n\nRecent instances:\n- 2026-10-09 — Luigi's on 5th Street\n- 2026-10-02 — Rosa's on Oak Street\n- 2026-09-18 — Rosa's on Oak Street\n\n## Facts\n\n- **where**: Luigi's on 5th Street  <!-- memcal 2026-10-06 -->",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-5dpg37pu",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-5dpg37pu",
+    "system_prompt_sha256": "07f41f1ef8ce7721399a57931f9946943ee69df22b8330081b335d6faf820fc0",
+    "reason": "No project context in native saved system prompt"
+  }
+}

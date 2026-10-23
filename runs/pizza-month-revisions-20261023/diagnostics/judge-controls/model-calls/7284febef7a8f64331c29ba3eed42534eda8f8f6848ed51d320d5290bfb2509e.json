@@ -1,0 +1,63 @@
+{
+  "created_at": "2026-10-19T19:08:44.897479+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge-controls/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nQuestion: [Current time: 2026-10-19T10:00:00-04:00] What’s the deal with pizza on Friday?\nAnswer: Friday is just you and Maya at 12:30.\nClaims (hidden from the assistant): [{\"id\": \"count\", \"claim\": \"There is exactly one agreed pizza outing on Friday.\", \"evidence\": [\"message-b95ec2b7e868d48b2fd423a8\", \"message-167d47829dfbd062c9042f25\", \"message-acad6a94787574f5903edbae\"]}, {\"id\": \"time\", \"claim\": \"The agreed Friday pizza outing is at 12:30 pm.\", \"evidence\": [\"message-c7cbb2b977c68fd5c9a73a20\", \"message-53b0df500f5f5f7d2bd6847f\"]}, {\"id\": \"venue\", \"claim\": \"The agreed Friday pizza outing is at Mario's.\", \"evidence\": [\"message-a9b53254abca7bb0c770d5e9\", \"message-2574b4160e6951a49b62a955\"]}, {\"id\": \"street\", \"claim\": \"The agreed Friday pizza outing is on Pine Street.\", \"evidence\": [\"message-a9b53254abca7bb0c770d5e9\"]}, {\"id\": \"attendees\", \"claim\": \"The agreed Friday pizza outing's complete attendee list is exactly the user and Maya.\", \"evidence\": [\"message-b95ec2b7e868d48b2fd423a8\", \"message-6ffd910aabdba27be947226c\", \"message-0c5e1d30f5ecd60e17f2eb09\", \"message-167d47829dfbd062c9042f25\"]}]"
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a15590-f1a7-7126-8713-db2df2566e62",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"verdicts\": [{\"id\": \"count\", \"verdict\": \"correct\", \"reason\": \"Answer presents a single Friday plan as 'just you and Maya at 12:30' with no second outing.\"}, {\"id\": \"time\", \"verdict\": \"correct\", \"reason\": \"Answer states the Friday outing is 'at 12:30', matching 12:30 pm.\"}, {\"id\": \"venue\", \"verdict\": \"missed\", \"reason\": \"Answer mentions no venue; Mario's is absent.\"}, {\"id\": \"street\", \"verdict\": \"missed\", \"reason\": \"Answer mentions no street; Pine Street is absent.\"}, {\"id\": \"attendees\", \"verdict\": \"correct\", \"reason\": \"Answer states 'just you and Maya', conveying exactly user and Maya.\"}], \"recovery\": [{\"id\": \"count\", \"kind\": \"provided\", \"reason\": \"Single outing description provided in answer.\"}, {\"id\": \"time\", \"kind\": \"provided\", \"reason\": \"12:30 time provided in answer.\"}, {\"id\": \"venue\", \"kind\": \"implicit_omission\", \"reason\": \"Broad 'deal' question did not specifically ask for venue and answer did not state it.\"}, {\"id\": \"street\", \"kind\": \"implicit_omission\", \"reason\": \"Broad 'deal' question did not specifically ask for street and answer did not state it.\"}, {\"id\": \"attendees\", \"kind\": \"provided\", \"reason\": \"Attendee list 'just you and Maya' provided in answer.\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792436924,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2733,
+      "prompt_tokens": 809,
+      "total_tokens": 3542,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2389
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 355
+      }
+    }
+  },
+  "text": "{\"verdicts\": [{\"id\": \"count\", \"verdict\": \"correct\", \"reason\": \"Answer presents a single Friday plan as 'just you and Maya at 12:30' with no second outing.\"}, {\"id\": \"time\", \"verdict\": \"correct\", \"reason\": \"Answer states the Friday outing is 'at 12:30', matching 12:30 pm.\"}, {\"id\": \"venue\", \"verdict\": \"missed\", \"reason\": \"Answer mentions no venue; Mario's is absent.\"}, {\"id\": \"street\", \"verdict\": \"missed\", \"reason\": \"Answer mentions no street; Pine Street is absent.\"}, {\"id\": \"attendees\", \"verdict\": \"correct\", \"reason\": \"Answer states 'just you and Maya', conveying exactly user and Maya.\"}], \"recovery\": [{\"id\": \"count\", \"kind\": \"provided\", \"reason\": \"Single outing description provided in answer.\"}, {\"id\": \"time\", \"kind\": \"provided\", \"reason\": \"12:30 time provided in answer.\"}, {\"id\": \"venue\", \"kind\": \"implicit_omission\", \"reason\": \"Broad 'deal' question did not specifically ask for venue and answer did not state it.\"}, {\"id\": \"street\", \"kind\": \"implicit_omission\", \"reason\": \"Broad 'deal' question did not specifically ask for street and answer did not state it.\"}, {\"id\": \"attendees\", \"kind\": \"provided\", \"reason\": \"Attendee list 'just you and Maya' provided in answer.\"}]}",
+  "usage": {
+    "completion_tokens": 2733,
+    "prompt_tokens": 809,
+    "total_tokens": 3542,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2389
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 355
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

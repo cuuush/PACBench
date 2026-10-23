@@ -1,0 +1,84 @@
+{
+  "id": "admitted-failure",
+  "state": "pass",
+  "expected": [
+    "correct",
+    "correct",
+    "missed",
+    "missed",
+    "correct"
+  ],
+  "actual": [
+    "correct",
+    "correct",
+    "missed",
+    "missed",
+    "correct"
+  ],
+  "expected_eligible": [],
+  "actual_eligible": [],
+  "eligibility_reason": "admitted_retrieval_failure",
+  "grade": {
+    "checkpoint": "admitted-failure",
+    "slots": [
+      {
+        "id": "count",
+        "verdict": "correct",
+        "reason": "Answer presents a single Friday plan as 'Friday is just you and Maya at 12:30', conveying exactly one outing."
+      },
+      {
+        "id": "time",
+        "verdict": "correct",
+        "reason": "Answer states the Friday outing is 'at 12:30', matching 12:30 pm."
+      },
+      {
+        "id": "venue",
+        "verdict": "missed",
+        "reason": "Answer gives no venue name, stating \"I can't find where you're meeting.\""
+      },
+      {
+        "id": "street",
+        "verdict": "missed",
+        "reason": "Answer gives no street, stating location is unknown."
+      },
+      {
+        "id": "attendees",
+        "verdict": "correct",
+        "reason": "Answer states 'just you and Maya', conveying exactly user and Maya."
+      }
+    ],
+    "correct": 3,
+    "missed": 2,
+    "misrepresented": 0,
+    "claim_coverage": 0.6,
+    "all_claims_correct": false,
+    "recovery": [
+      {
+        "id": "count",
+        "kind": "provided",
+        "reason": "Single outing correctly conveyed."
+      },
+      {
+        "id": "time",
+        "kind": "provided",
+        "reason": "12:30 correctly conveyed."
+      },
+      {
+        "id": "venue",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it can't find where meeting is."
+      },
+      {
+        "id": "street",
+        "kind": "unavailable",
+        "reason": "Answer explicitly says it can't find where meeting is."
+      },
+      {
+        "id": "attendees",
+        "kind": "provided",
+        "reason": "User and Maya list correctly conveyed."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

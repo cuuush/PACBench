@@ -1,0 +1,103 @@
+{
+  "state": "complete",
+  "plan_hash": "933935dd2816c88497f00b1709ed4419cf207f782f5d27dcbbb1e24e3931857b",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1,
+      "archive_search": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "maya"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792765897341,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"slug\": \"maya\", \"title\": \"Maya\", \"section\": \"people\", \"is_self\": false, \"answers\": [\"diet\"], \"facts\": [{\"slot\": \"diet\", \"value\": \"dairy-free for a few weeks\", \"source\": \"person:Maya\", \"ts\": \"2026-10-12\", \"lines\": [1698, 1708]}], \"cited_ids\": {\"diet\": [1698, 1708]}, \"provenance\": {\"diet\": {\"entity\": \"person:Maya\", \"bundle\": \"aff481\", \"run\": 27, \"gen\": \"chatcmpl-01a16925-c45b-744e-8371-bbcec68ce916\", \"verb\": \"slot\", \"at\": \"2026-10-12T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Maya\\n\\n## Facts\\n\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1698 #1708 -->\\n\", \"encounters\": {\"count\": 1, \"by_activity\": [{\"activity\": \"lunch\", \"count\": 1}], \"recent\": [{\"key\": \"lunch@2026-09-25\", \"date\": \"2026-09-25\", \"title\": \"lunch\", \"location\": \"Mario's on Pine Street\", \"with\": [\"Leo\"]}]}, \"sources\": {\"diet\": [{\"id\": 1698, \"ts\": \"2026-10-11T13:55:12-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i'm gonna try going dairy-free for the next few weeks and see if it helps\", \"evidence\": true, \"source_heading\": \"Sun Oct 11, 2026 13:55 \\u00b7 iMessage with Maya\"}, {\"id\": 1708, \"ts\": \"2026-10-11T14:29:05-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like no milk, cheese, butter, all of it for a few weeks\", \"evidence\": true}]}, \"narrow\": {\"diet\": true}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "limit": 20,
+          "query": "Domino's Dominos"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1792765900120,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": []}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 11.18,
+    "input_tokens": 2546,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "dominos-too-far",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have that information in memory."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 1,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "dominos-too-far",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

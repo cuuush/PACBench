@@ -1,0 +1,90 @@
+{
+  "id": "implicit-omission",
+  "state": "pass",
+  "expected": [
+    "correct",
+    "correct",
+    "missed",
+    "missed",
+    "correct"
+  ],
+  "actual": [
+    "correct",
+    "correct",
+    "missed",
+    "missed",
+    "correct"
+  ],
+  "expected_eligible": [
+    "venue",
+    "street"
+  ],
+  "actual_eligible": [
+    "venue",
+    "street"
+  ],
+  "eligibility_reason": null,
+  "grade": {
+    "checkpoint": "implicit-omission",
+    "slots": [
+      {
+        "id": "count",
+        "verdict": "correct",
+        "reason": "Answer presents a single Friday plan as 'just you and Maya at 12:30' with no second outing."
+      },
+      {
+        "id": "time",
+        "verdict": "correct",
+        "reason": "Answer states the Friday outing is 'at 12:30', matching 12:30 pm."
+      },
+      {
+        "id": "venue",
+        "verdict": "missed",
+        "reason": "Answer mentions no venue; Mario's is absent."
+      },
+      {
+        "id": "street",
+        "verdict": "missed",
+        "reason": "Answer mentions no street; Pine Street is absent."
+      },
+      {
+        "id": "attendees",
+        "verdict": "correct",
+        "reason": "Answer states 'just you and Maya', conveying exactly user and Maya."
+      }
+    ],
+    "correct": 3,
+    "missed": 2,
+    "misrepresented": 0,
+    "claim_coverage": 0.6,
+    "all_claims_correct": false,
+    "recovery": [
+      {
+        "id": "count",
+        "kind": "provided",
+        "reason": "Single outing description provided in answer."
+      },
+      {
+        "id": "time",
+        "kind": "provided",
+        "reason": "12:30 time provided in answer."
+      },
+      {
+        "id": "venue",
+        "kind": "implicit_omission",
+        "reason": "Broad 'deal' question did not specifically ask for venue and answer did not state it."
+      },
+      {
+        "id": "street",
+        "kind": "implicit_omission",
+        "reason": "Broad 'deal' question did not specifically ask for street and answer did not state it."
+      },
+      {
+        "id": "attendees",
+        "kind": "provided",
+        "reason": "Attendee list 'just you and Maya' provided in answer."
+      }
+    ],
+    "interaction": "answer"
+  }
+}

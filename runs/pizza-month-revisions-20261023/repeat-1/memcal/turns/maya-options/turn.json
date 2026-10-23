@@ -1,0 +1,63 @@
+{
+  "prompt": "[Simulated now: 2026-10-19T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhy did Maya rule out Domino’s?",
+  "at": "2026-10-19T10:02:00-04:00",
+  "answer": "I don't actually have that — nothing in memory says Maya ruled out Domino's.\n\nWhat I do have is she's dairy-free for a few weeks (as of Oct 11), which would rule out most pizza anyway. Want me to check a specific chat for the Domino's mention?",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "maya"
+      },
+      "timestamp": 1792765897341
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_archive",
+      "input": {
+        "limit": 20,
+        "query": "Domino's Dominos"
+      },
+      "timestamp": 1792765900120
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"slug\": \"maya\", \"title\": \"Maya\", \"section\": \"people\", \"is_self\": false, \"answers\": [\"diet\"], \"facts\": [{\"slot\": \"diet\", \"value\": \"dairy-free for a few weeks\", \"source\": \"person:Maya\", \"ts\": \"2026-10-12\", \"lines\": [1698, 1708]}], \"cited_ids\": {\"diet\": [1698, 1708]}, \"provenance\": {\"diet\": {\"entity\": \"person:Maya\", \"bundle\": \"aff481\", \"run\": 27, \"gen\": \"chatcmpl-01a16925-c45b-744e-8371-bbcec68ce916\", \"verb\": \"slot\", \"at\": \"2026-10-12T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Maya\\n\\n## Facts\\n\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1698 #1708 -->\\n\", \"encounters\": {\"count\": 1, \"by_activity\": [{\"activity\": \"lunch\", \"count\": 1}], \"recent\": [{\"key\": \"lunch@2026-09-25\", \"date\": \"2026-09-25\", \"title\": \"lunch\", \"location\": \"Mario's on Pine Street\", \"with\": [\"Leo\"]}]}, \"sources\": {\"diet\": [{\"id\": 1698, \"ts\": \"2026-10-11T13:55:12-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i'm gonna try going dairy-free for the next few weeks and see if it helps\", \"evidence\": true, \"source_heading\": \"Sun Oct 11, 2026 13:55 \\u00b7 iMessage with Maya\"}, {\"id\": 1708, \"ts\": \"2026-10-11T14:29:05-04:00\", \"channel\": \"imessage\", \"thread\": \"a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like no milk, cheese, butter, all of it for a few weeks\", \"evidence\": true}]}, \"narrow\": {\"diet\": true}}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_archive",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": []}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 11.18,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261023_103105_6e4504 \"Clarify Friday pizza deal\" (1 user message, 4 total messages)\n\nsession_id: 20261023_103105_6e4504",
+  "raw_events": 25,
+  "session_id": "20261023_103105_6e4504",
+  "stderr_full": "↻ Resumed session 20261023_103105_6e4504 \"Clarify Friday pizza deal\" (1 user message, 4 total messages)\n\nsession_id: 20261023_103105_6e4504\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261023_103105_6e4504\", \"timestamp\": 1792765892350}\n{\"type\": \"text\", \"text\": \"Checking Maya's note and the Domino's mention.\", \"timestamp\": 1792765896877}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"maya\"}, \"timestamp\": 1792765897341}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"{\\\"slug\\\": \\\"maya\\\", \\\"title\\\": \\\"Maya\\\", \\\"section\\\": \\\"people\\\", \\\"is_self\\\": false, \\\"answers\\\": [\\\"diet\\\"], \\\"facts\\\": [{\\\"slot\\\": \\\"diet\\\", \\\"value\\\": \\\"dairy-free for a few weeks\\\", \\\"source\\\": \\\"person:Maya\\\", \\\"ts\\\": \\\"2026-10-12\\\", \\\"lines\\\": [1698, 1708]}], \\\"cited_ids\\\": {\\\"diet\\\": [1698, 1708]}, \\\"provenance\\\": {\\\"diet\\\": {\\\"entity\\\": \\\"person:Maya\\\", \\\"bundle\\\": \\\"aff481\\\", \\\"run\\\": 27, \\\"gen\\\": \\\"chatcmpl-01a16925-c45b-744e-8371-bbcec68ce916\\\", \\\"verb\\\": \\\"slot\\\", \\\"at\\\": \\\"2026-10-12T03:00\\\"}}, \\\"aliases\\\": [], \\\"open_questions\\\": [], \\\"page\\\": \\\"# Maya\\\\n\\\\n## Facts\\\\n\\\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1698 #1708 -->\\\\n\\\", \\\"encounters\\\": {\\\"count\\\": 1, \\\"by_activity\\\": [{\\\"activity\\\": \\\"lunch\\\", \\\"count\\\": 1}], \\\"recent\\\": [{\\\"key\\\": \\\"lunch@2026-09-25\\\", \\\"date\\\": \\\"2026-09-25\\\", \\\"title\\\": \\\"lunch\\\", \\\"location\\\": \\\"Mario's on Pine Street\\\", \\\"with\\\": [\\\"Leo\\\"]}]}, \\\"sources\\\": {\\\"diet\\\": [{\\\"id\\\": 1698, \\\"ts\\\": \\\"2026-10-11T13:55:12-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"i'm gonna try going dairy-free for the next few weeks and see if it helps\\\", \\\"evidence\\\": true, \\\"source_heading\\\": \\\"Sun Oct 11, 2026 13:55 \\\\u00b7 iMessage with Maya\\\"}, {\\\"id\\\": 1708, \\\"ts\\\": \\\"2026-10-11T14:29:05-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"like no milk, cheese, butter, all of it for a few weeks\\\", \\\"evidence\\\": true}]}, \\\"narrow\\\": {\\\"diet\\\": true}}\", \"duration_ms\": 20, \"is_error\": false, \"timestamp\": 1792765897361}\n{\"type\": \"text\", \"text\": \"\\n\\nHer diet note doesn't mention Domino's specifically, so I'll search the message history.\", \"timestamp\": 1792765899734}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_archive\", \"input\": {\"limit\": 20, \"query\": \"Domino's Dominos\"}, \"timestamp\": 1792765900120}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_archive\", \"output\": \"{\\\"results\\\": []}\", \"duration_ms\": 11, \"is_error\": false, \"timestamp\": 1792765900132}\n{\"type\": \"text\", \"text\": \"\\n\\nI\", \"timestamp\": 1792765901165}\n{\"type\": \"text\", \"text\": \" don't actually\", \"timestamp\": 1792765901165}\n{\"type\": \"text\", \"text\": \" have that — nothing\", \"timestamp\": 1792765901211}\n{\"type\": \"text\", \"text\": \" in\", \"timestamp\": 1792765901255}\n{\"type\": \"text\", \"text\": \" memory\", \"timestamp\": 1792765901298}\n{\"type\": \"text\", \"text\": \" says Maya ruled\", \"timestamp\": 1792765901342}\n{\"type\": \"text\", \"text\": \" out Domino's.\\n\\nWhat\", \"timestamp\": 1792765901385}\n{\"type\": \"text\", \"text\": \" I do have is she's dairy-free for\", \"timestamp\": 1792765901430}\n{\"type\": \"text\", \"text\": \" a few weeks (as\", \"timestamp\": 1792765901472}\n{\"type\": \"text\", \"text\": \" of Oct 11), which\", \"timestamp\": 1792765901524}\n{\"type\": \"text\", \"text\": \" would rule\", \"timestamp\": 1792765901561}\n{\"type\": \"text\", \"text\": \" out most\", \"timestamp\": 1792765901603}\n{\"type\": \"text\", \"text\": \" pizza anyway.\", \"timestamp\": 1792765901643}\n{\"type\": \"text\", \"text\": \" Want\", \"timestamp\": 1792765901686}\n{\"type\": \"text\", \"text\": \" me to check a\", \"timestamp\": 1792765901725}\n{\"type\": \"text\", \"text\": \" specific chat for the\", \"timestamp\": 1792765901765}\n{\"type\": \"text\", \"text\": \" Domino's mention?\", \"timestamp\": 1792765901806}\n{\"type\": \"result\", \"session_id\": \"20261023_103105_6e4504\", \"exit_code\": 0, \"text\": \"I don't actually have that — nothing in memory says Maya ruled out Domino's.\\n\\nWhat I do have is she's dairy-free for a few weeks (as of Oct 11), which would rule out most pizza anyway. Want me to check a specific chat for the Domino's mention?\", \"tokens\": {\"input\": 12788, \"output\": 624, \"total\": 34246, \"cache_read\": 20834, \"cache_write\": 0}, \"duration_ms\": 9517, \"timestamp\": 1792765901867}",
+  "session_input_tokens": 12788,
+  "session_output_tokens": 624,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-19T10:02:00-04:00 [id=698e0341d2cbed88d0697625c074310414cb2cd9] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 19 October 2026)\n〔E20〕 Fri Oct 23  \"Cover letter call\", 10am — confirmed · with Jen\n〔E19〕 Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex\n〔E16〕 Fri Oct 23  \"Pizza\", 12:30pm — confirmed · with Maya\n〔E15〕 Fri Oct 23  \"Walk\", 2pm — not going · with Alex, Jen\n〔E18〕 Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben\n〔E17〕 Sun Oct 25  \"Pizza\", 6pm — confirmed · with Devon\n[complete for 2026-10-16 – 2026-11-18; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no imessage 4 days, email 4 days — this week may be incomplete]\n\n## People and facts\nPages: lunch (where) · maya (diet) · pizza (where) · pizza-dinner (where) · pizza-lunch (where)\n\nWIKI PAGES MENTIONED THIS TURN\n\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1698 #1708 -->\nPast encounters: 1 (lunch ×1)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-5dpg37pu",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-5dpg37pu",
+    "system_prompt_sha256": "07f41f1ef8ce7721399a57931f9946943ee69df22b8330081b335d6faf820fc0",
+    "reason": "No project context in native saved system prompt"
+  }
+}

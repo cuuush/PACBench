@@ -13,6 +13,19 @@ from muse_gateway.ledger import BudgetRefused, CONTEXT_TOKENS, DAILY_LIMIT, Ledg
 from muse_gateway.server import Server
 
 
+@pytest.mark.parametrize('payload,expected', [
+    ({'error':{'code':'unsupported_parameter','param':'temperature','message':'private prompt and credential'}},
+     {'code':'unsupported_parameter','param':'temperature'}),
+    ({'error':{'code':'credential-secret','param':'private-user-text','message':'private-user-text'}}, {}),
+    ({'error':{'message':'Unsupported parameter: private-user-text'}}, {'message_class':'unsupported_parameter'}),
+    ({'error':{'code':[], 'param':{}}}, {}),
+    ({'error':None}, {}), ({'error':[]}, {}), ([], {}),
+])
+def test_upstream_diagnostic_returns_only_fixed_labels(payload,expected):
+    from muse_gateway.server import upstream_error_diagnostic
+    assert upstream_error_diagnostic(io.BytesIO(json.dumps(payload).encode())) == expected
+
+
 def test_reservation_is_atomic_across_simultaneous_clients(tmp_path):
     ledger = Ledger(tmp_path/'ledger.db')
     def reserve(_):

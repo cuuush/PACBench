@@ -16,6 +16,38 @@ DEADLINE_SECONDS = 180
 ROUTE = re.compile(r'/p/([a-z0-9][a-z0-9_.-]{0,63})/v1/(chat/completions|responses|models)')
 
 
+def upstream_error_diagnostic(response):
+    """Read a bounded error body in memory; return only fixed protocol labels."""
+    try:
+        value = json.loads(response.read(16385))
+        error = value.get('error', {})
+        if not isinstance(error, dict):return {}
+    except (OSError, ValueError, TypeError, AttributeError):
+        return {}
+    result = {}
+    codes = {'invalid_api_key', 'authentication_error', 'invalid_request_error',
+             'context_length_exceeded', 'unsupported_parameter', 'invalid_value',
+             'rate_limit_exceeded', 'model_not_found', 'content_filter'}
+    params = {'max_tokens', 'max_completion_tokens', 'max_output_tokens', 'temperature',
+              'response_format', 'reasoning_effort', 'tools', 'tool_choice',
+              'messages', 'input', 'stream', 'stream_options', 'model', 'top_p'}
+    if isinstance(error.get('code'),str) and error['code'] in codes:result['code'] = error['code']
+    if isinstance(error.get('param'),str) and error['param'] in params:result['param'] = error['param']
+    # Some compatible transports return only prose. Never return that text or
+    # arbitrary parsed fields; these hints are classifications, not raw errors.
+    message = error.get('message')
+    if isinstance(message, str):
+        lowered = message.lower()
+        for phrase, label in [('unsupported parameter', 'unsupported_parameter'),
+                              ('context length', 'context_length_exceeded'),
+                              ('invalid json schema', 'invalid_json_schema'),
+                              ('invalid api key', 'invalid_api_key')]:
+            if phrase in lowered:
+                result['message_class'] = label
+                break
+    return result
+
+
 def usage_from(value):
     if not isinstance(value, dict):
         return None
@@ -215,10 +247,14 @@ class Handler(BaseHTTPRequestHandler):
                     error = 'missing_usage_sse' if stream else 'missing_usage_json'
         except urllib.error.HTTPError as exc:
             status, error = exc.code, 'upstream_http_'+str(exc.code)
+            diagnostic = upstream_error_diagnostic(exc)
+            if diagnostic:error += ':'+':'.join(diagnostic[k] for k in sorted(diagnostic))
             if status in (401,403):self.server.ledger.block_auth()
             complete()
             if not headers_sent:
-                self.error(status,'upstream_error','Upstream model HTTP '+str(status))
+                self.reply(status, {'error':{'type':'upstream_error',
+                    'message':'Upstream model HTTP '+str(status), **diagnostic},
+                    'gateway_request_id':request_id})
         except Exception as exc:
             error = 'transport_'+type(exc).__name__
             complete()

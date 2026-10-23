@@ -61,6 +61,25 @@ def usage_from(value):
     return None
 
 
+def response_diagnostic(value):
+    """Only fixed finish labels and reported counts; never response text."""
+    if not isinstance(value,dict):return {}
+    value=value.get('response') if isinstance(value.get('response'),dict) else value
+    result={}
+    choices=value.get('choices')
+    if isinstance(choices,list) and choices and isinstance(choices[0],dict):
+        reason=choices[0].get('finish_reason')
+        if reason in ('stop','length','tool_calls','function_call','content_filter'):
+            result['finish_reason']=reason
+    usage=value.get('usage')
+    if isinstance(usage,dict):
+        details=usage.get('completion_tokens_details',usage.get('output_tokens_details'))
+        if isinstance(details,dict):
+            tokens=details.get('reasoning_tokens')
+            if type(tokens) is int and 0<=tokens<=CONTEXT_TOKENS:result['reasoning_tokens']=tokens
+    return result
+
+
 class Server(ThreadingHTTPServer):
     daemon_threads = True
 
@@ -171,12 +190,13 @@ class Handler(BaseHTTPRequestHandler):
             self.error(503,'request_refused','Spending ledger unavailable; inference blocked')
             return
         status, usage, error = None, None, None
+        diagnostic={}
         headers_sent = False
         completed = False
         def complete():
             nonlocal completed
             if not completed:
-                self.server.ledger.finish(request_id,usage=usage,status=status,error=error)
+                self.server.ledger.finish(request_id,usage=usage,status=status,error=error,diagnostic=diagnostic)
                 completed = True
         try:
             # The native API's final usage chunk is necessary for accounting.
@@ -202,7 +222,9 @@ class Handler(BaseHTTPRequestHandler):
                     total, event, disconnected = 0, [], False
                     def event_usage():
                         try:
-                            return usage_from(json.loads(b'\n'.join(event)))
+                            parsed=json.loads(b'\n'.join(event))
+                            diagnostic.update(response_diagnostic(parsed))
+                            return usage_from(parsed)
                         except (ValueError, TypeError, AttributeError):
                             return None
                     while True:
@@ -236,7 +258,9 @@ class Handler(BaseHTTPRequestHandler):
                     if len(data) > MAX_RESPONSE_BYTES:
                         raise ValueError('Response exceeds the transport bound')
                     try:
-                        usage = usage_from(json.loads(data))
+                        parsed=json.loads(data)
+                        usage = usage_from(parsed)
+                        diagnostic.update(response_diagnostic(parsed))
                     except (ValueError,TypeError,AttributeError):
                         pass
                     try:

@@ -145,6 +145,42 @@ def test_json_passthrough_settles_tokens_without_logging_content(tmp_path):
         assert json.loads(calls[0].data)['messages'][0]['content'] == 'private prompt'
 
 
+@pytest.mark.parametrize('stream',[False,True])
+def test_truncation_metadata_survives_without_response_text_or_cost_changes(tmp_path,stream):
+    choice={'choices':[{'finish_reason':'length','message':{'content':'private'}}]}
+    usage={'usage':{'prompt_tokens':940,'completion_tokens':2500,
+                   'completion_tokens_details':{'reasoning_tokens':2498}}}
+    body=(b'data: '+json.dumps(choice).encode()+b'\n\ndata: '+json.dumps(usage).encode()+b'\n\n'
+          if stream else json.dumps({**choice,**usage}).encode())
+    with gateway(tmp_path,lambda *a,**k:Response(body,'text/event-stream' if stream else 'application/json')) as (server,base):
+        with post(base,{'model':MODEL,'stream':stream}) as response:assert response.read()==body
+        with server.ledger.connect() as db:row=dict(db.execute('SELECT * FROM calls').fetchone())
+        assert row['finish_reason']=='length' and row['reasoning_tokens']==2498
+        assert row['accounted']==594000 and row['state']=='settled'
+        assert 'private' not in json.dumps(row)
+
+
+def test_metadata_is_optional_and_cannot_release_unknown_costs_or_store_arbitrary_text(tmp_path):
+    ledger=Ledger(tmp_path/'ledger.db');id=ledger.reserve('test','responses')
+    ledger.finish(id,status=200,diagnostic={'finish_reason':'private answer','reasoning_tokens':True,'content':'private'})
+    with ledger.connect() as db:row=dict(db.execute('SELECT * FROM calls').fetchone())
+    assert row['finish_reason'] is None and row['reasoning_tokens'] is None
+    assert row['accounted']==RESERVATION and row['state']=='unknown'
+    assert 'private' not in json.dumps(row)
+
+
+def test_metadata_migration_preserves_existing_costs_and_auth_circuit(tmp_path):
+    ledger=Ledger(tmp_path/'ledger.db');id=ledger.reserve('test','responses');ledger.finish(id,status=401);ledger.block_auth()
+    with ledger.connect() as db:
+        db.execute('ALTER TABLE calls DROP COLUMN finish_reason');db.execute('ALTER TABLE calls DROP COLUMN reasoning_tokens')
+    before=ledger.health();updated=Ledger(tmp_path/'ledger.db')
+    assert updated.health()==before
+    with updated.connect() as db:
+        row=dict(db.execute('SELECT * FROM calls').fetchone())
+    assert row['state']=='unknown' and row['accounted']==RESERVATION
+    assert row['finish_reason'] is None and row['reasoning_tokens'] is None
+
+
 @pytest.mark.parametrize('endpoint', ['chat/completions','responses'])
 @pytest.mark.parametrize('ending', [b'\n\ndata: [DONE]\n\n', b'\n', b''])
 def test_native_sse_passthrough_and_final_usage(tmp_path,endpoint,ending):

@@ -41,6 +41,9 @@ class Ledger:
                 CREATE TABLE IF NOT EXISTS service_state (
                     key TEXT PRIMARY KEY, value TEXT NOT NULL);
             ''')
+            columns={r['name'] for r in db.execute('PRAGMA table_info(calls)')}
+            for name,kind in (('finish_reason','TEXT'),('reasoning_tokens','INTEGER')):
+                if name not in columns:db.execute(f'ALTER TABLE calls ADD COLUMN {name} {kind}')
 
     def connect(self):
         db = sqlite3.connect(self.path, timeout=30)
@@ -72,9 +75,14 @@ class Ledger:
                        (request_id, project, MODEL, endpoint, stamp, 'reserved', RESERVATION, RESERVATION))
             return request_id
 
-    def finish(self, request_id, *, usage=None, status=None, error=None):
+    def finish(self, request_id, *, usage=None, status=None, error=None, diagnostic=None):
         valid = (isinstance(usage, tuple) and len(usage) == 2 and
                  all(type(n) is int and 0 <= n <= CONTEXT_TOKENS for n in usage))
+        diagnostic=diagnostic if isinstance(diagnostic,dict) else {}
+        reason=diagnostic.get('finish_reason')
+        if reason not in ('stop','length','tool_calls','function_call','content_filter'):reason=None
+        reasoning=diagnostic.get('reasoning_tokens')
+        if not (type(reasoning) is int and 0<=reasoning<=(usage[1] if valid else CONTEXT_TOKENS)):reasoning=None
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT * FROM calls WHERE id=?', (request_id,)).fetchone()
@@ -82,10 +90,10 @@ class Ledger:
                 raise ValueError('Only an active request can be completed')
             price = usage[0]*INPUT_NANO + usage[1]*OUTPUT_NANO if valid else row['reserved']
             db.execute('UPDATE calls SET finished=?,state=?,input_tokens=?,output_tokens=?, '
-                       'accounted=?,http_status=?,error_label=? WHERE id=?',
+                       'accounted=?,http_status=?,error_label=?,finish_reason=?,reasoning_tokens=? WHERE id=?',
                        (self.now(), 'settled' if valid else 'unknown',
                         usage[0] if valid else None, usage[1] if valid else None,
-                        price, status, error, request_id))
+                        price, status, error, reason, reasoning, request_id))
 
     def recover_abandoned(self):
         # Caller must first acquire the exclusive server lock: no old gateway

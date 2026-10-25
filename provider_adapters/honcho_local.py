@@ -109,8 +109,8 @@ def start(root,env,model,base,key,*,resume=False):
             'dimensions_mode':'never','overrides':{'base_url':'http://127.0.0.1:11435/v1','api_key_env':'PACBENCH_MEMORY_API_KEY'}})}
     for k in ('LLM_ANTHROPIC_API_KEY','LLM_GEMINI_API_KEY','ANTHROPIC_API_KEY','GEMINI_API_KEY'):
         child.pop(k,None)
-    # Preserve native behavior, including the normal accumulation delay and
-    # output limit. A model incompatibility is evidence, not a reason to tune it.
+    # Preserve native batching and global limits. Explicit documented per-model
+    # environment settings are resolved by Honcho and recorded below.
     for k in ('DERIVER_FLUSH_ENABLED','LLM_DEFAULT_MAX_TOKENS'):
         child.pop(k,None)
     # Check every resolved generation model/endpoint before migrations or workers.
@@ -130,7 +130,10 @@ processing={name:getattr(settings.DERIVER,name) for name in (
     'REPRESENTATION_BATCH_TARGET_INPUT_TOKENS','REPRESENTATION_BATCH_MAX_AGE_SECONDS')}
 assert all(value==fields[name].default for name,value in processing.items())
 assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT_MAX_TOKENS'].default
-print(json.dumps({'native_defaults_verified':True,'deriver':processing,
+deriver_limit=settings.DERIVER.MODEL_CONFIG.max_output_tokens
+print(json.dumps({'native_defaults_verified':deriver_limit is None,
+                 'native_batching_defaults_verified':True,
+                 'deriver_max_output_tokens':deriver_limit,'deriver':processing,
                  'llm_default_max_tokens':settings.LLM.DEFAULT_MAX_TOKENS}))
 '''
     child['PYTHONPATH']=str(source)+os.pathsep+str(Path(__file__).resolve().parents[1])
@@ -192,7 +195,9 @@ print(json.dumps({'native_defaults_verified':True,'deriver':processing,
              capture_output=True,text=True,check=True,timeout=10).stdout.strip(),
          'endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
-         'processing':processing,'processing_option':'Unmodified native batching and output defaults'})
+         'processing':processing,'processing_option':('Unmodified native batching and output defaults'
+             if processing['native_defaults_verified'] else
+             'Native batching defaults; explicit documented deriver model output allowance')})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
         'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity,

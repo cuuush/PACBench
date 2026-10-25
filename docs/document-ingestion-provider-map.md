@@ -45,3 +45,31 @@ The native completion counter also includes terminally errored queue items.
 The local runner observes the run-owned PostgreSQL queue without modifying it,
 stops on submitted-source errors and saves their classes/hashes. A cleared queue
 alone must not turn failed extraction into successful ingestion.
+
+
+For Spark on Honcho we explicitly set the native per-model deriver allowance:
+
+```sh
+DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS=8192 python -m pacbench.native_pilot \
+  --prepared runs/<prepared>/week.json --providers honcho --output runs/<new-run>
+```
+
+This is Honcho's standard environment configuration, equivalent to
+`max_output_tokens = 8192` under `[deriver.model_config]` in its
+[shipped configuration example](https://github.com/plastic-labs/honcho/blob/5314d0a8635f02375b8ad73c89eb80f86d7d1cb4/config.toml.example#L123).
+We run server 3.4.1 and Python SDK 2.7.0, configure the OpenAI-compatible transport
+through the shared Spark gateway, and use local Ollama embeddings. Directional
+observation, source peers and timestamps are unchanged. The 512-token work-unit
+target, 1,024-token input batch target, 1,800-second accumulation window and
+`FLUSH_ENABLED=false` remain native defaults. We do not set reasoning effort,
+replace prompts, or repair extraction results. The global 2,500-token default
+also remains unchanged; this override applies to the deriver model only.
+
+The larger allowance provides room for Spark's reasoning and its JSON answer;
+it does not force longer answers. A controlled native-format check of the same
+source and prompt stopped normally at 3,802 output tokens instead of exhausting
+the old cap without JSON. Native imports still have to complete before recall.
+`native-processing-settings.json` records the resolved allowance and verifies
+batching defaults. Such runs are explicitly configured trials, separate from
+the earlier default-limit failures. Model usage is charged as observed through
+the unchanged $10/day gateway boundary.

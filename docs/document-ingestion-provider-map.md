@@ -73,3 +73,12 @@ the old cap without JSON. Native imports still have to complete before recall.
 batching defaults. Such runs are explicitly configured trials, separate from
 the earlier default-limit failures. Model usage is charged as observed through
 the unchanged $10/day gateway boundary.
+
+
+The October 25 configured canary completed native processing for all nine raw
+messages and Hermes recalled both initial arrangements through shipped Honcho
+tools. Observed agent/provider inference cost was $0.006632; native batching made
+ingestion take about 32 minutes. This is a small compatibility result, not a
+month score. The reply repeated a vague Saturday item, and message-search paths
+were attempted and logged; it does not establish clean retention credit.
+Evidence is under `runs/bike-pickup-20261023/diagnostics/provider-compatibility/honcho-8192-20261025/`.

@@ -172,6 +172,47 @@ def test_supermemory_v2_audit_rejects_status_only_capture_proof():
     assert ready_proof(record,bound)
 
 
+@pytest.mark.parametrize('mode',['accepted','failed','truncated','wrong-result','delete'])
+def test_honcho_explicit_readiness_uses_actual_accepted_tool_input(mode):
+    from pacbench.native_writes import write_inputs
+    turn={'session_id':'sid','prompt':'Move it to Sunday','tool_calls':[
+        {'name':'honcho_conclude','input':{'conclusion':'Sunday at 11',**({'delete_id':'x'} if mode=='delete' else {})}}],
+        'tool_results':[{'tool':'honcho_conclude','success':mode!='failed','truncated':mode=='truncated',
+            'text':json.dumps({'result':'Other result' if mode=='wrong-result' else 'Conclusion saved for user: Sunday at 11'})}]}
+    inputs=write_inputs([turn],'honcho')
+    assert bool(inputs['conclusions']) is (mode=='accepted')
+    assert 'conclusions' not in write_inputs([turn],'honcho','accepted-native-writes-v1')
+
+
+@pytest.mark.parametrize('mode',['done','wrong-observer','wrong-target','wrong-session','wrong-content','missing-write','missing-instruction'])
+def test_honcho_persisted_explicit_writes_do_not_wait_on_unrelated_capture(monkeypatch,mode):
+    import io
+    from pacbench.native_writes import honcho_status
+    conclusion={'id':'native-conclusion','content':'Sunday at 11','observer_id':'hermes','observed_id':'user','session_id':'native-session'}
+    key={'wrong-observer':'observer_id','wrong-target':'observed_id','wrong-session':'session_id','wrong-content':'content'}.get(mode)
+    if key:conclusion[key]='other'
+    calls=[]
+    def read(request,**kwargs):
+        calls.append(request)
+        if '/conclusions/list?' in request.full_url:
+            result={'items':[conclusion],'page':1,'pages':1}
+        else:result={'items':[],'page':1,'pages':0}
+        return io.BytesIO(json.dumps(result).encode())
+    monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',read)
+    write={'content':'Sunday at 11','observer_id':'hermes','observed_id':'user','input_binding':'actual-input'}
+    entry={'hermes_session':'hermes-id','hashes':['actual-input-hash'],'input_bindings':['actual-input'],'conclusions':[write]}
+    if mode=='missing-write':entry['conclusions'].append({**write,'content':'Another actual accepted write'})
+    if mode=='missing-instruction':entry['input_bindings'].append('second-input')
+    errors=Mock(return_value=[])
+    states=honcho_status('http://127.0.0.1:1234','workspace','user',{'native-session':entry},errors)
+    assert complete('honcho',states)==(mode=='done',False)
+    if mode=='done':
+        assert states[0]['write_path']=='explicit_conclusions'
+        assert states[0]['conclusion_ids']==['native-conclusion']
+        assert len(calls)==1
+        errors.assert_not_called()
+
+
 @pytest.mark.parametrize('mode',['pending','done','failed','missing','unenrolled','wrong-owner','wrong-body'])
 def test_honcho_requires_actual_captured_user_input_enrollment_and_success(monkeypatch,mode):
     import hashlib,io,urllib.error

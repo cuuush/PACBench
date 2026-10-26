@@ -29,6 +29,26 @@ def write_inputs(turns,provider,version=VERSION):
     result={'provider':provider,'accepted_ids':ids,'sessions':sessions}
     if provider=='honcho' or provider=='supermemory' and version==VERSION:
         result['captures']=[{'session':t['session_id'],'prompt':t['prompt']} for t in turns]
+    if provider=='honcho' and version==VERSION:
+        result['conclusions']=[]
+        for turn,capture in zip(turns,result['captures']):
+            saved=[]
+            for response in turn.get('tool_results',[]):
+                if (response.get('tool')!='honcho_conclude' or response.get('success') is not True or
+                        response.get('truncated') or response.get('policy_blocked')):continue
+                try:saved.append(json.loads(response['text']))
+                except (ValueError,KeyError,TypeError):continue
+            if not saved:continue
+            for call in turn.get('tool_calls',[]):
+                args=call.get('input',call.get('arguments',{}))
+                if call.get('name')!='honcho_conclude' or not isinstance(args,dict):continue
+                content=args.get('conclusion');peer=args.get('peer','user')
+                if not isinstance(content,str) or not isinstance(peer,str):continue
+                content=content.strip()
+                if (not content or peer not in {'user','ai'} or args.get('list') or args.get('delete_id') or
+                        {'result':f'Conclusion saved for {peer}: {content}'} not in saved):continue
+                result['conclusions'].append({'session':capture['session'],'input_binding':digest(capture),
+                                              'peer':peer,'content':content})
     return result
 
 
@@ -106,9 +126,14 @@ def ready_proof(record,bound):
         observation=record['observed'];states=observation['snapshots'][-1]
         done,failed=complete(bound['inputs']['provider'],states)
         if bound['inputs']['provider']=='honcho':
-            if ({s['hermes_session'] for s in states}!=set(bound['inputs']['sessions']) or
-                    any(not s.get('captures_verified') or not s.get('captured_ids') for s in states)):
+            if {s['hermes_session'] for s in states}!=set(bound['inputs']['sessions']):
                 return False
+            for state in states:
+                if state.get('write_path')=='explicit_conclusions':
+                    expected={digest(c) for c in bound['inputs']['captures'] if c['session']==state['hermes_session']}
+                    if (not expected or set(state.get('verified_inputs',[]))!=expected or
+                            not state.get('conclusion_ids') or not bound['inputs'].get('conclusions')):return False
+                elif not state.get('captures_verified') or not state.get('captured_ids'):return False
         if (bound['inputs']['provider']=='supermemory' and 'captures' in bound['inputs'] and
                 not bound['inputs']['accepted_ids']):
             expected={digest(c) for c in bound['inputs']['captures']}
@@ -219,8 +244,31 @@ def honcho_status(endpoint,workspace,owner,captures,read_errors):
         with urllib.request.urlopen(urllib.request.Request(base+path,data=data,
                 headers={'Content-Type':'application/json'}),timeout=30) as response:
             return json.load(response)
-    failures=read_errors();states=[]
+    failures=None;conclusions=None;states=[]
     for native,expected in sorted(captures.items()):
+        writes=expected.get('conclusions',[])
+        if writes:
+            if conclusions is None:
+                conclusions=[]
+                for page in range(1,10001):
+                    result=read('/conclusions/list?'+urllib.parse.urlencode({'page':page,'size':100}),{})
+                    if result.get('page')!=page or not isinstance(result.get('pages'),int):
+                        raise ValueError('Native conclusion pagination unavailable')
+                    conclusions.extend(result['items'])
+                    if page>=result['pages']:break
+                else:raise ValueError('Native conclusion pagination exceeded bound')
+            matched={};all_witnessed=True
+            for write in writes:
+                ids=[c['id'] for c in conclusions if c.get('session_id')==native and
+                     all(c.get(k)==write[k] for k in ('content','observer_id','observed_id'))]
+                if ids:matched.setdefault(write['input_binding'],[]).extend(ids)
+                else:all_witnessed=False
+            if all_witnessed and matched and set(matched)==set(expected['input_bindings']):
+                states.append({'id':native,'hermes_session':expected['hermes_session'],
+                    'status':'completed','native_error':False,'write_path':'explicit_conclusions',
+                    'verified_inputs':sorted(matched),'conclusion_ids':sorted({id for ids in matched.values() for id in ids})})
+                continue
+        if failures is None:failures=read_errors()
         messages=[]
         for page in range(1,10001):
             try:result=read('/sessions/'+urllib.parse.quote(native,safe='')+'/messages/list?'+
@@ -282,8 +330,16 @@ def worker(args):
             captures={}
             for turn in inputs['captures']:
                 native=sanitize_peer_id(cfg.resolve_session_name(session_id=turn['session']))
-                entry=captures.setdefault(native,{'hermes_session':turn['session'],'hashes':[]})
+                entry=captures.setdefault(native,{'hermes_session':turn['session'],'hashes':[],
+                                                  'input_bindings':[],'conclusions':[]})
                 entry['hashes'].append(hashlib.sha256(sanitize_context(turn['prompt']).strip().encode()).hexdigest())
+                entry['input_bindings'].append(digest(turn))
+            if cfg.observation_mode=='directional':
+                for write in inputs.get('conclusions',[]):
+                    native=sanitize_peer_id(cfg.resolve_session_name(session_id=write['session']))
+                    target=cfg.peer_name if write['peer']=='user' else cfg.ai_peer
+                    captures[native]['conclusions'].append({**write,'observer_id':sanitize_peer_id(cfg.ai_peer),
+                                                           'observed_id':sanitize_peer_id(target)})
             observe=lambda:honcho_status(cfg.base_url,cfg.workspace_id,cfg.peer_name,captures,lambda:queue_errors(root))
         else:raise ValueError('Unverified native write observer')
         from .gateway_client import require_live_cost_boundary

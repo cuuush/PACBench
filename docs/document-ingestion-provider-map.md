@@ -34,6 +34,8 @@ Supermemory can expose an extracted memory while its document still reports
 `dreaming`; a read-only diagnostic can demonstrate that discrepancy, but it does
 not retroactively complete the original availability-gated test.
 
+For Honcho, v2 can instead verify a synchronous explicit `conclude` write through native conclusion records. Match the actual accepted tool text, originating session, observer and target, covering every required input and accepted write. That path needs no conversation-capture queue wait. The captured-input/queue barrier remains the fallback; a saved acknowledgement alone never proves persistence. No conclusion is created by this observer.
+
 
 Honcho's [directional representations](https://docs.honcho.dev/v3/documentation/features/advanced/directional-representations)
 require the querying observer to witness messages when they are created. Hermes

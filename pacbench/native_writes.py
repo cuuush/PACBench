@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import hashlib
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -18,14 +19,15 @@ import urllib.error
 
 from .followups import digest,save
 
-VERSION='accepted-native-writes-v1'
+VERSION='accepted-native-writes-v2'
+SUPPORTED={VERSION,'accepted-native-writes-v1'}
 ASYNC={'supermemory','openviking','honcho'}
 
 
-def write_inputs(turns,provider):
+def write_inputs(turns,provider,version=VERSION):
     ids,sessions=accepted(turns,provider)
     result={'provider':provider,'accepted_ids':ids,'sessions':sessions}
-    if provider=='honcho':
+    if provider=='honcho' or provider=='supermemory' and version==VERSION:
         result['captures']=[{'session':t['session_id'],'prompt':t['prompt']} for t in turns]
     return result
 
@@ -55,7 +57,10 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
     if not required or provider not in ASYNC:return
     from . import harness
     turns=[json.loads((root/'turns'/r['id']/'turn.json').read_text()) for r in required]
-    inputs=write_inputs(turns,provider)
+    summary=root.parent.parent/'summary.json'
+    version=json.loads(summary.read_text()).get('write_readiness_protocol',VERSION) if summary.exists() else VERSION
+    if version not in SUPPORTED:raise ValueError('Unknown native write readiness protocol')
+    inputs=write_inputs(turns,provider,version)
     hashes=[digest(t) for t in turns]
     bound={'dependencies':[r['id'] for r in required],'inputs':inputs,'turn_hashes':hashes}
     binding=digest(bound)
@@ -76,7 +81,7 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
         except subprocess.TimeoutExpired:p=None
         try:observed=json.loads(p.stdout.splitlines()[-1]) if p is not None and p.returncode==0 else {}
         except (ValueError,IndexError):observed={}
-        record={'version':VERSION,'binding':binding,'dependencies':[r['id'] for r in required],
+        record={'version':version,'binding':binding,'dependencies':[r['id'] for r in required],
                 'inputs':inputs,'turn_hashes':hashes,'latency_s':round(time.monotonic()-started,2),
                 'state':'ready' if observed.get('ready') is True else 'unavailable','observed':observed,
                 'usage':window(before,snapshot(roles))}
@@ -104,7 +109,12 @@ def ready_proof(record,bound):
             if ({s['hermes_session'] for s in states}!=set(bound['inputs']['sessions']) or
                     any(not s.get('captures_verified') or not s.get('captured_ids') for s in states)):
                 return False
-        return (record.get('version')==VERSION and record.get('binding')==digest(bound) and
+        if (bound['inputs']['provider']=='supermemory' and 'captures' in bound['inputs'] and
+                not bound['inputs']['accepted_ids']):
+            expected={digest(c) for c in bound['inputs']['captures']}
+            if not expected or expected!={h for s in states for h in s.get('verified_inputs',[])}:
+                return False
+        return (record.get('version') in SUPPORTED and record.get('binding')==digest(bound) and
                 all(record.get(k)==v for k,v in bound.items()) and record.get('state')=='ready' and
                 observation.get('ready') is True and observation.get('processing_overrides') is False and
                 done and not failed and not set(bound['inputs']['accepted_ids'])-{s['id'] for s in states})
@@ -114,7 +124,7 @@ def ready_proof(record,bound):
 def audit_ready(checks,context,root,version):
     if not version or root.name not in ASYNC:return []
     errors=[]
-    if version!=VERSION:return ['Unknown native write readiness protocol']
+    if version not in SUPPORTED:return ['Unknown native write readiness protocol']
     for row,_,_ in checks:
         required=dependencies(row,checks,context)
         turn=root/'turns'/row['id']/'turn.json'
@@ -122,7 +132,7 @@ def audit_ready(checks,context,root,version):
         try:
             r=json.loads((turn.parent/'write-readiness.json').read_text())
             prior=[json.loads((root/'turns'/d['id']/'turn.json').read_text()) for d in required]
-            inputs=write_inputs(prior,root.name)
+            inputs=write_inputs(prior,root.name,version)
             bound={'dependencies':[d['id'] for d in required],'inputs':inputs,'turn_hashes':[digest(t) for t in prior]}
             if not ready_proof(r,bound):
                 errors.append(row['id']+': dependent recall preceded proven native write completion')
@@ -131,7 +141,7 @@ def audit_ready(checks,context,root,version):
     return errors
 
 
-def supermemory_status(client,tag,ids,sessions):
+def supermemory_status(client,tag,ids,sessions,captures=None):
     found=set(ids);page=1
     while not ids:
         response=client.documents.list(container_tags=[tag],include_content=False,limit=100,page=page)
@@ -145,7 +155,8 @@ def supermemory_status(client,tag,ids,sessions):
             raise ValueError('Native document pagination unavailable')
         for item in rows:
             metadata=item.get('metadata') or {}
-            if isinstance(metadata,dict) and metadata.get('session_id') in sessions:found.add(item['id'])
+            if (isinstance(metadata,dict) and metadata.get('session_id') in sessions and
+                    (captures is None or metadata.get('type')=='conversation')):found.add(item['id'])
         if page>=pages:break
         page+=1
     statuses=[]
@@ -154,6 +165,18 @@ def supermemory_status(client,tag,ids,sessions):
         statuses.append({'id':value.get('id'),'status':value.get('status'),
             'dreaming_status':value.get('dreaming_status',value.get('dreamingStatus'))})
         if value.get('id')!=id:raise ValueError('Native write identity mismatch')
+        if captures is not None and not ids:
+            metadata=value.get('metadata') or {}
+            users=re.findall(r'(?:\A|\n\n---\n\n)\[role: user\]\n(.*?)\n\[user:end\](?=\n\[role: assistant\]|\Z)',
+                             value.get('content') or '',re.S)
+            statuses[-1]['verified_inputs']=[c['binding'] for c in captures
+                if c['session']==metadata.get('session_id') and c['user'] in users]
+    if captures is not None and not ids:
+        statuses=[s for s in statuses if s['verified_inputs']]
+        witnessed={h for s in statuses for h in s['verified_inputs']}
+        missing={c['binding'] for c in captures}-witnessed
+        if missing:statuses.append({'id':None,'status':'capture_pending','dreaming_status':None,
+                                   'verified_inputs':[],'missing_inputs':sorted(missing)})
     return statuses
 
 
@@ -238,7 +261,12 @@ def worker(args):
             if not cfg['base_url'].startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')
             client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
             tag=_resolve_container_tag(cfg['container_tag'],'default')
-            observe=lambda:supermemory_status(client,tag,inputs['accepted_ids'],inputs['sessions'])
+            captures=None
+            if 'captures' in inputs:
+                from plugins.memory.supermemory import _clean_text_for_capture
+                captures=[{'session':c['session'],'user':_clean_text_for_capture(c['prompt']),
+                           'binding':digest(c)} for c in inputs['captures']]
+            observe=lambda:supermemory_status(client,tag,inputs['accepted_ids'],inputs['sessions'],captures)
         elif provider=='openviking':
             endpoint=os.environ['OPENVIKING_ENDPOINT']
             if not endpoint.startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')

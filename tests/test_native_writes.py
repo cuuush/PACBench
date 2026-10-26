@@ -87,12 +87,14 @@ def test_openviking_observer_reads_actual_task_completion_and_keeps_native_error
 
 
 @pytest.mark.parametrize('ready',[True,False])
-def test_cross_session_readiness_is_cached_bound_to_actual_turns_and_auditable(tmp_path,monkeypatch,ready):
-    root=tmp_path/'supermemory';first={'id':'edit','session':'old'}
+@pytest.mark.parametrize('version',['accepted-native-writes-v1','accepted-native-writes-v2'])
+def test_cross_session_readiness_is_cached_bound_to_actual_turns_and_auditable(tmp_path,monkeypatch,ready,version):
+    root=tmp_path/'repeat-1/supermemory';first={'id':'edit','session':'old'}
     row={'id':'later','session':'fresh','at':'2026-10-22T11:00:00-04:00','requires':['edit']}
     last={**row,'id':'last','session':'another'}
     checks=[(first,None,None),(row,None,None),(last,None,None)]
-    turn={'session_id':'actual-session','tool_results':[{'tool':'supermemory_store','success':True,
+    save(root.parent.parent/'summary.json',{'write_readiness_protocol':version})
+    turn={'session_id':'actual-session','prompt':'Change the plan','tool_results':[{'tool':'supermemory_store','success':True,
             'text':'{"saved":true,"id":"doc-1"}'}]}
     save(root/'turns/edit/turn.json',turn)
     observation={'ready':ready,'processing_overrides':False,'snapshots':[
@@ -107,17 +109,67 @@ def test_cross_session_readiness_is_cached_bound_to_actual_turns_and_auditable(t
                 ensure_ready('supermemory',r,checks,'shared',root,{},root/'turns'/r['id'])
     assert run.call_count==1  # Also do not repeat a failed 15-minute wait.
     save(root/'turns/later/turn.json',{'answer':'Synthetic transport fixture'})
-    from pacbench.native_writes import VERSION
-    assert bool(audit_ready(checks,'shared',root,VERSION)) is not ready
+    assert json.loads((root/'turns/later/write-readiness.json').read_text())['version']==version
+    assert bool(audit_ready(checks,'shared',root,version)) is not ready
     if ready:
         turn['tool_results'][0]['text']='{"id":"other-document"}'
         save(root/'turns/edit/turn.json',turn)
-        assert audit_ready(checks,'shared',root,VERSION)
+        assert audit_ready(checks,'shared',root,version)
 
 
 def test_empty_native_write_discovery_never_proves_completion():
     for provider in ('honcho','supermemory','openviking'):
         assert complete(provider,[])==(False,False)
+
+
+@pytest.mark.parametrize('mode',['old-capture','assistant-echo','pending','done','wrong-session'])
+def test_supermemory_capture_must_contain_the_actual_user_instruction(mode):
+    from pacbench.followups import digest
+    def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
+    capture={'session':'required','prompt':'Move it to Sunday'}
+    users='Move it to Sunday' if mode not in {'old-capture','assistant-echo'} else 'Earlier question'
+    content=f'[role: user]\n{users}\n[user:end]\n[role: assistant]\n'
+    content+='[role: user]\nMove it to Sunday\n[user:end]' if mode=='assistant-echo' else 'Okay.'
+    content+='\n[assistant:end]'
+    metadata={'type':'conversation','session_id':'other' if mode=='wrong-session' else 'required'}
+    listing=Mock(return_value=model({'memories':[{'id':'doc','metadata':metadata}],
+        'pagination':{'current_page':1,'total_pages':1}}))
+    get=Mock(return_value=model({'id':'doc','metadata':metadata,'content':content,
+        'status':'done','dreaming_status':'dreaming' if mode=='pending' else 'done'}))
+    client=SimpleNamespace(documents=SimpleNamespace(list=listing,get=get))
+    states=supermemory_status(client,'native-tag',[],['required'],
+        [{'session':'required','user':capture['prompt'],'binding':digest(capture)}])
+    assert complete('supermemory',states)==(mode=='done',False)
+    assert all(call.kwargs['include_content'] is False for call in listing.call_args_list)
+
+
+def test_supermemory_all_required_instructions_must_be_captured():
+    def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
+    metadata={'type':'conversation','session_id':'required'}
+    client=SimpleNamespace(documents=SimpleNamespace(
+        list=Mock(return_value=model({'memories':[{'id':'doc','metadata':metadata}],
+            'pagination':{'current_page':1,'total_pages':1}})),
+        get=Mock(return_value=model({'id':'doc','metadata':metadata,
+            'content':'[role: user]\nFirst update\n[user:end]',
+            'status':'done','dreaming_status':'done'}))))
+    states=supermemory_status(client,'native-tag',[],['required'],[
+        {'session':'required','user':'First update','binding':'first'},
+        {'session':'required','user':'Second update','binding':'second'}])
+    assert states[-1]['missing_inputs']==['second']
+    assert complete('supermemory',states)==(False,False)
+
+
+def test_supermemory_v2_audit_rejects_status_only_capture_proof():
+    from pacbench.native_writes import VERSION,write_inputs,ready_proof
+    from pacbench.followups import digest
+    turn={'session_id':'required','prompt':'Move it to Sunday','tool_results':[]}
+    bound={'dependencies':['edit'],'inputs':write_inputs([turn],'supermemory'),'turn_hashes':[digest(turn)]}
+    state={'id':'native-doc','status':'done','dreaming_status':'done'}
+    record={'version':VERSION,'binding':digest(bound),**bound,'state':'ready',
+            'observed':{'ready':True,'processing_overrides':False,'snapshots':[[state]]}}
+    assert not ready_proof(record,bound)
+    state['verified_inputs']=[digest(bound['inputs']['captures'][0])]
+    assert ready_proof(record,bound)
 
 
 @pytest.mark.parametrize('mode',['pending','done','failed','missing','unenrolled','wrong-owner','wrong-body'])

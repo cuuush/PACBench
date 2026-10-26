@@ -110,8 +110,8 @@ def tracked_turn(run_turn, prompt, *, usage_path, **kwargs):
 def attribute_provider_paths(turn, capture):
     """A native response completed after every Hermes input cannot supply it.
 
-    Only Honcho's native journal currently proves completion timestamps. Keep
-    all its operations and model cost, but do not turn unrelated late profile
+    Honcho's journal and Hindsight's native trace API prove completion timestamps. Keep
+    all operations and model cost, but do not turn unrelated late profile
     work into an answer's source-search penalty. Missing proof stays unknown.
     """
     starts=[]
@@ -123,7 +123,7 @@ def attribute_provider_paths(turn, capture):
     cutoff=max(starts)
     for trace in getattr(turn,'provider_traces',[]) or []:
         completed=trace.get('record',{}).get('timestamp')
-        if (trace.get('provider')=='honcho' and type(completed) in (int,float) and completed>cutoff):
+        if (trace.get('provider') in {'honcho','hindsight'} and type(completed) in (int,float) and completed>cutoff):
             trace['path_attribution']={
                 'version':'native-completion-v1','affects_answer':False,
                 'final_hermes_input_at':datetime.fromtimestamp(cutoff,timezone.utc).isoformat(),

@@ -256,6 +256,9 @@ def provider_trace_snapshot(env: dict) -> dict:
     records={str(p):p.read_bytes() for p in Path(root).glob('projects/*/task-history/**/tsk-*.json')} if root else {}
     honcho=env.get('PACBENCH_HONCHO_TRACE_FILE')
     if honcho and Path(honcho).exists():records[honcho]=Path(honcho).read_bytes()
+    if env.get('HINDSIGHT_MODE')=='local_external':
+        from .hindsight_traces import KEY,snapshot
+        records[KEY]=snapshot(env)
     return records
 
 
@@ -279,6 +282,10 @@ def honcho_tool_trace(data, turn):
 def capture_provider_traces(turn: TurnResult, env: dict, before: dict) -> None:
     """Observe native provider task journals, including prefetch, without changing tools."""
     for filename, content in provider_trace_snapshot(env).items():
+        from .hindsight_traces import KEY,capture
+        if filename==KEY:
+            turn.provider_traces.extend(capture(env,before.get(KEY,{}),turn))
+            continue
         if before.get(filename) == content:
             continue
         try:

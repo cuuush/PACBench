@@ -202,6 +202,10 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         if proc.returncode:
             raise RuntimeError("Memcal native scratch-store bootstrap failed")
     if provider == 'hindsight':
+        save(root/'native-trace-observer.json',{'version':'hindsight-native-reflection-traces-v1',
+            'route':'Read-only native /llm-requests API; observe the default trace writer',
+            'buffer_observation_s':6,'processing_forced':False,
+            'scope':'Reflection tools and original source chunks seen by the native model. Gateway remains authoritative for costs; trace tokens are separate native telemetry.'})
         # README local_external setup with a run-owned self-hosted native server.
         # Preserve failed embedded trials: the pinned plugin repeatedly restarts
         # the newer SDK daemon when it adds native profile environment fields.

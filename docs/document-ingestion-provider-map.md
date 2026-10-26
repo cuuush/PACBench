@@ -94,4 +94,6 @@ tools. Observed agent/provider inference cost was $0.006632; native batching mad
 ingestion take about 32 minutes. This is a small compatibility result, not a
 month score. The reply repeated a vague Saturday item, and message-search paths
 were attempted and logged; it does not establish clean retention credit.
+That earlier canary used the legacy per-directory fallback; it does not prove
+fresh-session persistence under the current per-session setup.
 Evidence is under `runs/bike-pickup-20261023/diagnostics/provider-compatibility/honcho-8192-20261025/`.

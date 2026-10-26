@@ -174,18 +174,21 @@ def tool_profile(turn, *, source_tools=()) -> dict:
     native_calls = [call for trace in traces for call in trace.get('record', {}).get('toolCalls', [])]
     native_operations=[]
     for trace in traces:
-        if trace.get('provider')!='honcho':continue
+        if trace.get('provider') not in {'honcho','hindsight'}:continue
         for call in trace.get('record',{}).get('toolCalls',[]):
             name=call.get('toolName','')
             category=('memory_search' if name=='search_memory' else
                       'memory_detail' if name in {'get_reasoning_chain','get_peer_card'} else
                       tool_category(name,call.get('args',{}),source_tools))
+            if trace.get('provider')=='hindsight':
+                from .hindsight_traces import category as hindsight_category
+                category=hindsight_category(call)
             native_operations.append({**call,'category':category,'attribution':trace.get('attribution'),
                 **({'path_attribution':trace['path_attribution']} if 'path_attribution' in trace else {})})
     answer_operations=[op for op in native_operations if op.get('path_attribution',{}).get('affects_answer') is not False]
     native_source=any(op['category'] in SOURCE_CATEGORIES and op['attribution']=='explicit-query-match'
                       for op in answer_operations)
-    native_unknown=sum(bool(t.get('error')) for t in traces if t.get('provider')=='honcho')+sum(op['category']=='unclassified' or
+    native_unknown=sum(bool(t.get('error')) for t in traces if t.get('provider') in {'honcho','hindsight'})+sum(op['category']=='unclassified' or
         op['category'] in SOURCE_CATEGORIES and op['attribution']!='explicit-query-match' for op in answer_operations)
     return {'top_level_calls': len(turn.tool_calls), 'total_tool_operations': len(operations),
         'provider_internal_tool_calls': len(native_calls) if traces and all(

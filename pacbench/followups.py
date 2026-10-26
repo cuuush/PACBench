@@ -137,6 +137,9 @@ def tool_profile(turn, *, source_tools=()) -> dict:
             arguments = {}
         result = turn.tool_results[index] if index < len(turn.tool_results) else {}
         category = tool_category(name, arguments, source_tools)
+        if name=='honcho_context' and name not in source_tools:
+            from .source_policy import proven_honcho_snapshot
+            if proven_honcho_snapshot(result):category='memory_detail'
         if name == 'viking_read' and category == 'source_evidence' and name not in source_tools:
             from .source_policy import proven_viking_summary
             if proven_viking_summary(arguments, result):

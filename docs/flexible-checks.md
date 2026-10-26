@@ -36,3 +36,11 @@ For Supermemory and OpenViking, a dependent fresh session also waits for the acc
 Each turn gets pass/fail for judged behavior. Malformed judges, missing script truth and execution errors remain ungraded with a reason. Independent conversations continue; unavailable dependent turns skip with a cause. A wrong answer remains a failure and does not stop unrelated checks. Review passes as well as failures while developing.
 
 [Omission recovery](followups.md) keeps its original policy: one combined question for silent implicit omissions, partial credit separately, and none for zero recall, incorrect details, explicit misses or admitted lookup failure. Tools, gateway cost windows, native provider work and actual session continuity remain logged. The explorer's **Criteria & judges** view shows the frozen criteria and decisions per answer.
+
+
+Fresh-session checks that depend on an earlier assistant update wait for native
+write completion. Honcho uses its current per-session setup default, witnesses
+the actual captured user input, and checks enrolled owner work plus native queue
+errors. It retains its normal accumulation delay. Empty write discovery cannot
+prove completion. These are availability-gated recall trials; simulated question
+clocks are not measurements of wall-clock aging or a response-time SLA.

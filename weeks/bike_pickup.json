@@ -20,99 +20,110 @@
       "subject": "Bike pickup"
     }
   },
-  "days": {
-    "monday": {
-      "scenes": [
-        {
-          "id": "bike-ready",
-          "channel": "riley",
-          "time": "11 am",
-          "scene": "Riley, a friend who works at Spoke Cycles, texts that the user's repaired bike is ready. They arrange pickup. Keep this short and ordinary.",
-          "facts": [
-            "The user and Riley agree on bike pickup this Saturday at 2 pm at Spoke Cycles, 114 Maple Avenue."
-          ]
-        },
-        {
-          "id": "coffee",
-          "channel": "riley",
-          "time": "6 pm",
-          "scene": "Later in the same chat Riley suggests catching up over coffee away from work. This is a separate social plan, not the bike handover.",
-          "facts": [
-            "The user and Riley agree to coffee Sunday at 9 am at Maple Mug."
-          ]
-        }
-      ]
+  "weeks": [
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "bike-ready",
+            "channel": "riley",
+            "time": "11 am",
+            "scene": "Riley, a friend who works at Spoke Cycles, texts that the user's repaired bike is ready. The user is away this coming weekend, so they arrange pickup for Saturday of the following week. Make the later weekend clear in ordinary conversation. Keep this short.",
+            "facts": [
+              "The user and Riley agree on bike pickup Saturday of the following week at 2 pm at Spoke Cycles, 114 Maple Avenue."
+            ]
+          },
+          {
+            "id": "coffee",
+            "channel": "riley",
+            "time": "6 pm",
+            "scene": "Later in the same chat Riley suggests catching up over coffee away from work, on Sunday of that same later weekend. This is separate from the bike handover. Keep the date scope clear without a formal recap.",
+            "facts": [
+              "The user and Riley agree to coffee Sunday of the following week at 9 am at Maple Mug."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "earlier-pickup",
+            "channel": "riley-email",
+            "time": "10 am",
+            "scene": "Riley emails from work to change next week's Saturday pickup because the shop closes early on that pickup day. Riley asks the user to come at 10 am instead of the 2 pm agreed by text, and the user accepts. A brief ordinary email exchange; the day must be the same later Saturday arranged in the texts. No invented quoted history or recap of coffee.",
+            "facts": [
+              "They agree to move the bike pickup to 10 am on Saturday of the following week, the same pickup day arranged by text. The shop and address are unchanged."
+            ]
+          }
+        ]
+      },
+      "wednesday": {},
+      "thursday": {},
+      "friday": {},
+      "saturday": {},
+      "sunday": {}
     },
-    "tuesday": {
-      "scenes": [
-        {
-          "id": "earlier-pickup",
-          "channel": "riley-email",
-          "time": "10 am",
-          "scene": "Riley emails from work because the shop will close early Saturday. Riley asks the user to collect the bike at 10 am instead of the 2 pm agreed by text, and the user accepts. Keep it an ordinary brief email exchange. Refer casually to the earlier text plan; do not invent quoted email history. Email dates and sending times belong in headers, never narration in the body. Do not recap the unrelated coffee plan.",
-          "facts": [
-            "They agree to move Saturday's bike pickup to 10 am. The shop and address are unchanged."
-          ]
-        }
-      ]
-    },
-    "wednesday": {},
-    "thursday": {
-      "conversations": [
-        {
-          "id": "pickup-check",
-          "time": "10 am",
-          "turns": [
-            {
-              "id": "pickup-before",
-              "prompt": "What's the plan for picking up my bike?",
-              "expect": "Saturday October 24 at 10 am at Spoke Cycles. Judge day, time and shop; no street address is required."
-            },
-            {
-              "id": "pickup-change",
-              "kind": "behavior",
-              "prompt": "Riley just called. We're doing the bike pickup Sunday at 11 instead.",
-              "expect": "Accept the user's correction. A brief acknowledgement without restating details is sufficient; require no particular wording."
-            },
-            {
-              "id": "coffee-same-chat",
-              "prompt": "And coffee with Riley?",
-              "expect": "Sunday at 9 am at Maple Mug. The bike update leaves this separate coffee arrangement unchanged."
-            }
-          ]
-        },
-        {
-          "id": "sunday-fresh",
-          "time": "11 am",
-          "turns": [
-            {
-              "id": "sunday-both",
-              "requires": [
-                "pickup-change"
-              ],
-              "prompt": "What's my Sunday with Riley looking like?",
-              "expect": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses."
-            }
-          ]
-        },
-        {
-          "id": "saturday-fresh",
-          "time": "12 pm",
-          "turns": [
-            {
-              "id": "saturday-clear",
-              "requires": [
-                "pickup-change"
-              ],
-              "prompt": "Am I still picking up the bike Saturday?",
-              "expect": "No. The latest user correction moved bike pickup to Sunday. A clear no is sufficient; do not require restating Sunday's time."
-            }
-          ]
-        }
-      ]
-    },
-    "friday": {},
-    "saturday": {},
-    "sunday": {}
-  }
+    {
+      "monday": {
+        "conversations": [
+          {
+            "id": "pickup-check",
+            "time": "4 pm",
+            "turns": [
+              {
+                "id": "pickup-before",
+                "prompt": "What's the plan for picking up my bike?",
+                "expect": "Saturday at 10 am at Spoke Cycles. Judge day, time and shop; no street address is required."
+              },
+              {
+                "id": "pickup-change",
+                "kind": "behavior",
+                "prompt": "Riley just called. We're doing the bike pickup Sunday at 11 instead.",
+                "expect": "Accept the user's correction. A brief acknowledgement without restating details is sufficient; require no particular wording."
+              },
+              {
+                "id": "coffee-same-chat",
+                "prompt": "And coffee with Riley?",
+                "expect": "Sunday at 9 am at Maple Mug. The bike update leaves this separate coffee arrangement unchanged."
+              }
+            ]
+          },
+          {
+            "id": "sunday-fresh",
+            "time": "4:30 pm",
+            "turns": [
+              {
+                "id": "sunday-both",
+                "requires": [
+                  "pickup-change"
+                ],
+                "prompt": "What's my Sunday with Riley looking like?",
+                "expect": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses."
+              }
+            ]
+          },
+          {
+            "id": "saturday-fresh",
+            "time": "5 pm",
+            "turns": [
+              {
+                "id": "saturday-clear",
+                "requires": [
+                  "pickup-change"
+                ],
+                "prompt": "Am I still picking up the bike Saturday?",
+                "expect": "No. The latest user correction moved bike pickup to Sunday. A clear no is sufficient; do not require restating Sunday's time."
+              }
+            ]
+          }
+        ]
+      },
+      "tuesday": {},
+      "wednesday": {},
+      "thursday": {},
+      "friday": {},
+      "saturday": {},
+      "sunday": {}
+    }
+  ]
 }

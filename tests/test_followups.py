@@ -388,3 +388,30 @@ def test_parallel_arms_author_one_neutral_question_for_the_same_missing_facts(tm
     with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(run,(0,1)))
     assert len(calls)==2 and results[0]['question_hash']==results[1]['question_hash']
     assert sorted(s['reused'] for s in states)==[False,True]
+
+
+@pytest.mark.parametrize('text,changes,expected',[
+    ('## Representation\n## Explicit Observations\nRetained fact.',{},True),
+    ('## Summary\nGenerated summary.',{},True),
+    ('## Card\nStanding fact.',{},True),
+    ('No context available yet.',{},True),
+    ('## Representation\nFact.\n\n## Recent messages\n[user] Raw message.',{},False),
+    ('Raw message without the native formatter.',{},False),
+    ('## Card\nFact.',{'truncated':True},False),
+    ('## Card\nFact.',{'success':False},False),
+])
+def test_honcho_retained_snapshot_and_raw_history_are_distinct(text,changes,expected):
+    from pacbench.source_policy import proven_honcho_snapshot
+    receipt={'success':True,'policy_blocked':False,'truncated':False,'text':json.dumps({'result':text}),**changes}
+    assert proven_honcho_snapshot(receipt)==expected
+
+
+@pytest.mark.parametrize('history',[False,True])
+def test_retained_honcho_context_keeps_credit_but_included_history_is_source_access(history):
+    text='## Representation\nRetained observation.'
+    if history:text+='\n\n## Recent messages\n[user] Original source.'
+    result={'tool':'honcho_context','success':True,'policy_blocked':False,'truncated':False,
+            'text':json.dumps({'result':text})}
+    profile=tool_profile(turn(calls=[{'name':'honcho_context','input':{}}],results=[result]))
+    assert profile['source_fallback_attempted']==history
+    assert profile['operations'][0]['category']==('source_messages' if history else 'memory_detail')

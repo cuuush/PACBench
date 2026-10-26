@@ -11,6 +11,20 @@ SOURCE_ARGUMENT_RULES = {
 }
 
 
+def proven_honcho_snapshot(result):
+    """The shipped formatter labels recent raw messages separately from memory."""
+    import json
+    if (not isinstance(result,dict) or result.get('success') is not True or
+            result.get('policy_blocked') or result.get('truncated')):return False
+    try:value=json.loads(result.get('text',''))
+    except (TypeError,ValueError):return False
+    if not isinstance(value,dict) or set(value)!={'result'} or not isinstance(value['result'],str):return False
+    text=value['result']
+    if '## Recent messages' in text:return False
+    return text.startswith(('## Summary\n','## Representation\n','## Card\n')) or text in {
+        'No context available yet.','No context available.'}
+
+
 def proven_viking_summary(arguments, result):
     """Use the pinned native reader's receipt, which labels full-text fallback.
 

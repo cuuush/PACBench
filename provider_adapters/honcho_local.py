@@ -195,12 +195,14 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None,
              capture_output=True,text=True,check=True,timeout=10).stdout.strip(),
          'endpoint':endpoint,'health':health,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
+         'hermes_session_strategy':'per-session',
          'processing':processing,'processing_option':('Unmodified native batching and output defaults'
              if processing['native_defaults_verified'] else
              'Native batching defaults; explicit documented deriver model output allowance')})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
         'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity,
+        'sessionStrategy':'per-session',
         'observationMode':'directional'}}})  # Current native setup default, not the legacy-file migration mode.
     env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
     env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE='pacbench-'+identity)

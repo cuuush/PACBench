@@ -8,7 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .followups import digest, freeze_policy, load_questions, save
-from .semantic_contract import AUTHORING_VERSION, EVIDENCE_VERSION, build_contract, load_contract
+from .semantic_contract import AUTHORING_VERSION, BEHAVIOR_REVIEW_VERSION, EVIDENCE_VERSION, build_contract, load_contract
 from .gateway_client import SpendingBlocked, ModelAccessBlocked
 
 
@@ -90,6 +90,7 @@ def freeze_evaluations(resolved, messages, target, model, root, *, resume=False,
                     cached = load_contract(contract_path)
                     document = json.loads(contract_path.read_text())
                     if (document.get('authoring_version') == AUTHORING_VERSION and
+                            (check.get('kind')!='behavior' or document.get('behavior_review_version')==BEHAVIOR_REVIEW_VERSION) and
                             document.get('evidence_version') == EVIDENCE_VERSION and
                             cached.evidence_hash == digest(available) and
                             cached.question == check['prompt'] and

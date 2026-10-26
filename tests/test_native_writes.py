@@ -113,3 +113,34 @@ def test_cross_session_readiness_is_cached_bound_to_actual_turns_and_auditable(t
         turn['tool_results'][0]['text']='{"id":"other-document"}'
         save(root/'turns/edit/turn.json',turn)
         assert audit_ready(checks,'shared',root,VERSION)
+
+
+def test_empty_native_write_discovery_never_proves_completion():
+    for provider in ('honcho','supermemory','openviking'):
+        assert complete(provider,[])==(False,False)
+
+
+@pytest.mark.parametrize('mode',['pending','done','failed','missing','unenrolled','wrong-owner','wrong-body'])
+def test_honcho_requires_actual_captured_user_input_enrollment_and_success(monkeypatch,mode):
+    import hashlib,io,urllib.error
+    from pacbench.native_writes import honcho_status
+    calls=[]
+    expected=hashlib.sha256(b'Change the plan').hexdigest()
+    def get(request,**kwargs):
+        calls.append(request)
+        if '/messages/list?' in request.full_url:
+            if mode=='missing':raise urllib.error.HTTPError(request.full_url,404,'absent',{},None)
+            result={'items':[{'id':'native-1','peer_id':'other' if mode=='wrong-owner' else 'user',
+                'content':'Other text' if mode=='wrong-body' else 'Change the plan'},
+                {'id':'assistant-1','peer_id':'hermes','content':'Okay.'}], 'page':1,'pages':1}
+        else:result={'total_work_units':0 if mode=='unenrolled' else 1,
+            'pending_work_units':1 if mode=='pending' else 0,'in_progress_work_units':0}
+        return io.BytesIO(json.dumps(result).encode())
+    monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',get)
+    captures={'native-session':{'hermes_session':'hermes-id','hashes':[expected]}}
+    errors=lambda:[{'session_name':'native-session','error_class':'StructuredOutputError'}] if mode=='failed' else []
+    result=honcho_status('http://127.0.0.1:1234','workspace','user',captures,errors)
+    assert complete('honcho',result)==(mode=='done',mode=='failed')
+    assert all(r.get_method() in {'GET','POST'} for r in calls)
+    assert all(r.get_method()=='GET' or '/messages/list?' in r.full_url for r in calls)
+    assert result[0]['hermes_session']=='hermes-id'

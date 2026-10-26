@@ -59,7 +59,9 @@ This is Honcho's standard environment configuration, equivalent to
 [shipped configuration example](https://github.com/plastic-labs/honcho/blob/5314d0a8635f02375b8ad73c89eb80f86d7d1cb4/config.toml.example#L123).
 We run server 3.4.1 and Python SDK 2.7.0, configure the OpenAI-compatible transport
 through the shared Spark gateway, and use local Ollama embeddings. Directional
-observation, source peers and timestamps are unchanged. The 512-token work-unit
+observation, source peers and timestamps are unchanged. Fresh Hermes homes explicitly
+set `sessionStrategy=per-session`, matching the current native setup wizard;
+omission otherwise selects the legacy per-directory fallback. The 512-token work-unit
 target, 1,024-token input batch target, 1,800-second accumulation window and
 `FLUSH_ENABLED=false` remain native defaults. We do not set reasoning effort,
 replace prompts, or repair extraction results. The global 2,500-token default

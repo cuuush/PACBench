@@ -79,6 +79,7 @@ def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_c
 
 def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contract(tmp_path):
     from pacbench.evaluation import freeze_evaluations
+    from pacbench.followups import digest,save
     at='2026-10-22T10:00:00-04:00'
     row={'id':'correction','session':'morning','kind':'behavior','at':at,
          'prompt':'Actually, Sunday at 11.','expect':'Acknowledge the correction.','facts':[]}
@@ -94,10 +95,18 @@ def test_english_behavior_uses_exact_citation_aliases_and_reuses_verified_contra
     assert not first.get('errors') and len(calls)==2
     body=json.loads((tmp_path/'evaluations/correction/contract.json').read_text())
     assert body['author_fact_count']==0
+    from pacbench.semantic_contract import BEHAVIOR_REVIEW_VERSION
+    assert body['behavior_review_version']==BEHAVIOR_REVIEW_VERSION
     assert body['claims'][0]['evidence']==['assistant-user:correction']
     calls.clear()
     assert freeze_evaluations(resolved,messages,None,model,tmp_path,resume=True)==first
     assert calls==[]
+    # A corrected behavioral review must not inherit the old scope's approval.
+    body.pop('behavior_review_version')
+    body['contract_hash']=digest({k:v for k,v in body.items() if k!='contract_hash'})
+    save(tmp_path/'evaluations/correction/contract.json',body)
+    freeze_evaluations(resolved,messages,None,model,tmp_path,resume=True)
+    assert len(calls)==2
 
 
 def checkpoints(tmp_path):

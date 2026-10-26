@@ -6,6 +6,7 @@ is not a processing receipt. No expected answer enters these transport checks.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -13,11 +14,20 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib.error
 
 from .followups import digest,save
 
 VERSION='accepted-native-writes-v1'
-ASYNC={'supermemory','openviking'}
+ASYNC={'supermemory','openviking','honcho'}
+
+
+def write_inputs(turns,provider):
+    ids,sessions=accepted(turns,provider)
+    result={'provider':provider,'accepted_ids':ids,'sessions':sessions}
+    if provider=='honcho':
+        result['captures']=[{'session':t['session_id'],'prompt':t['prompt']} for t in turns]
+    return result
 
 
 def dependencies(row,checks,context):
@@ -45,8 +55,7 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
     if not required or provider not in ASYNC:return
     from . import harness
     turns=[json.loads((root/'turns'/r['id']/'turn.json').read_text()) for r in required]
-    ids,sessions=accepted(turns,provider)
-    inputs={'provider':provider,'accepted_ids':ids,'sessions':sessions}
+    inputs=write_inputs(turns,provider)
     hashes=[digest(t) for t in turns]
     bound={'dependencies':[r['id'] for r in required],'inputs':inputs,'turn_hashes':hashes}
     binding=digest(bound)
@@ -54,6 +63,8 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
     if cached.exists():record=json.loads(cached.read_text())
     else:
         from .document_ingestion import PROCESSING_TIMEOUT_S
+        if provider=='honcho':
+            PROCESSING_TIMEOUT_S+=json.loads((root/'native-processing-settings.json').read_text())['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
         from .usage import snapshot,window
         roles=json.loads(env.get('PACBENCH_USAGE_ROLES','{}'));before=snapshot(roles)
         worker='import sys;sys.path.insert(0,sys.argv[1]);from pacbench.native_writes import worker;worker(sys.argv[2:])'
@@ -75,6 +86,7 @@ def ensure_ready(provider,row,checks,context,root,env,directory):
 
 
 def complete(provider,states):
+    if not states:return False,False
     if provider=='supermemory':
         failed=any(r['status'] in {'failed','error'} or r['dreaming_status'] in {'failed','error'} for r in states)
         done=all(r['status']=='done' and r['dreaming_status']=='done' for r in states)
@@ -88,6 +100,10 @@ def ready_proof(record,bound):
     try:
         observation=record['observed'];states=observation['snapshots'][-1]
         done,failed=complete(bound['inputs']['provider'],states)
+        if bound['inputs']['provider']=='honcho':
+            if ({s['hermes_session'] for s in states}!=set(bound['inputs']['sessions']) or
+                    any(not s.get('captures_verified') or not s.get('captured_ids') for s in states)):
+                return False
         return (record.get('version')==VERSION and record.get('binding')==digest(bound) and
                 all(record.get(k)==v for k,v in bound.items()) and record.get('state')=='ready' and
                 observation.get('ready') is True and observation.get('processing_overrides') is False and
@@ -106,8 +122,7 @@ def audit_ready(checks,context,root,version):
         try:
             r=json.loads((turn.parent/'write-readiness.json').read_text())
             prior=[json.loads((root/'turns'/d['id']/'turn.json').read_text()) for d in required]
-            ids,sessions=accepted(prior,root.name)
-            inputs={'provider':root.name,'accepted_ids':ids,'sessions':sessions}
+            inputs=write_inputs(prior,root.name)
             bound={'dependencies':[d['id'] for d in required],'inputs':inputs,'turn_hashes':[digest(t) for t in prior]}
             if not ready_proof(r,bound):
                 errors.append(row['id']+': dependent recall preceded proven native write completion')
@@ -172,6 +187,45 @@ def openviking_status(endpoint,headers,ids,sessions):
     return statuses
 
 
+def honcho_status(endpoint,workspace,owner,captures,read_errors):
+    """Read native captured messages and queue state; never create or flush work."""
+    if not endpoint.startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')
+    base=endpoint.rstrip('/')+'/v3/workspaces/'+urllib.parse.quote(workspace,safe='')
+    def read(path,body=None):
+        data=None if body is None else json.dumps(body).encode()
+        with urllib.request.urlopen(urllib.request.Request(base+path,data=data,
+                headers={'Content-Type':'application/json'}),timeout=30) as response:
+            return json.load(response)
+    failures=read_errors();states=[]
+    for native,expected in sorted(captures.items()):
+        messages=[]
+        for page in range(1,10001):
+            try:result=read('/sessions/'+urllib.parse.quote(native,safe='')+'/messages/list?'+
+                            urllib.parse.urlencode({'page':page,'size':100}),{})
+            except urllib.error.HTTPError as exc:
+                if exc.code!=404:raise
+                result={'page':page,'pages':0,'items':[]}
+            if result.get('page')!=page or not isinstance(result.get('pages'),int):
+                raise ValueError('Native capture pagination unavailable')
+            messages.extend(result['items'])
+            if page>=result['pages']:break
+        else:raise ValueError('Native capture pagination exceeded bound')
+        matched={hashlib.sha256(m['content'].strip().encode()).hexdigest():m['id']
+                 for m in messages if m.get('peer_id')==owner}
+        verified=all(h in matched for h in expected['hashes'])
+        owner_count=sum(m.get('peer_id')==owner for m in messages)
+        status=(read('/queue/status?'+urllib.parse.urlencode({'session_id':native,'sender_id':owner})) if messages else
+                {'total_work_units':0,'pending_work_units':0,'in_progress_work_units':0})
+        error=any(f.get('session_name')==native for f in failures)
+        done=(verified and owner_count>0 and status['total_work_units']>=owner_count and
+              status['pending_work_units']==0 and status['in_progress_work_units']==0 and not error)
+        states.append({'id':native,'hermes_session':expected['hermes_session'],
+            'status':'completed' if done else 'failed' if error else 'running','native_error':error,
+            'captures_verified':verified,'captured_ids':[matched[h] for h in expected['hashes'] if h in matched],
+            'queue':status})
+    return states
+
+
 def worker(args):
     root,inputs,timeout=Path(args[0]),json.loads(args[1]),int(args[2])
     snapshots=[];report={'ready':False,'snapshots':snapshots,'processing_overrides':False}
@@ -190,6 +244,19 @@ def worker(args):
             if not endpoint.startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')
             headers={'X-OpenViking-Account':os.environ['OPENVIKING_ACCOUNT'],'X-OpenViking-User':os.environ['OPENVIKING_USER']}
             observe=lambda:openviking_status(endpoint,headers,inputs['accepted_ids'],inputs['sessions'])
+        elif provider=='honcho':
+            from plugins.memory.honcho.client import HonchoClientConfig
+            from plugins.memory.honcho.session_peers import sanitize_peer_id
+            from agent.memory_manager import sanitize_context
+            from provider_adapters.honcho_local import queue_errors
+            cfg=HonchoClientConfig.from_global_config()
+            if cfg.session_strategy!='per-session':raise ValueError('Honcho fresh-session observer requires native per-session setup')
+            captures={}
+            for turn in inputs['captures']:
+                native=sanitize_peer_id(cfg.resolve_session_name(session_id=turn['session']))
+                entry=captures.setdefault(native,{'hermes_session':turn['session'],'hashes':[]})
+                entry['hashes'].append(hashlib.sha256(sanitize_context(turn['prompt']).strip().encode()).hexdigest())
+            observe=lambda:honcho_status(cfg.base_url,cfg.workspace_id,cfg.peer_name,captures,lambda:queue_errors(root))
         else:raise ValueError('Unverified native write observer')
         from .gateway_client import require_live_cost_boundary
         from .usage import snapshot,provider_model_health

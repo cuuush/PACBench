@@ -11,6 +11,7 @@ from typing import Callable
 from .model_calls import ModelOutput
 
 AUTHORING_VERSION = 'event-scoped-v6'
+BEHAVIOR_REVIEW_VERSION = 'observable-reply-v2'
 EVIDENCE_VERSION = 'assistant-session-fields-v2'
 
 
@@ -87,7 +88,8 @@ def build_contract(*, scene: str, test_intent: str,
         if not author_facts:
             draft=_call_json(generate,
                 'Turn the English expectation into independently assessable criteria for the assistant answer. '
-                'Describe observable answer behavior; acknowledgement alone does not prove persistence. '
+                'Combine wording allowances with the behavior they qualify, rather than separate criteria. '
+                'A brief acknowledgement can satisfy acceptance; it does not claim persistence. '
                 'Use the expectation as written; do not add requirements. Return JSON {"criteria":["..."]}.\n'
                 f'User: {user_question}\nExpectation: {test_intent}')
             criteria=draft.get('criteria')
@@ -97,7 +99,8 @@ def build_contract(*, scene: str, test_intent: str,
             'Review this scripted assistant interaction before running it. Expected criteria describe observable '
             'answer behavior, not proof of external execution. Check each criterion is observable, objective, '
             'fairly requested, and supported by the available source and scripted user instructions. '
-            'An acknowledgement does not prove persistence. Cite the exact s-number labels supporting each '
+            'If the expectation permits acknowledgement, that is observable acceptance: do not require '
+            'restated details or persistence. Storage is tested in later turns. Cite the exact s-number labels supporting each '
             'expectation. Return JSON {"complete":true,"reviews":[{"id":"fact-1","supported":true,'
             '"relevant":true,"unambiguous":true,"reason":"...","evidence":["source-id"]}]}.\n'
             f'Question time: {question_at}\nUser: {user_question}\n'
@@ -114,7 +117,8 @@ def build_contract(*, scene: str, test_intent: str,
         body={'authoring_version':AUTHORING_VERSION,'evidence_version':EVIDENCE_VERSION,'claims':[vars(c) for c in claims],'question':user_question,
             'evidence_hash':hashlib.sha256(json.dumps(observations,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
             'review':reviewed,'question_review':{'safe':True,'faithful':True,'elicits_all':True,'reason':'Reviewed behavioral interaction'},
-            'author_fact_count':authored_count,'question_source':'supplied','question_at':question_at,'kind':'behavior','test_intent':test_intent}
+            'author_fact_count':authored_count,'question_source':'supplied','question_at':question_at,'kind':'behavior',
+            'behavior_review_version':BEHAVIOR_REVIEW_VERSION,'test_intent':test_intent}
         hashed=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         output_path.parent.mkdir(parents=True,exist_ok=True)
         with output_path.open('x') as f:json.dump({**body,'contract_hash':hashed},f,indent=2,ensure_ascii=False)

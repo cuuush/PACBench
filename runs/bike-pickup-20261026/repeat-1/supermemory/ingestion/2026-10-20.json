@@ -1,0 +1,168 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "supermemory",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "5f4b74d1529befab8ce6367c29595d1cf36ef40e8a87dcd382b0c0d4459b17b6",
+  "source_ids": [
+    "message-d29a4f96b9240baa0fcdbca9",
+    "message-3a63f87f0b891216065e60c9"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "reason": "",
+    "interface": "Supermemory SDK documents.add(raw content) + documents.get",
+    "result": {
+      "id": "H4eTf6JQYsRvYydajyLS2S",
+      "status": "queued"
+    },
+    "container_tag": "supermemory_data_repeat_1_supermemory",
+    "processing_status": [
+      {
+        "id": "H4eTf6JQYsRvYydajyLS2S",
+        "custom_id": "2026-10-20",
+        "content": null,
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "queued",
+        "dreaming_status": "dreaming"
+      },
+      {
+        "id": "H4eTf6JQYsRvYydajyLS2S",
+        "custom_id": "2026-10-20",
+        "content": "Daily messages — collected through 2026-10-20T10:20:00-04:00\n\nConversation: email | thread-f4ec4726b7091f7639b90ad0\nParticipants: Me, Riley\nSubject: Bike pickup\n\n[2026-10-20T10:00:00-04:00] Riley\nHi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley\n\n[2026-10-20T10:20:00-04:00] Me (sent by owner)\nHi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!",
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "done",
+        "dreaming_status": "dreaming"
+      },
+      {
+        "id": "H4eTf6JQYsRvYydajyLS2S",
+        "custom_id": "2026-10-20",
+        "content": "Daily messages — collected through 2026-10-20T10:20:00-04:00\n\nConversation: email | thread-f4ec4726b7091f7639b90ad0\nParticipants: Me, Riley\nSubject: Bike pickup\n\n[2026-10-20T10:00:00-04:00] Riley\nHi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley\n\n[2026-10-20T10:20:00-04:00] Me (sent by owner)\nHi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!",
+        "container_tags": [
+          "supermemory_data_repeat_1_supermemory"
+        ],
+        "status": "done",
+        "dreaming_status": "done"
+      }
+    ],
+    "delivery_options": {
+      "dreaming": "instant"
+    },
+    "readiness_requirement": "Native document processing and memory dreaming both done"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 72.15,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:52:24.441664+00:00",
+    "finished": "2026-10-26T17:53:36.598273+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 4,
+        "input_tokens": 23808,
+        "output_tokens": 4362,
+        "accounted_upper_bound_usd": 0.0032532,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "e05a1ee027804887ac18a13170299edd",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:53:00.186815+00:00",
+        "finished": "2026-10-26T17:53:06.861793+00:00",
+        "state": "settled",
+        "input_tokens": 2490,
+        "output_tokens": 586,
+        "accounted": 366200,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 291,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0003662
+      },
+      {
+        "id": "7b365a340a544d5b8dc98d056eabc809",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:53:07.066240+00:00",
+        "finished": "2026-10-26T17:53:16.033586+00:00",
+        "state": "settled",
+        "input_tokens": 6019,
+        "output_tokens": 1125,
+        "accounted": 826900,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 967,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0008269
+      },
+      {
+        "id": "ccaf900e8c74414a83eb620499d784d2",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:53:16.050851+00:00",
+        "finished": "2026-10-26T17:53:31.914382+00:00",
+        "state": "settled",
+        "input_tokens": 7030,
+        "output_tokens": 2299,
+        "accounted": 1162800,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 1461,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011628
+      },
+      {
+        "id": "ef4a47ccf2b64e069cbeb9e3998283cb",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:53:32.610268+00:00",
+        "finished": "2026-10-26T17:53:36.208490+00:00",
+        "state": "settled",
+        "input_tokens": 8269,
+        "output_tokens": 352,
+        "accounted": 897300,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 225,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0008973
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

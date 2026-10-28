@@ -1,0 +1,153 @@
+{
+  "version": "accepted-native-writes-v1",
+  "binding": "75ec720ca4c2f154cc4b75454b518b90c01aa925df50181cc6d06e698d84c0fd",
+  "dependencies": [
+    "pickup-change"
+  ],
+  "inputs": {
+    "provider": "honcho",
+    "accepted_ids": [],
+    "sessions": [
+      "20261026_143704_cd7db1"
+    ],
+    "captures": [
+      {
+        "session": "20261026_143704_cd7db1",
+        "prompt": "[Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11 instead."
+      }
+    ]
+  },
+  "turn_hashes": [
+    "8807ddea5c8bf251a58eda23eb512cf6bc536d6f18a51297c20d33417f7b5ea4"
+  ],
+  "latency_s": 1820.9,
+  "state": "ready",
+  "observed": {
+    "ready": true,
+    "snapshots": [
+      [
+        {
+          "id": "20261026_143704_cd7db1",
+          "hermes_session": "20261026_143704_cd7db1",
+          "status": "running",
+          "native_error": false,
+          "captures_verified": true,
+          "captured_ids": [
+            "cOY3xPLZdARjBgEnYIzrB"
+          ],
+          "queue": {
+            "total_work_units": 3,
+            "completed_work_units": 0,
+            "in_progress_work_units": 0,
+            "pending_work_units": 3,
+            "sessions": null
+          }
+        }
+      ],
+      [
+        {
+          "id": "20261026_143704_cd7db1",
+          "hermes_session": "20261026_143704_cd7db1",
+          "status": "running",
+          "native_error": false,
+          "captures_verified": true,
+          "captured_ids": [
+            "cOY3xPLZdARjBgEnYIzrB"
+          ],
+          "queue": {
+            "total_work_units": 3,
+            "completed_work_units": 0,
+            "in_progress_work_units": 3,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      ],
+      [
+        {
+          "id": "20261026_143704_cd7db1",
+          "hermes_session": "20261026_143704_cd7db1",
+          "status": "completed",
+          "native_error": false,
+          "captures_verified": true,
+          "captured_ids": [
+            "cOY3xPLZdARjBgEnYIzrB"
+          ],
+          "queue": {
+            "total_work_units": 3,
+            "completed_work_units": 3,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      ]
+    ],
+    "processing_overrides": false,
+    "reason": "Observed native completion; no processing forced"
+  },
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T18:38:45.608544+00:00",
+    "finished": "2026-10-26T19:09:06.509724+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 1828,
+        "output_tokens": 9752,
+        "accounted_upper_bound_usd": 0.0021332,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "fe4335487602474fa9e849b9981810e7",
+        "project": "pacbench-9d30de36181a-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T19:07:45.849526+00:00",
+        "finished": "2026-10-26T19:08:11.377669+00:00",
+        "state": "settled",
+        "input_tokens": 939,
+        "output_tokens": 3329,
+        "accounted": 759700,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 3213,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0007597
+      },
+      {
+        "id": "f2f8b444647f461c937bb74444516cc5",
+        "project": "pacbench-9d30de36181a-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T19:08:12.793848+00:00",
+        "finished": "2026-10-26T19:09:05.718527+00:00",
+        "state": "settled",
+        "input_tokens": 889,
+        "output_tokens": 6423,
+        "accounted": 1373500,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 6335,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013735
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

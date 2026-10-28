@@ -1,0 +1,50 @@
+{
+  "correct": 3,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-day",
+      "verdict": "correct",
+      "reason": "Answer gives November 1, which is Sunday given Oct 26 Monday context."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states coffee is at 9am on November 1."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "missed",
+      "reason": "Answer gives date/time but states no venue; Maple Mug absent."
+    },
+    {
+      "id": "coffee-unchanged",
+      "verdict": "correct",
+      "reason": "Answer keeps coffee at distinct 9am separate from 11am bike pickup, not overwritten."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-day",
+      "kind": "provided",
+      "reason": "Correct Sunday date conveyed via November 1."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correct 9am time conveyed."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "implicit_omission",
+      "reason": "Venue omitted; user asked broadly 'And coffee with Riley?' not explicitly for venue."
+    },
+    {
+      "id": "coffee-unchanged",
+      "kind": "provided",
+      "reason": "Separate unchanged 9am arrangement conveyed distinct from bike pickup."
+    }
+  ],
+  "interaction": "answer"
+}

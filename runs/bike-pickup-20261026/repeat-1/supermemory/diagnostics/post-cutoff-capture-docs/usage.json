@@ -1,0 +1,64 @@
+{
+  "state": "captured",
+  "started": "2026-10-26T18:23:54.626783+00:00",
+  "finished": "2026-10-26T18:24:15.988970+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 2,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.3151248,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "00446844c38e4fd3b548f6787cd70053",
+      "project": "supermemory-reopen-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:24:00.368986+00:00",
+      "finished": "2026-10-26T18:24:13.166697+00:00",
+      "state": "settled",
+      "input_tokens": 2688,
+      "output_tokens": 1416,
+      "accounted": 552000,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "tool_calls",
+      "reasoning_tokens": 1124,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.000552
+    },
+    {
+      "id": "bebc465a41b64ca79450b5942a697c61",
+      "project": "supermemory-reopen-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:24:13.773527+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 314572800,
+      "reserved": 314572800,
+      "http_status": null,
+      "error_label": null,
+      "finish_reason": null,
+      "reasoning_tokens": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.3145728
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "96bd570fb6b3884f18a94b0116da9283e731f7f0521285c2fa2cfea4e014bd48",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "bike pickup Saturday"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793042251991,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User will meet Riley for coffee on November 1, 2026 at 9am, invited by Riley since user will be in town Saturday for bike pickup.\\n2. User's bike pickup from Riley is scheduled for Sunday, November 1, 2026 at 11am, rescheduled from October 31 at 10am (originally 2pm, moved because the shop was closing early) after Riley called on October 26, 2026.\\n3. User plans to meet Riley on November 1, 2026 for 9am coffee and 11am bike pickup, rescheduled from October 31, 2026.\\n4. User's bike is fixed and pickup from Riley is set for 11am on November 1, 2026, rescheduled from 10am on October 31, 2026 (originally 2pm that day) per Riley's call on October 26, 2026.\\n5. User has coffee with Riley on November 1, 2026 at 9am.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.03,
+    "input_tokens": 3428,
+    "output_tokens": 587,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "bike-not-saturday",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "bike-not-saturday",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

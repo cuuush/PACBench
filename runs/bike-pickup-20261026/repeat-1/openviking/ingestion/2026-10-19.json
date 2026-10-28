@@ -1,0 +1,286 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "openviking",
+  "at": "2026-10-19T18:20:00-04:00",
+  "processing_at": "2026-10-20T03:00:00-04:00",
+  "document_sha256": "90f9d3660cc3cd21aebe8078b3344b0a456aacf587fc702de8f3449b0ca9d220",
+  "source_ids": [
+    "message-344aab19a2dce674ab2cb112",
+    "message-a00a277054a37999b7d9ef7f",
+    "message-d857e63bdce0492ad1a5bace",
+    "message-eaaf1fe56b4c5945bb1cdfa0",
+    "message-fca4ff70ad5a503d755650f8",
+    "message-42704a023039099ce31fcc52",
+    "message-1d80ab26a78cd8fa9dbafeb1",
+    "message-e1132c9f185ed2fd834ac9c0",
+    "message-3e651dbb51e3935fc85d6ea6"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "OpenViking temp_upload + resources(wait=True)",
+    "result": {
+      "status": "ok",
+      "result": {
+        "status": "success",
+        "errors": [],
+        "source_path": "2026-10-19.txt",
+        "meta": {},
+        "root_uri": "viking://resources/2026-10-19",
+        "temp_uri": "viking://temp/default/10261345_e4d0f6/2026-10-19",
+        "queue_status": {
+          "Semantic": {
+            "processed": 1,
+            "requeue_count": 0,
+            "error_count": 0,
+            "errors": []
+          },
+          "Embedding": {
+            "processed": 3,
+            "requeue_count": 0,
+            "error_count": 0,
+            "errors": []
+          }
+        },
+        "context_count": 3,
+        "telemetry": {
+          "id": "tm_3bef85318a3a4362918a4a116e7744cb",
+          "summary": {
+            "operation": "add_resource_job",
+            "status": "ok",
+            "duration_ms": 61151.115,
+            "tokens": {
+              "total": 11050,
+              "llm": {
+                "input": 1785,
+                "output": 8060,
+                "total": 9845,
+                "completion_reasoning": 7183
+              },
+              "embedding": {
+                "total": 1205
+              },
+              "stages": {
+                "semantic_execute": {
+                  "llm": {
+                    "input": 1785,
+                    "output": 8060,
+                    "total": 9845,
+                    "completion_reasoning": 7183
+                  }
+                },
+                "embed_resource": {
+                  "embedding": {
+                    "total": 1205
+                  }
+                }
+              }
+            },
+            "queue": {
+              "semantic": {
+                "processed": 1,
+                "queue_wait": {
+                  "duration_ms": 24.037
+                },
+                "execute": {
+                  "duration_ms": 60915.249
+                }
+              },
+              "embedding": {
+                "processed": 3,
+                "queue_wait": {
+                  "duration_ms": 464.425
+                },
+                "execute": {
+                  "duration_ms": 3265.668
+                }
+              }
+            },
+            "semantic_nodes": {
+              "total": 2,
+              "done": 2
+            },
+            "resource": {
+              "total": {
+                "duration_ms": 61151.111
+              },
+              "source_execute": {
+                "duration_ms": 111.689
+              },
+              "source_prepare": {
+                "duration_ms": 48.836
+              },
+              "parse_artifact": {
+                "duration_ms": 22.894
+              },
+              "target_resolve": {
+                "duration_ms": 3.527
+              },
+              "update_plan": {
+                "duration_ms": 49.973,
+                "artifact_inventory": {
+                  "duration_ms": 6.099
+                },
+                "rnfv_snapshot": {
+                  "duration_ms": 1.145
+                },
+                "diff_and_compile": {
+                  "duration_ms": 36.841
+                }
+              },
+              "content_commit": {
+                "duration_ms": 11.689
+              },
+              "derived_enqueue": {
+                "duration_ms": 6.209
+              },
+              "semantic": {
+                "queue_wait": {
+                  "duration_ms": 24.037
+                },
+                "execute": {
+                  "duration_ms": 60915.249
+                }
+              },
+              "embedding": {
+                "queue_wait": {
+                  "duration_ms": 464.425
+                },
+                "execute": {
+                  "duration_ms": 3265.668
+                }
+              },
+              "flags": {
+                "wait": false,
+                "build_index": true,
+                "summarize": false,
+                "watch_enabled": false
+              }
+            }
+          }
+        },
+        "usage": {
+          "tokens": {
+            "total": 11050,
+            "llm": {
+              "input": 1785,
+              "output": 8060,
+              "total": 9845,
+              "completion_reasoning": 7183
+            },
+            "embedding": {
+              "total": 1205
+            },
+            "stages": {
+              "semantic_execute": {
+                "llm": {
+                  "input": 1785,
+                  "output": 8060,
+                  "total": 9845,
+                  "completion_reasoning": 7183
+                }
+              },
+              "embed_resource": {
+                "embedding": {
+                  "total": 1205
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "readiness": "Native completed semantic/vector processing with queue status and no errors"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 62.71,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:45:20.370422+00:00",
+    "finished": "2026-10-26T17:46:23.083391+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 3,
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted_upper_bound_usd": 0.31636329999999996,
+        "unsettled_calls": 1
+      }
+    },
+    "model_calls": [
+      {
+        "id": "102b192fb3df4799a0508ad6629af16f",
+        "project": "pacbench-3740f9d6a38e-openviking-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:45:22.102474+00:00",
+        "finished": "2026-10-26T17:45:37.008809+00:00",
+        "state": "settled",
+        "input_tokens": 702,
+        "output_tokens": 2038,
+        "accounted": 477800,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 1859,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0004778
+      },
+      {
+        "id": "4251569599634492a9b9efa7df6de5b5",
+        "project": "pacbench-3740f9d6a38e-openviking-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:45:37.029096+00:00",
+        "finished": "2026-10-26T17:46:20.527400+00:00",
+        "state": "settled",
+        "input_tokens": 1083,
+        "output_tokens": 6022,
+        "accounted": 1312700,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 5324,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0013127
+      },
+      {
+        "id": "a4db8a220c2c489db960c5cc571730dc",
+        "project": "pacbench-3740f9d6a38e-openviking-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:46:20.752843+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 314572800,
+        "reserved": 314572800,
+        "http_status": null,
+        "error_label": null,
+        "finish_reason": null,
+        "reasoning_tokens": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.3145728
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

@@ -72,18 +72,19 @@ def convert(rows,turn):
 def capture(env,before,turn):
     try:
         if before.get('error'):raise ValueError('Initial native trace snapshot unavailable')
-        # The native writer buffers traces for five seconds. Observe its flush;
-        # do not flush it or request another model call.
-        deadline=time.monotonic()+6
-        while True:
-            rows=read(env)
-            if time.monotonic()>=deadline:break
-            time.sleep(1)
-        fresh=[r for r in rows if r['id'] not in set(before['ids'])]
-        traces=convert(fresh,turn)
+        # The pinned 1.1.0 writer flushes every 0.5 seconds. Allow its ordinary
+        # flush, then stop as soon as explicit reflection coverage is complete.
+        started=time.monotonic();earliest=started+0.75;deadline=started+3
+        known=set(before['ids'])
         expected=Counter((c.get('input',c.get('arguments',{})) or {}).get('query')
                          for c in turn.tool_calls if c.get('name')=='hindsight_reflect')
-        observed=Counter(t['record']['query'] for t in traces if t['attribution']=='explicit-query-match' and t['record']['complete'])
+        while True:
+            rows=read(env)
+            traces=convert([r for r in rows if r['id'] not in known],turn)
+            observed=Counter(t['record']['query'] for t in traces if t['attribution']=='explicit-query-match' and t['record']['complete'])
+            now=time.monotonic()
+            if now>=deadline or now>=earliest and not expected-observed:break
+            time.sleep(0.25)
         if expected-observed:traces.append({'provider':'hindsight','error':'Native reflection trace coverage incomplete'})
         return traces
     except Exception as exc:return [{'provider':'hindsight','error':'Native trace observation failed: '+type(exc).__name__}]

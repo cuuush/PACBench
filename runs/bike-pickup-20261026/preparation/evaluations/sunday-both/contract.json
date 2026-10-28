@@ -1,0 +1,137 @@
+{
+  "authoring_version": "event-scoped-v6",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "coffee-who",
+      "statement": "On Sunday, Nov 1, the coffee plan is with Riley.",
+      "evidence": [
+        "message-42704a023039099ce31fcc52",
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6",
+        "message-d29a4f96b9240baa0fcdbca9"
+      ]
+    },
+    {
+      "id": "coffee-time",
+      "statement": "On Sunday, Nov 1, the coffee with Riley is at 9 am.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6",
+        "message-42704a023039099ce31fcc52",
+        "message-d29a4f96b9240baa0fcdbca9"
+      ]
+    },
+    {
+      "id": "coffee-venue",
+      "statement": "On Sunday, Nov 1, the coffee with Riley is at Maple Mug.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    },
+    {
+      "id": "bike-who",
+      "statement": "On Sunday, Nov 1, the bike pickup plan is with Riley.",
+      "evidence": [
+        "message-344aab19a2dce674ab2cb112",
+        "message-eaaf1fe56b4c5945bb1cdfa0",
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "bike-time",
+      "statement": "On Sunday, Nov 1, the bike pickup with Riley is at 11 am.",
+      "evidence": [
+        "assistant-user:pickup-change",
+        "message-d29a4f96b9240baa0fcdbca9"
+      ]
+    },
+    {
+      "id": "bike-venue",
+      "statement": "On Sunday, Nov 1, the bike pickup with Riley is at Spoke Cycles.",
+      "evidence": [
+        "message-eaaf1fe56b4c5945bb1cdfa0",
+        "message-d29a4f96b9240baa0fcdbca9",
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "sunday-count",
+      "statement": "On Sunday, Nov 1, there are exactly two plans with Riley: coffee and bike pickup.",
+      "evidence": [
+        "message-42704a023039099ce31fcc52",
+        "message-e1132c9f185ed2fd834ac9c0",
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "What's my Sunday with Riley looking like?",
+  "evidence_hash": "645ee7dadf72031bace2aedd63c1a5b5f70e2973ac791fbd90d3060a8a2beb2d",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All 6 required who/time/venue facts for coffee and bike pickup on Sun Nov 1 are independently claimed, plus two-plan list.",
+    "reviews": [
+      {
+        "id": "coffee-who",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed coffee that Sunday and user accepted; Nov 1 derived from Oct 31 Saturday timestamps."
+      },
+      {
+        "id": "coffee-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed 9am and user accepted; date Nov 1 from relative Sunday."
+      },
+      {
+        "id": "coffee-venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed Maple Mug and user accepted."
+      },
+      {
+        "id": "bike-who",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Bike pickup with Riley established in texts and moved to Sunday by user report."
+      },
+      {
+        "id": "bike-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "User reports move to Sunday at 11, overriding prior Saturday 10am; Sunday is Nov 1."
+      },
+      {
+        "id": "bike-venue",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Venue Spoke Cycles established and unchanged by time-only move to Sunday."
+      },
+      {
+        "id": "sunday-count",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Dialogue shows exactly coffee plus moved bike pickup on that Sunday."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Prompt 'What's my Sunday with Riley looking like?' at 2026-10-26 resolves Sunday to Nov 1 upcoming, asks casual recap which naturally invites both current outings with who/time/venue and completeness. No answers supplied, presupposition of Sunday-with-Riley supported by coffee and bike update. Bike move to Sunday 11am in pickup-check is explicit user instruction persisting to fresh sunday-fresh session; venue Spoke Cycles unchanged, coffee 9am Maple Mug unchanged, count two correct under current meaning."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses.",
+  "question_source": "supplied",
+  "question_at": "2026-10-26T16:30:00-04:00",
+  "contract_hash": "15eb940d242611ca2f8d9cd20f887c10e63669cdcc19f1778bf37de818eb6a9e"
+}

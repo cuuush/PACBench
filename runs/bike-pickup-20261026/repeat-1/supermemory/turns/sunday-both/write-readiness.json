@@ -1,0 +1,137 @@
+{
+  "version": "accepted-native-writes-v1",
+  "binding": "898e71e94f1549c06a365e0708fc97379444f7280d7cf1ce0b83072fb400acc2",
+  "dependencies": [
+    "pickup-change"
+  ],
+  "inputs": {
+    "provider": "supermemory",
+    "accepted_ids": [
+      "BnubNdh8E2C9wqmW2bqUMv"
+    ],
+    "sessions": [
+      "20261026_135337_704acf"
+    ]
+  },
+  "turn_hashes": [
+    "b7c31eacc49bd28b4017e72c2f96d52a3c9d37d5c6783c7fda8687b17b08227f"
+  ],
+  "latency_s": 900.79,
+  "state": "unavailable",
+  "observed": {
+    "ready": false,
+    "snapshots": [
+      [
+        {
+          "id": "BnubNdh8E2C9wqmW2bqUMv",
+          "status": "done",
+          "dreaming_status": "dreaming"
+        }
+      ]
+    ],
+    "processing_overrides": false,
+    "reason": "Native queued write readiness deadline exceeded"
+  },
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:54:45.250582+00:00",
+    "finished": "2026-10-26T18:09:46.047133+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 4,
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted_upper_bound_usd": 0.3171516,
+        "unsettled_calls": 1
+      }
+    },
+    "model_calls": [
+      {
+        "id": "73ddf6575bef45259d69ec7ecc44bc94",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:09:00.196198+00:00",
+        "finished": "2026-10-26T18:09:10.597384+00:00",
+        "state": "settled",
+        "input_tokens": 2688,
+        "output_tokens": 1217,
+        "accounted": 512200,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 921,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0005122
+      },
+      {
+        "id": "c6f1a6d4523a404d8189fdff47fe36f6",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:09:10.808591+00:00",
+        "finished": "2026-10-26T18:09:23.981382+00:00",
+        "state": "settled",
+        "input_tokens": 6271,
+        "output_tokens": 1576,
+        "accounted": 942300,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 1480,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0009423
+      },
+      {
+        "id": "db9c3af488ae4653b9987b130ec5b188",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:09:23.996513+00:00",
+        "finished": "2026-10-26T18:09:41.039363+00:00",
+        "state": "settled",
+        "input_tokens": 6995,
+        "output_tokens": 2124,
+        "accounted": 1124300,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "tool_calls",
+        "reasoning_tokens": 1961,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0011243
+      },
+      {
+        "id": "3904dc858343472d8b6a645788cb0c7f",
+        "project": "pacbench-9c0d20963d8f-supermemory-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:09:41.164081+00:00",
+        "finished": null,
+        "state": "reserved",
+        "input_tokens": null,
+        "output_tokens": null,
+        "accounted": 314572800,
+        "reserved": 314572800,
+        "http_status": null,
+        "error_label": null,
+        "finish_reason": null,
+        "reasoning_tokens": null,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.3145728
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

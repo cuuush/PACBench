@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?",
+  "at": "2026-10-26T16:00:00-04:00",
+  "answer": "You're picking it up at 10 am Saturday, October 31 at Spoke Cycles, 114 Maple Avenue with Riley — rescheduled from 2 pm because the shop closes early.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "bike pickup plan",
+        "top_k": 10
+      },
+      "timestamp": 1793036023676
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"e3f153ce-4fed-4538-ab28-99d18cd90674\", \"memory\": \"User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\", \"score\": 0.7281171406803979}, {\"id\": \"6b5972d2-36de-4596-a894-cdff1af9af54\", \"memory\": \"User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\", \"score\": 0.6739085420559222}, {\"id\": \"4fa923b7-ec6a-4020-ab05-2022d2d34864\", \"memory\": \"User agreed with Riley to reschedule bike pickup to 10 am on Saturday, October 31, 2026 instead of 2 pm at the same shop and address, due to the shop closing early, as confirmed on October 20, 2026\", \"score\": 0.6659886940083894}, {\"id\": \"58671b1e-90fa-4c3a-9b5c-7fcf2d7162dd\", \"memory\": \"User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\", \"score\": 0.5995435279745591}, {\"id\": \"f5dc7dff-46da-4701-8369-f3d6702c318c\", \"memory\": \"User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug\", \"score\": 0.43314377377779456}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 16.57,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261026_133337_4ca48d",
+  "raw_events": 11,
+  "session_id": "20261026_133337_4ca48d",
+  "stderr_full": "\nsession_id: 20261026_133337_4ca48d\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261026_133337_4ca48d\", \"timestamp\": 1793036017367}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Checking your bike pickup plan.\", \"timestamp\": 1793036023003}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"bike pickup plan\", \"top_k\": 10}, \"timestamp\": 1793036023676}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"e3f153ce-4fed-4538-ab28-99d18cd90674\\\", \\\"memory\\\": \\\"User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\\\", \\\"score\\\": 0.7281171406803979}, {\\\"id\\\": \\\"6b5972d2-36de-4596-a894-cdff1af9af54\\\", \\\"memory\\\": \\\"User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\\\", \\\"score\\\": 0.6739085420559222}, {\\\"id\\\": \\\"4fa923b7-ec6a-4020-ab05-2022d2d34864\\\", \\\"memory\\\": \\\"User agreed with Riley to reschedule bike pickup to 10 am on Saturday, October 31, 2026 instead of 2 pm at the same shop and address, due to the shop closing early, as confirmed on October 20, 2026\\\", \\\"score\\\": 0.6659886940083894}, {\\\"id\\\": \\\"58671b1e-90fa-4c3a-9b5c-7fcf2d7162dd\\\", \\\"memory\\\": \\\"User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\\\", \\\"score\\\": 0.5995435279745591}, {\\\"id\\\": \\\"f5dc7dff-46da-4701-8369-f3d6702c318c\\\", \\\"memory\\\": \\\"User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug\\\", \\\"score\\\": 0.43314377377779456}], \\\"count\\\": 5}\", \"duration_ms\": 42, \"is_error\": false, \"timestamp\": 1793036023720}\n{\"type\": \"text\", \"text\": \"\\n\\nYou're picking it up\", \"timestamp\": 1793036026476}\n{\"type\": \"text\", \"text\": \" at 10 am Saturday\", \"timestamp\": 1793036026514}\n{\"type\": \"text\", \"text\": \", October 31 at Spoke Cycles\", \"timestamp\": 1793036026552}\n{\"type\": \"text\", \"text\": \", 114 Maple Avenue with Riley —\", \"timestamp\": 1793036026592}\n{\"type\": \"text\", \"text\": \" rescheduled from 2 pm because the\", \"timestamp\": 1793036026628}\n{\"type\": \"text\", \"text\": \" shop closes early.\", \"timestamp\": 1793036026666}\n{\"type\": \"result\", \"session_id\": \"20261026_133337_4ca48d\", \"exit_code\": 0, \"text\": \"You're picking it up at 10 am Saturday, October 31 at Spoke Cycles, 114 Maple Avenue with Riley — rescheduled from 2 pm because the shop closes early.\", \"tokens\": {\"input\": 4077, \"output\": 599, \"total\": 8117, \"cache_read\": 3441, \"cache_write\": 0}, \"duration_ms\": 9368, \"timestamp\": 1793036026736}",
+  "session_input_tokens": 4077,
+  "session_output_tokens": 599,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User agreed with Riley to reschedule bike pickup to 10 am on Saturday, October 31, 2026 instead of 2 pm at the same shop and address, due to the shop closing early, as confirmed on October 20, 2026\n- User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\n- User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\n- User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\n- User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-citdj5w_",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-citdj5w_",
+    "system_prompt_sha256": "bd39b2c29c4a2a8d7f73ccd57f89a6c48907aa24ebd83a660905844f92c68add",
+    "reason": "No project context in native saved system prompt"
+  }
+}

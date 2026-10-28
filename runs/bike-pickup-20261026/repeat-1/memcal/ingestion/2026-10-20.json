@@ -1,0 +1,258 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "memcal",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "5f4b74d1529befab8ce6367c29595d1cf36ef40e8a87dcd382b0c0d4459b17b6",
+  "source_ids": [
+    "message-d29a4f96b9240baa0fcdbca9",
+    "message-3a63f87f0b891216065e60c9"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 2,
+      "report": "linked 2 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 0,
+      "archived": 0,
+      "passed": 0,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 0,
+      "floor": "2026-10-19T18:20:00-04:00"
+    },
+    "email_ingest": {
+      "channel": "email",
+      "read": 2,
+      "archived": 2,
+      "passed": 1,
+      "error": null,
+      "notes": [
+        "Sent: first run — starting 30 days back",
+        "INBOX: first run — starting 30 days back"
+      ],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null
+    },
+    "email_transport": {
+      "interface": "TLS IMAP4rev1 Inbox/Sent fixture",
+      "commands": [
+        {
+          "command": "CAPABILITY",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "LOGIN",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "LIST",
+          "operation": null,
+          "folder": null,
+          "status": "OK"
+        },
+        {
+          "command": "EXAMINE",
+          "operation": null,
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "STATUS",
+          "operation": null,
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "SEARCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "Sent",
+          "status": "OK"
+        },
+        {
+          "command": "EXAMINE",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "STATUS",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "SEARCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "UID",
+          "operation": "FETCH",
+          "folder": "INBOX",
+          "status": "OK"
+        },
+        {
+          "command": "LOGOUT",
+          "operation": null,
+          "folder": "INBOX",
+          "status": "OK"
+        }
+      ],
+      "account": "da8bbfab-4b22-5d0f-84d7-3e2e85fd07b5@mail.example.test"
+    },
+    "bundles": [
+      {
+        "run_id": 2,
+        "entity": "person:Riley",
+        "bundle_id": "3987d8",
+        "label": "Riley",
+        "kind": "person",
+        "lines": 2,
+        "state": "reading",
+        "updated_at": "2026-10-21T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/bike-pickup-memcal-20261026/repeat-1/memcal/ingestion-model-calls/2026-10-20.json",
+    "native_event_state": [
+      {
+        "key": "bike-pickup@2026-10-31",
+        "date": "2026-10-31",
+        "time": "10:00",
+        "title": "Bike pickup",
+        "location": "Spoke Cycles, 114 Maple Avenue",
+        "status": "confirmed",
+        "participants": "[\"Riley\"]",
+        "subject": "me"
+      },
+      {
+        "key": "coffee@2026-11-01",
+        "date": "2026-11-01",
+        "time": "09:00",
+        "title": "Coffee",
+        "location": "Maple Mug",
+        "status": "confirmed",
+        "participants": "[\"Riley\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 2,
+      "errors": [],
+      "report": "dream run #2 — 1 bundles, 2 items, 1 writes\n  updated   2026-10-31 Bike pickup [bike-pickup@2026-10-31]\n  usage: 2 calls · 5341 in (0 cached) · 2442 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 20.75,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:43:03.425209+00:00",
+    "finished": "2026-10-26T17:43:24.174761+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 5341,
+        "output_tokens": 2442,
+        "accounted_upper_bound_usd": 0.0010225,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "068241ffa9eb469485e21161a77d1850",
+        "project": "pacbench-11df69a810fb-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:43:04.646391+00:00",
+        "finished": "2026-10-26T17:43:17.654977+00:00",
+        "state": "settled",
+        "input_tokens": 4581,
+        "output_tokens": 1606,
+        "accounted": 779300,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 1451,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0007793
+      },
+      {
+        "id": "38970a8fed4d4088bad317a75a7a847c",
+        "project": "pacbench-11df69a810fb-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:43:17.685658+00:00",
+        "finished": "2026-10-26T17:43:24.083503+00:00",
+        "state": "settled",
+        "input_tokens": 760,
+        "output_tokens": 836,
+        "accounted": 243200,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 816,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0002432
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

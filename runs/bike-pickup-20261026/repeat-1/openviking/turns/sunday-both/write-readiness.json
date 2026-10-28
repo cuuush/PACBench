@@ -1,0 +1,60 @@
+{
+  "version": "accepted-native-writes-v1",
+  "binding": "ead33de3a9c89df04bf69a84848073a9da8cc1466859944df8f88a4f552397b1",
+  "dependencies": [
+    "pickup-change"
+  ],
+  "inputs": {
+    "provider": "openviking",
+    "accepted_ids": [
+      "5c3a2217-fe8c-49c2-9fc3-98c28975e0cd"
+    ],
+    "sessions": [
+      "20261026_134830_c26cde"
+    ]
+  },
+  "turn_hashes": [
+    "e42f7663a19c4dd43af00598585b642a05e88127365b98712d5017525299cd0c"
+  ],
+  "latency_s": 0.12,
+  "state": "ready",
+  "observed": {
+    "ready": true,
+    "snapshots": [
+      [
+        {
+          "id": "5c3a2217-fe8c-49c2-9fc3-98c28975e0cd",
+          "status": "completed",
+          "native_error": false
+        }
+      ]
+    ],
+    "processing_overrides": false,
+    "reason": "Observed native completion; no processing forced"
+  },
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:49:33.108545+00:00",
+    "finished": "2026-10-26T17:49:33.232956+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

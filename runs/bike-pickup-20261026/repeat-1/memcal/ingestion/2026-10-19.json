@@ -1,0 +1,157 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "memcal",
+  "at": "2026-10-19T18:20:00-04:00",
+  "processing_at": "2026-10-20T03:00:00-04:00",
+  "document_sha256": "90f9d3660cc3cd21aebe8078b3344b0a456aacf587fc702de8f3449b0ca9d220",
+  "source_ids": [
+    "message-344aab19a2dce674ab2cb112",
+    "message-a00a277054a37999b7d9ef7f",
+    "message-d857e63bdce0492ad1a5bace",
+    "message-eaaf1fe56b4c5945bb1cdfa0",
+    "message-fca4ff70ad5a503d755650f8",
+    "message-42704a023039099ce31fcc52",
+    "message-1d80ab26a78cd8fa9dbafeb1",
+    "message-e1132c9f185ed2fd834ac9c0",
+    "message-3e651dbb51e3935fc85d6ea6"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "contacts": {
+      "linked": 2,
+      "report": "linked 2 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 9,
+      "archived": 9,
+      "passed": 9,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": null,
+      "last_rowid": 9,
+      "floor": null
+    },
+    "bundles": [
+      {
+        "run_id": 1,
+        "entity": "person:Riley",
+        "bundle_id": "3987d8",
+        "label": "Riley",
+        "kind": "person",
+        "lines": 9,
+        "state": "reading",
+        "updated_at": "2026-10-20T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench/artifacts/bike-pickup-memcal-20261026/repeat-1/memcal/ingestion-model-calls/2026-10-19.json",
+    "native_event_state": [
+      {
+        "key": "bike-pickup@2026-10-31",
+        "date": "2026-10-31",
+        "time": "14:00",
+        "title": "Bike pickup",
+        "location": "Spoke Cycles, 114 Maple Avenue",
+        "status": "confirmed",
+        "participants": "[\"Riley\"]",
+        "subject": "me"
+      },
+      {
+        "key": "coffee@2026-11-01",
+        "date": "2026-11-01",
+        "time": "09:00",
+        "title": "Coffee",
+        "location": "Maple Mug",
+        "status": "confirmed",
+        "participants": "[\"Riley\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 1,
+      "errors": [],
+      "report": "dream run #1 — 1 bundles, 9 items, 2 writes\n  inserted  2026-10-31 Bike pickup [bike-pickup@2026-10-31]\n  inserted  2026-11-01 Coffee [coffee@2026-11-01]\n  usage: 2 calls · 5124 in (0 cached) · 4058 out · cost not reported"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 30.89,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T17:42:32.530285+00:00",
+    "finished": "2026-10-26T17:43:03.421362+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 5124,
+        "output_tokens": 4058,
+        "accounted_upper_bound_usd": 0.001324,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "48a0374ba1f9469b8a8b11a77346df6a",
+        "project": "pacbench-11df69a810fb-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:42:32.695512+00:00",
+        "finished": "2026-10-26T17:42:58.354727+00:00",
+        "state": "settled",
+        "input_tokens": 4343,
+        "output_tokens": 3281,
+        "accounted": 1090500,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 2813,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0010905
+      },
+      {
+        "id": "ab30c3fb6cf24fb1a64cb3e2254ee02f",
+        "project": "pacbench-11df69a810fb-memcal-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T17:42:58.395185+00:00",
+        "finished": "2026-10-26T17:43:03.352750+00:00",
+        "state": "settled",
+        "input_tokens": 781,
+        "output_tokens": 777,
+        "accounted": 233500,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 752,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0002335
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

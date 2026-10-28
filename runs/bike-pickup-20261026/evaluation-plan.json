@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "context": "shared",
+  "checks": [
+    {
+      "id": "pickup-before",
+      "at": "2026-10-26T16:00:00-04:00",
+      "contract_hash": "385fdefd20bb46d234ff66beecf513add2a22ff04fc3c43e4ce670afc70ef2b0",
+      "policy_hash": "e03d2467438328998a2bfbb6a5fcf9ebd139e77032651f1814878a2558e53ec0",
+      "session": "pickup-check",
+      "expect": "Saturday at 10 am at Spoke Cycles. Judge day, time and shop; no street address is required."
+    },
+    {
+      "id": "pickup-change",
+      "at": "2026-10-26T16:02:00-04:00",
+      "contract_hash": "b0378f3ac199bdce73e650433611a1740145a1ca50cbc0465ad801fd9f6e32e5",
+      "policy_hash": "3bb206a8cbc4d829ec890e1cb5b58516e69d71dcbf7e14284fff1aeb5cad093d",
+      "session": "pickup-check",
+      "kind": "behavior",
+      "expect": "Accept the user's correction. A brief acknowledgement without restating details is sufficient; require no particular wording."
+    },
+    {
+      "id": "coffee-same-chat",
+      "at": "2026-10-26T16:04:00-04:00",
+      "contract_hash": "0c90110e37b6e61bc38c6300a7b2ea440783d6a8f3fa46cd1969a58ef783e1c5",
+      "policy_hash": "d1a78fa4f97df73dc6c5df030ab3528ae04b9938d533b1b551170937f34b7624",
+      "session": "pickup-check",
+      "expect": "Sunday at 9 am at Maple Mug. The bike update leaves this separate coffee arrangement unchanged."
+    },
+    {
+      "id": "sunday-both",
+      "at": "2026-10-26T16:30:00-04:00",
+      "contract_hash": "15eb940d242611ca2f8d9cd20f887c10e63669cdcc19f1778bf37de818eb6a9e",
+      "policy_hash": "ecc1c5fd4bca29d2466dc78f5b2c8811b53090fe7e526754b5c0128210470ee4",
+      "requires": [
+        "pickup-change"
+      ],
+      "session": "sunday-fresh",
+      "expect": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses."
+    },
+    {
+      "id": "saturday-clear",
+      "at": "2026-10-26T17:00:00-04:00",
+      "contract_hash": "029a88883daa9ddea247e1bceda50b4c4fa6068ccfa5291149d966820fb18900",
+      "policy_hash": "96bd570fb6b3884f18a94b0116da9283e731f7f0521285c2fa2cfea4e014bd48",
+      "requires": [
+        "pickup-change"
+      ],
+      "session": "saturday-fresh",
+      "expect": "No. The latest user correction moved bike pickup to Sunday. A clear no is sufficient; do not require restating Sunday's time."
+    }
+  ],
+  "plan_hash": "f147c1f9665983157f371c9194a15326d279b0e8ecc1b4e5cef80ea8873689ce"
+}

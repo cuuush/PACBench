@@ -1,0 +1,49 @@
+{
+  "state": "complete",
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_write": 1
+    },
+    "operations": [
+      {
+        "name": "viking_remember",
+        "arguments": {
+          "content": "Bike pickup with Riley rescheduled per phone call on 2026-10-26: now Sunday at 11am instead of Saturday Oct 31 10am at Spoke Cycles, 114 Maple Avenue. User reported Riley called to change to Sunday 11."
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793036935391,
+        "result": {
+          "tool": "viking_remember",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"status\": \"submitted\", \"session_id\": \"hermes-remember-25d0f35430c0\", \"session_uri\": \"viking://user/default/sessions/hermes-remember-25d0f35430c0\", \"message_status\": \"accepted\", \"extraction_status\": \"accepted\", \"message\": \"Memory source submitted to OpenViking session extraction. OpenViking may add, merge, or skip the final memory.\", \"task_id\": \"5c3a2217-fe8c-49c2-9fc3-98c28975e0cd\", \"trace_id\": \"926ff5f7f006d57a6bd64f049cd47b41\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.33,
+    "input_tokens": null,
+    "output_tokens": null,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": true,
+    "inherited_unclassified": false
+  },
+  "observable_only": true
+}

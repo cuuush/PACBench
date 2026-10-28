@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T17:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAm I still picking up the bike Saturday?",
+  "at": "2026-10-26T17:00:00-04:00",
+  "answer": "No — you rescheduled to 11 am Sunday, November 1 at Spoke Cycles.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "input": {
+        "query": "bike pickup schedule",
+        "top_k": 10
+      },
+      "timestamp": 1793036138486
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"e3f153ce-4fed-4538-ab28-99d18cd90674\", \"memory\": \"User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\", \"score\": 0.7817052740344115}, {\"id\": \"4fa923b7-ec6a-4020-ab05-2022d2d34864\", \"memory\": \"User agreed with Riley to reschedule bike pickup to 11 am on Sunday, November 1, 2026 at the same shop and address, as confirmed on October 26, 2026\", \"score\": 0.729982789268524}, {\"id\": \"6b5972d2-36de-4596-a894-cdff1af9af54\", \"memory\": \"User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\", \"score\": 0.6728709406494919}, {\"id\": \"58671b1e-90fa-4c3a-9b5c-7fcf2d7162dd\", \"memory\": \"User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\", \"score\": 0.6488591758993929}, {\"id\": \"f5dc7dff-46da-4701-8369-f3d6702c318c\", \"memory\": \"User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug\", \"score\": 0.5117413969678599}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 15.75,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261026_133532_6c07c7",
+  "raw_events": 10,
+  "session_id": "20261026_133532_6c07c7",
+  "stderr_full": "\nsession_id: 20261026_133532_6c07c7\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261026_133532_6c07c7\", \"timestamp\": 1793036132719}\n{\"type\": \"text\", \"text\": \"No — rescheduled to Sunday.\", \"timestamp\": 1793036137581}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"input\": {\"query\": \"bike pickup schedule\", \"top_k\": 10}, \"timestamp\": 1793036138486}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"e3f153ce-4fed-4538-ab28-99d18cd90674\\\", \\\"memory\\\": \\\"User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\\\", \\\"score\\\": 0.7817052740344115}, {\\\"id\\\": \\\"4fa923b7-ec6a-4020-ab05-2022d2d34864\\\", \\\"memory\\\": \\\"User agreed with Riley to reschedule bike pickup to 11 am on Sunday, November 1, 2026 at the same shop and address, as confirmed on October 26, 2026\\\", \\\"score\\\": 0.729982789268524}, {\\\"id\\\": \\\"6b5972d2-36de-4596-a894-cdff1af9af54\\\", \\\"memory\\\": \\\"User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\\\", \\\"score\\\": 0.6728709406494919}, {\\\"id\\\": \\\"58671b1e-90fa-4c3a-9b5c-7fcf2d7162dd\\\", \\\"memory\\\": \\\"User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\\\", \\\"score\\\": 0.6488591758993929}, {\\\"id\\\": \\\"f5dc7dff-46da-4701-8369-f3d6702c318c\\\", \\\"memory\\\": \\\"User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug\\\", \\\"score\\\": 0.5117413969678599}], \\\"count\\\": 5}\", \"duration_ms\": 48, \"is_error\": false, \"timestamp\": 1793036138533}\n{\"type\": \"text\", \"text\": \"\\n\\nNo — you res\", \"timestamp\": 1793036141393}\n{\"type\": \"text\", \"text\": \"cheduled to \", \"timestamp\": 1793036141427}\n{\"type\": \"text\", \"text\": \"11 am\", \"timestamp\": 1793036141460}\n{\"type\": \"text\", \"text\": \" Sunday, November 1 at Spoke\", \"timestamp\": 1793036141496}\n{\"type\": \"text\", \"text\": \" Cycles.\", \"timestamp\": 1793036141535}\n{\"type\": \"result\", \"session_id\": \"20261026_133532_6c07c7\", \"exit_code\": 0, \"text\": \"No — you rescheduled to 11 am Sunday, November 1 at Spoke Cycles.\", \"tokens\": {\"input\": 7482, \"output\": 544, \"total\": 8026, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 8885, \"timestamp\": 1793036141604}",
+  "session_input_tokens": 7482,
+  "session_output_tokens": 544,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User agreed with Riley to reschedule bike pickup to 11 am on Sunday, November 1, 2026 at the same shop and address, as confirmed on October 26, 2026\n- User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\n- User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\n- User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\n- User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-citdj5w_",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-citdj5w_",
+    "system_prompt_sha256": "bd39b2c29c4a2a8d7f73ccd57f89a6c48907aa24ebd83a660905844f92c68add",
+    "reason": "No project context in native saved system prompt"
+  }
+}

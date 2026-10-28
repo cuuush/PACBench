@@ -1,0 +1,80 @@
+{
+  "correct": 5,
+  "missed": 2,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-who",
+      "verdict": "correct",
+      "reason": "Answer lists '9am coffee' under header 'Sunday, Nov 1 with Riley'."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states '9am coffee' for that Sunday list."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "missed",
+      "reason": "Answer mentions coffee but gives no venue."
+    },
+    {
+      "id": "bike-who",
+      "verdict": "correct",
+      "reason": "Answer lists '11am bike pickup' under 'Sunday, Nov 1 with Riley'."
+    },
+    {
+      "id": "bike-time",
+      "verdict": "correct",
+      "reason": "Answer states '11am bike pickup'."
+    },
+    {
+      "id": "bike-venue",
+      "verdict": "missed",
+      "reason": "Answer mentions bike pickup but gives no venue."
+    },
+    {
+      "id": "sunday-count",
+      "verdict": "correct",
+      "reason": "Answer lists exactly those two items: coffee and bike pickup."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-who",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer list."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed as 9am."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "implicit_omission",
+      "reason": "Venue omitted; broad 'what's Sunday looking like' is not explicit request for venue."
+    },
+    {
+      "id": "bike-who",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer list."
+    },
+    {
+      "id": "bike-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed as 11am."
+    },
+    {
+      "id": "bike-venue",
+      "kind": "implicit_omission",
+      "reason": "Venue omitted; broad request is not explicit request for venue."
+    },
+    {
+      "id": "sunday-count",
+      "kind": "provided",
+      "reason": "Correctly conveyed two-item list."
+    }
+  ],
+  "interaction": "answer"
+}

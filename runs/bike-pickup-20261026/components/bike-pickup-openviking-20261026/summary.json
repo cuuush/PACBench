@@ -1,0 +1,363 @@
+{
+  "state": "diagnostic",
+  "results": [
+    {
+      "provider": "openviking",
+      "repetition": 1,
+      "input_hash": "b46a7fe180b6bd26225ad2254f48e1c7d925fb2f97bf569a09bc12f25aca886a",
+      "capability": {
+        "available": true,
+        "reason": "",
+        "tools": [
+          "viking_search",
+          "viking_read",
+          "viking_browse",
+          "viking_remember",
+          "viking_forget",
+          "viking_add_resource"
+        ],
+        "provider": "openviking",
+        "live_verified": true,
+        "read_only_smoke": {
+          "tool": "viking_search",
+          "arguments": {
+            "query": "native read-only capability check"
+          },
+          "output": "{\"results\": [{\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.774, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}, {\"uri\": \"viking://agent/skills/.overview.md\", \"type\": \"skill\", \"score\": 0.751, \"abstract\": \"Shared skill registry. Stores callable skill definitions available across the account.\"}, {\"uri\": \"viking://agent/.overview.md\", \"type\": \"resource\", \"score\": 0.745, \"abstract\": \"Shared agent capabilities and configuration available across the account.\"}, {\"uri\": \"viking://agent/tools/.abstract.md\", \"type\": \"resource\", \"score\": 0.734, \"abstract\": \"Shared tool configuration for agent capabilities.\"}, {\"uri\": \"viking://user/default/.overview.md\", \"type\": \"resource\", \"score\": 0.717, \"abstract\": \"User scope. Stores user's long-term memory, persisted across sessions.\"}, {\"uri\": \"viking://agent/endpoints/.abstract.md\", \"type\": \"resource\", \"score\": 0.716, \"abstract\": \"Shared communication endpoint configuration for agent capabilities.\"}], \"total\": 6}"
+        },
+        "wiring_verified": true
+      },
+      "state": "diagnostic",
+      "write_readiness_protocol": "accepted-native-writes-v1",
+      "checks": [
+        {
+          "id": "pickup-before",
+          "at": "2026-10-26T16:00:00-04:00",
+          "session": "pickup-check",
+          "contract_hash": "385fdefd20bb46d234ff66beecf513add2a22ff04fc3c43e4ce670afc70ef2b0",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 3,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 3,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "pickup-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "pickup-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "pickup-shop",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "pickup-change",
+          "at": "2026-10-26T16:02:00-04:00",
+          "session": "pickup-check",
+          "contract_hash": "b0378f3ac199bdce73e650433611a1740145a1ca50cbc0465ad801fd9f6e32e5",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer"
+        },
+        {
+          "id": "coffee-same-chat",
+          "at": "2026-10-26T16:04:00-04:00",
+          "session": "pickup-check",
+          "contract_hash": "0c90110e37b6e61bc38c6300a7b2ea440783d6a8f3fa46cd1969a58ef783e1c5",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 4,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 4,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "coffee-day",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "coffee-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "coffee-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "coffee-unchanged",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "sunday-both",
+          "at": "2026-10-26T16:30:00-04:00",
+          "session": "sunday-fresh",
+          "contract_hash": "15eb940d242611ca2f8d9cd20f887c10e63669cdcc19f1778bf37de818eb6a9e",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 7,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 7,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "coffee-who",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "coffee-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "coffee-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "bike-who",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "bike-time",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "bike-venue",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "sunday-count",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": true,
+                  "path_needs_review": false,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        },
+        {
+          "id": "saturday-clear",
+          "at": "2026-10-26T17:00:00-04:00",
+          "session": "saturday-fresh",
+          "contract_hash": "029a88883daa9ddea247e1bceda50b4c4fa6068ccfa5291149d966820fb18900",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 1,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 1,
+              "points": 1.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "bike-not-saturday",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": false,
+                  "points": 1.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        }
+      ],
+      "reason": "",
+      "behavior": {
+        "evaluation_context": "shared"
+      }
+    }
+  ],
+  "mode": "native-hermes",
+  "builtin_memory": false,
+  "tool_policy": "provider-memory-with-source-penalty-v3",
+  "session_search": false,
+  "ingestion_mode": "documents",
+  "gateway_before": {
+    "service": "muse-budget-gateway",
+    "daily_limit_usd": 10.0,
+    "total_limit_usd": null,
+    "accounted_today_usd": 0.0901282,
+    "budget_blocked": false,
+    "active_reservations": 0,
+    "utc_day": "2026-10-26",
+    "upstream_auth_blocked": false
+  },
+  "input_hash": "b46a7fe180b6bd26225ad2254f48e1c7d925fb2f97bf569a09bc12f25aca886a",
+  "contract_hash": "029a88883daa9ddea247e1bceda50b4c4fa6068ccfa5291149d966820fb18900",
+  "bundle_hash": "4598731b0d885038c92a72d9b9e86658a308d6e0a8e0836dde6522383f046f3e",
+  "message_count": 11,
+  "source": "../bike-pickup-prep-20261026",
+  "process_timezone": "America/New_York",
+  "ingestion_version": "daily-source-documents-v3",
+  "document_provider_blockers": {
+    "holographic": "Unsupported: fact storage and regex extraction do not provide document ingestion.",
+    "memori": "Excluded: Hermes documents Memori Cloud only; no local document-ingestion integration verified.",
+    "retaindb": "Excluded: Hermes documents hosted storage only; the benchmark requires local memory backends."
+  },
+  "ingestion_schedule": [
+    {
+      "id": "2026-10-19",
+      "at": "2026-10-19T18:20:00-04:00",
+      "source_ids": [
+        "message-344aab19a2dce674ab2cb112",
+        "message-a00a277054a37999b7d9ef7f",
+        "message-d857e63bdce0492ad1a5bace",
+        "message-eaaf1fe56b4c5945bb1cdfa0",
+        "message-fca4ff70ad5a503d755650f8",
+        "message-42704a023039099ce31fcc52",
+        "message-1d80ab26a78cd8fa9dbafeb1",
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ],
+      "source_file": "sources/2026-10-19/messages.txt",
+      "file": "ingestion/2026-10-19.json",
+      "source_manifest_sha256": "b1dc3611ccd52c421b052cb684ad8d7953c15fb5fc7f6b3f47b725b764ea7aa5"
+    },
+    {
+      "id": "2026-10-20",
+      "at": "2026-10-20T10:20:00-04:00",
+      "source_ids": [
+        "message-d29a4f96b9240baa0fcdbca9",
+        "message-3a63f87f0b891216065e60c9"
+      ],
+      "source_file": "sources/2026-10-20/messages.txt",
+      "file": "ingestion/2026-10-20.json",
+      "source_manifest_sha256": "f4d87c3805271f6ebee18517816a1240b28d1b5c9f495bb7033ad0bf754d4791"
+    }
+  ],
+  "write_readiness_protocol": "accepted-native-writes-v1",
+  "evaluation_plan_hash": "f147c1f9665983157f371c9194a15326d279b0e8ecc1b4e5cef80ea8873689ce",
+  "evaluation_context": "shared",
+  "followup_plan_hash": "96bd570fb6b3884f18a94b0116da9283e731f7f0521285c2fa2cfea4e014bd48",
+  "followup_policy": "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback is permitted but earns no retention credit",
+  "gateway_after": {
+    "service": "muse-budget-gateway",
+    "daily_limit_usd": 10.0,
+    "total_limit_usd": null,
+    "accounted_today_usd": 1.3725953,
+    "budget_blocked": false,
+    "active_reservations": 2,
+    "utc_day": "2026-10-26",
+    "upstream_auth_blocked": false
+  },
+  "audit": {
+    "state": "pass",
+    "errors": [],
+    "scope": "native trace integrity, not calibrated provider quality"
+  }
+}

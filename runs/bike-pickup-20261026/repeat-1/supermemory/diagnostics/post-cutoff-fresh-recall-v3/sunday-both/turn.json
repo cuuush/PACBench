@@ -1,0 +1,28 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T16:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's my Sunday with Riley looking like?",
+  "at": "2026-10-26T16:30:00-04:00",
+  "answer": "Sunday, Nov 1 with Riley: 9am coffee at Maple Mug, then 11am bike pickup.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 10.46,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261026_142725_9a8145",
+  "raw_events": 6,
+  "session_id": "20261026_142725_9a8145",
+  "stderr_full": "\nsession_id: 20261026_142725_9a8145\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261026_142725_9a8145\", \"timestamp\": 1793039245340}\n  ⚠ tirith security scanner enabled but not available — command scanning will use pattern matching only\n{\"type\": \"text\", \"text\": \"Sunday, Nov \", \"timestamp\": 1793039251982}\n{\"type\": \"text\", \"text\": \"1 with Riley: 9am coffee\", \"timestamp\": 1793039252012}\n{\"type\": \"text\", \"text\": \" at Maple Mug, then 11am\", \"timestamp\": 1793039252046}\n{\"type\": \"text\", \"text\": \" bike pickup.\\n\", \"timestamp\": 1793039252085}\n{\"type\": \"result\", \"session_id\": \"20261026_142725_9a8145\", \"exit_code\": 0, \"text\": \"Sunday, Nov 1 with Riley: 9am coffee at Maple Mug, then 11am bike pickup.\", \"tokens\": {\"input\": 4001, \"output\": 454, \"total\": 4455, \"cache_read\": 0, \"cache_write\": 0}, \"duration_ms\": 8270, \"timestamp\": 1793039253611}",
+  "session_input_tokens": 4001,
+  "session_output_tokens": 454,
+  "provider_traces": [],
+  "prefetch_context": "<supermemory-context>\nThe following is background context from long-term memory. Use it silently when relevant. Do not force memories into the conversation.\n\n## Recent Context\n- [2026-10-26] User rescheduled bike pickup with Riley to 11am on Sunday 2026-11-01.\n- [2026-10-20] User confirmed to Riley on 2026-10-20 that 10 am on Saturday 2026-10-31 works for bike pickup.\n- [2026-10-20] Bike shop for Riley pickup is closing early on Saturday 2026-10-31.\n- [2026-10-20] User and Riley originally arranged the Oct 31 bike pickup by text message.\n- [2026-10-20] User rescheduled bike pickup with Riley to 10 am on Saturday 2026-10-31.\n- [2026-10-20] Riley requested on 2026-10-20 to move bike pickup on 2026-10-31 from 2 pm to 10 am.\n- [2026-10-19] User scheduled coffee with Riley at Maple Mug at 9am on 2026-11-01.\n- [2026-10-19] User scheduled coffee with Riley on Sunday 2026-11-01.\n- [2026-10-19] User agreed to meet Riley for coffee on the Sunday after the bike pickup.\n- [2026-10-19] Riley is associated with Spoke Cycles bike shop.\n\n## Relevant Memories\n- [35m ago] [74%] User scheduled coffee with Riley on Sunday 2026-11-01.\n- [33m ago] [72%] User confirmed to Riley on 2026-10-20 that 10 am on Saturday 2026-10-31 works for bike pickup.\n- [just now] [71%] User rescheduled bike pickup with Riley to 11am on Sunday 2026-11-01.\n- [33m ago] [71%] User rescheduled bike pickup with Riley to 10 am on Saturday 2026-10-31.\n- [35m ago] [69%] User scheduled coffee with Riley at Maple Mug at 9am on 2026-11-01.\n- [33m ago] [69%] Riley requested on 2026-10-20 to move bike pickup on 2026-10-31 from 2 pm to 10 am.\n- [35m ago] [66%] User agreed to meet Riley for coffee on the Sunday after the bike pickup.\n- [35m ago] [65%] Riley told the user on 2026-10-19 that the user's bike was fixed and ready for pickup.\n- [33m ago] [64%] User and Riley originally arranged the Oct 31 bike pickup by text message.\n- [33m ago] [63%] Bike shop for Riley pickup is closing early on Saturday 2026-10-31.\n</supermemory-context>",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-hoil10n0",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-hoil10n0",
+    "system_prompt_sha256": "5143b118136e6f48800abf050c518538b928e0d5dd491ea8c34708c5f385e4fb",
+    "reason": "No project context in native saved system prompt"
+  }
+}

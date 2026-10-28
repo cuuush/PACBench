@@ -1,0 +1,234 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "honcho",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "5f4b74d1529befab8ce6367c29595d1cf36ef40e8a87dcd382b0c0d4459b17b6",
+  "source_ids": [
+    "message-d29a4f96b9240baa0fcdbca9",
+    "message-3a63f87f0b891216065e60c9"
+  ],
+  "delivery": "native-messages",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "Native Honcho session.add_messages(real source peers and timestamps)",
+    "result": [
+      {
+        "session_id": "source-2a415e14e847463a629bb176",
+        "processing_baseline": {
+          "total_work_units": 0,
+          "completed_work_units": 0,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 2,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "owner": {
+          "peer_id": "user",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "Htjuo1PUcStwaiiMiZBc2",
+            "session_id": "source-2a415e14e847463a629bb176",
+            "peer_id": "Riley",
+            "content": "Hi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley",
+            "created_at": "2026-10-20T10:00:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-20T10:00:00-04:00",
+              "channel": "email",
+              "collected_at": "2026-10-20T10:00:00-04:00",
+              "from_owner": false,
+              "sender": "Riley",
+              "source_id": "message-d29a4f96b9240baa0fcdbca9",
+              "structured": {
+                "chat_name": "",
+                "email_subject": "Bike pickup",
+                "participants": [
+                  "Me",
+                  "Riley"
+                ]
+              },
+              "thread": "thread-f4ec4726b7091f7639b90ad0",
+              "written_at": "2026-10-20T10:00:00-04:00"
+            }
+          },
+          {
+            "id": "BlzSnKQGwmmAj3C2p2w9q",
+            "session_id": "source-2a415e14e847463a629bb176",
+            "peer_id": "user",
+            "content": "Hi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!",
+            "created_at": "2026-10-20T10:20:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-20T10:20:00-04:00",
+              "channel": "email",
+              "collected_at": "2026-10-20T10:20:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-3a63f87f0b891216065e60c9",
+              "structured": {
+                "chat_name": "",
+                "email_subject": "Bike pickup",
+                "participants": [
+                  "Me",
+                  "Riley"
+                ]
+              },
+              "thread": "thread-f4ec4726b7091f7639b90ad0",
+              "written_at": "2026-10-20T10:20:00-04:00"
+            }
+          }
+        ]
+      }
+    ],
+    "processing_status": [
+      {
+        "elapsed_s": 0.03,
+        "sessions": {
+          "source-2a415e14e847463a629bb176": {
+            "total_work_units": 2,
+            "completed_work_units": 0,
+            "in_progress_work_units": 0,
+            "pending_work_units": 2,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 1823.83,
+        "sessions": {
+          "source-2a415e14e847463a629bb176": {
+            "total_work_units": 2,
+            "completed_work_units": 0,
+            "in_progress_work_units": 1,
+            "pending_work_units": 1,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 1866.44,
+        "sessions": {
+          "source-2a415e14e847463a629bb176": {
+            "total_work_units": 2,
+            "completed_work_units": 1,
+            "in_progress_work_units": 0,
+            "pending_work_units": 1,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 1868.45,
+        "sessions": {
+          "source-2a415e14e847463a629bb176": {
+            "total_work_units": 2,
+            "completed_work_units": 1,
+            "in_progress_work_units": 1,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      },
+      {
+        "elapsed_s": 1886.76,
+        "sessions": {
+          "source-2a415e14e847463a629bb176": {
+            "total_work_units": 2,
+            "completed_work_units": 2,
+            "in_progress_work_units": 0,
+            "pending_work_units": 0,
+            "sessions": null
+          }
+        }
+      }
+    ],
+    "model_health": {
+      "state": "captured",
+      "failed_requests": [],
+      "unmetered_requests": [],
+      "reason": "",
+      "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
+    },
+    "readiness": "Native acknowledgments, new work enrollment and submitted-session processing complete",
+    "readiness_scope": "Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 1887.56,
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-26T18:05:35.755885+00:00",
+    "finished": "2026-10-26T18:37:03.312373+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 1387,
+        "output_tokens": 7180,
+        "accounted_upper_bound_usd": 0.0015747,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "d3a466f7729d4a7fbaa280816c29941b",
+        "project": "pacbench-9d30de36181a-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:35:59.604674+00:00",
+        "finished": "2026-10-26T18:36:41.259110+00:00",
+        "state": "settled",
+        "input_tokens": 663,
+        "output_tokens": 5141,
+        "accounted": 1094500,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 4999,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0010945
+      },
+      {
+        "id": "d331f1f5780744049fa73fa1d4eb97a3",
+        "project": "pacbench-9d30de36181a-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-10-26T18:36:43.713749+00:00",
+        "finished": "2026-10-26T18:37:00.843044+00:00",
+        "state": "settled",
+        "input_tokens": 724,
+        "output_tokens": 2039,
+        "accounted": 480200,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 1973,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0004802
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

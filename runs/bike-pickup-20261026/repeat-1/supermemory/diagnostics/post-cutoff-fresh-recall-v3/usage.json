@@ -1,0 +1,102 @@
+{
+  "state": "captured",
+  "started": "2026-10-26T18:27:19.894635+00:00",
+  "finished": "2026-10-26T18:27:44.403064+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 4,
+      "input_tokens": 8657,
+      "output_tokens": 1047,
+      "accounted_upper_bound_usd": 0.0010750999999999998,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "91b70af4f544415483d653197efc714b",
+      "project": "supermemory-diagnostic-driver-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:27:27.845932+00:00",
+      "finished": "2026-10-26T18:27:32.146897+00:00",
+      "state": "settled",
+      "input_tokens": 4001,
+      "output_tokens": 454,
+      "accounted": 490900,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 422,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004909
+    },
+    {
+      "id": "0e5e5bab4fc94db9878cf6eb0529ca25",
+      "project": "supermemory-diagnostic-driver-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:27:27.944702+00:00",
+      "finished": "2026-10-26T18:27:30.241421+00:00",
+      "state": "settled",
+      "input_tokens": 317,
+      "output_tokens": 215,
+      "accounted": 74700,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 196,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 7.47e-05
+    },
+    {
+      "id": "994879a2875d46bfa4dd9027b979c116",
+      "project": "supermemory-diagnostic-driver-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:27:37.914550+00:00",
+      "finished": "2026-10-26T18:27:40.276873+00:00",
+      "state": "settled",
+      "input_tokens": 318,
+      "output_tokens": 127,
+      "accounted": 57200,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 109,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 5.72e-05
+    },
+    {
+      "id": "2c228f6fa7094e6984b0be7f574da773",
+      "project": "supermemory-diagnostic-driver-20261026",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-10-26T18:27:37.915109+00:00",
+      "finished": "2026-10-26T18:27:41.529294+00:00",
+      "state": "settled",
+      "input_tokens": 4021,
+      "output_tokens": 251,
+      "accounted": 452300,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 224,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0004523
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+}

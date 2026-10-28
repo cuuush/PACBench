@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11 instead.",
+  "at": "2026-10-26T16:02:00-04:00",
+  "answer": "Got it — Sunday at 11 for the bike pickup.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "viking_remember",
+      "input": {
+        "content": "Bike pickup with Riley rescheduled per phone call on 2026-10-26: now Sunday at 11am instead of Saturday Oct 31 10am at Spoke Cycles, 114 Maple Avenue. User reported Riley called to change to Sunday 11."
+      },
+      "timestamp": 1793036935391
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "viking_remember",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"status\": \"submitted\", \"session_id\": \"hermes-remember-25d0f35430c0\", \"session_uri\": \"viking://user/default/sessions/hermes-remember-25d0f35430c0\", \"message_status\": \"accepted\", \"extraction_status\": \"accepted\", \"message\": \"Memory source submitted to OpenViking session extraction. OpenViking may add, merge, or skip the final memory.\", \"task_id\": \"5c3a2217-fe8c-49c2-9fc3-98c28975e0cd\", \"trace_id\": \"926ff5f7f006d57a6bd64f049cd47b41\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 11.33,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261026_134830_c26cde \"Plan bike pickup\" (1 user message, 6 total messages)\n\nsession_id: 20261026_134830_c26cde",
+  "raw_events": 7,
+  "session_id": "20261026_134830_c26cde",
+  "stderr_full": "↻ Resumed session 20261026_134830_c26cde \"Plan bike pickup\" (1 user message, 6 total messages)\n\nsession_id: 20261026_134830_c26cde\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261026_134830_c26cde\", \"timestamp\": 1793036927692}\n{\"type\": \"tool_use\", \"name\": \"viking_remember\", \"input\": {\"content\": \"Bike pickup with Riley rescheduled per phone call on 2026-10-26: now Sunday at 11am instead of Saturday Oct 31 10am at Spoke Cycles, 114 Maple Avenue. User reported Riley called to change to Sunday 11.\"}, \"timestamp\": 1793036935391}\n{\"type\": \"tool_result\", \"name\": \"viking_remember\", \"output\": \"{\\\"status\\\": \\\"submitted\\\", \\\"session_id\\\": \\\"hermes-remember-25d0f35430c0\\\", \\\"session_uri\\\": \\\"viking://user/default/sessions/hermes-remember-25d0f35430c0\\\", \\\"message_status\\\": \\\"accepted\\\", \\\"extraction_status\\\": \\\"accepted\\\", \\\"message\\\": \\\"Memory source submitted to OpenViking session extraction. OpenViking may add, merge, or skip the final memory.\\\", \\\"task_id\\\": \\\"5c3a2217-fe8c-49c2-9fc3-98c28975e0cd\\\", \\\"trace_id\\\": \\\"926ff5f7f006d57a6bd64f049cd47b41\\\"}\", \"duration_ms\": 100, \"is_error\": false, \"timestamp\": 1793036935490}\n{\"type\": \"text\", \"text\": \"\\n\\nGot it — Sunday\", \"timestamp\": 1793036937073}\n{\"type\": \"text\", \"text\": \" at 11 for the\", \"timestamp\": 1793036937107}\n{\"type\": \"text\", \"text\": \" bike pickup.\", \"timestamp\": 1793036937144}\n{\"type\": \"result\", \"session_id\": \"20261026_134830_c26cde\", \"exit_code\": 0, \"text\": \"Got it — Sunday at 11 for the bike pickup.\", \"tokens\": {\"input\": 1691, \"output\": 277, \"total\": 13842, \"cache_read\": 11874, \"cache_write\": 0}, \"duration_ms\": 9556, \"timestamp\": 1793036937249}",
+  "session_input_tokens": 1691,
+  "session_output_tokens": 277,
+  "provider_traces": [],
+  "prefetch_context": "## OpenViking Context\n- [memory]\n  <uri>viking://user/default/memories/.abstract.md</uri>\n  User's long-term memory storage. Contains memory types like preferences, entities, events, managed hierarchically by type.",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-uc6_bczu",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-uc6_bczu",
+    "system_prompt_sha256": "89f28598bd32f25a1872db0ba3e53a7a783eb172c3ff6476e2a40bd0c0d843b4",
+    "reason": "No project context in native saved system prompt"
+  }
+}

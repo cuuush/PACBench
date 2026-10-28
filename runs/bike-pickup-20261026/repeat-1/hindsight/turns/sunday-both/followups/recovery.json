@@ -1,0 +1,276 @@
+{
+  "state": "complete",
+  "plan_hash": "ecc1c5fd4bca29d2466dc78f5b2c8811b53090fe7e526754b5c0128210470ee4",
+  "attempts": [
+    {
+      "claim_ids": [
+        "coffee-venue",
+        "bike-venue"
+      ],
+      "question": "Where are the 9am coffee and 11am bike pickup with Riley on Sunday, Nov 1?",
+      "state": "graded",
+      "verdicts": [
+        {
+          "id": "coffee-venue",
+          "verdict": "missed",
+          "reason": "Answer states no location saved for either, does not convey Maple Mug."
+        },
+        {
+          "id": "bike-venue",
+          "verdict": "missed",
+          "reason": "Answer states no location saved for either, does not convey Spoke Cycles."
+        }
+      ],
+      "metrics": {
+        "top_level_calls": 3,
+        "total_tool_operations": 3,
+        "provider_internal_tool_calls": null,
+        "provider_task_records": 0,
+        "provider_internal_operations": [],
+        "provider_internal_source_fallback_confirmed": false,
+        "provider_internal_path_needs_review": false,
+        "categories": {
+          "memory_search": 3
+        },
+        "operations": [
+          {
+            "name": "hindsight_recall",
+            "arguments": {
+              "query": "coffee with Riley location Nov 1"
+            },
+            "category": "memory_search",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1793042225392,
+            "result": {
+              "tool": "hindsight_recall",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"result\": \"1. User has coffee with Riley on November 1, 2026 at 9am.\\n2. User will meet Riley for coffee on November 1, 2026 at 9am, invited by Riley since user will be in town Saturday for bike pickup.\\n3. User plans to meet Riley on November 1, 2026 for 9am coffee and 11am bike pickup, rescheduled from October 31, 2026.\\n4. User's bike pickup from Riley is scheduled for Sunday, November 1, 2026 at 11am, rescheduled from October 31 at 10am (originally 2pm, moved because the shop was closing early) after Riley called on October 26, 2026.\\n5. User's bike is fixed and pickup from Riley is set for 11am on November 1, 2026, rescheduled from 10am on October 31, 2026 (originally 2pm that day) per Riley's call on October 26, 2026.\"}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          },
+          {
+            "name": "hindsight_recall",
+            "arguments": {
+              "query": "bike pickup Riley shop location"
+            },
+            "category": "memory_search",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1793042226366,
+            "result": {
+              "tool": "hindsight_recall",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"result\": \"1. User's bike pickup from Riley is scheduled for Sunday, November 1, 2026 at 11am, rescheduled from October 31 at 10am (originally 2pm, moved because the shop was closing early) after Riley called on October 26, 2026.\\n2. User's bike is fixed and pickup from Riley is set for 11am on November 1, 2026, rescheduled from 10am on October 31, 2026 (originally 2pm that day) per Riley's call on October 26, 2026.\\n3. User will meet Riley for coffee on November 1, 2026 at 9am, invited by Riley since user will be in town Saturday for bike pickup.\\n4. User plans to meet Riley on November 1, 2026 for 9am coffee and 11am bike pickup, rescheduled from October 31, 2026.\\n5. User has coffee with Riley on November 1, 2026 at 9am.\"}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          },
+          {
+            "name": "hindsight_recall",
+            "arguments": {
+              "query": "Riley meeting place address"
+            },
+            "category": "memory_search",
+            "dispatch_parent": null,
+            "success": true,
+            "policy_blocked": false,
+            "timestamp": 1793042226509,
+            "result": {
+              "tool": "hindsight_recall",
+              "success": true,
+              "policy_blocked": false,
+              "text": "{\"result\": \"1. User will meet Riley for coffee on November 1, 2026 at 9am, invited by Riley since user will be in town Saturday for bike pickup.\\n2. User plans to meet Riley on November 1, 2026 for 9am coffee and 11am bike pickup, rescheduled from October 31, 2026.\\n3. User has coffee with Riley on November 1, 2026 at 9am.\\n4. User's bike pickup from Riley is scheduled for Sunday, November 1, 2026 at 11am, rescheduled from October 31 at 10am (originally 2pm, moved because the shop was closing early) after Riley called on October 26, 2026.\\n5. User's bike is fixed and pickup from Riley is set for 11am on November 1, 2026, rescheduled from 10am on October 31, 2026 (originally 2pm that day) per Riley's call on October 26, 2026.\"}",
+              "truncated": false,
+              "capture": "hermes_session_db"
+            }
+          }
+        ],
+        "failed_operations": 0,
+        "repeated_operations": 0,
+        "unmatched_tool_results": [],
+        "source_fallback_attempted": false,
+        "unclassified_operations": 0,
+        "latency_s": 10.57,
+        "input_tokens": null,
+        "output_tokens": 266,
+        "policy_blocks": 0,
+        "returncode": 0
+      },
+      "question_authoring_reused": false,
+      "question_hash": "193ce10023e6dfb0fa8d6045c31c4716d7e63985f0c19888d17adaeb53089fcf",
+      "gateway_window": {
+        "projects": [],
+        "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+      }
+    }
+  ],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "hindsight_recall",
+        "arguments": {
+          "query": "Sunday with Riley plans"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793042174485,
+        "result": {
+          "tool": "hindsight_recall",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"1. User's bike pickup from Riley is scheduled for 11am on November 1, 2026, after being rescheduled from October 31 at 10am (originally 2pm, moved because shop closing early); Riley called on October 26, 2026 to change to Sunday at 11.\\n2. User will meet Riley for coffee on November 1, 2026 at 9am, invited by Riley since user will be in town Saturday for bike pickup.\\n3. User has coffee with Riley on November 1, 2026 at 9am.\\n4. User's bike is fixed and pickup from Riley is set for 11am on November 1, 2026, rescheduled from 10am on October 31, 2026 (originally 2pm that day) per Riley's call on October 26, 2026.\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.81,
+    "input_tokens": 6452,
+    "output_tokens": 378,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "coffee-who",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer list."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed as 9am."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "implicit_omission",
+      "reason": "Venue omitted; broad 'what's Sunday looking like' is not explicit request for venue."
+    },
+    {
+      "id": "bike-who",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer list."
+    },
+    {
+      "id": "bike-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed as 11am."
+    },
+    {
+      "id": "bike-venue",
+      "kind": "implicit_omission",
+      "reason": "Venue omitted; broad request is not explicit request for venue."
+    },
+    {
+      "id": "sunday-count",
+      "kind": "provided",
+      "reason": "Correctly conveyed two-item list."
+    }
+  ],
+  "eligible_claim_ids": [
+    "coffee-venue",
+    "bike-venue"
+  ],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 2,
+    "initial_misrepresented": 0,
+    "max_points": 7,
+    "points": 5.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "coffee-who",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "coffee-venue",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "bike-who",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "bike-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "bike-venue",
+        "initial_verdict": "missed",
+        "followup_verdict": "missed",
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "sunday-count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

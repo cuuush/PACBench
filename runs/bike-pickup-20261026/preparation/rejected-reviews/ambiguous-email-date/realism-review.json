@@ -1,0 +1,28 @@
+{
+  "state": "fail",
+  "review_version": "source-realism-v4",
+  "source_hash": "6146cd1db300dbfb41deaae68061a0233e24e7c2f0c965b1c03bb10986253b39",
+  "intent_hash": "9621897bf0df7f77a2b822fb7412de181883185f363d41ef74f105ace76d802a",
+  "review": {
+    "consistent": false,
+    "expectations_supported": false,
+    "natural_enough": false,
+    "issues": [
+      "w1-earlier-pickup relative-day / chronology error: email written 2026-10-20T10:00:00-04:00 says \"they'll be closing early this Saturday\" to refer to the arranged pickup. Arranged pickup from 2026-10-19 texts is Saturday 2026-10-31 (Saturday of next week / weekend after this one). On Tue 2026-10-20, \"this Saturday\" objectively means 2026-10-24, not 2026-10-31. This contradicts the next clause in the same email \"the 2 pm we sorted by text won't work\" which refers to 2026-10-31. Reason (early closing this Saturday Oct-24) does not explain moving Oct-31 2pm. User reply \"on Saturday\" inherits the ambiguity. By question time 2026-10-26, literal \"this Saturday\" in email is in the past, so pickup-before expectation of Saturday 10am at Spoke Cycles does not follow objectively from messages without repairing/excusing the wording."
+    ],
+    "current_upcoming": [],
+    "notes": "Bike initial (Sat Oct-31 2pm Spoke Cycles 114 Maple Ave) and coffee (Sun Nov-01 9am Maple Mug via 'that Saturday'/'that Sunday' context) are otherwise clear and do not require explicit repetition. No quoted history and no coffee recap in email as intended. Behavior correction to Sunday 11am and later fresh-session persistence checks are structurally valid, but pickup-before and downstream Saturday/Sunday expectations depend on the ambiguous email date and therefore are not objectively supported."
+  },
+  "model_call": "/workspace/PACBench/artifacts/bike-pickup-prep-20261026/model-calls/5e10692f300ba8e6188c7af32d51b339afcd2edc3fe7b9b53c69b9f532a93749.json",
+  "usage": {
+    "completion_tokens": 5859,
+    "prompt_tokens": 1969,
+    "total_tokens": 7828,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5485
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

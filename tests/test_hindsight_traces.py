@@ -1,5 +1,6 @@
 """Native reflection can return original chunks inside an otherwise normal recall."""
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -68,3 +69,12 @@ def test_late_reflection_cannot_supply_an_earlier_hermes_request():
 def test_unobserved_recall_arguments_are_unknown_and_expand_is_source():
     assert category({'toolName':'recall','result':None})=='unclassified'
     assert category({'toolName':'expand','args':{'depth':'document'}})=='source_evidence'
+
+
+def test_complete_traces_stop_after_native_flush_without_waiting_for_deadline(monkeypatch):
+    read=Mock(return_value=recorded_rows({}))
+    monkeypatch.setattr('pacbench.hindsight_traces.read',read)
+    monkeypatch.setattr('pacbench.hindsight_traces.time.monotonic',iter([0,1]).__next__)
+    traces=capture({}, {'ids':[]}, make_turn())
+    assert read.call_count==1
+    assert len(traces)==1 and traces[0]['record']['complete']

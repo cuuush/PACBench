@@ -1,0 +1,71 @@
+{
+  "state": "complete",
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1,
+      "memory_write": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "bike pickup rescheduled time",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793036049901,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"4fa923b7-ec6a-4020-ab05-2022d2d34864\", \"memory\": \"User agreed with Riley to reschedule bike pickup to 10 am on Saturday, October 31, 2026 instead of 2 pm at the same shop and address, due to the shop closing early, as confirmed on October 20, 2026\", \"score\": 0.8288007093329676}, {\"id\": \"e3f153ce-4fed-4538-ab28-99d18cd90674\", \"memory\": \"User scheduled bike pickup with Riley on Saturday, October 31, 2026 at 2pm at Spoke Cycles, 114 Maple Avenue\", \"score\": 0.7759378665731491}, {\"id\": \"58671b1e-90fa-4c3a-9b5c-7fcf2d7162dd\", \"memory\": \"User was away for the weekend of October 24-25, 2026 and could not pick up the bike on Saturday, October 24, 2026\", \"score\": 0.7345912207736478}, {\"id\": \"6b5972d2-36de-4596-a894-cdff1af9af54\", \"memory\": \"User's bike was repaired by Riley and was ready for pickup as of October 19, 2026\", \"score\": 0.6969921567013853}, {\"id\": \"f5dc7dff-46da-4701-8369-f3d6702c318c\", \"memory\": \"User scheduled coffee with Riley on Sunday, November 1, 2026 at 9am at Maple Mug\", \"score\": 0.5495314987314707}], \"count\": 5}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "mem0_update",
+        "arguments": {
+          "memory_id": "4fa923b7-ec6a-4020-ab05-2022d2d34864",
+          "text": "User agreed with Riley to reschedule bike pickup to 11 am on Sunday, November 1, 2026 at the same shop and address, as confirmed on October 26, 2026"
+        },
+        "category": "memory_write",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793036055002,
+        "result": {
+          "tool": "mem0_update",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"result\": \"Memory updated.\", \"memory_id\": \"4fa923b7-ec6a-4020-ab05-2022d2d34864\"}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 24.09,
+    "input_tokens": 1929,
+    "output_tokens": 945,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "observable_only": true
+}

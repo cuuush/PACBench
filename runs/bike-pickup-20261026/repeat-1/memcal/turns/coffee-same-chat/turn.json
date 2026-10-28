@@ -1,0 +1,46 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T16:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAnd coffee with Riley?",
+  "at": "2026-10-26T16:04:00-04:00",
+  "answer": "Sunday Nov 1 at 9am — Maple Mug with Riley.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E2"
+      },
+      "timestamp": 1793036640616
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E2  Coffee\n\nwhen: Sunday 1 November 2026 at 09:00\nstate: You're going\nwhere: Maple Mug\nwho: Riley\nsource: person:Riley\n\ncited sources (4 line(s)):\n  — Mon Oct 19, 2026 18:00 · iMessage with Riley —\n * [6] Riley · Mon 19 Oct 18:00 · Riley: btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once\n * [7] Riley · Mon 19 Oct 18:17 · me: oh nice, yeah I'd love to\n * [8] Riley · Mon 19 Oct 18:18 · Riley: Maple Mug at 9am?\n * [9] Riley · Mon 19 Oct 18:20 · me: perfect, see you there\n\nchanges:\n  2026-10-20T03:00  time: '' -> '09:00' (by dream:nightly:born)\n  2026-10-20T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-20T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-20T03:00  title: '' -> 'Coffee' (by dream:nightly:born)\n  2026-10-20T03:00  location: '' -> 'Maple Mug' (by dream:nightly:born)\n  2026-10-20T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\n  2026-10-20T03:00  participants: '' -> '[\"Riley\"]' (by dream:nightly:born)\n  2026-10-20T03:00  source: '' -> 'person:Riley' (by dream:nightly:born-day)",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 6.62,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261026_134325_8bc549 \"Plan picking up bike\" (2 user messages, 8 total messages)\n\nsession_id: 20261026_134325_8bc549",
+  "raw_events": 8,
+  "session_id": "20261026_134325_8bc549",
+  "stderr_full": "↻ Resumed session 20261026_134325_8bc549 \"Plan picking up bike\" (2 user messages, 8 total messages)\n\nsession_id: 20261026_134325_8bc549\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261026_134325_8bc549\", \"timestamp\": 1793036637802}\n{\"type\": \"text\", \"text\": \"Checking the coffee plan.\", \"timestamp\": 1793036640024}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E2\"}, \"timestamp\": 1793036640616}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E2  Coffee\\n\\nwhen: Sunday 1 November 2026 at 09:00\\nstate: You're going\\nwhere: Maple Mug\\nwho: Riley\\nsource: person:Riley\\n\\ncited sources (4 line(s)):\\n  — Mon Oct 19, 2026 18:00 · iMessage with Riley —\\n * [6] Riley · Mon 19 Oct 18:00 · Riley: btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once\\n * [7] Riley · Mon 19 Oct 18:17 · me: oh nice, yeah I'd love to\\n * [8] Riley · Mon 19 Oct 18:18 · Riley: Maple Mug at 9am?\\n * [9] Riley · Mon 19 Oct 18:20 · me: perfect, see you there\\n\\nchanges:\\n  2026-10-20T03:00  time: '' -> '09:00' (by dream:nightly:born)\\n  2026-10-20T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-10-20T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-10-20T03:00  title: '' -> 'Coffee' (by dream:nightly:born)\\n  2026-10-20T03:00  location: '' -> 'Maple Mug' (by dream:nightly:born)\\n  2026-10-20T03:00  status: '' -> 'confirmed' (by dream:nightly:born)\\n  2026-10-20T03:00  participants: '' -> '[\\\"Riley\\\"]' (by dream:nightly:born)\\n  2026-10-20T03:00  source: '' -> 'person:Riley' (by dream:nightly:born-day)\", \"duration_ms\": 11, \"is_error\": false, \"timestamp\": 1793036640627}\n{\"type\": \"text\", \"text\": \"\\n\\nSunday Nov 1\", \"timestamp\": 1793036642479}\n{\"type\": \"text\", \"text\": \" at 9am — Maple Mug with\", \"timestamp\": 1793036642515}\n{\"type\": \"text\", \"text\": \" Riley.\", \"timestamp\": 1793036642557}\n{\"type\": \"result\", \"session_id\": \"20261026_134325_8bc549\", \"exit_code\": 0, \"text\": \"Sunday Nov 1 at 9am — Maple Mug with Riley.\", \"tokens\": {\"input\": 2701, \"output\": 274, \"total\": 21889, \"cache_read\": 18914, \"cache_write\": 0}, \"duration_ms\": 4808, \"timestamp\": 1793036642611}",
+  "session_input_tokens": 2701,
+  "session_output_tokens": 274,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-26T16:04:00-04:00 [id=72687b1e1ece9b07699d2f24cf45ef13eebdb7be] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 26 October 2026)\n〔E2〕 Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley\n〔E1〕 Sun Nov 1  \"Bike pickup\", 11am — confirmed · with Riley\n[complete for 2026-10-23 – 2026-11-25; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no email 6 days, imessage 6 days — this week may be incomplete]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-lym0k_jo",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-lym0k_jo",
+    "system_prompt_sha256": "b3705af0729fe0a68b4049e4ae7e14d381cefab1095388081eeb2e0e7f0e4616",
+    "reason": "No project context in native saved system prompt"
+  }
+}

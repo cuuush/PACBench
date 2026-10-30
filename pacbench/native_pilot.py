@@ -531,11 +531,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 try:
                     from .evaluation import judge_evidence
                     def evidence_for_check(row):
-                        return judge_evidence(output, messages, resolved, row, evaluation_plan['context'])
+                        return judge_evidence(output, messages, resolved, row, evaluation_plan['context'], diagnostic_version=report['evidence_diagnostic_protocol'])
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                           question_dir=question_dir, before_check=import_before_check,
                                           evidence_by_id=evidence_for_check,
-                                          provenance_version=report['provenance_version'])
+                                          provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'])
                     result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
                     capability['live_verified'] = sequence['state'] == 'diagnostic'
@@ -562,12 +562,13 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 result.update(state="invalid", reason="recall turn failed or policy blocked")
                 if not turn.returncode and turn.answer.strip() and not turn.policy_blocks:
                     from .native_checks import diagnostic_inputs
-                    source_evidence = {m["source_id"]: m["text"] for m in messages}
+                    from .evaluation import source_evidence as build_source_evidence
+                    source_evidence = build_source_evidence(messages, report["evidence_diagnostic_protocol"])
                     grade = grade_semantic(resolved["id"], turn.prompt, turn.answer,
                                            tuple(Claim(c.id, c.statement, c.evidence)
                                                  for c in contract.claims), judge,
                                            record_path=root / "judgment.json", assess_recovery=True,
-                                           diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence))
+                                           diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence, diagnostic_version=report['evidence_diagnostic_protocol']), diagnostic_version=report['evidence_diagnostic_protocol'])
                     save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
                                               "misrepresented": grade.misrepresented,
                                               "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery,
@@ -578,7 +579,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                         initial_turn=turn, output=root / "followups", judge=judge,
                         home=root / "hermes-home", allowlist=allowlist, extra_env=env,
                         question_dir=question_dir, evidence_by_id=source_evidence,
-                        provenance_version=report['provenance_version'])
+                        provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'])
                     result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
                         "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
                                       "metrics": a["metrics"]} for a in recovery["attempts"]]}

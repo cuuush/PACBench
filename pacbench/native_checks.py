@@ -5,7 +5,7 @@ import json
 from . import harness
 from .usage import tracked_turn
 from .followups import audit_followups, run_followups, save, tool_profile, initial_effort
-from .semantic_grade import Claim, grade_semantic, BenchmarkContractError, validate_diagnostic, DIAGNOSTIC_VERSION, judge_prompt
+from .semantic_grade import Claim, grade_semantic, BenchmarkContractError, validate_diagnostic, DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, judge_prompt
 
 
 def extend_history(history, turn):
@@ -41,7 +41,7 @@ def advance(state, turn, directory, provenance_version='source-provenance-v1'):
 
 
 
-def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None):
+def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION):
     """Only captured inputs visible to this answer; native background traces are excluded."""
     limit = 16000
     def bounded(identifier, value, *, truncated=False):
@@ -63,11 +63,11 @@ def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None):
     return {'answer_visible': visible, 'source_evidence': sources,
             'source_scope': 'partial: expected-claim citations only',
             'missing_source_ids': [identifier for identifier in ids if identifier not in evidence_by_id],
-            'answer_visible_scope': 'captured prefetch and direct tool results only; background traces excluded',
+            'answer_visible_scope': ('provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded' if diagnostic_version != LEGACY_DIAGNOSTIC_VERSION else 'captured prefetch and direct tool results only; background traces excluded'),
             'per_item_character_limit': limit}
 
 def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
-               run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1'):
+               run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1', diagnostic_version=LEGACY_DIAGNOSTIC_VERSION):
     run_turn = run_turn or harness.run_turn
     sessions, outcomes = {}, {}
     report = {'state': 'running', 'context': context, 'checks': []}
@@ -110,7 +110,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                         tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims), judge,
                         record_path=directory / 'judgment.json', conversation=state['history'],
                         assess_recovery=not behavior, assess_interaction=interactive,
-                        diagnostic_inputs=diagnostic_inputs(turn, contract, evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id) if evidence_by_id is not None else None)
+                        diagnostic_inputs=diagnostic_inputs(turn, contract, evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None, diagnostic_version=diagnostic_version)
                     save(directory / 'grade.json', {'correct': grade.correct, 'missed': grade.missed,
                         'misrepresented': grade.misrepresented, 'claims': [vars(c) for c in grade.slots],
                         'recovery': grade.recovery, 'interaction': grade.interaction,
@@ -129,7 +129,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             allowlist=allowlist, extra_env=env, question_dir=question_dir,
                             previous_turn=state['previous'], conversation=state['history'], inherited_path=state['path'],
                             run_turn=run_turn, budget_snapshot=budget_snapshot, provenance_version=provenance_version,
-                            evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id))
+                            evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version)
                         item.update(state='diagnostic',
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',
                             recovery={'state':recovery['state'],'score':recovery['score'],'attempts':recovery['attempts']})
@@ -158,7 +158,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     return report
 
 
-def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None):
+def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION):
     errors, sessions, seen = [], {}, {}
     def check(ok, text):
         if not ok:errors.append(text)
@@ -208,17 +208,17 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 check('diagnostic_protocol' in judgment and 'evidence_diagnostic' in grade, f"{row['id']}: missing evidence diagnostic")
             if 'diagnostic_protocol' in judgment or 'evidence_diagnostic' in grade:
                 inputs = judgment.get('diagnostic_inputs', {})
-                check(judgment.get('diagnostic_protocol') == DIAGNOSTIC_VERSION, f"{row['id']}: unsupported diagnostic protocol")
+                check(diagnostic_version in DIAGNOSTIC_VERSIONS and judgment.get('diagnostic_protocol') == diagnostic_version, f"{row['id']}: unsupported diagnostic protocol")
                 claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
                 expected_prompt = judge_prompt(turn.prompt, turn.answer, claim_objects, conversation=state['history'],
                     assess_recovery=row.get('kind') != 'behavior', assess_interaction='session' in row or row.get('kind') == 'behavior',
-                    diagnostic_inputs=inputs)
+                    diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
                 check(judgment.get('prompt') == expected_prompt, f"{row['id']}: diagnostic judge prompt mismatch")
-                check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'), claim_objects, turn.answer, inputs), f"{row['id']}: diagnostic differs from judge")
-                expected_inputs = diagnostic_inputs(turn, contract, {x['id']: x['text'] for x in inputs.get('source_evidence', [])})
+                check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'), claim_objects, turn.answer, inputs, diagnostic_version), f"{row['id']}: diagnostic differs from judge")
+                expected_inputs = diagnostic_inputs(turn, contract, {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, diagnostic_version=diagnostic_version)
                 if evidence_by_id is not None:
                     actual_sources = evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id
-                    check(inputs == diagnostic_inputs(turn, contract, actual_sources), f"{row['id']}: diagnostic differs from frozen evidence")
+                    check(inputs == diagnostic_inputs(turn, contract, actual_sources, diagnostic_version=diagnostic_version), f"{row['id']}: diagnostic differs from frozen evidence")
                 check(inputs.get('answer_visible') == expected_inputs['answer_visible'] and
                     all(x.get('id') in {e for c in contract.claims for e in c.evidence} for x in inputs.get('source_evidence', [])),
                     f"{row['id']}: diagnostic evidence scope mismatch")
@@ -231,7 +231,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 errors.extend(f"{row['id']}: {e}" for e in audit_followups(contract=contract,plan=policy,
                     initial_turn=turn,initial_grade=grade,output=directory/'followups',previous_turn=state['previous'],
                     conversation=state['history'],inherited_path=state['path'],provenance_version=provenance_version,
-                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id)))
+                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version))
                 recovery=read(directory/'followups/recovery.json')
                 check(item['recovery']['score']==recovery['score'] and item['recovery']['attempts']==recovery['attempts'],f"{row['id']}: summary/score mismatch")
             advance(state,turn,directory,provenance_version)

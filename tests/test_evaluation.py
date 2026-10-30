@@ -303,7 +303,8 @@ def test_diagnostic_inputs_use_only_visible_bounded_material():
     assert 'partial' in data['source_scope'] and 'late background' not in str(data)
 
 
-def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path):
+@pytest.mark.parametrize('diagnostic_version', ['answer-visible-evidence-v1', 'answer-visible-evidence-v2'])
+def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path, diagnostic_version):
     checks = checkpoints(tmp_path)[:1]
     def runner(prompt, **kwargs):
         return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
@@ -318,10 +319,10 @@ def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path):
         return json.dumps(response)
     root = tmp_path / 'arm'
     report = run_checks(checks, 'isolated', root, judge, '', {}, question_dir=tmp_path / 'questions',
-        run_turn=runner, evidence_by_id={'m1': 'source text'})
+        run_turn=runner, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version)
     assert report['counts']['pass'] == 1
-    assert not audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'})
-    errors = audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'changed source'})
+    assert not audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version)
+    errors = audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'changed source'}, diagnostic_version=diagnostic_version)
     assert any('frozen evidence' in error for error in errors)
 
 
@@ -339,3 +340,36 @@ def test_judge_evidence_preserves_frozen_session_semantics(tmp_path):
     path.write_text(json.dumps({'evidence_version': EVIDENCE_VERSION}))
     current = judge_evidence(tmp_path, [], {'checks': rows}, rows[1], 'isolated')
     assert '[assistant session a]' in current['assistant-user:a']
+
+
+def test_v2_source_evidence_includes_frozen_metadata():
+    from pacbench.evaluation import source_evidence
+    row = {'source_id': 'm1', 'text': 'Friday', 'sender': 'Lee', 'written_at': '2026-10-01',
+           'channel': 'imessage', 'thread': 'team'}
+    assert source_evidence([row], 'answer-visible-evidence-v1')['m1'] == 'Friday'
+    value = json.loads(source_evidence([row], 'answer-visible-evidence-v2')['m1'])
+    assert value == {k: row[k] for k in ('text', 'sender', 'written_at', 'channel', 'thread')}
+
+
+def test_v2_provider_evidence_does_not_count_user_request_or_tool_arguments():
+    from pacbench.native_checks import diagnostic_inputs
+    from pacbench.semantic_grade import Claim, grade_semantic, DIAGNOSTIC_VERSION
+    from pacbench.semantic_contract import EvaluationContract, ContractClaim
+    turn = TurnResult(prompt='Move pickup to Sunday at 11.', at='now', answer='Moved to Sunday at 11.',
+        tool_calls=[{'name': 'update', 'input': {'time': 'Sunday at 11'}}],
+        tool_results=[{'text': 'Update accepted.'}], policy_blocks=0, latency_s=0,
+        returncode=0, stderr_tail='', raw_events=0)
+    contract = EvaluationContract((ContractClaim('time', 'Pickup is Sunday at 11.', ('m1',)),), 'q', 'h', 'c')
+    inputs = diagnostic_inputs(turn, contract, {'m1': 'Pickup is Sunday at 11.'}, diagnostic_version=DIAGNOSTIC_VERSION)
+    assert inputs['answer_visible'][0]['text'] == 'Update accepted.'
+    assert 'Sunday at 11' not in str(inputs['answer_visible'])
+    assert 'user prompts, tool arguments' in inputs['answer_visible_scope']
+    response = {'verdicts': [{'id': 'time', 'verdict': 'correct', 'reason': 'Answer confirms the move.'}],
+        'evidence_diagnostic': {'claims': [{'id': 'time', 'status': 'not_found',
+            'reason': 'Provider result only acknowledges the update.', 'citations': []}], 'extra_assertions': []}}
+    def judge(prompt):
+        assert 'does not mean the assistant could not know' in prompt
+        return json.dumps(response)
+    grade = grade_semantic('time', turn.prompt, turn.answer, (Claim('time', 'Pickup is Sunday at 11.'),),
+        judge, diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
+    assert grade.all_claims_correct and grade.evidence_diagnostic['claims'][0]['status'] == 'not_found'

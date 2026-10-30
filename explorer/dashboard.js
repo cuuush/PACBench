@@ -386,8 +386,8 @@ function evidenceDetails(diagnostic, grade, contract) {
     '<div><strong>' + esc(item.assertion) + '</strong><p>Answer: ' + esc(item.answer_quote) + '</p><p>' +
     esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
   return details('Retrieved evidence and additional assertions',
-    '<p class="muted">These diagnostics are separate from fact scores. Retrieved evidence can support a fact even when the final answer missed it. Availability does not prove the assistant used it.</p>' +
-    '<h4>Evidence available to Hermes</h4>' + claims + '<h4>Additional assertions</h4>' +
+    '<p class="muted">These diagnostics are separate from fact scores. They examine provider briefs and tool results; user instructions and tool-call arguments remain separate from retrieval evidence. Available evidence does not prove the assistant used it.</p>' +
+    '<h4>Provider evidence returned to Hermes</h4>' + claims + '<h4>Additional assertions</h4>' +
     '<p class="muted">Source evidence covers expected-fact citations only. Unverifiable means the supplied evidence cannot establish truth or falsity.</p>' +
     (extras || '<p>No additional factual assertions flagged.</p>'));
 }

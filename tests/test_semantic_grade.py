@@ -279,7 +279,7 @@ def test_evidence_diagnostic_is_separate_and_requires_exact_provenance(tmp_path)
                 'evidence_diagnostic': diagnostic}
     path = tmp_path / 'judgment.json'
     grade = grade_semantic('x', 'Who?', 'Devon and Lee attends', claims,
-                           lambda _: json.dumps(response), record_path=path, diagnostic_inputs=inputs)
+                           lambda _: json.dumps(response), record_path=path, diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
     assert grade.all_claims_correct and grade.evidence_diagnostic['state'] == 'complete'
     assert json.loads(path.read_text())['diagnostic_protocol'] == DIAGNOSTIC_VERSION
     diagnostic['extra_assertions'][0]['citations'][0]['quote'] = 'invented'
@@ -287,3 +287,19 @@ def test_evidence_diagnostic_is_separate_and_requires_exact_provenance(tmp_path)
     response.pop('evidence_diagnostic')
     grade = grade_semantic('x', 'Who?', 'Devon', claims, lambda _: json.dumps(response), diagnostic_inputs=inputs)
     assert grade.all_claims_correct and grade.evidence_diagnostic['state'] == 'ungraded'
+
+
+def test_versioned_evidence_prompt_and_unicode_quotes_are_exact():
+    from pacbench.semantic_grade import (validate_diagnostic, judge_prompt,
+        DIAGNOSTIC_VERSION, LEGACY_DIAGNOSTIC_VERSION)
+    claims = (Claim('when', 'Friday'),)
+    inputs = {'answer_visible': [{'id': 'tool-result-1', 'text': '〔E1〕 Friday at 7pm', 'truncated': False}],
+              'source_evidence': []}
+    good = {'claims': [{'id': 'when', 'status': 'supported', 'reason': 'Shown',
+        'citations': [{'id': 'tool-result-1', 'quote': 'Friday at 7pm'}]}], 'extra_assertions': []}
+    assert validate_diagnostic(good, claims, 'Friday', inputs, DIAGNOSTIC_VERSION)['state'] == 'complete'
+    good['claims'][0]['citations'][0]['quote'] = '〈E1〉 Friday at 7pm'
+    assert validate_diagnostic(good, claims, 'Friday', inputs, DIAGNOSTIC_VERSION)['state'] == 'ungraded'
+    old = judge_prompt('When?', 'Friday', claims, diagnostic_inputs=inputs, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION)
+    new = judge_prompt('When?', 'Friday', claims, diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
+    assert 'Omit citation markers' not in old and 'Omit citation markers' in new

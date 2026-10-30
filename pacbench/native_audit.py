@@ -28,10 +28,10 @@ def audit(root: Path, *, providers=None) -> dict:
         return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
     try:
         summary = read(root / 'summary.json')
-        from .semantic_grade import DIAGNOSTIC_VERSION
+        from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION
         if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
             raise ValueError('Unsupported provenance protocol')
-        if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] != DIAGNOSTIC_VERSION:
+        if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
             raise ValueError('Unsupported evidence diagnostic protocol')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
         check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
@@ -136,11 +136,12 @@ def audit(root: Path, *, providers=None) -> dict:
                 if evaluations:
                     from .evaluation import judge_evidence
                     def evidence_for_check(row):
-                        return judge_evidence(root, messages, spec, row, evaluation_plan['context'])
+                        return judge_evidence(root, messages, spec, row, evaluation_plan['context'], diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION))
                     errors.extend(f'{label}: {e}' for e in audit_checks(
                         evaluations, evaluation_plan['context'], arm,
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
-                        evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None))
+                        evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None,
+                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION)))
                     from .native_writes import audit_ready
                     errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
                         result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
@@ -158,18 +159,18 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
                 if summary.get('evidence_diagnostic_protocol'):
                     from .native_checks import diagnostic_inputs
-                    from .semantic_grade import Claim, DIAGNOSTIC_VERSION, validate_diagnostic, judge_prompt
+                    from .semantic_grade import Claim, validate_diagnostic, judge_prompt
+                    from .evaluation import source_evidence
                     observed_turn = TurnResult(**recall)
-                    inputs = diagnostic_inputs(observed_turn, contract, {m['source_id']: m['text'] for m in messages})
+                    inputs = diagnostic_inputs(observed_turn, contract, source_evidence(messages, summary['evidence_diagnostic_protocol']), diagnostic_version=summary['evidence_diagnostic_protocol'])
                     claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
                     response = json.loads(judgment['response'])
-                    check(summary['evidence_diagnostic_protocol'] == DIAGNOSTIC_VERSION and
-                        judgment.get('diagnostic_protocol') == DIAGNOSTIC_VERSION and judgment.get('diagnostic_inputs') == inputs,
+                    check(judgment.get('diagnostic_protocol') == summary['evidence_diagnostic_protocol'] and judgment.get('diagnostic_inputs') == inputs,
                         f'{label}: evidence diagnostic scope mismatch')
                     check(judgment.get('prompt') == judge_prompt(recall['prompt'], recall['answer'], claims,
-                        assess_recovery=True, diagnostic_inputs=inputs), f'{label}: evidence diagnostic prompt mismatch')
+                        assess_recovery=True, diagnostic_inputs=inputs, diagnostic_version=summary['evidence_diagnostic_protocol']), f'{label}: evidence diagnostic prompt mismatch')
                     check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'),
-                        claims, recall['answer'], inputs), f'{label}: evidence diagnostic differs from judge')
+                        claims, recall['answer'], inputs, summary['evidence_diagnostic_protocol']), f'{label}: evidence diagnostic differs from judge')
                 if plan:
                     check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f'{label}: recovery eligibility differs from judge')
                     check(json.loads(judgment['response'])['verdicts'] == grade['claims'],
@@ -177,7 +178,8 @@ def audit(root: Path, *, providers=None) -> dict:
                     errors.extend(f'{label}: {e}' for e in audit_followups(contract=contract, plan=plan,
                         initial_turn=TurnResult(**recall), initial_grade=grade, output=arm / 'followups',
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
-                        evidence_by_id={m['source_id']: m['text'] for m in messages} if summary.get('evidence_diagnostic_protocol') else None))
+                        evidence_by_id=source_evidence(messages, summary['evidence_diagnostic_protocol']) if summary.get('evidence_diagnostic_protocol') else None,
+                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION)))
             except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
                 errors.append(f'{label}: {type(exc).__name__}: {exc}')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:

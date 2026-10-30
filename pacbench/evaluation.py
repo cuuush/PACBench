@@ -77,12 +77,20 @@ def contract_evidence(messages, checks, current, context='shared', *, structured
 
 
 
-def judge_evidence(root, messages, resolved, row, context):
+def judge_evidence(root, messages, resolved, row, context, *, diagnostic_version='answer-visible-evidence-v1'):
     """Reconstruct the exact frozen evidence semantics for this check's judge."""
     document = json.loads((root / 'evaluations' / row['id'] / 'contract.json').read_text())
     available = contract_evidence(messages, resolved['checks'], row, context,
         structured_sessions=document.get('evidence_version') == EVIDENCE_VERSION)
-    return {m['source_id']: m['text'] for m in available}
+    return source_evidence(available, diagnostic_version)
+
+
+def source_evidence(messages, diagnostic_version):
+    if diagnostic_version == 'answer-visible-evidence-v1':
+        return {m['source_id']: m['text'] for m in messages}
+    if diagnostic_version != 'answer-visible-evidence-v2':
+        raise ValueError('Unsupported evidence diagnostic protocol')
+    return {m['source_id']: json.dumps({k: m[k] for k in ('sender', 'written_at', 'channel', 'thread', 'text') if k in m}, ensure_ascii=False, sort_keys=True) for m in messages}
 
 def freeze_evaluations(resolved, messages, target, model, root, *, resume=False, generate=None):
     rows,errors = [],[]

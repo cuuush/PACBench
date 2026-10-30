@@ -372,7 +372,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
                   question_model=None, question_dir: Path | None = None,
-                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None) -> dict:
+                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1') -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
@@ -424,12 +424,12 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                 raise ValueError('follow-up turn failed, changed session, or was policy blocked')
             from .native_checks import diagnostic_inputs
             from types import SimpleNamespace
-            inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn) if evidence_by_id is not None else None
+            inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
             followup_grade = grade_semantic(grade.checkpoint, turn.prompt, turn.answer,
                 tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
                 record_path=directory / 'judgment.json', conversation=tuple(conversation) + (
                     {'role': 'user', 'content': initial_turn.prompt},
-                    {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs)
+                    {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots],
                 **({'evidence_diagnostic': followup_grade.evidence_diagnostic} if inputs is not None else {})})
             attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
@@ -446,7 +446,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None) -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1') -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -528,18 +528,18 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                 check('diagnostic_protocol' in judgment and 'evidence_diagnostic' in read(directory / 'grade.json'), 'missing follow-up evidence diagnostic')
             if 'diagnostic_protocol' in judgment:
                 from .native_checks import diagnostic_inputs
-                from .semantic_grade import validate_diagnostic, DIAGNOSTIC_VERSION, judge_prompt
+                from .semantic_grade import validate_diagnostic, DIAGNOSTIC_VERSIONS, judge_prompt
                 from types import SimpleNamespace
                 inputs = judgment.get('diagnostic_inputs', {})
                 claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in selected)
                 saved_grade = read(directory / 'grade.json')
-                check(judgment['diagnostic_protocol'] == DIAGNOSTIC_VERSION and
-                    saved_grade.get('evidence_diagnostic') == validate_diagnostic(json.loads(judgment['response']).get('evidence_diagnostic'), claim_objects, turn.answer, inputs),
+                check(diagnostic_version in DIAGNOSTIC_VERSIONS and judgment['diagnostic_protocol'] == diagnostic_version and
+                    saved_grade.get('evidence_diagnostic') == validate_diagnostic(json.loads(judgment['response']).get('evidence_diagnostic'), claim_objects, turn.answer, inputs, diagnostic_version),
                     'follow-up diagnostic differs from judge')
                 check(judgment['prompt'] == judge_prompt(turn.prompt, turn.answer, claim_objects,
-                    conversation=judgment['conversation'], diagnostic_inputs=inputs), 'follow-up diagnostic prompt mismatch')
+                    conversation=judgment['conversation'], diagnostic_inputs=inputs, diagnostic_version=diagnostic_version), 'follow-up diagnostic prompt mismatch')
                 reconstructed = diagnostic_inputs(turn, SimpleNamespace(claims=selected),
-                    evidence_by_id if evidence_by_id is not None else {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, prior_turn=initial_turn)
+                    evidence_by_id if evidence_by_id is not None else {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, prior_turn=initial_turn, diagnostic_version=diagnostic_version)
                 check(inputs.get('answer_visible') == reconstructed['answer_visible'] and
                     (evidence_by_id is None or inputs == reconstructed), 'follow-up diagnostic evidence mismatch')
             check(judgment['claims'] == [{'id': c.id, 'description': c.statement,

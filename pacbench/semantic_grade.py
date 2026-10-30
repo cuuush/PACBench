@@ -51,10 +51,12 @@ class BenchmarkContractError(ValueError):
 VERDICTS = {"correct", "missed", "misrepresented"}
 
 
-DIAGNOSTIC_VERSION = "answer-visible-evidence-v1"
+LEGACY_DIAGNOSTIC_VERSION = "answer-visible-evidence-v1"
+DIAGNOSTIC_VERSION = "answer-visible-evidence-v2"
+DIAGNOSTIC_VERSIONS = {LEGACY_DIAGNOSTIC_VERSION, DIAGNOSTIC_VERSION}
 
 
-def diagnostic_prompt(inputs):
+def diagnostic_prompt(inputs, version=LEGACY_DIAGNOSTIC_VERSION):
     return (
         'Separately assess evidence, without changing claim verdicts or recovery. '
         'Return "evidence_diagnostic" with "claims" in claim order and "extra_assertions". '
@@ -71,11 +73,12 @@ def diagnostic_prompt(inputs):
         'Do not add requirements for facts the user did not ask for or penalize omitted assertions. '
         'Citation quote and answer_quote must be exact substrings of their material. '
         'Return empty extra_assertions if none.\n'
-        f'Diagnostic inputs: {json.dumps(inputs, ensure_ascii=False)}\n'
+        + ('The claim evidence diagnostic covers only provider evidence returned to Hermes: captured prefetch and tool results. The user question, tool arguments, and prior public conversation are outside this evidence scope; do not count them as retrieval evidence. not_found means only that the detail was not found in the supplied provider material; it does not mean the assistant could not know the detail or that a write was lost. Use a short exact plain-text quote that directly shows the fact. Omit citation markers, brackets and formatting from quotes; never normalize or rewrite characters. Copy the smallest contiguous span from the material.\n' if version == DIAGNOSTIC_VERSION else '')
+        + f'Diagnostic inputs: {json.dumps(inputs, ensure_ascii=False)}\n'
     )
 
 
-def validate_diagnostic(value, claims, answer, inputs):
+def validate_diagnostic(value, claims, answer, inputs, version=LEGACY_DIAGNOSTIC_VERSION):
     """Validate provenance; an unusable diagnostic never erases a valid answer grade."""
     def citations_valid(citations, material, require):
         return (isinstance(citations, list) and (not require or bool(citations)) and
@@ -90,6 +93,8 @@ def validate_diagnostic(value, claims, answer, inputs):
             raise ValueError()
         for row, claim in zip(rows, claims):
             status = row['status']
+            if version == DIAGNOSTIC_VERSION and not citations_valid(row['citations'], visible, status in ('supported', 'contradicted')):
+                return {'version': version, 'state': 'ungraded', 'reason': f'Invalid evidence citation for claim {claim.id}'}
             if (row['id'] != claim.id or status not in ('supported', 'contradicted', 'not_found', 'uncertain') or
                 not isinstance(row['reason'], str) or not row['reason'].strip() or
                 not citations_valid(row['citations'], visible, status in ('supported', 'contradicted')) or
@@ -97,18 +102,20 @@ def validate_diagnostic(value, claims, answer, inputs):
                 raise ValueError()
         for row in extras:
             status = row['status']
+            if version == DIAGNOSTIC_VERSION and not citations_valid(row['citations'], sources, status in ('supported', 'contradicted')):
+                return {'version': version, 'state': 'ungraded', 'reason': 'Invalid evidence citation for an extra assertion'}
             if (status not in ('supported', 'contradicted', 'unverifiable') or
                 not isinstance(row['assertion'], str) or not row['assertion'].strip() or
                 not isinstance(row['answer_quote'], str) or not row['answer_quote'] or row['answer_quote'] not in answer or
                 not isinstance(row['reason'], str) or not row['reason'].strip() or
                 not citations_valid(row['citations'], sources, status in ('supported', 'contradicted'))):
                 raise ValueError()
-        return {'version': DIAGNOSTIC_VERSION, 'state': 'complete', 'claims': rows, 'extra_assertions': extras}
+        return {'version': version, 'state': 'complete', 'claims': rows, 'extra_assertions': extras}
     except (KeyError, TypeError, ValueError):
-        return {'version': DIAGNOSTIC_VERSION, 'state': 'ungraded', 'reason': 'Malformed or unsupported diagnostic evidence'}
+        return {'version': version, 'state': 'ungraded', 'reason': 'Malformed or unsupported diagnostic evidence'}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None) -> str:
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION) -> str:
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
@@ -154,7 +161,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         + ("Use the prior conversation only to resolve references in the latest answer. "
          "Do not award a fact merely because it appeared in an earlier answer.\n"
          f"Prior public conversation: {json.dumps(conversation, ensure_ascii=False)}\n" if conversation else "")
-        + (diagnostic_prompt(diagnostic_inputs) if diagnostic_inputs is not None else "") +
+        + (diagnostic_prompt(diagnostic_inputs, diagnostic_version) if diagnostic_inputs is not None else "") +
         f"Question: {question}\nAnswer: {answer}\n"
         f"Claims (hidden from the assistant): {json.dumps(spec, ensure_ascii=False)}"
     )
@@ -162,11 +169,13 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None) -> Grade:
+                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION) -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
-    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs)
+    if diagnostic_version not in DIAGNOSTIC_VERSIONS:
+        raise ValueError('Unsupported evidence diagnostic protocol')
+    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs,diagnostic_version=diagnostic_version)
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
@@ -176,7 +185,7 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
             "answer": answer, "claims": [vars(c) for c in claims],
             "prompt": prompt, "response": output,
             "conversation": list(conversation),
-            **({"diagnostic_protocol": DIAGNOSTIC_VERSION, "diagnostic_inputs": diagnostic_inputs} if diagnostic_inputs is not None else {}),
+            **({"diagnostic_protocol": diagnostic_version, "diagnostic_inputs": diagnostic_inputs} if diagnostic_inputs is not None else {}),
             "model_call": (response.record_path if isinstance(response, ModelOutput)
                            else None)}, indent=2, ensure_ascii=False) + "\n")
     try:
@@ -202,7 +211,7 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
         validate_recovery(recovery, rows)
     result = Grade(checkpoint=checkpoint_id, recovery=recovery,interaction=parsed.get('interaction','answer'))
     if diagnostic_inputs is not None:
-        result.evidence_diagnostic = validate_diagnostic(parsed.get("evidence_diagnostic"), claims, answer, diagnostic_inputs)
+        result.evidence_diagnostic = validate_diagnostic(parsed.get("evidence_diagnostic"), claims, answer, diagnostic_inputs, diagnostic_version)
     result.slots = [GradedClaim(r["id"], r["verdict"], r["reason"]) for r in rows]
     result.correct = sum(r.verdict == "correct" for r in result.slots)
     result.missed = sum(r.verdict == "missed" for r in result.slots)

@@ -304,6 +304,9 @@ function toolCards(run, arm, turn) {
   const traces = turn.provider_traces || [];
   if (!calls.length && !traces.length) return '<div class="quiet">No tool calls recorded for this answer.</div>';
   const cards = [];
+  const seenCalls = new Map();
+  const stable = value => Array.isArray(value) ? value.map(stable) : value && typeof value === 'object' ?
+    Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
   calls.forEach((call, index) => {
     const result = turn.tool_results?.[index];
     const blocked = result?.policy_blocked || String(result?.text || "").includes("PACBENCH-BLOCKED");
@@ -315,11 +318,14 @@ function toolCards(run, arm, turn) {
       (nested.length ? nested.map(c => toolName(c.name)).join(", ") : "");
     const label = call.name === "tool_call" && nested.length === 1 ?
       toolName(nested[0].name) : toolName(call.name);
+    const signature = JSON.stringify([call.name, stable(call.input || call.arguments || {})]);
+    const repeated = seenCalls.has(signature) ? seenCalls.get(signature) : null;
+    if (repeated === null) seenCalls.set(signature, index + 1);
     const card = '<details class="tool-card"><summary><span class="tool-icon">⌕</span><span><strong>' +
-      esc(label) + '</strong><small>' +
+      esc((index + 1) + '. ' + label) + '</strong><small>' +
       esc(query || (blocked ? "Blocked" : failed ? "Failed" : "Open output")) +
       '</small></span><span class="tool-state">' + (blocked ? "blocked" : failed ? "failed" : result?.success === true ? "returned" : "not captured") +
-      '</span></summary><div class="tool-body"><h4>Arguments</h4>' + dump(call.input || {}) +
+      '</span></summary><div class="tool-body">' + (repeated !== null ? notice('Same tool and arguments as call ' + repeated + '. Review whether the repeat was needed.') : '') + '<h4>Arguments</h4>' + dump(call.input || call.arguments || {}) +
       '<h4>What came back</h4>' + resultBody(run, arm, result) + "</div></details>";
     cards.push(card);
   });
@@ -357,7 +363,7 @@ function scoreDetails(run, ex, expanded = true) {
   return '<details ' + (expanded ? 'open ' : '') + 'class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
     '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
     (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
-    evidenceDetails(ex.grade?.evidence_diagnostic) +
+    evidenceDetails(ex.grade?.evidence_diagnostic, ex.grade, ex.contract || run.contract) +
     (ex.judge_review ? details("Judge scope review (original grade unchanged)",
       notice("This review records possible judging or question-scope issues. The original trial grade remains above.") +
       '<h4>Review response</h4><pre>' + esc(ex.judge_review.response) +
@@ -366,13 +372,15 @@ function scoreDetails(run, ex, expanded = true) {
       esc(ex.judgment.prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
       esc(ex.judgment.response || "not captured") + "</pre>") : "") + "</div></details>";
 }
-function evidenceDetails(diagnostic) {
+function evidenceDetails(diagnostic, grade, contract) {
   if (!diagnostic) return '';
   if (diagnostic.state !== 'complete') return notice('Evidence review ungraded: ' + (diagnostic.reason || 'incomplete evidence'));
   const citations = rows => (rows || []).map(c => '<p><small>' + esc(c.id) + '</small><q>' + esc(c.quote) + '</q></p>').join('');
   const claims = (diagnostic.claims || []).map(item => '<div class="verdict-row">' +
     badge(item.status.replaceAll('_', ' '), item.status === 'supported' ? 'ok' : item.status === 'uncertain' ? 'warn' : 'neutral') +
-    '<div><strong>' + esc(item.id) + '</strong><p>' + esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
+    '<div><strong>' + esc(contract?.claims?.find(c => c.id === item.id)?.statement || item.id) + '</strong>' +
+    '<p>Final answer: ' + esc(grade?.claims?.find(c => c.id === item.id)?.verdict || 'ungraded') + '</p><p>' +
+    esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
   const extras = (diagnostic.extra_assertions || []).map(item => '<div class="verdict-row">' +
     badge(item.status, item.status === 'contradicted' ? 'bad' : item.status === 'supported' ? 'ok' : 'neutral') +
     '<div><strong>' + esc(item.assertion) + '</strong><p>Answer: ' + esc(item.answer_quote) + '</p><p>' +

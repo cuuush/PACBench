@@ -7,7 +7,7 @@ import pytest
 
 from pacbench.followups import (
     audit_followups, combined_plan, cost_window, digest, freeze_policy, load_questions,
-    recovery_score, run_followups, tool_profile, turn_metrics,
+    recovery_score, run_followups, tool_profile, turn_metrics, initial_effort,
 )
 from pacbench.harness import TurnResult
 from pacbench.semantic_grade import Grade, GradedClaim
@@ -164,8 +164,24 @@ def test_correct_answer_from_source_fallback_still_fails_retention(name, argumen
     result = recovery_score(grade(('correct', 'missed')), turn_metrics(turn()), [
         {'claim_ids': ['time'], 'state': 'graded', 'verdicts':[{'id':'time','verdict':'correct'}], 'metrics': metrics}])
     assert result['claims'][1]['points'] == points
+    assert result['claims'][0]['points'] == 1
     assert result['claims'][1]['recovered_answer'] is True
     assert result['claims'][1]['retention_failed'] is (category in {'archive_search', 'source_evidence', 'source_messages'})
+
+
+def test_source_followup_penalty_carries_to_dependent_turn():
+    from pacbench.native_checks import extend_path
+    source = turn(calls=[{'name':'memcal_open_source','input':{'source':'E1'}}])
+    path = extend_path({'source_fallback':False, 'unclassified':False}, source)
+    inherited = initial_effort(turn(), inherited_path=path)
+    assert recovery_score(grade(('correct','missed')), inherited, [])['claims'][0]['points'] == 0
+
+
+def test_memcal_open_with_attached_citations_keeps_credit():
+    opened=turn(calls=[{'name':'memcal_open','input':{'ref':'E1'}}],
+        results=[{'success':True,'text':'Retained event details\n\ncited sources:\noriginal message'}])
+    metrics=turn_metrics(opened, provenance_version='source-provenance-v2')
+    assert recovery_score(grade(('correct','missed')), metrics, [])['claims'][0]['points'] == 1
 
 
 def test_discovery_dispatch_nested_search_and_failures_are_logged_without_losing_attempts():

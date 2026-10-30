@@ -396,7 +396,7 @@ def export_week(root, destination):
         raise ValueError('Keep the frozen week manifest beside its prepared files')
     if audit_prepared(root)['state']!='pass':raise ValueError('Cannot freeze incomplete preparation')
     from .followups import digest
-    names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json','shared-text.json',
+    names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','rebase-provenance.json','scenes.json','shared-text.json',
            'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json']
     paths=[root/name for name in names if (root/name).exists()]
     for folder in ('evaluations','scene-verifications','model-calls'):

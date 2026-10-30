@@ -44,3 +44,5 @@ the actual captured user input, and checks enrolled owner work plus native queue
 errors. It retains its normal accumulation delay. Empty write discovery cannot
 prove completion. These are availability-gated recall trials; simulated question
 clocks are not measurements of wall-clock aging or a response-time SLA.
+
+Answer evidence diagnostics can be requested alongside the existing semantic judgment. They report whether captured prefetch or direct tool results contain evidence for each criterion, and separately assess factual assertions made beyond the criteria against the cited source excerpts. These are diagnostic observations and do not change claim scores or recovery. Source coverage is partial: missing support is unverifiable, and only direct contrary evidence supports a contradiction. Captured inputs record truncation and missing citations; provider background traces are not treated as visible to the answer. Availability alone does not establish whether the assistant used or ignored evidence. Malformed diagnostics remain ungraded without discarding an otherwise valid answer grade; older judgments remain unchanged.

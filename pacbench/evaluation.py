@@ -76,6 +76,14 @@ def contract_evidence(messages, checks, current, context='shared', *, structured
     return available
 
 
+
+def judge_evidence(root, messages, resolved, row, context):
+    """Reconstruct the exact frozen evidence semantics for this check's judge."""
+    document = json.loads((root / 'evaluations' / row['id'] / 'contract.json').read_text())
+    available = contract_evidence(messages, resolved['checks'], row, context,
+        structured_sessions=document.get('evidence_version') == EVIDENCE_VERSION)
+    return {m['source_id']: m['text'] for m in available}
+
 def freeze_evaluations(resolved, messages, target, model, root, *, resume=False, generate=None):
     rows,errors = [],[]
     for check in resolved['checks']:

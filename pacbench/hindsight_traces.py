@@ -90,12 +90,34 @@ def capture(env,before,turn):
     except Exception as exc:return [{'provider':'hindsight','error':'Native trace observation failed: '+type(exc).__name__}]
 
 
-def category(call):
+LEGACY_PROVENANCE = 'source-provenance-v1'
+UNIFORM_PROVENANCE = 'source-provenance-v2'
+
+
+def category(call, *, provenance_version=LEGACY_PROVENANCE):
+    if provenance_version not in {LEGACY_PROVENANCE, UNIFORM_PROVENANCE}:
+        raise ValueError('Unknown source provenance version')
     name=call.get('toolName');result=call.get('result')
     if name=='expand':return 'source_evidence'
     if name=='recall':
         if not isinstance(result,dict):return 'unclassified'
         chunks=result.get('chunks')
+        if provenance_version == UNIFORM_PROVENANCE:
+            memories=result.get('memories')
+            if (not isinstance(memories,list) or not isinstance(chunks,dict) or
+                    any(not isinstance(m,dict) for m in memories) or
+                    any(not isinstance(k,str) or not isinstance(v,dict) or
+                        not isinstance(v.get('chunk_text'),str) or not v['chunk_text']
+                        for k,v in chunks.items())):
+                return 'unclassified'
+            if not chunks:return 'memory_search'
+            if not memories:return 'source_messages'
+            # A cited chunk is attached only when the returned retained records
+            # actually identify it; co-occurrence in one response is insufficient.
+            cited={m.get('chunk_id') for m in memories if isinstance(m.get('chunk_id'),str)}
+            if set(chunks) <= cited and all(isinstance(m.get('text'),str) and m['text'] for m in memories):
+                return 'memory_search'
+            return 'unclassified'
         if isinstance(chunks,dict) and any(isinstance(v,dict) and v.get('chunk_text') for v in chunks.values()):
             return 'source_messages'
         return 'memory_search'

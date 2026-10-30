@@ -28,6 +28,11 @@ def audit(root: Path, *, providers=None) -> dict:
         return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
     try:
         summary = read(root / 'summary.json')
+        from .semantic_grade import DIAGNOSTIC_VERSION
+        if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
+            raise ValueError('Unsupported provenance protocol')
+        if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] != DIAGNOSTIC_VERSION:
+            raise ValueError('Unsupported evidence diagnostic protocol')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
         check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
@@ -129,7 +134,13 @@ def audit(root: Path, *, providers=None) -> dict:
                 except (OSError,ValueError,KeyError,TypeError) as exc:
                     errors.append(f'{label}: ingestion audit {type(exc).__name__}')
                 if evaluations:
-                    errors.extend(f'{label}: {e}' for e in audit_checks(evaluations, evaluation_plan['context'], arm))
+                    from .evaluation import judge_evidence
+                    def evidence_for_check(row):
+                        return judge_evidence(root, messages, spec, row, evaluation_plan['context'])
+                    errors.extend(f'{label}: {e}' for e in audit_checks(
+                        evaluations, evaluation_plan['context'], arm,
+                        provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
+                        evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None))
                     from .native_writes import audit_ready
                     errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
                         result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
@@ -145,12 +156,28 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(judgment['answer'] == recall['answer'], f'{label}: judge answer mismatch')
                 grade = read(arm / 'grade.json')
                 check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
+                if summary.get('evidence_diagnostic_protocol'):
+                    from .native_checks import diagnostic_inputs
+                    from .semantic_grade import Claim, DIAGNOSTIC_VERSION, validate_diagnostic, judge_prompt
+                    observed_turn = TurnResult(**recall)
+                    inputs = diagnostic_inputs(observed_turn, contract, {m['source_id']: m['text'] for m in messages})
+                    claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
+                    response = json.loads(judgment['response'])
+                    check(summary['evidence_diagnostic_protocol'] == DIAGNOSTIC_VERSION and
+                        judgment.get('diagnostic_protocol') == DIAGNOSTIC_VERSION and judgment.get('diagnostic_inputs') == inputs,
+                        f'{label}: evidence diagnostic scope mismatch')
+                    check(judgment.get('prompt') == judge_prompt(recall['prompt'], recall['answer'], claims,
+                        assess_recovery=True, diagnostic_inputs=inputs), f'{label}: evidence diagnostic prompt mismatch')
+                    check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'),
+                        claims, recall['answer'], inputs), f'{label}: evidence diagnostic differs from judge')
                 if plan:
                     check(json.loads(judgment['response']).get('recovery') == grade.get('recovery'), f'{label}: recovery eligibility differs from judge')
                     check(json.loads(judgment['response'])['verdicts'] == grade['claims'],
                           f'{label}: initial grade differs from recorded judge response')
                     errors.extend(f'{label}: {e}' for e in audit_followups(contract=contract, plan=plan,
-                        initial_turn=TurnResult(**recall), initial_grade=grade, output=arm / 'followups'))
+                        initial_turn=TurnResult(**recall), initial_grade=grade, output=arm / 'followups',
+                        provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
+                        evidence_by_id={m['source_id']: m['text'] for m in messages} if summary.get('evidence_diagnostic_protocol') else None))
             except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
                 errors.append(f'{label}: {type(exc).__name__}: {exc}')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:

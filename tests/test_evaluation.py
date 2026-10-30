@@ -282,3 +282,60 @@ def test_judge_session_fields_follow_execution_context_not_turn_ids():
     legacy=contract_evidence([],checks,checks[2],structured_sessions=False)
     assert all('thread' not in m and 'channel' not in m for m in legacy)
     assert legacy[-1]['text'].startswith('[assistant session shared]')
+
+
+def test_diagnostic_inputs_use_only_visible_bounded_material():
+    from pacbench.native_checks import diagnostic_inputs
+    from pacbench.semantic_contract import EvaluationContract, ContractClaim
+    turn = TurnResult(prompt='q', at='now', answer='a', tool_calls=[{'name': 'search'}],
+        tool_results=[{'text': 'x' * 16001}, {'text': 'unmatched'}], policy_blocks=0,
+        latency_s=0, returncode=0, stderr_tail='', raw_events=0, prefetch_context='brief',
+        provider_traces=[{'record': {'toolCalls': [{'text': 'late background'}]}}])
+    contract = EvaluationContract((ContractClaim('f', 'fact', ('source', 'missing')),), 'q', 'h', 'c')
+    data = diagnostic_inputs(turn, contract, {'source': 'source text', 'unrelated': 'private'})
+    assert [x['id'] for x in data['answer_visible']] == ['prefetch', 'tool-result-1']
+    assert data['answer_visible'][1]['truncated'] is True
+    assert [x['id'] for x in data['source_evidence']] == ['source']
+    assert data['missing_source_ids'] == ['missing']
+    turn.tool_results[0] = {'text': 'short clipped result', 'truncated': True, 'success': False}
+    clipped = diagnostic_inputs(turn, contract, {'source': 'source text'})['answer_visible'][1]
+    assert clipped['truncated'] is True and clipped['success'] is False
+    assert 'partial' in data['source_scope'] and 'late background' not in str(data)
+
+
+def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path):
+    checks = checkpoints(tmp_path)[:1]
+    def runner(prompt, **kwargs):
+        return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
+            at=kwargs['at'], answer='Synthetic current answer.', tool_calls=[{'name': 'search'}],
+            tool_results=[{'text': 'retrieved evidence'}], policy_blocks=0, latency_s=1,
+            returncode=0, stderr_tail='', raw_events=0, session_id='session')
+    def judge(prompt):
+        response = json.loads(correct_judge(prompt))
+        response['evidence_diagnostic'] = {'claims': [{'id': 'fact-1', 'status': 'supported',
+            'reason': 'The result states it.', 'citations': [{'id': 'tool-result-1', 'quote': 'retrieved evidence'}]}],
+            'extra_assertions': []}
+        return json.dumps(response)
+    root = tmp_path / 'arm'
+    report = run_checks(checks, 'isolated', root, judge, '', {}, question_dir=tmp_path / 'questions',
+        run_turn=runner, evidence_by_id={'m1': 'source text'})
+    assert report['counts']['pass'] == 1
+    assert not audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'})
+    errors = audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'changed source'})
+    assert any('frozen evidence' in error for error in errors)
+
+
+def test_judge_evidence_preserves_frozen_session_semantics(tmp_path):
+    from pacbench.evaluation import judge_evidence
+    from pacbench.semantic_contract import EVIDENCE_VERSION
+    rows = [{'id': 'a', 'prompt': 'Save this', 'kind': 'behavior', 'at': '2026-09-11T09:00:00-04:00'},
+            {'id': 'b', 'prompt': 'Recall it', 'at': '2026-09-11T10:00:00-04:00'}]
+    directory = tmp_path / 'evaluations' / 'b'
+    directory.mkdir(parents=True)
+    path = directory / 'contract.json'
+    path.write_text('{}')
+    legacy = judge_evidence(tmp_path, [], {'checks': rows}, rows[1], 'isolated')
+    assert '[assistant session shared]' in legacy['assistant-user:a']
+    path.write_text(json.dumps({'evidence_version': EVIDENCE_VERSION}))
+    current = judge_evidence(tmp_path, [], {'checks': rows}, rows[1], 'isolated')
+    assert '[assistant session a]' in current['assistant-user:a']

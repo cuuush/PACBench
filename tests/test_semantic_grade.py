@@ -262,3 +262,28 @@ def test_contract_uses_frozen_dialogue_timestamp_and_rejects_bad_review(tmp_path
             verify=reject_question,
             question_generate=lambda _: '{"question":"When did I buy the tickets?"}',
             output_path=tmp_path / "unfaithful.json")
+
+
+def test_evidence_diagnostic_is_separate_and_requires_exact_provenance(tmp_path):
+    from pacbench.semantic_grade import validate_diagnostic, DIAGNOSTIC_VERSION
+    claims = (Claim('who', 'Devon attends', ('m1',)),)
+    inputs = {'answer_visible': [{'id': 'tool-result-1', 'text': 'Devon attends', 'truncated': False}],
+              'source_evidence': [{'id': 'm1', 'text': 'Devon attends. Lee declined.', 'truncated': False}],
+              'source_scope': 'partial'}
+    diagnostic = {'claims': [{'id': 'who', 'status': 'supported', 'reason': 'Shown',
+                              'citations': [{'id': 'tool-result-1', 'quote': 'Devon attends'}]}],
+                  'extra_assertions': [{'assertion': 'Lee attends', 'answer_quote': 'Lee attends',
+                      'status': 'contradicted', 'reason': 'Lee declined',
+                      'citations': [{'id': 'm1', 'quote': 'Lee declined'}]}]}
+    response = {'verdicts': [{'id': 'who', 'verdict': 'correct', 'reason': 'Named Devon'}],
+                'evidence_diagnostic': diagnostic}
+    path = tmp_path / 'judgment.json'
+    grade = grade_semantic('x', 'Who?', 'Devon and Lee attends', claims,
+                           lambda _: json.dumps(response), record_path=path, diagnostic_inputs=inputs)
+    assert grade.all_claims_correct and grade.evidence_diagnostic['state'] == 'complete'
+    assert json.loads(path.read_text())['diagnostic_protocol'] == DIAGNOSTIC_VERSION
+    diagnostic['extra_assertions'][0]['citations'][0]['quote'] = 'invented'
+    assert validate_diagnostic(diagnostic, claims, 'Devon and Lee attends', inputs)['state'] == 'ungraded'
+    response.pop('evidence_diagnostic')
+    grade = grade_semantic('x', 'Who?', 'Devon', claims, lambda _: json.dumps(response), diagnostic_inputs=inputs)
+    assert grade.all_claims_correct and grade.evidence_diagnostic['state'] == 'ungraded'

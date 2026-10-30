@@ -357,6 +357,7 @@ function scoreDetails(run, ex, expanded = true) {
   return '<details ' + (expanded ? 'open ' : '') + 'class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
     '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
     (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
+    evidenceDetails(ex.grade?.evidence_diagnostic) +
     (ex.judge_review ? details("Judge scope review (original grade unchanged)",
       notice("This review records possible judging or question-scope issues. The original trial grade remains above.") +
       '<h4>Review response</h4><pre>' + esc(ex.judge_review.response) +
@@ -364,6 +365,23 @@ function scoreDetails(run, ex, expanded = true) {
     (ex.judgment ? details("Answer judge prompt and response", '<p class="muted">Judge: ' + esc(modelCall(run, ex.judgment.model_call)?.model || "model not captured") + "</p>" + '<h4>Prompt</h4><pre>' +
       esc(ex.judgment.prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
       esc(ex.judgment.response || "not captured") + "</pre>") : "") + "</div></details>";
+}
+function evidenceDetails(diagnostic) {
+  if (!diagnostic) return '';
+  if (diagnostic.state !== 'complete') return notice('Evidence review ungraded: ' + (diagnostic.reason || 'incomplete evidence'));
+  const citations = rows => (rows || []).map(c => '<p><small>' + esc(c.id) + '</small><q>' + esc(c.quote) + '</q></p>').join('');
+  const claims = (diagnostic.claims || []).map(item => '<div class="verdict-row">' +
+    badge(item.status.replaceAll('_', ' '), item.status === 'supported' ? 'ok' : item.status === 'uncertain' ? 'warn' : 'neutral') +
+    '<div><strong>' + esc(item.id) + '</strong><p>' + esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
+  const extras = (diagnostic.extra_assertions || []).map(item => '<div class="verdict-row">' +
+    badge(item.status, item.status === 'contradicted' ? 'bad' : item.status === 'supported' ? 'ok' : 'neutral') +
+    '<div><strong>' + esc(item.assertion) + '</strong><p>Answer: ' + esc(item.answer_quote) + '</p><p>' +
+    esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
+  return details('Retrieved evidence and additional assertions',
+    '<p class="muted">These diagnostics are separate from fact scores. Retrieved evidence can support a fact even when the final answer missed it. Availability does not prove the assistant used it.</p>' +
+    '<h4>Evidence available to Hermes</h4>' + claims + '<h4>Additional assertions</h4>' +
+    '<p class="muted">Source evidence covers expected-fact citations only. Unverifiable means the supplied evidence cannot establish truth or falsity.</p>' +
+    (extras || '<p>No additional factual assertions flagged.</p>'));
 }
 function questionText(turn, ex) {
   return String(ex.judgment?.question || turn.prompt || "").replace(/^\[Simulated now:[^\n]+\]\n\n/, "");
@@ -389,7 +407,11 @@ function effortDetails(ex) {
     m.unclassified_operations || m.inherited_unclassified_operation || retention?.claims?.some(c => c.path_needs_review) ? "Unknown operation: retention uncredited" : "Retained-memory path";
   return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
     esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
-    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' + (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' +
+    '<p class="muted">Provider internal calls: ' + esc(m.provider_internal_tool_calls ?? 'unobserved') +
+    ' · failed operations: ' + esc(m.failed_operations ?? 'unknown') + ' · exact repeat operations: ' + esc(m.repeated_operations ?? 'unknown') +
+    '. Repetition is review evidence; it does not automatically establish wasted work. Internal calls can include background work.</p>' +
+    (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
 }
 function usageDetails(ex) {
   const usage = ex.usage_after_settlement || ex.usage;

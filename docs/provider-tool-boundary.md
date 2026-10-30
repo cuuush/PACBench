@@ -18,11 +18,13 @@ The current Pizza Month cohort exercises v3. Audits validate each saved trial's 
 
 This is a tool boundary, not OS isolation. Native provider internals can read their stores, run subprocesses and call models. All inference remains metered through the gateway; nested work is not assumed free.
 
-For Hindsight 1.1.0, read its native `/llm-requests` trace API. Reflection's
-internal `recall` may return `chunks.*.chunk_text` containing original messages;
-the outer tool returning synthesized text does not make that a retained-facts
-path. Log native arguments/results and apply the source penalty when those
-chunks reach the reflection model. Observe the normal trace-writer buffer;
+For Hindsight 1.1.0, read its native `/llm-requests` trace API. Under historical
+`source-provenance-v1`, any returned original chunk incurs the source penalty.
+Under `source-provenance-v2`, raw-only recall incurs the penalty, while chunks
+explicitly linked from returned retained records are attached citations and keep
+normal credit. Mixed results without proven links remain uncredited pending
+review; co-occurrence alone does not establish a link. Explicit expansion is
+source access. Log native arguments and results. Observe the normal trace-writer buffer;
 missing/truncated traces stay unclassified. Work completed after every Hermes
 request input cannot supply that answer. Keep native token telemetry separate
 from authoritative gateway costs, and omit model prompts/reasoning from public

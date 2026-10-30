@@ -71,6 +71,31 @@ def test_unobserved_recall_arguments_are_unknown_and_expand_is_source():
     assert category({'toolName':'expand','args':{'depth':'document'}})=='source_evidence'
 
 
+@pytest.mark.parametrize('memories,chunks,expected', [
+    ([], {'c1': {'chunk_text': 'raw'}}, 'source_messages'),
+    ([{'text': 'retained fact', 'chunk_id': 'c1'}], {'c1': {'chunk_text': 'citation'}}, 'memory_search'),
+    ([{'text': 'retained fact'}], {'c1': {'chunk_text': 'raw'}}, 'unclassified'),
+    ([{'text': 'retained fact', 'chunk_id': 'c1'}], {'c1': {'chunk_text': 'citation'}, 'c2': {'chunk_text': 'raw'}}, 'unclassified'),
+    ([{'text': 'retained fact'}], {}, 'memory_search'),
+    (None, {'c1': {'chunk_text': 'raw'}}, 'unclassified'),
+    ([], {'c1': {}}, 'unclassified'),
+])
+def test_uniform_provenance_requires_linked_citations(memories, chunks, expected):
+    call={'toolName':'recall','result':{'memories':memories,'chunks':chunks}}
+    assert category(call, provenance_version='source-provenance-v2') == expected
+
+
+def test_uniform_mixed_path_is_review_not_confirmed_source():
+    turn=make_turn()
+    turn.provider_traces=convert(recorded_rows({'c':{'chunk_text':'source'}}),turn)
+    call=turn.provider_traces[0]['record']['toolCalls'][0]
+    call['result']['memories']=[{'text':'retained'}]
+    legacy=tool_profile(turn)
+    uniform=tool_profile(turn, provenance_version='source-provenance-v2')
+    assert legacy['source_fallback_attempted']
+    assert not uniform['source_fallback_attempted'] and uniform['unclassified_operations']==1
+
+
 def test_complete_traces_stop_after_native_flush_without_waiting_for_deadline(monkeypatch):
     read=Mock(return_value=recorded_rows({}))
     monkeypatch.setattr('pacbench.hindsight_traces.read',read)

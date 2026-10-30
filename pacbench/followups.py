@@ -128,7 +128,9 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     return 'unclassified'
 
 
-def tool_profile(turn, *, source_tools=()) -> dict:
+def tool_profile(turn, *, source_tools=(), provenance_version='source-provenance-v1') -> dict:
+    if provenance_version not in {'source-provenance-v1', 'source-provenance-v2'}:
+        raise ValueError('Unknown source provenance version')
     operations = []
     for index, call in enumerate(turn.tool_calls):
         name = call.get('name', '')
@@ -182,7 +184,7 @@ def tool_profile(turn, *, source_tools=()) -> dict:
                       tool_category(name,call.get('args',{}),source_tools))
             if trace.get('provider')=='hindsight':
                 from .hindsight_traces import category as hindsight_category
-                category=hindsight_category(call)
+                category=hindsight_category(call, provenance_version=provenance_version)
             native_operations.append({**call,'category':category,'attribution':trace.get('attribution'),
                 **({'path_attribution':trace['path_attribution']} if 'path_attribution' in trace else {})})
     answer_operations=[op for op in native_operations if op.get('path_attribution',{}).get('affects_answer') is not False]
@@ -205,20 +207,20 @@ def tool_profile(turn, *, source_tools=()) -> dict:
         'unclassified_operations': categories.get('unclassified', 0)+native_unknown}
 
 
-def turn_metrics(turn, previous=None, *, source_tools=()) -> dict:
+def turn_metrics(turn, previous=None, *, source_tools=(), provenance_version='source-provenance-v1') -> dict:
     def delta(field):
         current = getattr(turn, field)
         prior = getattr(previous, field) if previous is not None else 0
         if previous is not None and previous.session_id != turn.session_id:
             return None
         return current - prior if current is not None and prior is not None and current >= prior else None
-    return {**tool_profile(turn, source_tools=source_tools), 'latency_s': turn.latency_s,
+    return {**tool_profile(turn, source_tools=source_tools, provenance_version=provenance_version), 'latency_s': turn.latency_s,
         'input_tokens': delta('session_input_tokens'), 'output_tokens': delta('session_output_tokens'),
         'policy_blocks': turn.policy_blocks, 'returncode': turn.returncode}
 
 
-def initial_effort(turn, previous=None, *, source_tools=(), inherited_path=None):
-    metrics = turn_metrics(turn, previous, source_tools=source_tools)
+def initial_effort(turn, previous=None, *, source_tools=(), inherited_path=None, provenance_version='source-provenance-v1'):
+    metrics = turn_metrics(turn, previous, source_tools=source_tools, provenance_version=provenance_version)
     if inherited_path is not None:
         metrics.update(inherited_source_fallback=bool(inherited_path.get('source_fallback')),
                        inherited_unclassified=bool(inherited_path.get('unclassified')))
@@ -370,12 +372,12 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
                   question_model=None, question_dir: Path | None = None,
-                  previous_turn=None, conversation=(), inherited_path=None) -> dict:
+                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None) -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
     attempts = []
-    initial_metrics = initial_effort(initial_turn, previous_turn, source_tools=source_tools, inherited_path=inherited_path)
+    initial_metrics = initial_effort(initial_turn, previous_turn, source_tools=source_tools, inherited_path=inherited_path, provenance_version=provenance_version)
     report = {'state': 'running', 'plan_hash': plan['plan_hash'], 'attempts': attempts,
               'protocol_version': 5, 'minimum_initial_correct': 1, 'initial_metrics': initial_metrics,
               'policy': 'one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final'}
@@ -416,16 +418,20 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             turn = tracked_turn(run_turn, question, usage_path=directory / "usage.json", at=initial_turn.at, home=home, allowlist=allowlist,
                             extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id)
             save(directory / 'turn.json', vars(turn))
-            attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools)
+            attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools, provenance_version=provenance_version)
             attempt['gateway_window'] = cost_window(before, budget_snapshot())
             if turn.session_id != initial_turn.session_id or turn.returncode or turn.policy_blocks or not turn.answer.strip():
                 raise ValueError('follow-up turn failed, changed session, or was policy blocked')
+            from .native_checks import diagnostic_inputs
+            from types import SimpleNamespace
+            inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn) if evidence_by_id is not None else None
             followup_grade = grade_semantic(grade.checkpoint, turn.prompt, turn.answer,
                 tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
                 record_path=directory / 'judgment.json', conversation=tuple(conversation) + (
                     {'role': 'user', 'content': initial_turn.prompt},
-                    {'role': 'assistant', 'content': initial_turn.answer}))
-            save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots]})
+                    {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs)
+            save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots],
+                **({'evidence_diagnostic': followup_grade.evidence_diagnostic} if inputs is not None else {})})
             attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
         except Exception as exc:
             attempt['error'] = f'{type(exc).__name__}: {exc}'
@@ -440,7 +446,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path, previous_turn=None, conversation=(), inherited_path=None) -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None) -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -473,7 +479,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
               (not eligible or report['attempts'][0]['claim_ids'] == failed),
               'expected exactly one combined follow-up covering all eligible omissions')
         check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
-        effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path)
+        effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path, provenance_version=provenance_version)
         check(report['initial_metrics'] == effort, 'initial effort mismatch')
         previous = initial_turn
         for attempt in report['attempts']:
@@ -506,7 +512,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             check(turn.prompt == expected_prompt and turn.at == initial_turn.at, 'follow-up clock/prompt mismatch')
             check(turn.session_id == initial_turn.session_id, 'follow-up lost recall conversation')
             check(not turn.returncode and not turn.policy_blocks, 'follow-up turn failed/blocked')
-            check(attempt['metrics'] == turn_metrics(turn, previous), 'follow-up tool/token metrics mismatch')
+            check(attempt['metrics'] == turn_metrics(turn, previous, provenance_version=provenance_version), 'follow-up tool/token metrics mismatch')
             judgment = read(directory / 'judgment.json')
             check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer,
                   'follow-up judgment context mismatch')
@@ -518,6 +524,24 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             check(json.loads(judgment['response'])['verdicts'] == judgments,
                   'follow-up grade differs from recorded judge response')
             selected = [c for c in contract.claims if c.id in selected_ids]
+            if evidence_by_id is not None:
+                check('diagnostic_protocol' in judgment and 'evidence_diagnostic' in read(directory / 'grade.json'), 'missing follow-up evidence diagnostic')
+            if 'diagnostic_protocol' in judgment:
+                from .native_checks import diagnostic_inputs
+                from .semantic_grade import validate_diagnostic, DIAGNOSTIC_VERSION, judge_prompt
+                from types import SimpleNamespace
+                inputs = judgment.get('diagnostic_inputs', {})
+                claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in selected)
+                saved_grade = read(directory / 'grade.json')
+                check(judgment['diagnostic_protocol'] == DIAGNOSTIC_VERSION and
+                    saved_grade.get('evidence_diagnostic') == validate_diagnostic(json.loads(judgment['response']).get('evidence_diagnostic'), claim_objects, turn.answer, inputs),
+                    'follow-up diagnostic differs from judge')
+                check(judgment['prompt'] == judge_prompt(turn.prompt, turn.answer, claim_objects,
+                    conversation=judgment['conversation'], diagnostic_inputs=inputs), 'follow-up diagnostic prompt mismatch')
+                reconstructed = diagnostic_inputs(turn, SimpleNamespace(claims=selected),
+                    evidence_by_id if evidence_by_id is not None else {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, prior_turn=initial_turn)
+                check(inputs.get('answer_visible') == reconstructed['answer_visible'] and
+                    (evidence_by_id is None or inputs == reconstructed), 'follow-up diagnostic evidence mismatch')
             check(judgment['claims'] == [{'id': c.id, 'description': c.statement,
                                          'evidence': list(c.evidence)} for c in selected],
                   'follow-up judge received a different claim')

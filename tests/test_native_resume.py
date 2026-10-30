@@ -90,3 +90,12 @@ def test_resume_renews_deleted_workspace_only_before_any_native_session(tmp_path
     with pytest.raises(RuntimeError,match='without ingestion conversations'):
         renew_empty_workspace(root,root/'resumes/2')
     assert (root/'recall-workspace.json').read_bytes()==receipt
+
+
+@pytest.mark.parametrize('key', ['provenance_version', 'evidence_diagnostic_protocol'])
+def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key):
+    import json
+    from pacbench.native_resume import resume
+    (tmp_path / 'summary.json').write_text(json.dumps({key: 'unknown-protocol'}))
+    with pytest.raises(ValueError, match='Unsupported'):
+        resume(tmp_path)

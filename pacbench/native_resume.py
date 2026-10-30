@@ -81,7 +81,7 @@ def resume(output, *, max_messages=4500, question_dir=None):
                                stop_arm_model_work)
     from .gateway_client import client_settings, require_live_cost_boundary, validate_route
     from .creds import load_driver
-    from .evaluation import load_evaluations
+    from .evaluation import load_evaluations, judge_evidence
     from .model_calls import ModelClient
     from .native_checks import run_checks
     from .document_ingestion import ingest_day, record_recall_isolation, ready_sources
@@ -89,6 +89,11 @@ def resume(output, *, max_messages=4500, question_dir=None):
     from .usage import snapshot, provider_model_health
     from .native_audit import audit
     output=output.resolve();report=read(output/'summary.json')
+    from .semantic_grade import DIAGNOSTIC_VERSION
+    if report.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
+        raise ValueError('Unsupported provenance protocol')
+    if 'evidence_diagnostic_protocol' in report and report['evidence_diagnostic_protocol'] != DIAGNOSTIC_VERSION:
+        raise ValueError('Unsupported evidence diagnostic protocol')
     if (report.get('state')!='incomplete' or len(report['results'])!=1 or
             report['results'][0]['provider']!='openviking' or report['results'][0]['repetition']!=1):
         raise ValueError('Resume requires one interrupted OpenViking arm')
@@ -182,8 +187,12 @@ def resume(output, *, max_messages=4500, question_dir=None):
         (root/'evaluation.json').unlink(missing_ok=True)
         judge=ModelClient(key=key,model=driver.model_id,record_dir=output/'model-calls',
                           url=client_settings('pacbench-judge')[0]+'/chat/completions')
+        def evidence_for_check(row):
+            return judge_evidence(output, messages, resolved, row, plan['context'])
         sequence=run_checks(checks,plan['context'],root,judge,','.join(policy['allowed_tools']),env,
-                            question_dir=question_dir or output/'combined-questions',before_check=before_check)
+                            question_dir=question_dir or output/'combined-questions',before_check=before_check,
+                            provenance_version=report.get('provenance_version','source-provenance-v1'),
+                            evidence_by_id=evidence_for_check if report.get('evidence_diagnostic_protocol') else None)
         result.update(state=sequence['state'],checks=sequence['checks'],
                       reason='' if sequence['state']=='diagnostic' else 'Resumed evaluation incomplete')
         capability['live_verified']=sequence['state']=='diagnostic'

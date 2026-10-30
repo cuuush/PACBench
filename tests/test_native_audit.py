@@ -180,7 +180,7 @@ def test_partial_story_audits_skips_without_bypassing_tool_boundary(trace, monke
     monkeypatch.setattr(native_audit, 'load_evaluations',
         lambda *_: ({'plan_hash': 'test-plan', 'context': 'shared'}, [('answer', None, None)]))
     inspected = []
-    monkeypatch.setattr(native_audit, 'audit_checks', lambda *args: inspected.append(args) or [])
+    monkeypatch.setattr(native_audit, 'audit_checks', lambda *args, **kwargs: inspected.append(args) or [])
     if corrupt_tools:
         (arm / 'context.jsonl.tools.jsonl').write_text(json.dumps(
             {'allowed_tools': ['mem0_search'], 'offered_tools': ['terminal']}) + '\n')
@@ -209,3 +209,11 @@ def test_missing_arm_receipt_does_not_abort_later_provider_audits(trace):
     assert result['state']=='fail'
     assert any('unconfigured' in e and 'FileNotFoundError' in e for e in result['errors'])
     assert any('judge lacks recall clock' in e for e in result['errors'])
+
+
+@pytest.mark.parametrize('key', ['provenance_version', 'evidence_diagnostic_protocol'])
+def test_audit_rejects_unknown_recorded_protocol_before_reading_run(tmp_path, key):
+    save(tmp_path / 'summary.json', {key: 'unknown-protocol'})
+    result = audit(tmp_path)
+    assert result['state'] == 'fail'
+    assert 'Unsupported' in str(result['errors'])

@@ -25,10 +25,13 @@ def session_key(row, context):
 
 def fresh_state():
     return {'history': [], 'previous': None, 'session': None,
+            'session_started_at': None,
             'path': {'source_fallback': False, 'unclassified': False}, 'failed': None}
 
 
 def advance(state, turn, directory, provenance_version='source-provenance-v1'):
+    if state['session_started_at'] is None:
+        state['session_started_at'] = turn.session_started_at or turn.at
     state['history'] = extend_history(state['history'], turn)
     state['path'] = extend_path(state['path'], turn, provenance_version)
     state['previous'], state['session'] = turn, turn.session_id
@@ -94,7 +97,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                 if before_check is not None:before_check(row, directory)
                 turn = tracked_turn(run_turn, contract.question, usage_path=directory / 'usage.json', at=row['at'],
                     home=root / 'hermes-home', allowlist=allowlist, extra_env=env, timeout_s=180,
-                    session_id=state['session'])
+                    session_id=state['session'], session_started_at=state['session_started_at'])
                 save(directory / 'turn.json', vars(turn))
                 if turn.policy_blocks:
                     item.update(state='failed', verdict='fail', reason='Disallowed tool attempted')

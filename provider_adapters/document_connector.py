@@ -55,8 +55,7 @@ def mem0(source, root, at, processing_at):
 
 def memcal(source, root, at, processing_at):
     sys.path.insert(0,os.environ['MEMCAL_SRC'])
-    from memcal import archive,brief,config,db,identity
-    from memcal.sources import imessage,proton
+    from memcal import archive,brief,config,db,identity,sources
     from memcal.dream.run import dream
     from pacbench.gateway_client import validate_route
     if not (source/'chat.db').exists():
@@ -76,32 +75,49 @@ def memcal(source, root, at, processing_at):
     validate_route(cfg.openai_base_url,cfg.openai_api_key)
     conn=db.open_db(cfg.db_path)
     try:
-        os.environ['MEMCAL_TODAY']=at
+        os.environ['MEMCAL_TODAY']=processing_at
         linked,contact_report=identity.import_contacts(conn)
-        collection=archive.open_collection(conn,mode='imessage')
-        report=imessage.ingest(conn,collection_id=collection)  # actual native default path
-        if report.error:raise RuntimeError(report.error)
-        expected=sum(m['channel']=='imessage' for m in messages)
-        if report.read!=expected:
-            raise RuntimeError(f'Native reader consumed {report.read}/{expected} new messages')
+        collection=archive.open_collection(conn,mode='cli')
         mail_report=None
         mail_transport=None
-        if any(m['channel']=='email' for m in messages):
-            from pacbench.email_fixture import MailboxServer
-            # A native secure IMAP session against provider-independent RFC822
-            # source data. Do not substitute Bridge methods or base.deliver.
-            with MailboxServer(source/'mailbox.json') as mailbox:
-                cfg.env.update(PROTON_BRIDGE_HOST='127.0.0.1',PROTON_BRIDGE_PORT=str(mailbox.port),
-                               PROTON_BRIDGE_USER=mailbox.user,PROTON_BRIDGE_PASSWORD=mailbox.password)
-                mail_report=proton.ingest(conn,cfg)
-                mail_transport={'interface':'TLS IMAP4rev1 Inbox/Sent fixture',
-                                'commands':mailbox.commands,
-                                'account':mailbox.user}
-            if mail_report.error:raise RuntimeError(mail_report.error)
-            expected_mail=sum(m['channel']=='email' for m in messages)
-            if mail_report.read!=expected_mail:
-                raise RuntimeError(f'Native IMAP reader consumed {mail_report.read}/{expected_mail} new emails')
-        os.environ['MEMCAL_TODAY']=processing_at
+        collection_error=None
+        try:
+            report=sources.catch_up(sources.get('imessage',cfg),conn,cfg,collection_id=collection)
+            if report.more and not report.error:
+                collection_error='native collection incomplete'
+                raise RuntimeError('iMessage collection incomplete')
+            if report.error:raise RuntimeError(report.error)
+            expected=sum(m['channel']=='imessage' for m in messages)
+            if report.read!=expected:
+                raise RuntimeError(f'Native reader consumed {report.read}/{expected} new messages')
+            if any(m['channel']=='email' for m in messages):
+                from pacbench.email_fixture import MailboxServer
+                with MailboxServer(source/'mailbox.json') as mailbox:
+                    cfg.env.update(PROTON_BRIDGE_HOST='127.0.0.1',PROTON_BRIDGE_PORT=str(mailbox.port),
+                                   PROTON_BRIDGE_USER=mailbox.user,PROTON_BRIDGE_PASSWORD=mailbox.password)
+                    mail_report=sources.catch_up(sources.get('email',cfg),conn,cfg,collection_id=collection)
+                    mail_transport={'interface':'TLS IMAP4rev1 Inbox/Sent fixture',
+                                    'commands':mailbox.commands,'account':mailbox.user}
+                if mail_report.more and not mail_report.error:
+                    collection_error='native collection incomplete'
+                    raise RuntimeError('email collection incomplete')
+                if mail_report.error:raise RuntimeError(mail_report.error)
+                expected_mail=sum(m['channel']=='email' for m in messages)
+                if mail_report.read!=expected_mail:
+                    raise RuntimeError(f'Native IMAP reader consumed {mail_report.read}/{expected_mail} new emails')
+            expected_channels={'imessage'} | ({'email'} if mail_report is not None else set())
+            persisted=conn.execute('SELECT collection_id,channel,status FROM collection_sources WHERE collection_id=?',
+                                   (collection,)).fetchall()
+            if (len(persisted)!=len(expected_channels) or
+                {row['channel'] for row in persisted}!=expected_channels or
+                any(row['collection_id']!=collection or row['status']!='complete' for row in persisted)):
+                raise RuntimeError('Native collection outcomes missing or incomplete')
+        except Exception:
+            collection_error=collection_error or 'native collection failed'
+            raise
+        finally:
+            archive.close_collection(conn,collection,error=collection_error)
+        collection_record=archive.collections(conn,limit=1)[0]
         result=dream(conn,cfg)  # product defaults, ordinary nightly processing
         brief.write(conn,cfg)
         event_state=[dict(row) for row in conn.execute(
@@ -117,6 +133,8 @@ def memcal(source, root, at, processing_at):
         diagnostic=folder/(source.name+'.json')
         diagnostic.write_text(json.dumps({'bundles':native_bundles,'calls':native_calls},ensure_ascii=False,indent=2)+'\n')
         return {'ready':not bool(result.errors),'interface':'native source readers + native nightly dream',
+                'collector_protocol':'native-cli-collection-v1',
+                'collection':collection_record,
                 'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),
                 **({'email_ingest':asdict(mail_report),'email_transport':mail_transport} if mail_report else {}),
                 'bundles':native_bundles,'model_call_record':str(diagnostic),

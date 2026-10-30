@@ -69,6 +69,7 @@ class TurnResult:
     provider_traces: list[dict] = dataclasses.field(default_factory=list)
     prefetch_context: str | None = None
     context_isolation: dict | None = None
+    session_started_at: str | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -188,7 +189,7 @@ def turn_env(at: str, home: Path,
 
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
-             session_id: str | None = None) -> TurnResult:
+             session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
     """Drive one noninteractive turn through the isolated clone and parse traces.
 
     Every turn carries its simulated now in chat context (not only in the
@@ -202,6 +203,8 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     prompt = (f"[Simulated now: {at}. Treat this as the current date and "
               f"time for everything in this turn.]\n\n{prompt}")
     env = turn_env(at, home, allowlist, extra_env)
+    session_started_at = session_started_at or at
+    env['PACBENCH_SESSION_STARTED_AT'] = session_started_at
     from .context_isolation import actual_context, workspace_for
     workspace = workspace_for(home)
     env['TERMINAL_CWD'] = str(workspace)
@@ -226,6 +229,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         part_out, part_err = decode(exc.stdout), decode(exc.stderr)
         partial = subprocess.CompletedProcess(cmd, -1, part_out, note + "\n" + part_err)
         result = _parse_turn(prompt, at, partial, latency)
+        result.session_started_at = session_started_at
         result.stderr_tail = note
         result.context_isolation = actual_context(home, result.session_id, workspace)
         _recover_tool_results(result, home / "state.db")
@@ -234,6 +238,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         return result
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
+    result.session_started_at = session_started_at
     result.context_isolation = actual_context(home, result.session_id, workspace)
     if result.context_isolation['state'] != 'pass':
         result.policy_blocks += 1

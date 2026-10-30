@@ -416,7 +416,8 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             before = budget_snapshot()
             from .usage import tracked_turn
             turn = tracked_turn(run_turn, question, usage_path=directory / "usage.json", at=initial_turn.at, home=home, allowlist=allowlist,
-                            extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id)
+                            extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id,
+                            session_started_at=initial_turn.session_started_at or initial_turn.at)
             save(directory / 'turn.json', vars(turn))
             attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools, provenance_version=provenance_version)
             attempt['gateway_window'] = cost_window(before, budget_snapshot())

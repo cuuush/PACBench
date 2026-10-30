@@ -2,6 +2,8 @@
 import json
 import sqlite3
 import subprocess
+import os
+import sys
 from datetime import datetime,timezone,timedelta
 
 import pytest
@@ -13,6 +15,81 @@ from pacbench.imessage_fixture import append_messages,apple_ns
 def message(id,sender='Devon',owner=False,thread='one',stamp='2026-09-10T18:00:00-04:00'):
     return {'source_id':id,'sender':sender,'from_owner':owner,'thread':thread,'channel':'imessage',
             'written_at':stamp,'collected_at':'2026-09-10T23:00:00-04:00','text':'Friday dinner at seven.','structured':None}
+
+
+@pytest.mark.parametrize('mode',['success','missing_outcome','incomplete','source_failure','count_mismatch'])
+def test_memcal_native_collection_records_transport_and_original_times(tmp_path, mode):
+    chat=message('chat')
+    mail={**message('mail'), 'channel':'email', 'thread':'mail',
+          'structured':{'participants':['Me','Devon'],'email_subject':'Dinner'}}
+    prepare_sources(tmp_path,[chat,mail],'America/New_York')
+    root=tmp_path/'arm'; root.mkdir()
+    home=tmp_path/'home'; home.mkdir()
+    src=os.environ.get('MEMCAL_TEST_SRC',str(__import__('pathlib').Path(__file__).resolve().parents[2]/'memcal'))
+    program='''
+import json, os, sqlite3, sys
+from pathlib import Path
+from unittest.mock import patch
+from contextlib import ExitStack
+sys.path.insert(0, os.environ['MEMCAL_SRC'])
+from memcal import archive, sources
+from memcal.sources import imessage
+from provider_adapters.document_connector import memcal
+class Dream:
+    run_id=1
+    errors=[]
+    def report(self): return 'test'
+mode=sys.argv[3]
+original=sources.catch_up
+def intercept(source, conn, cfg, **kwargs):
+    report=original(source,conn,cfg,**kwargs)
+    if mode=='incomplete':
+        report.more=True
+        archive.record_source(conn,kwargs['collection_id'],report)
+    if mode=='source_failure':
+        report.error='fixture source failure'
+        archive.record_source(conn,kwargs['collection_id'],report)
+    if mode=='count_mismatch': report.read+=1
+    return report
+with ExitStack() as stack:
+    stack.enter_context(patch.object(imessage, 'CHAT_DB', Path.home()/'Library/Messages/chat.db'))
+    stack.enter_context(patch('pacbench.gateway_client.validate_route'))
+    dream=stack.enter_context(patch('memcal.dream.run.dream', return_value=Dream()))
+    if mode=='missing_outcome': stack.enter_context(patch.object(archive,'record_source',side_effect=sqlite3.OperationalError('fixture')))
+    if mode in ('incomplete','source_failure','count_mismatch'): stack.enter_context(patch.object(sources,'catch_up',side_effect=intercept))
+    try:
+        result=memcal(Path(sys.argv[1]),Path(sys.argv[2]),'2026-09-10T23:00:00-04:00','2026-09-11T03:00:00-04:00')
+        error=None
+    except RuntimeError as exc:
+        result=None; error=str(exc)
+    dream_called=dream.called
+with sqlite3.connect(Path(os.environ['MEMCAL_HOME'])/'memcal.db') as db:
+    rows=db.execute("select channel,ts,collection_id from archive order by channel").fetchall()
+    collection=db.execute('select finished_at,error from collections').fetchone()
+    statuses=db.execute('select channel,status from collection_sources').fetchall()
+print(json.dumps({'result':result,'rows':rows,'error':error,'dream_called':dream_called,'collection':collection,'statuses':statuses}, default=lambda x: list(x) if isinstance(x,set) else str(x)))
+'''
+    env={**os.environ,'HOME':str(home),'MEMCAL_HOME':str(root/'memcal-home'),
+         'MEMCAL_SRC':src,'MEMCAL_LLM_PROVIDER':'openai-compatible',
+         'MEMCAL_OPENAI_BASE_URL':'http://localhost:1','OPENAI_COMPAT_API_KEY':'fixture',
+         'TZ':'America/New_York'}
+    proc=subprocess.run([sys.executable,'-c',program,str(tmp_path/'sources/2026-09-10'),str(root),mode],
+                        env=env,capture_output=True,text=True,timeout=30)
+    assert proc.returncode==0, proc.stderr
+    payload=json.loads(proc.stdout.splitlines()[-1]); result=payload['result']
+    if mode!='success':
+        assert result is None and payload['error'] and not payload['dream_called']
+        assert payload['collection']==['2026-09-11T03:00:00-04:00',
+                                      'native collection incomplete' if mode=='incomplete' else 'native collection failed']
+        if mode=='incomplete': assert payload['statuses']==[['imessage','incomplete']]
+        if mode=='source_failure': assert payload['statuses']==[['imessage','failed']]
+        return
+    assert result['collector_protocol']=='native-cli-collection-v1' and result['ready']
+    collection=result['collection']
+    assert collection['started_at']==collection['finished_at']=='2026-09-11T03:00:00-04:00'
+    assert {s['channel']:s['status'] for s in collection['sources']}=={'imessage':'complete','email':'complete'}
+    assert len(payload['rows'])==2
+    assert all(row[1]==chat['written_at'] and row[2]==collection['id'] for row in payload['rows'])
 
 
 @pytest.mark.parametrize('damage',['none','timeout','errors','counter-only','missing-queues'])

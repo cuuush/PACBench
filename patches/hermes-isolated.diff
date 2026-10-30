@@ -90,22 +90,22 @@ index 2b5f5f7..f244f41 100644
          return INLINE_TOOL_EXECUTORS[function_name]
      memory_manager = agent._memory_manager
 diff --git a/agent/system_prompt.py b/agent/system_prompt.py
-index 9d5c5e1..cd1ab03 100644
+index 9d5c5e1..1d5e765 100644
 --- a/agent/system_prompt.py
 +++ b/agent/system_prompt.py
-@@ -218,6 +218,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
-             except ValueError:
-                 pass
-     session_start = getattr(agent, "session_start", None)
-+    # PACBench isolated-run shim (benchmark harness only): under a fictional clock,
-+    # real session-mint timestamps would contradict the simulated date. Anchor the
-+    # display date to the simulated now instead.
+@@ -192,6 +192,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
+     build without either).
+     """
+     from datetime import datetime
++    # PACBench supplies the first simulated turn separately from the current
++    # turn, so resumed conversations keep their simulated start date.
 +    import os as _os
 +    if _os.environ.get("PACBENCH_NOW", "").strip():
-+        return now
-     return _to_display_tz(session_start) if hasattr(session_start, "astimezone") else now
- 
- 
++        start = _os.environ.get("PACBENCH_SESSION_STARTED_AT", "").strip()
++        return datetime.fromisoformat(start) if start else now
+     def _to_display_tz(dt: Any) -> Any:
+         if dt.tzinfo is None:
+             try:
 @@ -290,7 +296,11 @@ def _tool_guidance_block(agent: Any) -> Optional[str]:
          _kanban_guidance = KANBAN_GUIDANCE
      tool_guidance = [

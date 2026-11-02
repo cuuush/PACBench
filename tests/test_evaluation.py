@@ -4,6 +4,21 @@ from types import SimpleNamespace
 
 import pytest
 
+def _combined_fixture(model):
+    """Adapt legacy per-review mock responses to one combined model call."""
+    def call(prompt):
+        if prompt.startswith('Independently perform both reviews'):
+            claim, question = prompt.split('CLAIM REVIEW:\n',1)[1].split('\n\nQUESTION REVIEW:\n',1)
+            if '\n\nSHARED CONTEXT:\n' in question:
+                question, context = question.split('\n\nSHARED CONTEXT:\n', 1)
+                context = context.replace('Proposed claims / expected facts: ', 'Proposed claims: ')
+                claim += '\n' + context
+                question += '\n' + context
+            return json.dumps({'claim_review':json.loads(model(claim)), 'question_review':json.loads(model(question))})
+        return model(prompt)
+    return call
+
+
 from pacbench.evaluation import resolve_checks
 from pacbench.followups import freeze_policy
 from pacbench.harness import TurnResult
@@ -35,7 +50,7 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
         if 'Review each proposed claim' in prompt:
             return '{"complete":true,"reviews":[{"id":"fact-1","supported":true,"relevant":true,"unambiguous":true,"reason":"Synthetic review"}]}'
         return '{"claims":[{"id":"fact-1","statement":"Breakfast is at the cafe.","evidence":["m1"]}]}'
-    first = freeze_evaluations(resolved, observations, None, model, tmp_path)
+    first = freeze_evaluations(resolved, observations, None, _combined_fixture(model), tmp_path)
     assert not first.get('errors') and len(calls)==3
     if change=='source': observations[0]['text']+=' Bring a sweater.'
     elif change in ('prompt','expect'): check[change]+=' Please.'
@@ -50,7 +65,7 @@ def test_resume_reuses_only_unchanged_hash_verified_contracts(tmp_path, change):
         old=json.loads(path.read_text());old.pop('contract_hash');old['authoring_version']='old'
         path.write_text(json.dumps({**old,'contract_hash':digest(old)}))
     calls.clear()
-    second = freeze_evaluations(resolved, observations, None, model, tmp_path, resume=True)
+    second = freeze_evaluations(resolved, observations, None, _combined_fixture(model), tmp_path, resume=True)
     assert not second.get('errors')
     assert len(calls)==(0 if change=='unchanged' else 3)
 
@@ -68,7 +83,7 @@ def test_frozen_contract_keeps_authored_prerequisites_even_without_conditional_c
         if 'Check this evaluation prompt' in prompt:return '{"safe":true,"faithful":true,"elicits_all":true,"reason":"Synthetic review"}'
         if 'Review each proposed claim' in prompt:return '{"complete":true,"reviews":[{"id":"fact-1","supported":true,"relevant":true,"unambiguous":true,"reason":"Synthetic review"}]}'
         return '{"claims":[{"id":"fact-1","statement":"Breakfast is at the cafe.","evidence":["m1"]}]}'
-    plan=freeze_evaluations(resolved,observations,None,model,tmp_path)
+    plan=freeze_evaluations(resolved,observations,None,_combined_fixture(model),tmp_path)
     assert plan['checks'][1]['requires']==['first']
     load_evaluations(tmp_path,observations,resolved)
     plan['checks'][1]['requires']=[]
@@ -172,7 +187,7 @@ def test_supplied_prompt_is_not_rewritten_and_nonelicitable_facts_fail_closed(tm
     def forbidden(_):
         raise AssertionError('Supplied prompts must not be authored again')
     c = build_contract(scene='Breakfast', test_intent='Recap breakfast', observations=observations,
-        author_facts=('Breakfast is at the cafe.',), generate=generator, verify=reviewer,
+        author_facts=('Breakfast is at the cafe.',), generate=generator, verify=_combined_fixture(reviewer),
         question_generate=forbidden, output_path=tmp_path / 'contract.json',
         user_question='Catch me up on breakfast', question_at='2026-09-11T09:00:00-04:00')
     assert c.question == 'Catch me up on breakfast'
@@ -180,7 +195,7 @@ def test_supplied_prompt_is_not_rewritten_and_nonelicitable_facts_fail_closed(tm
         return '{"safe":true,"faithful":true,"elicits_all":false,"reason":"Wrong scope"}' if 'Check this evaluation prompt' in prompt else reviewer(prompt)
     with pytest.raises(ValueError, match='fairly elicit'):
         build_contract(scene='Breakfast', test_intent='Breakfast', observations=observations,
-            author_facts=('Breakfast is at the cafe.',), generate=generator, verify=rejected,
+            author_facts=('Breakfast is at the cafe.',), generate=generator, verify=_combined_fixture(rejected),
             question_generate=forbidden, output_path=tmp_path / 'rejected.json', user_question='What about dinner?')
     assert not (tmp_path / 'rejected.json').exists()
 
@@ -256,7 +271,7 @@ def test_rejected_english_criteria_get_one_independently_reviewed_repair(tmp_pat
           'reason':'Irrelevant detail' if r['id']=='incidental' else 'Supported required outcome'} for r in rows]})
     def run():
         return build_contract(scene='An outing',test_intent='The outing was cancelled.',
-            observations=observations,generate=generate,verify=verify,
+            observations=observations,generate=generate,verify=_combined_fixture(verify),
             question_generate=lambda _:pytest.fail('Public question must stay unchanged'),
             user_question='What happened with our outing?',output_path=tmp_path/'contract.json')
     if repair_succeeds:

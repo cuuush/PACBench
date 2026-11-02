@@ -68,12 +68,24 @@ function eventsOnDay(arm, date, run) {
 }
 function checkStatus(run, item) {
   const planned = (run.evaluations || []).find(check => check.id === item.id);
+  const readiness = item.write_readiness;
+  const criteria = (planned?.contract?.claims || []).map(c => '<div class="verdict-row">' + badge('Ungraded','neutral') +
+    '<div><strong>' + esc(c.statement) + '</strong></div></div>').join('');
+  const states = readiness?.native_states || [];
+  const observed = states.map(s => '<li>' + esc(s.id || 'ID not captured') + ': native status ' + esc(s.status ?? 'unknown') +
+    ' · dreaming ' + esc(s.dreaming_status ?? 'unknown') + '</li>').join('');
+  const delay = Number.isFinite(readiness?.latency_s) ? Math.round(readiness.latency_s / 60 * 10) / 10 + ' minutes' : 'duration not captured';
+  const readinessText = readiness ? '<p>Dependent write readiness: ' + esc(readiness.state || 'unknown') + ' after ' + esc(delay) + '.</p>' +
+    (readiness.accepted_ids?.length ? '<p>Accepted native IDs: ' + readiness.accepted_ids.map(esc).join(', ') + '</p>' : '<p>Accepted native IDs: not captured.</p>') +
+    (observed ? '<ul>' + observed + '</ul>' : '<p>Native processing status not captured.</p>') +
+    (readiness.reason ? '<p>' + esc(readiness.reason) + '</p>' : '') +
+    (readiness.dependencies?.length ? '<p>Depends on: ' + readiness.dependencies.map(esc).join(', ') + '</p>' : '') +
+    recordButton('Load exact readiness record', readiness.record_url) :
+    '<p>' + esc(item.reason || 'No answer recorded.') + (item.cause ? ' · Depends on ' + esc(item.cause) : '') + '</p>';
   return '<section class="exchange check-status"><div class="exchange-label">' + esc(item.id) + ' · ' +
-    esc(localClock(item.at,run)) + '</div>' + badge(item.state) +
-    (planned?.contract?.question ? '<p>' + esc(planned.contract.question) + '</p>' : '') +
-    '<p>' + esc(item.reason || 'No answer recorded.') +
-    (item.cause ? ' · Depends on ' + esc(item.cause) : '') + '</p>' +
-    (planned ? details('Planned question and criteria',renderContract({...run,evaluations:[planned]})) : '') + '</section>';
+    esc(localClock(item.at,run)) + '</div>' + badge(item.state === 'skipped' && item.reason === 'Scripted clarification reply was not requested' ? 'Question not asked · skipped' : 'Question not asked · ungraded','warn') +
+    (planned?.contract?.question ? '<h4>Planned question</h4><p>' + esc(planned.contract.question) + '</p>' : '') +
+    readinessText + (criteria ? '<h4>Expected facts</h4>' + criteria : '') + '</section>';
 }
 function turnRecord(turn) {
   return details("Exact prompt, clock and session", '<h4>Prompt sent to Hermes</h4><pre>' + esc(turn.prompt || "not captured") +
@@ -132,7 +144,7 @@ function dayTimeline(run) {
     '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' turns') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
     '</div>' + (arm ? '<p class="muted">' + 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' + '</p>' : '') +
     (arm?.tool_policy?.version?.startsWith('retained-memory-only-') ? '<p class="muted">Archive and original-message tools are disabled. Native event/page citations remain available.</p>' : '') +
-    (events.length ? events.map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : event.kind==='status' ? checkStatus(run,event.item) : providerExchange(run,arm,event.item,event.index)).join('') : empty) +
+    (events.length ? events.filter(event => event.kind !== 'recall' || event.item.kind !== 'followup' || !events.some(first => first.kind === 'recall' && first.item.kind === 'initial' && first.item.check_id === event.item.check_id)).map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : event.kind==='status' ? checkStatus(run,event.item) : providerExchange(run,arm,event.item,event.index,event.item.kind === 'initial' ? events.filter(next => next.kind === 'recall' && next.item.kind === 'followup' && next.item.check_id === event.item.check_id).map(next => next.item) : [])).join('') : empty) +
     (!events.length && planned.length ? details('Planned questions and criteria',renderContract({...run,evaluations:planned})) : '') +
     (arm ? details('Provider setup and run status',dump({preflight:arm.preflight,status:arm.status,tool_policy:arm.tool_policy,model_usage:arm.model_usage,model_usage_after_settlement:arm.model_usage_after_settlement,evaluation_context:run.summary?.evaluation_context})) : '') +
     '</section></div>';

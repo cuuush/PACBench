@@ -172,7 +172,15 @@ def test_http_reads_runs_on_every_request_and_blocks_raw_private_paths(tmp_path,
             assert json.load(response)['runs'][0]['arms']['mem0-repeat-1']['exchanges'][0]['turn']['answer']=='New answer'
         with urllib.request.urlopen(base+'/bundle?run=trial') as response:
             assert json.load(response)['bundle_hash']==data['runs'][0]['bundle_hash']
-        for route in ('/bundle?run=..','/bundle?run=trial&file=hermes-home/.env','/run?run=..'):
+        with urllib.request.urlopen(base+'/record?run=trial&file=repeat-1/mem0/recall.json') as response:
+            assert json.load(response)['answer'] == 'New answer'
+        (arm/'turns'/'linked').mkdir(parents=True)
+        (arm/'turns'/'linked'/'turn.json').symlink_to(home/'model-calls/secret.json')
+        for route in ('/bundle?run=..','/bundle?run=trial&file=hermes-home/.env','/run?run=..',
+                      '/record?run=trial&file=repeat-1/mem0/hermes-home/.env',
+                      '/record?run=trial&file=../hermes-home/.env',
+                      '/record?run=trial&file=repeat-1/mem0/turns/linked/turn.json'):
+
             with pytest.raises(urllib.error.HTTPError) as blocked:urllib.request.urlopen(base+route)
             assert blocked.value.code==404
         calls=data['runs'][0]['model_calls']
@@ -238,3 +246,36 @@ def test_excluded_attempt_answers_remain_inspectable_without_replacing_selected_
     summary['other_attempts'][0]['evidence']='../private'
     save(root/'summary.json',summary)
     assert explorer.load_runs(tmp_path)['errors'][0]['error']=='attempt evidence must stay inside run'
+
+
+def test_unasked_check_exposes_native_readiness_without_full_receipt(tmp_path):
+    root, arm = trial(tmp_path)
+    save(root/'evaluation-plan.json', {'checks': [{'id': 'later', 'at': '2026-10-26T11:00:00-04:00'}]})
+    save(root/'evaluations/later/contract.json', {'question': 'What changed?', 'claims': [{'id': 'x', 'statement': 'Sunday'}]})
+    save(arm/'evaluation.json', {'checks': [{'id': 'later', 'at': '2026-10-26T11:00:00-04:00',
+        'state': 'ungraded', 'reason': 'RuntimeError: write not ready'}]})
+    save(arm/'turns/later/write-readiness.json', {'state': 'unavailable', 'dependencies': ['write'],
+        'inputs': {'accepted_ids': ['doc-1']}, 'latency_s': 901,
+        'observed': {'ready': False, 'reason': 'Native queued write readiness deadline exceeded',
+                     'snapshots': [[{'id': 'doc-1', 'status': 'done', 'dreaming_status': 'dreaming'}]]},
+        'large_private_history': 'not needed in main view'})
+    data = explorer.load_runs(tmp_path, include_model_records=False)['runs'][0]
+    check = data['arms']['mem0-repeat-1']['evaluation']['checks'][0]
+    status = check['write_readiness']
+    assert status['accepted_ids'] == ['doc-1'] and status['native_states'][0]['dreaming_status'] == 'dreaming'
+    assert status['latency_s'] == 901 and 'large_private_history' not in status
+    assert status['record_url'].startswith('/record?')
+    assert data['arms']['mem0-repeat-1']['exchanges'] == []
+
+
+def test_compact_run_keeps_grades_and_clips_only_browser_preview(tmp_path):
+    root, arm = trial(tmp_path)
+    save(arm/'recall.json', {'answer': 'First fact', 'tool_calls': [{'name':'search'}],
+        'tool_results': [{'text': 'x' * 1000}]})
+    save(arm/'judgment.json', {'question': 'Q', 'prompt':'secret-large-prompt', 'response':'full-result'})
+    run = explorer.load_runs(tmp_path, include_model_records=False)['runs'][0]
+    ex = run['arms']['mem0-repeat-1']['exchanges'][0]
+    assert ex['grade']['claims'][1]['verdict'] == 'missed'
+    assert len(ex['turn']['tool_results'][0]['text']) == 500 and ex['turn']['tool_results'][0]['preview_clipped']
+    assert 'prompt' not in ex['judgment'] and ex['judgment_record_url'].startswith('/record?')
+    assert len(json.loads((arm/'recall.json').read_text())['tool_results'][0]['text']) == 1000

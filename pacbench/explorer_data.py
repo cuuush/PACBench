@@ -57,7 +57,11 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
                 return
             recovery = read_json(directory / 'followups/recovery.json')
             behavior = read_json(directory / 'behavior.json')
-            exchanges.append({'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
+            from urllib.parse import urlencode
+            def record_url(path):
+                relative = path.relative_to(runs_dir)
+                return '/record?' + urlencode({'run': relative.parts[0], 'file': Path(*relative.parts[1:]).as_posix()})
+            exchanges.append({'turn_record_url': record_url(directory / turn_file), 'judgment_record_url': record_url(directory / 'judgment.json'), 'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
                 'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
                 'judge_review': read_json(run_dir / 'judge-scope-review' / f'{provider}-{check_id}.json'),
                 'check_id': check_id, 'kind': 'initial', 'usage': read_json(directory / 'usage.json'), 'status': read_json(directory / 'status.json'),
@@ -71,7 +75,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
                 if not follow_turn:
                     continue
                 subset = {**(checkpoint_contract or {}), 'claims': [c for c in (checkpoint_contract or {}).get('claims', []) if c['id'] in selected]}
-                exchanges.append({'turn': follow_turn, 'judgment': read_json(follow / 'judgment.json'),
+                exchanges.append({'turn_record_url': record_url(follow / 'turn.json'), 'judgment_record_url': record_url(follow / 'judgment.json'), 'turn': follow_turn, 'judgment': read_json(follow / 'judgment.json'),
                     'grade': read_json(follow / 'grade.json'), 'contract': subset, 'check_id': check_id,
                     'kind': 'followup', 'question_authoring_reused': attempt.get('question_authoring_reused'), 'metrics': attempt.get('metrics'), 'retention': recovery,
                     'usage': read_json(follow / 'usage.json'), 'question_plan': read_json(follow / 'question-plan.json')})
@@ -113,6 +117,21 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
             'model_usage_after_settlement': settled_usage,
             'turn': exchanges[0]['turn'] if exchanges else None}
         collection[key]['evaluation'] = read_json(arm / 'evaluation.json')
+        if collection[key]['evaluation']:
+            for item in collection[key]['evaluation'].get('checks', []):
+                receipt = read_json(arm / 'turns' / item['id'] / 'write-readiness.json')
+                if receipt:
+                    observed = receipt.get('observed') or {}
+                    snapshots = observed.get('snapshots') or []
+                    states = snapshots[-1] if snapshots and isinstance(snapshots[-1], list) else []
+                    item['write_readiness'] = {'state': receipt.get('state'), 'dependencies': receipt.get('dependencies', []),
+                        'accepted_ids': (receipt.get('inputs') or {}).get('accepted_ids', []),
+                        'latency_s': receipt.get('latency_s'), 'ready': observed.get('ready'),
+                        'reason': observed.get('reason'), 'native_states': states,
+                        'record_url': '/record?' + __import__('urllib.parse', fromlist=['urlencode']).urlencode({
+                            'run':(arm / 'turns' / item['id'] / 'write-readiness.json').relative_to(runs_dir).parts[0],
+                            'file':Path(*(arm / 'turns' / item['id'] / 'write-readiness.json').relative_to(runs_dir).parts[1:]).as_posix()})}
+
     records = {}
     components=summary.get('component_runs',[])
     folders=[source,run_dir,run_dir/'judge-scope-review']
@@ -207,7 +226,7 @@ def load_runs(root: Path, *, include_model_records=True, run_id=None) -> dict:
                             if arm.get('status'):arm['status'].pop('checks',None)
                             if arm.get('evaluation'):
                                 arm['evaluation']['checks']=[{k:v for k,v in c.items() if k in
-                                    ('id','at','session','state','verdict','reason','cause','error_type','contract_hash')}
+                                    ('id','at','session','state','verdict','reason','cause','error_type','contract_hash','write_readiness')}
                                     for c in arm['evaluation'].get('checks',[])]
                             for exposure in arm.get('exposures',[]):
                                 packet=exposure.pop('packet',[])
@@ -215,13 +234,34 @@ def load_runs(root: Path, *, include_model_records=True, run_id=None) -> dict:
                                 document=exposure.pop('document',None)
                                 if document is not None:item['source_documents'][exposure['label']]=document
                             for ex in arm.get('exchanges',[]):
+                                judgment = ex.get('judgment')
+                                if judgment:
+                                    ex['judgment'] = {k: judgment[k] for k in ('question', 'model_call') if k in judgment}
+                                ex.pop('question_plan', None)
+                                turn = ex.get('turn') or {}
+                                turn['prefetch_context_present'] = bool(turn.pop('prefetch_context', None))
+                                for result in turn.get('tool_results', []):
+                                    text = result.get('text')
+                                    if isinstance(text, str) and len(text) > 500:
+                                        result['text'] = text[:500]
+                                        result['preview_clipped'] = True
+                                turn.pop('stderr_full', None)
+                                turn.pop('stderr_tail', None)
+                                turn.pop('stdout_tail', None)
+                                for trace in turn.get('provider_traces', []):
+                                    trace.pop('record', None)
                                 if ex.get('contract'):ex['contract'].pop('source_aliases',None)
                                 if ex.get('source_state'):
                                     state=ex['source_state'];ids=state.pop('source_ids',None)
                                     if ids is not None:state['source_count']=len(ids)
                                     elif state.get('reference_version')==2:
                                         state['source_count']=sum(batch_counts[id] for id in state['ingested_batches'])
-                                if ex.get('retention'):ex['retention'].pop('initial_metrics',None)
+                                if ex.get('metrics'):
+                                    for operation in ex['metrics'].get('operations', []): operation.pop('result', None)
+                                    ex['metrics'].pop('provider_internal_operations', None)
+                                if ex.get('retention'):
+                                    ex['retention'].pop('initial_metrics',None)
+                                    ex['retention'].pop('attempts',None)
                                 if ex.get('status'):ex['status'].pop('recovery',None)
                         item.pop('bundle',None)
                         item['bundle_url']='/bundle?'+urlencode({'run':run['id'],'file':bundle_file})

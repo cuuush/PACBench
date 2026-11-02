@@ -3,6 +3,9 @@
   "timezone": "America/New_York",
   "noise": "low",
   "ingestion_days": 2,
+  "cast": {
+    "Riley": "The user's friend who works at Spoke Cycles."
+  },
   "channels": {
     "riley": {
       "type": "imessage",
@@ -28,18 +31,22 @@
             "id": "bike-ready",
             "channel": "riley",
             "time": "11 am",
-            "scene": "Riley, a friend who works at Spoke Cycles, texts that the user's repaired bike is ready. The user is away this coming weekend, so they arrange pickup for Saturday of the following week. Make the later weekend clear in ordinary conversation. Keep this short.",
+            "scene": "Riley says the user's repaired bike is ready. The user is away this coming weekend.",
             "facts": [
-              "The user and Riley agree on bike pickup Saturday of the following week at 2 pm at Spoke Cycles, 114 Maple Avenue."
+              "The user and Riley agree on bike pickup Saturday of the following week.",
+              "The bike pickup is at 2 pm.",
+              "The pickup is at Spoke Cycles, 114 Maple Avenue."
             ]
           },
           {
             "id": "coffee",
             "channel": "riley",
             "time": "6 pm",
-            "scene": "Later in the same chat Riley suggests catching up over coffee away from work, on Sunday of that same later weekend. This is separate from the bike handover. Keep the date scope clear without a formal recap.",
+            "scene": "Riley suggests catching up over coffee away from work, separate from the bike pickup.",
             "facts": [
-              "The user and Riley agree to coffee Sunday of the following week at 9 am at Maple Mug."
+              "The user and Riley agree to coffee Sunday of the following week.",
+              "Coffee is at 9 am.",
+              "Coffee is at Maple Mug."
             ]
           }
         ]
@@ -50,9 +57,13 @@
             "id": "earlier-pickup",
             "channel": "riley-email",
             "time": "10 am",
-            "scene": "Riley emails from work to change next week's Saturday pickup because the shop closes early on that pickup day. Riley asks the user to come at 10 am instead of the 2 pm agreed by text, and the user accepts. A brief ordinary email exchange; the day must be the same later Saturday arranged in the texts. No invented quoted history or recap of coffee.",
+            "scene": "The shop closes early on pickup day, so Riley proposes an earlier pickup by email.",
             "facts": [
-              "They agree to move the bike pickup to 10 am on Saturday of the following week, the same pickup day arranged by text. The shop and address are unchanged."
+              "They agree to move the bike pickup to 10 am.",
+              "The pickup remains on Saturday of the following week, the day arranged by text.",
+              "The pickup remains at Spoke Cycles, 114 Maple Avenue.",
+              "Any quoted earlier correspondence matches the actual earlier messages.",
+              "The email does not recap the coffee arrangement."
             ]
           }
         ]

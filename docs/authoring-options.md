@@ -4,12 +4,22 @@
 
 Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
 
+Optionally define recurring people before channels in `cast`, mapping each participant name to a concise description. This private context goes to the writer and checker for scenes involving that person; it is not source evidence or provider metadata. All facts in a scene are checked together in one independent review.
+
+Scene style:
+
+- Use `cast` for stable character context.
+- Describe what happens in one short scene sentence.
+- Let channel and time metadata establish the thread and sequence.
+- Put one checkable outcome or constraint in each fact, including date scope and continuity; avoid narrative instructions.
+
 Email channels use `type: "email"` and a `subject`. Each generated entry becomes an RFC 5322 email body with From/To, Date, Message-ID and reply references. Bodies preserve paragraphs and quoted reply history as part of the actual sender's message. Email exchanges stay at 2–6 messages at every noise level; more email volume comes from authored threads rather than text-chat quotas. Messaging and email addresses are distinct accounts on the same separate Contacts card. Memcal consumes Inbox/Sent through its native secure IMAP reader against a synthetic local mailbox; this is a protocol fixture, not a running Proton Bridge. No native readers or archive writes are substituted. The checker sees preceding source context across channels; the writer sees its own preceding thread and authored requirements.
 
 Every scene checker sees preceding cross-channel source context. Its cache binds the actual checked transcript and context, not just the scene description. A changed checker/context can reverify cached text without rewriting it; only a rejected realization needs a new draft. The private scene cache preserves unvisited renders through interrupted revisions. Frozen-source audits compare message bodies and metadata with the saved passing checker input and model receipt.
 
 ```json
 {
+  "cast": {"Devon": "The user's friend from work."},
   "channels": {
     "devon": {"type": "imessage", "participants": ["Me", "Devon"]}
   },
@@ -18,7 +28,9 @@ Every scene checker sees preceding cross-channel source context. Its cache binds
       "scenes": [
         {"id": "invite", "channel": "devon", "time": "7:30 am",
          "scene": "A conversation about getting pizza.",
-         "facts": ["They agree to Domino's on Friday. Maria is coming too."]}
+         "facts": ["They agree to get pizza on Friday.",
+                   "They agree on Domino's as the venue.",
+                   "Maria is coming too."]}
       ]
     }
   }

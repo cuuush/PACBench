@@ -190,6 +190,13 @@ def normalize_week(spec, week_start=None):
     for key,value in channels.items():
         if not isinstance(value,dict) or set(value)-allowed or not value.get('type') or not value.get('participants'):
             raise ValueError(f'Channel {key!r} needs type and participants, with an optional group name')
+    cast = spec.get('cast', {})
+    participants = {p for channel in channels.values() for p in channel['participants']}
+    if (not isinstance(cast, dict) or any(
+            not isinstance(name, str) or not name.strip() or name not in participants or
+            not isinstance(description, str) or not description.strip()
+            for name, description in cast.items())):
+        raise ValueError('Cast needs channel participant names and nonempty descriptions')
     from datetime import date
     monday=date.fromisoformat(week_start) if week_start else datetime.now(ZoneInfo(spec.get('timezone','America/New_York'))).date()
     if week_start and monday.weekday()!=0:raise ValueError('week-start must be a Monday')
@@ -207,6 +214,8 @@ def normalize_week(spec, week_start=None):
             definition=channels[channel_id]
             row.update(channel=definition['type'],thread=channel_id,participants=definition['participants'],
                 chat_name=definition.get('name',''),at=clock_on_day(date,row.pop('time')))
+            relevant_cast = {name: cast[name] for name in definition['participants'] if name in cast}
+            if relevant_cast: row['cast'] = relevant_cast
             if definition.get('subject'):
                 row['email_subject']=definition['subject']
             if 'until' in row:row['window_end']=clock_on_day(date,row.pop('until'))
@@ -223,7 +232,7 @@ def normalize_week(spec, week_start=None):
                 row['session']=session
                 checks.append(row)
     if not scenes or not checks:raise ValueError('Week requires sources and assistant turns')
-    return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels')},'week':True,
+    return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels','cast')},'week':True,
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
         'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
 

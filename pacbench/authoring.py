@@ -55,6 +55,7 @@ class ScenePlan:
     timezone: str = ""
     message_range: tuple[int, int] | None = None
     participants: tuple[str, ...] = ()
+    cast: dict[str, str] = field(default_factory=dict)
     chat_name: str = ""
     email_subject: str = ""
     noise: str = "low"
@@ -67,6 +68,11 @@ class ScenePlan:
                     len(set(self.participants)) != len(self.participants) or 'Me' not in self.participants):
                 raise AuthoringError('participants must be distinct source contacts including Me')
             object.__setattr__(self,'participants',tuple(self.participants))
+        if (not isinstance(self.cast, dict) or any(
+                not isinstance(name, str) or not name.strip() or name not in self.participants or
+                not isinstance(description, str) or not description.strip()
+                for name, description in self.cast.items())):
+            raise AuthoringError('cast descriptions require named participants and nonempty prose')
         if self.chat_name and (not isinstance(self.chat_name,str) or len(self.participants)<3):
             raise AuthoringError('chat_name requires an explicit group roster')
         if self.email_subject and (self.channel != 'email' or not isinstance(self.email_subject, str)):
@@ -118,6 +124,9 @@ def scene_prompt(plan: ScenePlan,
                 "these facts (they are authoring constraints, not lines to copy):\n" +
                 "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
                 if plan.facts else "")
+    cast = ("Private character context, for background rather than text to repeat:\n" + "\n".join(
+        f"{name}: {description}" for name, description in plan.cast.items()) + "\n"
+        if plan.cast else "")
     continuity = (
         "Earlier messages in this same thread, with their dates "
         "(context, not text to repeat):\n" +
@@ -132,7 +141,7 @@ def scene_prompt(plan: ScenePlan,
         return (f"Write a natural short email exchange. Subject: {plan.email_subject}. "
                 f"Participants: {', '.join(plan.participants)}; Me is the owner's speaker label, not a spoken name. "
                 f"Date: {plan.window_start[:10]}, local time {plan.window_start[11:16]}–{plan.window_end[11:16]}.\n"
-                f"{continuity}Scenario: {plan.scene}{required}\n"
+                f"{continuity}{cast}Scenario: {plan.scene}{required}\n"
                 + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
                    if plan.message_range else "Use a short exchange. ") +
                 "The subject is header metadata; do not put a Subject: prefix inside an email body. "
@@ -151,7 +160,7 @@ def scene_prompt(plan: ScenePlan,
         f"These messages will be timestamped between {plan.window_start[11:16]} "
         f"and {plan.window_end[11:16]} local time. Keep references to the "
         "current time of day consistent with that window.\n"
-        f"{continuity}"
+        f"{continuity}{cast}"
         f"Scenario: {plan.scene}{required}\n\n"
         "Continue each person's voice from their earlier messages. Start with what "
         "they want to say; small talk and unrelated remarks are optional. Allow "
@@ -205,6 +214,7 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         "timezone": plan.timezone,
         "message_range": list(plan.message_range) if plan.message_range is not None else None,
         "participants": list(plan.participants), "chat_name": plan.chat_name,
+        **({'cast':plan.cast} if plan.cast else {}),
         **({'email_subject':plan.email_subject} if plan.email_subject else {}),
         "noise": plan.noise, "messages_per_person": list(plan.messages_per_person) if plan.messages_per_person is not None else None,
         "prompt_version": SCENE_PROMPT_VERSION,
@@ -343,6 +353,9 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
     """Verify that the transcript establishes the authored scene."""
     transcript = "\n".join(f"{i + 1}. {s}: {t}"
                            for i, (s, t) in enumerate(lines))
+    cast = ("Private character context, not evidence that a fact appears in the dialogue:\n" + "\n".join(
+        f"{name}: {description}" for name, description in plan.cast.items()) + "\n\n"
+        if plan.cast else "")
     cross_channel=any(len(row)==4 for row in prior_lines)
     prior = (("Earlier source messages across channels" if cross_channel else "Earlier messages in this thread") + ", for interpreting references "
              "(cite only the numbered new messages below):\n" +
@@ -360,7 +373,7 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                 "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
                 if plan.facts else "")
     return (
-        "You are verifying a fictional conversation, not writing it. "
+        cast + "You are verifying a fictional conversation, not writing it. "
         "Does the dialogue establish the scenario, including each specified "
         "person, detail, and commitment? Reject missing, contradictory, or "
         "merely tentative details when the scenario says agreed. Check that "

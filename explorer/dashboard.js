@@ -274,22 +274,12 @@ function resultSources(run, arm, result) {
   const ids = sources(run).filter(item => text.includes(item.source_id)).map(item => item.source_id);
   return ids.map(sourceLink).join(" ");
 }
-function resultBody(run, arm, result) {
-  if (!result) return notice("Tool result not captured.");
-  const parsed = parseResult(result);
-  let body = "";
-  if (Array.isArray(parsed?.results)) {
-    body = parsed.results.length ?
-      parsed.results.map((hit, i) => '<div class="tool-hit"><small>Hit ' + (i + 1) +
-        (hit.fact_type ? " · " + esc(hit.fact_type) : "") + '</small><p>' +
-        esc(hit.text || hit.content || JSON.stringify(hit)) + "</p></div>").join("") :
-      '<p class="muted">No hits returned. ' + esc(parsed.message || "") + "</p>";
-  } else {
-    body = '<pre>' + esc(typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2)) + "</pre>";
-  }
-  const links = resultSources(run, arm, result);
-  return body + (links ? '<div class="source-links">Source messages: ' + links + "</div>" : "") +
-    details("Exact tool result", dump(result));
+function recordButton(label, url) {
+  return url ? '<span class="record-loader"><button type="button" data-record-url="' + esc(url) + '">' + esc(label) + '</button></span>' : '';
+}
+function previewText(value, limit = 240) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value ?? '');
+  return esc(text.slice(0, limit)) + (text.length > limit ? ' … (preview clipped)' : '');
 }
 function toolName(name) {
   return ({
@@ -299,38 +289,21 @@ function toolName(name) {
     "memcal_conversation": "Memcal conversation"
   })[name] || name;
 }
-function toolCards(run, arm, turn) {
+function toolCards(run, arm, turn, ex) {
   const calls = turn.tool_calls || [];
-  const traces = turn.provider_traces || [];
-  if (!calls.length && !traces.length) return '<div class="quiet">No tool calls recorded for this answer.</div>';
-  const cards = [];
-  const seenCalls = new Map();
-  const stable = value => Array.isArray(value) ? value.map(stable) : value && typeof value === 'object' ?
-    Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
-  calls.forEach((call, index) => {
+  if (!calls.length) return '<p class="muted">No direct tool calls recorded.</p>';
+  return '<div class="tool-sequence">' + calls.map((call, index) => {
     const result = turn.tool_results?.[index];
-    const blocked = result?.policy_blocked || String(result?.text || "").includes("PACBENCH-BLOCKED");
-    const nested = Array.isArray(call.input?.calls) ? call.input.calls : [];
-    let error = false;
-    try { error = Boolean(JSON.parse(result?.text || "{}").error); } catch (_) {}
-    const failed = result?.success === false || error;
-    const query = call.input?.query || call.input?.line_id ||
-      (nested.length ? nested.map(c => toolName(c.name)).join(", ") : "");
-    const label = call.name === "tool_call" && nested.length === 1 ?
-      toolName(nested[0].name) : toolName(call.name);
-    const signature = JSON.stringify([call.name, stable(call.input || call.arguments || {})]);
-    const repeated = seenCalls.has(signature) ? seenCalls.get(signature) : null;
-    if (repeated === null) seenCalls.set(signature, index + 1);
-    const card = '<details class="tool-card"><summary><span class="tool-icon">⌕</span><span><strong>' +
-      esc((index + 1) + '. ' + label) + '</strong><small>' +
-      esc(query || (blocked ? "Blocked" : failed ? "Failed" : "Open output")) +
-      '</small></span><span class="tool-state">' + (blocked ? "blocked" : failed ? "failed" : result?.success === true ? "returned" : "not captured") +
-      '</span></summary><div class="tool-body">' + (repeated !== null ? notice('Same tool and arguments as call ' + repeated + '. Review whether the repeat was needed.') : '') + '<h4>Arguments</h4>' + dump(call.input || call.arguments || {}) +
-      '<h4>What came back</h4>' + resultBody(run, arm, result) + "</div></details>";
-    cards.push(card);
-  });
-  if (traces.length) cards.push(details("Provider internal tasks and tool calls", dump(traces)));
-  return cards.join("");
+    const blocked = result?.policy_blocked || String(result?.text || '').includes('PACBENCH-BLOCKED');
+    const state = blocked ? 'blocked' : result?.success === false ? 'failed' : result ? 'returned' : 'not captured';
+    const args = call.input || call.arguments || {};
+    const query = args.query || args.line_id || args.id || '';
+    const resultText = result?.text ?? (result ? JSON.stringify(result) : 'Result not captured');
+    return '<div class="tool-card compact"><strong>' + esc((index + 1) + '. ' + toolName(call.name)) + '</strong> ' +
+      badge(state, blocked || state === 'failed' ? 'bad' : 'neutral') +
+      (query ? '<p>Query: ' + previewText(query, 120) + '</p>' : '') +
+      '<p>' + previewText(resultText) + (result?.preview_clipped && String(resultText).length <= 240 ? ' … (preview clipped)' : '') + '</p></div>';
+  }).join('') + '</div>' + recordButton('Load exact tool calls and results', ex.turn_record_url);
 }
 function score(ex) {
   if (ex.status?.state === "invalid") return ["Invalid checkpoint", "bad"];
@@ -350,62 +323,54 @@ function score(ex) {
     (missed === 1 ? "" : "s"), "warn"];
   return ["All facts correct", "ok"];
 }
-function scoreDetails(run, ex, expanded = true) {
+function scoreDetails(run, ex) {
   const [label, tone] = score(ex);
   const criteria = (ex.contract || run.contract)?.claims || [];
-  const verdicts = ex.grade?.claims || criteria.map(c => ({id: c.id, verdict: "ungraded", reason: "Awaiting judge"}));
+  const verdicts = ex.grade?.claims || criteria.map(c => ({id:c.id, verdict:'ungraded', reason:'No answer judgment captured.'}));
+  const diagnostic = ex.grade?.evidence_diagnostic;
   const rows = verdicts.map(item => {
-    const claim = (ex.contract || run.contract)?.claims?.find(c => c.id === item.id);
-    return '<div class="verdict-row">' + badge(item.verdict === "correct" ? "Passed" : item.verdict === "missed" ? "Failed · missed" : item.verdict === "misrepresented" ? "Failed · wrong" : "Ungraded", item.verdict === "correct" ? "ok" : item.verdict === "missed" ? "warn" : item.verdict === "ungraded" ? "neutral" : "bad") + '<div><strong>' +
-      esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason) + '</p>' +
-      (claim?.evidence || []).map(sourceLink).join(" ") + (ex.grade?.recovery?.find(r => r.id === item.id) ? '<p>Follow-up assessment: ' + esc(ex.grade.recovery.find(r => r.id === item.id).kind.replaceAll('_',' ')) + ' · ' + esc(ex.grade.recovery.find(r => r.id === item.id).reason) + '</p>' : '') + "</div></div>";
-  }).join("");
-  return '<details ' + (expanded ? 'open ' : '') + 'class="answer-score ' + tone + '"><summary>' + badge(label, tone) +
-    '<span>Criteria and judge verdicts</span></summary><div class="fold-body">' +
-    (rows || notice("A complete answer judgment was not captured. This answer is ungraded.")) +
-    evidenceDetails(ex.grade?.evidence_diagnostic, ex.grade, ex.contract || run.contract) +
-    (ex.judge_review ? details("Judge scope review (original grade unchanged)",
-      notice("This review records possible judging or question-scope issues. The original trial grade remains above.") +
-      '<h4>Review response</h4><pre>' + esc(ex.judge_review.response) +
-      '</pre><h4>Review prompt</h4><pre>' + esc(ex.judge_review.prompt) + '</pre>') : "") +
-    (ex.judgment ? details("Answer judge prompt and response", '<p class="muted">Judge: ' + esc(modelCall(run, ex.judgment.model_call)?.model || "model not captured") + "</p>" + '<h4>Prompt</h4><pre>' +
-      esc(ex.judgment.prompt || "not captured") + '</pre><h4>Response</h4><pre>' +
-      esc(ex.judgment.response || "not captured") + "</pre>") : "") + "</div></details>";
-}
-function evidenceDetails(diagnostic, grade, contract) {
-  if (!diagnostic) return '';
-  if (diagnostic.state !== 'complete') return notice('Evidence review ungraded: ' + (diagnostic.reason || 'incomplete evidence'));
-  const citations = rows => (rows || []).map(c => '<p><small>' + esc(c.id) + '</small><q>' + esc(c.quote) + '</q></p>').join('');
-  const claims = (diagnostic.claims || []).map(item => '<div class="verdict-row">' +
-    badge(item.status.replaceAll('_', ' '), item.status === 'supported' ? 'ok' : item.status === 'uncertain' ? 'warn' : 'neutral') +
-    '<div><strong>' + esc(contract?.claims?.find(c => c.id === item.id)?.statement || item.id) + '</strong>' +
-    '<p>Final answer: ' + esc(grade?.claims?.find(c => c.id === item.id)?.verdict || 'ungraded') + '</p><p>' +
-    esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
-  const extras = (diagnostic.extra_assertions || []).map(item => '<div class="verdict-row">' +
-    badge(item.status, item.status === 'contradicted' ? 'bad' : item.status === 'supported' ? 'ok' : 'neutral') +
-    '<div><strong>' + esc(item.assertion) + '</strong><p>Answer: ' + esc(item.answer_quote) + '</p><p>' +
-    esc(item.reason) + '</p>' + citations(item.citations) + '</div></div>').join('');
-  return details('Retrieved evidence and additional assertions',
-    '<p class="muted">These diagnostics are separate from fact scores. They examine provider briefs and tool results; user instructions and tool-call arguments remain separate from retrieval evidence. Available evidence does not prove the assistant used it.</p>' +
-    '<h4>Provider evidence returned to Hermes</h4>' + claims + '<h4>Additional assertions</h4>' +
-    '<p class="muted">Source evidence covers expected-fact citations only. Unverifiable means the supplied evidence cannot establish truth or falsity.</p>' +
-    (extras || '<p>No additional factual assertions flagged.</p>'));
+    const claim = criteria.find(c => c.id === item.id);
+    const evidence = diagnostic?.state === 'complete' ? diagnostic.claims?.find(c => c.id === item.id) : null;
+    const state = item.verdict === 'correct' ? 'Passed' : item.verdict === 'missed' ? 'Failed · missed' : item.verdict === 'misrepresented' ? 'Failed · wrong' : 'Ungraded';
+    const evidenceText = evidence ? '<p class="muted">Provider evidence returned to Hermes: ' + esc(evidence.status.replaceAll('_',' ')) + '</p>' +
+      (evidence.citations || []).map(c => '<p><small>' + esc(c.id) + '</small> <q>' + previewText(c.quote, 220) + '</q></p>').join('') : '';
+    return '<div class="verdict-row">' + badge(state, item.verdict === 'correct' ? 'ok' : item.verdict === 'misrepresented' ? 'bad' : 'warn') +
+      '<div><strong>' + esc(claim?.statement || item.id) + '</strong><p>' + esc(item.reason || '') + '</p>' + evidenceText +
+      (claim?.evidence || []).map(sourceLink).join(' ') + '</div></div>';
+  }).join('');
+  const extras = diagnostic?.state === 'complete' ? (diagnostic.extra_assertions || []) : [];
+  const extraRows = extras.map(item => '<div class="verdict-row">' + badge(item.status, item.status === 'contradicted' ? 'bad' : 'neutral') +
+    '<div><strong>' + esc(item.assertion) + '</strong><p>' + esc(item.reason) + '</p>' +
+    (item.citations || []).map(c => '<p><small>' + esc(c.id) + '</small> <q>' + previewText(c.quote, 220) + '</q></p>').join('') + '</div></div>').join('');
+  return '<div class="answer-score ' + tone + '">' + badge(label,tone) + '<h4>Expected facts and judge verdicts</h4>' + rows +
+    (diagnostic && diagnostic.state !== 'complete' ? notice('Evidence review ungraded: ' + (diagnostic.reason || 'incomplete evidence')) : '') +
+    (diagnostic?.state === 'complete' ? '<p class="muted">Provider evidence availability does not prove the assistant used it. User instructions and tool arguments are outside this evidence scope.</p><h4>Additional assertions</h4>' +
+      (extraRows || '<p class="muted">None flagged.</p>') + '<p class="muted">Source coverage is partial; unverifiable does not establish truth or falsity.</p>' : '') +
+    recordButton('Load exact judge record',ex.judgment_record_url) + '</div>';
 }
 function questionText(turn, ex) {
   return String(ex.judgment?.question || turn.prompt || "").replace(/^\[Simulated now:[^\n]+\]\n\n/, "");
 }
-function providerExchange(run, arm, ex, index) {
+function providerExchange(run, arm, ex, index, followups = []) {
   const turn = ex.turn;
   if (!turn) return notice("Hermes turn " + (index + 1) + " not captured.");
-  return '<section class="exchange"><div class="exchange-label">' + esc(ex.check_id || 'Question ' + (index + 1)) + (ex.kind === 'followup' ? ' · Recovery attempt' : '') +
-    " · " + esc(localClock(turn.at,run)) + " · " + esc(readableDay(dayKey(turn.at,run))) + '</div>' +
-    '<div class="chat-row mine"><div class="chat-message"><div class="bubble">' +
-      esc(questionText(turn, ex)) + "</div></div></div>" +
-    (turn.prefetch_context ? details("Memory brief visible for this turn", '<pre>' + esc(turn.prefetch_context) + "</pre>") : "") + effortDetails(ex) + usageDetails(ex) + '<div class="tool-sequence">' + toolCards(run, arm, turn) + "</div>" +
-    '<div class="chat-row theirs"><span class="avatar hermes-avatar">H</span><div class="chat-message">' +
-      '<div class="sender">Hermes</div><div class="bubble answer-bubble">' +
-      esc(turn.answer || "Answer not captured.") + "</div>" +
-      scoreDetails(run, ex, page === "judge") + "</div></div>" + turnRecord(turn) + "</section>";
+  return '<section class="exchange"><div class="exchange-label">' + esc(ex.check_id || 'Question ' + (index + 1)) +
+    (ex.kind === 'followup' ? ' · Follow-up attempt' : '') + ' · ' + esc(localClock(turn.at,run)) + '</div>' +
+    '<h4>Question</h4><p>' + esc(questionText(turn, ex)) + '</p><h4>Hermes answer</h4><div class="bubble answer-bubble">' +
+    esc(turn.answer || 'Answer not captured.') + '</div>' + scoreDetails(run,ex) +
+    '<h4>Tool calls</h4>' + toolCards(run,arm,turn,ex) +
+    (turn.prefetch_context_present || turn.prefetch_context ? recordButton('Load memory brief and full turn',ex.turn_record_url) : '') +
+    effortDetails(ex) + usageDetails(ex) + (followups.length ? details('Follow-up attempt', followups.map((follow,i) => providerExchange(run,arm,follow,i)).join('')) : '') + '</section>';
+}
+function checkPanels(run, arm) {
+  const exchanges = arm.exchanges || [];
+  const statuses = arm.evaluation?.checks || [];
+  const initial = exchanges.filter(ex => ex.kind !== 'followup');
+  const ordered = statuses.length ? statuses.map(status => ({status, ex:initial.find(ex => ex.check_id === status.id)})) : initial.map(ex => ({ex}));
+  for (const ex of initial) if (!ordered.some(item => item.ex === ex)) ordered.push({ex});
+  for (const ex of exchanges.filter(ex => ex.kind === 'followup' && !initial.some(first => first.check_id === ex.check_id))) ordered.push({ex});
+  return ordered.map(({ex,status}, i) => ex ? providerExchange(run,arm,ex,i,
+    ex.kind === 'initial' ? exchanges.filter(f => f.kind === 'followup' && f.check_id === ex.check_id) : []) : checkStatus(run,status)).join('');
 }
 function effortDetails(ex) {
   const m = ex.metrics;
@@ -419,7 +384,7 @@ function effortDetails(ex) {
     '<p class="muted">Provider internal calls: ' + esc(m.provider_internal_tool_calls ?? 'unobserved') +
     ' · failed operations: ' + esc(m.failed_operations ?? 'unknown') + ' · exact repeat operations: ' + esc(m.repeated_operations ?? 'unknown') +
     '. Repetition is review evidence; it does not automatically establish wasted work. Internal calls can include background work.</p>' +
-    (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + details("Tool effort and retention accounting", dump({metrics: m, score: ex.retention?.score}));
+    (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + recordButton('Load exact turn record',ex.turn_record_url);
 }
 function usageDetails(ex) {
   const usage = ex.usage_after_settlement || ex.usage;
@@ -427,7 +392,7 @@ function usageDetails(ex) {
   if (usage?.state === 'captured') {
     rows = Object.entries(usage.roles || {}).map(([role,total]) => '<tr><td>' + (role === 'hermes' ? 'Hermes' : 'Memory provider') +
       '</td><td>' + esc(total.model_calls) + '</td><td>' + esc(total.input_tokens ?? 'unknown') + '</td><td>' + esc(total.output_tokens ?? 'unknown') +
-      '</td><td>$' + esc(Number(total.accounted_upper_bound_usd).toFixed(6)) + (total.unsettled_calls ? ' · includes reservations' : '') + '</td></tr>').join('');
+      '</td><td>' + (total.accounted_upper_bound_usd == null ? 'unknown' : '$' + esc(Number(total.accounted_upper_bound_usd).toFixed(6))) + (total.unsettled_calls ? ' · includes reservations' : '') + '</td></tr>').join('');
   }
   const authoring = ex.question_plan?.authoring_calls;
   const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
@@ -435,20 +400,25 @@ function usageDetails(ex) {
   return details('Model calls and token usage', rows ? '<div class="usage-table"><table><thead><tr><th>Who</th><th>LLM calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost upper bound</th></tr></thead><tbody>' + rows +
     '</tbody></table></div>' + (ex.usage_after_settlement ? '<p class="muted">Usage updated from a later arm receipt; the original window and request IDs are unchanged.</p>' : '') +
     '<p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later. Local embedding/model tokens are not captured in this gateway table.</p>' +
-    details('Individual model requests and late settlements',dump(ex.usage_after_settlement ? {original_window:ex.usage,updated_window:usage} : usage)) + benchmark :
+    benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
 function judgePage(run) {
-  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Recovery asks only for a silent omission from a broad request. Wrong answers, admitted lookup failures, missed explicitly requested details, and zero recall get no follow-up.</p>' +
-    '<p class="muted">Questions: ' + esc(run.evaluation_plan?.context || "isolated") + ' context. Earlier answers can resolve references; they do not earn credit for an omitted fact in a later answer.</p>' +
-    renderContract(run) + '</section>' + Object.values(run.arms || {}).map(arm =>
-      '<section class="stage"><h2>' + esc(arm.label || arm.provider) + '</h2>' +
-      (arm.exchanges || []).map((ex, i) => providerExchange(run, arm, ex, i)).join("") + '</section>').join("") +
+  const arms = run.arms || {};
+  const keys = Object.keys(arms);
+  if (!keys.includes(selectedProvider)) selectedProvider = keys[0] || '';
+  const switches = keys.map(key => '<button type="button" data-provider="' + esc(key) + '" aria-pressed="' +
+    (key === selectedProvider) + '" class="' + (key === selectedProvider ? 'active' : '') + '">' +
+    esc(arms[key].label || key) + '</button>').join('');
+  const selectedArm = arms[selectedProvider];
+  return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Earlier answers can resolve references; they do not earn credit for a fact omitted from a later answer.</p>' +
+    '<div class="provider-switch" aria-label="Memory provider">' + switches + '</div>' +
+    (selectedArm ? '<h3>' + esc(selectedArm.label || selectedArm.provider) + '</h3>' + checkPanels(run,selectedArm) : notice('No provider results recorded.')) + '</section>' +
     (Object.keys(run.excluded_arms || {}).length ? details('Excluded attempts · separate configurations and interruptions',
       '<p>These attempts are excluded from the selected provider results and cost comparison.</p>' +
       Object.values(run.excluded_arms).map(arm => '<section class="stage"><h2>' + esc(arm.label) + '</h2>' +
         (arm.configuration_review ? notice(arm.configuration_review.finding) : notice(arm.exclusion?.reason)) +
-        (arm.exchanges || []).map((ex,i) => providerExchange(run,arm,ex,i)).join('') + '</section>').join('')) : '');
+        checkPanels(run,arm) + '</section>').join('')) : '');
 }
 function costPage(run) {
   const review = run.cost_review;
@@ -562,7 +532,7 @@ document.addEventListener("click", event => {
   const dayButton = target.closest("[data-day]");
   if (dayButton) { selectedDay = dayButton.dataset.day; choose(current, "timeline", false); document.querySelector(".day-navigation")?.scrollIntoView({block:"start"}); return; }
   const providerButton = target.closest("[data-provider]");
-  if (providerButton) { selectedProvider = providerButton.dataset.provider; choose(current, "timeline", false); return; }
+  if (providerButton) { selectedProvider = providerButton.dataset.provider; choose(current, page === "judge" ? "judge" : "timeline", false); return; }
   const sourceButton = target.closest("[data-jump]");
   if (sourceButton) {
     const sourceMessage = message(sourceButton.dataset.jump);

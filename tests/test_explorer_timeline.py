@@ -60,3 +60,25 @@ assert.equal(dayKey('2026-11-01T05:30:00Z',run),'2026-11-01');
 '''
     result = subprocess.run([node,'-e',code],capture_output=True,text=True,timeout=15)
     assert result.returncode == 0, result.stderr
+
+
+def test_check_view_shows_answer_verdict_and_native_readiness():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node unavailable')
+    root = Path(__file__).resolve().parents[1]
+    dashboard = (root/'explorer/dashboard.js').read_text().split('document.addEventListener("click"')[0]
+    timeline = (root/'explorer/timeline.js').read_text()
+    code = dashboard + '\n' + timeline + r'''
+const assert = require('node:assert/strict');
+const run = {resolved_spec:{timezone:'America/New_York'}, evaluations:[{id:'later', contract:{question:'Where?',claims:[{id:'x',statement:'At the cafe'}]}}]};
+const status = checkStatus(run,{id:'later',at:'2026-10-26T10:00:00-04:00',state:'ungraded',write_readiness:{state:'unavailable',latency_s:901,accepted_ids:['doc-1'],dependencies:['write'],native_states:[{id:'doc-1',status:'done',dreaming_status:'dreaming'}],reason:'deadline exceeded'}});
+assert.match(status,/Question not asked · ungraded/); assert.match(status,/doc-1/); assert.match(status,/dreaming/); assert.match(status,/15 minutes/); assert.match(status,/At the cafe/);
+const ex={check_id:'later',turn:{prompt:'Where?',at:'2026-10-26T10:00:00-04:00',answer:'At the park',tool_calls:[{name:'search',input:{query:'place'}}],tool_results:[{text:'cafe result',success:true}]}, contract:{claims:[{id:'x',statement:'At the cafe'}]},grade:{claims:[{id:'x',verdict:'misrepresented',reason:'says park'}],evidence_diagnostic:{state:'complete',claims:[{id:'x',status:'supported',citations:[{id:'tool-result-1',quote:'cafe result'}]}],extra_assertions:[]}}};
+const html=providerExchange(run,{},ex,0); assert.match(html,/At the park/); assert.match(html,/Failed · wrong/); assert.match(html,/cafe result/); assert.match(html,/availability does not prove/);
+selectedProvider='supermemory-repeat-1';
+run.arms={'supermemory-repeat-1':{label:'Supermemory',exchanges:[{...ex,kind:'initial',check_id:'first'}],evaluation:{checks:[{id:'first',state:'diagnostic'}, {id:'later',at:'2026-10-26T10:00:00-04:00',state:'ungraded',write_readiness:{state:'unavailable',latency_s:901,accepted_ids:['doc-1'],native_states:[{id:'doc-1',status:'done',dreaming_status:'dreaming'}]}}]}}};
+const judge=judgePage(run); assert.ok(judge.indexOf('At the park') < judge.indexOf('Question not asked · ungraded')); assert.match(judge,/doc-1/); assert.match(judge,/dreaming/); assert.match(judge,/At the cafe/);
+'''
+    result = subprocess.run([node, '-e', code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

@@ -21,6 +21,8 @@ Turns in the same conversation resume one actual Hermes session. A different con
 
 Preparation derives independently assessable criteria from each expectation, verifies them against available source and scripted user instructions, and reviews whether the public prompt fairly requests them. Expectations, scenes and private judging criteria never enter Hermes questions or source imports. Future source batches are ingested only when their native processing has completed by the simulated turn time.
 
+For supplied factual questions, `event-scoped-v7` uses one independent request to review both the drafted criteria and the supplied question. Both reviews must pass; the shared request and response are bound to the frozen contract. Generated questions and behavioral checks retain their existing review sequence. Corpus-wide realism review remains separate.
+
 Keep `expect` to the facts being graded. Put background and traps in the source scenes: for a yes/no question, a correct yes/no need not retell a joke or explain every rejected option. Inspect the derived criteria before provider execution; an English scope limit can still be misread by the draft and review models.
 
 When a list is complete, say so explicitly and check the derived claim preserves that meaning. “Maya is attending” cannot rule out an invented extra attendee. Spot-check the actual judge with a plausible wrong answer before scaling a new condition; keep that receipt separate from provider results.

@@ -10,6 +10,55 @@ from .followups import load_questions
 from .evidence_store import read_json
 
 
+def audit_combined_contract_review(root, document, observations, check):
+    """Bind v7's two independent subreviews to their one actual model request."""
+    if (document.get('authoring_version') != 'event-scoped-v7' or
+            document.get('kind', 'recall') == 'behavior'):
+        return []
+    from .semantic_contract import (ContractClaim, _dialogue, combined_review_prompt,
+                                    contract_review_prompts, shared_context_review_prompt)
+    claims = tuple(ContractClaim(c['id'], c['statement'], tuple(c['evidence'])) for c in document['claims'])
+    claim_prompt, question_prompt = contract_review_prompts(
+        claims=claims, author_facts=tuple(check.get('facts', [])), dialogue=_dialogue(observations),
+        question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'])
+    retry = ('\nThe previous response was not a valid JSON object. '
+             'Return one complete JSON object with no surrounding text.')
+    receipt = document.get('combined_review_receipt') or {}
+    try:
+        prompt_format = receipt.get('prompt_format')
+        if prompt_format is None and 'prompt_format' not in receipt:
+            expected = combined_review_prompt(claim_prompt, question_prompt)
+        elif prompt_format == 'shared-context-v2':
+            expected = shared_context_review_prompt(
+                claims=claims, author_facts=tuple(check.get('facts', [])), dialogue=_dialogue(observations),
+                question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'])
+        else:
+            raise ValueError('unknown combined review prompt format')
+        path = receipt['model_call']
+        if not isinstance(path, str) or not path:
+            raise ValueError('missing model receipt')
+        call = read_json(root / 'model-calls' / Path(path).name)
+        response = json.loads(receipt['response'])
+        review, question = response['claim_review'], response['question_review']
+        if (document.get('question_source') != 'supplied' or
+                receipt['prompt'] not in (expected, expected + retry) or
+                call.get('status') != 'ok' or call.get('text') != receipt['response'] or
+                call.get('request', {}).get('messages') != [{'role':'user','content':receipt['prompt']}] or
+                review != document.get('review') or question != document.get('question_review') or
+                review.get('complete') is not True or
+                not isinstance(review.get('reviews'), list) or len(review['reviews']) != len(claims) or
+                any(not isinstance(r,dict) or r.get('id') != c.id or
+                    any(r.get(k) is not True for k in ('supported','relevant','unambiguous')) or
+                    not isinstance(r.get('reason'),str) or not r['reason'].strip()
+                    for r,c in zip(review['reviews'],claims)) or
+                any(question.get(k) is not True for k in ('safe','faithful','elicits_all')) or
+                not isinstance(question.get('reason'),str) or not question['reason'].strip()):
+            raise ValueError('shared review does not match frozen inputs and passing subreviews')
+    except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+        return [f"{check['id']}: combined contract review invalid: {exc}"]
+    return []
+
+
 def audit_scenes(root, resolved, life_id, messages):
     """Bind frozen message bodies to the actual saved passing checker input."""
     if not resolved.get('scenes'):return []  # Older minimal portable corpora.
@@ -109,6 +158,13 @@ def audit_prepared(root: Path) -> dict:
             from .evaluation import load_evaluations
             resolved = json.loads((root / 'resolved-spec.json').read_text())
             plan, _ = load_evaluations(root, messages, resolved)
+            from .evaluation import contract_evidence
+            from .semantic_contract import EVIDENCE_VERSION
+            for check in resolved['checks']:
+                document=json.loads((root/'evaluations'/check['id']/'contract.json').read_text())
+                available=contract_evidence(messages,resolved['checks'],check,resolved.get('evaluation_context','shared'),
+                    structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
+                errors.extend(audit_combined_contract_review(root,document,available,check))
             if plan['plan_hash'] != summary.get('evaluation_plan_hash'):
                 errors.append('Evaluation plan differs from summary')
             if plan['checks'][-1]['contract_hash']!=contract.contract_hash:

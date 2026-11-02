@@ -2,6 +2,9 @@ import json
 
 import pytest
 
+from tests.test_evaluation import _combined_fixture
+
+
 from pacbench.authoring import (ScenePlan, SceneRenderError,
                                 build_scene_observations, parse_scene_lines,
                                 scene_prompt, judge_scene, SceneJudgeError,
@@ -49,7 +52,7 @@ def test_draft_citation_aliases_resolve_exactly_and_unknown_labels_fail(tmp_path
         return json.dumps({'complete':True,'reviews':[{'id':'time','supported':True,'relevant':True,'unambiguous':True,'reason':'The source states the time.'}]})
     question=lambda prompt:json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'The question asks for the time.'})
     kwargs=dict(scene='Dinner',test_intent='Dinner is at seven.',observations=observations,
-        generate=draft,verify=review,question_generate=question,user_question='What time is dinner?',
+        generate=draft,verify=_combined_fixture(review),question_generate=question,user_question='What time is dinner?',
         question_at='2026-10-11T21:00:00-04:00',output_path=tmp_path/'contract.json')
     if citation=='s999':
         with pytest.raises(ValueError,match='unsupported citation'):build_contract(**kwargs)

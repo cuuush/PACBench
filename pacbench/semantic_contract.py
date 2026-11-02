@@ -10,7 +10,7 @@ from typing import Callable
 
 from .model_calls import ModelOutput
 
-AUTHORING_VERSION = 'event-scoped-v6'
+AUTHORING_VERSION = 'event-scoped-v7'
 BEHAVIOR_REVIEW_VERSION = 'observable-reply-v2'
 EVIDENCE_VERSION = 'assistant-session-fields-v2'
 
@@ -35,6 +35,43 @@ def _call_json(call: Callable, prompt: str) -> dict:
                 prompt += ("\nThe previous response was not a valid JSON object. "
                            "Return one complete JSON object with no surrounding text.")
     raise ValueError("contract model returned malformed JSON twice")
+
+
+def _call_json_with_receipt(call: Callable, prompt: str):
+    for attempt in range(2):
+        response = call(prompt)
+        try:
+            return _json(response), response, prompt
+        except (TypeError, json.JSONDecodeError, ValueError):
+            if attempt == 0:
+                prompt += ("\nThe previous response was not a valid JSON object. "
+                           "Return one complete JSON object with no surrounding text.")
+    raise ValueError("contract model returned malformed JSON twice")
+
+
+def combined_review_prompt(claim_prompt, question_prompt):
+    """Reconstruct the original v7 combined request for frozen receipts."""
+    return ("Independently perform both reviews. Return one JSON object with exactly "
+            "two objects, claim_review and question_review; preserve each review's "
+            "requested fields and decide both independently.\n\n"
+            "CLAIM REVIEW:\n" + claim_prompt.replace("Return only JSON:", "Use this JSON schema:") +
+            "\n\nQUESTION REVIEW:\n" + question_prompt.replace("Return ONLY JSON", "Use this JSON schema"))
+
+
+def shared_context_review_prompt(*, claims, author_facts, dialogue, question_at, user_question, test_intent):
+    claim_prompt, question_prompt = contract_review_prompts(
+        claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
+        user_question=user_question, test_intent=test_intent)
+    claim_instructions = claim_prompt.split("\n\nQuestion time: ", 1)[0]
+    question_instructions = question_prompt.split("\nQuestion time: ", 1)[0]
+    return ("Independently perform both reviews using the shared context below. Return one JSON object with exactly "
+            "two objects, claim_review and question_review; preserve each review's "
+            "requested fields and decide both independently.\n\n"
+            "CLAIM REVIEW:\n" + claim_instructions.replace("Return only JSON:", "Use this JSON schema:") +
+            "\n\nQUESTION REVIEW:\n" + question_instructions.replace("Return ONLY JSON", "Use this JSON schema") +
+            f"\n\nSHARED CONTEXT:\nQuestion time: {question_at}\nPublic question: {user_question}\n"
+            f"Test intent: {test_intent}\n{_fact_instruction(author_facts)}Frozen dialogue:\n{dialogue}\n"
+            f"Proposed claims / expected facts: {json.dumps([vars(c) for c in claims])}")
 
 
 def _dialogue(observations: list[dict], source_labels=None) -> str:
@@ -62,6 +99,73 @@ class EvaluationContract:
     def public_judge_context(self) -> dict:
         return {"claims": [vars(c) for c in self.claims],
                 "question": self.question, "contract_hash": self.contract_hash}
+
+
+def _fact_instruction(author_facts):
+    fact_instruction = (
+        "The author supplied the following required facts. Return one claim "
+        "per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact "
+        "dialogue source IDs as evidence. Do not merge facts, add claims, or "
+        "treat intended but absent details as true. The authored fact text is "
+        "the claim statement; do not rewrite it or add another fact's value. "
+        "If a supplied fact combines details that can be graded separately, "
+        "flag that in the review rather than silently splitting it.\nRequired facts:\n" +
+        "\n".join(f"{i}. {fact}" for i, fact in enumerate(author_facts, 1)) + "\n"
+        if author_facts else "")
+    return fact_instruction
+
+
+def contract_review_prompts(*, claims, author_facts, dialogue, question_at, user_question, test_intent):
+    fact_instruction = _fact_instruction(author_facts)
+    claim_review_prompt = (
+        "Review each proposed claim against the dialogue and test intent. "
+        "Reject claims not required by the test intent even when supported by "
+        "the dialogue. Do not require the same outing detail again for each "
+        "participant. "
+        "Reject redundant wording requirements and private ordinal event labels. "
+        "Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. "
+        "A later rejected suggestion does not reinstate an earlier plan. Preserve "
+        "complete current-list and count requirements from the test intent. "
+        "When required facts are supplied, verify that each matching claim "
+        "faithfully covers exactly that one fact. Try answering one detail "
+        "correctly while omitting another detail in the same claim: if this "
+        "is possible, reject that compound authored fact and ask for it to "
+        "be split. Check that no current-state detail was "
+        "invented from an old or tentative mention. Reject a compound fact "
+        "that should be split by its author. "
+        "Also decide whether the set covers every intent-required detail "
+        "that the dialogue actually establishes, with independent claims "
+        "where one detail could be omitted or wrong while another is right. "
+        "A calendar date can be established by a relative day paired with "
+        "a message's written timestamp; do not ignore those timestamps. "
+        "Reject unsupported, irrelevant, or ambiguous claims, including a "
+        "commitment inferred from a mere suggestion. Return only JSON: "
+        '{"complete":true,"coverage_reason":"brief explanation",'
+        '"reviews":[{"id":"claim-id","supported":true,'
+        '"relevant":true,"unambiguous":true,"reason":"brief explanation"}]}. '
+        "One review per claim in order.\n\n"
+        f"Question time: {question_at}\nPublic question: {user_question}\nTest intent: {test_intent}\n{fact_instruction}Frozen dialogue:\n{dialogue}\n"
+        f"Proposed claims: {json.dumps([vars(c) for c in claims])}")
+    supplied_question_review_prompt = (
+        "Check this evaluation prompt against the dialogue and expected facts. "
+        "Does it reasonably invite every expected fact, without supplying their answers "
+        "or presupposing unsupported details? Respect current versus historical meaning. "
+        "Use question time to resolve ordinary relative days: upcoming-plan questions "
+        "about Friday mean the upcoming Friday unless another week is specified; old "
+        "occurrences alone do not make that scope ambiguous. A casual plan recap "
+        "naturally invites its current outings, people, time and place without "
+        "explicitly enumerating those fields. Do not require a checklist, but reject "
+        "incidental background facts the question would not reasonably invite. "
+        "Resolve references using earlier public questions in the same tagged assistant session; "
+        "questions in other sessions do not supply conversational scope. "
+        "Explicit earlier user instructions remain source facts across sessions: "
+        "a fresh question can test their persistence without assuming the assistant stored them. "
+        "For assistant-channel rows, thread identifies the session; source IDs identify turns. "
+        "Event membership needs source evidence, not private authored intent. "
+        'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
+        f"Question time: {question_at}\nPrompt: {user_question.strip() if isinstance(user_question,str) else user_question}\n"
+        f"Expected facts: {json.dumps([vars(c) for c in claims])}\nDialogue:\n{dialogue}")
+    return claim_review_prompt, supplied_question_review_prompt
 
 
 def build_contract(*, scene: str, test_intent: str,
@@ -123,16 +227,7 @@ def build_contract(*, scene: str, test_intent: str,
         output_path.parent.mkdir(parents=True,exist_ok=True)
         with output_path.open('x') as f:json.dump({**body,'contract_hash':hashed},f,indent=2,ensure_ascii=False)
         return EvaluationContract(claims,user_question,body['evidence_hash'],hashed)
-    fact_instruction = (
-        "The author supplied the following required facts. Return one claim "
-        "per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact "
-        "dialogue source IDs as evidence. Do not merge facts, add claims, or "
-        "treat intended but absent details as true. The authored fact text is "
-        "the claim statement; do not rewrite it or add another fact's value. "
-        "If a supplied fact combines details that can be graded separately, "
-        "flag that in the review rather than silently splitting it.\nRequired facts:\n" +
-        "\n".join(f"{i}. {fact}" for i, fact in enumerate(author_facts, 1)) + "\n"
-        if author_facts else "")
+    fact_instruction = _fact_instruction(author_facts)
     proposed = _call_json(generate,
         "Identify independently assessable factual claims that cover every "
         "detail required by the test intent, and nothing else. The test intent "
@@ -182,42 +277,32 @@ def build_contract(*, scene: str, test_intent: str,
         seen.add(cid)
         claims.append(ContractClaim(cid, statement.strip(), tuple(evidence)))
 
-    reviewed = _call_json(verify,
-        "Review each proposed claim against the dialogue and test intent. "
-        "Reject claims not required by the test intent even when supported by "
-        "the dialogue. Do not require the same outing detail again for each "
-        "participant. "
-        "Reject redundant wording requirements and private ordinal event labels. "
-        "Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. "
-        "A later rejected suggestion does not reinstate an earlier plan. Preserve "
-        "complete current-list and count requirements from the test intent. "
-        "When required facts are supplied, verify that each matching claim "
-        "faithfully covers exactly that one fact. Try answering one detail "
-        "correctly while omitting another detail in the same claim: if this "
-        "is possible, reject that compound authored fact and ask for it to "
-        "be split. Check that no current-state detail was "
-        "invented from an old or tentative mention. Reject a compound fact "
-        "that should be split by its author. "
-        "Also decide whether the set covers every intent-required detail "
-        "that the dialogue actually establishes, with independent claims "
-        "where one detail could be omitted or wrong while another is right. "
-        "A calendar date can be established by a relative day paired with "
-        "a message's written timestamp; do not ignore those timestamps. "
-        "Reject unsupported, irrelevant, or ambiguous claims, including a "
-        "commitment inferred from a mere suggestion. Return only JSON: "
-        '{"complete":true,"coverage_reason":"brief explanation",'
-        '"reviews":[{"id":"claim-id","supported":true,'
-        '"relevant":true,"unambiguous":true,"reason":"brief explanation"}]}. '
-        "One review per claim in order.\n\n"
-        f"Question time: {question_at}\nPublic question: {user_question}\nTest intent: {test_intent}\n{fact_instruction}Frozen dialogue:\n{dialogue}\n"
-        f"Proposed claims: {json.dumps([vars(c) for c in claims])}")
+    claim_review_prompt, supplied_question_review_prompt = contract_review_prompts(
+        claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
+        user_question=user_question, test_intent=test_intent)
+    combined_receipt = None
+    question_review = None
+    if user_question is not None:
+        if not isinstance(user_question, str) or not 1 <= len(user_question.strip()) <= 4000:
+            raise ValueError("supplied evaluation prompt must be bounded nonempty text")
+        prompt = shared_context_review_prompt(
+            claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
+            user_question=user_question, test_intent=test_intent)
+        combined, response, actual_prompt = _call_json_with_receipt(verify, prompt)
+        reviewed, question_review = combined.get('claim_review'), combined.get('question_review')
+        if not isinstance(reviewed,dict) or not isinstance(question_review,dict):
+            raise ValueError('combined review requires both review objects')
+        combined_receipt = {'prompt_format': 'shared-context-v2', 'prompt': actual_prompt, 'response': _text(response),
+                            'model_call': response.record_path if isinstance(response,ModelOutput) else None}
+    else:
+        reviewed = _call_json(verify, claim_review_prompt)
     reviews = reviewed.get("reviews")
     if (reviewed.get("complete") is not True or
             not isinstance(reviews, list) or len(reviews) != len(claims) or
             any(not isinstance(r, dict) or r.get("id") != c.id or
                 any(r.get(k) is not True for k in
                     ("supported", "relevant", "unambiguous")) or
-                not isinstance(r.get("reason"), str)
+                not isinstance(r.get("reason"), str) or not r["reason"].strip()
                 for r, c in zip(reviews, claims))):
         # One corrective draft, then a new independent review. Resume otherwise
         # replays the identical cached rejection forever. Authored exact facts
@@ -263,32 +348,11 @@ def build_contract(*, scene: str, test_intent: str,
         f"Frozen dialogue:\n{dialogue}\nQuestion: {{question}}\nClaims: "
         f"{json.dumps([vars(c) for c in claims])}")
     question = None
-    question_review = None
     correction = ""
     if user_question is not None:
-        if not isinstance(user_question, str) or not 1 <= len(user_question.strip()) <= 4000:
-            raise ValueError("supplied evaluation prompt must be bounded nonempty text")
         question = user_question.strip()
-        question_review = _call_json(verify,
-            "Check this evaluation prompt against the dialogue and expected facts. "
-            "Does it reasonably invite every expected fact, without supplying their answers "
-            "or presupposing unsupported details? Respect current versus historical meaning. "
-            "Use question time to resolve ordinary relative days: upcoming-plan questions "
-            "about Friday mean the upcoming Friday unless another week is specified; old "
-            "occurrences alone do not make that scope ambiguous. A casual plan recap "
-            "naturally invites its current outings, people, time and place without "
-            "explicitly enumerating those fields. Do not require a checklist, but reject "
-            "incidental background facts the question would not reasonably invite. "
-            "Resolve references using earlier public questions in the same tagged assistant session; "
-            "questions in other sessions do not supply conversational scope. "
-            "Explicit earlier user instructions remain source facts across sessions: "
-            "a fresh question can test their persistence without assuming the assistant stored them. "
-            "For assistant-channel rows, thread identifies the session; source IDs identify turns. "
-            "Event membership needs source evidence, not private authored intent. "
-            'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
-            f"Question time: {question_at}\nPrompt: {question}\n"
-            f"Expected facts: {json.dumps([vars(c) for c in claims])}\nDialogue:\n{dialogue}")
-        if any(question_review.get(k) is not True for k in ("safe", "faithful", "elicits_all")):
+        if (any(question_review.get(k) is not True for k in ("safe", "faithful", "elicits_all")) or
+                not isinstance(question_review.get('reason'),str) or not question_review['reason'].strip()):
             raise ValueError(f"supplied prompt cannot fairly elicit its facts: {question_review}")
     for _ in range(0 if user_question is not None else 2):
         question_doc = _call_json(question_generate, question_prompt + correction)
@@ -310,7 +374,7 @@ def build_contract(*, scene: str, test_intent: str,
             "question_review": question_review,
             "author_fact_count": len(author_facts),"test_intent":test_intent}
     if user_question is not None:
-        body.update(question_source="supplied", question_at=question_at)
+        body.update(question_source="supplied", question_at=question_at, combined_review_receipt=combined_receipt)
     contract_hash = hashlib.sha256(json.dumps(body, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
     body["contract_hash"] = contract_hash

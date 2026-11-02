@@ -59,6 +59,23 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
             try:record=public_record(read_json(path))
             except (OSError,ValueError):self.send_error(404);return
             self.send_json(record);return
+        if route.path == '/record':
+            from pacbench.evidence_store import read_json
+            from pacbench.model_calls import public_record
+            params=parse_qs(route.query)
+            run=params.get('run',[''])[0]; name=params.get('file',[''])[0]
+            base=ROOT/'runs'/run; relative=Path(name); path=base/relative
+            allowed = r'(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/(?:recall|judgment|usage)\.json|(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/turns/[A-Za-z0-9_-]+/(?:turn|judgment|usage|write-readiness)\.json|(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/(?:turns/[A-Za-z0-9_-]+/)?followups/combined/(?:turn|judgment|usage)\.json'
+            if (not run or Path(run).name != run or run in ('.','..') or relative.is_absolute() or
+                    '..' in relative.parts or not re.fullmatch(allowed, name) or
+                    not path.resolve().is_relative_to(base.resolve()) or
+                    any(p.is_symlink() for p in (path,*path.parents) if p != ROOT)):
+                self.send_error(404); return
+            try: record=public_record(read_json(path))
+            except (OSError, ValueError): self.send_error(404); return
+            if isinstance(record, dict) and relative.name in ('turn.json', 'recall.json'):
+                for field in ('stderr_full', 'stderr_tail', 'stdout_tail'): record.pop(field, None)
+            self.send_json(record); return
         if route.path == "/runs":
             self.send_json(run_index(ROOT) if parse_qs(route.query).get('index')==['1'] else
                            load_runs(ROOT,include_model_records=False));return

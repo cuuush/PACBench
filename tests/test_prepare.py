@@ -307,3 +307,59 @@ def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
     assert 'Frozen source bodies or metadata differ from verified scenes' in audit_scenes(tmp_path,{'scenes':[spec]},'life',messages)
     row['lines'][0][1]='An unchecked edit';save(tmp_path/'scenes.json',{'scenes':[row]})
     assert 'one: source differs from its passing checker input' in audit_scenes(tmp_path,{'scenes':[spec]},'life',messages)
+
+
+def test_cast_is_private_scoped_and_bound_to_scene_cache(tmp_path):
+    from pacbench.prepare import generation_spec, realization_binding
+    from pacbench.authoring import scene_spec, build_scene_observations
+    spec = json.loads(open('weeks/bike_pickup.json').read())
+    plans, _, _ = resolve_spec(spec, tmp_path, week_start='2026-10-19')
+    plan = plans[0]
+    assert plan.cast == {'Riley': "The user's friend who works at Spoke Cycles."}
+    assert 'friend who works at Spoke Cycles' in scene_prompt(plan)
+    assert 'friend who works at Spoke Cycles' in judge_prompt(plan, [('Riley', 'Ready')])
+    assert 'cast' not in build_scene_observations('life', plan, [('Riley', 'Ready')])[0].public().get('structured', {})
+    changed = ScenePlan(**{**scene_spec_input(plan), 'cast': {'Riley': 'A mechanic.'}})
+    assert generation_spec(plan) != generation_spec(changed)
+    assert realization_binding(plan, [('Riley', 'Ready')], ()) != realization_binding(changed, [('Riley', 'Ready')], ())
+    spec['cast'] = {'Unknown': 'A friend.'}
+    with pytest.raises(ValueError, match='Cast'):
+        resolve_spec(spec, tmp_path, week_start='2026-10-19')
+
+
+def scene_spec_input(plan):
+    from dataclasses import fields
+    return {f.name: getattr(plan, f.name) for f in fields(plan)}
+
+
+def test_scene_facts_share_one_checker_call():
+    from pacbench.authoring import judge_scene, SceneJudgeError
+    plan = ScenePlan(scene='A chat.', participants=('Me', 'Sam'), facts=('First', 'Second', 'Third'))
+    calls = []
+    def judge(prompt):
+        calls.append(prompt)
+        return json.dumps({'supported': True, 'evidence': [1], 'problem': '', 'facts': [
+            {'index': i, 'supported': i != 2, 'evidence': [1], 'problem': ''} for i in range(1, 4)]})
+    with pytest.raises(SceneJudgeError):
+        judge_scene(plan, [('Sam', 'Hello')], judge)
+    assert len(calls) == 1
+
+
+def test_cast_is_scoped_to_channel_and_absent_cast_preserves_spec(tmp_path):
+    from pacbench.authoring import scene_spec
+    from pacbench.prepare import normalize_week
+    spec = json.loads(open('weeks/bike_pickup.json').read())
+    original = normalize_week(spec, '2026-10-19')
+    spec['channels']['other'] = {'type': 'imessage', 'participants': ['Me', 'Sam']}
+    spec['weeks'][0]['monday']['scenes'][1]['channel'] = 'other'
+    rows = normalize_week(spec, '2026-10-19')['scenes']
+    assert rows[0]['cast'] == spec['cast']
+    assert 'cast' not in rows[1]
+    del spec['cast']
+    rows = normalize_week(spec, '2026-10-19')['scenes']
+    assert all('cast' not in row for row in rows)
+    plan = ScenePlan(scene='A chat.', participants=('Me', 'Sam'))
+    assert 'cast' not in scene_spec(plan)
+    assert 'Private character context' not in scene_prompt(plan)
+    assert 'Private character context' not in judge_prompt(plan, [('Sam', 'Hi')])
+    assert original['scenes'][0]['cast'] == {'Riley': "The user's friend who works at Spoke Cycles."}

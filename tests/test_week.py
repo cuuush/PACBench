@@ -12,6 +12,9 @@ from tests.test_evaluation import checkpoints, correct_judge
 from pacbench.harness import TurnResult
 from tests.test_document_ingestion import message
 
+from tests.test_evaluation import _combined_fixture
+
+
 
 def test_bike_pickup_correction_is_followed_by_independent_session_checks(tmp_path):
     scenes,_,resolved=resolve_spec(json.loads(Path('weeks/bike_pickup.json').read_text()),tmp_path,week_start='2026-10-19')
@@ -283,7 +286,7 @@ def test_english_expectation_becomes_reviewed_criteria_without_a_fact_catalog(tm
         assert 'Identify independently' in prompt
         prompts.append(prompt)
         return json.dumps({'claims':[{'id':'dinner-place','statement':'Dinner is at the cafe.','evidence':['m1']}]})
-    plan=freeze_evaluations(resolved,messages,None,model,tmp_path,generate=draft if dedicated_draft else None)
+    plan=freeze_evaluations(resolved,messages,None,_combined_fixture(model),tmp_path,generate=draft if dedicated_draft else None)
     loaded,checks=load_evaluations(tmp_path,messages,resolved)
     assert loaded==plan and checks[0][1].claims[0].statement=='Dinner is at the cafe.'
     assert all('Required facts:' not in p for p in prompts)
@@ -298,13 +301,16 @@ def test_preparation_continues_after_one_contract_error_but_cannot_freeze_succes
     calls=[]
     def model(prompt):
         calls.append(prompt)
+        if 'Check this evaluation prompt' in prompt:
+            if 'Public question: Bad question' in prompt:
+                raise RuntimeError('Simulated judge transport error')
+            return json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'Fair question.'})
         if 'Test intent: Dinner venue' in prompt and 'Bad question' not in prompt:
             if 'Identify independently' in prompt:return json.dumps({'claims':[{'id':'place','statement':'Dinner is at the cafe.','evidence':['m1']}]})
             return json.dumps({'complete':True,'reviews':[{'id':'place','supported':True,'relevant':True,'unambiguous':True,'reason':'Source.'}]})
-        if 'Prompt: Bad question' in prompt:raise RuntimeError('Simulated judge transport error')
         return json.dumps({'safe':True,'faithful':True,'elicits_all':True,'reason':'Fair question.'})
     messages=[{**message('m1'),'text':'Dinner at the cafe.','collected_at':'2026-09-10T18:00:00-04:00'}]
-    plan=freeze_evaluations(resolved,messages,None,model,tmp_path)
+    plan=freeze_evaluations(resolved,messages,None,_combined_fixture(model),tmp_path)
     assert plan['errors'][0]['id']=='bad'
     assert [r['id'] for r in plan['checks']]==['good']
     assert (tmp_path/'evaluation-errors.json').exists()

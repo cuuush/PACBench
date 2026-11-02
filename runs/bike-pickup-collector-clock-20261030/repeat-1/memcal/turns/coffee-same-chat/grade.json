@@ -1,0 +1,134 @@
+{
+  "correct": 4,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-day",
+      "verdict": "correct",
+      "reason": "Answer states 'Sun Nov 1' for the coffee."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states '9am' for the coffee."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "correct",
+      "reason": "Answer states 'at Maple Mug'."
+    },
+    {
+      "id": "coffee-unchanged",
+      "verdict": "correct",
+      "reason": "Answer says 'Still' and keeps same time/venue right before pickup, showing separate unchanged arrangement."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-day",
+      "kind": "provided",
+      "reason": "Correct day conveyed in answer."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    },
+    {
+      "id": "coffee-unchanged",
+      "kind": "provided",
+      "reason": "Unchanged separate status conveyed by 'Still'."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-day",
+        "status": "supported",
+        "reason": "Prefetch and tool result both place Coffee on Sunday Nov 1.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Sunday 1 November 2026 at 09:00"
+          }
+        ]
+      },
+      {
+        "id": "coffee-time",
+        "status": "supported",
+        "reason": "Both sources show 9am for coffee.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Sunday 1 November 2026 at 09:00"
+          }
+        ]
+      },
+      {
+        "id": "coffee-venue",
+        "status": "supported",
+        "reason": "Tool result explicitly lists venue as Maple Mug.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Maple Mug"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Maple Mug at 9am?"
+          }
+        ]
+      },
+      {
+        "id": "coffee-unchanged",
+        "status": "supported",
+        "reason": "Prefetch lists coffee and bike pickup as two distinct same-day entries at different times.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Pick up bike\", 11am — confirmed · from Riley"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Coffee is right before the bike pickup",
+        "answer_quote": "right before the bike pickup",
+        "status": "supported",
+        "reason": "Coffee at 9am and bike pickup Sunday at 11 supports right-before ordering.",
+        "citations": [
+          {
+            "id": "message-e1132c9f185ed2fd834ac9c0",
+            "quote": "Maple Mug at 9am?"
+          },
+          {
+            "id": "assistant-user:pickup-change",
+            "quote": "We're doing the bike pickup Sunday at 11 instead."
+          }
+        ]
+      }
+    ]
+  }
+}

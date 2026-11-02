@@ -1,0 +1,47 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "Answer states 'Moved to Sun Nov 1 at 11am' acknowledging the requested Sunday 11 change."
+    }
+  ],
+  "recovery": null,
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Tool result shows pickup updated to Sunday 11am reflecting the correction.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Sun Nov 1  Pick up bike, 11am"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Bike pickup location is Spoke Cycles",
+        "answer_quote": "Spoke Cycles",
+        "status": "unverifiable",
+        "reason": "Source evidence does not mention venue.",
+        "citations": []
+      },
+      {
+        "assertion": "User has coffee with Riley at 9am same morning",
+        "answer_quote": "you also have coffee with Riley that same morning at 9am",
+        "status": "unverifiable",
+        "reason": "Source evidence does not mention coffee.",
+        "citations": []
+      }
+    ]
+  }
+}

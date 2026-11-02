@@ -1,0 +1,80 @@
+{
+  "version": "accepted-native-writes-v2",
+  "binding": "5c214a0f99532a4dc0ab31b29434c8e71139488ddcc3dfb693816ae4ca31013e",
+  "dependencies": [
+    "pickup-change"
+  ],
+  "inputs": {
+    "provider": "honcho",
+    "accepted_ids": [],
+    "sessions": [
+      "20261030_171601_8464d1"
+    ],
+    "captures": [
+      {
+        "session": "20261030_171601_8464d1",
+        "prompt": "[Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11 instead."
+      }
+    ],
+    "conclusions": [
+      {
+        "session": "20261030_171601_8464d1",
+        "input_binding": "913704d9fc3a5e8551d647f53cbcf01df66099d7d831714ea97d85407d8459f2",
+        "peer": "user",
+        "content": "User rescheduled bike pickup with Riley to 11am on Sunday, November 1, 2026 (changed from 10am Saturday, October 31, 2026)."
+      }
+    ]
+  },
+  "turn_hashes": [
+    "6ad270092f8b4cc1bbb5e4f6dae8f70f348b79eddc4e8dc9e09382e3bf430a14"
+  ],
+  "latency_s": 0.38,
+  "state": "ready",
+  "observed": {
+    "ready": true,
+    "snapshots": [
+      [
+        {
+          "id": "20261030_171601_8464d1",
+          "hermes_session": "20261030_171601_8464d1",
+          "status": "completed",
+          "native_error": false,
+          "write_path": "explicit_conclusions",
+          "verified_inputs": [
+            "913704d9fc3a5e8551d647f53cbcf01df66099d7d831714ea97d85407d8459f2"
+          ],
+          "conclusion_ids": [
+            "_pN6RWqpsnB-u_hKinhZR"
+          ]
+        }
+      ]
+    ],
+    "processing_overrides": false,
+    "reason": "Observed native completion; no processing forced"
+  },
+  "usage": {
+    "state": "captured",
+    "started": "2026-10-30T21:19:59.317822+00:00",
+    "finished": "2026-10-30T21:19:59.694955+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

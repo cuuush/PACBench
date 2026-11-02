@@ -1,0 +1,51 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "bike-not-saturday",
+      "verdict": "correct",
+      "reason": "Answer says 'No' to Saturday and that pickup moved to Sunday, conveying not Saturday."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "bike-not-saturday",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed as moved to Sunday."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "bike-not-saturday",
+        "status": "supported",
+        "reason": "Prefetch/tool show pickup rescheduled from Saturday to Sunday.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "User rescheduled bike pickup with Riley to 11am on Sunday, November 1, 2026 (changed from 10am Saturday, October 31, 2026)."
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Bike pickup is at 11am Sunday, Nov 1 with Riley",
+        "answer_quote": "you moved it to 11am Sunday, Nov 1 with Riley",
+        "status": "unverifiable",
+        "reason": "Source shows Sunday at 11 with Riley context but does not state Nov 1 date.",
+        "citations": [
+          {
+            "id": "assistant-user:pickup-change",
+            "quote": "We're doing the bike pickup Sunday at 11 instead."
+          }
+        ]
+      }
+    ]
+  }
+}

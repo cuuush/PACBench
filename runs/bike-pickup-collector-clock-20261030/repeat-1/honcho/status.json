@@ -1,0 +1,706 @@
+{
+  "provider": "honcho",
+  "repetition": 1,
+  "input_hash": "b46a7fe180b6bd26225ad2254f48e1c7d925fb2f97bf569a09bc12f25aca886a",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "honcho_profile",
+      "honcho_search",
+      "honcho_reasoning",
+      "honcho_context",
+      "honcho_conclude"
+    ],
+    "provider": "honcho",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": "honcho_profile",
+      "arguments": {},
+      "output": "{\"result\": \"No profile facts available yet.\", \"hint\": \"This is not an error.  this session has only 0 turn(s); peer cards accumulate as the dialectic layer reasons over conversation history (cadence every 1 turn(s)).  Try honcho_reasoning for a synthesized answer, or honcho_search to query raw conversation excerpts.\"}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pickup-before",
+      "at": "2026-10-26T16:00:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "385fdefd20bb46d234ff66beecf513add2a22ff04fc3c43e4ce670afc70ef2b0",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 2,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 3,
+          "points": 2.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "pickup-day",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "pickup-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "pickup-shop",
+              "initial_verdict": "missed",
+              "followup_verdict": "missed",
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": [
+          {
+            "claim_ids": [
+              "pickup-shop"
+            ],
+            "question": "Which shop is the 10am Saturday, October 31 bike pickup with Riley at?",
+            "state": "graded",
+            "verdicts": [
+              {
+                "id": "pickup-shop",
+                "verdict": "missed",
+                "reason": "Answer says shop name unknown and does not identify Spoke Cycles."
+              }
+            ],
+            "metrics": {
+              "top_level_calls": 3,
+              "total_tool_operations": 3,
+              "provider_internal_tool_calls": 6,
+              "provider_task_records": 1,
+              "provider_internal_operations": [
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "user preferences likes dislikes communication style",
+                    "top_k": 20
+                  },
+                  "result": "Found 7 observations for query 'user preferences likes dislikes communication style':\n\nEXPLICIT:\n\n1. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n2. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n3. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n4. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n5. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n6. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n7. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 6,
+                    "results_count": 7
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "user goals objectives plans",
+                    "top_k": 20
+                  },
+                  "result": "Found 7 observations for query 'user goals objectives plans':\n\nEXPLICIT:\n\n1. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n2. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n3. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n4. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n5. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n6. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n7. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 4,
+                    "results_count": 7
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "user working style work habits instructions",
+                    "top_k": 20
+                  },
+                  "result": "Found 7 observations for query 'user working style work habits instructions':\n\nEXPLICIT:\n\n1. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n2. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n3. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n4. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n5. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n6. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n7. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 6,
+                    "results_count": 7
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "who is user background identity bio",
+                    "top_k": 20
+                  },
+                  "result": "Found 7 observations for query 'who is user background identity bio':\n\nEXPLICIT:\n\n1. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n2. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n3. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n4. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n5. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n6. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n7. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 6,
+                    "results_count": 7
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_messages",
+                  "args": {
+                    "limit": 15,
+                    "query": "who is user background work job personal details"
+                  },
+                  "result": "Found 13 matching messages in 3 conversation snippets for query 'who is user background work job personal details'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: 20261030_171601_8464d1, 2 match(es)) ---\n2026-10-30 21:16:12 user: [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?\n2026-10-30 21:16:12 hermes: 10am Saturday, October 31 with Riley at the same shop you arranged — bike pickup.\n\n--- Snippet 2 (session: source-2a415e14e847463a629bb176, 2 match(es)) ---\n2026-10-20 14:00:00 Riley: Hi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley\n2026-10-20 14:20:00 user: Hi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!\n\n--- Snippet 3 (session: source-6b86464ba33f407525c11968, 9 match(es)) ---\n2026-10-19 15:00:00 Riley: hey! your bike is all fixed, ready whenever you want to grab it\n2026-10-19 15:05:00 user: awesome, thank you! I'm away this weekend so can't do this Saturday\n2026-10-19 15:15:00 user: could I come Saturday of next week instead? like the weekend after this one\n2026-10-19 15:17:30 Riley: yeah of course we'll hold it for you. does 2pm work? we're at Spoke Cycles, 114 Maple Avenue\n2026-10-19 15:20:00 user: yeah that works, see you then!\n2026-10-19 22:00:00 Riley: btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once\n2026-10-19 22:17:46 user: oh nice, yeah I'd love to\n2026-10-19 22:18:13 Riley: Maple Mug at 9am?\n2026-10-19 22:20:00 user: perfect, see you there",
+                  "metadata": {
+                    "top_k": 15,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 8,
+                    "results_count": 3
+                  },
+                  "category": "source_messages",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_messages",
+                  "args": {
+                    "limit": 10,
+                    "query": "preferences communication style instructions"
+                  },
+                  "result": "Found 10 matching messages in 3 conversation snippets for query 'preferences communication style instructions'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-2a415e14e847463a629bb176, 2 match(es)) ---\n2026-10-20 14:00:00 Riley: Hi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley\n2026-10-20 14:20:00 user: Hi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!\n\n--- Snippet 2 (session: 20261030_171601_8464d1, 2 match(es)) ---\n2026-10-30 21:16:12 user: [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?\n2026-10-30 21:16:12 hermes: 10am Saturday, October 31 with Riley at the same shop you arranged — bike pickup.\n\n--- Snippet 3 (session: source-6b86464ba33f407525c11968, 6 match(es)) ---\n2026-10-19 15:00:00 Riley: hey! your bike is all fixed, ready whenever you want to grab it\n2026-10-19 15:05:00 user: awesome, thank you! I'm away this weekend so can't do this Saturday\n2026-10-19 15:15:00 user: could I come Saturday of next week instead? like the weekend after this one\n2026-10-19 15:17:30 Riley: yeah of course we'll hold it for you. does 2pm work? we're at Spoke Cycles, 114 Maple Avenue\n2026-10-19 15:20:00 user: yeah that works, see you then!\n2026-10-19 22:00:00 Riley: btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once\n2026-10-19 22:17:46 user: oh nice, yeah I'd love to\n2026-10-19 22:18:13 Riley: Maple Mug at 9am?\n2026-10-19 22:20:00 user: perfect, see you there",
+                  "metadata": {
+                    "top_k": 10,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 4,
+                    "results_count": 3
+                  },
+                  "category": "source_messages",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:17:22.897496+00:00",
+                    "native_completed_at": "2026-10-30T21:17:33.471849+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                }
+              ],
+              "provider_internal_source_fallback_confirmed": false,
+              "provider_internal_path_needs_review": false,
+              "categories": {
+                "source_messages": 3
+              },
+              "operations": [
+                {
+                  "name": "honcho_search",
+                  "arguments": {
+                    "peer": "user",
+                    "query": "bike pickup shop Riley where"
+                  },
+                  "category": "source_messages",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1793395042728,
+                  "result": {
+                    "tool": "honcho_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"result\": \"[assistant \\u00b7 20261030_171601_8464d1] 10am Saturday, October 31 with Riley at the same shop you arranged \\u2014 bike pickup.\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\"}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                },
+                {
+                  "name": "honcho_search",
+                  "arguments": {
+                    "peer": "user",
+                    "query": "Maple Mug Riley shop arranged"
+                  },
+                  "category": "source_messages",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1793395042800,
+                  "result": {
+                    "tool": "honcho_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"result\": \"[assistant \\u00b7 20261030_171601_8464d1] 10am Saturday, October 31 with Riley at the same shop you arranged \\u2014 bike pickup.\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\"}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                },
+                {
+                  "name": "honcho_context",
+                  "arguments": {
+                    "peer": "user"
+                  },
+                  "category": "source_messages",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1793395042874,
+                  "result": {
+                    "tool": "honcho_context",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"result\": \"## Representation\\n## Explicit Observations\\n\\n[2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\\n[2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\\n[2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\\n[2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\\n[2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\\n[2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\\n[2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\\n\\n\\n## Recent messages\\n  [user] [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\\n  [hermes] 10am Saturday, October 31 with Riley at the same shop you arranged \\u2014 bike pickup.\"}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                }
+              ],
+              "failed_operations": 0,
+              "repeated_operations": 0,
+              "unmatched_tool_results": [],
+              "source_fallback_attempted": true,
+              "unclassified_operations": 0,
+              "latency_s": 20.26,
+              "input_tokens": null,
+              "output_tokens": 585,
+              "policy_blocks": 0,
+              "returncode": 0
+            },
+            "question_authoring_reused": false,
+            "question_hash": "ee0e83809c9d7b19a2d406263e6b3b850dd57e11cc89c9b64227cb626dfa1c91",
+            "gateway_window": {
+              "projects": [],
+              "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "pickup-change",
+      "at": "2026-10-26T16:02:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "b0378f3ac199bdce73e650433611a1740145a1ca50cbc0465ad801fd9f6e32e5",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer"
+    },
+    {
+      "id": "coffee-same-chat",
+      "at": "2026-10-26T16:04:00-04:00",
+      "session": "pickup-check",
+      "contract_hash": "0c90110e37b6e61bc38c6300a7b2ea440783d6a8f3fa46cd1969a58ef783e1c5",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 4,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 4,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "coffee-day",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-unchanged",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "sunday-both",
+      "at": "2026-10-26T16:30:00-04:00",
+      "session": "sunday-fresh",
+      "contract_hash": "15eb940d242611ca2f8d9cd20f887c10e63669cdcc19f1778bf37de818eb6a9e",
+      "state": "diagnostic",
+      "verdict": "fail",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 6,
+          "initial_missed": 1,
+          "initial_misrepresented": 0,
+          "max_points": 7,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "coffee-who",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "coffee-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "bike-who",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "bike-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "bike-venue",
+              "initial_verdict": "missed",
+              "followup_verdict": "missed",
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "sunday-count",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": [
+          {
+            "claim_ids": [
+              "bike-venue"
+            ],
+            "question": "Where is the 11am bike pickup with Riley on Sunday, Nov 1?",
+            "state": "graded",
+            "verdicts": [
+              {
+                "id": "bike-venue",
+                "verdict": "missed",
+                "reason": "Answer states no shop name is known and does not mention Spoke Cycles."
+              }
+            ],
+            "metrics": {
+              "top_level_calls": 1,
+              "total_tool_operations": 1,
+              "provider_internal_tool_calls": 5,
+              "provider_task_records": 1,
+              "provider_internal_operations": [
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "person preferences likes dislikes working style goals",
+                    "top_k": 20
+                  },
+                  "result": "Found 8 observations for query 'person preferences likes dislikes working style goals':\n\nEXPLICIT:\n\n1. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n2. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n3. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n4. [2026-10-30 21:18:12] User rescheduled bike pickup with Riley to 11am on Sunday, November 1, 2026 (changed from 10am Saturday, October 31, 2026).\n5. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n6. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n7. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n8. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 7,
+                    "results_count": 8
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:21:32.529939+00:00",
+                    "native_completed_at": "2026-10-30T21:21:47.729742+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "user name identity background bio",
+                    "top_k": 20
+                  },
+                  "result": "Found 8 observations for query 'user name identity background bio':\n\nEXPLICIT:\n\n1. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n2. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n3. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n4. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n5. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n6. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n7. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n8. [2026-10-30 21:18:12] User rescheduled bike pickup with Riley to 11am on Sunday, November 1, 2026 (changed from 10am Saturday, October 31, 2026).\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 5,
+                    "results_count": 8
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:21:32.529939+00:00",
+                    "native_completed_at": "2026-10-30T21:21:47.729742+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_memory",
+                  "args": {
+                    "query": "working style communication preferences goals",
+                    "top_k": 20
+                  },
+                  "result": "Found 8 observations for query 'working style communication preferences goals':\n\nEXPLICIT:\n\n1. [2026-10-19 22:20:00] user wants to grab coffee with Riley on Sunday, November 1, 2026.\n2. [2026-10-20 14:20:00] user agreed to meet Riley for bike pickup at the same shop previously arranged with Riley at 10 am on Saturday, October 31, 2026.\n3. [2026-10-19 22:20:00] user will meet Riley at Maple Mug at 9am on Sunday, November 1, 2026.\n4. [2026-10-30 21:18:12] User rescheduled bike pickup with Riley to 11am on Sunday, November 1, 2026 (changed from 10am Saturday, October 31, 2026).\n5. [2026-10-19 22:20:00] user wants to collect user's bike on Saturday, October 31, 2026 instead.\n6. [2026-10-19 22:20:00] user will collect user's bike at 2pm on Saturday, October 31, 2026.\n7. [2026-10-19 22:20:00] user is away during the weekend of October 24-25, 2026.\n8. [2026-10-19 22:20:00] user cannot collect user's bike on Saturday, October 24, 2026.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 5,
+                    "results_count": 8
+                  },
+                  "category": "memory_search",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:21:32.529939+00:00",
+                    "native_completed_at": "2026-10-30T21:21:47.729742+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "search_messages",
+                  "args": {
+                    "limit": 20,
+                    "query": "user preferences goals background who is user"
+                  },
+                  "result": "Found 20 matching messages in 4 conversation snippets for query 'user preferences goals background who is user'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: 20261030_171601_8464d1, 8 match(es)) ---\n2026-10-30 21:16:12 user: [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?\n2026-10-30 21:16:12 hermes: 10am Saturday, October 31 with Riley at the same shop you arranged — bike pickup.\n2026-10-30 21:17:29 user: [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhich shop is the 10am Saturday, October 31 bike pickup with Riley at?\n2026-10-30 21:17:29 hermes: I don't have the shop name — only that it's the same shop you arranged with Riley. Maple Mug is the only named shop on record.\n2026-10-30 21:18:14 user: [Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11 instead.\n2026-10-30 21:18:14 hermes: Noted — bike pickup with Riley moved to 11am Sunday, Nov 1.\n2026-10-30 21:19:18 user: [Simulated now: 2026-10-26T16:04:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nAnd coffee with Riley?\n2026-10-30 21:19:18 hermes: 9am Sunday, Nov 1 at Maple Mug.\n\n--- Snippet 2 (session: 20261030_172000_d1393b, 2 match(es)) ---\n2026-10-30 21:20:15 user: [Simulated now: 2026-10-26T16:30:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's my Sunday with Riley looking like?\n2026-10-30 21:20:15 hermes: Sunday, Nov 1 with Riley:\n- 9am coffee at Maple Mug\n- 11am bike pickup\n\n--- Snippet 3 (session: source-6b86464ba33f407525c11968, 8 match(es)) ---\n2026-10-19 15:00:00 Riley: hey! your bike is all fixed, ready whenever you want to grab it\n2026-10-19 15:05:00 user: awesome, thank you! I'm away this weekend so can't do this Saturday\n2026-10-19 15:15:00 user: could I come Saturday of next week instead? like the weekend after this one\n2026-10-19 15:17:30 Riley: yeah of course we'll hold it for you. does 2pm work? we're at Spoke Cycles, 114 Maple Avenue\n2026-10-19 15:20:00 user: yeah that works, see you then!\n2026-10-19 22:00:00 Riley: btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once\n2026-10-19 22:17:46 user: oh nice, yeah I'd love to\n2026-10-19 22:18:13 Riley: Maple Mug at 9am?\n2026-10-19 22:20:00 user: perfect, see you there\n\n--- Snippet 4 (session: source-2a415e14e847463a629bb176, 2 match(es)) ---\n2026-10-20 14:00:00 Riley: Hi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley\n2026-10-20 14:20:00 user: Hi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!",
+                  "metadata": {
+                    "top_k": 20,
+                    "used_embedding": true,
+                    "embedding_query_count": 1,
+                    "query_tokens": 7,
+                    "results_count": 4
+                  },
+                  "category": "source_messages",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:21:32.529939+00:00",
+                    "native_completed_at": "2026-10-30T21:21:47.729742+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                },
+                {
+                  "toolName": "grep_messages",
+                  "args": {
+                    "limit": 10,
+                    "text": "prefer"
+                  },
+                  "result": "No messages found containing 'prefer'",
+                  "metadata": {},
+                  "category": "source_messages",
+                  "attribution": "background-or-prefetch",
+                  "path_attribution": {
+                    "version": "native-completion-v1",
+                    "affects_answer": false,
+                    "final_hermes_input_at": "2026-10-30T21:21:32.529939+00:00",
+                    "native_completed_at": "2026-10-30T21:21:47.729742+00:00",
+                    "reason": "Native response completed after the final Hermes request input; background operations and costs remain recorded"
+                  }
+                }
+              ],
+              "provider_internal_source_fallback_confirmed": false,
+              "provider_internal_path_needs_review": false,
+              "categories": {
+                "source_messages": 1
+              },
+              "operations": [
+                {
+                  "name": "honcho_search",
+                  "arguments": {
+                    "peer": "user",
+                    "query": "bike pickup shop location name"
+                  },
+                  "category": "source_messages",
+                  "dispatch_parent": null,
+                  "success": true,
+                  "policy_blocked": false,
+                  "timestamp": 1793395292464,
+                  "result": {
+                    "tool": "honcho_search",
+                    "success": true,
+                    "policy_blocked": false,
+                    "text": "{\"result\": \"[assistant \\u00b7 20261030_171601_8464d1] 10am Saturday, October 31 with Riley at the same shop you arranged \\u2014 bike pickup.\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhich shop is the 10am Saturday, October 31 bike pickup with Riley at?\\n\\n[assistant \\u00b7 20261030_171601_8464d1] Noted \\u2014 bike pickup with Riley moved to 11am Sunday, Nov 1.\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nRiley just called. We're doing the bike pickup Sunday at 11 instead.\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\\n\\n[assistant \\u00b7 20261030_171601_8464d1] I don't have the shop name \\u2014 only that it's the same shop you arranged with Riley. Maple Mug is the only named shop on record.\\n\\n[assistant \\u00b7 20261030_172000_d1393b] Sunday, Nov 1 with Riley:\\n- 9am coffee at Maple Mug\\n- 11am bike pickup\\n\\n[user \\u00b7 20261030_171601_8464d1] [Simulated now: 2026-10-26T16:04:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nAnd coffee with Riley?\\n\\n[assistant \\u00b7 20261030_171601_8464d1] 9am Sunday, Nov 1 at Maple Mug.\\n\\n[user \\u00b7 20261030_172000_d1393b] [Simulated now: 2026-10-26T16:30:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's my Sunday with Riley looking like?\"}",
+                    "truncated": false,
+                    "capture": "hermes_session_db"
+                  }
+                }
+              ],
+              "failed_operations": 0,
+              "repeated_operations": 0,
+              "unmatched_tool_results": [],
+              "source_fallback_attempted": true,
+              "unclassified_operations": 0,
+              "latency_s": 29.71,
+              "input_tokens": null,
+              "output_tokens": null,
+              "policy_blocks": 0,
+              "returncode": 0
+            },
+            "question_authoring_reused": false,
+            "question_hash": "3b57687c106c2e00eaa7b6c1181e33170210b31e6da6301d82de5377b09a90e5",
+            "gateway_window": {
+              "projects": [],
+              "scope": "gateway project activity during this turn; asynchronous work may settle later; not tool prices"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "saturday-clear",
+      "at": "2026-10-26T17:00:00-04:00",
+      "session": "saturday-fresh",
+      "contract_hash": "029a88883daa9ddea247e1bceda50b4c4fa6068ccfa5291149d966820fb18900",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "bike-not-saturday",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

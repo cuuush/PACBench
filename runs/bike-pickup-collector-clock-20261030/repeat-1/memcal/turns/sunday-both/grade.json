@@ -1,0 +1,208 @@
+{
+  "correct": 7,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-who",
+      "verdict": "correct",
+      "reason": "Answer states 'coffee with Riley' for Sunday Nov 1."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states coffee at '9am'."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "correct",
+      "reason": "Answer states coffee 'at Maple Mug'."
+    },
+    {
+      "id": "bike-who",
+      "verdict": "correct",
+      "reason": "Answer lists bike pickup as part of Sunday with Riley scope from question."
+    },
+    {
+      "id": "bike-time",
+      "verdict": "correct",
+      "reason": "Answer states bike pickup '11am'."
+    },
+    {
+      "id": "bike-venue",
+      "verdict": "correct",
+      "reason": "Answer states bike pickup 'at Spoke Cycles'."
+    },
+    {
+      "id": "sunday-count",
+      "verdict": "correct",
+      "reason": "Answer lists only coffee and bike pickup and says 'Both'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-who",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "bike-who",
+      "kind": "provided",
+      "reason": "Fact conveyed via inherited Sunday with Riley scope."
+    },
+    {
+      "id": "bike-time",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "bike-venue",
+      "kind": "provided",
+      "reason": "Fact stated in answer."
+    },
+    {
+      "id": "sunday-count",
+      "kind": "provided",
+      "reason": "Both items listed with 'Both' indicating exactly two."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-who",
+        "status": "supported",
+        "reason": "Prefetch and tool result list coffee with Riley.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "who: Riley"
+          }
+        ]
+      },
+      {
+        "id": "coffee-time",
+        "status": "supported",
+        "reason": "Prefetch and tool result give 9am / 09:00 for coffee.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Sunday 1 November 2026 at 09:00"
+          }
+        ]
+      },
+      {
+        "id": "coffee-venue",
+        "status": "supported",
+        "reason": "Tool result gives Maple Mug as coffee location.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Maple Mug"
+          }
+        ]
+      },
+      {
+        "id": "bike-who",
+        "status": "supported",
+        "reason": "Prefetch shows bike from Riley and tool shows source person:Riley.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Pick up bike\", 11am — confirmed · from Riley"
+          },
+          {
+            "id": "tool-result-2",
+            "quote": "source: person:Riley"
+          }
+        ]
+      },
+      {
+        "id": "bike-time",
+        "status": "supported",
+        "reason": "Prefetch and tool result give 11am / 11:00 for bike pickup.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Pick up bike\", 11am — confirmed · from Riley"
+          },
+          {
+            "id": "tool-result-2",
+            "quote": "when: Sunday 1 November 2026 at 11:00"
+          }
+        ]
+      },
+      {
+        "id": "bike-venue",
+        "status": "supported",
+        "reason": "Tool result gives Spoke Cycles address for bike pickup.",
+        "citations": [
+          {
+            "id": "tool-result-2",
+            "quote": "where: Spoke Cycles, 114 Maple Avenue"
+          }
+        ]
+      },
+      {
+        "id": "sunday-count",
+        "status": "supported",
+        "reason": "Prefetch lists two Sunday items and marks range complete.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley"
+          },
+          {
+            "id": "prefetch",
+            "quote": "Sun Nov 1  \"Pick up bike\", 11am — confirmed · from Riley"
+          },
+          {
+            "id": "prefetch",
+            "quote": "complete for 2026-10-23 – 2026-11-25"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Bike pickup address includes 114 Maple Avenue",
+        "answer_quote": "114 Maple Avenue",
+        "status": "supported",
+        "reason": "Source message states shop address with street number.",
+        "citations": [
+          {
+            "id": "message-eaaf1fe56b4c5945bb1cdfa0",
+            "quote": "we're at Spoke Cycles, 114 Maple Avenue"
+          }
+        ]
+      },
+      {
+        "assertion": "Both Sunday plans are confirmed",
+        "answer_quote": "Both confirmed",
+        "status": "unverifiable",
+        "reason": "Partial source evidence shows agreement language but no explicit confirmed flag.",
+        "citations": []
+      }
+    ]
+  }
+}

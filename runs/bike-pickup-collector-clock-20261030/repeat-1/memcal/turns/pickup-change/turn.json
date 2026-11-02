@@ -1,0 +1,49 @@
+{
+  "prompt": "[Simulated now: 2026-10-26T16:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11 instead.",
+  "at": "2026-10-26T16:02:00-04:00",
+  "answer": "Moved to Sun Nov 1 at 11am, Spoke Cycles.\n\nNote: you also have coffee with Riley that same morning at 9am.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_update",
+      "input": {
+        "time": "11:00",
+        "when": "2026-11-01",
+        "which": "E1"
+      },
+      "timestamp": 1793390926797
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_update",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"row\": \"Sun Nov 1  Pick up bike, 11am \\u2014 confirmed \\u00b7 Spoke Cycles, 114 Maple Avenue\", \"changed\": [\"date: 2026-10-31 \\u2192 2026-11-01\", \"time: 10:00 \\u2192 11:00\"]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 10.8,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261030_160753_b6470f \"Plan bike pickup\" (1 user message, 4 total messages)\n\nsession_id: 20261030_160753_b6470f",
+  "raw_events": 13,
+  "session_id": "20261030_160753_b6470f",
+  "stderr_full": "↻ Resumed session 20261030_160753_b6470f \"Plan bike pickup\" (1 user message, 4 total messages)\n\nsession_id: 20261030_160753_b6470f\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261030_160753_b6470f\", \"timestamp\": 1793390921282}\n{\"type\": \"tool_use\", \"name\": \"memcal_update\", \"input\": {\"time\": \"11:00\", \"when\": \"2026-11-01\", \"which\": \"E1\"}, \"timestamp\": 1793390926797}\n{\"type\": \"tool_result\", \"name\": \"memcal_update\", \"output\": \"{\\\"row\\\": \\\"Sun Nov 1  Pick up bike, 11am \\\\u2014 confirmed \\\\u00b7 Spoke Cycles, 114 Maple Avenue\\\", \\\"changed\\\": [\\\"date: 2026-10-31 \\\\u2192 2026-11-01\\\", \\\"time: 10:00 \\\\u2192 11:00\\\"]}\", \"duration_ms\": 28, \"is_error\": false, \"timestamp\": 1793390926826}\n{\"type\": \"text\", \"text\": \"\\n\\nMoved to Sun\", \"timestamp\": 1793390929956}\n{\"type\": \"text\", \"text\": \" Nov 1 at 11am,\", \"timestamp\": 1793390929995}\n{\"type\": \"text\", \"text\": \" Spoke Cycles.\\n\\n\", \"timestamp\": 1793390930039}\n{\"type\": \"text\", \"text\": \"Note: you\", \"timestamp\": 1793390930076}\n{\"type\": \"text\", \"text\": \" also\", \"timestamp\": 1793390930116}\n{\"type\": \"text\", \"text\": \" have coffee\", \"timestamp\": 1793390930156}\n{\"type\": \"text\", \"text\": \" with Riley that same\", \"timestamp\": 1793390930197}\n{\"type\": \"text\", \"text\": \" morning\", \"timestamp\": 1793390930237}\n{\"type\": \"text\", \"text\": \" at 9am.\", \"timestamp\": 1793390930280}\n{\"type\": \"result\", \"session_id\": \"20261030_160753_b6470f\", \"exit_code\": 0, \"text\": \"Moved to Sun Nov 1 at 11am, Spoke Cycles.\\n\\nNote: you also have coffee with Riley that same morning at 9am.\", \"tokens\": {\"input\": 10366, \"output\": 519, \"total\": 20854, \"cache_read\": 9969, \"cache_write\": 0}, \"duration_ms\": 9036, \"timestamp\": 1793390930319}",
+  "session_input_tokens": 10366,
+  "session_output_tokens": 519,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-26T16:02:00-04:00 [id=f4e0218b0ebb5551ee06d24c5302964ab7135d3b] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 26 October 2026)\n〔E1〕 Sat Oct 31  \"Pick up bike\", 10am — confirmed · from Riley\n〔E2〕 Sun Nov 1  \"Coffee\", 9am — confirmed · with Riley\n[complete for 2026-10-23 – 2026-11-25; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no email 6 days, imessage 6 days — this week may be incomplete]\n[COLLECTION: groupme (not yet checked), ical (not yet checked), signal (not yet checked) +3 more — recent messages may be missing]",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-ci4dsjr0",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-ci4dsjr0",
+    "system_prompt_sha256": "03e897d26dfbb97968337321b8319f9eb3640d0835c2215c81a42750eef7d3fc",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-10-26T16:00:00-04:00"
+}

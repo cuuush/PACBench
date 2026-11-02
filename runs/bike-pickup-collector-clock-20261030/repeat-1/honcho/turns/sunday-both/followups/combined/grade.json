@@ -1,0 +1,39 @@
+{
+  "claims": [
+    {
+      "id": "bike-venue",
+      "verdict": "missed",
+      "reason": "Answer states no shop name is known and does not mention Spoke Cycles."
+    }
+  ],
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "bike-venue",
+        "status": "not_found",
+        "reason": "No answer-visible material names Spoke Cycles; only generic same-shop references appear.",
+        "citations": []
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The 11am pickup is at the same shop previously arranged with Riley.",
+        "answer_quote": "only that it's the same shop you arranged with Riley.",
+        "status": "supported",
+        "reason": "Prior change kept same shop/address and Sunday move states no shop change.",
+        "citations": [
+          {
+            "id": "message-d29a4f96b9240baa0fcdbca9",
+            "quote": "Same shop and same address, just earlier."
+          },
+          {
+            "id": "assistant-user:pickup-change",
+            "quote": "We're doing the bike pickup Sunday at 11 instead."
+          }
+        ]
+      }
+    ]
+  }
+}

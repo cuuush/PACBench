@@ -11,7 +11,7 @@ from pathlib import Path
 from . import harness
 from .gateway_client import require_live_cost_boundary
 from .model_calls import ModelOutput
-from .semantic_grade import Claim, Grade, GradedClaim, VERDICTS, grade_semantic
+from .semantic_grade import Claim, Grade, GradedClaim, VERDICTS, grade_native_semantic, audit_native_judge_attempts, LEGACY_JUDGE_PROTOCOL
 
 RECOVERY_WEIGHT = 0.5
 SOURCE_CATEGORIES = {'archive_search', 'source_evidence', 'source_messages'}
@@ -372,7 +372,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
                   question_model=None, question_dir: Path | None = None,
-                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1') -> dict:
+                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
@@ -426,11 +426,11 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             from .native_checks import diagnostic_inputs
             from types import SimpleNamespace
             inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
-            followup_grade = grade_semantic(grade.checkpoint, turn.prompt, turn.answer,
+            followup_grade = grade_native_semantic(grade.checkpoint, turn.prompt, turn.answer,
                 tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
                 record_path=directory / 'judgment.json', conversation=tuple(conversation) + (
                     {'role': 'user', 'content': initial_turn.prompt},
-                    {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
+                    {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots],
                 **({'evidence_diagnostic': followup_grade.evidence_diagnostic} if inputs is not None else {})})
             attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
@@ -447,7 +447,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1') -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -515,16 +515,25 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             check(not turn.returncode and not turn.policy_blocks, 'follow-up turn failed/blocked')
             check(attempt['metrics'] == turn_metrics(turn, previous, provenance_version=provenance_version), 'follow-up tool/token metrics mismatch')
             judgment = read(directory / 'judgment.json')
+            check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == judge_protocol, 'follow-up judge protocol mismatch')
             check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer,
                   'follow-up judgment context mismatch')
             if 'conversation' in judgment:
                 check(judgment['conversation'] == list(conversation) + [
                     {'role': 'user', 'content': initial_turn.prompt},
                     {'role': 'assistant', 'content': initial_turn.answer}], 'follow-up prior conversation mismatch')
+            selected = [c for c in contract.claims if c.id in selected_ids]
+            if judge_protocol != LEGACY_JUDGE_PROTOCOL:
+                from .native_checks import diagnostic_inputs
+                from types import SimpleNamespace
+                inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
+                audit_native_judge_attempts(directory/'judgment.json', question=turn.prompt, answer=turn.answer,
+                    claims=tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge_protocol=judge_protocol,
+                    conversation=list(conversation) + [{'role':'user','content':initial_turn.prompt}, {'role':'assistant','content':initial_turn.answer}],
+                    diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
             judgments = read(directory / 'grade.json')['claims']
             check(json.loads(judgment['response'])['verdicts'] == judgments,
                   'follow-up grade differs from recorded judge response')
-            selected = [c for c in contract.claims if c.id in selected_ids]
             if evidence_by_id is not None:
                 check('diagnostic_protocol' in judgment and 'evidence_diagnostic' in read(directory / 'grade.json'), 'missing follow-up evidence diagnostic')
             if 'diagnostic_protocol' in judgment:
@@ -538,7 +547,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                     saved_grade.get('evidence_diagnostic') == validate_diagnostic(json.loads(judgment['response']).get('evidence_diagnostic'), claim_objects, turn.answer, inputs, diagnostic_version),
                     'follow-up diagnostic differs from judge')
                 check(judgment['prompt'] == judge_prompt(turn.prompt, turn.answer, claim_objects,
-                    conversation=judgment['conversation'], diagnostic_inputs=inputs, diagnostic_version=diagnostic_version), 'follow-up diagnostic prompt mismatch')
+                    conversation=judgment['conversation'], diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol) + judgment.get('prompt_suffix', ''), 'follow-up diagnostic prompt mismatch')
                 reconstructed = diagnostic_inputs(turn, SimpleNamespace(claims=selected),
                     evidence_by_id if evidence_by_id is not None else {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, prior_turn=initial_turn, diagnostic_version=diagnostic_version)
                 check(inputs.get('answer_visible') == reconstructed['answer_visible'] and

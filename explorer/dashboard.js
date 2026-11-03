@@ -308,10 +308,11 @@ function toolCards(run, arm, turn, ex) {
 function score(ex) {
   if (ex.status?.state === "invalid") return ["Invalid checkpoint", "bad"];
   if (ex.status?.state === "incomplete") return ["Incomplete checkpoint", "warn"];
-  const grade = ex.grade;
+  if (ex.reviewed_judgment && ex.reviewed_judgment.state !== "valid") return ["Reviewed judgment ungraded · validation error", "warn"];
+  const grade = ex.reviewed_judgment ? ex.reviewed_judgment.grade : ex.grade;
   if (!grade) return ["Ungraded", "neutral"];
   if (!grade.claims?.length) return ["Ungraded", "neutral"];
-  if (ex.retention?.protocol_version === 5) {
+  if (!ex.reviewed_judgment && ex.retention?.protocol_version === 5) {
     const terminal = {incorrect_answer:'Failed · wrong detail',admitted_retrieval_failure:'Failed · detail unavailable',explicit_request_failed:'Failed · explicitly requested detail missing',no_initial_correct_facts:'Failed · no facts recalled'};
     if (terminal[ex.retention.skip_reason]) return [terminal[ex.retention.skip_reason], 'bad'];
   }
@@ -326,8 +327,10 @@ function score(ex) {
 function scoreDetails(run, ex) {
   const [label, tone] = score(ex);
   const criteria = (ex.contract || run.contract)?.claims || [];
-  const verdicts = ex.grade?.claims || criteria.map(c => ({id:c.id, verdict:'ungraded', reason:'No answer judgment captured.'}));
-  const diagnostic = ex.grade?.evidence_diagnostic;
+  const review = ex.reviewed_judgment;
+  const grade = review ? (review.state === 'valid' ? review.grade : null) : ex.grade;
+  const verdicts = grade?.claims || criteria.map(c => ({id:c.id, verdict:'ungraded', reason:review ? (review.state === 'valid' ? 'Reviewed judgment ungraded: ' + (review.error || 'no usable result') : 'Reviewed judgment unavailable: validation failed.') : 'No answer judgment captured.'}));
+  const diagnostic = grade?.evidence_diagnostic;
   const rows = verdicts.map(item => {
     const claim = criteria.find(c => c.id === item.id);
     const evidence = diagnostic?.state === 'complete' ? diagnostic.claims?.find(c => c.id === item.id) : null;
@@ -342,11 +345,14 @@ function scoreDetails(run, ex) {
   const extraRows = extras.map(item => '<div class="verdict-row">' + badge(item.status, item.status === 'contradicted' ? 'bad' : 'neutral') +
     '<div><strong>' + esc(item.assertion) + '</strong><p>' + esc(item.reason) + '</p>' +
     (item.citations || []).map(c => '<p><small>' + esc(c.id) + '</small> <q>' + previewText(c.quote, 220) + '</q></p>').join('') + '</div></div>').join('');
-  return '<div class="answer-score ' + tone + '">' + badge(label,tone) + '<h4>Expected facts and judge verdicts</h4>' + rows +
+  const protocol = review ? '<p class="muted">Reviewed judgment · ' + esc(review.protocol || 'unknown protocol') + ' · ' + esc(review.state) + '</p>' +
+    (review.state !== 'valid' ? notice('Review validation failed: ' + (review.error || 'invalid or incomplete overlay')) : '') +
+    recordButton('Load reviewed judgment record', review.record_url) + recordButton('Load overlay audit record', review.audit_record_url) : '';
+  return '<div class="answer-score ' + tone + '">' + badge(label,tone) + protocol + '<h4>Expected facts and judge verdicts</h4>' + rows +
     (diagnostic && diagnostic.state !== 'complete' ? notice('Evidence review ungraded: ' + (diagnostic.reason || 'incomplete evidence')) : '') +
     (diagnostic?.state === 'complete' ? '<p class="muted">Provider evidence availability does not prove the assistant used it. User instructions and tool arguments are outside this evidence scope.</p><h4>Additional assertions</h4>' +
       (extraRows || '<p class="muted">None flagged.</p>') + '<p class="muted">Source coverage is partial; unverifiable does not establish truth or falsity.</p>' : '') +
-    recordButton('Load exact judge record',ex.judgment_record_url) + '</div>';
+    recordButton(review ? 'Load original judgment record' : 'Load exact judge record',ex.judgment_record_url) + '</div>';
 }
 function questionText(turn, ex) {
   return String(ex.judgment?.question || turn.prompt || "").replace(/^\[Simulated now:[^\n]+\]\n\n/, "");
@@ -380,11 +386,11 @@ function effortDetails(ex) {
     m.unclassified_operations || m.inherited_unclassified_operation || retention?.claims?.some(c => c.path_needs_review) ? "Unknown operation: retention uncredited" : "Retained-memory path";
   return '<p class="muted">' + esc(m.top_level_calls ?? m.tool_calls ?? "?") + ' direct calls · ' +
     esc(m.total_tool_operations ?? m.operations?.length ?? "?") + ' operations · ' +
-    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' +
+    esc(m.latency_s ?? m.wall_seconds ?? "unknown") + ' seconds · ' + esc(path) + (retention ? ' · ' + (ex.reviewed_judgment ? 'Original judgment protocol · ' : '') + 'Question retention including recovery: ' + esc(retention.points) + '/' + esc(retention.max_points) : '') + '</p>' +
     '<p class="muted">Provider internal calls: ' + esc(m.provider_internal_tool_calls ?? 'unobserved') +
     ' · failed operations: ' + esc(m.failed_operations ?? 'unknown') + ' · exact repeat operations: ' + esc(m.repeated_operations ?? 'unknown') +
     '. Repetition is review evidence; it does not automatically establish wasted work. Internal calls can include background work.</p>' +
-    (ex.retention?.skip_reason ? notice('Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + recordButton('Load exact turn record',ex.turn_record_url);
+    (ex.retention?.skip_reason ? notice((ex.reviewed_judgment ? 'Original judgment protocol: ' : '') + 'Recovery skipped: ' + ({no_initial_correct_facts:'no expected facts recalled',incorrect_answer:'an expected detail was wrong',admitted_retrieval_failure:'Hermes said it could not find an expected detail',explicit_request_failed:'an explicitly requested detail was missed'}[ex.retention.skip_reason] || ex.retention.skip_reason) + '.') : '') + recordButton('Load exact turn record',ex.turn_record_url);
 }
 function usageDetails(ex) {
   const usage = ex.usage_after_settlement || ex.usage;
@@ -403,6 +409,22 @@ function usageDetails(ex) {
     benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
+function reviewedSemanticSummary(run, arm) {
+  if (!run.reviewed_judgment) return '';
+  if (run.reviewed_judgment.state !== 'valid') return notice('Reviewed semantic totals unavailable: overlay validation failed.');
+  const initial = (arm.exchanges || []).filter(ex => ex.kind !== 'followup');
+  const ids = new Set([...(arm.evaluation?.checks || []).map(c => c.id), ...initial.map(ex => ex.check_id)]);
+  const counts = {pass:0, fail:0, ungraded:0};
+  for (const id of ids) {
+    const ex = initial.find(item => item.check_id === id);
+    const grade = ex?.reviewed_judgment?.state === 'valid' ? ex.reviewed_judgment.grade : null;
+    if (!grade?.claims?.length || ex?.status?.state === 'invalid' || ex?.status?.state === 'incomplete') counts.ungraded++;
+    else if (grade.claims.some(c => c.verdict === 'missed' || c.verdict === 'misrepresented')) counts.fail++;
+    else if (grade.claims.every(c => c.verdict === 'correct')) counts.pass++;
+    else counts.ungraded++;
+  }
+  return '<p>Reviewed semantic judgments · ' + esc(run.reviewed_judgment.protocol) + ': ' + counts.pass + ' pass / ' + counts.fail + ' fail / ' + counts.ungraded + ' ungraded. Retention is not recomputed.</p>';
+}
 function judgePage(run) {
   const arms = run.arms || {};
   const keys = Object.keys(arms);
@@ -413,7 +435,7 @@ function judgePage(run) {
   const selectedArm = arms[selectedProvider];
   return '<section class="stage"><h2>What we are judging</h2><p>Each question has its own frozen expected facts. Earlier answers can resolve references; they do not earn credit for a fact omitted from a later answer.</p>' +
     '<div class="provider-switch" aria-label="Memory provider">' + switches + '</div>' +
-    (selectedArm ? '<h3>' + esc(selectedArm.label || selectedArm.provider) + '</h3>' + checkPanels(run,selectedArm) : notice('No provider results recorded.')) + '</section>' +
+    (selectedArm ? '<h3>' + esc(selectedArm.label || selectedArm.provider) + '</h3>' + reviewedSemanticSummary(run,selectedArm) + checkPanels(run,selectedArm) : notice('No provider results recorded.')) + '</section>' +
     (Object.keys(run.excluded_arms || {}).length ? details('Excluded attempts · separate configurations and interruptions',
       '<p>These attempts are excluded from the selected provider results and cost comparison.</p>' +
       Object.values(run.excluded_arms).map(arm => '<section class="stage"><h2>' + esc(arm.label) + '</h2>' +
@@ -424,6 +446,7 @@ function costPage(run) {
   const review = run.cost_review;
   const money = value => value == null ? 'unknown' : '$' + Number(value).toFixed(6);
   return '<section class="stage"><h2>Observed costs</h2>' +
+    (run.reviewed_judgment ? '<p>Pass, fail, ungraded and retention figures below use the original judgment protocol, separate from reviewed judgments.</p>' : '') +
     '<p>These are costs through each arm’s recorded cutoff. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
     '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes</th><th>Provider internals</th><th>Held reservations</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
     review.providers.map(row => {

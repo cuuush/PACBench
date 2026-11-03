@@ -306,3 +306,37 @@ def test_versioned_evidence_prompt_and_unicode_quotes_are_exact():
     old = judge_prompt('When?', 'Friday', claims, diagnostic_inputs=inputs, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION)
     new = judge_prompt('When?', 'Friday', claims, diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
     assert 'Omit citation markers' not in old and 'Omit citation markers' in new
+
+
+def test_date_scoped_judge_protocol_preserves_legacy_prompt():
+    from pacbench.semantic_grade import (judge_prompt, Claim, DATE_SCOPED_JUDGE_PROTOCOL,
+                                         LEGACY_JUDGE_PROTOCOL)
+    claims = (Claim('day', 'Upcoming dinner is Saturday.'),)
+    old = judge_prompt('When?', 'Saturday Oct 17', claims)
+    assert old == judge_prompt('When?', 'Saturday Oct 17', claims, judge_protocol=LEGACY_JUDGE_PROTOCOL)
+    new = judge_prompt('When?', 'Saturday Oct 17', claims, judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL)
+    assert 'past or different date does not satisfy an upcoming date claim' in new
+    assert 'past or different date does not satisfy' not in old
+
+
+def test_judge_retry_preserves_both_requests_and_rejects_invalid_quote(tmp_path):
+    from pacbench.semantic_grade import (Claim, grade_semantic_with_retry, DATE_SCOPED_JUDGE_PROTOCOL,
+                                         DIAGNOSTIC_VERSION, RETRY_GUIDANCE)
+    calls = []
+    def judge(prompt):
+        calls.append(prompt)
+        if len(calls) == 1:
+            return '{"verdicts":'
+        return json.dumps({'verdicts':[{'id':'day','verdict':'correct','reason':'Saturday.'}],
+            'evidence_diagnostic':{'claims':[{'id':'day','status':'supported','reason':'Evidence.',
+                'citations':[{'id':'prefetch','quote':'altered quote'}]}], 'extra_assertions':[]}})
+    inputs = {'answer_visible':[{'id':'prefetch','text':'Saturday'}], 'source_evidence':[]}
+    grade = grade_semantic_with_retry('day', 'When?', 'Saturday', (Claim('day','Saturday'),), judge,
+        attempt_dir=tmp_path, judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL,
+        diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
+    assert len(calls) == 2 and calls[1] == calls[0] + RETRY_GUIDANCE
+    assert json.loads((tmp_path/'attempt-1.json').read_text())['response'] == '{"verdicts":'
+    assert json.loads((tmp_path/'attempt-2.json').read_text())['prompt'] == calls[1]
+    assert grade.evidence_diagnostic['state'] == 'ungraded'
+    with pytest.raises(FileExistsError):
+        grade_semantic_with_retry('day', 'When?', 'Saturday', (Claim('day','Saturday'),), judge, attempt_dir=tmp_path)

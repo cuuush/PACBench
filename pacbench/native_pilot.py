@@ -14,7 +14,7 @@ from .creds import load_driver
 from .frozen import load_bundle, messages_for
 from .model_calls import ModelClient
 from .semantic_contract import load_contract
-from .semantic_grade import Claim, grade_semantic
+from .semantic_grade import Claim, grade_native_semantic
 from .followups import save
 from .gateway_client import client_settings, require_live_cost_boundary
 from .followups import freeze_policy, run_followups
@@ -365,8 +365,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
               "builtin_memory": False, "tool_policy": TOOL_POLICY, "session_search": False,'ingestion_mode':'documents'}
     report['provenance_version'] = 'source-provenance-v2'
-    from .semantic_grade import DIAGNOSTIC_VERSION
+    from .semantic_grade import DIAGNOSTIC_VERSION, DATE_SCOPED_JUDGE_PROTOCOL
     report['evidence_diagnostic_protocol'] = DIAGNOSTIC_VERSION
+    report['judge_protocol'] = DATE_SCOPED_JUDGE_PROTOCOL
     save(output / "summary.json", report)
     driver = None
     judge = plan = None
@@ -535,7 +536,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                           question_dir=question_dir, before_check=import_before_check,
                                           evidence_by_id=evidence_for_check,
-                                          provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'])
+                                          provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
                     result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
                     capability['live_verified'] = sequence['state'] == 'diagnostic'
@@ -564,11 +565,11 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     from .native_checks import diagnostic_inputs
                     from .evaluation import source_evidence as build_source_evidence
                     source_evidence = build_source_evidence(messages, report["evidence_diagnostic_protocol"])
-                    grade = grade_semantic(resolved["id"], turn.prompt, turn.answer,
+                    grade = grade_native_semantic(resolved["id"], turn.prompt, turn.answer,
                                            tuple(Claim(c.id, c.statement, c.evidence)
                                                  for c in contract.claims), judge,
                                            record_path=root / "judgment.json", assess_recovery=True,
-                                           diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence, diagnostic_version=report['evidence_diagnostic_protocol']), diagnostic_version=report['evidence_diagnostic_protocol'])
+                                           diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence, diagnostic_version=report['evidence_diagnostic_protocol']), diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
                     save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
                                               "misrepresented": grade.misrepresented,
                                               "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery,
@@ -579,7 +580,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                         initial_turn=turn, output=root / "followups", judge=judge,
                         home=root / "hermes-home", allowlist=allowlist, extra_env=env,
                         question_dir=question_dir, evidence_by_id=source_evidence,
-                        provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'])
+                        provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
                     result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
                         "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
                                       "metrics": a["metrics"]} for a in recovery["attempts"]]}

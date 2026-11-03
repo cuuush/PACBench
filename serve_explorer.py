@@ -66,6 +66,7 @@ class ExplorerHandler(http.server.SimpleHTTPRequestHandler):
             run=params.get('run',[''])[0]; name=params.get('file',[''])[0]
             base=ROOT/'runs'/run; relative=Path(name); path=base/relative
             allowed = r'(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/(?:recall|judgment|usage)\.json|(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/turns/[A-Za-z0-9_-]+/(?:turn|judgment|usage|write-readiness)\.json|(?:preflight/|components/[A-Za-z0-9_-]+/)?repeat-[0-9]+/[A-Za-z0-9_-]+/(?:turns/[A-Za-z0-9_-]+/)?followups/combined/(?:turn|judgment|usage)\.json'
+            allowed += r'|reviews/[A-Za-z0-9_-]+/(?:audit\.json|cases/[A-Za-z0-9_-]+/turns/[A-Za-z0-9_-]+/(?:followups/combined/)?result\.json)'
             if (not run or Path(run).name != run or run in ('.','..') or relative.is_absolute() or
                     '..' in relative.parts or not re.fullmatch(allowed, name) or
                     not path.resolve().is_relative_to(base.resolve()) or

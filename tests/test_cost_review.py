@@ -71,6 +71,23 @@ def test_unknown_or_unexecuted_cost_is_not_free(tmp_path):
     assert row['cost'] is None and row['complete_for_cost_comparison'] is False
 
 
+def test_phase_only_request_is_refreshed_from_ledger(tmp_path):
+    save(tmp_path/'summary.json',{'input_hash':'synthetic','results':[{'provider':'local','repetition':1,'state':'partial'}],
+        'ingestion_schedule':[{'id':'day'}]})
+    save(tmp_path/'evaluation-plan.json',{'checks':[]})
+    arm=tmp_path/'repeat-1/local'
+    save(arm/'model-usage.json',{'state':'captured','calls':[]})
+    save(arm/'ingestion/day.json',{'ready':True,'usage':{'model_calls':[call('late','memory_provider','reserved',.1)]}})
+    ledger=tmp_path/'ledger.sqlite3'
+    with sqlite3.connect(ledger) as connection:
+        connection.execute('CREATE TABLE calls (id TEXT,state TEXT,accounted INTEGER,input_tokens INTEGER,output_tokens INTEGER,http_status INTEGER)')
+        connection.execute("INSERT INTO calls VALUES ('late','settled',1000000,10,2,200)")
+    row=review(tmp_path,ledger=ledger)['providers'][0]
+    assert row['terminal_snapshot_missing_requests']==['late']
+    assert row['phases']['ingestion']['memory_provider']['settled_upper_bound_usd']==.001
+    assert row['cost']['memory_provider']['held_usd']==0
+
+
 def test_pending_native_capture_is_not_a_zero_future_cost(tmp_path):
     database=tmp_path/'memcal-home/memcal.db';database.parent.mkdir()
     with sqlite3.connect(database) as connection:

@@ -52,7 +52,8 @@ def question_writer(prompt):
     return json.dumps({'safe': True, 'covers_claim_ids': ['date', 'time'], 'reason': 'No expected values.'})
 
 
-def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_path):
+@pytest.mark.parametrize('judge_protocol', ['semantic-judge-v1', 'semantic-judge-date-scope-v2'])
+def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_path, judge_protocol):
     calls = []
     def runner(question, **kwargs):
         calls.append((question, kwargs))
@@ -65,9 +66,18 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     original_grade.recovery.append({'id':'companion','kind':'provided','reason':'Already recalled.'})
     p = freeze_policy(c, tmp_path / 'policy.json')
     initial = turn()
+    def recorded_judge(prompt):
+        text = judge(prompt)
+        if judge_protocol == 'semantic-judge-date-scope-v2':
+            from pacbench.model_calls import ModelOutput
+            calls_dir = tmp_path/'model-calls'; calls_dir.mkdir(exist_ok=True)
+            path = calls_dir/'judge.json'
+            path.write_text(json.dumps({'status':'ok','text':text,'request':{'messages':[{'role':'user','content':prompt}]}}))
+            return ModelOutput(text,'model',{},str(path))
+        return text
     report = run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
-        output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
-        run_turn=runner, budget_snapshot=lambda: {'projects': []}, question_model=question_writer)
+        output=tmp_path, judge=recorded_judge, home=tmp_path, allowlist='memory', extra_env={},
+        run_turn=runner, budget_snapshot=lambda: {'projects': []}, question_model=question_writer, judge_protocol=judge_protocol)
     assert len(calls) == 1
     assert calls[0][0] == 'Which day and what time is it?'
     assert calls[0][1]['session_id'] == 'recall'
@@ -78,7 +88,7 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     assert 'Friday' not in str(calls) and 'seven' not in str(calls)
     assert audit_followups(contract=c, plan=p, initial_turn=initial,
         initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path) == []
+                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path, judge_protocol=judge_protocol) == []
     with pytest.raises(FileExistsError):
         run_followups(contract=c, plan=p, grade=original_grade, initial_turn=initial,
             output=tmp_path, judge=judge, home=tmp_path, allowlist='memory', extra_env={},
@@ -89,7 +99,7 @@ def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_p
     (tmp_path / 'recovery.json').write_text(json.dumps(data))
     assert any('exactly one' in e for e in audit_followups(contract=c, plan=p,
         initial_turn=initial, initial_grade={'claims': [asdict(s) for s in original_grade.slots],
-                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path))
+                       'correct': 1, 'missed': 2, 'misrepresented': 0, 'recovery': original_grade.recovery}, output=tmp_path, judge_protocol=judge_protocol))
 
 
 def test_correct_fact_gets_no_followup_and_failed_recovery_is_not_reasked(tmp_path):

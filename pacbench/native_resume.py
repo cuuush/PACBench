@@ -89,11 +89,13 @@ def resume(output, *, max_messages=4500, question_dir=None):
     from .usage import snapshot, provider_model_health
     from .native_audit import audit
     output=output.resolve();report=read(output/'summary.json')
-    from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION
+    from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
     if report.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
         raise ValueError('Unsupported provenance protocol')
     if 'evidence_diagnostic_protocol' in report and report['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
         raise ValueError('Unsupported evidence diagnostic protocol')
+    if report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
+        raise ValueError('Unsupported semantic judge protocol')
     if (report.get('state')!='incomplete' or len(report['results'])!=1 or
             report['results'][0]['provider']!='openviking' or report['results'][0]['repetition']!=1):
         raise ValueError('Resume requires one interrupted OpenViking arm')
@@ -193,7 +195,8 @@ def resume(output, *, max_messages=4500, question_dir=None):
                             question_dir=question_dir or output/'combined-questions',before_check=before_check,
                             provenance_version=report.get('provenance_version','source-provenance-v1'),
                             evidence_by_id=evidence_for_check if report.get('evidence_diagnostic_protocol') else None,
-                            diagnostic_version=report.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION))
+                            diagnostic_version=report.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
+                            judge_protocol=report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL))
         result.update(state=sequence['state'],checks=sequence['checks'],
                       reason='' if sequence['state']=='diagnostic' else 'Resumed evaluation incomplete')
         capability['live_verified']=sequence['state']=='diagnostic'

@@ -319,7 +319,8 @@ def test_diagnostic_inputs_use_only_visible_bounded_material():
 
 
 @pytest.mark.parametrize('diagnostic_version', ['answer-visible-evidence-v1', 'answer-visible-evidence-v2'])
-def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path, diagnostic_version):
+@pytest.mark.parametrize('judge_protocol', ['semantic-judge-v1', 'semantic-judge-date-scope-v2'])
+def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path, diagnostic_version, judge_protocol):
     checks = checkpoints(tmp_path)[:1]
     def runner(prompt, **kwargs):
         return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
@@ -331,14 +332,23 @@ def test_answer_evidence_diagnostic_audits_frozen_sources(tmp_path, diagnostic_v
         response['evidence_diagnostic'] = {'claims': [{'id': 'fact-1', 'status': 'supported',
             'reason': 'The result states it.', 'citations': [{'id': 'tool-result-1', 'quote': 'retrieved evidence'}]}],
             'extra_assertions': []}
-        return json.dumps(response)
+        text = json.dumps(response)
+        if judge_protocol == 'semantic-judge-date-scope-v2':
+            from pacbench.model_calls import ModelOutput
+            calls = tmp_path/'model-calls'; calls.mkdir(exist_ok=True)
+            path = calls/'judge.json'
+            path.write_text(json.dumps({'status':'ok','text':text,'request':{'messages':[{'role':'user','content':prompt}]}}))
+            return ModelOutput(text,'model',{},str(path))
+        return text
     root = tmp_path / 'arm'
     report = run_checks(checks, 'isolated', root, judge, '', {}, question_dir=tmp_path / 'questions',
-        run_turn=runner, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version)
+        run_turn=runner, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
     assert report['counts']['pass'] == 1
-    assert not audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version)
-    errors = audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'changed source'}, diagnostic_version=diagnostic_version)
-    assert any('frozen evidence' in error for error in errors)
+    assert not audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
+    other = 'semantic-judge-v1' if judge_protocol != 'semantic-judge-v1' else 'semantic-judge-date-scope-v2'
+    assert audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'source text'}, diagnostic_version=diagnostic_version, judge_protocol=other)
+    errors = audit_checks(checks, 'isolated', root, evidence_by_id={'m1': 'changed source'}, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
+    assert errors
 
 
 def test_judge_evidence_preserves_frozen_session_semantics(tmp_path):
@@ -388,3 +398,37 @@ def test_v2_provider_evidence_does_not_count_user_request_or_tool_arguments():
     grade = grade_semantic('time', turn.prompt, turn.answer, (Claim('time', 'Pickup is Sunday at 11.'),),
         judge, diagnostic_inputs=inputs, diagnostic_version=DIAGNOSTIC_VERSION)
     assert grade.all_claims_correct and grade.evidence_diagnostic['claims'][0]['status'] == 'not_found'
+
+
+@pytest.mark.parametrize('first_case_exhausted', [False, True])
+def test_native_date_judge_retries_and_audits_attempts(tmp_path, first_case_exhausted):
+    from pacbench.model_calls import ModelOutput
+    from pacbench.semantic_grade import DATE_SCOPED_JUDGE_PROTOCOL, RETRY_GUIDANCE
+    checks = checkpoints(tmp_path)[:2]
+    calls = []
+    def runner(prompt, **kwargs):
+        return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
+            at=kwargs['at'], answer='Synthetic answer.', tool_calls=[], tool_results=[], policy_blocks=0, latency_s=1,
+            returncode=0, stderr_tail='', raw_events=0, session_id='s-'+prompt)
+    def judge(prompt):
+        calls.append(prompt)
+        text = '{"verdicts":' if len(calls) == 1 or first_case_exhausted and len(calls) == 2 else correct_judge(prompt.removesuffix(RETRY_GUIDANCE))
+        model_dir = tmp_path/'model-calls'; model_dir.mkdir(exist_ok=True)
+        path = model_dir/f'call-{len(calls)}.json'
+        path.write_text(json.dumps({'status':'ok','text':text,'request':{'messages':[{'role':'user','content':prompt}]}}))
+        return ModelOutput(text,'model',{},str(path))
+    root=tmp_path/'arm'
+    report=run_checks(checks,'isolated',root,judge,'',{},question_dir=tmp_path/'q',run_turn=runner,
+                      budget_snapshot=lambda:{'projects':[]},judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL)
+    assert report['checks'][0]['state'] == ('ungraded' if first_case_exhausted else 'diagnostic')
+    assert report['checks'][1]['state'] == 'diagnostic'
+    assert calls[1].startswith(calls[0]) and 'previous response was unusable' in calls[1]
+    assert not audit_checks(checks,'isolated',root,judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL)
+    first=root/'turns/event-1/judgment-attempts/attempt-1.json'
+    original = first.read_text()
+    data=json.loads(original); data['response'] += 'tamper'; first.write_text(json.dumps(data))
+    assert audit_checks(checks,'isolated',root,judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL)
+    first.write_text(original)
+    call = tmp_path/'model-calls/call-1.json'
+    call_data = json.loads(call.read_text()); call_data['usage'] = {'changed': True}; call.write_text(json.dumps(call_data))
+    assert audit_checks(checks,'isolated',root,judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL)

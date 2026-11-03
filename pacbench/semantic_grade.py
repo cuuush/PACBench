@@ -7,6 +7,7 @@ answer text or chooses a semantic verdict. A failed judge call cannot pass.
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
@@ -49,6 +50,9 @@ class BenchmarkContractError(ValueError):
 
 
 VERDICTS = {"correct", "missed", "misrepresented"}
+LEGACY_JUDGE_PROTOCOL = 'semantic-judge-v1'
+DATE_SCOPED_JUDGE_PROTOCOL = 'semantic-judge-date-scope-v2'
+JUDGE_PROTOCOLS = {LEGACY_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL}
 
 
 LEGACY_DIAGNOSTIC_VERSION = "answer-visible-evidence-v1"
@@ -115,7 +119,9 @@ def validate_diagnostic(value, claims, answer, inputs, version=LEGACY_DIAGNOSTIC
         return {'version': version, 'state': 'ungraded', 'reason': 'Malformed or unsupported diagnostic evidence'}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION) -> str:
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL) -> str:
+    if judge_protocol not in JUDGE_PROTOCOLS:
+        raise ValueError('Unsupported semantic judge protocol')
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
@@ -129,6 +135,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "do not award a correct value attached to a different outing. "
         "Resolve the answer's inherited event and day scope from the question, "
         "simulated clock and prior conversation; do not require repeating that scope. "
+        + ("Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. " if judge_protocol == DATE_SCOPED_JUDGE_PROTOCOL else "") +
         "A correct fragment does not satisfy a claim if the same answer contradicts it. "
         "Distinguish current-state claims from historical claims; judge "
         "the state and time described by each claim. "
@@ -169,22 +176,29 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION) -> Grade:
+                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, prompt_suffix='') -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
     if diagnostic_version not in DIAGNOSTIC_VERSIONS:
         raise ValueError('Unsupported evidence diagnostic protocol')
-    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs,diagnostic_version=diagnostic_version)
+    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs,diagnostic_version=diagnostic_version,judge_protocol=judge_protocol) + prompt_suffix
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
         record_path.parent.mkdir(parents=True, exist_ok=True)
+        model_call_hash = None
+        if judge_protocol != LEGACY_JUDGE_PROTOCOL and isinstance(response, ModelOutput):
+            from .evidence_store import read_json
+            call = read_json(Path(response.record_path))
+            model_call_hash = hashlib.sha256(json.dumps(call, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
         record_path.write_text(json.dumps({
             "checkpoint": checkpoint_id, "question": question,
             "answer": answer, "claims": [vars(c) for c in claims],
             "prompt": prompt, "response": output,
             "conversation": list(conversation),
+            **({'judge_protocol': judge_protocol, 'prompt_suffix': prompt_suffix} if judge_protocol != LEGACY_JUDGE_PROTOCOL or prompt_suffix else {}),
+            **({'model_call_hash': model_call_hash} if judge_protocol != LEGACY_JUDGE_PROTOCOL else {}),
             **({"diagnostic_protocol": diagnostic_version, "diagnostic_inputs": diagnostic_inputs} if diagnostic_inputs is not None else {}),
             "model_call": (response.record_path if isinstance(response, ModelOutput)
                            else None)}, indent=2, ensure_ascii=False) + "\n")
@@ -219,6 +233,92 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
     result.claim_coverage = result.correct / len(claims)
     result.all_claims_correct = result.correct == len(claims)
     return result
+
+
+RETRY_GUIDANCE = ('\nThe previous response was unusable. Return a complete valid JSON object '
+                  'with every requested field and no surrounding text.')
+
+
+def grade_semantic_with_retry(checkpoint_id, question, answer, claims, generate, *, attempt_dir, **kwargs):
+    """Allow one fresh complete response after malformed output, retaining both requests."""
+    attempt_dir = Path(attempt_dir)
+    attempt_dir.mkdir(parents=True, exist_ok=True)
+    paths = [attempt_dir / 'attempt-1.json', attempt_dir / 'attempt-2.json']
+    if any(path.exists() for path in paths):
+        raise FileExistsError('judge attempt receipts already exist')
+    for index, path in enumerate(paths):
+        try:
+            return grade_semantic(checkpoint_id, question, answer, claims, generate,
+                                  record_path=path, prompt_suffix=RETRY_GUIDANCE if index else '', **kwargs)
+        except BenchmarkContractError:
+            raise
+        except ValueError:
+            # A receipt proves this was a returned but unusable model response,
+            # not an invalid request or a failed gateway call.
+            if index or not path.exists():
+                raise
+    raise AssertionError('unreachable')
+
+
+def grade_native_semantic(checkpoint_id, question, answer, claims, generate, *, record_path, judge_protocol=LEGACY_JUDGE_PROTOCOL, **kwargs):
+    """Use retained retry receipts for new native protocol; preserve legacy layout."""
+    if judge_protocol == LEGACY_JUDGE_PROTOCOL:
+        return grade_semantic(checkpoint_id, question, answer, claims, generate,
+                              record_path=record_path, judge_protocol=judge_protocol, **kwargs)
+    path = Path(record_path)
+    if path.exists(): raise FileExistsError(f'judgment already exists: {path}')
+    attempts = path.parent / 'judgment-attempts'
+    try:
+        return grade_semantic_with_retry(checkpoint_id, question, answer, claims, generate,
+                                         attempt_dir=attempts, judge_protocol=judge_protocol, **kwargs)
+    finally:
+        existing = [p for p in (attempts/'attempt-1.json', attempts/'attempt-2.json') if p.exists()]
+        if existing:
+            with path.open('x', encoding='utf-8') as stream:
+                stream.write(existing[-1].read_text(encoding='utf-8'))
+
+
+def audit_native_judge_attempts(record_path, *, question, answer, claims, judge_protocol, **kwargs):
+    """Reconstruct requests and bind each attempt to its original model receipt."""
+    if judge_protocol == LEGACY_JUDGE_PROTOCOL: return
+    from .evidence_store import read_json
+    path = Path(record_path)
+    directory = path.parent / 'judgment-attempts'
+    first, second = directory/'attempt-1.json', directory/'attempt-2.json'
+    attempts = [first] + ([second] if second.exists() else [])
+    if not first.exists() or set(p.name for p in directory.iterdir()) != {p.name for p in attempts}:
+        raise ValueError('missing or unexpected judge attempts')
+    if read_json(path) != read_json(attempts[-1]): raise ValueError('final judgment differs from final attempt')
+    model_dir = next((parent/'model-calls' for parent in path.parents if (parent/'model-calls').is_dir()), None)
+    if model_dir is None: raise ValueError('missing model call directory')
+    for i, attempt_path in enumerate(attempts):
+        attempt = read_json(attempt_path)
+        suffix = RETRY_GUIDANCE if i else ''
+        expected = judge_prompt(question, answer, claims, judge_protocol=judge_protocol, **kwargs) + suffix
+        model_path = model_dir / Path(attempt.get('model_call') or '').name
+        call = read_json(model_path)
+        digest = hashlib.sha256(json.dumps(call, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        if (attempt.get('judge_protocol') != judge_protocol or attempt.get('prompt_suffix') != suffix or
+                attempt.get('question') != question or attempt.get('answer') != answer or
+                attempt.get('claims') != [{'id':c.id, 'description':c.description, 'evidence':list(c.evidence)} for c in claims] or
+                attempt.get('conversation') != list(kwargs.get('conversation', ())) or
+                (kwargs.get('diagnostic_inputs') is not None and
+                 (attempt.get('diagnostic_inputs') != kwargs['diagnostic_inputs'] or
+                  attempt.get('diagnostic_protocol') != kwargs.get('diagnostic_version', LEGACY_DIAGNOSTIC_VERSION))) or
+                attempt.get('prompt') != expected or attempt.get('model_call_hash') != digest or
+                call.get('status') != 'ok' or call.get('text') != attempt.get('response') or
+                call.get('request', {}).get('messages') != [{'role':'user','content':expected}]):
+            raise ValueError('judge attempt or model call mismatch')
+        if i == 0 and len(attempts) == 2:
+            try:
+                grade_semantic(attempt['checkpoint'], question, answer, claims, lambda _:attempt['response'],
+                               judge_protocol=judge_protocol, **kwargs)
+            except BenchmarkContractError as exc:
+                raise ValueError('retry followed benchmark contract error') from exc
+            except ValueError:
+                pass
+            else:
+                raise ValueError('retry followed a valid judgment')
 
 
 def validate_recovery(recovery, rows):

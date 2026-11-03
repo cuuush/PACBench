@@ -16,6 +16,44 @@ def read_json(path: Path):
     return read_evidence(path) if path.exists() else None
 
 
+def reviewed_overlay(run_dir: Path):
+    """Load a selected overlay only after its complete independent offline audit."""
+    selection_path = run_dir / 'reviews' / 'selected.json'
+    if not selection_path.exists():
+        return None
+    state = {'state': 'invalid', 'protocol': 'unknown', 'error': 'Invalid selection'}
+    try:
+        selection = read_json(selection_path)
+        protocol = selection['judge_protocol']
+        state['protocol'] = protocol
+        relative = Path(selection['path'])
+        if relative.is_absolute() or len(relative.parts) != 1 or relative.name in ('.', '..'):
+            raise ValueError('overlay path must name one directory under reviews')
+        overlay = selection_path.parent / relative
+        if any(p.is_symlink() for p in (selection_path, overlay, overlay.parent)):
+            raise ValueError('overlay selection cannot use symlinks')
+        manifest = read_json(overlay / 'manifest.json')
+        if manifest['judge_protocol'] != protocol:
+            raise ValueError('selected protocol differs from overlay')
+        if (overlay / manifest['source_root']).resolve() != run_dir.resolve():
+            raise ValueError('overlay source does not match this run')
+        from .rejudge import validate_published_audit, _case_dir
+        validate_published_audit(overlay)
+        cases = {}
+        for case in manifest['cases']:
+            result_path = _case_dir(overlay, case['judgment']) / 'result.json'
+            result = read_json(result_path)
+            grade = result.get('grade')
+            cases[case['judgment']] = {'grade': ({**grade, 'claims': grade['slots']} if grade else None),
+                                        'error': result.get('error_type'),
+                                        'record_path': result_path.relative_to(run_dir).as_posix()}
+        return {'state': 'valid', 'protocol': protocol, 'cases': cases,
+                'audit_path': (overlay / 'audit.json').relative_to(run_dir).as_posix()}
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        state['error'] = str(exc) or type(exc).__name__
+        return state
+
+
 def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
     summary = read_json(run_dir / 'summary.json') or {}
     if summary.get('mode') != 'native-hermes' and summary.get('state') != 'prepared':
@@ -37,6 +75,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
     contract = read_json(run_dir / 'contract.json')
     messages = messages_for(bundle, next(iter(bundle['lives'])))
     source_by_id = {m['source_id']:m for m in messages}
+    review = reviewed_overlay(run_dir)
     arms, excluded_arms = {}, {}
     candidates=[(arm,None) for arm in sorted(run_dir.glob('repeat-*/*'))]
     for excluded in summary.get('other_attempts', []):
@@ -51,16 +90,16 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         model_usage=read_json(arm/'model-usage.json')
         settled_usage=read_json(arm/'model-usage-after-settlement.json')
         exchanges = []
+        from urllib.parse import urlencode
+        def record_url(path):
+            relative = path.relative_to(runs_dir)
+            return '/record?' + urlencode({'run': relative.parts[0], 'file': Path(*relative.parts[1:]).as_posix()})
         def append_exchange(directory, checkpoint_contract, check_id, turn_file):
             turn = read_json(directory / turn_file)
             if not turn:
                 return
             recovery = read_json(directory / 'followups/recovery.json')
             behavior = read_json(directory / 'behavior.json')
-            from urllib.parse import urlencode
-            def record_url(path):
-                relative = path.relative_to(runs_dir)
-                return '/record?' + urlencode({'run': relative.parts[0], 'file': Path(*relative.parts[1:]).as_posix()})
             exchanges.append({'turn_record_url': record_url(directory / turn_file), 'judgment_record_url': record_url(directory / 'judgment.json'), 'turn': turn, 'judgment': read_json(directory / 'judgment.json'),
                 'grade': read_json(directory / 'grade.json'), 'contract': checkpoint_contract,
                 'judge_review': read_json(run_dir / 'judge-scope-review' / f'{provider}-{check_id}.json'),
@@ -96,6 +135,23 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
                     'document':document,
                     'packet_verified':record['source_ids']==row['source_ids'] and
                        hashlib.sha256(document.encode()).hexdigest()==record['document_sha256']})
+        if review:
+            for ex in exchanges:
+                judgment_path = (arm / 'turns' / ex['check_id'] / ('followups/combined' if ex['kind'] == 'followup' else '') / 'judgment.json')
+                rel = judgment_path.relative_to(run_dir).as_posix()
+                if review['state'] == 'valid' and rel not in review['cases']:
+                    # No saved judgment means there is no reviewed answer to select.
+                    if not judgment_path.exists():
+                        continue
+                    selected = {'state': 'invalid', 'protocol': review['protocol'], 'error': 'Judgment missing from audited overlay'}
+                elif review['state'] == 'valid':
+                    case = review['cases'][rel]
+                    selected = {'state': 'valid', 'protocol': review['protocol'], 'grade': case['grade'],
+                                'error': case.get('error'), 'record_url': record_url(run_dir / case['record_path']),
+                                'audit_record_url': record_url(run_dir / review['audit_path'])}
+                else:
+                    selected = {k: v for k, v in review.items() if k != 'cases'}
+                ex['reviewed_judgment'] = selected
         from .usage import refresh_window
         for item in exchanges+exposures:
             item['usage_after_settlement']=refresh_window(item.get('usage'),settled_usage or model_usage)
@@ -165,6 +221,7 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
         'bundle_hash': actual_hash, 'contract': contract, 'evaluation_plan': plan,
         'evaluations': evaluations, 'condition': read_json(run_dir / 'condition.json'),
         'cost_review': read_json(run_dir / 'cost-comparison.json'),
+        'reviewed_judgment': ({k:v for k,v in review.items() if k != 'cases'} if review else None),
         'development_review': read_json(run_dir / 'development-review.json'),
         'failure_review': read_json(run_dir / 'failure-review.json'),
         'preflight':(native_run(run_dir/'preflight',runs_dir,include_preflight=False)

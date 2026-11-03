@@ -82,3 +82,21 @@ const judge=judgePage(run); assert.ok(judge.indexOf('At the park') < judge.index
 '''
     result = subprocess.run([node, '-e', code], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_reviewed_judgments_are_distinct_and_invalid_never_falls_back():
+    node = shutil.which('node')
+    if not node:
+        pytest.skip('Node unavailable')
+    dashboard = (Path(__file__).resolve().parents[1]/'explorer/dashboard.js').read_text().split('document.addEventListener("click"')[0]
+    code = dashboard + r'''
+const assert = require('node:assert/strict');
+const ex={contract:{claims:[{id:'x',statement:'Dinner Saturday'}]},grade:{claims:[{id:'x',verdict:'correct'}]},judgment_record_url:'/original',reviewed_judgment:{state:'valid',protocol:'semantic-judge-date-scope-v2',record_url:'/review',grade:{claims:[{id:'x',verdict:'misrepresented',reason:'Wrong date'}],evidence_diagnostic:{state:'complete',claims:[{id:'x',status:'supported',citations:[{id:'tool-result-1',quote:'Dinner Saturday'}]}]}}}};
+const html=scoreDetails({},ex); assert.match(html,/semantic-judge-date-scope-v2/); assert.match(html,/Failed · wrong/); assert.match(html,/tool-result-1/); assert.match(html,/Load original judgment record/); assert.match(html,/Load reviewed judgment record/);
+ex.reviewed_judgment={state:'invalid',protocol:'semantic-judge-date-scope-v2',error:'audit failed'};
+const bad=scoreDetails({},ex); assert.match(bad,/validation error/); assert.match(bad,/audit failed/); assert.match(bad,/Ungraded/); assert.doesNotMatch(bad,/All facts correct/); assert.match(bad,/Load original judgment record/);
+ex.reviewed_judgment={state:'valid',protocol:'v2',grade:null,error:'BadResponse'}; assert.match(scoreDetails({},ex),/Reviewed judgment ungraded: BadResponse/); assert.doesNotMatch(scoreDetails({},ex),/All facts correct/);
+const totals=reviewedSemanticSummary({reviewed_judgment:{state:'valid',protocol:'v2'}},{exchanges:[{...ex,kind:'initial',check_id:'x'}],evaluation:{checks:[{id:'x'},{id:'not-asked'}]}}); assert.match(totals,/0 pass \/ 0 fail \/ 2 ungraded/); assert.match(totals,/Retention is not recomputed/);
+'''
+    result = subprocess.run([node, '-e', code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

@@ -28,11 +28,13 @@ def audit(root: Path, *, providers=None) -> dict:
         return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
     try:
         summary = read(root / 'summary.json')
-        from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION
+        from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
         if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
             raise ValueError('Unsupported provenance protocol')
         if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
             raise ValueError('Unsupported evidence diagnostic protocol')
+        if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
+            raise ValueError('Unsupported semantic judge protocol')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
         check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
@@ -141,7 +143,8 @@ def audit(root: Path, *, providers=None) -> dict:
                         evaluations, evaluation_plan['context'], arm,
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None,
-                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION)))
+                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
                     from .native_writes import audit_ready
                     errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
                         result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
@@ -153,6 +156,7 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(bool(recall['session_id']), f'{label}: recall session missing')
                 check(not recall['returncode'] and not recall['policy_blocks'], f'{label}: recall failure')
                 judgment = read(arm / 'judgment.json')
+                check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL), f'{label}: judge protocol mismatch')
                 check(judgment['question'] == recall['prompt'], f'{label}: judge lacks recall clock context')
                 check(judgment['answer'] == recall['answer'], f'{label}: judge answer mismatch')
                 grade = read(arm / 'grade.json')
@@ -165,10 +169,15 @@ def audit(root: Path, *, providers=None) -> dict:
                     inputs = diagnostic_inputs(observed_turn, contract, source_evidence(messages, summary['evidence_diagnostic_protocol']), diagnostic_version=summary['evidence_diagnostic_protocol'])
                     claims = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
                     response = json.loads(judgment['response'])
+                    if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) != LEGACY_JUDGE_PROTOCOL:
+                        from .semantic_grade import audit_native_judge_attempts
+                        audit_native_judge_attempts(arm/'judgment.json', question=recall['prompt'], answer=recall['answer'], claims=claims,
+                            judge_protocol=summary['judge_protocol'], assess_recovery=True, diagnostic_inputs=inputs,
+                            diagnostic_version=summary['evidence_diagnostic_protocol'])
                     check(judgment.get('diagnostic_protocol') == summary['evidence_diagnostic_protocol'] and judgment.get('diagnostic_inputs') == inputs,
                         f'{label}: evidence diagnostic scope mismatch')
                     check(judgment.get('prompt') == judge_prompt(recall['prompt'], recall['answer'], claims,
-                        assess_recovery=True, diagnostic_inputs=inputs, diagnostic_version=summary['evidence_diagnostic_protocol']), f'{label}: evidence diagnostic prompt mismatch')
+                        assess_recovery=True, diagnostic_inputs=inputs, diagnostic_version=summary['evidence_diagnostic_protocol'], judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)) + judgment.get('prompt_suffix', ''), f'{label}: evidence diagnostic prompt mismatch')
                     check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'),
                         claims, recall['answer'], inputs, summary['evidence_diagnostic_protocol']), f'{label}: evidence diagnostic differs from judge')
                 if plan:
@@ -179,7 +188,8 @@ def audit(root: Path, *, providers=None) -> dict:
                         initial_turn=TurnResult(**recall), initial_grade=grade, output=arm / 'followups',
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=source_evidence(messages, summary['evidence_diagnostic_protocol']) if summary.get('evidence_diagnostic_protocol') else None,
-                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION)))
+                        diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
             except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
                 errors.append(f'{label}: {type(exc).__name__}: {exc}')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:

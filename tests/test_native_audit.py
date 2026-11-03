@@ -211,7 +211,7 @@ def test_missing_arm_receipt_does_not_abort_later_provider_audits(trace):
     assert any('judge lacks recall clock' in e for e in result['errors'])
 
 
-@pytest.mark.parametrize('key', ['provenance_version', 'evidence_diagnostic_protocol'])
+@pytest.mark.parametrize('key', ['provenance_version', 'evidence_diagnostic_protocol', 'judge_protocol'])
 def test_audit_rejects_unknown_recorded_protocol_before_reading_run(tmp_path, key):
     save(tmp_path / 'summary.json', {key: 'unknown-protocol'})
     result = audit(tmp_path)

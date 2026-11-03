@@ -81,7 +81,8 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                 for path in arm.glob(pattern):
                     data=read(path);usage=data.get('usage',data)
                     ids.update(c['id'] for c in usage.get('model_calls',[]))
-                    for call in usage.get('model_calls',[]):actual.setdefault(call['id'],call)
+                    missing=[call for call in usage.get('model_calls',[]) if call['id'] not in actual]
+                    actual.update(refreshed_calls(missing,connection))
                 phases[phase]=ids;assigned.update(ids)
             phases['outside_captured_windows']=set(actual)-assigned
             def totals(ids):

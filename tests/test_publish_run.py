@@ -73,7 +73,7 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
     assert received==[message('m1')]
 
 
-@pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source'])
+@pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
     from pacbench.preparation_audit import audit_prepared
     from pacbench.corpus_review import VERSION, review_prompt
@@ -81,17 +81,18 @@ def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change)
     resolved=json.loads((root/'resolved-spec.json').read_text())
     resolved['scenes']=[]
     save(root/'resolved-spec.json',resolved)
-    review={'consistent':True,'expectations_supported':True,'natural_enough':True,
-            'issues':[],'notes':'Reviewed actual source.'}
+    review={'consistent':True,'questions_answerable':True,'natural_enough':True,
+            'issues':[],'assessments':[],'notes':'Reviewed actual source.'}
     quality={'state':'pass','source_hash':digest([message('m1')]),
         'intent_hash':digest({'scenes':[],'checks':[]}),
-        'review_version':VERSION,'review':review,'model_call':'original/runtime/model-calls/realism.json'}
+        'review_version':VERSION,'scope':'source-coherence-and-public-question-answerability','review':review,'model_call':'original/runtime/model-calls/realism.json'}
     call={'status':'ok','text':json.dumps(review),'request':{'messages':[
         {'role':'user','content':review_prompt([message('m1')],resolved)}]}}
     if change=='override':quality['review']={**review,'notes':'Silently replaced verdict.'}
     if change=='failed':call['status']='failed'
     if change=='malformed':call['text']='not a verdict'
     if change=='wrong-source':call['request']['messages'][0]['content']='Reviewed a different corpus.'
+    if change=='wrong-validation':quality['validation_errors']=[{'path':'x','code':'fabricated'}]
     save(root/'realism-review.json',quality)
     if change!='missing':save(root/'model-calls/realism.json',call)
     result=audit_prepared(root)

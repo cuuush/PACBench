@@ -17,13 +17,15 @@ def test_corpus_review_temporal_instruction_and_rejection_path(tmp_path):
     reply=dict(base, source_id='reply', written_at='2026-10-13T10:00:00-04:00',
                text='A work deadline means I cannot get away Thursday evening — could we move dinner to Saturday instead?')
     clear=dict(reply, text='Could we move dinner from Thursday October 22 to Saturday October 24 instead?')
+    for m in (original, reply, clear):
+        m['collected_at']=m['written_at']; m['from_owner']=False
     for candidate in (reply, clear):
-        prompt=review_prompt([original,candidate],resolved)
+        prompt=review_prompt([original,candidate],resolved,version='source-realism-v5')
         assert candidate['text'] in prompt and candidate['written_at'] in prompt
         assert 'message containing it' in prompt and 'do not invent an anchor' in prompt
     def verdict(consistent):
         return SimpleNamespace(text=json.dumps({'consistent':consistent,'expectations_supported':consistent,
-            'natural_enough':True,'issues':[] if consistent else ['Saturday date ambiguous']}),
+            'natural_enough':True,'questions_answerable':consistent,'issues':[] if consistent else ['Saturday date ambiguous'], 'assessments':[]}),
             record_path='receipt.json',usage={})
     with pytest.raises(ValueError, match='Corpus realism review rejected'):
         review_corpus([original,reply],resolved,lambda _: verdict(False),tmp_path)

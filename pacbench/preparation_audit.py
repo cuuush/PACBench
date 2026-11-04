@@ -128,9 +128,18 @@ def audit_prepared(root: Path) -> dict:
             intent={'scenes':[{k:s[k] for k in ('id','at','thread','scene','facts')} for s in resolved['scenes']],
                     'checks':resolved['checks']}
             if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
-                    quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues') or
-                    any(quality.get('review',{}).get(k) is not True for k in ('consistent','expectations_supported','natural_enough'))):
+                    quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues')):
                 errors.append('Corpus realism review is stale or unresolved')
+            if (quality.get('review_version') == 'source-realism-v7' and
+                    quality.get('scope') != 'source-coherence-and-public-question-answerability'):
+                errors.append('Corpus realism review scope is missing or incorrect')
+            from .corpus_review import verdict_passes
+            if not verdict_passes(quality.get('review'), messages, resolved, version=quality.get('review_version')):
+                errors.append('Corpus realism review lacks valid source-grounded assessments')
+            if quality.get('review_version') == 'source-realism-v7' and 'validation_errors' in quality:
+                from .corpus_review import validation_errors
+                if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved):
+                    errors.append('Corpus realism validation errors differ from review evidence')
             call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
                 errors.append('Corpus realism review differs from its actual model receipt')

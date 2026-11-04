@@ -9,8 +9,9 @@ from pathlib import Path
 
 from .evidence_store import read_json
 from .model_calls import ModelClient
+from .stop import OperatorStop, check_stop
 from .semantic_grade import (Claim, BenchmarkContractError, DATE_SCOPED_JUDGE_PROTOCOL,
-    RETRY_GUIDANCE, grade_semantic, grade_semantic_with_retry, judge_prompt,
+    LEGACY_JUDGE_PROTOCOL, RETRY_GUIDANCE, grade_semantic, grade_semantic_with_retry, judge_prompt,
     validate_diagnostic, DIAGNOSTIC_VERSION)
 
 
@@ -65,12 +66,19 @@ def _original(root, rel):
     if doc['question'] != turn['prompt'] or doc['answer'] != turn['answer']:
         raise ValueError(f'{rel}: saved answer differs from judgment')
     claims, kwargs = _args(doc)
-    if judge_prompt(doc['question'], doc['answer'], claims, **kwargs) != doc['prompt']:
+    protocol = doc.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)
+    suffix = doc.get('prompt_suffix', '')
+    if suffix not in ('', RETRY_GUIDANCE) or (protocol == LEGACY_JUDGE_PROTOCOL and suffix):
+        raise ValueError(f'{rel}: invalid original prompt suffix')
+    if judge_prompt(doc['question'], doc['answer'], claims, judge_protocol=protocol, **kwargs) + suffix != doc['prompt']:
         raise ValueError(f'{rel}: original prompt mismatch')
     call_path = _safe(root, Path('model-calls') / Path(doc['model_call']).name)
     call = read_json(call_path)
     if call.get('status') != 'ok' or call.get('text') != doc['response'] or call.get('request', {}).get('messages') != [{'role':'user','content':doc['prompt']}]:
         raise ValueError(f'{rel}: original model call mismatch')
+    if doc.get('model_call_hash') is not None:
+        digest = hashlib.sha256(json.dumps(call, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        if digest != doc['model_call_hash']: raise ValueError(f'{rel}: original model call hash mismatch')
     return doc, call_path
 
 
@@ -126,17 +134,58 @@ def _case_dir(overlay, rel):
     return overlay / 'cases' / Path(rel).parent.relative_to('repeat-1')
 
 
+def _check_stop(overlay):
+    check_stop(overlay/'STOP')
+
+
+def _resume_retry(overlay, directory, doc, claims, kwargs, judge):
+    """Resume only a saved, malformed first attempt after validating its binding."""
+    first = read_json(directory/'attempt-1.json')
+    expected = judge_prompt(doc['question'], doc['answer'], claims, judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **kwargs)
+    call = read_json(overlay/'model-calls'/Path(first['model_call']).name)
+    if (first.get('prompt') != expected or first.get('prompt_suffix') != '' or
+        first.get('checkpoint') != doc['checkpoint'] or first.get('question') != doc['question'] or
+        first.get('answer') != doc['answer'] or
+        first.get('claims') != [{'id':c.id,'description':c.description,'evidence':list(c.evidence)} for c in claims] or
+        first.get('conversation') != list(kwargs.get('conversation', ())) or
+        (kwargs.get('diagnostic_inputs') is not None and first.get('diagnostic_inputs') != kwargs['diagnostic_inputs']) or
+        first.get('judge_protocol') != DATE_SCOPED_JUDGE_PROTOCOL or call.get('status') != 'ok' or
+        call.get('text') != first.get('response') or
+        call.get('request',{}).get('messages') != [{'role':'user','content':expected}]):
+        raise ValueError('cannot resume changed first attempt')
+    try:
+        grade_semantic(doc['checkpoint'], doc['question'], doc['answer'], claims,
+                       lambda _: first['response'], judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **kwargs)
+    except BenchmarkContractError as exc:
+        raise ValueError('cannot retry a benchmark contract error') from exc
+    except ValueError:
+        pass
+    else:
+        raise ValueError('cannot retry a valid response')
+    _check_stop(overlay)
+    return grade_semantic(doc['checkpoint'], doc['question'], doc['answer'], claims, judge,
+        record_path=directory/'attempt-2.json', judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL,
+        prompt_suffix=RETRY_GUIDANCE, **kwargs)
+
+
 def run(overlay, judge):
     overlay = _no_symlinks(overlay)
     manifest, root = _manifest(overlay)
     for case in manifest['cases']:
+        try: _check_stop(overlay)
+        except OperatorStop: return {'state':'stopped', 'reason':'operator stop requested'}
         directory = _case_dir(overlay, case['judgment'])
         if (directory/'result.json').exists(): continue
         doc, _ = _original(root, case['judgment'])
         claims, kwargs = _args(doc)
         try:
-            grade = grade_semantic_with_retry(doc['checkpoint'], doc['question'], doc['answer'], claims, judge,
-                attempt_dir=directory, judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **kwargs)
+            if (directory/'attempt-1.json').exists() and not (directory/'attempt-2.json').exists():
+                grade = _resume_retry(overlay, directory, doc, claims, kwargs, judge)
+            else:
+                grade = grade_semantic_with_retry(doc['checkpoint'], doc['question'], doc['answer'], claims, judge,
+                    attempt_dir=directory, before_retry=lambda:_check_stop(overlay), judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **kwargs)
+        except OperatorStop:
+            return {'state':'stopped', 'reason':'operator stop requested'}
         except ValueError as exc:
             if not (directory/'attempt-1.json').exists() or (not isinstance(exc, BenchmarkContractError) and
                     not (directory/'attempt-2.json').exists()): raise
@@ -145,6 +194,9 @@ def run(overlay, judge):
         else:
             _write(directory/'result.json', {'judge_protocol':DATE_SCOPED_JUDGE_PROTOCOL,
                 'original_judgment':case['judgment'], 'state':'graded', 'grade':asdict(grade)})
+        try: _check_stop(overlay)
+        except OperatorStop: return {'state':'stopped', 'reason':'operator stop requested'}
+    return {'state':'complete'}
 
 
 def audit(overlay):
@@ -236,9 +288,20 @@ def controls(overlay, judge):
     overlay = _no_symlinks(overlay)
     _manifest(overlay)
     for name, question, answer, claims, inputs, expected in _control_specs():
+        try: _check_stop(overlay)
+        except OperatorStop: return {'state':'stopped', 'reason':'operator stop requested'}
         directory = overlay/'controls'/name
-        grade = grade_semantic_with_retry(name, question, answer, claims, judge, attempt_dir=directory,
-            judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, diagnostic_version=DIAGNOSTIC_VERSION, diagnostic_inputs=inputs)
+        if (directory/'result.json').exists(): continue
+        kwargs = {'diagnostic_version':DIAGNOSTIC_VERSION, 'diagnostic_inputs':inputs}
+        try:
+            if (directory/'attempt-1.json').exists() and not (directory/'attempt-2.json').exists():
+                doc={'checkpoint':name, 'question':question, 'answer':answer}
+                grade = _resume_retry(overlay, directory, doc, claims, kwargs, judge)
+            else:
+                grade = grade_semantic_with_retry(name, question, answer, claims, judge, attempt_dir=directory,
+                    before_retry=lambda:_check_stop(overlay), judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **kwargs)
+        except OperatorStop:
+            return {'state':'stopped', 'reason':'operator stop requested'}
         bad = {'claims':[{'id':'day','status':'supported','reason':'Altered marker',
             'citations':[{'id':'prefetch','quote':'〈E2〉'}]}], 'extra_assertions':[]}
         invalid_rejected = validate_diagnostic(bad, claims, answer, inputs, DIAGNOSTIC_VERSION)['state'] == 'ungraded'
@@ -246,6 +309,10 @@ def controls(overlay, judge):
                   and grade.evidence_diagnostic['claims'][0]['status'] == 'supported' and invalid_rejected)
         _write(directory/'result.json', {'grade':asdict(grade), 'passed':passed, 'invalid_quote_rejected':invalid_rejected})
         if not passed: raise ValueError(f'control failed: {name}')
+        try: _check_stop(overlay)
+        except OperatorStop: return {'state':'stopped', 'reason':'operator stop requested'}
+    audit_controls(overlay)
+    return {'state':'complete'}
 
 
 def audit_controls(overlay):
@@ -301,10 +368,10 @@ def main():
     def judge(prompt):
         require_live_cost_boundary()
         return client(prompt)
-    if args.action == 'controls': controls(args.overlay,judge)
+    if args.action == 'controls': print(json.dumps(controls(args.overlay,judge)))
     else:
         audit_controls(args.overlay)
-        run(args.overlay,judge)
+        print(json.dumps(run(args.overlay,judge)))
 
 
 if __name__ == '__main__': main()

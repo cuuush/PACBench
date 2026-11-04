@@ -11,6 +11,7 @@ from pathlib import Path
 from . import harness
 from .gateway_client import require_live_cost_boundary
 from .model_calls import ModelOutput
+from .stop import OperatorStop
 from .semantic_grade import Claim, Grade, GradedClaim, VERDICTS, grade_native_semantic, audit_native_judge_attempts, LEGACY_JUDGE_PROTOCOL
 
 RECOVERY_WEIGHT = 0.5
@@ -434,6 +435,11 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots],
                 **({'evidence_diagnostic': followup_grade.evidence_diagnostic} if inputs is not None else {})})
             attempt.update(state='graded', verdicts=[vars(s) for s in followup_grade.slots])
+        except OperatorStop:
+            attempt['state'] = 'interrupted'
+            report['state'] = 'interrupted'
+            save(output / 'recovery.json', report)
+            raise
         except Exception as exc:
             attempt['error'] = f'{type(exc).__name__}: {exc}'
             report['state'] = 'incomplete'

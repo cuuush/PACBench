@@ -424,6 +424,12 @@ def supermemory(source,root,at,processing_at):
 
 
 def main(args=None):
+    from pacbench.stop import OperatorStop, check_stop
+    try:
+        check_stop()
+    except OperatorStop:
+        print(json.dumps({'operator_stop': True}))
+        return 75
     provider,src,arm,at,processing_at=args or sys.argv[1:]
     dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover,'supermemory':supermemory,'honcho':honcho}
     result=dispatch[provider](Path(src),Path(arm),at,processing_at)

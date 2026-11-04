@@ -22,11 +22,34 @@ from .evaluation import load_evaluations
 from .native_checks import run_checks
 from .tool_policy import VERSION as TOOL_POLICY, policy_record
 from .usage import tracked_turn
+from .stop import OperatorStop, check_stop
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
 ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
 _ARM_SHUTDOWNS = {}
+
+
+def ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
+                   timezone, stop_file, ingest_day, check_model_health):
+    """Persist each native receipt before honoring an operator stop."""
+    for batch in needed:
+        if batch['id'] in ingested:
+            continue
+        check_stop(stop_file)
+        if batch['id'] in failed_batches:
+            raise RuntimeError('Earlier native import failed; source state unavailable')
+        record = ingest_day(provider, output/'sources'/batch['id'], root, env, batch['at'], timezone)
+        save(root/batch['file'], record)
+        if record['state'] == 'ready':
+            ingested.append(batch['id'])
+        else:
+            failed_batches.add(batch['id'])
+        check_stop(stop_file)
+        if record['state'] != 'ready':
+            check_model_health()
+            raise RuntimeError('Native source ingestion/processing failed; inspect saved record')
+        check_model_health()
 
 
 def stop_arm_model_work(root):
@@ -355,6 +378,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         raise ValueError("invalid or duplicate provider selection")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
+    stop_file = Path(os.environ.get('PACBENCH_STOP_FILE') or output / 'STOP').resolve()
     question_dir=(question_dir or output/'combined-questions').resolve()
     # Registered first, so native server shutdown hooks run before this final
     # fallback for CLI grandchildren left behind by timed-out provider tools.
@@ -407,16 +431,25 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
             report.update(evaluation_plan_hash=evaluation_plan['plan_hash'], evaluation_context=evaluation_plan['context'])
-        judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
+        model_judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
                             record_dir=output / "model-calls")
+        def judge(*args, **kwargs):
+            check_stop(stop_file)
+            return model_judge(*args, **kwargs)
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
         report["followup_policy"] = "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback is permitted but earns no retention credit"
         report["state"] = "running"
         save(output / "summary.json", report)
+    interrupted = False
     for repetition in range(1, repetitions + 1):
         for provider in selected:
+            try:
+                check_stop(stop_file)
+            except OperatorStop:
+                interrupted = True
+                break
             root = output / f"repeat-{repetition}" / provider
             if source and provider in BLOCKERS:
                 result={'provider':provider,'repetition':repetition,'state':'blocked','reason':BLOCKERS[provider],
@@ -440,6 +473,19 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             try:
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
                                 local_timezone=resolved.get("timezone", "") if resolved else "")
+                env['PACBENCH_STOP_FILE'] = str(stop_file)
+                def guarded_turn(*args, **kwargs):
+                    check_stop(stop_file)
+                    return harness.run_turn(*args, **kwargs)
+                check_stop(stop_file)
+            except OperatorStop:
+                result={'provider':provider, 'repetition':repetition, 'state':'interrupted',
+                        'reason':'operator stop requested', 'capability':{'available':False, 'tools':[]}}
+                results.append(result)
+                save(root/'status.json', result)
+                stop_arm_model_work(root)
+                interrupted = True
+                break
             except (OSError,RuntimeError,subprocess.TimeoutExpired) as exc:
                 # Preserve native setup failures and continue independent arms.
                 _,key=client_settings('setup-check')
@@ -509,19 +555,12 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                         stop_arm_model_work(root)
                     raise RuntimeError(health['reason'])
             def import_before_check(row, directory):
+                check_stop(stop_file)
                 check_model_health()
                 needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'] or 'America/New_York')
-                for batch in needed:
-                    if batch['id'] in ingested:continue
-                    if batch['id'] in failed_batches:raise RuntimeError('Earlier native import failed; source state unavailable')
-                    record=ingest_day(provider,output/'sources'/batch['id'],root,env,batch['at'],report['process_timezone'] or 'America/New_York')
-                    save(root/batch['file'],record)
-                    if record['state']!='ready':
-                        failed_batches.add(batch['id'])
-                        check_model_health()
-                        raise RuntimeError('Native source ingestion/processing failed; inspect saved record')
-                    ingested.append(batch['id'])
-                    check_model_health()
+                ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
+                               report['process_timezone'] or 'America/New_York', stop_file,
+                               ingest_day, check_model_health)
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
                 if evaluations:
                     from .native_writes import ensure_ready
@@ -541,51 +580,80 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
                     capability['live_verified'] = sequence['state'] == 'diagnostic'
                     result['behavior'] = {'evaluation_context': evaluation_plan['context']}
+                    if sequence['state'] == 'interrupted':
+                        result['reason'] = 'operator stop requested'
+                        interrupted = True
                 except RuntimeError as exc:
                     result.update(state='invalid',reason=str(exc))
             else:
                 try:
                     import_before_check({'at':resolved['question_at']},root)
+                except OperatorStop:
+                    result.update(state='interrupted', reason='operator stop requested')
+                    interrupted = True
+                    stop_arm_model_work(root)
+                    save(root/'status.json',result);save(output/'summary.json',report)
+                    break
                 except RuntimeError as exc:
                     result.update(state='invalid',reason=str(exc))
                     save(root/'status.json',result);save(output/'summary.json',report)
                     stop_arm_model_work(root)
                     continue
                 # Deliberately omit --resume: recall must cross a real session boundary.
+                try:
+                    check_stop(stop_file)
+                except OperatorStop:
+                    result.update(state='interrupted', reason='operator stop requested')
+                    interrupted = True
+                    stop_arm_model_work(root)
+                    save(root/'status.json',result);save(output/'summary.json',report)
+                    break
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
                                         extra_env=env, timeout_s=180)
                 save(root / "recall.json", vars(turn))
-                result["behavior"] = {
-                    "provider_tool_calls": [c.get("name") for c in turn.tool_calls
-                                            if c.get("name") in capability["tools"]],
-                    "prefetch_context_present": bool(turn.prefetch_context)}
-                result.update(state="invalid", reason="recall turn failed or policy blocked")
-                if not turn.returncode and turn.answer.strip() and not turn.policy_blocks:
-                    from .native_checks import diagnostic_inputs
-                    from .evaluation import source_evidence as build_source_evidence
-                    source_evidence = build_source_evidence(messages, report["evidence_diagnostic_protocol"])
-                    grade = grade_native_semantic(resolved["id"], turn.prompt, turn.answer,
-                                           tuple(Claim(c.id, c.statement, c.evidence)
-                                                 for c in contract.claims), judge,
-                                           record_path=root / "judgment.json", assess_recovery=True,
-                                           diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence, diagnostic_version=report['evidence_diagnostic_protocol']), diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
-                    save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
-                                              "misrepresented": grade.misrepresented,
-                                              "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery,
-                                              "evidence_diagnostic": grade.evidence_diagnostic})
-                    result.update(state="diagnostic", reason="", input_hash=report['input_hash'])
-                    capability["live_verified"] = True
-                    recovery = run_followups(contract=contract, plan=plan, grade=grade,
-                        initial_turn=turn, output=root / "followups", judge=judge,
-                        home=root / "hermes-home", allowlist=allowlist, extra_env=env,
-                        question_dir=question_dir, evidence_by_id=source_evidence,
-                        provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
-                    result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
-                        "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
-                                      "metrics": a["metrics"]} for a in recovery["attempts"]]}
-                    if recovery["state"] != "complete":
-                        result.update(state="invalid", reason="follow-up diagnostics incomplete")
+                try:
+                    check_stop(stop_file)
+                except OperatorStop:
+                    result.update(state='interrupted', reason='operator stop requested')
+                    interrupted = True
+                    stop_arm_model_work(root)
+                    save(root/'status.json',result);save(output/'summary.json',report)
+                    break
+                try:
+                    result["behavior"] = {
+                        "provider_tool_calls": [c.get("name") for c in turn.tool_calls
+                                                if c.get("name") in capability["tools"]],
+                        "prefetch_context_present": bool(turn.prefetch_context)}
+                    result.update(state="invalid", reason="recall turn failed or policy blocked")
+                    if not turn.returncode and turn.answer.strip() and not turn.policy_blocks:
+                        from .native_checks import diagnostic_inputs
+                        from .evaluation import source_evidence as build_source_evidence
+                        source_evidence = build_source_evidence(messages, report["evidence_diagnostic_protocol"])
+                        grade = grade_native_semantic(resolved["id"], turn.prompt, turn.answer,
+                                               tuple(Claim(c.id, c.statement, c.evidence)
+                                                     for c in contract.claims), judge,
+                                               record_path=root / "judgment.json", assess_recovery=True,
+                                               diagnostic_inputs=diagnostic_inputs(turn, contract, source_evidence, diagnostic_version=report['evidence_diagnostic_protocol']), diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
+                        save(root / "grade.json", {"correct": grade.correct, "missed": grade.missed,
+                                                  "misrepresented": grade.misrepresented,
+                                                  "claims": [vars(s) for s in grade.slots], "recovery": grade.recovery,
+                                                  "evidence_diagnostic": grade.evidence_diagnostic})
+                        result.update(state="diagnostic", reason="", input_hash=report['input_hash'])
+                        capability["live_verified"] = True
+                        recovery = run_followups(contract=contract, plan=plan, grade=grade,
+                            initial_turn=turn, output=root / "followups", judge=judge,
+                            home=root / "hermes-home", allowlist=allowlist, extra_env=env,
+                            question_dir=question_dir, evidence_by_id=source_evidence, run_turn=guarded_turn,
+                            provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
+                        result["recovery"] = {"state": recovery["state"], "score": recovery["score"],
+                            "attempts": [{"claim_ids": a["claim_ids"], "verdicts": a["verdicts"],
+                                          "metrics": a["metrics"]} for a in recovery["attempts"]]}
+                        if recovery["state"] != "complete":
+                            result.update(state="invalid", reason="follow-up diagnostics incomplete")
+                except OperatorStop:
+                    result.update(state="interrupted", reason="operator stop requested")
+                    interrupted = True
             from .usage import snapshot
             # Stop this run-owned backend before moving to another provider.
             # Leaving its workers alive until matrix exit permits background
@@ -594,19 +662,25 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)
+            if interrupted:
+                break
+        if interrupted:
+            break
     report["state"] = ("diagnostic" if all(r["state"] == "diagnostic" for r in results)
                        else "incomplete") if source else "inventory"
+    if interrupted:
+        report.update(state='interrupted', interruption='operator stop requested')
     if source:
         try:report["gateway_after"] = require_live_cost_boundary()
         except RuntimeError as exc:
             # Budget stopping is a completed execution outcome, not a reason
             # to leave the public run permanently marked "running".
-            report.update(state="incomplete", spending_stop=str(exc))
+            report.update(state='interrupted' if interrupted else 'incomplete', spending_stop=str(exc))
     save(output / "summary.json", report)
     if source:
         from .native_audit import audit
         report["audit"] = audit(output)
-        if report["audit"]["state"] != "pass":
+        if report["audit"]["state"] != "pass" and not interrupted:
             report["state"] = "incomplete"
         save(output / "native-audit.json", report["audit"])
         save(output / "summary.json", report)
@@ -628,7 +702,7 @@ def main() -> int:
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))
-    return 1 if (report["state"] == "incomplete" or any(r["state"] == "invalid" for r in report["results"]) or
+    return 1 if (report["state"] in ("incomplete", "interrupted") or any(r["state"] == "invalid" for r in report["results"]) or
                  args.prepared and any(r["state"] != "diagnostic" for r in report["results"])) else 0
 
 

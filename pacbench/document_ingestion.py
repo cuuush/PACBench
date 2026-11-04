@@ -191,6 +191,8 @@ def validate_evaluation_clocks(schedule,providers,question_times,timezone, *, ch
 
 def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     """Provider-owned ingestion/processing in an isolated process, no Hermes turn."""
+    from .stop import OperatorStop, check_stop
+    check_stop(env.get('PACBENCH_STOP_FILE'))
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
     if timeout_s is None:
         timeout_s=PROCESSING_TIMEOUT_S  # One nightly batch may contain several real conversations.
@@ -217,6 +219,8 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
                 result=json.loads(proc.stdout.splitlines()[-1])
             except (ValueError,IndexError):
                 result=None
+            if proc.returncode == 75 and isinstance(result, dict) and result.get('operator_stop') is True:
+                raise OperatorStop('operator stop requested before native ingestion')
             if isinstance(result,dict):
                 record.update(result=result,ready=proc.returncode==0 and result.get('ready') is True)
                 remove_duplicate_stdout(record)

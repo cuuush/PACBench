@@ -71,7 +71,11 @@ def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None, diagno
 
 def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1', diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL):
-    run_turn = run_turn or harness.run_turn
+    from .stop import OperatorStop, check_stop
+    native_turn = run_turn or harness.run_turn
+    def run_turn(*args, **kwargs):
+        check_stop(env.get('PACBENCH_STOP_FILE'))
+        return native_turn(*args, **kwargs)
     sessions, outcomes = {}, {}
     report = {'state': 'running', 'context': context, 'checks': []}
     root.mkdir(parents=True, exist_ok=True)
@@ -99,6 +103,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                     home=root / 'hermes-home', allowlist=allowlist, extra_env=env, timeout_s=180,
                     session_id=state['session'], session_started_at=state['session_started_at'])
                 save(directory / 'turn.json', vars(turn))
+                check_stop(env.get('PACBENCH_STOP_FILE'))
                 if turn.policy_blocks:
                     item.update(state='failed', verdict='fail', reason='Disallowed tool attempted')
                     state['failed'] = row['id']
@@ -137,6 +142,12 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',
                             recovery={'state':recovery['state'],'score':recovery['score'],'attempts':recovery['attempts']})
                     advance(state,turn,directory,provenance_version)
+            except OperatorStop:
+                item.update(state='interrupted', verdict=None, reason='operator stop requested')
+                save(directory / 'status.json', item)
+                report['state'] = 'interrupted'
+                save(root / 'evaluation.json', report)
+                return report
             except Exception as exc:
                 # Keep completed public history even if its judge failed. An
                 # execution failure poisons that session, not independent ones.

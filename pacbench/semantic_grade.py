@@ -239,7 +239,7 @@ RETRY_GUIDANCE = ('\nThe previous response was unusable. Return a complete valid
                   'with every requested field and no surrounding text.')
 
 
-def grade_semantic_with_retry(checkpoint_id, question, answer, claims, generate, *, attempt_dir, **kwargs):
+def grade_semantic_with_retry(checkpoint_id, question, answer, claims, generate, *, attempt_dir, before_retry=None, **kwargs):
     """Allow one fresh complete response after malformed output, retaining both requests."""
     attempt_dir = Path(attempt_dir)
     attempt_dir.mkdir(parents=True, exist_ok=True)
@@ -257,6 +257,8 @@ def grade_semantic_with_retry(checkpoint_id, question, answer, claims, generate,
             # not an invalid request or a failed gateway call.
             if index or not path.exists():
                 raise
+            if before_retry is not None:
+                before_retry()
     raise AssertionError('unreachable')
 
 

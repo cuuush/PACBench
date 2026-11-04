@@ -7,6 +7,29 @@ from pacbench.prepare import resolve_spec, prepare
 from pacbench.harness import _summarize_tool_result
 from pacbench.authoring import ScenePlan, judge_prompt, scene_prompt, spread_timestamps
 
+def test_corpus_review_temporal_instruction_and_rejection_path(tmp_path):
+    from pacbench.corpus_review import review_corpus, review_prompt
+    resolved={'scenes': [], 'checks': []}
+    base={'channel':'email','thread':'ben-email','sender':'Ben'}
+    original=dict(base, source_id='original', written_at='2026-10-12T20:00:00-04:00',
+                  text='Are we still good for 7pm next Thursday, Oct 22?')
+    # Actual wording from the frozen October 13 reply; it lacks an anchor for Saturday.
+    reply=dict(base, source_id='reply', written_at='2026-10-13T10:00:00-04:00',
+               text='A work deadline means I cannot get away Thursday evening — could we move dinner to Saturday instead?')
+    clear=dict(reply, text='Could we move dinner from Thursday October 22 to Saturday October 24 instead?')
+    for candidate in (reply, clear):
+        prompt=review_prompt([original,candidate],resolved)
+        assert candidate['text'] in prompt and candidate['written_at'] in prompt
+        assert 'message containing it' in prompt and 'do not invent an anchor' in prompt
+    def verdict(consistent):
+        return SimpleNamespace(text=json.dumps({'consistent':consistent,'expectations_supported':consistent,
+            'natural_enough':True,'issues':[] if consistent else ['Saturday date ambiguous']}),
+            record_path='receipt.json',usage={})
+    with pytest.raises(ValueError, match='Corpus realism review rejected'):
+        review_corpus([original,reply],resolved,lambda _: verdict(False),tmp_path)
+    assert json.loads((tmp_path/'realism-review.json').read_text())['state']=='fail'
+    assert review_corpus([original,clear],resolved,lambda _: verdict(True),tmp_path)['state']=='pass'
+
 def test_saved_scene_bounds_compare_equal_for_resume():
     from pacbench.authoring import scene_spec
     plan=ScenePlan(scene='A chat',participants=('Me','Sam'),

@@ -7,8 +7,8 @@ from pathlib import Path
 from .followups import digest, save
 from .semantic_contract import _dialogue
 
-VERSION = 'source-realism-v4'
-SUPPORTED_VERSIONS = {'source-realism-v3', VERSION}
+VERSION = 'source-realism-v5'
+SUPPORTED_VERSIONS = {'source-realism-v3', 'source-realism-v4', VERSION}
 
 
 def review_intent(resolved):
@@ -38,7 +38,16 @@ def review_prompt(messages, resolved, *, version=VERSION):
            'and depends_on for conditional inputs. A behavior check may accept an '
            'ordinary acknowledgement; only a later fresh-session question tests '
            'persistence. Do not assume the assistant successfully wrote memory.\n'
-           if version==VERSION else '') +
+           if version in ('source-realism-v4', VERSION) else '') +
+        ('For every relevant relative day or week, use the written timestamp of '
+         'the message containing it, including each reply separately. Resolve '
+         'rescheduling direction and date from the messages themselves, not '
+         'from the authored intention. Reject conflicting dates and references '
+         'that leave materially different dates plausible, regardless of the '
+         'authored intention. Earlier or quoted '
+         'messages retain their own written clock. Explicit dates and ordinary '
+         'context may resolve a reference; do not invent an anchor to make it fit.\n'
+         if version == 'source-realism-v5' else '') +
         f'Authored intentions and questions:\n{json.dumps(review_intent(resolved), ensure_ascii=False)}\n'
         f'Actual source:\n{_dialogue(messages)}')
 

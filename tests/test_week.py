@@ -350,7 +350,7 @@ def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_pa
     assert scenes[0].at.startswith('2026-09-15') and scenes[-1].at.startswith('2026-10-14')
     assert len({s.id for s in scenes})==len(scenes)
     assert {s.thread for s in scenes if s.id.endswith('devon-friday')}=={'devon'}
-    assert len(resolved['checks'])==16
+    assert len(resolved['checks'])==15
     assert all(c['at'].startswith('2026-10-19') and c['at']>scenes[-1].window_end for c in resolved['checks'])
     # Partial updates must have their preceding conversation available to the
     # writer, with time to finish before the next scene in that same chat.
@@ -378,3 +378,21 @@ def test_multiweek_scope_across_dst_and_repeated_scene_names(tmp_path):
     assert all(c['at'].startswith('2026-11-08') for c in resolved['checks'])
     spec['days']=days
     with pytest.raises(ValueError,match='not both'):normalize_week(spec,'2026-10-26')
+
+
+def test_operator_stop_after_turn_preserves_answer_without_judging(tmp_path):
+    stop_file = tmp_path / 'STOP'
+    called = []
+    def run(prompt, **kwargs):
+        called.append(prompt)
+        stop_file.touch()
+        return runner_result(prompt, kwargs)
+    def judge(_prompt):
+        pytest.fail('judge must not run after operator stop')
+    report = run_checks(checkpoints(tmp_path), 'isolated', tmp_path / 'arm', judge, '',
+                        {'PACBENCH_STOP_FILE': str(stop_file)}, question_dir=tmp_path/'q', run_turn=run)
+    assert report['state'] == 'interrupted'
+    assert len(called) == 1
+    assert report['checks'][0]['state'] == 'interrupted'
+    assert (tmp_path/'arm/turns'/report['checks'][0]['id']/'turn.json').exists()
+    assert not list((tmp_path/'arm').rglob('judgment.json'))

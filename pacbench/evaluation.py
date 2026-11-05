@@ -187,7 +187,7 @@ def load_evaluations(root, messages, resolved):
 
 
 
-def prepare_existing(source, spec, output, model, *, max_messages=3000):
+def prepare_existing(source, spec, output, model, *, max_messages=3000, resume=False):
     """Freeze new questions against unchanged, previously verified dialogue."""
     import shutil
     from .native_pilot import read_prepared
@@ -206,19 +206,41 @@ def prepare_existing(source, spec, output, model, *, max_messages=3000):
     _, target, resolved = resolve_spec(authored, output)
     if not resolved['checks']:
         raise ValueError('recheck requires checks')
-    output.mkdir(parents=True, exist_ok=False)
-    for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json', 'shared-text.json'):
-        if (source / name).exists():
-            shutil.copyfile(source / name, output / name)
-    for name in ('scene-verifications', 'model-calls'):
-        if (source / name).exists():
-            shutil.copytree(source / name, output / name)
+    if resume:
+        if (read_json(output/'spec.json') != authored or read_json(output/'resolved-spec.json') != resolved or
+                (source/'bundle.json').read_bytes() != (output/'bundle.json').read_bytes() or
+                read_json(output/'recheck-provenance.json')['original_contract_hash'] !=
+                read_json(source/'contract.json')['contract_hash']):
+            raise ValueError('Recheck resume requires unchanged source and questions')
+        paths=[source/name for name in ('scenes.json','bundle-provenance.json') if (source/name).exists()]
+        for folder in ('scene-verifications','model-calls'):paths.extend((source/folder).glob('*.json'))
+        for path in paths:
+            if read_json(path) != read_json(output/path.relative_to(source)):
+                raise ValueError('Recheck resume source verification evidence changed')
+        from .preparation_audit import audit_combined_contract_review
+        for row in resolved['checks']:
+            path=output/'evaluations'/row['id']/'contract.json'
+            if not path.exists():continue
+            document=read_json(path);load_contract(path)
+            evidence=contract_evidence(messages,resolved['checks'],row,resolved['evaluation_context'],
+                structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
+            if audit_combined_contract_review(output,document,evidence,row):
+                raise ValueError('Recheck resume contract review evidence changed')
+    else:
+        output.mkdir(parents=True, exist_ok=False)
+        for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json', 'shared-text.json'):
+            if (source / name).exists():
+                shutil.copyfile(source / name, output / name)
+        for name in ('scene-verifications', 'model-calls'):
+            if (source / name).exists():
+                shutil.copytree(source / name, output / name)
     save(output / 'spec.json', authored)
     save(output / 'resolved-spec.json', resolved)
     save(output / 'recheck-provenance.json', {'source': str(source.resolve()),
          'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
          'original_contract_hash': read_json(source / 'contract.json')['contract_hash']})
-    plan = freeze_evaluations(resolved, messages, target, model, output)
+    save(output/'summary.json',{'state':'rechecking','results':[]})
+    plan = freeze_evaluations(resolved, messages, target, model, output,resume=resume)
     if plan.get('errors'):
         save(output/'summary.json',{'state':'blocked','results':[],'errors':plan['errors']})
         raise ValueError('New evaluation contracts are incomplete; inspect evaluation-errors.json')
@@ -226,7 +248,13 @@ def prepare_existing(source, spec, output, model, *, max_messages=3000):
     for name in ('contract.json', 'followup-plan.json'):
         shutil.copyfile(first / name, output / name)
     from .corpus_review import VERSION as REVIEW_VERSION, review_corpus
-    review_corpus(messages,resolved,model,output)
+    if (output/'realism-review.json').exists():
+        previous=read_json(output/'realism-review.json')
+        save(output/'review-attempts'/(digest(previous)+'.json'),previous)
+    try:review_corpus(messages,resolved,model,output)
+    except Exception as exc:
+        save(output/'summary.json',{'state':'blocked','results':[],'reason':type(exc).__name__})
+        raise
     summary = {'state': 'prepared', 'results': [], 'evaluation_plan_hash': plan['plan_hash'],
         'corpus_review_version':REVIEW_VERSION,
         'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
@@ -249,6 +277,7 @@ def main():
     parser.add_argument('--spec', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--max-messages',type=int,default=3000)
+    parser.add_argument('--resume',action='store_true')
     args = parser.parse_args()
     require_live_cost_boundary()
     driver = load_driver()
@@ -256,7 +285,7 @@ def main():
     judge = ModelClient(key=key, model=driver.model_id, url=base + '/chat/completions',
                         record_dir=args.output / 'model-calls')
     prepare_existing(args.prepared, json.loads(args.spec.read_text()), args.output, judge,
-                     max_messages=args.max_messages)
+                     max_messages=args.max_messages,resume=args.resume)
     print(args.output)
 
 

@@ -130,15 +130,16 @@ def audit_prepared(root: Path) -> dict:
             if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
                     quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues')):
                 errors.append('Corpus realism review is stale or unresolved')
-            if (quality.get('review_version') == 'source-realism-v7' and
+            if (quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9') and
                     quality.get('scope') != 'source-coherence-and-public-question-answerability'):
                 errors.append('Corpus realism review scope is missing or incorrect')
             from .corpus_review import verdict_passes
             if not verdict_passes(quality.get('review'), messages, resolved, version=quality.get('review_version')):
                 errors.append('Corpus realism review lacks valid source-grounded assessments')
-            if quality.get('review_version') == 'source-realism-v7' and 'validation_errors' in quality:
+            if quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9') and 'validation_errors' in quality:
                 from .corpus_review import validation_errors
-                if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved):
+                if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved,
+                                                                    version=quality['review_version']):
                     errors.append('Corpus realism validation errors differ from review evidence')
             call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):

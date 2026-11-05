@@ -415,7 +415,7 @@ def export_week(root, destination):
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json','shared-text.json',
            'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json']
     paths=[root/name for name in names if (root/name).exists()]
-    for folder in ('evaluations','scene-verifications','model-calls'):
+    for folder in ('evaluations','scene-verifications','model-calls','review-attempts'):
         paths.extend((root/folder).glob('*.json') if folder == 'model-calls'
                      else (root/folder).rglob('*.json'))
     files={}

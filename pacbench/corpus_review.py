@@ -7,8 +7,9 @@ from pathlib import Path
 from .followups import digest, save
 from .semantic_contract import _dialogue
 
-VERSION = 'source-realism-v7'
-SUPPORTED_VERSIONS = {'source-realism-v3', 'source-realism-v4', 'source-realism-v5', 'source-realism-v6', VERSION}
+VERSION = 'source-realism-v9'
+SOURCE_BLIND = {'source-realism-v7','source-realism-v8',VERSION}
+SUPPORTED_VERSIONS = {'source-realism-v3', 'source-realism-v4', 'source-realism-v5', 'source-realism-v6', *SOURCE_BLIND}
 
 
 def review_intent(resolved):
@@ -18,6 +19,14 @@ def review_intent(resolved):
 
 def review_prompt(messages, resolved, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unsupported corpus review version')
+    if version == 'source-realism-v9':
+        return _v8_prompt(messages,resolved) + (
+            '\nJudge the intended state assuming memory retained prior delivered '
+            'inputs, including across fresh sessions. A definite user report of '
+            'a changed plan updates that state without requiring another person '
+            'to confirm it. Whether a provider actually saved the update is what '
+            'later recall tests; it is not a source-answerability requirement.')
+    if version == 'source-realism-v8':return _v8_prompt(messages,resolved)
     if version == 'source-realism-v7':
         return _v7_prompt(messages, resolved)
     if version == 'source-realism-v6':
@@ -95,12 +104,21 @@ def _v6_prompt(messages, resolved):
         f'Authored intentions and timestamped questions:\n{json.dumps(review_intent(resolved), ensure_ascii=False)}')
 
 
-def _v7_prompt(messages, resolved):
+def _v8_prompt(messages,resolved):
+    return _v7_prompt(messages,resolved,include_turn_metadata=True) + (
+        '\nExact citations may also quote the timestamped public user inputs '
+        'above. Later inputs cannot justify earlier answers; conditional inputs '
+        'are not established history. User instructions do not prove assistant '
+        'persistence or completed external actions.')
+
+
+def _v7_prompt(messages, resolved, *, include_turn_metadata=False):
     from .document_ingestion import daily_batches, document_text
     batches = daily_batches(messages, resolved.get('timezone', 'America/New_York'))
     source = '\n'.join(document_text(batch, max(m['collected_at'] for m in batch))
                        for _, batch in batches)
-    questions = [{k: check[k] for k in ('id', 'at', 'prompt')} for check in resolved['checks']]
+    keys=('id','at','prompt','session','kind','trigger','depends_on','requires') if include_turn_metadata else ('id','at','prompt')
+    questions = [{k:check[k] for k in keys if k in check} for check in resolved['checks']]
     return (
         'Independently audit this complete raw personal-message corpus and the '
         'answerability of its public questions. Every message body is retained, '
@@ -130,14 +148,22 @@ def _v7_prompt(messages, resolved):
         f'Timestamped public questions:\n{json.dumps(questions, ensure_ascii=False)}')
 
 
-def validation_errors(verdict, messages, resolved):
-    """Describe v7 structure and citation failures without altering the verdict."""
+def validation_errors(verdict, messages, resolved, *, version=VERSION):
+    """Verify exact citations; v8 also accepts delivered public user inputs."""
     errors = []
     def add(path, code):
         errors.append({'path': path, 'code': code})
     if not isinstance(verdict, dict):
         return [{'path': 'review', 'code': 'not_object'}]
     checks = resolved['checks']
+    candidates=list(messages)
+    if version == 'source-realism-v8':
+        candidates.extend({'written_at':r['at'],'collected_at':r['at'],'text':r['prompt']}
+                          for r in checks if r.get('trigger') != 'clarification')
+    conditional={r['id'] for r in checks if r.get('trigger')=='clarification'}
+    for r in checks:
+        dependencies=[*r.get('requires',[]),*([r['depends_on']] if r.get('depends_on') else [])]
+        if any(d in conditional for d in dependencies):conditional.add(r['id'])
     ids = [c['id'] for c in checks]
     if len(set(ids)) != len(ids): add('checks', 'duplicate_id')
     by_id = {c['id']: c for c in checks}
@@ -173,7 +199,12 @@ def validation_errors(verdict, messages, resolved):
             if not isinstance(entry, dict) or not isinstance(entry.get('quote'), str) or not entry['quote'].strip():
                 add(evidence_path, 'missing_quote')
                 continue
-            matches = [m for m in messages if entry.get('written_at') == m['written_at'] and entry['quote'] in m['text']]
+            available=candidates
+            if version == 'source-realism-v9':
+                prior=checks[:next((i+1 for i,c in enumerate(checks) if c['id']==check_id),0)]
+                available=[*messages,*({'written_at':r['at'],'collected_at':r['at'],'text':r['prompt']}
+                    for r in prior if r['id'] not in conditional)]
+            matches = [m for m in available if entry.get('written_at') == m['written_at'] and entry['quote'] in m['text']]
             if not matches:
                 add(evidence_path, 'timestamp_quote_no_match')
             elif len(matches) > 1:
@@ -186,14 +217,14 @@ def validation_errors(verdict, messages, resolved):
 
 
 def verdict_passes(verdict, messages, resolved, *, version=VERSION):
-    flag = 'questions_answerable' if version == 'source-realism-v7' else 'expectations_supported'
+    flag = 'questions_answerable' if version in SOURCE_BLIND else 'expectations_supported'
     if not (isinstance(verdict, dict) and
             all(verdict.get(k) is True for k in
                 ('consistent', flag, 'natural_enough')) and
             verdict.get('issues') == []):
         return False
-    if version == 'source-realism-v7':
-        return not validation_errors(verdict, messages, resolved)
+    if version in SOURCE_BLIND:
+        return not validation_errors(verdict, messages, resolved,version=version)
     if version != 'source-realism-v6':
         return True
     assessments = verdict.get('assessments')
@@ -239,7 +270,7 @@ def review_corpus(messages, resolved, model, root: Path):
     receipt = {'state': 'pass' if passed else 'fail', 'review_version': VERSION,
                'source_hash': digest(messages), 'intent_hash': digest(review_intent(resolved)),
                'review': verdict, 'model_call': result.record_path, 'usage': result.usage}
-    if VERSION == 'source-realism-v7':
+    if VERSION in SOURCE_BLIND:
         receipt['scope'] = 'source-coherence-and-public-question-answerability'
         receipt['validation_errors'] = validation_errors(verdict, messages, resolved)
     save(root / 'realism-review.json', receipt)

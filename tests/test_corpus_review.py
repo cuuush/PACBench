@@ -120,3 +120,45 @@ def test_v7_receipt_reports_bad_quote_without_altering_model_verdict(tmp_path):
     assert saved['review']==verdict and saved['review']['issues']==[]
     assert saved['validation_errors']==[{'path':'assessments[dinner].source_evidence[0]',
                                          'code':'timestamp_quote_no_match'}]
+
+
+def test_v8_quotes_public_updates_but_rejects_future_or_conditional_inputs():
+    from pacbench.corpus_review import validation_errors,review_prompt
+    update={'id':'change','at':'2026-10-26T16:10:00-04:00','kind':'behavior',
+            'prompt':'Move the pickup to Sunday at 11.'}
+    recall={'id':'recall','at':'2026-10-26T17:00:00-04:00','prompt':'What is on Sunday?'}
+    resolved={'scenes':[],'checks':[update,recall]}
+    def assessment(check):
+        return {'check_id':check['id'],'event_date':'2026-11-01','alternatives':['none'],
+            'ambiguous':False,'source_evidence':[{'written_at':update['at'],'quote':update['prompt']}]}
+    verdict={'assessments':[assessment(update),assessment(recall)]}
+    assert validation_errors(verdict,[],resolved)==[]
+    assert all(e['code']=='timestamp_quote_no_match' for e in
+        validation_errors(verdict,[],resolved,version='source-realism-v7'))
+    recall['at']='2026-10-26T16:00:00-04:00'
+    assert validation_errors(verdict,[],resolved)==[
+        {'path':'assessments[recall].source_evidence[0]','code':'source_after_question'}]
+    update['trigger']='clarification'
+    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict,[],resolved))
+    assert 'clarification' in review_prompt([],resolved)
+    assert 'conditional inputs' in review_prompt([],resolved)
+
+
+def test_public_input_order_dependencies_and_cross_session_intended_state():
+    from pacbench.corpus_review import validation_errors
+    rows=[{'id':'first','at':'2026-10-26T16:00:00-04:00','prompt':'The pickup is Sunday at 11am.',
+           'session':'one'},
+          {'id':'second','at':'2026-10-26T16:00:00-04:00','prompt':'What about Sunday?',
+           'session':'fresh'}]
+    def verdict(target,evidence):
+        return {'assessments':[{'check_id':r['id'],'event_date':'2026-11-01','alternatives':['none'],
+            'ambiguous':False,'source_evidence':[{'written_at':evidence['at'],'quote':evidence['prompt']}]}
+            for r in target]}
+    resolved={'checks':rows}
+    assert validation_errors(verdict(rows,rows[0]),[],resolved)==[]
+    assert any(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved))
+    rows[0]['trigger']='clarification'
+    rows[1]['requires']=['first']
+    rows.append({'id':'third','at':'2026-10-26T17:00:00-04:00','prompt':'Latest plan?',
+                 'requires':['second']})
+    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved))

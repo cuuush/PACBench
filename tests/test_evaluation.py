@@ -44,7 +44,7 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
     messages=[{'source_id':'m1','text':'Unchanged verified source'}]
     monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:(messages,None,original))
     seen=[]
-    def freeze(resolved,actual,target,model,output):
+    def freeze(resolved,actual,target,model,output,**kwargs):
         assert resolved['scenes']==original['scenes'] and actual==messages
         directory=output/'evaluations/check'
         save(directory/'contract.json',{'contract_hash':'new-contract'})
@@ -63,12 +63,40 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
     if review_rejects:
         with pytest.raises(ValueError,match='Independent corpus review rejected'):
             evaluation.prepare_existing(source,spec,output,object())
-        assert not (output/'summary.json').exists()
+        assert json.loads((output/'summary.json').read_text())['state']=='blocked'
     else:
         result=evaluation.prepare_existing(source,spec,output,object())
         assert result['corpus_review_version']==VERSION
         assert json.loads((output/'bundle.json').read_text())=={'source':'unchanged'}
     assert len(seen)==1
+
+
+@pytest.mark.parametrize('tamper',['bundle','verifier'])
+def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_path,monkeypatch,tamper):
+    from pathlib import Path
+    from pacbench.evaluation import prepare_existing
+    from pacbench.followups import save
+    from pacbench.prepare import resolve_spec
+    source=tmp_path/'source';source.mkdir()
+    authored=json.loads(Path('weeks/bike_pickup.json').read_text())
+    _,_,resolved=resolve_spec(authored,source,week_start='2026-10-19')
+    for name,value in {'spec':authored,'resolved-spec':resolved,'bundle':{'source':'original'},
+                       'contract':{'contract_hash':'original'}}.items():save(source/(name+'.json'),value)
+    monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:([],None,resolved))
+    output=tmp_path/'resumed';output.mkdir()
+    from pacbench.prepare import normalize_week
+    spec={k:resolved[k] for k in ('checks','question_at','evaluation_context')}
+    save(output/'spec.json',{**normalize_week(authored,'2026-10-19'),**spec})
+    save(output/'resolved-spec.json',resolved)
+    save(output/'bundle.json',{'source':'changed' if tamper=='bundle' else 'original'})
+    if tamper=='verifier':
+        save(source/'scene-verifications/check.json',{'supported':True})
+        save(output/'scene-verifications/check.json',{'supported':False})
+    save(output/'recheck-provenance.json',{'original_contract_hash':'original'})
+    def forbidden(*a,**kw):raise AssertionError('Changed source must not reach a model')
+    monkeypatch.setattr('pacbench.evaluation.freeze_evaluations',forbidden)
+    with pytest.raises(ValueError,match='unchanged source and questions|verification evidence changed'):
+        prepare_existing(source,spec,output,forbidden,resume=True)
 
 
 @pytest.mark.parametrize('required', ['first', ['missing'], ['first','first'], ['second'], [None]])

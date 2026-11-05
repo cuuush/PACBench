@@ -321,6 +321,10 @@ def honcho(source,root,at,processing_at):
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
     defaults=json.loads((root/'native-processing-settings.json').read_text())
+    from provider_adapters.honcho_clock import enabled, wait_for_batch
+    if enabled(root):
+        return wait_for_batch(root, acknowledgments,
+            json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))
     grace=defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     from provider_adapters.honcho_local import queue_errors
     statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work,

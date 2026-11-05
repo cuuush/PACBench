@@ -416,8 +416,11 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             save(directory / 'question-plan.json', authored)
             before = budget_snapshot()
             from .usage import tracked_turn
+            turn_environment = extra_env
+            if (home.parent/'provider-clock.json').exists():
+                turn_environment = {**(extra_env or {}), 'PACBENCH_CLOCK_RECOVERY':'1'}
             turn = tracked_turn(run_turn, question, usage_path=directory / "usage.json", at=initial_turn.at, home=home, allowlist=allowlist,
-                            extra_env=extra_env, timeout_s=180, session_id=initial_turn.session_id,
+                            extra_env=turn_environment, timeout_s=180, session_id=initial_turn.session_id,
                             session_started_at=initial_turn.session_started_at or initial_turn.at)
             save(directory / 'turn.json', vars(turn))
             attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools, provenance_version=provenance_version)
@@ -514,9 +517,16 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             if (directory/'usage.json').exists():
                 check(provider_paths_match(turn,read(directory/'usage.json')),
                     'follow-up provider path timing differs from recorded inference inputs')
-            expected_prompt = (f'[Simulated now: {initial_turn.at}. Treat this as the current date and '
+            clock = turn.provider_clock
+            recovery_at = turn.at if clock and clock.get('version') == 'honcho-wall-clock-v2' else initial_turn.at
+            if clock:
+                from datetime import datetime
+                check(clock.get('role') == 'recovery' and clock.get('requested_at') == initial_turn.at and
+                      datetime.fromisoformat(turn.at) >= datetime.fromisoformat(initial_turn.at),
+                      'invalid simulated recovery clock')
+            expected_prompt = (f'[Simulated now: {recovery_at}. Treat this as the current date and '
                                f'time for everything in this turn.]\n\n{question}')
-            check(turn.prompt == expected_prompt and turn.at == initial_turn.at, 'follow-up clock/prompt mismatch')
+            check(turn.prompt == expected_prompt and turn.at == recovery_at, 'follow-up clock/prompt mismatch')
             check(turn.session_id == initial_turn.session_id, 'follow-up lost recall conversation')
             check(not turn.returncode and not turn.policy_blocks, 'follow-up turn failed/blocked')
             check(attempt['metrics'] == turn_metrics(turn, previous, provenance_version=provenance_version), 'follow-up tool/token metrics mismatch')

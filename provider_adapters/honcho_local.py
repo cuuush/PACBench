@@ -15,7 +15,42 @@ from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
 
-def queue_errors(root):
+class OperatorConditionHold(RuntimeError):
+    """An operator deferred this provider before native execution."""
+
+
+def check_operator_condition(root):
+    """Honor a run-owned Honcho hold without changing any other provider."""
+    root = Path(root)
+    if root.name != 'honcho' or not re.fullmatch(r'repeat-[1-9][0-9]*', root.parent.name):
+        return
+    run = root.parent.parent
+    manifest = run/'provider-conditions'/'honcho.json'
+    if not manifest.exists():
+        return
+    try:
+        if manifest.is_symlink() or manifest.parent.is_symlink():
+            raise ValueError('condition path is a symlink')
+        raw = manifest.read_bytes()
+        condition = json.loads(raw)
+        summary = json.loads((run/'summary.json').read_text())
+        if (condition.get('version') != 'provider-condition-v1' or
+                condition.get('provider') != 'honcho' or condition.get('mode') != 'hold' or
+                not isinstance(condition.get('reason'), str) or not condition['reason'].strip() or
+                condition.get('bundle_hash') != summary.get('bundle_hash') or
+                not isinstance(summary.get('bundle_hash'), str) or len(summary['bundle_hash']) != 64):
+            raise ValueError('invalid condition or bundle binding')
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        raise RuntimeError('Invalid Honcho operator condition; native setup withheld') from exc
+    save(root/'operator-condition.json', {
+        'version': 'provider-condition-v1', 'state': 'operator-held',
+        'provider': 'honcho', 'bundle_hash': condition['bundle_hash'],
+        'condition_sha256': hashlib.sha256(raw).hexdigest(),
+        'reason': condition['reason'], 'native_setup_started': False})
+    raise OperatorConditionHold('Honcho held by run-owned operator condition; native setup withheld')
+
+
+def queue_errors(root, *, include_all=False):
     """Observe failed native work without changing the provider or its queue.
 
     Honcho's public completed counter includes terminally errored items. Read
@@ -28,6 +63,8 @@ def queue_errors(root):
         FROM queue q LEFT JOIN sessions s ON s.id=q.session_id
         WHERE q.error IS NOT NULL AND q.task_type IN ('representation','summary','dream')
         ) t"""
+    if include_all:
+        sql = sql.replace(" AND q.task_type IN ('representation','summary','dream')", '')
     env={k:v for k,v in os.environ.items() if k not in {
         'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
     p=subprocess.run(['docker','--host=unix:///var/run/docker.sock','exec',
@@ -58,7 +95,8 @@ def verify_persisted_messages(acknowledgments,actual):
     return sorted(expected)
 
 
-def start(root,env,model,base,key,*,resume=False):
+def start(root,env,model,base,key,*,resume=False,simulated_at=None):
+    check_operator_condition(root)
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
     python=source/'.venv/bin/python'
@@ -76,11 +114,30 @@ def start(root,env,model,base,key,*,resume=False):
                 previous['version']!=tomllib.loads((source/'pyproject.toml').read_text())['project']['version']):
             raise ValueError('Honcho diagnostic restart requires its existing store and unchanged model/server version')
     dbdir.mkdir(exist_ok=resume)
+    clock = None
+    clock_args = []
+    if simulated_at is not None:
+        if resume:
+            raise ValueError('A simulated-clock store needs its own verified resume protocol')
+        from .honcho_clock import create, docker_clock_args
+        clock = create(root, simulated_at)
+        clock_args = docker_clock_args(clock)
     docker=['docker','--host=unix:///var/run/docker.sock']
     docker_env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+    if clock:
+        # The image normally starts as root and drops privileges. Preloading
+        # before that drop creates root-owned libfaketime semaphores. Initialize
+        # only filesystem ownership as root, then start the native image as its
+        # own PostgreSQL user. No database rows are changed here.
+        owned=subprocess.run([*docker,'run','--rm','--user','0:0',
+            '-v',f'{dbdir}:/var/lib/postgresql/data','--entrypoint','chown',
+            'pgvector/pgvector:pg15','999:999','/var/lib/postgresql/data'],
+            env=docker_env,capture_output=True,text=True,timeout=60)
+        if owned.returncode:raise RuntimeError('Cannot initialize isolated PostgreSQL directory ownership')
     proc=subprocess.run([*docker,'run','--rm','-d','--name',name,
         '-p',f'127.0.0.1:{db_port}:5432','-e','POSTGRES_PASSWORD=postgres',
         '-v',f'{dbdir}:/var/lib/postgresql/data',
+        *clock_args,
         *(['--entrypoint','/bin/sh'] if resume else []),'pgvector/pgvector:pg15',
         *(['-c','test -f "$PGDATA/PG_VERSION" && exec /usr/local/bin/docker-entrypoint.sh postgres'] if resume else [])],
         env=docker_env,capture_output=True,text=True,timeout=60)
@@ -113,6 +170,8 @@ def start(root,env,model,base,key,*,resume=False):
     # environment settings are resolved by Honcho and recorded below.
     for k in ('DERIVER_FLUSH_ENABLED','LLM_DEFAULT_MAX_TOKENS'):
         child.pop(k,None)
+    if clock:
+        child = clock.environment(child)
     # Check every resolved generation model/endpoint before migrations or workers.
     guard='''
 from src.config import settings
@@ -178,11 +237,14 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None,
         'stderr':configured.stderr.replace(key,'<redacted>')})
     if configured.returncode:raise RuntimeError('Honcho native embedding schema configuration failed')
     endpoint=f'http://127.0.0.1:{api_port}'
+    native_processes = {}
     for label,args in [('api',['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)]),
                        ('deriver',['-m','src.deriver'])]:
         log=(root/f'honcho-{label}.log').open('ab')
         processes.append(subprocess.Popen([str(python),*args],cwd=root,env=child,
-            stdin=subprocess.DEVNULL,stdout=log,stderr=log));log.close()
+            start_new_session=bool(clock), stdin=subprocess.DEVNULL,stdout=log,stderr=log))
+        native_processes[label] = processes[-1]
+        log.close()
     deadline=time.monotonic()+90;health=None
     while time.monotonic()<deadline and processes[0].poll() is None:
         try:
@@ -200,6 +262,13 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None,
              if processing['native_defaults_verified'] else
              'Native batching defaults; explicit documented deriver model output allowance')})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
+    if clock:
+        from .honcho_clock import register
+        try:
+            register(root, name, endpoint, native_processes)
+        except Exception:
+            stop()
+            raise
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
         'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity,
         'sessionStrategy':'per-session',

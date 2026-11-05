@@ -108,7 +108,8 @@ def provider_names() -> list[str]:
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
-              local_timezone: str = "", resume: bool = False) -> dict:
+              local_timezone: str = "", resume: bool = False,
+              honcho_simulated_at: str | None = None) -> dict:
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
@@ -298,7 +299,8 @@ finally:p.close()
     if provider=='honcho':
         from provider_adapters.honcho_local import start
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,
+            **({'simulated_at':honcho_simulated_at} if honcho_simulated_at else {}))
     if provider=='supermemory':
         from provider_adapters.supermemory_local import start
         base,key=client_settings(memory_project)
@@ -309,6 +311,11 @@ finally:p.close()
 def probe(root: Path, provider: str, env: dict, *, smoke: bool = False, smoke_timeout_s: int = 30) -> dict:
     child_env = harness.turn_env("2026-09-11T09:00:00-04:00",
                                  root / "hermes-home", "", env)
+    if provider == 'honcho' and (root/'provider-clock.json').exists():
+        from provider_adapters.honcho_clock import load
+        clock, _ = load(root)
+        child_env['PACBENCH_NOW'] = clock.now().isoformat()
+        child_env = clock.environment(child_env)
     try:
         proc = subprocess.run(
             [str(harness.ISOLATED_BIN.parent / "python"), "-c", PROBE, provider],
@@ -369,13 +376,15 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
-        question_dir: Path | None = None) -> dict:
+        question_dir: Path | None = None, honcho_clock: str = 'real') -> dict:
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 100000:
         raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")
     selected = providers if providers is not None else provider_names()
     if not selected or len(set(selected)) != len(selected) or any(p not in provider_names() for p in selected):
         raise ValueError("invalid or duplicate provider selection")
+    if honcho_clock not in ('real', 'simulated') or (honcho_clock == 'simulated' and (not source or 'honcho' not in selected)):
+        raise ValueError('A simulated Honcho clock requires prepared source and the Honcho provider')
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     stop_file = Path(os.environ.get('PACBENCH_STOP_FILE') or output / 'STOP').resolve()
@@ -389,6 +398,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
               "builtin_memory": False, "tool_policy": TOOL_POLICY, "session_search": False,'ingestion_mode':'documents'}
     report['provenance_version'] = 'source-provenance-v2'
+    if honcho_clock == 'simulated':
+        from provider_adapters.honcho_clock import VERSION as HONCHO_CLOCK
+        report['provider_clocks'] = {'honcho': HONCHO_CLOCK}
     from .semantic_grade import DIAGNOSTIC_VERSION, DATE_SCOPED_JUDGE_PROTOCOL
     report['evidence_diagnostic_protocol'] = DIAGNOSTIC_VERSION
     report['judge_protocol'] = DATE_SCOPED_JUDGE_PROTOCOL
@@ -471,8 +483,15 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     save(output/'summary.json',report)
                     continue
             try:
+                clock_options = {}
+                if provider == 'honcho' and honcho_clock == 'simulated':
+                    from .document_ingestion import processing_at
+                    from datetime import datetime, timedelta
+                    first = datetime.fromisoformat(processing_at(
+                        report['ingestion_schedule'][0]['at'], 'honcho', report['process_timezone']))
+                    clock_options['honcho_simulated_at'] = (first-timedelta(minutes=5)).isoformat()
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
-                                local_timezone=resolved.get("timezone", "") if resolved else "")
+                                local_timezone=resolved.get("timezone", "") if resolved else "", **clock_options)
                 env['PACBENCH_STOP_FILE'] = str(stop_file)
                 def guarded_turn(*args, **kwargs):
                     check_stop(stop_file)
@@ -558,10 +577,20 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 check_stop(stop_file)
                 check_model_health()
                 needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'] or 'America/New_York')
+                if provider == 'honcho' and honcho_clock == 'simulated':
+                    env['PACBENCH_CLOCK_HORIZON'] = row['at']
+                    later = [r['at'] for r,_,_ in evaluations if r['at'] > row['at']]
+                    if later: env['PACBENCH_CLOCK_NEXT_CHECKPOINT'] = min(later)
+                    else: env.pop('PACBENCH_CLOCK_NEXT_CHECKPOINT', None)
                 ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
                                report['process_timezone'] or 'America/New_York', stop_file,
                                ingest_day, check_model_health)
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
+                if provider == 'honcho' and honcho_clock == 'simulated':
+                    from provider_adapters.honcho_clock import before_turn
+                    # Age any genuine capture work before checking a later
+                    # session's dependency; never flush or backdate that work.
+                    before_turn(root, row['at'], env)
                 if evaluations:
                     from .native_writes import ensure_ready
                     ensure_ready(provider,row,evaluations,evaluation_plan['context'],root,env,directory)
@@ -696,9 +725,11 @@ def main() -> int:
     parser.add_argument("--smoke", action="store_true", help="bounded native read-only tool checks")
     parser.add_argument("--providers", nargs="+", help="select native arms; omitted inventories every provider")
     parser.add_argument('--question-dir',type=Path,help='Shared reviewed recovery cache for concurrent source-identical arms')
+    parser.add_argument('--honcho-clock', choices=('real','simulated'), default='real',
+                        help='Isolated native Honcho wall clock; gateway and harness stay on real time')
     args = parser.parse_args()
     report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers,
-                 question_dir=args.question_dir)
+                 question_dir=args.question_dir, honcho_clock=args.honcho_clock)
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))

@@ -200,6 +200,13 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
             defaults=json.loads((root/'native-processing-settings.json').read_text())
             timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     native_at=processing_at(at,provider,timezone)
+    if provider == 'honcho':
+        from provider_adapters.honcho_clock import enabled, before_turn
+        if enabled(root):
+            # The connector itself must remain real-time: it controls the
+            # native clock and its operational deadlines. Discard child-only
+            # preload env; the provider services are already isolated.
+            before_turn(root, native_at, env)
     child_env=harness.turn_env(native_at,root/'hermes-home','',env)
     roles=json.loads(env['PACBENCH_USAGE_ROLES'])
     before=snapshot(roles)

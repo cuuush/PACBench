@@ -74,6 +74,17 @@ def audit_honcho_receipt(batch, result, previous_work=None):
                 errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
     if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
     changes=result.get('processing_status',[])
+    if result.get('clock_protocol') in ('honcho-wall-clock-v1','honcho-wall-clock-v2'):
+        ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
+        witnesses = result.get('message_witnesses', [])
+        final = changes[-1] if changes else {}
+        if (not ids or {r.get('id') for r in witnesses} != ids or
+                len({r.get('queue_id') for r in witnesses}) != len(witnesses) or
+                any(r.get('processed') is not True or r.get('has_error') is not False for r in witnesses) or
+                any(final.get(k) != 0 for k in ('claims','pending','embeddings')) or
+                any(s.get('errors') for s in changes)):
+            errors.append('Honcho simulated-clock message enrollment/completion is unproven')
+        return errors
     if any(change.get('native_queue_errors') for change in changes):
         errors.append('Honcho submitted-source work completed with native errors')
     final=changes[-1].get('sessions',{}) if changes else {}
@@ -90,6 +101,13 @@ def audit_honcho_receipt(batch, result, previous_work=None):
 
 def audit_ingestion(root, arm, messages, summary):
     errors=[]
+    declared_clock = summary.get('provider_clocks',{}).get(arm.name)
+    if declared_clock is not None:
+        if arm.name != 'honcho':
+            errors.append('Unsupported declared native clock provider')
+        else:
+            from provider_adapters.honcho_clock import audit_evidence
+            errors.extend(audit_evidence(arm, declared_clock))
     def check(ok,msg):
         if not ok:errors.append(msg)
     schedule=summary['ingestion_schedule']
@@ -152,6 +170,9 @@ def audit_ingestion(root, arm, messages, summary):
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York',version=version),'native processing clock mismatch')
         if arm.name=='honcho':
             errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
+            declared = summary.get('provider_clocks',{}).get('honcho')
+            check(record.get('result',{}).get('clock_protocol') == declared,
+                  'Honcho native clock differs from declared trial condition')
         if arm.name=='supermemory':
             errors.extend(audit_supermemory_receipt(record.get('result',{}),day,text))
             config=arm/'document-ingestion-config.json'

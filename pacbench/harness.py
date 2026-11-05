@@ -70,6 +70,7 @@ class TurnResult:
     prefetch_context: str | None = None
     context_isolation: dict | None = None
     session_started_at: str | None = None
+    provider_clock: dict | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -200,9 +201,23 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     """
     home = home.resolve()
     _check_paths(home)
+    requested_at = at
+    clock_record = None
+    env = turn_env(at, home, allowlist, extra_env)
+    if (home.parent / 'provider-clock.json').exists():
+        from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
+        recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
+        if recovery:
+            at, env = before_recovery(home.parent, at, env)
+        else:
+            env = before_turn(home.parent, at, env)
+        provider, _ = load(home.parent)
+        clock_record = {'version': VERSION, 'requested_at': requested_at,
+                        'actual_start_at': provider.now().isoformat(),
+                        'role': 'recovery' if recovery else 'scripted',
+                        'next_checkpoint': env.get('PACBENCH_CLOCK_NEXT_CHECKPOINT')}
     prompt = (f"[Simulated now: {at}. Treat this as the current date and "
               f"time for everything in this turn.]\n\n{prompt}")
-    env = turn_env(at, home, allowlist, extra_env)
     session_started_at = session_started_at or at
     env['PACBENCH_SESSION_STARTED_AT'] = session_started_at
     from .context_isolation import actual_context, workspace_for
@@ -230,6 +245,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         partial = subprocess.CompletedProcess(cmd, -1, part_out, note + "\n" + part_err)
         result = _parse_turn(prompt, at, partial, latency)
         result.session_started_at = session_started_at
+        result.provider_clock = clock_record
         result.stderr_tail = note
         result.context_isolation = actual_context(home, result.session_id, workspace)
         _recover_tool_results(result, home / "state.db")
@@ -240,6 +256,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     result = _parse_turn(prompt, at, proc, latency)
     result.session_started_at = session_started_at
     result.context_isolation = actual_context(home, result.session_id, workspace)
+    result.provider_clock = clock_record
     if result.context_isolation['state'] != 'pass':
         result.policy_blocks += 1
     _recover_tool_results(result, home / "state.db")

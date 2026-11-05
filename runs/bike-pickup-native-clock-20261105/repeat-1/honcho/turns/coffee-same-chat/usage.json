@@ -1,0 +1,103 @@
+{
+  "state": "captured",
+  "started": "2026-11-05T23:33:32.743157+00:00",
+  "finished": "2026-11-05T23:34:15.595097+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 1,
+      "input_tokens": 6267,
+      "output_tokens": 176,
+      "accounted_upper_bound_usd": 0.0006619,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 3,
+      "input_tokens": 17064,
+      "output_tokens": 1850,
+      "accounted_upper_bound_usd": 0.0020764,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "72f0b4f6ffe14518824ece10f208c435",
+      "project": "pacbench-a8bb18bc32b8-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T23:33:58.223151+00:00",
+      "finished": "2026-11-05T23:34:00.828443+00:00",
+      "state": "settled",
+      "input_tokens": 4354,
+      "output_tokens": 337,
+      "accounted": 502800,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "tool_calls",
+      "reasoning_tokens": 105,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0005028
+    },
+    {
+      "id": "8527db8236284aa29d9965727c5e494f",
+      "project": "pacbench-a8bb18bc32b8-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T23:34:00.959100+00:00",
+      "finished": "2026-11-05T23:34:03.777114+00:00",
+      "state": "settled",
+      "input_tokens": 5488,
+      "output_tokens": 295,
+      "accounted": 607800,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "tool_calls",
+      "reasoning_tokens": 133,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0006078
+    },
+    {
+      "id": "d4fda402320e43cb8609a1f3836bd1fc",
+      "project": "pacbench-a8bb18bc32b8-honcho-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "responses",
+      "started": "2026-11-05T23:34:01.825865+00:00",
+      "finished": "2026-11-05T23:34:03.492784+00:00",
+      "state": "settled",
+      "input_tokens": 6267,
+      "output_tokens": 176,
+      "accounted": 661900,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": null,
+      "reasoning_tokens": 150,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0006619
+    },
+    {
+      "id": "4648de46de754799966dcb241e4d13f7",
+      "project": "pacbench-a8bb18bc32b8-honcho-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T23:34:03.910111+00:00",
+      "finished": "2026-11-05T23:34:15.071968+00:00",
+      "state": "settled",
+      "input_tokens": 7222,
+      "output_tokens": 1218,
+      "accounted": 965800,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 849,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0009658
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

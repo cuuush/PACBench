@@ -100,4 +100,5 @@ month score. The reply repeated a vague Saturday item, and message-search paths
 were attempted and logged; it does not establish clean retention credit.
 That earlier canary used the legacy per-directory fallback; it does not prove
 fresh-session persistence under the current per-session setup.
-Evidence is under `runs/bike-pickup-20261026/diagnostics/provider-compatibility/honcho-8192-20261025/`.
+Historical evidence is under `artifacts/retired-public-bike-compatibility-20261026/provider-compatibility/honcho-8192-20261025/`.
+The current isolated-clock canary is `runs/bike-pickup-native-clock-20261105`.

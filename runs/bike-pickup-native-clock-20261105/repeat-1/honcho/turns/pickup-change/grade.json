@@ -1,0 +1,54 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "Answer says 'Noted — Sunday at 11am instead of Saturday' explicitly accepting the reschedule."
+    }
+  ],
+  "recovery": null,
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Tool result records the reschedule to Sunday at 11am instead of Saturday.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "User rescheduled bike pickup with Riley to Sunday at 11am instead of Saturday Oct 31"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The Sunday pickup date is Nov 1",
+        "answer_quote": "Sunday Nov 1",
+        "status": "unverifiable",
+        "reason": "No source evidence mentions Nov 1; source scope is partial.",
+        "citations": []
+      },
+      {
+        "assertion": "Pickup is at same shop",
+        "answer_quote": "same shop",
+        "status": "unverifiable",
+        "reason": "No source evidence mentions shop.",
+        "citations": []
+      },
+      {
+        "assertion": "User already has coffee with Riley at 9am that day",
+        "answer_quote": "You already have coffee with Riley at 9am that day",
+        "status": "unverifiable",
+        "reason": "No source evidence mentions coffee at 9am.",
+        "citations": []
+      }
+    ]
+  }
+}

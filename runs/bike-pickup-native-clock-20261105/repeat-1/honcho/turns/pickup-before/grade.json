@@ -1,0 +1,129 @@
+{
+  "correct": 3,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "pickup-day",
+      "verdict": "correct",
+      "reason": "Answer states pickup is 'Saturday, October 31'."
+    },
+    {
+      "id": "pickup-time",
+      "verdict": "correct",
+      "reason": "Answer states pickup is 'at 10am'."
+    },
+    {
+      "id": "pickup-shop",
+      "verdict": "correct",
+      "reason": "Answer states meeting at 'Spoke Cycles'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "pickup-day",
+      "kind": "provided",
+      "reason": "Correct day conveyed in answer."
+    },
+    {
+      "id": "pickup-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "pickup-shop",
+      "kind": "provided",
+      "reason": "Correct shop conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "pickup-day",
+        "status": "supported",
+        "reason": "Prefetch explicitly records Saturday Oct 31 10am meeting.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "at 10 am on Saturday, October 31, 2026"
+          }
+        ]
+      },
+      {
+        "id": "pickup-time",
+        "status": "supported",
+        "reason": "Prefetch explicitly records 10 am on Saturday Oct 31.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "at 10 am on Saturday, October 31, 2026"
+          }
+        ]
+      },
+      {
+        "id": "pickup-shop",
+        "status": "supported",
+        "reason": "Prefetch explicitly names Spoke Cycles for Oct 31 pickup.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "at Spoke Cycles, 114 Maple Avenue"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Pickup date is October 31",
+        "answer_quote": "October 31",
+        "status": "supported",
+        "reason": "Source email references Oct 31 for bike pickup change.",
+        "citations": [
+          {
+            "id": "message-d29a4f96b9240baa0fcdbca9",
+            "quote": "Oct 31"
+          }
+        ]
+      },
+      {
+        "assertion": "Meeting Riley",
+        "answer_quote": "meeting Riley",
+        "status": "supported",
+        "reason": "Source reply is addressed to Riley about same shop meeting.",
+        "citations": [
+          {
+            "id": "message-3a63f87f0b891216065e60c9",
+            "quote": "Hi Riley,"
+          }
+        ]
+      },
+      {
+        "assertion": "Address is 114 Maple Avenue",
+        "answer_quote": "114 Maple Avenue",
+        "status": "supported",
+        "reason": "Source message gives shop address.",
+        "citations": [
+          {
+            "id": "message-eaaf1fe56b4c5945bb1cdfa0",
+            "quote": "Spoke Cycles, 114 Maple Avenue"
+          }
+        ]
+      },
+      {
+        "assertion": "10am replaces 2pm that day",
+        "answer_quote": "it replaces the 2pm that day",
+        "status": "supported",
+        "reason": "Source email asks to come at 10am instead of 2pm.",
+        "citations": [
+          {
+            "id": "message-d29a4f96b9240baa0fcdbca9",
+            "quote": "at 10 am instead of the 2 pm we had"
+          }
+        ]
+      }
+    ]
+  }
+}

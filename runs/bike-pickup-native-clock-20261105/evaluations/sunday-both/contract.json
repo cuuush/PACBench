@@ -1,0 +1,144 @@
+{
+  "authoring_version": "event-scoped-v7",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "coffee-with",
+      "statement": "The coffee on Sunday, November 1 is with Riley.",
+      "evidence": [
+        "message-42704a023039099ce31fcc52",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    },
+    {
+      "id": "coffee-time",
+      "statement": "The coffee with Riley on Sunday, November 1 is at 9 am.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    },
+    {
+      "id": "coffee-place",
+      "statement": "The coffee with Riley on Sunday, November 1 is at Maple Mug.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    },
+    {
+      "id": "bike-with",
+      "statement": "The bike pickup on Sunday, November 1 is with Riley.",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "bike-time",
+      "statement": "The bike pickup with Riley on Sunday, November 1 is at 11 am.",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "bike-place",
+      "statement": "The bike pickup with Riley on Sunday, November 1 is at Spoke Cycles.",
+      "evidence": [
+        "message-eaaf1fe56b4c5945bb1cdfa0",
+        "message-d29a4f96b9240baa0fcdbca9",
+        "assistant-user:pickup-change"
+      ]
+    },
+    {
+      "id": "sunday-count",
+      "statement": "On Sunday, November 1 there are exactly two plans with Riley: coffee and bike pickup.",
+      "evidence": [
+        "message-42704a023039099ce31fcc52",
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6",
+        "message-d29a4f96b9240baa0fcdbca9",
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "What's my Sunday with Riley looking like?",
+  "evidence_hash": "c0cbca1ca1bd405817afb55d4b7b129167eb061211c778de7c4969e3384c6fc0",
+  "review": {
+    "complete": true,
+    "coverage_reason": "Set provides independent atomic claims for both identities, both times, both venues, plus exact-two list, covering all intent-required current details.",
+    "reviews": [
+      {
+        "id": "coffee-with",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed Sunday coffee and user accepted; identity required by intent."
+      },
+      {
+        "id": "coffee-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed 9am and user accepted; time required, Nov 1 derived from Oct 31 Saturday context."
+      },
+      {
+        "id": "coffee-place",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Riley proposed Maple Mug and user accepted; venue required, no address."
+      },
+      {
+        "id": "bike-with",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "User instruction states bike pickup Sunday with Riley reschedule; identity required and persists."
+      },
+      {
+        "id": "bike-time",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Explicit user instruction gives Sunday at 11am instead; time required, resolves to Nov 1."
+      },
+      {
+        "id": "bike-place",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Original Spoke Cycles venue persists through time-only changes; venue required, no address."
+      },
+      {
+        "id": "sunday-count",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Current Sunday has coffee plus moved bike pickup and no others; exact-two list required."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Sunday recap at Oct 26 means upcoming Nov 1 and naturally invites both current outings with people/time/place and complete list, without supplying answers or presupposing unsupported details; prior pickup-change persists across sessions."
+  },
+  "author_fact_count": 0,
+  "test_intent": "Two separate arrangements: coffee at 9 am at Maple Mug, and bike pickup at 11 am at Spoke Cycles. Judge both identities, times and venues; require no street addresses.",
+  "question_source": "supplied",
+  "question_at": "2026-10-26T17:00:00-04:00",
+  "combined_review_receipt": {
+    "prompt_format": "shared-context-v2",
+    "prompt": {
+      "$pacbench_text": [
+        "ff0d946e6616aefdad6554892e7ec1d70ad414b706bf6a2fe86f7388cab914ea",
+        "69adeee7a87476779fc1df21bc5a320dd617c49d38a256c3b2ac59216ac65632"
+      ],
+      "sha256": "116165361b2a2e2bae7eef7f991ed72688642c47ba835f0da48c2c0929ef7817"
+    },
+    "response": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"Set provides independent atomic claims for both identities, both times, both venues, plus exact-two list, covering all intent-required current details.\", \"reviews\": [{\"id\": \"coffee-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Sunday coffee and user accepted; identity required by intent.\"}, {\"id\": \"coffee-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed 9am and user accepted; time required, Nov 1 derived from Oct 31 Saturday context.\"}, {\"id\": \"coffee-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Maple Mug and user accepted; venue required, no address.\"}, {\"id\": \"bike-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"User instruction states bike pickup Sunday with Riley reschedule; identity required and persists.\"}, {\"id\": \"bike-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Explicit user instruction gives Sunday at 11am instead; time required, resolves to Nov 1.\"}, {\"id\": \"bike-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Original Spoke Cycles venue persists through time-only changes; venue required, no address.\"}, {\"id\": \"sunday-count\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Current Sunday has coffee plus moved bike pickup and no others; exact-two list required.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Sunday recap at Oct 26 means upcoming Nov 1 and naturally invites both current outings with people/time/place and complete list, without supplying answers or presupposing unsupported details; prior pickup-change persists across sessions.\"}}",
+    "model_call": "artifacts/honcho-natural-canary-prep-20261105/model-calls/ed031b43b66e6d58fcfca301fae179ffe9587b2bdf695290008a84e606b8ed9c.json"
+  },
+  "contract_hash": "abfbbbc21acee8f62b1af8c0c2dcb6af61e02c77c0a5c296aaa531e776877872"
+}

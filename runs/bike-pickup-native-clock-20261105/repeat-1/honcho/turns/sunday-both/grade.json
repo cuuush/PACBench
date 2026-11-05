@@ -1,0 +1,163 @@
+{
+  "correct": 6,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-with",
+      "verdict": "correct",
+      "reason": "Answer frames both items as 'Sunday, Nov 1 with Riley' and lists '9am coffee', conveying coffee is with Riley."
+    },
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states '9am coffee', matching 9 am claim."
+    },
+    {
+      "id": "coffee-place",
+      "verdict": "correct",
+      "reason": "Answer states coffee 'at Maple Mug', matching place claim."
+    },
+    {
+      "id": "bike-with",
+      "verdict": "correct",
+      "reason": "Answer lists '11am bike pickup' under 'Sunday, Nov 1 with Riley', conveying pickup is with Riley."
+    },
+    {
+      "id": "bike-time",
+      "verdict": "correct",
+      "reason": "Answer states '11am bike pickup', matching 11 am claim."
+    },
+    {
+      "id": "bike-place",
+      "verdict": "missed",
+      "reason": "Answer gives no location for bike pickup and does not mention Spoke Cycles."
+    },
+    {
+      "id": "sunday-count",
+      "verdict": "correct",
+      "reason": "Answer lists exactly two items - coffee and bike pickup - with no additional plans."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-with",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "coffee-place",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "bike-with",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "bike-time",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    },
+    {
+      "id": "bike-place",
+      "kind": "implicit_omission",
+      "reason": "Omitted with no unavailable statement; broad recap is not explicit request for place."
+    },
+    {
+      "id": "sunday-count",
+      "kind": "provided",
+      "reason": "Correctly conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-with",
+        "status": "supported",
+        "reason": "Prefetch explicitly states coffee with Riley on Sunday Nov 1.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user agreed to have coffee with Riley at Maple Mug at 9am on Sunday, November 1, 2026."
+          }
+        ]
+      },
+      {
+        "id": "coffee-time",
+        "status": "supported",
+        "reason": "Same prefetch line gives 9am time for that coffee.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user agreed to have coffee with Riley at Maple Mug at 9am on Sunday, November 1, 2026."
+          }
+        ]
+      },
+      {
+        "id": "coffee-place",
+        "status": "supported",
+        "reason": "Same prefetch line gives Maple Mug place for that coffee.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user agreed to have coffee with Riley at Maple Mug at 9am on Sunday, November 1, 2026."
+          }
+        ]
+      },
+      {
+        "id": "bike-with",
+        "status": "supported",
+        "reason": "Prefetch explicitly states bike pickup with Riley on Sunday Nov 1.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user is doing user's bike pickup with Riley on Sunday, November 1, 2026 at 11am instead of the previous arrangement."
+          }
+        ]
+      },
+      {
+        "id": "bike-time",
+        "status": "supported",
+        "reason": "Same prefetch line gives 11am time for that pickup.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user is doing user's bike pickup with Riley on Sunday, November 1, 2026 at 11am instead of the previous arrangement."
+          }
+        ]
+      },
+      {
+        "id": "bike-place",
+        "status": "not_found",
+        "reason": "Prefetch mentions Spoke Cycles only for Saturday arrangements; no explicit Sunday location.",
+        "citations": []
+      },
+      {
+        "id": "sunday-count",
+        "status": "supported",
+        "reason": "Prefetch lists coffee and bike pickup for Sunday Nov 1 with no other Sunday entries.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "user agreed to have coffee with Riley at Maple Mug at 9am on Sunday, November 1, 2026."
+          },
+          {
+            "id": "prefetch",
+            "quote": "user is doing user's bike pickup with Riley on Sunday, November 1, 2026 at 11am instead of the previous arrangement."
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

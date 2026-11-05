@@ -1,0 +1,70 @@
+{
+  "created_at": "2026-11-05T23:22:23.134486+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "ff0d946e6616aefdad6554892e7ec1d70ad414b706bf6a2fe86f7388cab914ea",
+            "69adeee7a87476779fc1df21bc5a320dd617c49d38a256c3b2ac59216ac65632"
+          ],
+          "sha256": "116165361b2a2e2bae7eef7f991ed72688642c47ba835f0da48c2c0929ef7817"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a1ae05-43d9-7295-96de-56b7e5277cc7",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"Set provides independent atomic claims for both identities, both times, both venues, plus exact-two list, covering all intent-required current details.\", \"reviews\": [{\"id\": \"coffee-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Sunday coffee and user accepted; identity required by intent.\"}, {\"id\": \"coffee-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed 9am and user accepted; time required, Nov 1 derived from Oct 31 Saturday context.\"}, {\"id\": \"coffee-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Maple Mug and user accepted; venue required, no address.\"}, {\"id\": \"bike-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"User instruction states bike pickup Sunday with Riley reschedule; identity required and persists.\"}, {\"id\": \"bike-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Explicit user instruction gives Sunday at 11am instead; time required, resolves to Nov 1.\"}, {\"id\": \"bike-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Original Spoke Cycles venue persists through time-only changes; venue required, no address.\"}, {\"id\": \"sunday-count\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Current Sunday has coffee plus moved bike pickup and no others; exact-two list required.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Sunday recap at Oct 26 means upcoming Nov 1 and naturally invites both current outings with people/time/place and complete list, without supplying answers or presupposing unsupported details; prior pickup-change persists across sessions.\"}}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793920942,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 5358,
+      "prompt_tokens": 2210,
+      "total_tokens": 7568,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4914
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"Set provides independent atomic claims for both identities, both times, both venues, plus exact-two list, covering all intent-required current details.\", \"reviews\": [{\"id\": \"coffee-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Sunday coffee and user accepted; identity required by intent.\"}, {\"id\": \"coffee-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed 9am and user accepted; time required, Nov 1 derived from Oct 31 Saturday context.\"}, {\"id\": \"coffee-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Riley proposed Maple Mug and user accepted; venue required, no address.\"}, {\"id\": \"bike-with\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"User instruction states bike pickup Sunday with Riley reschedule; identity required and persists.\"}, {\"id\": \"bike-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Explicit user instruction gives Sunday at 11am instead; time required, resolves to Nov 1.\"}, {\"id\": \"bike-place\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Original Spoke Cycles venue persists through time-only changes; venue required, no address.\"}, {\"id\": \"sunday-count\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Current Sunday has coffee plus moved bike pickup and no others; exact-two list required.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Sunday recap at Oct 26 means upcoming Nov 1 and naturally invites both current outings with people/time/place and complete list, without supplying answers or presupposing unsupported details; prior pickup-change persists across sessions.\"}}",
+  "usage": {
+    "completion_tokens": 5358,
+    "prompt_tokens": 2210,
+    "total_tokens": 7568,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4914
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

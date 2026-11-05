@@ -1,0 +1,139 @@
+{
+  "state": "pass",
+  "review_version": "source-realism-v9",
+  "source_hash": "b46a7fe180b6bd26225ad2254f48e1c7d925fb2f97bf569a09bc12f25aca886a",
+  "intent_hash": "f93b6b33c04e9f456fc70a498b8595a400e8d4ba0cc7fcb14008cfb74cbeb0f7",
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "assessments": [
+      {
+        "check_id": "pickup-before",
+        "event_date": "2026-10-31",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-20T10:00:00-04:00",
+            "quote": "I just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier."
+          },
+          {
+            "written_at": "2026-10-20T10:20:00-04:00",
+            "quote": "Sure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then."
+          },
+          {
+            "written_at": "2026-10-19T11:17:30-04:00",
+            "quote": "yeah of course we'll hold it for you. does 2pm work? we're at Spoke Cycles, 114 Maple Avenue"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "pickup-change",
+        "event_date": "2026-11-01",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-26T16:10:00-04:00",
+            "quote": "Riley just called. We're doing the bike pickup Sunday at 11am instead."
+          },
+          {
+            "written_at": "2026-10-20T10:20:00-04:00",
+            "quote": "Sure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "coffee-same-chat",
+        "event_date": "2026-11-01",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-19T18:00:00-04:00",
+            "quote": "btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once"
+          },
+          {
+            "written_at": "2026-10-19T18:18:13-04:00",
+            "quote": "Maple Mug at 9am?"
+          },
+          {
+            "written_at": "2026-10-19T18:20:00-04:00",
+            "quote": "perfect, see you there"
+          },
+          {
+            "written_at": "2026-10-20T10:20:00-04:00",
+            "quote": "Sure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "sunday-both",
+        "event_date": "2026-11-01",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-26T16:10:00-04:00",
+            "quote": "Riley just called. We're doing the bike pickup Sunday at 11am instead."
+          },
+          {
+            "written_at": "2026-10-19T18:00:00-04:00",
+            "quote": "btw since you'll be in town that Saturday for the bike, want to grab coffee that Sunday? away from the shop for once"
+          },
+          {
+            "written_at": "2026-10-19T18:18:13-04:00",
+            "quote": "Maple Mug at 9am?"
+          },
+          {
+            "written_at": "2026-10-19T18:20:00-04:00",
+            "quote": "perfect, see you there"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "saturday-clear",
+        "event_date": "2026-10-31",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-20T10:20:00-04:00",
+            "quote": "Sure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then."
+          },
+          {
+            "written_at": "2026-10-26T16:10:00-04:00",
+            "quote": "Riley just called. We're doing the bike pickup Sunday at 11am instead."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      }
+    ],
+    "notes": "Source is coherent: Sat Oct 31 pickup at 2pm then confirmed to 10am, Sun Nov 1 coffee 9am at Maple Mug. Oct 19 Mon -> this Sat Oct 24 avoided, next Sat Oct 31 chosen, matches calendar. Definite user report of Sunday 11am pickup updates state across sessions, leaving Sunday with 9am coffee + 11am pickup and Saturday clear. All questions have determinate answers."
+  },
+  "model_call": "artifacts/honcho-natural-canary-prep-20261105/model-calls/7cf936e5fb64c57df7bbbcdb61955c8fef9e5d1886947a7fb570bc2d54782761.json",
+  "usage": {
+    "completion_tokens": 8250,
+    "prompt_tokens": 1279,
+    "total_tokens": 9529,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7325
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "scope": "source-coherence-and-public-question-answerability",
+  "validation_errors": []
+}

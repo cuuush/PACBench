@@ -1,0 +1,58 @@
+{
+  "checkpoint": "pickup-change",
+  "question": "[Simulated now: 2026-10-26T16:10:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11am instead.",
+  "answer": "Noted — Sunday at 11am instead of Saturday.\n\nJust to lock it in: is that Sunday Nov 1, same shop? You already have coffee with Riley at 9am that day, so 11am works right after.",
+  "claims": [
+    {
+      "id": "fact-1",
+      "description": "Accepts the user's correction that the bike pickup is Sunday at 11am instead, where a brief acknowledgement without restating details is sufficient and no particular wording is required",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"interaction\": \"answer\" or \"clarification\", and \"benchmark_error\": null. Clarification means asking for information needed to satisfy this request or its expected behavior. Optional offers of other actions are answers, not clarification. For factual recall, asking a clarification is not a separate style failure; grade whether the expected facts were conveyed. Judge behavioral criteria only against the authored expectation and what the answer actually does. For a negative behavior criterion such as not claiming an outing is cancelled, absence of that claim satisfies it. A cancellation acknowledgement proves only the acknowledgement. If a legitimate clarification cannot be judged because the script omits necessary ground truth, set benchmark_error to a short explanation; never excuse incorrect or missing recall this way.\nUse the prior conversation only to resolve references in the latest answer. Do not award a fact merely because it appeared in an earlier answer.\nPrior public conversation: [{\"role\": \"user\", \"content\": \"[Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\\n\\nWhat's the plan for picking up my bike?\"}, {\"role\": \"assistant\", \"content\": \"You're picking it up Saturday, October 31 at 10am — meeting Riley at Spoke Cycles, 114 Maple Avenue.\\n\\nThat's the updated time — it replaces the 2pm that day.\"}]\nSeparately assess evidence, without changing claim verdicts or recovery. Return \"evidence_diagnostic\" with \"claims\" in claim order and \"extra_assertions\". Each claim has id, status (supported, contradicted, not_found, uncertain), reason, and citations [{id, quote}] from the answer-visible material only. Supported or contradicted requires exact nonempty quotes; not_found has no citations. This assesses what was available, not whether the assistant used or ignored it. The material may be incomplete or truncated; use uncertain where warranted. For each additional factual assertion actually made in the answer outside the expected claims, return {assertion, answer_quote, status, reason, citations}; status is supported, contradicted, or unverifiable, and citations quote only the supplied source evidence. The source evidence covers only cited expected-claim sources and is partial; absence is unverifiable, never contradicted. Contradicted requires direct contrary source evidence. Do not add requirements for facts the user did not ask for or penalize omitted assertions. Citation quote and answer_quote must be exact substrings of their material. Return empty extra_assertions if none.\nThe claim evidence diagnostic covers only provider evidence returned to Hermes: captured prefetch and tool results. The user question, tool arguments, and prior public conversation are outside this evidence scope; do not count them as retrieval evidence. not_found means only that the detail was not found in the supplied provider material; it does not mean the assistant could not know the detail or that a write was lost. Use a short exact plain-text quote that directly shows the fact. Omit citation markers, brackets and formatting from quotes; never normalize or rewrite characters. Copy the smallest contiguous span from the material.\nDiagnostic inputs: {\"answer_visible\": [{\"id\": \"prefetch\", \"text\": \"\", \"truncated\": false}, {\"id\": \"tool-result-1\", \"text\": \"{\\\"result\\\": \\\"Conclusion saved for user: User rescheduled bike pickup with Riley to Sunday at 11am instead of Saturday Oct 31 (per Riley call on Oct 26).\\\"}\", \"truncated\": false, \"success\": true, \"policy_blocked\": false}], \"source_evidence\": [{\"id\": \"assistant-user:pickup-change\", \"text\": \"{\\\"channel\\\": \\\"assistant\\\", \\\"sender\\\": \\\"Me\\\", \\\"text\\\": \\\"[assistant session pickup-check] Riley just called. We're doing the bike pickup Sunday at 11am instead.\\\", \\\"thread\\\": \\\"pickup-check\\\", \\\"written_at\\\": \\\"2026-10-26T16:10:00-04:00\\\"}\", \"truncated\": false}], \"source_scope\": \"partial: expected-claim citations only\", \"missing_source_ids\": [], \"answer_visible_scope\": \"provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded\", \"per_item_character_limit\": 16000}\nQuestion: [Simulated now: 2026-10-26T16:10:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nRiley just called. We're doing the bike pickup Sunday at 11am instead.\nAnswer: Noted — Sunday at 11am instead of Saturday.\n\nJust to lock it in: is that Sunday Nov 1, same shop? You already have coffee with Riley at 9am that day, so 11am works right after.\nClaims (hidden from the assistant): [{\"id\": \"fact-1\", \"claim\": \"Accepts the user's correction that the bike pickup is Sunday at 11am instead, where a brief acknowledgement without restating details is sufficient and no particular wording is required\", \"evidence\": [\"assistant-user:pickup-change\"]}]",
+  "response": "{\"verdicts\": [{\"id\": \"fact-1\", \"verdict\": \"correct\", \"reason\": \"Answer says 'Noted \\u2014 Sunday at 11am instead of Saturday' explicitly accepting the reschedule.\"}], \"interaction\": \"answer\", \"benchmark_error\": null, \"evidence_diagnostic\": {\"claims\": [{\"id\": \"fact-1\", \"status\": \"supported\", \"reason\": \"Tool result records the reschedule to Sunday at 11am instead of Saturday.\", \"citations\": [{\"id\": \"tool-result-1\", \"quote\": \"User rescheduled bike pickup with Riley to Sunday at 11am instead of Saturday Oct 31\"}]} ], \"extra_assertions\": [{\"assertion\": \"The Sunday pickup date is Nov 1\", \"answer_quote\": \"Sunday Nov 1\", \"status\": \"unverifiable\", \"reason\": \"No source evidence mentions Nov 1; source scope is partial.\", \"citations\": []}, {\"assertion\": \"Pickup is at same shop\", \"answer_quote\": \"same shop\", \"status\": \"unverifiable\", \"reason\": \"No source evidence mentions shop.\", \"citations\": []}, {\"assertion\": \"User already has coffee with Riley at 9am that day\", \"answer_quote\": \"You already have coffee with Riley at 9am that day\", \"status\": \"unverifiable\", \"reason\": \"No source evidence mentions coffee at 9am.\", \"citations\": []}]}}",
+  "conversation": [
+    {
+      "role": "user",
+      "content": "[Simulated now: 2026-10-26T16:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhat's the plan for picking up my bike?"
+    },
+    {
+      "role": "assistant",
+      "content": "You're picking it up Saturday, October 31 at 10am — meeting Riley at Spoke Cycles, 114 Maple Avenue.\n\nThat's the updated time — it replaces the 2pm that day."
+    }
+  ],
+  "judge_protocol": "semantic-judge-date-scope-v2",
+  "prompt_suffix": "",
+  "model_call_hash": "d928cee1904e126376e612e038d31940e0b620e4d9e1f113e2cd2576f936d898",
+  "diagnostic_protocol": "answer-visible-evidence-v2",
+  "diagnostic_inputs": {
+    "answer_visible": [
+      {
+        "id": "prefetch",
+        "text": "",
+        "truncated": false
+      },
+      {
+        "id": "tool-result-1",
+        "text": "{\"result\": \"Conclusion saved for user: User rescheduled bike pickup with Riley to Sunday at 11am instead of Saturday Oct 31 (per Riley call on Oct 26).\"}",
+        "truncated": false,
+        "success": true,
+        "policy_blocked": false
+      }
+    ],
+    "source_evidence": [
+      {
+        "id": "assistant-user:pickup-change",
+        "text": "{\"channel\": \"assistant\", \"sender\": \"Me\", \"text\": \"[assistant session pickup-check] Riley just called. We're doing the bike pickup Sunday at 11am instead.\", \"thread\": \"pickup-check\", \"written_at\": \"2026-10-26T16:10:00-04:00\"}",
+        "truncated": false
+      }
+    ],
+    "source_scope": "partial: expected-claim citations only",
+    "missing_source_ids": [],
+    "answer_visible_scope": "provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded",
+    "per_item_character_limit": 16000
+  },
+  "model_call": "/workspace/PACBench/artifacts/honcho-native-clock-canary-20261105/model-calls/e090f1dd22a90b0027baa3337bcf524951688cbefd5f1aa62943e04bf59a9da0.json"
+}

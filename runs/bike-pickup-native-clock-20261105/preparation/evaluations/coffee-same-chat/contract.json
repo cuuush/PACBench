@@ -1,0 +1,82 @@
+{
+  "authoring_version": "event-scoped-v7",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Coffee with Riley is on Sunday, November 1.",
+      "evidence": [
+        "message-42704a023039099ce31fcc52",
+        "message-1d80ab26a78cd8fa9dbafeb1",
+        "message-d29a4f96b9240baa0fcdbca9"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "Coffee is at 9 am.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "Coffee is at Maple Mug.",
+      "evidence": [
+        "message-e1132c9f185ed2fd834ac9c0",
+        "message-3e651dbb51e3935fc85d6ea6"
+      ]
+    }
+  ],
+  "question": "And coffee with Riley?",
+  "evidence_hash": "fc79b1545f73686f5906094efaa1d729fe4588a6a41c882e54453bbcdc48ea0a",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All current coffee details established in dialogue - date, time, place - each has its own independent claim.",
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Coffee that Sunday after Oct 31 Saturday pickup is Nov 1; suggested by Riley and accepted by user, anchored by Oct 31 email."
+      },
+      {
+        "id": "fact-2",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "9am proposed by Riley and accepted with perfect/see you there; single time detail."
+      },
+      {
+        "id": "fact-3",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Maple Mug proposed by Riley and accepted; single place detail."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Same-session follow-up 'And coffee with Riley?' naturally invites current coffee date/time/place without supplying answers or presupposing unsupported details."
+  },
+  "author_fact_count": 3,
+  "test_intent": "And coffee with Riley?",
+  "question_source": "supplied",
+  "question_at": "2026-10-26T16:20:00-04:00",
+  "combined_review_receipt": {
+    "prompt_format": "shared-context-v2",
+    "prompt": {
+      "$pacbench_text": [
+        "baaedec27a563f35003087fa0473efd390cfb22689711c85ad94da24b34067a5"
+      ],
+      "sha256": "baaedec27a563f35003087fa0473efd390cfb22689711c85ad94da24b34067a5"
+    },
+    "response": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"All current coffee details established in dialogue - date, time, place - each has its own independent claim.\", \"reviews\": [{\"id\": \"fact-1\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Coffee that Sunday after Oct 31 Saturday pickup is Nov 1; suggested by Riley and accepted by user, anchored by Oct 31 email.\"}, {\"id\": \"fact-2\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"9am proposed by Riley and accepted with perfect/see you there; single time detail.\"}, {\"id\": \"fact-3\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Maple Mug proposed by Riley and accepted; single place detail.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Same-session follow-up 'And coffee with Riley?' naturally invites current coffee date/time/place without supplying answers or presupposing unsupported details.\"}}",
+    "model_call": "artifacts/honcho-natural-canary-prep-20261105/model-calls/3d51ffb4ce2f911938847934c6cfe0a09a035fcc5129d589ef521aa13e3a1d76.json"
+  },
+  "contract_hash": "7639ffaac871ef7e301b6a734885d9443a619ed1b64d97e878327e56b70b49e8"
+}

@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-11-05T23:23:15.031488+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "0621fcaf9429ca45ad1585d8856faf276251ca1ed61090a1d20e178d3c25576b"
+          ],
+          "sha256": "0621fcaf9429ca45ad1585d8856faf276251ca1ed61090a1d20e178d3c25576b"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a1ae06-0e9f-7034-b754-8e2ae4a4be43",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"Single required 'no Saturday pickup' fact is covered by c1; no Sunday time restatement required.\", \"reviews\": [{\"id\": \"c1\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Prior Saturday Oct 31 plan was superseded by Sunday 11am move, so denial is supported and directly required.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Saturday at Oct 26 means Oct 31 and asks if prior plan still holds, inviting the expected no without supplying answer.\"}}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793920994,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3067,
+      "prompt_tokens": 1866,
+      "total_tokens": 4933,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2915
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"Single required 'no Saturday pickup' fact is covered by c1; no Sunday time restatement required.\", \"reviews\": [{\"id\": \"c1\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Prior Saturday Oct 31 plan was superseded by Sunday 11am move, so denial is supported and directly required.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Saturday at Oct 26 means Oct 31 and asks if prior plan still holds, inviting the expected no without supplying answer.\"}}",
+  "usage": {
+    "completion_tokens": 3067,
+    "prompt_tokens": 1866,
+    "total_tokens": 4933,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2915
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

@@ -1,0 +1,47 @@
+{
+  "claims": [
+    {
+      "id": "bike-place",
+      "verdict": "correct",
+      "reason": "Answer states the Sunday 11am pickup is at Spoke Cycles, 114 Maple Avenue, same shop as Saturday."
+    }
+  ],
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "bike-place",
+        "status": "not_found",
+        "reason": "No provider quote gives Sunday Nov 1 location; Spoke Cycles quotes attach to Saturday Oct 31 and Sunday reschedule gives time only.",
+        "citations": []
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The pickup address is 114 Maple Avenue.",
+        "answer_quote": "114 Maple Avenue",
+        "status": "supported",
+        "reason": "Source message gives that address for Spoke Cycles.",
+        "citations": [
+          {
+            "id": "message-eaaf1fe56b4c5945bb1cdfa0",
+            "quote": "we're at Spoke Cycles, 114 Maple Avenue"
+          }
+        ]
+      },
+      {
+        "assertion": "No new location was given for the Sunday 11am move.",
+        "answer_quote": "no new location was given for the Sunday 11am move",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence is partial; Sunday message shows time only but absence cannot be confirmed.",
+        "citations": [
+          {
+            "id": "assistant-user:pickup-change",
+            "quote": "We're doing the bike pickup Sunday at 11am instead."
+          }
+        ]
+      }
+    ]
+  }
+}

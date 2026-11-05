@@ -1,0 +1,43 @@
+{
+  "authoring_version": "event-scoped-v7",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Accepts the user's correction that the bike pickup is Sunday at 11am instead, where a brief acknowledgement without restating details is sufficient and no particular wording is required",
+      "evidence": [
+        "assistant-user:pickup-change"
+      ]
+    }
+  ],
+  "question": "Riley just called. We're doing the bike pickup Sunday at 11am instead.",
+  "evidence_hash": "a5f4b6be4b478aee841bb014f88b0af1076128eaaa3aecc444eb5132a517691b",
+  "review": {
+    "complete": true,
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "s13 explicitly provides the correction to Sunday at 11am; accepting/acknowledging it is observable in the immediate reply, requires no specific wording or restatement per the criterion, and is fairly requested as a direct user update.",
+        "evidence": [
+          "s13"
+        ]
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "Reviewed behavioral interaction"
+  },
+  "author_fact_count": 0,
+  "question_source": "supplied",
+  "question_at": "2026-10-26T16:10:00-04:00",
+  "kind": "behavior",
+  "behavior_review_version": "observable-reply-v2",
+  "test_intent": "Accept the user's correction. A brief acknowledgement without restating details is sufficient; require no particular wording.",
+  "contract_hash": "5ff5737b47b938eed813e5360f0e518a345cf95cfdb3011f1d2afca1493aee3a"
+}

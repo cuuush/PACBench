@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-11-05T23:18:33.508650+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "baaedec27a563f35003087fa0473efd390cfb22689711c85ad94da24b34067a5"
+          ],
+          "sha256": "baaedec27a563f35003087fa0473efd390cfb22689711c85ad94da24b34067a5"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a1ae01-c2ea-762e-86b9-0218b64d0d64",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"All current coffee details established in dialogue - date, time, place - each has its own independent claim.\", \"reviews\": [{\"id\": \"fact-1\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Coffee that Sunday after Oct 31 Saturday pickup is Nov 1; suggested by Riley and accepted by user, anchored by Oct 31 email.\"}, {\"id\": \"fact-2\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"9am proposed by Riley and accepted with perfect/see you there; single time detail.\"}, {\"id\": \"fact-3\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Maple Mug proposed by Riley and accepted; single place detail.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Same-session follow-up 'And coffee with Riley?' naturally invites current coffee date/time/place without supplying answers or presupposing unsupported details.\"}}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793920713,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 4460,
+      "prompt_tokens": 1990,
+      "total_tokens": 6450,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4211
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"All current coffee details established in dialogue - date, time, place - each has its own independent claim.\", \"reviews\": [{\"id\": \"fact-1\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Coffee that Sunday after Oct 31 Saturday pickup is Nov 1; suggested by Riley and accepted by user, anchored by Oct 31 email.\"}, {\"id\": \"fact-2\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"9am proposed by Riley and accepted with perfect/see you there; single time detail.\"}, {\"id\": \"fact-3\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Maple Mug proposed by Riley and accepted; single place detail.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Same-session follow-up 'And coffee with Riley?' naturally invites current coffee date/time/place without supplying answers or presupposing unsupported details.\"}}",
+  "usage": {
+    "completion_tokens": 4460,
+    "prompt_tokens": 1990,
+    "total_tokens": 6450,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4211
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

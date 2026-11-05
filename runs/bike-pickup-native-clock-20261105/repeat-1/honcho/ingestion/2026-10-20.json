@@ -1,0 +1,380 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "honcho",
+  "at": "2026-10-20T10:20:00-04:00",
+  "processing_at": "2026-10-21T03:00:00-04:00",
+  "document_sha256": "5f4b74d1529befab8ce6367c29595d1cf36ef40e8a87dcd382b0c0d4459b17b6",
+  "source_ids": [
+    "message-d29a4f96b9240baa0fcdbca9",
+    "message-3a63f87f0b891216065e60c9"
+  ],
+  "delivery": "native-messages",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native messages + simulated wall clock",
+    "result": [
+      {
+        "session_id": "source-2a415e14e847463a629bb176",
+        "processing_baseline": {
+          "total_work_units": 0,
+          "completed_work_units": 0,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 2,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "owner": {
+          "peer_id": "user",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "session_id": "source-2a415e14e847463a629bb176",
+            "peer_id": "Riley",
+            "content": "Hi! Emailing from work with a quick change for our bike pickup.\n\nI just heard the shop is closing early next Saturday, Oct 31. Can we keep the same Saturday we arranged by text, but come at 10 am instead of the 2 pm we had? Same shop and same address, just earlier.\n\nLet me know if that works!\n\nRiley",
+            "created_at": "2026-10-20T10:00:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-20T10:00:00-04:00",
+              "channel": "email",
+              "collected_at": "2026-10-20T10:00:00-04:00",
+              "from_owner": false,
+              "sender": "Riley",
+              "source_id": "message-d29a4f96b9240baa0fcdbca9",
+              "structured": {
+                "chat_name": "",
+                "email_subject": "Bike pickup",
+                "participants": [
+                  "Me",
+                  "Riley"
+                ]
+              },
+              "thread": "thread-f4ec4726b7091f7639b90ad0",
+              "written_at": "2026-10-20T10:00:00-04:00"
+            }
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "session_id": "source-2a415e14e847463a629bb176",
+            "peer_id": "user",
+            "content": "Hi Riley,\n\nSure, 10 am on Saturday, Oct 31 works for me. See you at the same shop then.\n\nThanks for the heads-up!",
+            "created_at": "2026-10-20T10:20:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-10-20T10:20:00-04:00",
+              "channel": "email",
+              "collected_at": "2026-10-20T10:20:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-3a63f87f0b891216065e60c9",
+              "structured": {
+                "chat_name": "",
+                "email_subject": "Bike pickup",
+                "participants": [
+                  "Me",
+                  "Riley"
+                ]
+              },
+              "thread": "thread-f4ec4726b7091f7639b90ad0",
+              "written_at": "2026-10-20T10:20:00-04:00"
+            }
+          }
+        ]
+      }
+    ],
+    "processing_status": [
+      {
+        "db_now": "2026-10-21T07:00:00.849763+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 2,
+        "embeddings": 2,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:00:01.21696+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:01.011245+00:00",
+        "claims": 0,
+        "eligible": 2,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:02.19935+00:00",
+        "claims": 1,
+        "eligible": 1,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:31.897221+00:00",
+        "claims": 0,
+        "eligible": 2,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:33.092894+00:00",
+        "claims": 1,
+        "eligible": 1,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-10-21T07:30:00.609161+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:53.850373+00:00",
+        "claims": 0,
+        "eligible": 1,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": null,
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-10-21T07:30:54.436365+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 0,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": null,
+        "errors": [],
+        "messages": [
+          {
+            "id": "d4ZOhHouqAhnzF0VvCb9B",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "b_mcTZJZfjX8q_RyoO51u",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      }
+    ],
+    "message_witnesses": [
+      {
+        "id": "d4ZOhHouqAhnzF0VvCb9B",
+        "queue_id": 12,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "b_mcTZJZfjX8q_RyoO51u",
+        "queue_id": 13,
+        "processed": true,
+        "has_error": false
+      }
+    ],
+    "clock_protocol": "honcho-wall-clock-v3",
+    "model_health": {
+      "state": "captured",
+      "failed_requests": [],
+      "unmetered_requests": [],
+      "reason": "",
+      "scope": "Execution/cost barrier, not a semantic memory grade. Held charges remain held."
+    },
+    "readiness": "All submitted messages observed, processed and error-free"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 55.14,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-05T23:29:57.223064+00:00",
+    "finished": "2026-11-05T23:30:52.361785+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 1387,
+        "output_tokens": 7044,
+        "accounted_upper_bound_usd": 0.0015475,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "8c31f2b7283648e98ee0e5fa3453ca5f",
+        "project": "pacbench-a8bb18bc32b8-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-11-05T23:29:59.835578+00:00",
+        "finished": "2026-11-05T23:30:28.516612+00:00",
+        "state": "settled",
+        "input_tokens": 663,
+        "output_tokens": 4234,
+        "accounted": 913100,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 4106,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0009131
+      },
+      {
+        "id": "0c1bb248aed44722a6cbeb8238ab283c",
+        "project": "pacbench-a8bb18bc32b8-honcho-memory",
+        "model": "muse-spark-1.3-contributor",
+        "endpoint": "chat/completions",
+        "started": "2026-11-05T23:30:30.669604+00:00",
+        "finished": "2026-11-05T23:30:51.079165+00:00",
+        "state": "settled",
+        "input_tokens": 724,
+        "output_tokens": 2810,
+        "accounted": 634400,
+        "reserved": 314572800,
+        "http_status": 200,
+        "error_label": null,
+        "finish_reason": "stop",
+        "reasoning_tokens": 2764,
+        "role": "memory_provider",
+        "accounted_upper_bound_usd": 0.0006344
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

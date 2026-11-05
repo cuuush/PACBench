@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-11-05T23:17:10.580783+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "a2fd9d5b83f40be7e4ea20163114d76f7ebe4085fc770df45568afca08c6d72b"
+          ],
+          "sha256": "a2fd9d5b83f40be7e4ea20163114d76f7ebe4085fc770df45568afca08c6d72b"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a1ae00-7efc-77b4-84ec-54daf511c9c2",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"All three intent-required details (day, time, shop) are covered by independent single-fact claims.\", \"reviews\": [{\"id\": \"pickup-day\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Both Oct 20 emails explicitly state Saturday, Oct 31 for pickup.\"}, {\"id\": \"pickup-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Change to 10am proposed and accepted in Oct 20 emails, replacing 2pm.\"}, {\"id\": \"pickup-shop\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Spoke Cycles named in text and confirmed as same shop in Oct 20 emails.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Open recap 'What's the plan for picking up my bike?' invites current day, time and shop without supplying answers or presupposing details.\"}}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793920630,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2563,
+      "prompt_tokens": 1797,
+      "total_tokens": 4360,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2323
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "text": "{\"claim_review\": {\"complete\": true, \"coverage_reason\": \"All three intent-required details (day, time, shop) are covered by independent single-fact claims.\", \"reviews\": [{\"id\": \"pickup-day\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Both Oct 20 emails explicitly state Saturday, Oct 31 for pickup.\"}, {\"id\": \"pickup-time\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Change to 10am proposed and accepted in Oct 20 emails, replacing 2pm.\"}, {\"id\": \"pickup-shop\", \"supported\": true, \"relevant\": true, \"unambiguous\": true, \"reason\": \"Spoke Cycles named in text and confirmed as same shop in Oct 20 emails.\"}]}, \"question_review\": {\"safe\": true, \"faithful\": true, \"elicits_all\": true, \"reason\": \"Open recap 'What's the plan for picking up my bike?' invites current day, time and shop without supplying answers or presupposing details.\"}}",
+  "usage": {
+    "completion_tokens": 2563,
+    "prompt_tokens": 1797,
+    "total_tokens": 4360,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2323
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

@@ -1,0 +1,51 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "c1",
+      "verdict": "correct",
+      "reason": "Answer states rescheduled to Sunday instead of Saturday, directly conveying pickup is not on Saturday."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "c1",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "c1",
+        "status": "supported",
+        "reason": "Prefetch explicitly states rescheduled to Sunday instead of Saturday Oct 31.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "User rescheduled bike pickup with Riley to Sunday at 11am instead of Saturday Oct 31 (per Riley call on Oct 26)"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The bike pickup was rescheduled to Sunday, Nov 1 at 11am with Riley",
+        "answer_quote": "you rescheduled to Sunday, Nov 1 at 11am with Riley instead of Saturday",
+        "status": "unverifiable",
+        "reason": "Partial sources show Sunday at 11am via Riley call but do not state Nov 1 date.",
+        "citations": [
+          {
+            "id": "assistant-user:pickup-change",
+            "quote": "We're doing the bike pickup Sunday at 11am instead"
+          }
+        ]
+      }
+    ]
+  }
+}

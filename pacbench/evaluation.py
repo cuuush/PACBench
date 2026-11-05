@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from .followups import digest, freeze_policy, load_questions, save
 from .semantic_contract import AUTHORING_VERSION, BEHAVIOR_REVIEW_VERSION, EVIDENCE_VERSION, build_contract, load_contract
 from .gateway_client import SpendingBlocked, ModelAccessBlocked
+from .evidence_store import read_json
 
 
 def resolve_checks(spec, question_at, timezone):
@@ -79,7 +80,7 @@ def contract_evidence(messages, checks, current, context='shared', *, structured
 
 def judge_evidence(root, messages, resolved, row, context, *, diagnostic_version='answer-visible-evidence-v1'):
     """Reconstruct the exact frozen evidence semantics for this check's judge."""
-    document = json.loads((root / 'evaluations' / row['id'] / 'contract.json').read_text())
+    document = read_json(root / 'evaluations' / row['id'] / 'contract.json')
     available = contract_evidence(messages, resolved['checks'], row, context,
         structured_sessions=document.get('evidence_version') == EVIDENCE_VERSION)
     return source_evidence(available, diagnostic_version)
@@ -164,7 +165,7 @@ def load_evaluations(root, messages, resolved):
         directory = root / 'evaluations' / row['id']
         c = load_contract(directory / 'contract.json')
         policy = load_questions(directory / 'followup-plan.json', c)
-        document = json.loads((directory / 'contract.json').read_text())
+        document = read_json(directory / 'contract.json')
         evidence=contract_evidence(messages,resolved['checks'],spec,resolved.get('evaluation_context','shared'),
             structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
         if (any(row.get(k)!=spec.get(k) for k in ('session','kind','trigger','depends_on','expect')) or
@@ -186,17 +187,17 @@ def load_evaluations(root, messages, resolved):
 
 
 
-def prepare_existing(source, spec, output, model):
+def prepare_existing(source, spec, output, model, *, max_messages=3000):
     """Freeze new questions against unchanged, previously verified dialogue."""
     import shutil
     from .native_pilot import read_prepared
     from .prepare import resolve_spec
     from .preparation_audit import audit_prepared
-    messages, _, _ = read_prepared(source, 1200)
+    messages, _, _ = read_prepared(source, max_messages)
     if set(spec) - {'checks', 'question_at', 'evaluation_context'}:
         raise ValueError('recheck spec may change only questions, clocks and context modes')
     original = json.loads((source / 'spec.json').read_text())
-    if 'days' in original:
+    if 'days' in original or 'weeks' in original:
         from .prepare import normalize_week
         original=normalize_week(original,json.loads((source/'resolved-spec.json').read_text())['week_start'])
     authored = {**original, **spec}
@@ -206,7 +207,7 @@ def prepare_existing(source, spec, output, model):
     if not resolved['checks']:
         raise ValueError('recheck requires checks')
     output.mkdir(parents=True, exist_ok=False)
-    for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json'):
+    for name in ('bundle.json', 'bundle-provenance.json', 'scenes.json', 'shared-text.json'):
         if (source / name).exists():
             shutil.copyfile(source / name, output / name)
     for name in ('scene-verifications', 'model-calls'):
@@ -216,12 +217,18 @@ def prepare_existing(source, spec, output, model):
     save(output / 'resolved-spec.json', resolved)
     save(output / 'recheck-provenance.json', {'source': str(source.resolve()),
          'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
-         'original_contract_hash': json.loads((source / 'contract.json').read_text())['contract_hash']})
+         'original_contract_hash': read_json(source / 'contract.json')['contract_hash']})
     plan = freeze_evaluations(resolved, messages, target, model, output)
+    if plan.get('errors'):
+        save(output/'summary.json',{'state':'blocked','results':[],'errors':plan['errors']})
+        raise ValueError('New evaluation contracts are incomplete; inspect evaluation-errors.json')
     first = output / 'evaluations' / plan['checks'][-1]['id']
     for name in ('contract.json', 'followup-plan.json'):
         shutil.copyfile(first / name, output / name)
+    from .corpus_review import VERSION as REVIEW_VERSION, review_corpus
+    review_corpus(messages,resolved,model,output)
     summary = {'state': 'prepared', 'results': [], 'evaluation_plan_hash': plan['plan_hash'],
+        'corpus_review_version':REVIEW_VERSION,
         'bundle_hash': json.loads((source / 'summary.json').read_text())['bundle_hash'],
         'contract_hash': plan['checks'][-1]['contract_hash']}
     save(output / 'summary.json', summary)
@@ -241,13 +248,15 @@ def main():
     parser.add_argument('--prepared', type=Path, required=True)
     parser.add_argument('--spec', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--max-messages',type=int,default=3000)
     args = parser.parse_args()
     require_live_cost_boundary()
     driver = load_driver()
     base, key = client_settings('pacbench-judge')
     judge = ModelClient(key=key, model=driver.model_id, url=base + '/chat/completions',
                         record_dir=args.output / 'model-calls')
-    prepare_existing(args.prepared, json.loads(args.spec.read_text()), args.output, judge)
+    prepare_existing(args.prepared, json.loads(args.spec.read_text()), args.output, judge,
+                     max_messages=args.max_messages)
     print(args.output)
 
 

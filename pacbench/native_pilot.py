@@ -37,6 +37,13 @@ def next_checkpoint(rows, at):
     return min(later, key=datetime.fromisoformat) if later else None
 
 
+def copy_prepared_files(source, output):
+    """Copy frozen run inputs together with their exact shared evidence store."""
+    for name in ('bundle.json','contract.json','resolved-spec.json','shared-text.json'):
+        if name=='shared-text.json' and not (source/name).exists():continue
+        shutil.copyfile(source/name,output/name)
+
+
 def ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
                    timezone, stop_file, ingest_day, check_model_health):
     """Persist each native receipt before honoring an operator stop."""
@@ -432,8 +439,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             save(output / "summary.json", report)
             raise
         driver = load_driver()
-        for name in ("bundle.json", "contract.json", "resolved-spec.json"):
-            shutil.copyfile(source / name, output / name)
+        copy_prepared_files(source,output)
         report.update(input_hash=hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest(), contract_hash=contract.contract_hash,
                       bundle_hash=json.loads((source / "summary.json").read_text())["bundle_hash"],
                       message_count=len(messages), source=os.path.relpath(source.resolve(), output))

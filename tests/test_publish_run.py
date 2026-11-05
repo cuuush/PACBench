@@ -73,6 +73,32 @@ def test_publishing_preserves_colliding_records_privacy_and_reusable_corpus(repo
     assert received==[message('m1')]
 
 
+def test_publication_shares_contract_text_without_changing_executed_hash(repo):
+    from pacbench.evidence_store import read_json,MARKER,compact_contracts
+    from pacbench.semantic_contract import load_contract
+    from pacbench.prepare import import_week
+    root=component(repo,'long-review','memcal')
+    original=read_json(root/'contract.json')
+    original.pop('contract_hash')
+    original['combined_review_receipt']={'prompt':'Original exact dialogue.\n'*1000}
+    original['contract_hash']=digest(original)
+    for path in (root/'contract.json',root/'preparation/contract.json'):save(path,original)
+    for path in (root/'summary.json',root/'preparation/summary.json'):
+        value=read_json(path);value['contract_hash']=original['contract_hash'];save(path,value)
+    (root/'preparation/followup-plan.json').unlink()
+    freeze_policy(load_contract(root/'preparation/contract.json'),root/'preparation/followup-plan.json')
+    compact_contracts(root)  # Equivalent frozen inputs may already use shared text.
+    # The fixture has no authored scenes; publication must still share the root
+    # contract, and the portable preparation must remain reusable unchanged.
+    output=publish_run.publish([root],repo/'runs/compact')
+    assert read_json(output/'contract.json')==original
+    assert MARKER in json.loads((output/'contract.json').read_text())['combined_review_receipt']['prompt']
+    assert load_contract(output/'contract.json').contract_hash==original['contract_hash']
+    restored=import_week(output/'preparation/week.json',repo/'restored')
+    assert read_json(restored/'contract.json')==original
+    assert read_json(root/'contract.json')==original
+
+
 @pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
     from pacbench.preparation_audit import audit_prepared

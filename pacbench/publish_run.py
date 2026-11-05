@@ -21,6 +21,13 @@ def read(path):
     return json.loads(path.read_text())
 
 
+def same_frozen(first, second):
+    if first.name == second.name == 'contract.json':
+        from .evidence_store import read_json
+        return read_json(first) == read_json(second)
+    return first.read_bytes() == second.read_bytes()
+
+
 def copy_public(source,destination,virtual):
     """Apply the repository's public-run exclusions to each destination path."""
     if not source.exists():return
@@ -121,7 +128,7 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
                     'original_root':str(source),'evidence':str(evidence),
                     'selected_root':str(choices[row['provider']])})
             for name in ('bundle.json','contract.json','resolved-spec.json','evaluation-plan.json'):
-                if (source/name).read_bytes()!=(sources[0]/name).read_bytes():
+                if not same_frozen(source/name,sources[0]/name):
                     raise ValueError('Component frozen files differ despite matching summary hashes')
             for day in reference.get('ingestion_schedule',[]):
                 relative=Path('sources')/day['id']
@@ -143,11 +150,13 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
         # the same corpus without any authoring or verification model calls.
         from .prepare import export_week
         for name in ('bundle.json','contract.json','resolved-spec.json'):
-            if (staging/'preparation'/name).read_bytes()!=(staging/name).read_bytes():
+            if not same_frozen(staging/'preparation'/name,staging/name):
                 raise ValueError('Published preparation differs from the executed frozen files')
         if (staging/'preparation/scenes.json').exists():
             from .evidence_store import compact_preparation
             compact_preparation(staging/'preparation')
+        from .evidence_store import compact_contracts
+        compact_contracts(staging)
         export_week(staging/'preparation',staging/'preparation/week.json')
         latest=max(zip(sources,summaries),key=lambda item:(item[0]/'summary.json').stat().st_mtime)[1]
         if latest.get('gateway_after'):reference['gateway_after']=latest['gateway_after']

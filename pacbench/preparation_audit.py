@@ -170,7 +170,7 @@ def audit_prepared(root: Path) -> dict:
             from .evaluation import contract_evidence
             from .semantic_contract import EVIDENCE_VERSION
             for check in resolved['checks']:
-                document=json.loads((root/'evaluations'/check['id']/'contract.json').read_text())
+                document=read_json(root/'evaluations'/check['id']/'contract.json')
                 available=contract_evidence(messages,resolved['checks'],check,resolved.get('evaluation_context','shared'),
                     structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
                 errors.extend(audit_combined_contract_review(root,document,available,check))

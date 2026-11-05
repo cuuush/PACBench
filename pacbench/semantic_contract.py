@@ -387,7 +387,8 @@ def build_contract(*, scene: str, test_intent: str,
 
 
 def load_contract(path: Path) -> EvaluationContract:
-    body = json.loads(path.read_text())
+    from .evidence_store import read_json
+    body = read_json(path)
     claimed = body.pop("contract_hash")
     actual = hashlib.sha256(json.dumps(body, sort_keys=True,
                                        ensure_ascii=False).encode()).hexdigest()

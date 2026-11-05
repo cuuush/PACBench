@@ -35,3 +35,31 @@ def test_plain_receipt_and_missing_store_are_not_required_for_small_text(tmp_pat
     value={'question':'ordinary small text','request':{'messages':[]}}
     save(tmp_path/'record.json',value)
     assert read_json(tmp_path/'record.json')==value
+
+
+def test_compact_contracts_preserves_hashes_and_native_reuse(tmp_path):
+    from pacbench.evidence_store import compact_contracts
+    from pacbench.followups import digest
+    from pacbench.semantic_contract import load_contract
+    from pacbench.native_pilot import copy_prepared_files
+    import shutil
+    root=tmp_path/'preparation';root.mkdir()
+    body={'claims':[{'id':'time','statement':'Friday at seven','evidence':['m1']}],
+        'question':'When is dinner?','evidence_hash':'a'*64,
+        'combined_review_receipt':{'prompt':'café — exact source history\r\n'*2000}}
+    body['contract_hash']=digest(body)
+    for path in (root/'contract.json',root/'evaluations/one/contract.json',root/'evaluations/two/contract.json'):
+        save(path,body)
+    for name in ('bundle.json','resolved-spec.json'):save(root/name,{})
+    before=sum(p.stat().st_size for p in root.rglob('*.json'))
+    compact_contracts(root)
+    assert sum(p.stat().st_size for p in root.rglob('*.json')) < before*.5
+    for path in root.rglob('contract.json'):
+        assert read_json(path)==body
+        assert load_contract(path).contract_hash==body['contract_hash']
+    compact_contracts(root)  # Repeating compaction must keep all references valid.
+    output=tmp_path/'run';output.mkdir()
+    copy_prepared_files(root,output)
+    shutil.copytree(root/'evaluations',output/'evaluations')
+    assert read_json(output/'evaluations/one/contract.json')==body
+    assert load_contract(output/'contract.json').contract_hash==body['contract_hash']

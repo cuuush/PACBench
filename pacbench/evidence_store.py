@@ -72,6 +72,20 @@ def share_text(value,chunks):
     return {MARKER:pieces,'sha256':sha(value)}
 
 
+def contract_paths(root):
+    return [p for p in [root/'contract.json',*(root/'evaluations').glob('*/contract.json')] if p.exists()]
+
+
+def compact_contracts(root):
+    """Keep expanded contract hashes unchanged while sharing exact review text."""
+    from .followups import save
+    root=Path(root)
+    chunks=read_json(root/STORE)['chunks'] if (root/STORE).exists() else {}
+    pending={path:share_text(read_json(path),chunks) for path in contract_paths(root)}
+    save(root/STORE,{'version':1,'chunks':chunks})
+    for path,value in pending.items():save(path,value)
+
+
 def compact_preparation(root):
     """Keep referenced receipts and store repeated exact prompt blocks once."""
     from .followups import save
@@ -97,12 +111,13 @@ def compact_preparation(root):
         collect(read_json(path))
     for name,path in models.items():
         if name not in references:path.unlink()
-    targets=[*(root/'model-calls').glob('*.json'),*(root/'scene-verifications').glob('*.json')]
+    targets=[*(root/'model-calls').glob('*.json'),*(root/'scene-verifications').glob('*.json'),*contract_paths(root)]
     chunks={};pending={}
     for path in targets:
         value=read_json(path)
         if path.parent.name=='model-calls':
             if 'request' in value:value['request']=share_text(value['request'],chunks)
+        elif path.name=='contract.json':value=share_text(value,chunks)
         elif 'judge_prompt' in value:value['judge_prompt']=share_text(value['judge_prompt'],chunks)
         pending[path]=value
     # Union first makes an interrupted update readable with either record form.

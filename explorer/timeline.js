@@ -125,9 +125,9 @@ function dayTimeline(run) {
   }
   const dayButtons = days.map(date => {
     const count = sourceCounts.get(date) || 0;
-    const turns = Object.values(run.arms || {}).reduce((total,provider)=>total+eventsOnDay(provider,date,run).length,0);
+    const providerEvents = Object.values(run.arms || {}).reduce((total,provider)=>total+eventsOnDay(provider,date,run).length,0);
     return '<button type="button" data-day="' + esc(date) + '" aria-pressed="' + (date===selectedDay) + '" class="day-chip ' +
-      (date===selectedDay?'active':'') + '"><strong>' + esc(readableDay(date)) + '</strong><span>' + count + ' texts · ' + turns + ' turns</span></button>';
+      (date===selectedDay?'active':'') + '"><strong>' + esc(readableDay(date)) + '</strong><span>' + count + ' texts · ' + providerEvents + ' provider events</span></button>';
   }).join("");
   const providers = keys.map(key => '<button type="button" data-provider="' + esc(key) + '" aria-pressed="' + (key===selectedProvider) +
     '" class="' + (key===selectedProvider?'active':'') + '">' + esc(run.arms[key].label || key) + '</button>').join("");
@@ -141,7 +141,7 @@ function dayTimeline(run) {
     esc(readableDay(selectedDay)) + '</h2></div><span>' + esc(zoneOf(run) || 'Saved local time') + '</span></div>' +
     '<div class="timeline-links"><a href="#generated-texts">Generated texts</a><a href="#hermes-activity">Memory & Hermes</a></div><div class="day-layout"><section id="generated-texts" class="day-texts"><div class="pane-head"><h3>Generated texts</h3>' + badge(messages.length + ' messages') +
     '</div><p class="muted">The original conversations, grouped by the day they were written.</p>' + texts + '</section>' +
-    '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' turns') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
+    '<section id="hermes-activity" class="day-activity"><div class="pane-head"><h3>Memory & Hermes</h3>' + badge(events.length + ' provider events') + '</div><div class="provider-switch" aria-label="Memory provider">' + providers +
     '</div>' + (arm ? '<p class="muted">' + 'Daily source batches go through native document or message APIs; Memcal reads the synthetic Messages database. Hermes only handles recall. Native completion and failures are recorded.' + '</p>' : '') +
     (arm?.tool_policy?.version?.startsWith('retained-memory-only-') ? '<p class="muted">Archive and original-message tools are disabled. Native event/page citations remain available.</p>' : '') +
     (events.length ? events.filter(event => event.kind !== 'recall' || event.item.kind !== 'followup' || !events.some(first => first.kind === 'recall' && first.item.kind === 'initial' && first.item.check_id === event.item.check_id)).map(event => event.kind==='ingestion' ? ingestionExchange(run,arm,event.item) : event.kind==='status' ? checkStatus(run,event.item) : providerExchange(run,arm,event.item,event.index,event.item.kind === 'initial' ? events.filter(next => next.kind === 'recall' && next.item.kind === 'followup' && next.item.check_id === event.item.check_id).map(next => next.item) : [])).join('') : empty) +

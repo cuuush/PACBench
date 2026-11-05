@@ -26,6 +26,51 @@ from pacbench.native_checks import audit_checks, run_checks
 from pacbench.semantic_contract import ContractClaim, EvaluationContract, build_contract
 
 
+@pytest.mark.parametrize('story',['pizza_week','bike_pickup'])
+@pytest.mark.parametrize('review_rejects',[False,True])
+def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_path,monkeypatch,story,review_rejects):
+    from pathlib import Path
+    from pacbench import evaluation
+    from pacbench.followups import save
+    from pacbench.prepare import resolve_spec
+    from pacbench.corpus_review import VERSION
+    source=tmp_path/'source';source.mkdir()
+    authored=json.loads(Path('weeks',story+'.json').read_text())
+    _,_,original=resolve_spec(authored,source,week_start='2026-10-19')
+    save(source/'spec.json',authored);save(source/'resolved-spec.json',original)
+    save(source/'summary.json',{'bundle_hash':'original-bundle'})
+    save(source/'contract.json',{'contract_hash':'original-contract'})
+    save(source/'bundle.json',{'source':'unchanged'})
+    messages=[{'source_id':'m1','text':'Unchanged verified source'}]
+    monkeypatch.setattr('pacbench.native_pilot.read_prepared',lambda *a:(messages,None,original))
+    seen=[]
+    def freeze(resolved,actual,target,model,output):
+        assert resolved['scenes']==original['scenes'] and actual==messages
+        directory=output/'evaluations/check'
+        save(directory/'contract.json',{'contract_hash':'new-contract'})
+        save(directory/'followup-plan.json',{})
+        return {'plan_hash':'new-plan','checks':[{'id':'check','contract_hash':'new-contract'}]}
+    def review(actual,resolved,model,output):
+        seen.append(resolved['checks'])
+        assert actual==messages
+        if review_rejects:raise ValueError('Independent corpus review rejected')
+        save(output/'realism-review.json',{'state':'pass','review_version':VERSION})
+    monkeypatch.setattr(evaluation,'freeze_evaluations',freeze)
+    monkeypatch.setattr('pacbench.corpus_review.review_corpus',review)
+    monkeypatch.setattr('pacbench.preparation_audit.audit_prepared',lambda r:{'state':'pass'})
+    output=tmp_path/'rechecked'
+    spec={k:original[k] for k in ('checks','question_at','evaluation_context')}
+    if review_rejects:
+        with pytest.raises(ValueError,match='Independent corpus review rejected'):
+            evaluation.prepare_existing(source,spec,output,object())
+        assert not (output/'summary.json').exists()
+    else:
+        result=evaluation.prepare_existing(source,spec,output,object())
+        assert result['corpus_review_version']==VERSION
+        assert json.loads((output/'bundle.json').read_text())=={'source':'unchanged'}
+    assert len(seen)==1
+
+
 @pytest.mark.parametrize('required', ['first', ['missing'], ['first','first'], ['second'], [None]])
 def test_authored_prerequisites_reject_unknown_forward_duplicate_or_invalid_ids(required):
     rows=[{'id':'first','prompt':'Remember this.','expect':'Acknowledge.'},

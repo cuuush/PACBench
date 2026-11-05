@@ -14,7 +14,10 @@ from .followups import save
 
 REPO=Path(__file__).resolve().parents[1]
 COMMON=('input_hash','bundle_hash','contract_hash','evaluation_plan_hash','followup_plan_hash',
-        'tool_policy','ingestion_version','process_timezone','evaluation_context','message_count')
+        'tool_policy','ingestion_version','process_timezone','evaluation_context','message_count',
+        'judge_protocol','evidence_diagnostic_protocol','provenance_version','write_readiness_protocol',
+        'ingestion_mode','builtin_memory','session_search','followup_policy','document_provider_blockers')
+LEGACY_DEFAULTS={'judge_protocol':'semantic-judge-v1','provenance_version':'source-provenance-v1'}
 
 
 def read(path):
@@ -26,6 +29,29 @@ def same_frozen(first, second):
         from .evidence_store import read_json
         return read_json(first) == read_json(second)
     return first.read_bytes() == second.read_bytes()
+
+
+def selected_clock(source,summary,row):
+    provider=row['provider'];declared=summary.get('provider_clocks',{}).get(provider)
+    arm=source/f"repeat-{row['repetition']}"/provider
+    config=arm/'provider-clock.json'
+    if provider!='honcho':
+        if declared is not None or config.exists():raise ValueError('Unsupported selected provider clock condition')
+        return None
+    if config.is_symlink():raise ValueError('Unsafe selected provider clock evidence')
+    observed=[read(config)['version']] if config.exists() else []
+    for path in (arm/'ingestion').glob('*.json'):
+        if path.is_symlink():raise ValueError('Unsafe selected provider clock receipt')
+        observed.append((read(path).get('result') or {}).get('clock_protocol'))
+    if declared is not None:
+        from provider_adapters.honcho_clock import SUPPORTED
+        if provider!='honcho' or declared not in SUPPORTED:
+            raise ValueError('Unsupported selected provider clock condition')
+        if row['state']=='diagnostic' and not config.exists():
+            raise ValueError('Selected provider clock evidence is missing')
+    if any(value!=declared for value in observed):
+        raise ValueError('Selected provider clock receipts differ from declared condition')
+    return declared
 
 
 def copy_public(source,destination,virtual):
@@ -70,7 +96,7 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
     for source,summary in zip(sources,summaries):
         if summary.get('mode')!='native-hermes' or summary.get('state') in ('running','inventory'):
             raise ValueError('Only terminal native runs can be published')
-        if any(summary.get(k)!=reference.get(k) for k in COMMON):
+        if any(summary.get(k,LEGACY_DEFAULTS.get(k))!=reference.get(k,LEGACY_DEFAULTS.get(k)) for k in COMMON):
             raise ValueError('Cannot combine different frozen inputs, questions or execution policies')
         for row in summary['results']:
             options=candidates.setdefault(row['provider'],[])
@@ -92,6 +118,23 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
             if choices[row['provider']]!=sources[0]:
                 stale=staging/f"repeat-{row['repetition']}"/row['provider']
                 if stale.exists():shutil.rmtree(stale)
+        clocks={}
+        for provider,selected in choices.items():
+            selected_summary=summaries[sources.index(selected)]
+            for row in selected_summary['results']:
+                if row['provider']!=provider:continue
+                declared=selected_clock(selected,selected_summary,row)
+                if declared is not None:clocks[provider]=declared
+            condition=staging/'provider-conditions'/(provider+'.json')
+            condition.unlink(missing_ok=True)
+            original=selected/'provider-conditions'/(provider+'.json')
+            if original.exists():
+                if original.is_symlink() or original.parent.is_symlink():
+                    raise ValueError('Unsafe selected provider condition')
+                condition.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copyfile(original,condition)
+        reference.pop('provider_clocks',None)
+        if clocks:reference['provider_clocks']=clocks
         # Normalize the preparation pointer for a clean checkout.
         preparation=(sources[0]/reference['source']).resolve()
         if preparation!=sources[0]/'preparation':copy_public(preparation,staging/'preparation',virtual/'preparation')
@@ -123,6 +166,12 @@ def publish(sources,destination,*,preflight=None,selection=None,retain_replaced=
                 relative=Path(f"repeat-{row['repetition']}")/row['provider']
                 evidence=Path('attempts')/source.name/relative
                 copy_public(source/relative,staging/evidence,virtual/evidence)
+                condition=source/'provider-conditions'/(row['provider']+'.json')
+                if condition.exists():
+                    if condition.is_symlink() or condition.parent.is_symlink():
+                        raise ValueError('Unsafe replaced provider condition')
+                    target=staging/'attempts'/source.name/'provider-conditions'/condition.name
+                    target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(condition,target)
                 attempts.append({'provider':row['provider'],'state':row['state'],
                     'reason':'Explicitly replaced by another supplied run; original evidence and cost retained.',
                     'original_root':str(source),'evidence':str(evidence),

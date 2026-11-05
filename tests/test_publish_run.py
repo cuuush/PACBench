@@ -99,6 +99,66 @@ def test_publication_shares_contract_text_without_changing_executed_hash(repo):
     assert read_json(root/'contract.json')==original
 
 
+@pytest.mark.parametrize('reverse',[False,True])
+def test_selection_uses_selected_clock_and_removes_old_hold(repo,reverse):
+    original=component(repo,'original','honcho');updated=component(repo,'updated','honcho')
+    summary=json.loads((updated/'summary.json').read_text())
+    summary['provider_clocks']={'honcho':'honcho-wall-clock-v3'};save(updated/'summary.json',summary)
+    save(updated/'repeat-1/honcho/provider-clock.json',{'version':'honcho-wall-clock-v3'})
+    save(updated/'repeat-1/honcho/ingestion/day.json',{'result':{'clock_protocol':'honcho-wall-clock-v3'}})
+    save(original/'provider-conditions/honcho.json',{'mode':'hold','reason':'original condition'})
+    sources=[updated,original] if reverse else [original,updated]
+    output=publish_run.publish(sources,repo/'runs/selected',selection={'honcho':updated})
+    assert json.loads((output/'summary.json').read_text())['provider_clocks']=={'honcho':'honcho-wall-clock-v3'}
+    assert not (output/'provider-conditions/honcho.json').exists()
+    assert json.loads((output/'attempts/original/provider-conditions/honcho.json').read_text())['mode']=='hold'
+    # Replacing a simulated trial with a real-clock trial must remove its label.
+    output=publish_run.publish(sources,repo/'runs/real',selection={'honcho':original})
+    assert 'provider_clocks' not in json.loads((output/'summary.json').read_text())
+    assert json.loads((output/'provider-conditions/honcho.json').read_text())['mode']=='hold'
+
+
+@pytest.mark.parametrize('fault',['missing','mismatch','undeclared'])
+def test_publication_rejects_mislabelled_selected_clock(repo,fault):
+    root=component(repo,'clock','honcho')
+    summary=json.loads((root/'summary.json').read_text())
+    if fault!='undeclared':
+        summary['provider_clocks']={'honcho':'honcho-wall-clock-v3'};save(root/'summary.json',summary)
+    if fault!='missing':
+        save(root/'repeat-1/honcho/provider-clock.json',{'version':'honcho-wall-clock-v2' if fault=='mismatch' else 'honcho-wall-clock-v3'})
+    with pytest.raises(ValueError,match='clock'):
+        publish_run.publish([root],repo/'runs/invalid')
+
+
+@pytest.mark.parametrize('field',['judge_protocol','evidence_diagnostic_protocol','provenance_version',
+    'write_readiness_protocol','ingestion_mode','builtin_memory','session_search','followup_policy'])
+def test_publication_cannot_silently_mix_shared_execution_protocols(repo,field):
+    first=component(repo,'first','memcal');second=component(repo,'second','honcho')
+    summary=json.loads((second/'summary.json').read_text());summary[field]='different';save(second/'summary.json',summary)
+    with pytest.raises(ValueError,match='execution policies'):
+        publish_run.publish([first,second],repo/'runs/mixed')
+
+
+def test_explicit_legacy_judge_and_provenance_match_saved_implicit_defaults(repo):
+    first=component(repo,'first','memcal');second=component(repo,'second','honcho')
+    summary=json.loads((second/'summary.json').read_text())
+    summary.update(judge_protocol='semantic-judge-v1',provenance_version='source-provenance-v1')
+    save(second/'summary.json',summary)
+    publish_run.publish([first,second],repo/'runs/legacy')
+
+
+@pytest.mark.parametrize('kind',['file','directory'])
+def test_provider_condition_copy_cannot_bypass_public_symlink_exclusion(repo,kind):
+    root=component(repo,'conditions','memcal')
+    secret=repo/'private';secret.mkdir();save(secret/'memcal.json',{'credential':'DO-NOT-PUBLISH'})
+    if kind=='directory':(root/'provider-conditions').symlink_to(secret,target_is_directory=True)
+    else:
+        (root/'provider-conditions').mkdir()
+        (root/'provider-conditions/memcal.json').symlink_to(secret/'memcal.json')
+    with pytest.raises(ValueError,match='Unsafe selected provider condition'):
+        publish_run.publish([root],repo/'runs/unsafe')
+
+
 @pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
     from pacbench.preparation_audit import audit_prepared

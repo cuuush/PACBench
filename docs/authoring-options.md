@@ -37,7 +37,7 @@ Every scene checker sees preceding cross-channel source context. Its cache binds
 }
 ```
 
-This fragment belongs in a complete seven-day week. Facts stay next to the scene; there is no top-level fact catalog or fact-ID matching. Assistant turns have their own English `expect` descriptions; see [conversations](flexible-checks.md).
+This fragment belongs in a complete seven-day week. Facts stay next to the scene; there is no top-level fact catalog or fact-ID matching. Assistant turns use an English `expect` description or a list of inline English `facts` for recall; see [conversations](flexible-checks.md).
 
 For an update scene, describe what changes. Use “same time” or “venue unchanged” when people rely on prior context; listing the old restaurant as a new scene fact encourages an unnatural recap. Inspect generated dialogue for added reminders that would weaken the intended test. Expectations should judge facts the question naturally invites, rather than requiring unrelated details in a yes/no answer.
 

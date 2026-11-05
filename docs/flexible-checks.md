@@ -1,6 +1,6 @@
 # Assistant conversations
 
-Put conversations under the weekday where they happen. Each has an `id`, a human-readable `time` and ordered `turns`. Every turn has an `id`, the public `prompt`, and an English `expect` description. No fact IDs or matching lists are needed.
+Put conversations under the weekday where they happen. Each has an `id`, a human-readable `time` and ordered `turns`. Every turn has an `id`, the public `prompt`, and either an English `expect` description or, for recall, a `facts` list of inline English statements. Do not combine `expect` and `facts`; no fact IDs or catalog are needed.
 
 ```json
 {

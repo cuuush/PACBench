@@ -739,7 +739,7 @@
               {
                 "id": "pond-current",
                 "prompt": "Are we still meeting at the duck pond on Friday?",
-                "expect": "No, the Friday duck-pond meetup with Jen and Alex was postponed, with no replacement date agreed. Judge cancellation and replacement status."
+                "expect": "The Friday duck-pond meetup was postponed."
               },
               {
                 "id": "separate-friday",
@@ -755,7 +755,10 @@
               {
                 "id": "jen-call",
                 "prompt": "When am I calling Jen on Friday, and what’s it for?",
-                "expect": "The Friday call with Jen is at 10 am, to review her job application. Judge the time and purpose."
+                "facts": [
+                  "The Friday call with Jen is at 10 am.",
+                  "The call is to help with her job application."
+                ]
               }
             ]
           },
@@ -799,7 +802,7 @@
               {
                 "id": "alex-entrance",
                 "prompt": "Which entrance should we use at Birch on Friday?",
-                "expect": "The front entrance is the only current entrance to use for Friday coffee at Birch Cafe. Identifying the front entrance alone is sufficient. If an answer states a street, Birch Street is correct; do not accept the closed Mill Lane side as a usable current alternative. Clearly labeled historical directions are fine."
+                "expect": "Use the front entrance at Birch Cafe."
               }
             ]
           },

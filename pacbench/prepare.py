@@ -226,8 +226,15 @@ def normalize_week(spec, week_start=None):
             session=conversation['id'];clock=clock_on_day(date,conversation['time'])
             for index,turn in enumerate(conversation['turns']):
                 row=dict(turn)
-                if 'facts' in row or 'criteria' in row:raise ValueError('Assistant turns use an English expect description')
-                if not isinstance(row.get('expect'),str) or not row['expect'].strip():raise ValueError('Assistant turn needs an English expect description')
+                if 'criteria' in row or ('expect' in row) == ('facts' in row):
+                    raise ValueError('Assistant turn needs either English expect or inline facts')
+                if 'expect' in row:
+                    if not isinstance(row['expect'],str) or not row['expect'].strip():
+                        raise ValueError('Assistant turn needs an English expect description')
+                elif (row.get('kind', 'recall') != 'recall' or not isinstance(row['facts'],list) or
+                      not 1 <= len(row['facts']) <= 50 or
+                      any(not isinstance(f,str) or not f.strip() for f in row['facts'])):
+                    raise ValueError('Recall facts must be a nonempty list of inline English statements')
                 row['at']=clock_on_day(date,row.pop('time')) if 'time' in row else (datetime.fromisoformat(clock)+timedelta(minutes=2*index)).isoformat()
                 row['session']=session
                 checks.append(row)

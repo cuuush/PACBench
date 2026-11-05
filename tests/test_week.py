@@ -396,3 +396,39 @@ def test_operator_stop_after_turn_preserves_answer_without_judging(tmp_path):
     assert report['checks'][0]['state'] == 'interrupted'
     assert (tmp_path/'arm/turns'/report['checks'][0]['id']/'turn.json').exists()
     assert not list((tmp_path/'arm').rglob('judgment.json'))
+
+
+def test_weekday_inline_recall_facts_are_frozen_as_authored(tmp_path):
+    from pacbench.semantic_contract import build_contract
+    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
+    turn.pop('expect'); facts=['The call is at 10 am.','The call concerns a job application.'];turn['facts']=facts
+    _,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-07')
+    check=next(c for c in resolved['checks'] if c['id']==turn['id'])
+    assert check['facts']==facts and 'expect' not in check
+    source=[{'source_id':'m1','written_at':'2026-09-07T10:00:00-04:00','sender':'Jen',
+             'text':'Call at 10 about my job application.'}]
+    def draft(_):
+        return json.dumps({'claims':[{'id':'fact-1','statement':'Extra time detail','evidence':['s1']},
+                                     {'id':'fact-2','statement':'Extra role detail','evidence':['s1']}]})
+    def review(_):
+        return json.dumps({'claim_review':{'complete':True,'reviews':[
+            {'id':f'fact-{i}','supported':True,'relevant':True,'unambiguous':True,'reason':'Supported.'} for i in (1,2)]},
+            'question_review':{'safe':True,'faithful':True,'elicits_all':True,'reason':'Fair.'}})
+    contract=build_contract(scene='source',test_intent=check['prompt'],observations=source,
+        author_facts=tuple(check['facts']),generate=draft,verify=review,question_generate=review,
+        output_path=tmp_path/'contract.json',user_question=check['prompt'],question_at=check['at'])
+    assert [c.statement for c in contract.claims]==facts
+    assert json.loads((tmp_path/'contract.json').read_text())['author_fact_count']==2
+
+
+@pytest.mark.parametrize('changes',[
+    {'expect':'An answer.','facts':['A fact.']}, {'facts':[]}, {'facts':['']},
+    {'facts':[{'id':'fact-1','statement':'A fact.'}]}, {'criteria':['A fact.']},
+    {'kind':'behavior','facts':['A fact.']},
+])
+def test_weekday_rejects_invalid_inline_turn_facts(changes):
+    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
+    turn.pop('expect');turn.update(changes)
+    with pytest.raises(ValueError):normalize_week(spec,'2026-09-07')

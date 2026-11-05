@@ -334,8 +334,16 @@ def before_turn(root, at, env):
         now = clock.now()
         if (now-target).total_seconds() > START_TOLERANCE_S:
             raise RuntimeError('Provider clock is past the scripted checkpoint; refusing future-time exposure')
-        if target <= now or step_if_idle(root, target, horizon=target):
+        if target <= now:
             return clock.environment(env)
+        state=snapshot(root)
+        next_event=target
+        if state['pending'] and state.get('next_eligible_at'):
+            due=datetime.fromisoformat(state['next_eligible_at'])+timedelta(milliseconds=10)
+            if now < due < target:next_event=due
+        if step_if_idle(root,next_event,horizon=target):
+            if next_event == target:return clock.environment(env)
+            continue  # Let actual due work finish before the later question.
         if time.monotonic() >= deadline:
             raise RuntimeError('Native Honcho did not become idle before the next simulated turn')
         time.sleep(.2)

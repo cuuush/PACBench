@@ -134,6 +134,26 @@ def test_scripted_checkpoint_cannot_use_already_later_provider_time(monkeypatch,
         clock.before_turn(tmp_path,(now+timedelta(minutes=10)).isoformat(),{})
 
 
+def test_clock_processes_due_native_batch_before_later_scripted_question(monkeypatch,tmp_path):
+    now=datetime.now(timezone.utc)
+    provider=ProviderClock(tmp_path/'clock',now)
+    due=now+timedelta(minutes=30);target=now+timedelta(hours=1)
+    monkeypatch.setattr(clock,'enabled',lambda r:True)
+    monkeypatch.setattr(clock,'load',lambda r:(provider,{}))
+    monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
+    advances=[]
+    def snapshot(root):
+        return idle_snapshot(pending=1 if not advances else 0,next_eligible_at=due.isoformat())
+    def step(root,at,**kwargs):
+        assert kwargs['horizon']==target
+        advances.append(at);provider.advance(at);return True
+    monkeypatch.setattr(clock,'snapshot',snapshot)
+    monkeypatch.setattr(clock,'step_if_idle',step)
+    result=clock.before_turn(tmp_path,target.isoformat(),{})
+    assert advances==[due+timedelta(milliseconds=10),target]
+    assert result['FAKETIME_DONT_FAKE_MONOTONIC']=='1'
+
+
 def test_source_age_step_cannot_cross_question_horizon(monkeypatch,tmp_path):
     now=datetime.now(timezone.utc)
     provider=ProviderClock(tmp_path/'clock',now)

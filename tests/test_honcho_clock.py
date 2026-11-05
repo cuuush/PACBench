@@ -212,10 +212,11 @@ def test_judging_never_suspends_observed_native_work(monkeypatch,tmp_path,busy):
     assert provider.path.read_bytes()==before
 
 
-def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path):
+@pytest.mark.parametrize('abort',[False,True])
+def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path,abort):
     from types import SimpleNamespace
-    marker=tmp_path/'marker';marker.touch()
-    monkeypatch.setattr(clock,'_process_started',lambda pid:None)
+    marker=tmp_path/'marker';marker.write_text(json.dumps({'abort':abort}))
+    monkeypatch.setattr(clock,'_process_started',lambda pid:'old-start' if abort else None)
     monkeypatch.setattr(clock,'load',lambda r:(None,{'container':'owned-db'}))
     events=[]
     monkeypatch.setattr(clock,'_docker',lambda cfg,*a:(events.append(a) or SimpleNamespace(returncode=0)))

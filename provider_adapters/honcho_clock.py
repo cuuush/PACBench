@@ -159,7 +159,9 @@ def _process_started(pid):
 def watch_overhead(root, marker, owner, started):
     """A separate real-clock process stops native work if its owner is killed."""
     while marker.exists():
-        if _process_started(owner) != started:
+        try: abort=json.loads(marker.read_text()).get('abort',False)
+        except FileNotFoundError:return
+        if abort or _process_started(owner) != started:
             _, config = load(root)
             _docker(config,'unpause',config['container'])
             from pacbench.process_cleanup import cleanup_run_processes
@@ -169,7 +171,8 @@ def watch_overhead(root, marker, owner, started):
                 'version':VERSION,'state':'interrupted','scored':False,
                 'real_at':datetime.now(timezone.utc).isoformat(),
                 'database_stopped':stopped.returncode == 0,
-                'reason':'Benchmark owner exited during runtime suspension'})
+                'reason':('Native suspension cleanup failed' if abort else
+                          'Benchmark owner exited during runtime suspension')})
             marker.unlink(missing_ok=True)
             return
         time.sleep(.2)
@@ -222,6 +225,7 @@ def benchmark_overhead(root, roles):
                     resumed = _docker(config,'unpause',config['container'])
                     if resumed.returncode:
                         raise RuntimeError('Native database did not resume after benchmark overhead')
+                    database_paused = False
                 observed = snapshot(root)
                 if abs((datetime.fromisoformat(observed['db_now'])-frozen).total_seconds()) > 3:
                     raise RuntimeError('Native database clock changed during excluded benchmark overhead')
@@ -235,9 +239,15 @@ def benchmark_overhead(root, roles):
             try:
                 stack.close()
             finally:
-                marker.unlink(missing_ok=True)
-                try: watcher.wait(timeout=3)
-                except subprocess.TimeoutExpired: watcher.terminate(); watcher.wait(timeout=3)
+                if database_paused:
+                    # Keep the external cleanup process alive even though this
+                    # owner is alive: it must retry unpause and stop the arm.
+                    save(marker,{'abort':True})
+                    watcher.wait(timeout=30)
+                else:
+                    marker.unlink(missing_ok=True)
+                    try: watcher.wait(timeout=3)
+                    except subprocess.TimeoutExpired: watcher.terminate(); watcher.wait(timeout=3)
 
 
 @contextmanager

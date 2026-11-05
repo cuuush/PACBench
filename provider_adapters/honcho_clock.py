@@ -7,7 +7,7 @@ This records an observed idle boundary, not proof about arbitrary in-memory work
 """
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -15,15 +15,17 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import time
+import uuid
 import urllib.request
 from email.utils import parsedate_to_datetime
 
 from pacbench.followups import save
 from pacbench.provider_clock import LIBRARY, LIBRARY_SHA256, ProviderClock
 
-VERSION = 'honcho-wall-clock-v2'
-SUPPORTED = ('honcho-wall-clock-v1', VERSION)
+VERSION = 'honcho-wall-clock-v3'
+SUPPORTED = ('honcho-wall-clock-v1','honcho-wall-clock-v2', VERSION)
 START_TOLERANCE_S = 5
 CONFIG = 'provider-clock.json'
 
@@ -35,6 +37,7 @@ def create(root: Path, at: str) -> ProviderClock:
     save(root / CONFIG, {'version': VERSION, 'initial_at': at,
         'library_sha256': LIBRARY_SHA256, 'clock_directory': str(clock.directory),
         'wall_speed': 1, 'monotonic': 'real', 'gateway_clock': 'real',
+        'suspend_during_benchmark_overhead': True,
         'source_timestamps': 'unchanged', 'native_batching': 'unchanged',
         'scope': 'isolated PostgreSQL, API, deriver and Hermes processes only'})
     return clock
@@ -136,6 +139,105 @@ def snapshot(root, ids=(), observer='hermes'):
     if proc.returncode:
         raise RuntimeError('Native simulated-clock queue telemetry unavailable')
     return json.loads(proc.stdout)
+
+
+def _docker(config, *args):
+    environment = {k:v for k,v in os.environ.items() if k not in {
+        'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+    return subprocess.run(['docker','--host=unix:///var/run/docker.sock',*args],
+        env=environment,capture_output=True,text=True,timeout=15)
+
+
+def _process_started(pid):
+    try:
+        fields = (Path('/proc')/str(pid)/'stat').read_text().split(') ')[1].split()
+        return None if fields[0] == 'Z' else fields[19]
+    except OSError:
+        return None
+
+
+def watch_overhead(root, marker, owner, started):
+    """A separate real-clock process stops native work if its owner is killed."""
+    while marker.exists():
+        if _process_started(owner) != started:
+            _, config = load(root)
+            _docker(config,'unpause',config['container'])
+            from pacbench.process_cleanup import cleanup_run_processes
+            cleanup_run_processes(root)
+            stopped = _docker(config,'stop','--time','5',config['container'])
+            save(root/'provider-clock-interrupted.json',{
+                'version':VERSION,'state':'interrupted','scored':False,
+                'real_at':datetime.now(timezone.utc).isoformat(),
+                'database_stopped':stopped.returncode == 0,
+                'reason':'Benchmark owner exited during runtime suspension'})
+            marker.unlink(missing_ok=True)
+            return
+        time.sleep(.2)
+
+
+@contextmanager
+def benchmark_overhead(root, roles):
+    """Exclude judging at an observed idle boundary, with real-clock cleanup.
+
+    Snapshots cannot prove arbitrary in-memory quiescence. Monotonic timers keep
+    running while suspended; no active observed native work is paused here.
+    """
+    clock, config = load(root)
+    from pacbench.usage import snapshot as cost_snapshot
+    stack = ExitStack(); database_paused = False; frozen = None
+    real_started = datetime.now(timezone.utc)
+    marker = clock.directory / ('overhead-' + uuid.uuid4().hex + '.json')
+    save(marker, {'owner':os.getpid(),'started':_process_started(os.getpid())})
+    watcher = subprocess.Popen([sys.executable,'-m','provider_adapters.honcho_clock',
+        '--watch-overhead',str(root.resolve()),str(marker),str(os.getpid()),_process_started(os.getpid())],
+        cwd=Path(__file__).resolve().parents[1], start_new_session=True,
+        stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    try:
+        stack.enter_context(paused_apps(root))
+        state = snapshot(root)
+        usage = cost_snapshot(roles)
+        busy_model = usage.get('state') != 'captured' or any(
+            c.get('role') == 'memory_provider' and c.get('finished') is None
+            for c in usage.get('calls',[]))
+        if busy_model or any(state[k] for k in ('claims','eligible','embeddings','busy_connections')):
+            stack.close()  # Native work proceeds concurrently; never suspend it for a judge.
+        else:
+            paused = _docker(config,'pause',config['container'])
+            if paused.returncode:
+                raise RuntimeError('Cannot suspend the native database for benchmark overhead')
+            database_paused = True
+            frozen = clock.now()  # Read after the cgroup is actually stopped.
+        yield
+    finally:
+        try:
+            if database_paused:
+                def stopped():
+                    inspected = _docker(config,'inspect','--format','{{.State.Paused}}',config['container'])
+                    return (inspected.returncode == 0 and inspected.stdout.strip() == 'true' and
+                        all((Path('/proc')/str(pid)/'stat').read_text().split(') ')[1][0] in 'Tt'
+                            for pid in config['processes'].values()))
+                try:
+                    clock.resume_suspended(frozen,stopped)
+                finally:
+                    resumed = _docker(config,'unpause',config['container'])
+                    if resumed.returncode:
+                        raise RuntimeError('Native database did not resume after benchmark overhead')
+                observed = snapshot(root)
+                if abs((datetime.fromisoformat(observed['db_now'])-frozen).total_seconds()) > 3:
+                    raise RuntimeError('Native database clock changed during excluded benchmark overhead')
+                with (root/'provider-clock-steps.jsonl').open('a') as stream:
+                    stream.write(json.dumps({'version':VERSION,'kind':'benchmark-overhead',
+                        'real_started_at':real_started.isoformat(),
+                        'real_at':datetime.now(timezone.utc).isoformat(),
+                        'provider_at':frozen.isoformat(),'db_after':observed['db_now'],
+                        'pre_step':state,'database_paused':True})+'\n')
+        finally:
+            try:
+                stack.close()
+            finally:
+                marker.unlink(missing_ok=True)
+                try: watcher.wait(timeout=3)
+                except subprocess.TimeoutExpired: watcher.terminate(); watcher.wait(timeout=3)
 
 
 @contextmanager
@@ -326,6 +428,16 @@ def audit_evidence(root, declared):
         check(bool(steps), 'Honcho clock has no observed advances')
         for line in steps:
             step = json.loads(line)
+            if step.get('kind') == 'benchmark-overhead':
+                frozen = instant(step['provider_at']); real = instant(step['real_at'])
+                check(declared == VERSION and step['version'] == declared and
+                      step['database_paused'] is True and previous <= frozen and
+                      previous_real <= instant(step['real_started_at']) <= real and
+                      abs((instant(step['db_after'])-frozen).total_seconds()) <= 3 and
+                      all(step['pre_step'].get(k)==0 for k in ('claims','eligible','embeddings','busy_connections')),
+                      'Honcho benchmark-overhead suspension evidence is inconsistent')
+                previous, previous_real = instant(step['db_after']), real
+                continue
             before, after, target = (instant(step[k]) for k in ('from','to','target'))
             real = instant(step['real_at'])
             check(step['version'] == declared and previous <= before <= target <= after and
@@ -340,10 +452,10 @@ def audit_evidence(root, declared):
                 check({e['id'] for e in step.get('native_errors_before',[])} >=
                       {e['id'] for e in state['errors']},
                       'Honcho native errors were not preserved before aging')
-            if declared == VERSION and step.get('horizon'):
+            if declared in ('honcho-wall-clock-v2', VERSION) and step.get('horizon'):
                 check(target <= instant(step['horizon']), 'Honcho clock advanced past checkpoint horizon')
             previous, previous_real = after, real
-        if declared == VERSION:
+        if declared in ('honcho-wall-clock-v2', VERSION):
             for path in (root/'turns').glob('**/turn.json'):
                 turn = json.loads(path.read_text())
                 observed = turn.get('provider_clock') or {}
@@ -366,3 +478,10 @@ def audit_evidence(root, declared):
     except (OSError, ValueError, KeyError, TypeError) as exc:
         errors.append('Honcho native clock evidence missing or invalid: '+type(exc).__name__)
     return errors
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 6 and sys.argv[1] == '--watch-overhead':
+        watch_overhead(Path(sys.argv[2]),Path(sys.argv[3]),int(sys.argv[4]),sys.argv[5])
+    else:
+        raise SystemExit('Internal real-clock suspension watchdog only')

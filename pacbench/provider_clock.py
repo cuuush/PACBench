@@ -70,6 +70,28 @@ class ProviderClock:
     def now(self) -> datetime:
         return datetime.fromtimestamp(time.time() + float(self.path.read_text()), timezone.utc)
 
+    def resume_suspended(self, at: datetime, verify_suspended):
+        """Exclude harness overhead only while every native clock user is stopped.
+
+        This changes the offset without rewinding any *observed* provider time.
+        Normal advances still reject backward changes. The caller supplies and
+        records independent process/container suspension verification.
+        """
+        if at.tzinfo is None or not verify_suspended():
+            raise RuntimeError('Clock compensation requires a fully suspended native runtime')
+        with (self.directory/'control.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if not verify_suspended():
+                raise RuntimeError('Native runtime resumed during clock compensation')
+            fd, name = tempfile.mkstemp(prefix='.offset-',dir=self.directory)
+            try:
+                with os.fdopen(fd,'w',encoding='ascii') as stream:
+                    os.fchmod(stream.fileno(),0o644)
+                    stream.write(f'{at.timestamp()-time.time():+.6f}\n')
+                os.replace(name,self.path)
+            finally:
+                if os.path.exists(name):os.unlink(name)
+
     def environment(self, base: dict[str, str], *, library: str | Path = LIBRARY,
                     timestamp_file: str | Path | None = None) -> dict[str, str]:
         env = {k: v for k, v in base.items()

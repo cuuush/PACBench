@@ -52,3 +52,27 @@ asyncio.run(main())'''
     finally:
         for p in children:
             p.terminate(); p.wait(timeout=5)
+
+
+def test_suspended_clock_excludes_only_verified_overhead(tmp_path):
+    target = datetime.now(timezone.utc)-timedelta(days=10)
+    clock = ProviderClock(tmp_path/'clock',target)
+    frozen = clock.now()
+    before = clock.path.read_bytes()
+    with pytest.raises(RuntimeError,match='fully suspended'):
+        clock.resume_suspended(frozen,lambda:False)
+    assert clock.path.read_bytes() == before
+    time.sleep(.08)
+    clock.resume_suspended(frozen,lambda:True)
+    assert abs((clock.now()-frozen).total_seconds()) < .05
+    clock.advance(target+timedelta(days=1))
+    assert abs((clock.now()-target).total_seconds()-86400) < .1
+
+
+def test_suspended_clock_rechecks_under_controller_lock(tmp_path):
+    clock = ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
+    before = clock.path.read_bytes()
+    checks = iter([True,False])
+    with pytest.raises(RuntimeError,match='resumed'):
+        clock.resume_suspended(clock.now(),lambda:next(checks))
+    assert clock.path.read_bytes() == before

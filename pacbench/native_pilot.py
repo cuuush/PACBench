@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 from . import harness
@@ -28,6 +29,12 @@ MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
 ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
 _ARM_SHUTDOWNS = {}
+
+
+def next_checkpoint(rows, at):
+    """Order instants, including the repeated hour when Eastern DST ends."""
+    later = [r['at'] for r in rows if datetime.fromisoformat(r['at']) > datetime.fromisoformat(at)]
+    return min(later, key=datetime.fromisoformat) if later else None
 
 
 def ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
@@ -409,6 +416,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     judge = plan = None
     messages = contract = resolved = None
     evaluations = []
+    active_clock_root = None
     if source:
         if source.is_file():
             from .prepare import import_week
@@ -448,6 +456,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                             record_dir=output / "model-calls")
         def judge(*args, **kwargs):
             check_stop(stop_file)
+            if active_clock_root is not None:
+                from provider_adapters.honcho_clock import benchmark_overhead
+                with benchmark_overhead(active_clock_root,json.loads(env['PACBENCH_USAGE_ROLES'])):
+                    return model_judge(*args, **kwargs)
             return model_judge(*args, **kwargs)
         plan = freeze_policy(contract, output / "followup-plan.json")
         report["followup_plan_hash"] = plan["plan_hash"]
@@ -457,6 +469,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     interrupted = False
     for repetition in range(1, repetitions + 1):
         for provider in selected:
+            active_clock_root = None
             try:
                 check_stop(stop_file)
             except OperatorStop:
@@ -493,6 +506,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
                                 local_timezone=resolved.get("timezone", "") if resolved else "", **clock_options)
                 env['PACBENCH_STOP_FILE'] = str(stop_file)
+                if provider == 'honcho' and honcho_clock == 'simulated':
+                    active_clock_root = root
                 def guarded_turn(*args, **kwargs):
                     check_stop(stop_file)
                     return harness.run_turn(*args, **kwargs)
@@ -579,8 +594,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                 needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'] or 'America/New_York')
                 if provider == 'honcho' and honcho_clock == 'simulated':
                     env['PACBENCH_CLOCK_HORIZON'] = row['at']
-                    later = [r['at'] for r,_,_ in evaluations if r['at'] > row['at']]
-                    if later: env['PACBENCH_CLOCK_NEXT_CHECKPOINT'] = min(later)
+                    later = next_checkpoint((r for r,_,_ in evaluations), row['at'])
+                    if later: env['PACBENCH_CLOCK_NEXT_CHECKPOINT'] = later
                     else: env.pop('PACBENCH_CLOCK_NEXT_CHECKPOINT', None)
                 ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
                                report['process_timezone'] or 'America/New_York', stop_file,

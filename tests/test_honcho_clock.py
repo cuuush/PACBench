@@ -182,3 +182,45 @@ def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
     step['pre_step']['claims']=0;step['horizon']=target.isoformat()
     path.write_text(json.dumps(step)+'\n')
     assert clock.audit_evidence(tmp_path,clock.VERSION)
+
+
+def test_checkpoint_order_uses_instants_across_dst_fallback():
+    from pacbench.native_pilot import next_checkpoint
+    rows=[{'at':v} for v in ('2026-11-01T01:30:00-04:00',
+        '2026-11-01T01:15:00-05:00','2026-11-01T02:00:00-05:00')]
+    assert next_checkpoint(rows,'2026-11-01T01:45:00-04:00') == '2026-11-01T01:15:00-05:00'
+
+
+@pytest.mark.parametrize('busy', ['claims','eligible','embeddings','busy_connections','model'])
+def test_judging_never_suspends_observed_native_work(monkeypatch,tmp_path,busy):
+    provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
+    monkeypatch.setattr(clock,'load',lambda r:(provider,{}))
+    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(**({busy:1} if busy!='model' else {})))
+    monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[
+        {'role':'memory_provider','finished':None}] if busy=='model' else []})
+    events=[]
+    @contextmanager
+    def paused(r):
+        events.append('pause')
+        try:yield
+        finally:events.append('resume')
+    monkeypatch.setattr(clock,'paused_apps',paused)
+    monkeypatch.setattr(clock,'_docker',lambda *a:pytest.fail('Busy runtime was suspended'))
+    before=provider.path.read_bytes()
+    with clock.benchmark_overhead(tmp_path,{}):
+        assert events==['pause','resume']
+    assert provider.path.read_bytes()==before
+
+
+def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path):
+    from types import SimpleNamespace
+    marker=tmp_path/'marker';marker.touch()
+    monkeypatch.setattr(clock,'_process_started',lambda pid:None)
+    monkeypatch.setattr(clock,'load',lambda r:(None,{'container':'owned-db'}))
+    events=[]
+    monkeypatch.setattr(clock,'_docker',lambda cfg,*a:(events.append(a) or SimpleNamespace(returncode=0)))
+    monkeypatch.setattr('pacbench.process_cleanup.cleanup_run_processes',lambda r:events.append('cleanup'))
+    clock.watch_overhead(tmp_path,marker,999999,'old-start')
+    assert events==[('unpause','owned-db'),'cleanup',('stop','--time','5','owned-db')]
+    assert not marker.exists()
+    assert json.loads((tmp_path/'provider-clock-interrupted.json').read_text())['scored'] is False

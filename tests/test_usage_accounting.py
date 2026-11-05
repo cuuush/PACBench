@@ -155,3 +155,23 @@ def test_late_native_profile_work_keeps_cost_but_does_not_poison_retention():
     assert tool_profile(early)['provider_internal_path_needs_review'] is True
     absent=make_turn();attribute_provider_paths(absent,{'model_calls':[]})
     assert tool_profile(absent)['provider_internal_path_needs_review'] is True
+
+
+def test_simulated_native_trace_cannot_be_ordered_against_gateway_time():
+    from types import SimpleNamespace
+    from datetime import datetime
+    from pacbench.usage import attribute_provider_paths
+    from pacbench.followups import tool_profile
+    for native in ('2026-09-01T12:00:00+00:00','2027-01-01T12:00:00+00:00'):
+        for attribution in ('explicit-query-match','background-or-prefetch'):
+            turn=SimpleNamespace(tool_calls=[],tool_results=[],provider_clock={'version':'honcho-wall-clock-v3'},
+                provider_traces=[{'provider':'honcho','attribution':attribution,'record':{
+                    'timestamp':datetime.fromisoformat(native).timestamp(),
+                    'toolCalls':[{'toolName':'search_messages','args':{'query':'pizza'}}]}}])
+            attribute_provider_paths(turn,{'model_calls':[{'role':'hermes','started':'2026-11-05T12:00:00+00:00'}]})
+            assert 'path_attribution' not in turn.provider_traces[0]
+            profile=tool_profile(turn)
+            if attribution == 'explicit-query-match':
+                assert profile['source_fallback_attempted']
+            else:
+                assert profile['provider_internal_path_needs_review']

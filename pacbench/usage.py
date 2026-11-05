@@ -122,6 +122,10 @@ def attribute_provider_paths(turn, capture):
     if not starts:return
     cutoff=max(starts)
     for trace in getattr(turn,'provider_traces',[]) or []:
+        # Honcho journals use the provider wall clock. Gateway timestamps stay
+        # real; their ordering is unknowable across simulated clock advances.
+        if trace.get('provider') == 'honcho' and getattr(turn,'provider_clock',None):
+            continue
         completed=trace.get('record',{}).get('timestamp')
         if (trace.get('provider') in {'honcho','hindsight'} and type(completed) in (int,float) and completed>cutoff):
             trace['path_attribution']={

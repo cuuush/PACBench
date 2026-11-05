@@ -1,0 +1,96 @@
+{
+  "state": "complete",
+  "plan_hash": "cfb740b16ffec8c3e691d471f65351aa0f9f9d5f631eeabedf01b5aee484d59e",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "calling Jen Friday phone call",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850271408,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"577c331a-d8fa-41c8-8bd7-d509034712dd\", \"memory\": \"Jen is secretly applying for an internal ops coordinator posting to get away from her micromanager boss who checks if emails were opened. Jen said her cover letter sounds stiff and formal, and User agreed to a 20-minute phone call at 10am Friday October 23, 2026 to review it, with Jen to send the draft Thursday October 22 and User to mark up weird parts. The new team is on the second floor with no leaky lobby.\", \"score\": 0.624516824281456}, {\"id\": \"d126efc6-62e1-4f77-ac0b-49806b270af4\", \"memory\": \"For the October 23, 2026 Willow Park walk, Alex will bring his dog who chases squirrels and Jen and User agreed to help, with User bringing treats to be the favorite. Jen has a dentist appointment Friday October 16, and her mom visits Saturday October 24, making Friday timing perfect.\", \"score\": 0.5994942753110584}, {\"id\": \"9515c531-80a5-4ba8-b05b-0e8eff8820af\", \"memory\": \"User, Jen and Alex planned a walk at 2pm on Friday, October 23, 2026 at Willow Park, meeting at the west entrance by the duck pond near the playground and big lot off Willow Ave. East entrance is by tennis courts. Plan is about an hour so Alex is back by 4:30, with coffee from the new cart near the park.\", \"score\": 0.5978066834163773}, {\"id\": \"ca4d5750-dc04-406d-9494-174f855fda18\", \"memory\": \"The Friday crew planned to meet out front at Luigi's on 5th Street on October 9, 2026, with Maya taking the bus after early gym, User walking about 10 minutes from work, and Leo driving and planning to text when close, noting parking is better than Pine Street\", \"score\": 0.591512246930377}, {\"id\": \"b9e528b1-d4f3-4d0e-a9f2-6967f29aa513\", \"memory\": \"On September 17, 2026, Maya said her Friday plans for September 18 were just gym in the morning then work.\", \"score\": 0.5751304724831012}, {\"id\": \"79309d18-ce67-4fe4-a0bd-2a62ed2548d2\", \"memory\": \"User and Devon agreed on October 6, 2026 to meet for pizza Friday on October 9, 2026 at 6:30 PM at Rosa's on Oak Street, heading straight after work, texting when close, with whoever arrives first grabbing a table and parking in the back lot. User said they need real pizza after this week.\", \"score\": 0.5698618610919782}, {\"id\": \"f327537f-4506-4ba9-9a69-6bc301e2cee0\", \"memory\": \"On October 8, 2026, the Friday crew joked about putting on Leo's pizza-place sketch with dramatic trailer voice in the background while doing dishes, with Maya calling doing the trailer voice while scrubbing pans elite\", \"score\": 0.568672094517632}, {\"id\": \"0b7b48c5-0c0b-4ddc-90f8-017c2f9f1d33\", \"memory\": \"User and Maya planned pizza Friday at 12:30 on October 2, 2026 at Rosa's on Oak Street, with User slipping out of the office for an hour to an hour and a half, sitting on the redone patio if weather is good, and starting with a half order of garlic knots they both crave.\", \"score\": 0.566169792840449}, {\"id\": \"821ff4d7-2858-4dd1-b305-bcb4303c6155\", \"memory\": \"User often gets stuck late at work on Fridays and on September 17, 2026 said for Friday, September 18 they were trying to leave on time for once by putting their laptop away at 5 p.m. sharp, with Maya and Leo offering support.\", \"score\": 0.566063435059257}, {\"id\": \"d12d6c09-343c-44be-b586-141410138964\", \"memory\": \"On September 25, 2026, Jen was at the office with a spare sweater in her drawer getting a big coffee, facing about 40 unread emails mostly CC nonsense that her boss checks, while facilities reported the lobby leaking again with buckets out by the elevators.\", \"score\": 0.5641700013941315}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 16.09,
+    "input_tokens": 9104,
+    "output_tokens": 642,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Answer provides the 10am time."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Answer provides the job-application purpose."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "fact-1",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "fact-2",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

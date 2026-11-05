@@ -1,0 +1,100 @@
+{
+  "prompt": "[Simulated now: 2026-10-19T10:02:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhy did Maya rule out Domino’s?",
+  "at": "2026-10-19T10:02:00-04:00",
+  "answer": "She said it's too far — across town when Rosa's is right there.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "maya"
+      },
+      "timestamp": 1793847978589
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_wiki",
+      "input": {
+        "limit": 10,
+        "query": "Domino's"
+      },
+      "timestamp": 1793847978608
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_search_archive",
+      "input": {
+        "limit": 20,
+        "person": "Maya",
+        "query": "Domino's"
+      },
+      "timestamp": 1793847978614
+    },
+    {
+      "type": "tool_use",
+      "name": "memcal_conversation",
+      "input": {
+        "after": 8,
+        "before": 8,
+        "line_id": 1854
+      },
+      "timestamp": 1793847980762
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"slug\": \"maya\", \"title\": \"Maya\", \"section\": \"people\", \"is_self\": false, \"answers\": [\"diet\"], \"facts\": [{\"slot\": \"diet\", \"value\": \"dairy-free for a few weeks\", \"source\": \"person:Maya\", \"ts\": \"2026-10-12\", \"lines\": [1710, 1720]}], \"cited_ids\": {\"diet\": [1710, 1720]}, \"provenance\": {\"diet\": {\"entity\": \"person:Maya\", \"bundle\": \"aff481\", \"run\": 27, \"gen\": \"chatcmpl-01a1a9a6-d0df-7047-838f-4c70185e64ff\", \"verb\": \"slot\", \"at\": \"2026-10-12T03:00\"}}, \"aliases\": [], \"open_questions\": [], \"page\": \"# Maya\\n\\n## Facts\\n\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\\n\", \"encounters\": {\"count\": 1, \"by_activity\": [{\"activity\": \"Pizza lunch\", \"count\": 1}], \"recent\": [{\"key\": \"pizza-lunch@2026-09-25\", \"date\": \"2026-09-25\", \"title\": \"Pizza lunch\", \"location\": \"Mario's on Pine Street\", \"with\": [\"Leo\"]}]}, \"sources\": {\"diet\": [{\"id\": 1710, \"ts\": \"2026-10-11T13:55:12-04:00\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i'm gonna try going dairy-free for the next few weeks and see if it helps\", \"evidence\": true, \"source_heading\": \"Sun Oct 11, 2026 13:55 \\u00b7 iMessage with Maya\"}, {\"id\": 1720, \"ts\": \"2026-10-11T14:29:05-04:00\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like no milk, cheese, butter, all of it for a few weeks\", \"evidence\": true}]}, \"narrow\": {\"diet\": true}}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_wiki",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"query\": \"Domino's\", \"results\": [], \"message\": \"No matching wiki fact for \\\"Domino's\\\". This means no wiki fact matched \\u2014 not that the user never told us. Open relevant events/pages with memcal_open; find calendar entries with memcal_list_days or memcal_list_month. Use memcal_search_archive only if retained details cannot answer.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_search_archive",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"line_id\": 1856, \"when\": \"2026-10-12T17:49\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"yeah no, Domino's is too out of the way\"}, {\"line_id\": 1854, \"when\": \"2026-10-12T17:49\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"i was scrolling and saw Domino's has a deal but honestly it's too far for us\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "memcal_conversation",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"conversation\": [{\"id\": 1841, \"ts\": \"2026-10-12T17:42\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"always thinking about pizza tbh\"}, {\"id\": 1842, \"ts\": \"2026-10-12T17:42\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"lol same, when do you wanna do Rosa's again?\"}, {\"id\": 1843, \"ts\": \"2026-10-12T17:42\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yes please, i need something to look forward to\"}, {\"id\": 1844, \"ts\": \"2026-10-12T17:43\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"this friday is kinda crazy for me, back to back stuff\"}, {\"id\": 1849, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"same, i'm slammed this week too, friday's gonna be a rush\"}, {\"id\": 1850, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"what if we do not this friday but next friday?\"}, {\"id\": 1851, \"ts\": \"2026-10-12T17:47\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"oh like friday next week?\"}, {\"id\": 1852, \"ts\": \"2026-10-12T17:48\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yeah the one after this coming one, when things calm down\"}, {\"id\": 1853, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"that works way better for me actually\"}, {\"id\": 1854, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"i was scrolling and saw Domino's has a deal but honestly it's too far for us\"}, {\"id\": 1855, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"like i'm not driving across town for that when Rosa's is right here\"}, {\"id\": 1856, \"ts\": \"2026-10-12T17:49\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"yeah no, Domino's is too out of the way\"}, {\"id\": 1857, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"exactly, ruling that out, let's just do our usual spot\"}, {\"id\": 1858, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"Rosa's on Oak Street?\"}, {\"id\": 1859, \"ts\": \"2026-10-12T17:51\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"Maya\", \"text\": \"yes, Rosa's on Oak Street, garlic knots forever\"}, {\"id\": 1860, \"ts\": \"2026-10-12T17:52\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"who\": \"me\", \"text\": \"would 1 pm work? i can slip out for a longer lunch that day\"}]}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 9.99,
+  "returncode": 0,
+  "stderr_tail": "↻ Resumed session 20261104_220523_d65943 \"Find Friday pizza deal\" (1 user message, 5 total messages)\n\nsession_id: 20261104_220523_d65943",
+  "raw_events": 15,
+  "session_id": "20261104_220523_d65943",
+  "stderr_full": "↻ Resumed session 20261104_220523_d65943 \"Find Friday pizza deal\" (1 user message, 5 total messages)\n\nsession_id: 20261104_220523_d65943\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261104_220523_d65943\", \"timestamp\": 1793847974382}\n{\"type\": \"text\", \"text\": \"Checking why Domino's was ruled out.\", \"timestamp\": 1793847976935}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"maya\"}, \"timestamp\": 1793847978589}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"{\\\"slug\\\": \\\"maya\\\", \\\"title\\\": \\\"Maya\\\", \\\"section\\\": \\\"people\\\", \\\"is_self\\\": false, \\\"answers\\\": [\\\"diet\\\"], \\\"facts\\\": [{\\\"slot\\\": \\\"diet\\\", \\\"value\\\": \\\"dairy-free for a few weeks\\\", \\\"source\\\": \\\"person:Maya\\\", \\\"ts\\\": \\\"2026-10-12\\\", \\\"lines\\\": [1710, 1720]}], \\\"cited_ids\\\": {\\\"diet\\\": [1710, 1720]}, \\\"provenance\\\": {\\\"diet\\\": {\\\"entity\\\": \\\"person:Maya\\\", \\\"bundle\\\": \\\"aff481\\\", \\\"run\\\": 27, \\\"gen\\\": \\\"chatcmpl-01a1a9a6-d0df-7047-838f-4c70185e64ff\\\", \\\"verb\\\": \\\"slot\\\", \\\"at\\\": \\\"2026-10-12T03:00\\\"}}, \\\"aliases\\\": [], \\\"open_questions\\\": [], \\\"page\\\": \\\"# Maya\\\\n\\\\n## Facts\\\\n\\\\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\\\\n\\\", \\\"encounters\\\": {\\\"count\\\": 1, \\\"by_activity\\\": [{\\\"activity\\\": \\\"Pizza lunch\\\", \\\"count\\\": 1}], \\\"recent\\\": [{\\\"key\\\": \\\"pizza-lunch@2026-09-25\\\", \\\"date\\\": \\\"2026-09-25\\\", \\\"title\\\": \\\"Pizza lunch\\\", \\\"location\\\": \\\"Mario's on Pine Street\\\", \\\"with\\\": [\\\"Leo\\\"]}]}, \\\"sources\\\": {\\\"diet\\\": [{\\\"id\\\": 1710, \\\"ts\\\": \\\"2026-10-11T13:55:12-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"i'm gonna try going dairy-free for the next few weeks and see if it helps\\\", \\\"evidence\\\": true, \\\"source_heading\\\": \\\"Sun Oct 11, 2026 13:55 \\\\u00b7 iMessage with Maya\\\"}, {\\\"id\\\": 1720, \\\"ts\\\": \\\"2026-10-11T14:29:05-04:00\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"like no milk, cheese, butter, all of it for a few weeks\\\", \\\"evidence\\\": true}]}, \\\"narrow\\\": {\\\"diet\\\": true}}\", \"duration_ms\": 18, \"is_error\": false, \"timestamp\": 1793847978607}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_wiki\", \"input\": {\"limit\": 10, \"query\": \"Domino's\"}, \"timestamp\": 1793847978608}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_wiki\", \"output\": \"{\\\"query\\\": \\\"Domino's\\\", \\\"results\\\": [], \\\"message\\\": \\\"No matching wiki fact for \\\\\\\"Domino's\\\\\\\". This means no wiki fact matched \\\\u2014 not that the user never told us. Open relevant events/pages with memcal_open; find calendar entries with memcal_list_days or memcal_list_month. Use memcal_search_archive only if retained details cannot answer.\\\"}\", \"duration_ms\": 5, \"is_error\": false, \"timestamp\": 1793847978613}\n{\"type\": \"tool_use\", \"name\": \"memcal_search_archive\", \"input\": {\"limit\": 20, \"person\": \"Maya\", \"query\": \"Domino's\"}, \"timestamp\": 1793847978614}\n{\"type\": \"tool_result\", \"name\": \"memcal_search_archive\", \"output\": \"{\\\"results\\\": [{\\\"line_id\\\": 1856, \\\"when\\\": \\\"2026-10-12T17:49\\\", \\\"who\\\": \\\"me\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"text\\\": \\\"yeah no, Domino's is too out of the way\\\"}, {\\\"line_id\\\": 1854, \\\"when\\\": \\\"2026-10-12T17:49\\\", \\\"who\\\": \\\"Maya\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"text\\\": \\\"i was scrolling and saw Domino's has a deal but honestly it's too far for us\\\"}]}\", \"duration_ms\": 6, \"is_error\": false, \"timestamp\": 1793847978622}\n{\"type\": \"text\", \"text\": \"\\n\\nFound the mention — reading the full exchange for context.\", \"timestamp\": 1793847980377}\n{\"type\": \"tool_use\", \"name\": \"memcal_conversation\", \"input\": {\"after\": 8, \"before\": 8, \"line_id\": 1854}, \"timestamp\": 1793847980762}\n{\"type\": \"tool_result\", \"name\": \"memcal_conversation\", \"output\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"conversation\\\": [{\\\"id\\\": 1841, \\\"ts\\\": \\\"2026-10-12T17:42\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"always thinking about pizza tbh\\\"}, {\\\"id\\\": 1842, \\\"ts\\\": \\\"2026-10-12T17:42\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"lol same, when do you wanna do Rosa's again?\\\"}, {\\\"id\\\": 1843, \\\"ts\\\": \\\"2026-10-12T17:42\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"yes please, i need something to look forward to\\\"}, {\\\"id\\\": 1844, \\\"ts\\\": \\\"2026-10-12T17:43\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"this friday is kinda crazy for me, back to back stuff\\\"}, {\\\"id\\\": 1849, \\\"ts\\\": \\\"2026-10-12T17:47\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"same, i'm slammed this week too, friday's gonna be a rush\\\"}, {\\\"id\\\": 1850, \\\"ts\\\": \\\"2026-10-12T17:47\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"what if we do not this friday but next friday?\\\"}, {\\\"id\\\": 1851, \\\"ts\\\": \\\"2026-10-12T17:47\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"oh like friday next week?\\\"}, {\\\"id\\\": 1852, \\\"ts\\\": \\\"2026-10-12T17:48\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"yeah the one after this coming one, when things calm down\\\"}, {\\\"id\\\": 1853, \\\"ts\\\": \\\"2026-10-12T17:49\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"that works way better for me actually\\\"}, {\\\"id\\\": 1854, \\\"ts\\\": \\\"2026-10-12T17:49\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"i was scrolling and saw Domino's has a deal but honestly it's too far for us\\\"}, {\\\"id\\\": 1855, \\\"ts\\\": \\\"2026-10-12T17:49\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"like i'm not driving across town for that when Rosa's is right here\\\"}, {\\\"id\\\": 1856, \\\"ts\\\": \\\"2026-10-12T17:49\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"yeah no, Domino's is too out of the way\\\"}, {\\\"id\\\": 1857, \\\"ts\\\": \\\"2026-10-12T17:51\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"exactly, ruling that out, let's just do our usual spot\\\"}, {\\\"id\\\": 1858, \\\"ts\\\": \\\"2026-10-12T17:51\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"Rosa's on Oak Street?\\\"}, {\\\"id\\\": 1859, \\\"ts\\\": \\\"2026-10-12T17:51\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"Maya\\\", \\\"text\\\": \\\"yes, Rosa's on Oak Street, garlic knots forever\\\"}, {\\\"id\\\": 1860, \\\"ts\\\": \\\"2026-10-12T17:52\\\", \\\"channel\\\": \\\"imessage\\\", \\\"thread\\\": \\\"id:a9095a3309d85a3a@example.test\\\", \\\"who\\\": \\\"me\\\", \\\"text\\\": \\\"would 1 pm work? i can slip out for a longer lunch that day\\\"}]}\", \"duration_ms\": 7, \"is_error\": false, \"timestamp\": 1793847980771}\n{\"type\": \"text\", \"text\": \"\\n\\nShe said it's too\", \"timestamp\": 1793847982622}\n{\"type\": \"text\", \"text\": \" far — across town when Rosa's is\", \"timestamp\": 1793847982651}\n{\"type\": \"text\", \"text\": \" right there.\", \"timestamp\": 1793847982685}\n{\"type\": \"result\", \"session_id\": \"20261104_220523_d65943\", \"exit_code\": 0, \"text\": \"She said it's too far — across town when Rosa's is right there.\", \"tokens\": {\"input\": 18998, \"output\": 679, \"total\": 48703, \"cache_read\": 29026, \"cache_write\": 0}, \"duration_ms\": 8340, \"timestamp\": 1793847982723}",
+  "session_input_tokens": 18998,
+  "session_output_tokens": 679,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-19T10:02:00-04:00 [id=2e0a30813596d2685162594574f09434404cf33c] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 19 October 2026)\n〔E19〕 Fri Oct 23  \"Cover letter review call\", 10am — confirmed · with Jen\n〔E18〕 Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex\n〔E14〕 Fri Oct 23  \"Pizza lunch\", 12:30pm — confirmed · with Maya\n〔E15〕 Fri Oct 23  \"Walk\", 2pm — not going · from Park pals\n〔E17〕 Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben\n〔E16〕 Sun Oct 25  \"Pizza dinner\", 6pm — confirmed · with Devon\n[complete for 2026-10-16 – 2026-11-18; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no imessage 4 days, email 4 days — this week may be incomplete]\n[COLLECTION: groupme (not yet checked), ical (not yet checked), signal (not yet checked) +3 more — recent messages may be missing]\n\n## People and facts\nPages: lunch · maya (diet) · pizza-dinner (where) · pizza-lunch (where)\n\nWIKI PAGES MENTIONED THIS TURN\n\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\nPast encounters: 1 (Pizza lunch ×1)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-rt6jvy81",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-rt6jvy81",
+    "system_prompt_sha256": "2e35823f5f0d56c102138788458ff589e7c8be077b0f5e45cecd053ab39566f3",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-10-19T10:00:00-04:00"
+}

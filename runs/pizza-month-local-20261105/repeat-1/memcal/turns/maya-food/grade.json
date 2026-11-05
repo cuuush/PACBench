@@ -1,0 +1,50 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "maya-dairy-free-friday",
+      "verdict": "correct",
+      "reason": "Answer states strict dairy-free for a few weeks with no milk/cheese/butter, matching dairy-free need."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "maya-dairy-free-friday",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "maya-dairy-free-friday",
+        "status": "supported",
+        "reason": "Provider material states dairy-free diet and strict no milk cheese butter.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "yeah trying to be strict for a few weeks, no milk cheese butter"
+          },
+          {
+            "id": "tool-result-2",
+            "quote": "dairy-free for a few weeks"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Friday moved to Mario's on Pine Street at 12:30 with vegan cheese and dairy-free knots",
+        "answer_quote": "you moved Friday to Mario's on Pine Street at 12:30 — they have vegan cheese and dairy-free knots she can eat",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence mentions dairy-free but not location, time or menu.",
+        "citations": []
+      }
+    ]
+  }
+}

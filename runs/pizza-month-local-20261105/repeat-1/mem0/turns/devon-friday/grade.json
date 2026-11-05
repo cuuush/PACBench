@@ -1,0 +1,82 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-friday-no-pizza",
+      "verdict": "correct",
+      "reason": "Answer states there is no Friday pizza because it was moved to Sunday Oct 25."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-friday-no-pizza",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "devon-friday-no-pizza",
+        "status": "supported",
+        "reason": "Provider material explicitly states pizza moved from Friday Oct 23 to Sunday Oct 25.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "User and Devon moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm at Luigi's on 5th Street same time same place because Devon was put on late shift till close Oct 23"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Pizza rescheduled to Sunday Oct 25",
+        "answer_quote": "moved it to Sunday Oct 25",
+        "status": "supported",
+        "reason": "Source messages confirm Sunday the 25th and Friday is dead.",
+        "citations": [
+          {
+            "id": "message-418ac52e69ecd8070a3b68c1",
+            "quote": "good, so sunday the 25th then, not friday"
+          },
+          {
+            "id": "message-7c7f94bed4e2c0b78827bbdd",
+            "quote": "yep friday is dead, sunday is the plan"
+          }
+        ]
+      },
+      {
+        "assertion": "Rescheduled pizza is at 6pm at Luigi's, same place",
+        "answer_quote": "at 6pm at Luigi's, same place",
+        "status": "unverifiable",
+        "reason": "Supplied source messages mention Sunday vs Friday but do not mention 6pm, Luigi's, or same place.",
+        "citations": []
+      },
+      {
+        "assertion": "Move because Devon is on late shift till close Friday Oct 23",
+        "answer_quote": "Devon is on late shift till close Friday Oct 23",
+        "status": "supported",
+        "reason": "Source messages state late shift next Friday the 23rd and have to stay till close.",
+        "citations": [
+          {
+            "id": "message-e1bf62d26cdce4646d00bf33",
+            "quote": "boss just put me on late shift next friday the 23rd"
+          },
+          {
+            "id": "message-e45c36439ff9e8957d1a7633",
+            "quote": "like i have to stay till close, no way i can make 6"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "friday-pizza-count",
+      "verdict": "correct",
+      "reason": "Answer states 'One — Pizza lunch...' which conveys exactly 1 trip for the asked Friday scope."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "friday-pizza-count",
+      "kind": "provided",
+      "reason": "Answer provides the count as One."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "friday-pizza-count",
+        "status": "supported",
+        "reason": "Provider lists only one pizza event on Fri Oct 23 within a complete window.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Fri Oct 23  \"Pizza lunch\", 12:30pm — confirmed · with Maya"
+          },
+          {
+            "id": "prefetch",
+            "quote": "[complete for 2026-10-16 – 2026-11-18; look up anything outside that]"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Pizza lunch is with Maya at 12:30 at Mario's",
+        "answer_quote": "Pizza lunch with Maya at 12:30 at Mario's",
+        "status": "supported",
+        "reason": "Source message confirms 12:30 at Mario's on Pine Street agreed by Maya.",
+        "citations": [
+          {
+            "id": "message-8fd74ed150abd7ec1f43b4e1",
+            "quote": "yeah that works, 12:30 at Mario's on Pine Street is perfect for me"
+          }
+        ]
+      }
+    ]
+  }
+}

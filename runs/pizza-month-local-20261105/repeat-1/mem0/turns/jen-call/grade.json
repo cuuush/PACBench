@@ -1,0 +1,105 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "Answer states '10am Friday Oct 23' for the Jen call, matching 10 am."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "Answer states call is 'to review Jen's cover letter for the internal ops coordinator posting', matching help with job application."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Answer provides the 10am time."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Answer provides the job-application purpose."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Provider material states 20-minute call at 10am Friday October 23, 2026.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "20-minute phone call at 10am Friday October 23, 2026"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "20-minute phone call at 10am Friday October 23, 2026"
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "Provider material states Jen applying for internal ops coordinator posting and call to review it.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Jen is secretly applying for an internal ops coordinator posting"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Jen is secretly applying for an internal ops coordinator posting"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The call is 20 minutes long.",
+        "answer_quote": "20-min call",
+        "status": "unverifiable",
+        "reason": "Supplied source messages mention a quick call but no duration.",
+        "citations": []
+      },
+      {
+        "assertion": "The call is on Oct 23.",
+        "answer_quote": "Friday Oct 23",
+        "status": "unverifiable",
+        "reason": "Supplied source messages say next friday with no explicit Oct 23 date.",
+        "citations": []
+      },
+      {
+        "assertion": "The call is to review Jen's cover letter.",
+        "answer_quote": "to review Jen's cover letter",
+        "status": "unverifiable",
+        "reason": "Supplied source messages say review it/whole application with no mention of cover letter.",
+        "citations": []
+      },
+      {
+        "assertion": "The posting is the internal ops coordinator posting.",
+        "answer_quote": "internal ops coordinator posting",
+        "status": "supported",
+        "reason": "Source messages state ops coordinator thing and internal posting.",
+        "citations": [
+          {
+            "id": "message-8d1e2d9657eb84a5b5804c55",
+            "quote": "I'm applying for that ops coordinator thing"
+          },
+          {
+            "id": "message-7bfd4992d688732aa2405911",
+            "quote": "internal posting but still need the whole application"
+          }
+        ]
+      }
+    ]
+  }
+}

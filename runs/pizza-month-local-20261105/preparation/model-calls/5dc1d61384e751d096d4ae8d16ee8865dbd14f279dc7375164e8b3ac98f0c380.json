@@ -1,0 +1,137 @@
+{
+  "created_at": "2026-10-15T14:41:55.904089+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": {
+              "$pacbench_text": [
+                "95c60dca896008d417ed4329efecdf4e89dd96e899d9855a01da6ff500b4bc30",
+                "73bb4077b90e837419410084c97cf7956e6dc21ccbeb0a8b05a296ebc1fe7f65",
+                "d1d1b1994b9d8848b729c57f2d7b5a31ab252a262b109243a6bc34c832e1583d",
+                "df95cd06638a593077dbed543be6e1f3c024cba7f1005b3481a1e2432fb0075d",
+                "ce8b3f53a7dbd707d283c52bbc66fc130ff487c4ef8b1d72137718dbe7133d9c",
+                "137794e98fafd206cd33692d6b70ad9a60d5ec2c74cbe981b098c19040492a35",
+                "56c941a7f9eb89e78d35de4c89e4e4e46a3c380fe816829a7a0b3dc3505c7113",
+                "deadfa289f31de00d098e343e8dd6092ef9b4ca99238c0785ad1bc57b24123bf"
+              ],
+              "sha256": "66434b52a0fbf14727246a1c97bb3b37ce73fef8d06c31f93a7f24e3c2e2f980"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e63365dbe099987a44f1",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075296.0,
+    "completed_at": 1792075315.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e63365dbe099987a44f1:rs_01a14002ee2d7558ac55cf495966d12e",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating a multi-party dialogue with specified date, time, message count, speaker labels, and agreed pizza plan while continuing prior context."
+          },
+          {
+            "type": "summary_text",
+            "text": "Sequencing the venue proposal and acceptance while avoiding a recap of settled details."
+          },
+          {
+            "type": "summary_text",
+            "text": "Drafting a multi-speaker dialogue with distinct voices while enforcing speaker labels, pronoun usage, and short confirmation constraints."
+          },
+          {
+            "type": "summary_text",
+            "text": "Enforcing line-per-speaker formatting and removing stage directions for the final JSON output."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a140030d76718d86bcf0e778340acf",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: ugh finally home\\nLeo: long monday?\\nMe: how was gym this morning?\\nMaya: died lol\\nMaya: leg day should be illegal\\nLeo: you say that every time\\nMe: did you go yesterday too or just today?\\nMaya: just today, i skipped the weekend\\nLeo: relatable\\nLeo: my laundry is still in the basket from friday btw\\nMe: nooo you said you were gonna do it\\nLeo: i said probably!\\nMaya: his sink ecosystem now has a laundry counterpart\\nMe: lol stop\\nLeo: rude but accurate pt 2\\nMaya: what did you guys do this weekend?\\nMe: mostly dishes and that sketch you sent\\nLeo: oh did you finally watch it??\\nMe: yeah while doing dishes, the crying suit guy killed me\\nMaya: never go back to workkkk\\nLeo: you did the voice perfectly in text somehow\\nMe: it's stuck in my head now\\nMaya: same, i was thinking it at the gym\\nLeo: never go back to leg day\\nMaya: EXACTLY\\nMe: did IT ever fix your laptop btw?\\nMaya: no still slow as hell today\\nLeo: did you do the off and on again ritual?\\nMaya: twice today alone\\nMe: mine was fine today for once\\nLeo: look at you leaving on time on friday actually worked\\nMe: i did! 5 sharp like i said\\nMaya: proud of you, i got stuck till 5:40\\nLeo: i played that cooking game for like 3 hours friday night\\nMe: without us??\\nLeo: randoms, it was chaos, someone burned everything\\nMaya: sounds like me tbh\\nMe: you did get better after the third fire\\nMaya: hey i only started two fires that night\\nLeo: revisionist history\\nMaya: whatever, soup and toast night again for me\\nMe: it's definitely soup weather tonight\\nLeo: i had leftover pasta again, i'm in a loop\\nMe: i upgraded from cereal to actual pasta tonight\\nMaya: growth\\nLeo: okay so are we still doing lunch this friday?\\nMaya: yes please, i need something to look forward to\\nMe: i'm in, what are we thinking?\\nLeo: pizza? in honor of the crying suit guy\\nMaya: lol yes, pizza this friday i'm so down\\nMe: same, pizza sounds perfect\\nMaya: can we do noon? i have a thing at 1:30\\nLeo: noon works for me\\nMe: yeah noon's good for me too\\nLeo: nice, where tho? not the sandwich place from last week right?\\nMaya: oh god no, last week took forever\\nMaya: never again with that line\\nMe: what about Mario's on Pine Street?\\nLeo: ohh i haven't been there in ages\\nMaya: is that the one with the garlic knots?\\nMe: yes! and they do slices fast so we can make your 1:30\\nMaya: perfect, yeah that works for me\\nLeo: yeah that works, i'm in\\nMe: yay okay\\nLeo: wait is parking awful over there?\\nMaya: kinda but i can bus from work\\nMe: i can walk, it's like 10 mins from my office\\nLeo: i'll just come early and circle lol\\nMaya: or we can meet outside at noon?\\nMe: yeah let's meet out front\\nLeo: bet\\nMaya: also are we doing the game again this week?\\nLeo: i'm down thursday or friday night if you guys are\\nMe: i might join for one round friday after pizza fuel\\nMaya: depends how sore i am but maybe\\nLeo: no pressure, no kitchen fires promised\\nMaya: no promises from my side\\nMe: lol\\nMe: did it get cold again today for you guys?\\nMaya: freezing this morning again, wore the heavy jacket\\nLeo: me too, fall jacket season officially\\nMe: same, i broke mine out last week and now it's daily\\nMaya: okay i need to make that weird lemon tea again, brb\\nLeo: save me one virtually\\nMe: me too, chamomile me up\\nMaya: okay one weird one for leo, lemon thing for you\\nLeo: you remembered\\nMe: alright so friday noon still good?\\nMaya: yep!\\nLeo: yep, see you guys there\\nMaya: can't wait, need pizza after today\\nMe: same, monday was too long\", \"writer_note\": \"Spread the Friday pizza, noon, and Mario's on Pine Street agreements across separate proposals with short acceptances, contrasted with last week's slow sandwich place, while weaving in callbacks to tea, gym, laundry, the sketch slogan, and evening routines to keep it natural.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 2117,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2289,
+      "output_tokens_details": {
+        "reasoning_tokens": 1131
+      },
+      "total_tokens": 4406
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: ugh finally home\\nLeo: long monday?\\nMe: how was gym this morning?\\nMaya: died lol\\nMaya: leg day should be illegal\\nLeo: you say that every time\\nMe: did you go yesterday too or just today?\\nMaya: just today, i skipped the weekend\\nLeo: relatable\\nLeo: my laundry is still in the basket from friday btw\\nMe: nooo you said you were gonna do it\\nLeo: i said probably!\\nMaya: his sink ecosystem now has a laundry counterpart\\nMe: lol stop\\nLeo: rude but accurate pt 2\\nMaya: what did you guys do this weekend?\\nMe: mostly dishes and that sketch you sent\\nLeo: oh did you finally watch it??\\nMe: yeah while doing dishes, the crying suit guy killed me\\nMaya: never go back to workkkk\\nLeo: you did the voice perfectly in text somehow\\nMe: it's stuck in my head now\\nMaya: same, i was thinking it at the gym\\nLeo: never go back to leg day\\nMaya: EXACTLY\\nMe: did IT ever fix your laptop btw?\\nMaya: no still slow as hell today\\nLeo: did you do the off and on again ritual?\\nMaya: twice today alone\\nMe: mine was fine today for once\\nLeo: look at you leaving on time on friday actually worked\\nMe: i did! 5 sharp like i said\\nMaya: proud of you, i got stuck till 5:40\\nLeo: i played that cooking game for like 3 hours friday night\\nMe: without us??\\nLeo: randoms, it was chaos, someone burned everything\\nMaya: sounds like me tbh\\nMe: you did get better after the third fire\\nMaya: hey i only started two fires that night\\nLeo: revisionist history\\nMaya: whatever, soup and toast night again for me\\nMe: it's definitely soup weather tonight\\nLeo: i had leftover pasta again, i'm in a loop\\nMe: i upgraded from cereal to actual pasta tonight\\nMaya: growth\\nLeo: okay so are we still doing lunch this friday?\\nMaya: yes please, i need something to look forward to\\nMe: i'm in, what are we thinking?\\nLeo: pizza? in honor of the crying suit guy\\nMaya: lol yes, pizza this friday i'm so down\\nMe: same, pizza sounds perfect\\nMaya: can we do noon? i have a thing at 1:30\\nLeo: noon works for me\\nMe: yeah noon's good for me too\\nLeo: nice, where tho? not the sandwich place from last week right?\\nMaya: oh god no, last week took forever\\nMaya: never again with that line\\nMe: what about Mario's on Pine Street?\\nLeo: ohh i haven't been there in ages\\nMaya: is that the one with the garlic knots?\\nMe: yes! and they do slices fast so we can make your 1:30\\nMaya: perfect, yeah that works for me\\nLeo: yeah that works, i'm in\\nMe: yay okay\\nLeo: wait is parking awful over there?\\nMaya: kinda but i can bus from work\\nMe: i can walk, it's like 10 mins from my office\\nLeo: i'll just come early and circle lol\\nMaya: or we can meet outside at noon?\\nMe: yeah let's meet out front\\nLeo: bet\\nMaya: also are we doing the game again this week?\\nLeo: i'm down thursday or friday night if you guys are\\nMe: i might join for one round friday after pizza fuel\\nMaya: depends how sore i am but maybe\\nLeo: no pressure, no kitchen fires promised\\nMaya: no promises from my side\\nMe: lol\\nMe: did it get cold again today for you guys?\\nMaya: freezing this morning again, wore the heavy jacket\\nLeo: me too, fall jacket season officially\\nMe: same, i broke mine out last week and now it's daily\\nMaya: okay i need to make that weird lemon tea again, brb\\nLeo: save me one virtually\\nMe: me too, chamomile me up\\nMaya: okay one weird one for leo, lemon thing for you\\nLeo: you remembered\\nMe: alright so friday noon still good?\\nMaya: yep!\\nLeo: yep, see you guys there\\nMaya: can't wait, need pizza after today\\nMe: same, monday was too long\", \"writer_note\": \"Spread the Friday pizza, noon, and Mario's on Pine Street agreements across separate proposals with short acceptances, contrasted with last week's slow sandwich place, while weaving in callbacks to tea, gym, laundry, the sketch slogan, and evening routines to keep it natural.\"}",
+  "usage": {
+    "input_tokens": 2117,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2289,
+    "output_tokens_details": {
+      "reasoning_tokens": 1131
+    },
+    "total_tokens": 4406
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

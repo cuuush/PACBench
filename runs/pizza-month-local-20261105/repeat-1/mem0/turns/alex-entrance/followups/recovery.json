@@ -1,0 +1,83 @@
+{
+  "state": "complete",
+  "plan_hash": "93b837160a67d2f22fe30bed2127afea6d0778cbdcf6e76ed61c21f0496b8285",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "Birch Cafe entrance Friday meeting Alex",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850462649,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"d143e36e-f1cf-4add-9d73-ae6b7b770c20\", \"memory\": \"User and Alex plan coffee at 11am Friday October 23, 2026 at Birch Cafe because Alex will be stir crazy. They will meet at the step-free Mill Lane side entrance instead of the front with three or four big steps to protect Alex's healing ankle, with User saving the good cushioned chair and loving their iced lattes.\", \"score\": 0.795361488086797}, {\"id\": \"ed6ac09b-41d8-4106-ac64-1cc0f3be72d5\", \"memory\": \"Alex's ankle is better than Oct 13 but still limpy with peas icing between emails; Mill Lane side entrance is closed through end of next week due to building work with scaffolding cones and back-wall work, but staff added temporary step-free metal ramp with rails at front entrance on Birch Street, so User and Alex will meet Friday Oct 16 at 11am at Birch front with User grabbing table early and saving cushioned chair.\", \"score\": 0.7426201962936745}, {\"id\": \"9515c531-80a5-4ba8-b05b-0e8eff8820af\", \"memory\": \"User, Jen and Alex planned a walk at 2pm on Friday, October 23, 2026 at Willow Park, meeting at the west entrance by the duck pond near the playground and big lot off Willow Ave. East entrance is by tennis courts. Plan is about an hour so Alex is back by 4:30, with coffee from the new cart near the park.\", \"score\": 0.6526058885762105}, {\"id\": \"ca4d5750-dc04-406d-9494-174f855fda18\", \"memory\": \"The Friday crew planned to meet out front at Luigi's on 5th Street on October 9, 2026, with Maya taking the bus after early gym, User walking about 10 minutes from work, and Leo driving and planning to text when close, noting parking is better than Pine Street\", \"score\": 0.6229052188412738}, {\"id\": \"d126efc6-62e1-4f77-ac0b-49806b270af4\", \"memory\": \"For the October 23, 2026 Willow Park walk, Alex will bring his dog who chases squirrels and Jen and User agreed to help, with User bringing treats to be the favorite. Jen has a dentist appointment Friday October 16, and her mom visits Saturday October 24, making Friday timing perfect.\", \"score\": 0.603414923917389}, {\"id\": \"9b885623-1135-4a13-8e28-8531ab4dfa35\", \"memory\": \"User, Maya, and Leo of the Friday crew planned a pizza lunch at noon on Friday, September 25, 2026 at Mario's on Pine Street, known for garlic knots and fast slices to make Maya's 1:30 commitment, meeting out front with Maya bussing, User walking 10 minutes, Leo driving early.\", \"score\": 0.5944529619146874}, {\"id\": \"0e684af2-6833-49e9-aa13-5198c9284065\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday, October 22, 2026 at Juniper Cafe, 48 Maple Ave. Ben suggested it for soup cravings and sent the address by email, User confirmed same place from DMs, and both put it on calendar and fridge note. Ben has a dentist appointment Thursday October 15.\", \"score\": 0.5880575034248308}, {\"id\": \"79309d18-ce67-4fe4-a0bd-2a62ed2548d2\", \"memory\": \"User and Devon agreed on October 6, 2026 to meet for pizza Friday on October 9, 2026 at 6:30 PM at Rosa's on Oak Street, heading straight after work, texting when close, with whoever arrives first grabbing a table and parking in the back lot. User said they need real pizza after this week.\", \"score\": 0.5740078602979753}, {\"id\": \"f1bdfc57-d048-47b6-9946-5f38e96f3aae\", \"memory\": \"User and Ben confirmed dinner stays Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave; Ben's deadline eased after manager moved it back and he offered to revert to original Thursday Oct 22, but User had already swapped things to free Saturday and is busy Thursday, so both kept Saturday with soup craving in soup weather.\", \"score\": 0.5706072595685227}, {\"id\": \"0aed08e2-48d9-4e7a-88d0-7c8ff3294cfa\", \"memory\": \"User, Maya, and Leo confirmed lunch at noon on Friday October 23, 2026 at Rosa's on Oak Street, moved from 1pm to noon because Maya added a 2pm back-to-back. Maya is WFH and will walk over, User will walk 10 mins from work to grab a table and do chair safety test, Leo will drive and text when close, meeting out front.\", \"score\": 0.5663367822167289}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 18.25,
+    "input_tokens": 2279,
+    "output_tokens": 946,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "birch-front-entrance",
+      "kind": "incorrect",
+      "reason": "Answer asserts wrong entrance Mill Lane instead of front for target Friday."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 0,
+    "initial_misrepresented": 1,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "birch-front-entrance",
+        "initial_verdict": "misrepresented",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

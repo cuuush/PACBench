@@ -1,0 +1,171 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "c-count",
+      "verdict": "correct",
+      "reason": "Answer describes a single Pizza lunch Friday Oct 23 with no second outing."
+    },
+    {
+      "id": "c-time",
+      "verdict": "correct",
+      "reason": "Answer states 12:30pm for that outing."
+    },
+    {
+      "id": "c-venue",
+      "verdict": "correct",
+      "reason": "Answer states Mario's."
+    },
+    {
+      "id": "c-street",
+      "verdict": "correct",
+      "reason": "Answer states Pine Street."
+    },
+    {
+      "id": "c-attendees",
+      "verdict": "correct",
+      "reason": "Answer states with Maya, just you two."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "c-count",
+      "kind": "provided",
+      "reason": "Single outing conveyed."
+    },
+    {
+      "id": "c-time",
+      "kind": "provided",
+      "reason": "Time conveyed."
+    },
+    {
+      "id": "c-venue",
+      "kind": "provided",
+      "reason": "Venue conveyed."
+    },
+    {
+      "id": "c-street",
+      "kind": "provided",
+      "reason": "Street conveyed."
+    },
+    {
+      "id": "c-attendees",
+      "kind": "provided",
+      "reason": "Attendee list conveyed."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "c-count",
+        "status": "supported",
+        "reason": "Prefetch complete window lists only one pizza lunch on Fri Oct 23.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "〔E14〕 Fri Oct 23  \"Pizza lunch\", 12:30pm — confirmed · with Maya"
+          }
+        ]
+      },
+      {
+        "id": "c-time",
+        "status": "supported",
+        "reason": "Prefetch and tool result give 12:30 for E14.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "12:30pm — confirmed · with Maya"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Friday 23 October 2026 at 12:30"
+          }
+        ]
+      },
+      {
+        "id": "c-venue",
+        "status": "supported",
+        "reason": "Tool result gives where as Mario's.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Mario's on Pine Street"
+          }
+        ]
+      },
+      {
+        "id": "c-street",
+        "status": "supported",
+        "reason": "Tool result gives Pine Street location.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Mario's on Pine Street"
+          }
+        ]
+      },
+      {
+        "id": "c-attendees",
+        "status": "supported",
+        "reason": "Tool results show Maya as who, You're going, just us two, Leo out.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "so just us two at mario's?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Leo dropped out",
+        "answer_quote": "Leo dropped out",
+        "status": "supported",
+        "reason": "Source shows Leo saying he's out.",
+        "citations": [
+          {
+            "id": "message-bec8278a0d9e1903068aae50",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ]
+      },
+      {
+        "assertion": "Leo stuck on work coverage",
+        "answer_quote": "stuck on work coverage",
+        "status": "unverifiable",
+        "reason": "Work coverage reason not in supplied partial source evidence.",
+        "citations": []
+      },
+      {
+        "assertion": "Moved from noon at Rosa's because Rosa's temporarily closed",
+        "answer_quote": "Rosa's on Oak is temporarily closed",
+        "status": "unverifiable",
+        "reason": "Rosa's closure not in supplied partial source evidence.",
+        "citations": []
+      },
+      {
+        "assertion": "Meeting runs till 12:15",
+        "answer_quote": "your meeting now runs till 12:15",
+        "status": "unverifiable",
+        "reason": "Meeting time not in supplied partial source evidence.",
+        "citations": []
+      },
+      {
+        "assertion": "Mario's has vegan cheese and dairy-free knots for Maya's dairy-free test",
+        "answer_quote": "Mario's has vegan cheese and dairy-free knots for Maya's dairy-free test",
+        "status": "unverifiable",
+        "reason": "Menu/diet detail not in supplied partial source evidence.",
+        "citations": []
+      }
+    ]
+  }
+}

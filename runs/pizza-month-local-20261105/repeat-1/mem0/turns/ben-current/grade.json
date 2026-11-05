@@ -1,0 +1,121 @@
+{
+  "correct": 3,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "ben-dinner-day",
+      "verdict": "correct",
+      "reason": "Answer states Saturday, October 24, 2026."
+    },
+    {
+      "id": "ben-dinner-time",
+      "verdict": "correct",
+      "reason": "Answer states 7pm for that dinner."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "verdict": "correct",
+      "reason": "Answer states Juniper Cafe."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "ben-dinner-day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "ben-dinner-day",
+        "status": "supported",
+        "reason": "Prefetch states Saturday October 24 dinner.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Saturday October 24, 2026"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-time",
+        "status": "supported",
+        "reason": "Prefetch states 7pm for that Saturday dinner.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Saturday October 24, 2026 at 7pm"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-venue",
+        "status": "supported",
+        "reason": "Prefetch states Juniper Cafe for that dinner.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Juniper Cafe"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The dinner venue address is 48 Maple Ave.",
+        "answer_quote": "48 Maple Ave",
+        "status": "supported",
+        "reason": "Source gives Juniper Cafe address.",
+        "citations": [
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "It's Juniper Cafe, 48 Maple Ave."
+          }
+        ]
+      },
+      {
+        "assertion": "Dinner was moved from Thursday October 22 due to Ben's work deadline Thursday evening.",
+        "answer_quote": "You moved it from Thursday Oct 22 because of Ben's work deadline",
+        "status": "supported",
+        "reason": "Source shows move request and deadline.",
+        "citations": [
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "Can we move dinner from Thursday October 22 to Saturday October 24 instead?"
+          },
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "I just got hit with a work deadline Thursday evening."
+          }
+        ]
+      },
+      {
+        "assertion": "Saturday was kept after user freed Saturday and became busy Thursday.",
+        "answer_quote": "then kept Saturday after you freed up Saturday and became busy Thursday",
+        "status": "unverifiable",
+        "reason": "Source shows Saturday kept but partial source does not show freed/busy reason.",
+        "citations": [
+          {
+            "id": "message-7d42c333e0b25a4ef3607dd5",
+            "quote": "yeah lets keep Saturday the 24th, works for me"
+          }
+        ]
+      }
+    ]
+  }
+}

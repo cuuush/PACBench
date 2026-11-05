@@ -1,0 +1,348 @@
+{
+  "state": "pass",
+  "review_version": "source-realism-v7",
+  "source_hash": "2d2b069bd40d7aef42e51d5e11665106112c2b7965eb812764beb1848f4ecaa6",
+  "intent_hash": "51d430b3b8c6f550dc39365417fc789def7fb629fbf466095ce550eb58bc4138",
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "assessments": [
+      {
+        "check_id": "friday-pizza",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T17:14:17-04:00",
+            "quote": "yeah that works, 12:30 at Mario's on Pine Street is perfect for me"
+          },
+          {
+            "written_at": "2026-10-14T09:31:22-04:00",
+            "quote": "yeah rosa's is closed, like temporarily closed closed"
+          },
+          {
+            "written_at": "2026-10-14T22:01:02-04:00",
+            "quote": "yep friday is dead, sunday is the plan"
+          }
+        ],
+        "alternatives": [
+          "Rosa's on Oak Street at noon on Oct 23 (superseded by temporary closure)",
+          "Luigi's on 5th Street at 6pm on Oct 23 with Devon (moved to Sunday Oct 25)",
+          "Extra pizza Saturday Oct 24 with Maya (floated as maybe, explicitly not booked)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "maya-options",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-12T17:49:22-04:00",
+            "quote": "i was scrolling and saw Domino's has a deal but honestly it's too far for us"
+          },
+          {
+            "written_at": "2026-10-12T17:49:28-04:00",
+            "quote": "like i'm not driving across town for that when Rosa's is right here"
+          },
+          {
+            "written_at": "2026-10-12T17:51:08-04:00",
+            "quote": "exactly, ruling that out, let's just do our usual spot"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "friday-count",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T17:14:17-04:00",
+            "quote": "yeah that works, 12:30 at Mario's on Pine Street is perfect for me"
+          },
+          {
+            "written_at": "2026-10-14T22:01:02-04:00",
+            "quote": "yep friday is dead, sunday is the plan"
+          },
+          {
+            "written_at": "2026-10-14T13:49:19-04:00",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ],
+        "alternatives": [
+          "2 trips counting Devon Friday 6pm Luigi's before move (rejected, moved to Sunday)",
+          "0 trips counting Rosa's closure as cancellation (rejected, switched to Mario's)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "ben-current",
+        "event_date": "2026-10-24",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T10:15:00-04:00",
+            "quote": "Great — just confirmed with the restaurant, we're all set for Saturday, October 24 at 7pm at Juniper Cafe. See you then!"
+          },
+          {
+            "written_at": "2026-10-14T11:45:00-04:00",
+            "quote": "Perfect, thanks for sorting it out! See you Saturday!"
+          },
+          {
+            "written_at": "2026-10-12T20:00:00-04:00",
+            "quote": "It's Juniper Cafe, 48 Maple Ave. Are we still good for 7pm next Thursday, Oct 22?"
+          }
+        ],
+        "alternatives": [
+          "Thursday October 22 at 7pm at Juniper Cafe (original plan, superseded by move to Saturday)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "ben-thursday",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T10:15:00-04:00",
+            "quote": "Great — just confirmed with the restaurant, we're all set for Saturday, October 24 at 7pm at Juniper Cafe. See you then!"
+          },
+          {
+            "written_at": "2026-10-14T20:14:35-04:00",
+            "quote": "yeah lets keep Saturday the 24th, works for me"
+          }
+        ],
+        "alternatives": [
+          "Thursday Oct 22 dinner in addition to Saturday (proposal to revert, rejected, only Saturday kept)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "pond-current",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T09:34:44-04:00",
+            "quote": "I can't do Friday the 23rd anymore"
+          },
+          {
+            "written_at": "2026-10-14T10:01:46-04:00",
+            "quote": "yeah let's just postpone then, that makes sense"
+          },
+          {
+            "written_at": "2026-10-14T12:42:05-04:00",
+            "quote": "okay let's just pause on the 23rd for now?"
+          }
+        ],
+        "alternatives": [
+          "Yes, still meeting Oct 23 at 2pm at west entrance by duck pond (original plan, superseded by postponement)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "separate-friday",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T10:01:46-04:00",
+            "quote": "yeah let's just postpone then, that makes sense"
+          },
+          {
+            "written_at": "2026-10-13T11:19:12-04:00",
+            "quote": "perfect, I can do 10am next friday"
+          },
+          {
+            "written_at": "2026-10-13T12:27:42-04:00",
+            "quote": "yeah that works, 11 is perfect"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "jen-call",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-13T11:10:50-04:00",
+            "quote": "what about next friday? not this friday, next one"
+          },
+          {
+            "written_at": "2026-10-13T11:13:50-04:00",
+            "quote": "lol yes, would 10am work for you?"
+          },
+          {
+            "written_at": "2026-10-13T11:19:04-04:00",
+            "quote": "yeah just a normal phone call, like 20 mins max"
+          },
+          {
+            "written_at": "2026-10-13T11:03:07-04:00",
+            "quote": "I'm applying for that ops coordinator thing"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "alex-coffee",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-13T12:15:57-04:00",
+            "quote": "was thinking birch cafe? haven't been in forever"
+          },
+          {
+            "written_at": "2026-10-13T12:19:18-04:00",
+            "quote": "would like 11 work? before work stuff gets crazy for me"
+          },
+          {
+            "written_at": "2026-10-14T17:19:27-04:00",
+            "quote": "anyway so for friday can we just do the front entrance on birch street instead?"
+          }
+        ],
+        "alternatives": [
+          "Mill Lane side entrance (original step-free plan, closed through end of next week)",
+          "Front steps without ramp (original entrance, inaccessible for sprained ankle)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "leo-attending",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T13:21:33-04:00",
+            "quote": "yeah i can't get away from work after all, i'm stuck on coverage"
+          },
+          {
+            "written_at": "2026-10-14T13:49:19-04:00",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ],
+        "alternatives": [
+          "Yes, Leo attending noon Mario's/Rosa's (original agreement before coverage conflict, superseded)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "maya-food",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-11T14:19:48-04:00",
+            "quote": "nah, i'm avoiding dairy entirely for now, not just lactose"
+          },
+          {
+            "written_at": "2026-10-11T14:29:05-04:00",
+            "quote": "like no milk, cheese, butter, all of it for a few weeks"
+          },
+          {
+            "written_at": "2026-10-14T16:55:05-04:00",
+            "quote": "then i saw Mario's on Pine Street has actual vegan cheese and dairy-free knots?"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "alex-entrance",
+        "event_date": "2026-10-23",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T16:46:18-04:00",
+            "quote": "side entrance on mill lane is closed through the end of next week"
+          },
+          {
+            "written_at": "2026-10-14T16:52:03-04:00",
+            "quote": "they put in a temporary step-free ramp at the front entrance on birch street"
+          },
+          {
+            "written_at": "2026-10-14T17:19:27-04:00",
+            "quote": "anyway so for friday can we just do the front entrance on birch street instead?"
+          }
+        ],
+        "alternatives": [
+          "Mill Lane side entrance (original step-free plan, blocked by scaffolding/construction)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "ben-reason",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-13T10:00:00-04:00",
+            "quote": "Hi! Writing from work — I just got hit with a work deadline Thursday evening."
+          },
+          {
+            "written_at": "2026-10-13T10:00:00-04:00",
+            "quote": "Can we move dinner from Thursday October 22 to Saturday October 24 instead? 7pm still works for me if that works for you?"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "devon-friday",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T20:46:35-04:00",
+            "quote": "i know, no chart hell but now this. can we move our pizza to sunday the 25th instead?"
+          },
+          {
+            "written_at": "2026-10-14T22:01:02-04:00",
+            "quote": "yep friday is dead, sunday is the plan"
+          }
+        ],
+        "alternatives": [
+          "Yes, 6pm Luigi's Friday Oct 23 (original before late-shift, moved to Sunday)"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "devon-current",
+        "event_date": "2026-10-25",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-14T20:46:35-04:00",
+            "quote": "i know, no chart hell but now this. can we move our pizza to sunday the 25th instead?"
+          },
+          {
+            "written_at": "2026-10-14T21:03:52-04:00",
+            "quote": "yeah 6 at Luigi's on 5th street, just sunday"
+          }
+        ],
+        "alternatives": [
+          "Friday Oct 23 6pm Luigi's (original, moved due to late shift)",
+          "Friday 6:30pm Rosa's (earlier plan, superseded)"
+        ],
+        "ambiguous": false
+      }
+    ],
+    "notes": "All Friday Oct 23 plans resolved: one confirmed pizza (Maya 12:30 Mario's Pine), Devon moved to Sun Oct 25, Leo out, Rosa's closed, pond walk postponed with no new date, Jen 10am call and Alex 11am Birch front-ramp coffee remain. Jokes (lottery Saturday pizza guy, crying suit motto, Saturday pizza science) and tentative Saturday pizza idea distinguished from confirmed bookings."
+  },
+  "model_call": "artifacts/pizza-month-jen-scope-repair-v2-20261105/model-calls/3f30c4a497c70a5519f45ff93814374301b9fcac416194d446bc30f146e4ff9c.json",
+  "usage": {
+    "completion_tokens": 10221,
+    "prompt_tokens": 102105,
+    "total_tokens": 112326,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7508
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "scope": "source-coherence-and-public-question-answerability",
+  "validation_errors": []
+}

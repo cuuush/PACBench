@@ -1,0 +1,89 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "leo-out-friday-pizza",
+      "verdict": "correct",
+      "reason": "Answer states 'No — Leo dropped out' and 'It's just you and Maya Friday Oct 23'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "leo-out-friday-pizza",
+      "kind": "provided",
+      "reason": "Answer directly provides Leo's withdrawal from the Friday outing."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "leo-out-friday-pizza",
+        "status": "supported",
+        "reason": "Provider material explicitly states Leo dropped out due to work coverage for the Oct 23 lunch.",
+        "citations": [
+          {
+            "id": "tool-result-4",
+            "quote": "Leo later dropped out due to work coverage on phones until 5pm"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Outing includes just you and Maya",
+        "answer_quote": "It's just you and Maya",
+        "status": "supported",
+        "reason": "Source message says you two go ahead, I'm out.",
+        "citations": [
+          {
+            "id": "message-bec8278a0d9e1903068aae50",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ]
+      },
+      {
+        "assertion": "Outing is on the 23rd",
+        "answer_quote": "Friday Oct 23",
+        "status": "supported",
+        "reason": "Source message confirms the 23rd date.",
+        "citations": [
+          {
+            "id": "message-df7ccbed83811bbe4675f979",
+            "quote": "we said the 23rd at noon cuz we're both off that friday"
+          }
+        ]
+      },
+      {
+        "assertion": "Leo dropped out due to work coverage",
+        "answer_quote": "due to work coverage",
+        "status": "supported",
+        "reason": "Source message states stuck on coverage and can't get away from work.",
+        "citations": [
+          {
+            "id": "message-863a92a616594737a3427942",
+            "quote": "i'm stuck on coverage"
+          }
+        ]
+      },
+      {
+        "assertion": "Meeting at 12:30pm out front at Mario's on Pine",
+        "answer_quote": "12:30pm out front at Mario's on Pine",
+        "status": "unverifiable",
+        "reason": "None of the four source messages mention 12:30, out front, or Mario's.",
+        "citations": []
+      },
+      {
+        "assertion": "Rosa's is temporarily closed",
+        "answer_quote": "Rosa's is temporarily closed",
+        "status": "unverifiable",
+        "reason": "None of the four source messages mention Rosa's closure.",
+        "citations": []
+      }
+    ]
+  }
+}

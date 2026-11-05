@@ -1,0 +1,67 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "birch-front-entrance",
+      "verdict": "correct",
+      "reason": "Answer directs to use the front entrance on Birch Street, matching the claimed entrance."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "birch-front-entrance",
+      "kind": "provided",
+      "reason": "Answer states the front-entrance fact."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "birch-front-entrance",
+        "status": "supported",
+        "reason": "Provider material lists Coffee location as front entrance and records agreement to use it Friday.",
+        "citations": [
+          {
+            "id": "tool-result-7",
+            "quote": "where: Birch Cafe, front entrance on Birch Street"
+          },
+          {
+            "id": "tool-result-6",
+            "quote": "anyway so for friday can we just do the front entrance on birch street instead?"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Mill Lane side entrance is closed through end of next week",
+        "answer_quote": "the Mill Lane side is closed through end of next week",
+        "status": "supported",
+        "reason": "Source message states side entrance closure.",
+        "citations": [
+          {
+            "id": "message-abbc7e8899c3d8425158835d",
+            "quote": "side entrance on mill lane is closed through the end of next week"
+          }
+        ]
+      },
+      {
+        "assertion": "there is a temporary step-free ramp at the front entrance",
+        "answer_quote": "there's a temporary step-free ramp at the front for Alex",
+        "status": "supported",
+        "reason": "Source message states temporary ramp at front entrance.",
+        "citations": [
+          {
+            "id": "message-3f05caca508218ccf4fe4058",
+            "quote": "they put in a temporary step-free ramp at the front entrance on birch street"
+          }
+        ]
+      }
+    ]
+  }
+}

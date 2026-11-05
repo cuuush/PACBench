@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "0a153eb679b5b1b83ac53e1dfbad1e9370080ccfbc46b0346c9271fd52b0a879",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E15"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848147278,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E15  Walk\n\nwhen: Friday 23 October 2026 at 14:00\nstate: You're not going\nwhere: Willow Park, west entrance by the duck pond\nnote: West entrance by big lot near playground; about an hour Alex: not attending. Jen: not attending.\nsource: thread:imessage:id:chat1f59928de9e758c7acab5fae7f06386b\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 09:55 · iMessage with Park pals —\n * [2453] Park pals · Wed 14 Oct 09:55 · Alex: work just put a training thing on my calendar that afternoon\n  — Mon Oct 12, 2026 22:02 · iMessage with Park pals · 2 days earlier —\n * [2099] Park pals · Mon 12 Oct 22:02 · Alex: yep, 2pm willow park\n * [2100] Park pals · Mon 12 Oct 22:11 · me: see you guys there\n  — Wed Oct 14, 2026 09:34 · iMessage with Park pals · 2 days later —\n * [2441] Park pals · Wed 14 Oct 09:34 · Jen: I can't do Friday the 23rd anymore\n * [2446] Park pals · Wed 14 Oct 09:46 · Jen: yeah she wants to come Friday now instead of Saturday\n * [2447] Park pals · Wed 14 Oct 09:46 · Jen: so I have to be home to let her in\n * [2452] Park pals · Wed 14 Oct 09:55 · Alex: ah man, yeah I actually can't do that Friday either anymore\n * [2461] Park pals · Wed 14 Oct 10:01 · me: yeah let's just postpone then, that makes sense\n * [2462] Park pals · Wed 14 Oct 10:08 · Jen: yes please, postponing is better\n * [2564] Park pals · Wed 14 Oct 12:42 · Jen: okay let's just pause on the 23rd for now?\n * [2565] Park pals · Wed 14 Oct 12:42 · me: yeah I'm good with pushing it\n * [2566] Park pals · Wed 14 Oct 12:44 · Alex: same, we'll pick a new day later\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  location: '' -> 'Willow Park, west entrance by the duck pond' (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-13T03:00  participants: '' -> '[\"Alex\", \"Jen\"]' (by dream:nightly:born)\n  2026-10-13T03:00  note: '' -> 'West entrance by big lot near playground; about an hour' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'thread:imessage:id:chat1f59928de9e758c7acab5fae7f06386b' (by dream:nightly:born-day)\n  2026-10-15T03:00  status: 'confirmed' -> 'declined' (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Alex\", \"Jen\"]' -> '[]' (by dream:nightly)\n  2026-10-15T03:00  note: 'West entrance by big lot near playground; about an hour' -> 'West entrance by big lot near playground; about an hour Alex: not attending. Jen: not attending.' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 6.91,
+    "input_tokens": 1552,
+    "output_tokens": 349,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "kind": "provided",
+      "reason": "Postponement correctly conveyed, no recovery needed."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "duck-pond-friday-postponed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

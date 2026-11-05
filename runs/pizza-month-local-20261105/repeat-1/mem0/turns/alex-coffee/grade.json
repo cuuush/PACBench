@@ -1,0 +1,79 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states '11am Friday Oct 23', conveying 11 am for the Friday coffee."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "correct",
+      "reason": "Answer states 'at Birch Cafe', conveying Birch Cafe as venue."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correct time stated in answer."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "provided",
+      "reason": "Correct venue stated in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-time",
+        "status": "supported",
+        "reason": "Prefetch states coffee at 11am on Friday Oct 23.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "coffee at 11am Friday October 23, 2026 at Birch Cafe"
+          }
+        ]
+      },
+      {
+        "id": "coffee-venue",
+        "status": "supported",
+        "reason": "Prefetch states coffee at Birch Cafe.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "coffee at 11am Friday October 23, 2026 at Birch Cafe"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Meeting at Mill Lane side entrance",
+        "answer_quote": "Mill Lane side entrance",
+        "status": "supported",
+        "reason": "Source message confirms mill lane side for Birch meeting.",
+        "citations": [
+          {
+            "id": "message-5bed0adb3893e5fb57e825ed",
+            "quote": "mill lane side"
+          }
+        ]
+      },
+      {
+        "assertion": "Coffee is on Friday Oct 23",
+        "answer_quote": "Friday Oct 23",
+        "status": "unverifiable",
+        "reason": "Supplied source messages do not give Oct 23 date; source scope is partial.",
+        "citations": []
+      }
+    ]
+  }
+}

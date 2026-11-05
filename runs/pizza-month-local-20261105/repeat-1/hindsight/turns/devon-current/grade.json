@@ -1,0 +1,101 @@
+{
+  "correct": 4,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-day",
+      "verdict": "correct",
+      "reason": "Answer states Sunday, October 25, 2026."
+    },
+    {
+      "id": "devon-time",
+      "verdict": "correct",
+      "reason": "Answer states 6pm for that outing."
+    },
+    {
+      "id": "devon-venue",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's."
+    },
+    {
+      "id": "devon-street",
+      "verdict": "correct",
+      "reason": "Answer states on 5th Street."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Correct street conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "devon-day",
+        "status": "supported",
+        "reason": "Provider tool result explicitly states rescheduled dinner to Sunday, October 25, 2026.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Sunday, October 25, 2026"
+          }
+        ]
+      },
+      {
+        "id": "devon-time",
+        "status": "supported",
+        "reason": "Provider tool result explicitly states 6pm for that rescheduled dinner.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "at 6pm at Luigi's on 5th Street"
+          }
+        ]
+      },
+      {
+        "id": "devon-venue",
+        "status": "supported",
+        "reason": "Provider tool result explicitly states Luigi's for that date.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "at Luigi's on 5th Street"
+          }
+        ]
+      },
+      {
+        "id": "devon-street",
+        "status": "supported",
+        "reason": "Provider tool result explicitly states Luigi's on 5th Street.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Luigi's on 5th Street"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

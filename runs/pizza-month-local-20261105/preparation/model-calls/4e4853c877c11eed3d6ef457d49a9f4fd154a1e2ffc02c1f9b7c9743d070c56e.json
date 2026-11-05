@@ -1,0 +1,129 @@
+{
+  "created_at": "2026-10-15T14:38:39.735394+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya. Use only these speaker labels.\nConversation date: 2026-09-15. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 20:25 local time. Keep references to the current time of day consistent with that window.\nScenario: Maya and the user arrange an easy Friday catch-up over pizza. They know each other; keep it casual.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. They agree to pizza this Friday at 1 pm at Rosa's on Oak Street.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 40 and 80 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e56ffe2be51e45b6455c",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075103.0,
+    "completed_at": 1792075119.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e56ffe2be51e45b6455c:rs_01a13ffffeea70e199d7d33b91a2a73c",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Balancing iMessage scenario constraints for speaker labeling and pronoun usage."
+          },
+          {
+            "type": "summary_text",
+            "text": "Applying iMessage constraints to speaker labels, pronouns, timestamps, and message count."
+          },
+          {
+            "type": "summary_text",
+            "text": "Applying iMessage constraints to message formatting, speaker labeling, and content length while drafting the dialogue."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating the dialogue meets iMessage limits and contains the Friday pizza proposal."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adjusting wording to remove date ambiguity and confirming speaker labels and JSON formatting."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a1400038177583a5f1feca67edbb32",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: finally home ugh\\nMe: same, took me forever to get out of the parking lot\\nMaya: did you end up staying late?\\nMe: yeah like 20 mins, nothing crazy\\nMaya: nice, I'm just heating up leftovers\\nMe: what'd you have?\\nMaya: that veggie stir fry from yesterday, still pretty good\\nMe: oh nice, I had a sad desk salad lol\\nMaya: lol classic\\nMaya: hey we still need to catch up properly soon\\nMe: yes! it's been too long\\nMaya: wanna do something easy like pizza on Friday?\\nMe: yes please, I'm craving pizza\\nMaya: same, how about Rosa's on Oak Street?\\nMe: oh I love that place\\nMaya: right? their garlic knots are dangerous\\nMe: seriously, I always eat too many\\nMaya: okay so Friday at 1 pm?\\nMe: yeah that works for me\\nMaya: perfect\\nMe: are you working from home that day?\\nMaya: yeah, so I can just walk over\\nMe: nice, I'm in office but I can slip out for lunch\\nMaya: how long can you stay?\\nMe: probably like an hour, hour and a half?\\nMaya: that's plenty\\nMe: did you see they redid the patio there?\\nMaya: no! is it nice now?\\nMe: yeah way more tables, less wobbly chairs lol\\nMaya: thank god those chairs were scary\\nMe: right?\\nMaya: btw are you still doing that pottery class?\\nMe: yeah tomorrow night is week 3\\nMaya: how's it going?\\nMe: messy but fun, my bowl looks lopsided\\nMaya: that's the charm tho\\nMe: that's what the teacher says too lol\\nMaya: my sister wants to join one, I'll send her your studio\\nMe: yes do it, Tuesday guy is super chill\\nMaya: oh cool, I'll tell her\\nMe: what are you up to tomorrow?\\nMaya: just work and laundry, thrilling stuff\\nMe: lol same, I need to water my plants too they're dying\\nMaya: oh no, my basil already gave up\\nMe: RIP basil\\nMaya: lol it'll be resurrected from the grocery store\\nMe: hahaha fair\\nMaya: okay so I'm excited for Friday, been craving their pepperoni\\nMe: same, I'm getting a side salad to pretend I'm healthy\\nMaya: lol get the knots too, balance\\nMe: exactly, perfect balance\\nMaya: okay gonna go eat before this gets cold, talk later?\", \"writer_note\": \"I buried the pizza plan in evening small talk about work, leftovers, and pottery so the agreement feels casual, with a clear proposal-acceptance pair for place and time.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 516,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2921,
+      "output_tokens_details": {
+        "reasoning_tokens": 2194
+      },
+      "total_tokens": 3437
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: finally home ugh\\nMe: same, took me forever to get out of the parking lot\\nMaya: did you end up staying late?\\nMe: yeah like 20 mins, nothing crazy\\nMaya: nice, I'm just heating up leftovers\\nMe: what'd you have?\\nMaya: that veggie stir fry from yesterday, still pretty good\\nMe: oh nice, I had a sad desk salad lol\\nMaya: lol classic\\nMaya: hey we still need to catch up properly soon\\nMe: yes! it's been too long\\nMaya: wanna do something easy like pizza on Friday?\\nMe: yes please, I'm craving pizza\\nMaya: same, how about Rosa's on Oak Street?\\nMe: oh I love that place\\nMaya: right? their garlic knots are dangerous\\nMe: seriously, I always eat too many\\nMaya: okay so Friday at 1 pm?\\nMe: yeah that works for me\\nMaya: perfect\\nMe: are you working from home that day?\\nMaya: yeah, so I can just walk over\\nMe: nice, I'm in office but I can slip out for lunch\\nMaya: how long can you stay?\\nMe: probably like an hour, hour and a half?\\nMaya: that's plenty\\nMe: did you see they redid the patio there?\\nMaya: no! is it nice now?\\nMe: yeah way more tables, less wobbly chairs lol\\nMaya: thank god those chairs were scary\\nMe: right?\\nMaya: btw are you still doing that pottery class?\\nMe: yeah tomorrow night is week 3\\nMaya: how's it going?\\nMe: messy but fun, my bowl looks lopsided\\nMaya: that's the charm tho\\nMe: that's what the teacher says too lol\\nMaya: my sister wants to join one, I'll send her your studio\\nMe: yes do it, Tuesday guy is super chill\\nMaya: oh cool, I'll tell her\\nMe: what are you up to tomorrow?\\nMaya: just work and laundry, thrilling stuff\\nMe: lol same, I need to water my plants too they're dying\\nMaya: oh no, my basil already gave up\\nMe: RIP basil\\nMaya: lol it'll be resurrected from the grocery store\\nMe: hahaha fair\\nMaya: okay so I'm excited for Friday, been craving their pepperoni\\nMe: same, I'm getting a side salad to pretend I'm healthy\\nMaya: lol get the knots too, balance\\nMe: exactly, perfect balance\\nMaya: okay gonna go eat before this gets cold, talk later?\", \"writer_note\": \"I buried the pizza plan in evening small talk about work, leftovers, and pottery so the agreement feels casual, with a clear proposal-acceptance pair for place and time.\"}",
+  "usage": {
+    "input_tokens": 516,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2921,
+    "output_tokens_details": {
+      "reasoning_tokens": 2194
+    },
+    "total_tokens": 3437
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

@@ -1,0 +1,110 @@
+{
+  "state": "complete",
+  "plan_hash": "d723045e7fb319db04cce8ddb80208c94976f08255f02d21fd3bf54082d09658",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "dinner with Ben settled date place",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850022279,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"0f72c0bf-c531-4a5b-8ede-d46322a317bd\", \"memory\": \"Dinner with Ben was moved from Thursday October 22, 2026 at 7pm to Saturday October 24, 2026 at 7pm at Juniper Cafe, 48 Maple Ave due to Ben's Thursday evening work deadline, which User confirmed.\", \"score\": 0.745109252366156}, {\"id\": \"0e684af2-6833-49e9-aa13-5198c9284065\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday, October 22, 2026 at Juniper Cafe, 48 Maple Ave. Ben suggested it for soup cravings and sent the address by email, User confirmed same place from DMs, and both put it on calendar and fridge note. Ben has a dentist appointment Thursday October 15.\", \"score\": 0.7367744667689592}, {\"id\": \"f1bdfc57-d048-47b6-9946-5f38e96f3aae\", \"memory\": \"User and Ben confirmed dinner stays Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave; Ben's deadline eased after manager moved it back and he offered to revert to original Thursday Oct 22, but User had already swapped things to free Saturday and is busy Thursday, so both kept Saturday with soup craving in soup weather.\", \"score\": 0.6834583866082238}, {\"id\": \"63c8253a-c488-4a79-ac12-4a0197733393\", \"memory\": \"On October 12, 2026 Ben said his coffee maker sputtered again from never descaling it, and User will buy two descalers with Ben paying back at the October 22 Juniper dinner. Ben's blue keyring now lives in his coat, and Ben will send a formal landlord email from his desk on October 13.\", \"score\": 0.6721427251262742}, {\"id\": \"18b1140b-cc1f-44b4-9685-5c8636b974f8\", \"memory\": \"User and Devon moved their dinner at Mario's on Pine Street on October 2, 2026 from 6 p.m. to 7 p.m. because Devon has to stay about 30 minutes late to cover something. They will text when leaving the office, aim for right at 7, use parking in back, and grab a table if first.\", \"score\": 0.6331000132125959}, {\"id\": \"380e59fd-39f6-4546-b613-3c3f9b635da8\", \"memory\": \"User and Devon planned pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 p.m., meeting there after work to beat the dinner rush as a weekend kickoff with no cooking for User. Devon planned to leave work early, park in back and grab a table, with User heading straight from the office and texting when parking.\", \"score\": 0.6214073429014804}, {\"id\": \"5511f910-3311-4fa1-bdb6-0c7f0bc92f66\", \"memory\": \"User and Devon planned pizza dinner at 6pm on Friday, October 23, 2026 at Luigi's on 5th Street, with parking in the back lot and leaving early for traffic on 5th. User cannot do Friday October 16 due to covering work late, so they moved it to not this Friday but the one after.\", \"score\": 0.6093903617405373}, {\"id\": \"f836d3ff-e15a-4d13-82c0-96dc047f1fde\", \"memory\": \"Devon confirmed on September 19, 2026 that Sunday lunch on September 20, 2026 at his mom's house was still on after she texted that morning. She is making extra potato salad for User, and User said they will probably come by after noon.\", \"score\": 0.6071458956918908}, {\"id\": \"e7b886d2-c20b-43dd-b62d-2d4287cedfce\", \"memory\": \"On the evening of September 22, 2026, User cooked lemon pepper chicken in the oven for dinner while stuck waiting, and Devon planned a lazy dinner of cereal after his long meeting.\", \"score\": 0.6037435779511962}, {\"id\": \"196291db-eaeb-4145-baae-4e9814cf5773\", \"memory\": \"Following the September 18, 2026 dinner at Luigi's, Devon ate a leftover slice for breakfast on September 19, 2026 and User still had two slices in the fridge planned for lunch. Both said their garlic knots did not survive the night, with Devon eating his in the car.\", \"score\": 0.6030596561848429}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.62,
+    "input_tokens": 5198,
+    "output_tokens": 816,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-dinner-day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 3,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 3,
+    "points": 3.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-dinner-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "ben-dinner-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "ben-dinner-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "correct": 0,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "dominos-too-far",
+      "verdict": "missed",
+      "reason": "Answer states it has no record that Maya ruled out Domino's, so the too-far reason is absent."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "dominos-too-far",
+      "kind": "unavailable",
+      "reason": "Answer explicitly says it doesn't have that and nothing in notes says it."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "dominos-too-far",
+        "status": "not_found",
+        "reason": "Answer-visible prefetch and tool results contain no mention of Maya ruling out Domino's as too far; only Domino's mention is Devon's team lunch.",
+        "citations": []
+      }
+    ],
+    "extra_assertions": []
+  }
+}

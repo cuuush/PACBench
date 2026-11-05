@@ -1,0 +1,185 @@
+{
+  "provider": "supermemory",
+  "repetition": 1,
+  "input_hash": "2d2b069bd40d7aef42e51d5e11665106112c2b7965eb812764beb1848f4ecaa6",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "supermemory_store",
+      "supermemory_search",
+      "supermemory_forget",
+      "supermemory_profile",
+      "supermemory-save",
+      "supermemory-search",
+      "supermemory-forget",
+      "supermemory-profile"
+    ],
+    "provider": "supermemory",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "supermemory-profile",
+      "arguments": {},
+      "output": "{\"profile\": \"\", \"static_count\": 0, \"dynamic_count\": 0}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "friday-pizza",
+      "at": "2026-10-19T10:00:00-04:00",
+      "session": "friday-recap",
+      "contract_hash": "3413c2b59c5c5a4893830c31bfaa311e098e4133e76d91d2e8dc0a78fdb95dff",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Native source ingestion/processing failed; inspect saved record",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "maya-options",
+      "at": "2026-10-19T10:02:00-04:00",
+      "session": "friday-recap",
+      "contract_hash": "5af5b5ed151b9b831cac9ff8d8c78cf64d82acb224dcdedd028bfca3e9910f05",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "friday-count",
+      "at": "2026-10-19T10:10:00-04:00",
+      "session": "count-fresh",
+      "contract_hash": "18c57767cb936deb9863af030b72f119b14afbc2f6b242fc3a9100ec0335af4e",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "ben-current",
+      "at": "2026-10-19T10:30:00-04:00",
+      "session": "ben-fresh",
+      "contract_hash": "af0dab29a34840c547e3a3660395b20850d95a8eae68fee744b3eac668cca1e4",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "ben-thursday",
+      "at": "2026-10-19T10:32:00-04:00",
+      "session": "ben-fresh",
+      "contract_hash": "95d00f3897d8c28e30fd2d94ceffc3593f35688f18826f24bcf76451e1868c16",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "pond-current",
+      "at": "2026-10-19T10:40:00-04:00",
+      "session": "pond-fresh",
+      "contract_hash": "3a58ab3e356adddcb4792ba585835dd7d22e3f131fcbedb3f5892eab9957e2d5",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "separate-friday",
+      "at": "2026-10-19T10:42:00-04:00",
+      "session": "pond-fresh",
+      "contract_hash": "fc7564bac2041cd5ce7d64438b39fa532a92473436518d5acd7ff3f5d806c14c",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "jen-call",
+      "at": "2026-10-19T10:50:00-04:00",
+      "session": "friday-jen-fresh",
+      "contract_hash": "60b538addb2f20f2080fb21501efc54c374b74a7ba0b4ea4a2a847269c5dd635",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "alex-coffee",
+      "at": "2026-10-19T11:00:00-04:00",
+      "session": "friday-alex-fresh",
+      "contract_hash": "6f36b0e06fbc13e84f40dca291af7bcaa1834ed232e54f391722de4127edb11e",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "leo-attending",
+      "at": "2026-10-19T11:10:00-04:00",
+      "session": "friday-leo-fresh",
+      "contract_hash": "3cadec0875bc79b20e75f4d8b4b03ad1945b8a28017ef44c082b2547b13241b8",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "maya-food",
+      "at": "2026-10-19T11:20:00-04:00",
+      "session": "maya-food-fresh",
+      "contract_hash": "1148f89ee0602494c072583dbf03a1f446c137a91a3074bb6a753f042132bfed",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "alex-entrance",
+      "at": "2026-10-19T11:30:00-04:00",
+      "session": "alex-entrance-fresh",
+      "contract_hash": "3a483250885762679672107cdd4835244c261c1d9bc243a72bef74d7d6b268f0",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "ben-reason",
+      "at": "2026-10-19T11:40:00-04:00",
+      "session": "ben-reason-fresh",
+      "contract_hash": "f03ab8260ba67b65b9704d461e925c46ac4d9e03933b20845963d1e9481c31be",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "devon-friday",
+      "at": "2026-10-19T11:50:00-04:00",
+      "session": "devon-friday-fresh",
+      "contract_hash": "2386420044f1b4794ef7040299e878a887d0669929331966440829e857be05d1",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "devon-current",
+      "at": "2026-10-19T12:00:00-04:00",
+      "session": "devon-current-fresh",
+      "contract_hash": "3f78b7bff28f0d27e0d49702cd8e16213abc72477d96f6311af84113f61ceb84",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: Earlier native import failed; source state unavailable",
+      "error_type": "execution_or_judge"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "c-count",
+      "verdict": "correct",
+      "reason": "Answer describes a single Friday Oct 23 pizza lunch with Maya and no other Friday pizza outing."
+    },
+    {
+      "id": "c-time",
+      "verdict": "correct",
+      "reason": "Answer states the lunch is at 12:30."
+    },
+    {
+      "id": "c-venue",
+      "verdict": "correct",
+      "reason": "Answer states the venue is Mario's on Pine Street."
+    },
+    {
+      "id": "c-street",
+      "verdict": "correct",
+      "reason": "Answer states Pine Street."
+    },
+    {
+      "id": "c-attendees",
+      "verdict": "correct",
+      "reason": "Answer states lunch with Maya and that Leo is out, leaving user and Maya."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "c-count",
+      "kind": "provided",
+      "reason": "Single outing correctly conveyed."
+    },
+    {
+      "id": "c-time",
+      "kind": "provided",
+      "reason": "12:30 correctly stated."
+    },
+    {
+      "id": "c-venue",
+      "kind": "provided",
+      "reason": "Mario's correctly stated."
+    },
+    {
+      "id": "c-street",
+      "kind": "provided",
+      "reason": "Pine Street correctly stated."
+    },
+    {
+      "id": "c-attendees",
+      "kind": "provided",
+      "reason": "User and Maya with Leo out correctly conveyed."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "c-count",
+        "status": "supported",
+        "reason": "Tool result shows Devon Friday moved to Sunday and Maya plan remains as the Friday plan.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "rescheduled dinner from Friday to Sunday, October 25, 2026 at 6pm at Luigi's on 5th Street"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "User and Maya still plan to go to Mario's at noon without Leo"
+          }
+        ]
+      },
+      {
+        "id": "c-time",
+        "status": "supported",
+        "reason": "Tool result states rescheduled time 12:30 on Oct 23.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "rescheduled to 12:30 on October 23, 2026 at Mario's on Pine Street"
+          }
+        ]
+      },
+      {
+        "id": "c-venue",
+        "status": "supported",
+        "reason": "Tool result places Oct 23 plan at Mario's.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "at Mario's on Pine Street"
+          }
+        ]
+      },
+      {
+        "id": "c-street",
+        "status": "supported",
+        "reason": "Tool result places venue on Pine Street.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "at Mario's on Pine Street"
+          }
+        ]
+      },
+      {
+        "id": "c-attendees",
+        "status": "supported",
+        "reason": "Tool result states User and Maya go without Leo and Leo is out.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "User and Maya still plan to go to Mario's at noon without Leo"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Leo is out for the lunch due to work phone coverage until around 5pm"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Rosa's on Oak is temporarily closed so plan moved from Rosa's",
+        "answer_quote": "Rosa's on Oak is temporarily closed, so you moved from Rosa's.",
+        "status": "unverifiable",
+        "reason": "Not found in supplied source evidence which is partial.",
+        "citations": []
+      },
+      {
+        "assertion": "Time pushed from noon because meeting runs until 12:15",
+        "answer_quote": "Pushed from noon because your meeting runs until 12:15.",
+        "status": "unverifiable",
+        "reason": "Not found in supplied source evidence which is partial.",
+        "citations": []
+      },
+      {
+        "assertion": "Maya plans marinara slice with no cheese and no olives dairy-free",
+        "answer_quote": "Maya's plan is marinara slice with no cheese and no olives, dairy-free.",
+        "status": "unverifiable",
+        "reason": "Not found in supplied source evidence which is partial.",
+        "citations": []
+      }
+    ]
+  }
+}

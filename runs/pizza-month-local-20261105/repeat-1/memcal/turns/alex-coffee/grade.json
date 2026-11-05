@@ -1,0 +1,71 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-time",
+      "verdict": "correct",
+      "reason": "Answer states 11am Friday Oct 23 for coffee with Alex."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "correct",
+      "reason": "Answer states Birch Cafe for coffee with Alex."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-time",
+        "status": "supported",
+        "reason": "Prefetch and tool result both show 11am/11:00 for coffee.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Friday 23 October 2026 at 11:00"
+          }
+        ]
+      },
+      {
+        "id": "coffee-venue",
+        "status": "supported",
+        "reason": "Tool result explicitly lists Birch Cafe as where.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Birch Cafe, front entrance on Birch Street"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Entrance is front entrance on Birch Street",
+        "answer_quote": "front entrance on Birch Street",
+        "status": "unverifiable",
+        "reason": "No supplied source message mentions front entrance; source set is partial.",
+        "citations": []
+      }
+    ]
+  }
+}

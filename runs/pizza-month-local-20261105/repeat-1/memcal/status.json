@@ -1,0 +1,642 @@
+{
+  "provider": "memcal",
+  "repetition": 1,
+  "input_hash": "2d2b069bd40d7aef42e51d5e11665106112c2b7965eb812764beb1848f4ecaa6",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "memcal_open",
+      "memcal_open_page",
+      "memcal_search_wiki",
+      "memcal_open_source",
+      "memcal_conversation",
+      "memcal_list_days",
+      "memcal_list_month",
+      "memcal_search_archive",
+      "memcal_activity",
+      "memcal_refresh",
+      "memcal_add",
+      "memcal_update",
+      "memcal_schedule",
+      "memcal_move_once",
+      "memcal_merge",
+      "memcal_drop",
+      "memcal_todo",
+      "memcal_answer",
+      "memcal_note",
+      "memcal_alias",
+      "memcal_reviewed"
+    ],
+    "provider": "memcal",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "memcal_list_days",
+      "arguments": {},
+      "output": "{\"from\": \"2026-09-11\", \"to\": \"2026-09-11\", \"weekday\": \"Friday\", \"rows\": [], \"free\": true}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "friday-pizza",
+      "at": "2026-10-19T10:00:00-04:00",
+      "session": "friday-recap",
+      "contract_hash": "3413c2b59c5c5a4893830c31bfaa311e098e4133e76d91d2e8dc0a78fdb95dff",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 5,
+          "points": 5.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "c-count",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "c-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "c-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "c-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "c-attendees",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "maya-options",
+      "at": "2026-10-19T10:02:00-04:00",
+      "session": "friday-recap",
+      "contract_hash": "5af5b5ed151b9b831cac9ff8d8c78cf64d82acb224dcdedd028bfca3e9910f05",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "ValueError: unusable semantic judge response: '{\"verdicts\": [{\"id\": \"dominos-too-far\", \"verdict\": \"correct\", \"reason\": \"Answer states Domino\\'s was ruled out as too far across town when Rosa\\'s is right there, matching the claimed reason.\"}], \"recov'",
+      "error_type": "execution_or_judge"
+    },
+    {
+      "id": "friday-count",
+      "at": "2026-10-19T10:10:00-04:00",
+      "session": "count-fresh",
+      "contract_hash": "18c57767cb936deb9863af030b72f119b14afbc2f6b242fc3a9100ec0335af4e",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "friday-pizza-count",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "ben-current",
+      "at": "2026-10-19T10:30:00-04:00",
+      "session": "ben-fresh",
+      "contract_hash": "af0dab29a34840c547e3a3660395b20850d95a8eae68fee744b3eac668cca1e4",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 3,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 3,
+          "points": 3.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "ben-dinner-day",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "ben-dinner-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "ben-dinner-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "ben-thursday",
+      "at": "2026-10-19T10:32:00-04:00",
+      "session": "ben-fresh",
+      "contract_hash": "95d00f3897d8c28e30fd2d94ceffc3593f35688f18826f24bcf76451e1868c16",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "ben-thursday-no-dinner",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "pond-current",
+      "at": "2026-10-19T10:40:00-04:00",
+      "session": "pond-fresh",
+      "contract_hash": "3a58ab3e356adddcb4792ba585835dd7d22e3f131fcbedb3f5892eab9957e2d5",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "duck-pond-friday-postponed",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "separate-friday",
+      "at": "2026-10-19T10:42:00-04:00",
+      "session": "pond-fresh",
+      "contract_hash": "fc7564bac2041cd5ce7d64438b39fa532a92473436518d5acd7ff3f5d806c14c",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 2,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 2,
+          "points": 2.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "jen-call-status",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "alex-coffee-status",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "jen-call",
+      "at": "2026-10-19T10:50:00-04:00",
+      "session": "friday-jen-fresh",
+      "contract_hash": "60b538addb2f20f2080fb21501efc54c374b74a7ba0b4ea4a2a847269c5dd635",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 2,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 2,
+          "points": 2.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "fact-1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "fact-2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "alex-coffee",
+      "at": "2026-10-19T11:00:00-04:00",
+      "session": "friday-alex-fresh",
+      "contract_hash": "6f36b0e06fbc13e84f40dca291af7bcaa1834ed232e54f391722de4127edb11e",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 2,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 2,
+          "points": 2.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "coffee-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "coffee-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "leo-attending",
+      "at": "2026-10-19T11:10:00-04:00",
+      "session": "friday-leo-fresh",
+      "contract_hash": "3cadec0875bc79b20e75f4d8b4b03ad1945b8a28017ef44c082b2547b13241b8",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "leo-out-friday-pizza",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "maya-food",
+      "at": "2026-10-19T11:20:00-04:00",
+      "session": "maya-food-fresh",
+      "contract_hash": "1148f89ee0602494c072583dbf03a1f446c137a91a3074bb6a753f042132bfed",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "maya-dairy-free-friday",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "alex-entrance",
+      "at": "2026-10-19T11:30:00-04:00",
+      "session": "alex-entrance-fresh",
+      "contract_hash": "3a483250885762679672107cdd4835244c261c1d9bc243a72bef74d7d6b268f0",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "birch-front-entrance",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "ben-reason",
+      "at": "2026-10-19T11:40:00-04:00",
+      "session": "ben-reason-fresh",
+      "contract_hash": "f03ab8260ba67b65b9704d461e925c46ac4d9e03933b20845963d1e9481c31be",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "ben-dinner-reason",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "devon-friday",
+      "at": "2026-10-19T11:50:00-04:00",
+      "session": "devon-friday-fresh",
+      "contract_hash": "2386420044f1b4794ef7040299e878a887d0669929331966440829e857be05d1",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 1,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 1,
+          "points": 1.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "devon-friday-no-pizza",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    },
+    {
+      "id": "devon-current",
+      "at": "2026-10-19T12:00:00-04:00",
+      "session": "devon-current-fresh",
+      "contract_hash": "3f78b7bff28f0d27e0d49702cd8e16213abc72477d96f6311af84113f61ceb84",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 4,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 4,
+          "points": 4.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "devon-day",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "devon-time",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "devon-venue",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            },
+            {
+              "claim_id": "devon-street",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": false,
+              "points": 1.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-11-04T15:38:20.710216+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a natural short email exchange. Subject: Dinner. Participants: Me, Ben; Me is the owner's speaker label, not a spoken name. Date: 2026-10-13, local time 10:00–13:45.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-12 Ben: Hi! Following up on the dinner we arranged in DM to pass along the address.\n\nIt's Juniper Cafe, 48 Maple Ave. Are we still good for 7pm next Thursday, Oct 22?\n2026-10-12 Me: Hi Ben! Yes, that's the same one from our DMs.\n\nConfirming Thursday, Oct 22 at 7pm at Juniper Cafe. Thanks for sending the address — see you there!\n2026-10-12 Ben: Perfect, confirmed — 7pm Thursday at Juniper Cafe. See you then!\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Ben replies to their existing email thread from work to reschedule dinner from Thursday October 22 to Saturday October 24. Include a faithful quoted copy of the actual earlier Thursday email underneath his new reply, preserving its wording and address. The user accepts the change.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Ben asks to move dinner from Thursday October 22 to Saturday October 24 because of a work deadline. The user agrees to 7 pm at Juniper Cafe on October 24.\n2. The old Thursday-at-7 details appear in quoted email history after the reschedule, faithfully copying the actual earlier email including Juniper Cafe's address.\nUse 2–6 short emails. The subject is header metadata; do not put a Subject: prefix inside an email body. Copy quoted earlier messages faithfully; never invent different addresses, dates or wording for them. Return only JSON with dialogue (an array of {\"sender\": \"Name\", \"body\": \"email text\"}) and writer_note (a short string). Bodies may contain paragraphs and quoted replies using escaped newlines."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "default",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6aeb516c9dfb50252c8c4112",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1793806689.0,
+    "completed_at": 1793806700.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6aeb516c9dfb50252c8c4112:rs_01a1a735e41b75a8a44d2141c425bbfe",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Drafting a concise natural email exchange about dinner with correct speaker labels and date."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding a faithful quoted copy of the earlier Thursday email under the new reschedule reply."
+          },
+          {
+            "type": "summary_text",
+            "text": "Formatting the quoted email history with escaped newlines and drafting the acceptance reply."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a1a7360b177543a994b01f14d0bb73",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": [{\"sender\": \"Ben\", \"body\": \"Hi! Writing from work — I just got hit with a work deadline Thursday evening.\\n\\nCan we move dinner from Thursday October 22 to Saturday October 24 instead? 7pm still works for me if that works for you?\\n\\n---\\nOn Oct 12, Ben wrote:\\n> Hi! Following up on the dinner we arranged in DM to pass along the address.\\n>\\n> It's Juniper Cafe, 48 Maple Ave. Are we still good for 7pm next Thursday, Oct 22?\"}, {\"sender\": \"Me\", \"body\": \"No worries, work happens!\\n\\nSaturday, October 24 at 7pm at Juniper Cafe works for me. See you then!\"}], \"writer_note\": \"Ben reschedules for work deadline with faithful quote; Me confirms new date.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 476,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 1577,
+      "output_tokens_details": {
+        "reasoning_tokens": 1330
+      },
+      "total_tokens": 2053
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": [{\"sender\": \"Ben\", \"body\": \"Hi! Writing from work — I just got hit with a work deadline Thursday evening.\\n\\nCan we move dinner from Thursday October 22 to Saturday October 24 instead? 7pm still works for me if that works for you?\\n\\n---\\nOn Oct 12, Ben wrote:\\n> Hi! Following up on the dinner we arranged in DM to pass along the address.\\n>\\n> It's Juniper Cafe, 48 Maple Ave. Are we still good for 7pm next Thursday, Oct 22?\"}, {\"sender\": \"Me\", \"body\": \"No worries, work happens!\\n\\nSaturday, October 24 at 7pm at Juniper Cafe works for me. See you then!\"}], \"writer_note\": \"Ben reschedules for work deadline with faithful quote; Me confirms new date.\"}",
+  "usage": {
+    "input_tokens": 476,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 1577,
+    "output_tokens_details": {
+      "reasoning_tokens": 1330
+    },
+    "total_tokens": 2053
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

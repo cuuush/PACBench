@@ -1,0 +1,124 @@
+{
+  "correct": 3,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "ben-dinner-day",
+      "verdict": "correct",
+      "reason": "Answer states dinner is Saturday, Oct 24."
+    },
+    {
+      "id": "ben-dinner-time",
+      "verdict": "correct",
+      "reason": "Answer states dinner is at 7pm."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "verdict": "correct",
+      "reason": "Answer states venue is Juniper Cafe."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "ben-dinner-day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "ben-dinner-day",
+        "status": "supported",
+        "reason": "Prefetch and tool result list dinner on Sat Oct 24.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Saturday 24 October 2026 at 19:00"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-time",
+        "status": "supported",
+        "reason": "Prefetch shows 7pm and tool shows 19:00 for same dinner.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Saturday 24 October 2026 at 19:00"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-venue",
+        "status": "supported",
+        "reason": "Tool result gives venue as Juniper Cafe.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Juniper Cafe, 48 Maple Ave"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Dinner address is 48 Maple Ave",
+        "answer_quote": "48 Maple Ave",
+        "status": "unverifiable",
+        "reason": "Address not present in supplied source evidence.",
+        "citations": []
+      },
+      {
+        "assertion": "Dinner is confirmed",
+        "answer_quote": "confirmed",
+        "status": "supported",
+        "reason": "Source says just confirmed and all set.",
+        "citations": [
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "just confirmed with the restaurant"
+          }
+        ]
+      },
+      {
+        "assertion": "Dinner was originally Thursday Oct 22 then moved to Saturday due to work deadline",
+        "answer_quote": "You'd originally set Thursday Oct 22, then Ben asked to move it to Saturday because of a work deadline.",
+        "status": "supported",
+        "reason": "Source quotes move request from Thursday Oct 22 and work deadline.",
+        "citations": [
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "Can we move dinner from Thursday October 22 to Saturday October 24 instead?"
+          },
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "I just got hit with a work deadline Thursday evening."
+          }
+        ]
+      }
+    ]
+  }
+}

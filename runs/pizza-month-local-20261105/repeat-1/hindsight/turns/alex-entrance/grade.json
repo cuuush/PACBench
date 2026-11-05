@@ -1,0 +1,65 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "birch-front-entrance",
+      "verdict": "correct",
+      "reason": "Answer explicitly directs to use the front entrance on Birch Street for Friday, matching the claimed entrance."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "birch-front-entrance",
+      "kind": "provided",
+      "reason": "Answer states the front-entrance direction."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "birch-front-entrance",
+        "status": "not_found",
+        "reason": "Provider tool output attaches front-entrance use to Oct 16 and lists Oct 23 coffee as cancelled, with no entrance stated for Oct 23.",
+        "citations": []
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Front entrance has a ramp",
+        "answer_quote": "with the ramp",
+        "status": "supported",
+        "reason": "Source message states a temporary step-free ramp was put at the front entrance on birch street.",
+        "citations": [
+          {
+            "id": "message-3f05caca508218ccf4fe4058",
+            "quote": "they put in a temporary step-free ramp at the front entrance on birch street"
+          }
+        ]
+      },
+      {
+        "assertion": "Mill Lane side is closed through Oct 25",
+        "answer_quote": "Mill Lane side is still closed through Oct 25",
+        "status": "supported",
+        "reason": "Source message states side entrance on mill lane is closed through the end of next week, covering the Oct 25 period.",
+        "citations": [
+          {
+            "id": "message-abbc7e8899c3d8425158835d",
+            "quote": "side entrance on mill lane is closed through the end of next week"
+          }
+        ]
+      },
+      {
+        "assertion": "Friday Oct 23 coffee with Alex at Birch is cancelled for work training",
+        "answer_quote": "your Friday Oct 23 coffee with Alex at Birch is cancelled for his work training",
+        "status": "unverifiable",
+        "reason": "Supplied source messages contain no mention of cancellation or training; absence is unverifiable.",
+        "citations": []
+      }
+    ]
+  }
+}

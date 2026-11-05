@@ -1,0 +1,123 @@
+{
+  "state": "captured",
+  "started": "2026-11-05T04:38:05.307335+00:00",
+  "finished": "2026-11-05T04:38:24.420343+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 3,
+      "input_tokens": 10886,
+      "output_tokens": 539,
+      "accounted_upper_bound_usd": 0.0011964,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 1,
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted_upper_bound_usd": 0.3145728,
+      "unsettled_calls": 1
+    }
+  },
+  "model_calls": [
+    {
+      "id": "bfaf93f09a6144cd88448a621420f017",
+      "project": "pacbench-bd4c59544332-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T04:38:07.717206+00:00",
+      "finished": "2026-11-05T04:38:09.147455+00:00",
+      "state": "settled",
+      "input_tokens": 320,
+      "output_tokens": 160,
+      "accounted": 64000,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 141,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 6.4e-05
+    },
+    {
+      "id": "f0efa3e1807f48be96ce647cf966574c",
+      "project": "pacbench-bd4c59544332-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T04:38:07.717321+00:00",
+      "finished": "2026-11-05T04:38:08.911514+00:00",
+      "state": "settled",
+      "input_tokens": 3071,
+      "output_tokens": 102,
+      "accounted": 327500,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "tool_calls",
+      "reasoning_tokens": 23,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0003275
+    },
+    {
+      "id": "ce46746305974c1697c9fe6a181910c6",
+      "project": "pacbench-bd4c59544332-hindsight-driver",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T04:38:15.445439+00:00",
+      "finished": "2026-11-05T04:38:17.442235+00:00",
+      "state": "settled",
+      "input_tokens": 7495,
+      "output_tokens": 277,
+      "accounted": 804900,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 234,
+      "role": "hermes",
+      "accounted_upper_bound_usd": 0.0008049
+    },
+    {
+      "id": "9bf4690803ad475d8509ff9b4a73243b",
+      "project": "pacbench-bd4c59544332-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T04:38:17.967820+00:00",
+      "finished": null,
+      "state": "reserved",
+      "input_tokens": null,
+      "output_tokens": null,
+      "accounted": 314572800,
+      "reserved": 314572800,
+      "http_status": null,
+      "error_label": null,
+      "finish_reason": null,
+      "reasoning_tokens": null,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.3145728
+    }
+  ],
+  "late_settlements": [
+    {
+      "id": "19f227986c2d4134846ea66623d93f5f",
+      "project": "pacbench-bd4c59544332-hindsight-memory",
+      "model": "muse-spark-1.3-contributor",
+      "endpoint": "chat/completions",
+      "started": "2026-11-05T04:38:01.848117+00:00",
+      "finished": "2026-11-05T04:38:13.286306+00:00",
+      "state": "settled",
+      "input_tokens": 4308,
+      "output_tokens": 1442,
+      "accounted": 719200,
+      "reserved": 314572800,
+      "http_status": 200,
+      "error_label": null,
+      "finish_reason": "stop",
+      "reasoning_tokens": 1330,
+      "role": "memory_provider",
+      "accounted_upper_bound_usd": 0.0007192
+    }
+  ],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

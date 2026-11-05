@@ -1,0 +1,139 @@
+{
+  "state": "complete",
+  "plan_hash": "adb5bc6a6b8ec4bb4f65020844aaad93d612c0d21fb1954649aed39435cb2994",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza Friday October 23 Devon Luigi's",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793849819646,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"5511f910-3311-4fa1-bdb6-0c7f0bc92f66\", \"memory\": \"User and Devon planned pizza dinner at 6pm on Friday, October 23, 2026 at Luigi's on 5th Street, with parking in the back lot and leaving early for traffic on 5th. User cannot do Friday October 16 due to covering work late, so they moved it to not this Friday but the one after.\", \"score\": 0.800249634667267}, {\"id\": \"380e59fd-39f6-4546-b613-3c3f9b635da8\", \"memory\": \"User and Devon planned pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 p.m., meeting there after work to beat the dinner rush as a weekend kickoff with no cooking for User. Devon planned to leave work early, park in back and grab a table, with User heading straight from the office and texting when parking.\", \"score\": 0.7749872174511911}, {\"id\": \"ba86cc52-f04f-44d9-8ee1-f4361abffa25\", \"memory\": \"User and Devon moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm at Luigi's on 5th Street same time same place because Devon was put on late shift till close Oct 23; Devon will text when parking, User will grab table if first, back-lot parking easier with 5th still annoying by bank with cones.\", \"score\": 0.7624324054663739}, {\"id\": \"91e7288e-d8d8-41e3-8c59-be17905c279b\", \"memory\": \"User and Devon planned to try pizza at Mario's on Pine Street at 6 p.m. on Friday, October 2, 2026, with User heading straight from work, Devon able to leave on time, parking in back, and plans to text when leaving and grab a table.\", \"score\": 0.7419689067396886}, {\"id\": \"79309d18-ce67-4fe4-a0bd-2a62ed2548d2\", \"memory\": \"User and Devon agreed on October 6, 2026 to meet for pizza Friday on October 9, 2026 at 6:30 PM at Rosa's on Oak Street, heading straight after work, texting when close, with whoever arrives first grabbing a table and parking in the back lot. User said they need real pizza after this week.\", \"score\": 0.7413541788629215}, {\"id\": \"bda2939e-6d68-490d-a9cb-2db68a6c707b\", \"memory\": \"User and Devon agreed Luigi's pizza is far superior to Domino's with no comparison after Luigi's, saying Luigi's garlic knots ruined other pizza for them during their September 22, 2026 chat.\", \"score\": 0.73064896881979}, {\"id\": \"4d96a5ee-4a3a-4293-a30f-c4b3fff1b19e\", \"memory\": \"User, Maya, and Leo agreed to a pizza lunch at noon on Friday, October 9, 2026 at Luigi's on 5th Street instead of Mario's, after saying Mario's olives were way too salty last time despite loving the crust. Leo said he was free after chaos last week, User can walk from work, Maya can bus over, Leo noted parking is better than Pine Street, they will meet out front and text when close, and they discussed Luigi's garlic knots and little parmesan ones.\", \"score\": 0.7078448552766444}, {\"id\": \"196291db-eaeb-4145-baae-4e9814cf5773\", \"memory\": \"Following the September 18, 2026 dinner at Luigi's, Devon ate a leftover slice for breakfast on September 19, 2026 and User still had two slices in the fridge planned for lunch. Both said their garlic knots did not survive the night, with Devon eating his in the car.\", \"score\": 0.6921285288873422}, {\"id\": \"23476b19-a32d-4963-a252-6658bedcf5e5\", \"memory\": \"User and Devon planned on September 23, 2026 to grab pizza at Rosa's on Oak Street at 7pm on Friday, September 25, 2026 after work. Both said they had not been in ages and crave the crust, with User noting Oak is easier than 5th, and they agreed to meet there with User texting when close and Devon grabbing a table.\", \"score\": 0.6901381068428831}, {\"id\": \"fa3b70c0-dae2-4b5b-96b1-b6b303a459c8\", \"memory\": \"On October 3, 2026, User and Devon confirmed Luigi's is on 5th Street by the bank construction, first mentioned September 16, 2026, for Devon's coworker, noting back-lot parking is easier, and User planned to take Oak instead if 5th was still blocked.\", \"score\": 0.6899100273070401}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 19.05,
+    "input_tokens": 5328,
+    "output_tokens": 811,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "c-count",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad 'deal with pizza on Friday' is not explicit request for count."
+    },
+    {
+      "id": "c-time",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for time."
+    },
+    {
+      "id": "c-venue",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for venue."
+    },
+    {
+      "id": "c-street",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for street."
+    },
+    {
+      "id": "c-attendees",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for attendee list."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "skip_reason": "no_initial_correct_facts",
+  "score": {
+    "initial_correct": 0,
+    "initial_missed": 5,
+    "initial_misrepresented": 0,
+    "max_points": 5,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "c-count",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "c-time",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "c-venue",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "c-street",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "c-attendees",
+        "initial_verdict": "missed",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 1,
+  "claims": [
+    {
+      "id": "jen-call-status",
+      "verdict": "correct",
+      "reason": "Answer states 'Jen call is still on — 10am Friday Oct 23' matching remains-agreed claim."
+    },
+    {
+      "id": "alex-coffee-status",
+      "verdict": "misrepresented",
+      "reason": "Answer states 'Alex coffee is off' contradicting claim it remains agreed."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "jen-call-status",
+      "kind": "provided",
+      "reason": "Answer provides still-on status for Jen Oct 23 call."
+    },
+    {
+      "id": "alex-coffee-status",
+      "kind": "incorrect",
+      "reason": "Answer asserts opposite value (off) for that fact."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "jen-call-status",
+        "status": "supported",
+        "reason": "Tool result records agreed 10am review call on Friday Oct 23 with no cancellation.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "have a 10am review call with user on Friday, October 23, 2026"
+          }
+        ]
+      },
+      {
+        "id": "alex-coffee-status",
+        "status": "contradicted",
+        "reason": "Tool result explicitly states Alex can't do Oct 23 due to training.",
+        "citations": [
+          {
+            "id": "tool-result-2",
+            "quote": "Alex can't do October 23 because work put a training on his calendar that afternoon"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Jen call is at 10am",
+        "answer_quote": "10am Friday Oct 23",
+        "status": "supported",
+        "reason": "Source message confirms 10am call next Friday.",
+        "citations": [
+          {
+            "id": "message-4e4285b8102abef5e6ebf6d5",
+            "quote": "10am call next friday to review it"
+          }
+        ]
+      },
+      {
+        "assertion": "Jen call is for the cover letter",
+        "answer_quote": "for the cover letter",
+        "status": "unverifiable",
+        "reason": "Supplied source messages mention review but not cover letter.",
+        "citations": []
+      },
+      {
+        "assertion": "Jen's mom arrives that afternoon",
+        "answer_quote": "before her mom arrives that afternoon",
+        "status": "unverifiable",
+        "reason": "No mom arrival in supplied source messages.",
+        "citations": []
+      },
+      {
+        "assertion": "Alex can't do due to work training that afternoon",
+        "answer_quote": "work put a training on that afternoon",
+        "status": "unverifiable",
+        "reason": "No training mention in supplied source messages.",
+        "citations": []
+      }
+    ]
+  }
+}

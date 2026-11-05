@@ -1,0 +1,137 @@
+{
+  "created_at": "2026-10-15T14:45:01.054746+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": {
+              "$pacbench_text": [
+                "79829ff46fb17dae8ddc606d25ed7fcaf8cbddf2831081b1dffe10913e769db0",
+                "806b77af2f1e24fde2d1592eee8d27da60eaf88860664c6fee587db298bc7714",
+                "1d5ed715615b58009ff469967f2e5e62a2a342e37680d151f339a49553cb4d2b",
+                "30b1527e41ebc2bb422c6688bb3d2a46b3ef3b89ab493e60cbd4aa390f5b4931",
+                "25e46de0360c1969943d10ee359037244ef76758ff20fdc14cd00b39b59cf844",
+                "411c075da1572e16ab451b9acbc04523ea2e249a00e9f6e6b5f3f6720a0fe252",
+                "269b69272ec920592c894e92921ff94c2eb3daa0c01793962b53aa98502583f3",
+                "8d2b2b50231b0a948d751d661b9c20d1b7051f73318fc66816fe62104eba603e"
+              ],
+              "sha256": "b3f5d379ccaab2089a096a1ed0ec86145c236fd1de14265d50e337f447bd2b9a"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e6ec0b263172ebde4fb5",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075488.0,
+    "completed_at": 1792075500.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e6ec0b263172ebde4fb5:rs_01a14005db557609a4e7abcf0719a7a5",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating an iMessage-style conversation with Me and Maya labels, checking date and timestamp constraints while keeping the content as idle speculation without a plan or acceptance."
+          },
+          {
+            "type": "summary_text",
+            "text": "Enforcing speaker labels and time window while avoiding plan commitment and recap of prior details."
+          },
+          {
+            "type": "summary_text",
+            "text": "Extending the dialogue with small talk while keeping responses vague to avoid any implied plan or acceptance."
+          },
+          {
+            "type": "summary_text",
+            "text": "Validating message counts and speaker labels against the dialogue constraints."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a14006076f704aa48a64a4902752a5",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\"dialogue\": \"Maya: sunday is disappearing so fast\\nMe: seriously where did the weekend go\\nMaya: I blinked and it's almost dinner time\\nMe: same, I'm still in blanket mode on the couch\\nMaya: same, laundry is judging me from the corner\\nMe: lol did you ever finish last week's chair pile\\nMaya: no that became permanent decor\\nMe: iconic, I finally folded mine this morning\\nMaya: proud of you honestly\\nMe: how's the grocery store basil holding up\\nMaya: still alive somehow, miracle\\nMe: give it another week lol\\nMaya: don't jinx it\\nMe: my plants are doing better since I actually watered them\\nMaya: plant parent redemption arc continues\\nMe: what did you end up doing today\\nMaya: literally nothing, scrolled, nap, leftovers\\nMe: perfect sunday tbh, what leftovers\\nMaya: just pasta, nothing exciting\\nMe: I had cereal for lunch like a true adult\\nMaya: lol classic sunday meal\\nMaya: oh did you see there's a new pizza place near the station?\\nMe: no? when did that open\\nMaya: I think like last week? saw it walking by\\nMe: oh interesting, what's it called\\nMaya: something with like oven in the name? I forgot\\nMe: lol helpful\\nMaya: I just saw the sign and the line, looked busy\\nMe: that's usually a good sign\\nMaya: yeah wonder if we should try it sometime?\\nMe: maybe yeah, could be fun to check out eventually\\nMaya: like not now now, just someday when we're over there\\nMe: totally, I'm always down for pizza in theory\\nMaya: same, Rosa's still has my heart tho\\nMe: seriously those garlic knots, can't beat\\nMaya: right? dangerous\\nMe: did your sister ever sign up for pottery?\\nMaya: she keeps saying she will, hasn't yet\\nMe: lol tell her Tuesday guy is waiting\\nMaya: I will, how's your wavy bowl doing\\nMe: holding my keys, very functional art\\nMaya: love that for it\\nMe: are you doing anything tonight or just rotting\\nMaya: just rotting, might do a face mask later\\nMe: ooh fancy, I should do laundry round two\\nMaya: ugh don't, enjoy the couch\\nMe: you're right, couch wins\\nMaya: always wins on sundays\\nMe: what are you watching\\nMaya: just some random baking show\\nMe: oh send me the name, I need background noise\\nMaya: will do once this episode ends, it's chaos\", \"writer_note\": \"Kept it a lazy Sunday evening couch chat with callbacks to basil, plants, laundry and pottery, and slipped Maya's vague new-pizza-place idea in as idle someday speculation with no day, time, or acceptance.\"}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 2505,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2411,
+      "output_tokens_details": {
+        "reasoning_tokens": 1678
+      },
+      "total_tokens": 4916
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\"dialogue\": \"Maya: sunday is disappearing so fast\\nMe: seriously where did the weekend go\\nMaya: I blinked and it's almost dinner time\\nMe: same, I'm still in blanket mode on the couch\\nMaya: same, laundry is judging me from the corner\\nMe: lol did you ever finish last week's chair pile\\nMaya: no that became permanent decor\\nMe: iconic, I finally folded mine this morning\\nMaya: proud of you honestly\\nMe: how's the grocery store basil holding up\\nMaya: still alive somehow, miracle\\nMe: give it another week lol\\nMaya: don't jinx it\\nMe: my plants are doing better since I actually watered them\\nMaya: plant parent redemption arc continues\\nMe: what did you end up doing today\\nMaya: literally nothing, scrolled, nap, leftovers\\nMe: perfect sunday tbh, what leftovers\\nMaya: just pasta, nothing exciting\\nMe: I had cereal for lunch like a true adult\\nMaya: lol classic sunday meal\\nMaya: oh did you see there's a new pizza place near the station?\\nMe: no? when did that open\\nMaya: I think like last week? saw it walking by\\nMe: oh interesting, what's it called\\nMaya: something with like oven in the name? I forgot\\nMe: lol helpful\\nMaya: I just saw the sign and the line, looked busy\\nMe: that's usually a good sign\\nMaya: yeah wonder if we should try it sometime?\\nMe: maybe yeah, could be fun to check out eventually\\nMaya: like not now now, just someday when we're over there\\nMe: totally, I'm always down for pizza in theory\\nMaya: same, Rosa's still has my heart tho\\nMe: seriously those garlic knots, can't beat\\nMaya: right? dangerous\\nMe: did your sister ever sign up for pottery?\\nMaya: she keeps saying she will, hasn't yet\\nMe: lol tell her Tuesday guy is waiting\\nMaya: I will, how's your wavy bowl doing\\nMe: holding my keys, very functional art\\nMaya: love that for it\\nMe: are you doing anything tonight or just rotting\\nMaya: just rotting, might do a face mask later\\nMe: ooh fancy, I should do laundry round two\\nMaya: ugh don't, enjoy the couch\\nMe: you're right, couch wins\\nMaya: always wins on sundays\\nMe: what are you watching\\nMaya: just some random baking show\\nMe: oh send me the name, I need background noise\\nMaya: will do once this episode ends, it's chaos\", \"writer_note\": \"Kept it a lazy Sunday evening couch chat with callbacks to basil, plants, laundry and pottery, and slipped Maya's vague new-pizza-place idea in as idle someday speculation with no day, time, or acceptance.\"}",
+  "usage": {
+    "input_tokens": 2505,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2411,
+    "output_tokens_details": {
+      "reasoning_tokens": 1678
+    },
+    "total_tokens": 4916
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

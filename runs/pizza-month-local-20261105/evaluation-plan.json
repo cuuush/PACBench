@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "context": "shared",
+  "checks": [
+    {
+      "id": "friday-pizza",
+      "at": "2026-10-19T10:00:00-04:00",
+      "contract_hash": "3413c2b59c5c5a4893830c31bfaa311e098e4133e76d91d2e8dc0a78fdb95dff",
+      "policy_hash": "adb5bc6a6b8ec4bb4f65020844aaad93d612c0d21fb1954649aed39435cb2994",
+      "session": "friday-recap",
+      "expect": "For Friday there is exactly one agreed pizza outing, at 12:30 pm at Mario's on Pine Street. Its complete attendee list is exactly the user and Maya. Judge the complete current Friday outing count, time, venue/street and attendees. Devon's outing moved to Sunday; it must not be included as a current Friday outing. Correct current details are sufficient without recounting the changes or naming people who are not attending. Clearly labeled history or other days are fine; unresolved old/new alternatives for a current detail are not correct. No meal labels are required."
+    },
+    {
+      "id": "maya-options",
+      "at": "2026-10-19T10:02:00-04:00",
+      "contract_hash": "5af5b5ed151b9b831cac9ff8d8c78cf64d82acb224dcdedd028bfca3e9910f05",
+      "policy_hash": "dd60736495f43fc656c902b779e1145d57115b3bde5223d24210429213b31583",
+      "session": "friday-recap",
+      "expect": "Maya rejected Domino's because it was too far. Only the reason is judged."
+    },
+    {
+      "id": "friday-count",
+      "at": "2026-10-19T10:10:00-04:00",
+      "contract_hash": "18c57767cb936deb9863af030b72f119b14afbc2f6b242fc3a9100ec0335af4e",
+      "policy_hash": "d89b0964e7454e0666db4e0bff2f0ac3690f6266a66a77edee18ab0f3a9b0b2c",
+      "session": "count-fresh",
+      "expect": "Exactly one distinct pizza outing for Friday. Only the current Friday count is judged. Devon's moved outing, older Fridays, venue changes, jokes, coworkers and other people's invitations are not additional Friday outings."
+    },
+    {
+      "id": "ben-current",
+      "at": "2026-10-19T10:30:00-04:00",
+      "contract_hash": "af0dab29a34840c547e3a3660395b20850d95a8eae68fee744b3eac668cca1e4",
+      "policy_hash": "d723045e7fb319db04cce8ddb80208c94976f08255f02d21fd3bf54082d09658",
+      "session": "ben-fresh",
+      "expect": "The upcoming dinner with Ben is Saturday at 7 pm at Juniper Cafe. Judge the current day, time and venue."
+    },
+    {
+      "id": "ben-thursday",
+      "at": "2026-10-19T10:32:00-04:00",
+      "contract_hash": "95d00f3897d8c28e30fd2d94ceffc3593f35688f18826f24bcf76451e1868c16",
+      "policy_hash": "25f2291b1c033f8dabcae303bd0ba472b85aa843c9691e6cea73531dff246e79",
+      "session": "ben-fresh",
+      "expect": "No dinner with Ben remains agreed for Thursday."
+    },
+    {
+      "id": "pond-current",
+      "at": "2026-10-19T10:40:00-04:00",
+      "contract_hash": "3a58ab3e356adddcb4792ba585835dd7d22e3f131fcbedb3f5892eab9957e2d5",
+      "policy_hash": "0a153eb679b5b1b83ac53e1dfbad1e9370080ccfbc46b0346c9271fd52b0a879",
+      "session": "pond-fresh",
+      "expect": "The Friday duck-pond meetup was postponed."
+    },
+    {
+      "id": "separate-friday",
+      "at": "2026-10-19T10:42:00-04:00",
+      "contract_hash": "fc7564bac2041cd5ce7d64438b39fa532a92473436518d5acd7ff3f5d806c14c",
+      "policy_hash": "a6de8fff4a6de136fee357dcd153bb555d19ff8c7af60fe40ffd1bae0485cdca",
+      "session": "pond-fresh",
+      "expect": "No. The separate Friday 10 am job-application call with Jen and Friday 11 am coffee with Alex at Birch Cafe are still agreed. Judge whether each was cancelled, not extra appointment details."
+    },
+    {
+      "id": "jen-call",
+      "at": "2026-10-19T10:50:00-04:00",
+      "contract_hash": "60b538addb2f20f2080fb21501efc54c374b74a7ba0b4ea4a2a847269c5dd635",
+      "policy_hash": "cfb740b16ffec8c3e691d471f65351aa0f9f9d5f631eeabedf01b5aee484d59e",
+      "session": "friday-jen-fresh"
+    },
+    {
+      "id": "alex-coffee",
+      "at": "2026-10-19T11:00:00-04:00",
+      "contract_hash": "6f36b0e06fbc13e84f40dca291af7bcaa1834ed232e54f391722de4127edb11e",
+      "policy_hash": "5318d39459569c9fdf6b39e71166344a8a0f474b02bb9de700dea74f39e0a017",
+      "session": "friday-alex-fresh",
+      "expect": "Friday coffee with Alex is at 11 am at Birch Cafe. Judge the time and venue."
+    },
+    {
+      "id": "leo-attending",
+      "at": "2026-10-19T11:10:00-04:00",
+      "contract_hash": "3cadec0875bc79b20e75f4d8b4b03ad1945b8a28017ef44c082b2547b13241b8",
+      "policy_hash": "45328c842d073a47002e4f79f3e3b3fa1ac166c6109e6015ec254f9ab6085a26",
+      "session": "friday-leo-fresh",
+      "expect": "No. Leo withdrew from Friday's pizza outing. Only whether Leo is attending is judged."
+    },
+    {
+      "id": "maya-food",
+      "at": "2026-10-19T11:20:00-04:00",
+      "contract_hash": "1148f89ee0602494c072583dbf03a1f446c137a91a3074bb6a753f042132bfed",
+      "policy_hash": "3f5afd883ec815a180695104227366179e667fbb9ee04112b03a66c34d050c33",
+      "session": "maya-food-fresh",
+      "expect": "Maya currently needs dairy-free food. A clear dairy-free answer is sufficient; do not require listing forbidden variants. Saying only lactose-free is insufficient because she explicitly asked to avoid dairy entirely."
+    },
+    {
+      "id": "alex-entrance",
+      "at": "2026-10-19T11:30:00-04:00",
+      "contract_hash": "3a483250885762679672107cdd4835244c261c1d9bc243a72bef74d7d6b268f0",
+      "policy_hash": "93b837160a67d2f22fe30bed2127afea6d0778cbdcf6e76ed61c21f0496b8285",
+      "session": "alex-entrance-fresh",
+      "expect": "Use the front entrance at Birch Cafe."
+    },
+    {
+      "id": "ben-reason",
+      "at": "2026-10-19T11:40:00-04:00",
+      "contract_hash": "f03ab8260ba67b65b9704d461e925c46ac4d9e03933b20845963d1e9481c31be",
+      "policy_hash": "235ab9cd4e9ac474ff60637d69b55d75fea7f58bfa6db51ba55b351b21d540fd",
+      "session": "ben-reason-fresh",
+      "expect": "Ben's reason was a work deadline."
+    },
+    {
+      "id": "devon-friday",
+      "at": "2026-10-19T11:50:00-04:00",
+      "contract_hash": "2386420044f1b4794ef7040299e878a887d0669929331966440829e857be05d1",
+      "policy_hash": "f612f5017c54676712ebee1ad76939c98158e8e212074b51a4924b98548817f6",
+      "session": "devon-friday-fresh",
+      "expect": "No. There is no longer an agreed Friday pizza outing with Devon. Only the current Friday status is judged; explaining the new date is optional."
+    },
+    {
+      "id": "devon-current",
+      "at": "2026-10-19T12:00:00-04:00",
+      "contract_hash": "3f78b7bff28f0d27e0d49702cd8e16213abc72477d96f6311af84113f61ceb84",
+      "policy_hash": "3870df7c9d23324a5130d397b06b00fed9d1ca7ec69fc9b37e8cb382d8871ae1",
+      "session": "devon-current-fresh",
+      "expect": "The only upcoming pizza outing with Devon is Sunday at 6 pm at Luigi's on 5th Street. Judge the current day, time and venue/street. Recounting the old Friday plan is optional; do not present it as a current alternative."
+    }
+  ],
+  "plan_hash": "0a96a68775a728f2e472e0cfff561883ae681e3ce674c4774a23adde9cfbaa59"
+}

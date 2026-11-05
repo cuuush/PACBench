@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "235ab9cd4e9ac474ff60637d69b55d75fea7f58bfa6db51ba55b351b21d540fd",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "dinner moved off Thursday why",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850512844,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"0f72c0bf-c531-4a5b-8ede-d46322a317bd\", \"memory\": \"Dinner with Ben was moved from Thursday October 22, 2026 at 7pm to Saturday October 24, 2026 at 7pm at Juniper Cafe, 48 Maple Ave due to Ben's Thursday evening work deadline, which User confirmed.\", \"score\": 0.7637236045358717}, {\"id\": \"f1bdfc57-d048-47b6-9946-5f38e96f3aae\", \"memory\": \"User and Ben confirmed dinner stays Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave; Ben's deadline eased after manager moved it back and he offered to revert to original Thursday Oct 22, but User had already swapped things to free Saturday and is busy Thursday, so both kept Saturday with soup craving in soup weather.\", \"score\": 0.7205853204366981}, {\"id\": \"18b1140b-cc1f-44b4-9685-5c8636b974f8\", \"memory\": \"User and Devon moved their dinner at Mario's on Pine Street on October 2, 2026 from 6 p.m. to 7 p.m. because Devon has to stay about 30 minutes late to cover something. They will text when leaving the office, aim for right at 7, use parking in back, and grab a table if first.\", \"score\": 0.7068809354435746}, {\"id\": \"5511f910-3311-4fa1-bdb6-0c7f0bc92f66\", \"memory\": \"User and Devon planned pizza dinner at 6pm on Friday, October 23, 2026 at Luigi's on 5th Street, with parking in the back lot and leaving early for traffic on 5th. User cannot do Friday October 16 due to covering work late, so they moved it to not this Friday but the one after.\", \"score\": 0.6927990973417919}, {\"id\": \"c1e0f8e0-c3f1-49fa-b569-3a1dceb14bba\", \"memory\": \"The Friday crew pizza lunch at Mario's on Pine was moved from noon to 1 p.m. on Friday, September 25, 2026 because Maya's 1:30 appointment was moved to noon into lunch, expected done by 12:45, with plan to meet out front at 1 and Maya wanting garlic knots.\", \"score\": 0.6635744262529659}, {\"id\": \"ba86cc52-f04f-44d9-8ee1-f4361abffa25\", \"memory\": \"User and Devon moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm at Luigi's on 5th Street same time same place because Devon was put on late shift till close Oct 23; Devon will text when parking, User will grab table if first, back-lot parking easier with 5th still annoying by bank with cones.\", \"score\": 0.6396513906249116}, {\"id\": \"0e684af2-6833-49e9-aa13-5198c9284065\", \"memory\": \"User and Ben confirmed dinner at 7pm on Thursday, October 22, 2026 at Juniper Cafe, 48 Maple Ave. Ben suggested it for soup cravings and sent the address by email, User confirmed same place from DMs, and both put it on calendar and fridge note. Ben has a dentist appointment Thursday October 15.\", \"score\": 0.6302540674201482}, {\"id\": \"f8d3b0b7-dc9b-4d3b-a657-967b196ac87f\", \"memory\": \"The Friday crew decided not to return to the sandwich place from last week for lunch because service took forever and the line was too long, ruling it out for the Friday, September 25, 2026 pizza plan.\", \"score\": 0.6299396599878285}, {\"id\": \"380e59fd-39f6-4546-b613-3c3f9b635da8\", \"memory\": \"User and Devon planned pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 p.m., meeting there after work to beat the dinner rush as a weekend kickoff with no cooking for User. Devon planned to leave work early, park in back and grab a table, with User heading straight from the office and texting when parking.\", \"score\": 0.6266796954209384}, {\"id\": \"f836d3ff-e15a-4d13-82c0-96dc047f1fde\", \"memory\": \"Devon confirmed on September 19, 2026 that Sunday lunch on September 20, 2026 at his mom's house was still on after she texted that morning. She is making extra potato salad for User, and User said they will probably come by after noon.\", \"score\": 0.6183751481441143}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 15.0,
+    "input_tokens": 6013,
+    "output_tokens": 710,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "ben-dinner-reason",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "ben-dinner-reason",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

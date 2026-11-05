@@ -1,0 +1,97 @@
+{
+  "correct": 3,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "ben-dinner-day",
+      "verdict": "correct",
+      "reason": "Answer states dinner is 'Saturday, October 24'."
+    },
+    {
+      "id": "ben-dinner-time",
+      "verdict": "correct",
+      "reason": "Answer states dinner is 'at 7pm' on Oct 24."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "verdict": "correct",
+      "reason": "Answer states venue is 'at Juniper Cafe'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "ben-dinner-day",
+      "kind": "provided",
+      "reason": "Answer provides the date."
+    },
+    {
+      "id": "ben-dinner-time",
+      "kind": "provided",
+      "reason": "Answer provides the time."
+    },
+    {
+      "id": "ben-dinner-venue",
+      "kind": "provided",
+      "reason": "Answer provides the venue."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "ben-dinner-day",
+        "status": "supported",
+        "reason": "Tool result states move to Saturday Oct 24 and current plan Oct 24.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "to move it to Saturday, October 24 at 7pm due to a work deadline Thursday evening October 22"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-time",
+        "status": "supported",
+        "reason": "Tool result states Saturday Oct 24 at 7pm.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "to move it to Saturday, October 24 at 7pm"
+          }
+        ]
+      },
+      {
+        "id": "ben-dinner-venue",
+        "status": "supported",
+        "reason": "Tool result states Oct 24 dinner at Juniper Cafe.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "they now plan dinner on October 24, 2026 at 7pm at Juniper Cafe"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Dinner was moved from Thursday the 22nd because of Ben's work deadline.",
+        "answer_quote": "moved from Thursday the 22nd because of Ben's work deadline",
+        "status": "supported",
+        "reason": "Source shows request to move from Thursday Oct 22 and work deadline Thursday evening.",
+        "citations": [
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "Can we move dinner from Thursday October 22 to Saturday October 24 instead?"
+          },
+          {
+            "id": "message-348f3cb3c9e85ad086faa43d",
+            "quote": "I just got hit with a work deadline Thursday evening."
+          }
+        ]
+      }
+    ]
+  }
+}

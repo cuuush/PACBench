@@ -1,0 +1,124 @@
+{
+  "state": "complete",
+  "plan_hash": "3870df7c9d23324a5130d397b06b00fed9d1ca7ec69fc9b37e8cb382d8871ae1",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "meeting Devon for pizza when where",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850590022,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"79309d18-ce67-4fe4-a0bd-2a62ed2548d2\", \"memory\": \"User and Devon agreed on October 6, 2026 to meet for pizza Friday on October 9, 2026 at 6:30 PM at Rosa's on Oak Street, heading straight after work, texting when close, with whoever arrives first grabbing a table and parking in the back lot. User said they need real pizza after this week.\", \"score\": 0.7649203897947319}, {\"id\": \"380e59fd-39f6-4546-b613-3c3f9b635da8\", \"memory\": \"User and Devon planned pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 p.m., meeting there after work to beat the dinner rush as a weekend kickoff with no cooking for User. Devon planned to leave work early, park in back and grab a table, with User heading straight from the office and texting when parking.\", \"score\": 0.7429925708589477}, {\"id\": \"23476b19-a32d-4963-a252-6658bedcf5e5\", \"memory\": \"User and Devon planned on September 23, 2026 to grab pizza at Rosa's on Oak Street at 7pm on Friday, September 25, 2026 after work. Both said they had not been in ages and crave the crust, with User noting Oak is easier than 5th, and they agreed to meet there with User texting when close and Devon grabbing a table.\", \"score\": 0.7427483458167676}, {\"id\": \"ba86cc52-f04f-44d9-8ee1-f4361abffa25\", \"memory\": \"User and Devon moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm at Luigi's on 5th Street same time same place because Devon was put on late shift till close Oct 23; Devon will text when parking, User will grab table if first, back-lot parking easier with 5th still annoying by bank with cones.\", \"score\": 0.7371768481411173}, {\"id\": \"133d748c-9bca-4a4a-bf4f-4dee02f04444\", \"memory\": \"Devon planned to help his mom with groceries on the afternoon of Saturday, September 26, 2026 instead of attending his work team lunch at Domino's. User asked Devon to tell his mom hi.\", \"score\": 0.7317514573991619}, {\"id\": \"91e7288e-d8d8-41e3-8c59-be17905c279b\", \"memory\": \"User and Devon planned to try pizza at Mario's on Pine Street at 6 p.m. on Friday, October 2, 2026, with User heading straight from work, Devon able to leave on time, parking in back, and plans to text when leaving and grab a table.\", \"score\": 0.7295062945052411}, {\"id\": \"d3f9d836-ae65-426a-a10c-0768ff4d45bd\", \"memory\": \"On September 23, 2026 Devon reaffirmed he is passing on his work team's Saturday lunch at Domino's at 2pm on September 26, 2026 to help his mom with groceries instead, saying the team will not drop it after a long meeting that day.\", \"score\": 0.7252100623528597}, {\"id\": \"512fd1f6-45ea-4743-a3ad-aeeb1696af49\", \"memory\": \"User was invited by Devon to Sunday lunch on September 20, 2026 at Devon's mom's house and said they might come, with User telling her thanks. Devon noted his mom makes the potato salad User likes, which made User say they definitely have to come.\", \"score\": 0.7125870640411053}, {\"id\": \"4f4c9005-8d97-473d-8540-a63fb3c4bc7c\", \"memory\": \"Devon had a long day at work on September 22, 2026 because his team would not stop talking in a meeting where they decided on a team lunch at 2 p.m. on Saturday, September 26, 2026 at Domino's near the office. About 5-6 coworkers planned to go, but Devon refused to attend despite his boss saying it would be good for morale.\", \"score\": 0.7011554379162276}, {\"id\": \"196291db-eaeb-4145-baae-4e9814cf5773\", \"memory\": \"Following the September 18, 2026 dinner at Luigi's, Devon ate a leftover slice for breakfast on September 19, 2026 and User still had two slices in the fridge planned for lunch. Both said their garlic knots did not survive the night, with Devon eating his in the car.\", \"score\": 0.6971759491723872}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.54,
+    "input_tokens": 2124,
+    "output_tokens": 1024,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Answer provides the date."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Answer provides the time."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Answer provides the venue."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Answer provides the street."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 4,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 4,
+    "points": 4.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-day",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-time",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-venue",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "devon-street",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

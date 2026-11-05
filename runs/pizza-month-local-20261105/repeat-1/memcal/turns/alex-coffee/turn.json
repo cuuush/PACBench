@@ -1,0 +1,47 @@
+{
+  "prompt": "[Simulated now: 2026-10-19T11:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nWhere and when am I getting coffee with Alex on Friday?",
+  "at": "2026-10-19T11:00:00-04:00",
+  "answer": "11am Friday Oct 23, Birch Cafe, front entrance on Birch Street.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "input": {
+        "ref": "E18"
+      },
+      "timestamp": 1793848266635
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E18  Coffee\n\nwhen: Friday 23 October 2026 at 11:00\nstate: You're going\nwhere: Birch Cafe, front entrance on Birch Street\nwho: Alex\nnote: Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance\nsource: person:Alex\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 16:52 · iMessage with Alex —\n * [2645] Alex · Wed 14 Oct 16:52 · Alex: they put in a temporary step-free ramp at the front entrance on birch street\n  — Tue Oct 13, 2026 12:15 · iMessage with Alex · 1 day earlier —\n * [2351] Alex · Tue 13 Oct 12:15 · Alex: was thinking birch cafe? haven't been in forever\n * [2355] Alex · Tue 13 Oct 12:19 · Alex: would like 11 work? before work stuff gets crazy for me\n * [2360] Alex · Tue 13 Oct 12:27 · me: yeah that works, 11 is perfect\n * [2372] Alex · Tue 13 Oct 12:41 · Alex: can we do their side entrance on mill lane instead? thats step-free\n * [2374] Alex · Tue 13 Oct 12:41 · me: yeah let's just meet at the mill lane side, way easier\n * [2396] Alex · Tue 13 Oct 13:45 · Alex: cool so we're good for 11 at birch, mill lane side?\n * [2397] Alex · Tue 13 Oct 13:45 · me: yep, see you there, don't do more stairs till then\n  — Wed Oct 14, 2026 16:46 · iMessage with Alex · 1 day later —\n * [2635] Alex · Wed 14 Oct 16:46 · Alex: side entrance on mill lane is closed through the end of next week\n * [2682] Alex · Wed 14 Oct 17:19 · Alex: anyway so for friday can we just do the front entrance on birch street instead?\n * [2683] Alex · Wed 14 Oct 17:23 · me: yeah that works, ramp sounds easy\n * [2686] Alex · Wed 14 Oct 17:26 · Alex: yeah 11 is still good for me\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  title: '' -> 'Coffee' (by dream:nightly:born-day)\n  2026-10-14T03:00  location: '' -> 'Birch Cafe, Mill Lane side entrance' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-14T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-14T03:00  note: '' -> 'Alex sprained ankle; use step-free Mill Lane side entrance' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n  2026-10-15T03:00  location: 'Birch Cafe, Mill Lane side entrance' -> 'Birch Cafe, front entrance on Birch Street' (by dream:nightly)\n  2026-10-15T03:00  note: 'Alex sprained ankle; use step-free Mill Lane side entrance' -> 'Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance' (by dream:nightly)",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 8.0,
+  "returncode": 0,
+  "stderr_tail": "\nsession_id: 20261104_221103_599531",
+  "raw_events": 8,
+  "session_id": "20261104_221103_599531",
+  "stderr_full": "\nsession_id: 20261104_221103_599531\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"muse-spark-1.3-contributor\", \"session_id\": \"20261104_221103_599531\", \"timestamp\": 1793848263316}\n{\"type\": \"text\", \"text\": \"Pulling the details for that Friday coffee.\", \"timestamp\": 1793848265795}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"input\": {\"ref\": \"E18\"}, \"timestamp\": 1793848266635}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"output\": \"E18  Coffee\\n\\nwhen: Friday 23 October 2026 at 11:00\\nstate: You're going\\nwhere: Birch Cafe, front entrance on Birch Street\\nwho: Alex\\nnote: Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance\\nsource: person:Alex\\n\\ncited sources (12 line(s)):\\n  — Wed Oct 14, 2026 16:52 · iMessage with Alex —\\n * [2645] Alex · Wed 14 Oct 16:52 · Alex: they put in a temporary step-free ramp at the front entrance on birch street\\n  — Tue Oct 13, 2026 12:15 · iMessage with Alex · 1 day earlier —\\n * [2351] Alex · Tue 13 Oct 12:15 · Alex: was thinking birch cafe? haven't been in forever\\n * [2355] Alex · Tue 13 Oct 12:19 · Alex: would like 11 work? before work stuff gets crazy for me\\n * [2360] Alex · Tue 13 Oct 12:27 · me: yeah that works, 11 is perfect\\n * [2372] Alex · Tue 13 Oct 12:41 · Alex: can we do their side entrance on mill lane instead? thats step-free\\n * [2374] Alex · Tue 13 Oct 12:41 · me: yeah let's just meet at the mill lane side, way easier\\n * [2396] Alex · Tue 13 Oct 13:45 · Alex: cool so we're good for 11 at birch, mill lane side?\\n * [2397] Alex · Tue 13 Oct 13:45 · me: yep, see you there, don't do more stairs till then\\n  — Wed Oct 14, 2026 16:46 · iMessage with Alex · 1 day later —\\n * [2635] Alex · Wed 14 Oct 16:46 · Alex: side entrance on mill lane is closed through the end of next week\\n * [2682] Alex · Wed 14 Oct 17:19 · Alex: anyway so for friday can we just do the front entrance on birch street instead?\\n * [2683] Alex · Wed 14 Oct 17:23 · me: yeah that works, ramp sounds easy\\n * [2686] Alex · Wed 14 Oct 17:26 · Alex: yeah 11 is still good for me\\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\\n\\nchanges:\\n  2026-10-14T03:00  title: '' -> 'Coffee' (by dream:nightly:born-day)\\n  2026-10-14T03:00  location: '' -> 'Birch Cafe, Mill Lane side entrance' (by dream:nightly:born)\\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\\n  2026-10-14T03:00  participants: '' -> '[\\\"Alex\\\"]' (by dream:nightly:born)\\n  2026-10-14T03:00  note: '' -> 'Alex sprained ankle; use step-free Mill Lane side entrance' (by dream:nightly:born)\\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\\n  2026-10-15T03:00  location: 'Birch Cafe, Mill Lane side entrance' -> 'Birch Cafe, front entrance on Birch Street' (by dream:nightly)\\n  2026-10-15T03:00  note: 'Alex sprained ankle; use step-free Mill Lane side entrance' -> 'Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance' (by dream:nightly)\", \"duration_ms\": 13, \"is_error\": false, \"timestamp\": 1793848266648}\n{\"type\": \"text\", \"text\": \"\\n\\n11am Friday Oct\", \"timestamp\": 1793848269341}\n{\"type\": \"text\", \"text\": \" 23, Birch Cafe, front entrance\", \"timestamp\": 1793848269374}\n{\"type\": \"text\", \"text\": \" on Birch Street.\\n\", \"timestamp\": 1793848269405}\n{\"type\": \"result\", \"session_id\": \"20261104_221103_599531\", \"exit_code\": 0, \"text\": \"11am Friday Oct 23, Birch Cafe, front entrance on Birch Street.\", \"tokens\": {\"input\": 10111, \"output\": 430, \"total\": 19486, \"cache_read\": 8945, \"cache_write\": 0}, \"duration_ms\": 6166, \"timestamp\": 1793848269483}",
+  "session_input_tokens": 10111,
+  "session_output_tokens": 430,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-10-19T11:00:00-04:00 [id=2e0a30813596d2685162594574f09434404cf33c] [context=1]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Monday 19 October 2026)\n〔E19〕 Fri Oct 23  \"Cover letter review call\", 10am — confirmed · with Jen\n〔E18〕 Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex\n〔E14〕 Fri Oct 23  \"Pizza lunch\", 12:30pm — confirmed · with Maya\n〔E15〕 Fri Oct 23  \"Walk\", 2pm — not going · from Park pals\n〔E17〕 Sat Oct 24  \"Dinner\", 7pm — confirmed · with Ben\n〔E16〕 Sun Oct 25  \"Pizza dinner\", 6pm — confirmed · with Devon\n[complete for 2026-10-16 – 2026-11-18; look up anything outside that]\n[calendar: memcal_list_month(month='2026-10'); year: memcal_list_days(when='2026-01-01', days=365)]\n[STALE: no imessage 4 days, email 4 days — this week may be incomplete]\n[COLLECTION: groupme (not yet checked), ical (not yet checked), signal (not yet checked) +3 more — recent messages may be missing]\n\n## People and facts\nPages: lunch · maya (diet) · pizza-dinner (where) · pizza-lunch (where)",
+  "context_isolation": {
+    "version": "empty-recall-workspace-v1",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-rt6jvy81",
+    "source": "native Hermes sessions/system_prompts tables",
+    "native_cwd": "/var/tmp/pacbench-chat-rt6jvy81",
+    "system_prompt_sha256": "2e35823f5f0d56c102138788458ff589e7c8be077b0f5e45cecd053ab39566f3",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-10-19T11:00:00-04:00"
+}

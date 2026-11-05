@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "45328c842d073a47002e4f79f3e3b3fa1ac166c6109e6015ec254f9ab6085a26",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E14"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848300738,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E14  Pizza lunch\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nnote: Maya is doing dairy-free test; Mario's has vegan cheese and dairy-free knots Leo: not attending.\nsource: person:Maya\n\npages: maya (person) · pizza-lunch (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 17:14 · iMessage with Maya —\n * [2677] Maya · Wed 14 Oct 17:14 · Maya: yeah that works, 12:30 at Mario's on Pine Street is perfect for me\n  — Wed Oct 14, 2026 13:24 · iMessage with Friday crew —\n * [2579] Friday crew · Wed 14 Oct 13:24 · Leo: i know, you guys should still go tho, don't cancel for me\n * [2581] Friday crew · Wed 14 Oct 13:41 · Maya: yeah i still wanna go if you're still in?\n * [2583] Friday crew · Wed 14 Oct 13:48 · Maya: same, bus is easy for me. so just us two at mario's?\n * [2584] Friday crew · Wed 14 Oct 13:49 · Leo: yeah you two go ahead, i'm out for this one\n * [2605] Friday crew · Wed 14 Oct 15:38 · Maya: yep, out front at noon works for me, i'll text when close\n  — Wed Oct 14, 2026 16:40 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 16:40 · Maya: yeah trying to be strict for a few weeks, no milk cheese butter\n * [2647] Maya · Wed 14 Oct 16:55 · Maya: then i saw Mario's on Pine Street has actual vegan cheese and dairy-free knots?\n * [2667] Maya · Wed 14 Oct 17:08 · Maya: wanna just switch our thing there? same vibe but i can actually eat\n * [2672] Maya · Wed 14 Oct 17:11 · me: yeah let's do Mario's, easier for your test\n * [2675] Maya · Wed 14 Oct 17:13 · me: my meeting on next friday, the 23rd got extended and now it runs till 12:15\n * [2676] Maya · Wed 14 Oct 17:14 · me: can we push from noon to like 12:30 instead?\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  note: 'Maya is doing dairy-free test; plan marinara and no-cheese option' -> \"Maya is doing dairy-free test; Mario's has vegan cheese and dairy-free knots Leo: not attending.\" (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza lunch' -> 'Pizza lunch' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 8.8,
+    "input_tokens": 1774,
+    "output_tokens": 550,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "leo-out-friday-pizza",
+      "kind": "provided",
+      "reason": "Correct fact conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "leo-out-friday-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

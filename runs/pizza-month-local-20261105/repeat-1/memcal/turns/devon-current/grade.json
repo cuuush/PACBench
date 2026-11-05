@@ -1,0 +1,105 @@
+{
+  "correct": 4,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-day",
+      "verdict": "correct",
+      "reason": "Answer states Sunday Oct 25 for Devon pizza."
+    },
+    {
+      "id": "devon-time",
+      "verdict": "correct",
+      "reason": "Answer states 6pm for that meeting."
+    },
+    {
+      "id": "devon-venue",
+      "verdict": "correct",
+      "reason": "Answer states Luigi's as venue."
+    },
+    {
+      "id": "devon-street",
+      "verdict": "correct",
+      "reason": "Answer states on 5th street."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Correct date conveyed in answer."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Correct time conveyed in answer."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Correct venue conveyed in answer."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Correct street conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "devon-day",
+        "status": "supported",
+        "reason": "Prefetch lists Devon pizza dinner on Sun Oct 25.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Oct 25  \"Pizza dinner\", 6pm — confirmed · with Devon"
+          }
+        ]
+      },
+      {
+        "id": "devon-time",
+        "status": "supported",
+        "reason": "Same upcoming line shows 6pm with Devon.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Oct 25  \"Pizza dinner\", 6pm — confirmed · with Devon"
+          }
+        ]
+      },
+      {
+        "id": "devon-venue",
+        "status": "supported",
+        "reason": "Prefetch links Oct 25 pizza dinner to Luigi's and Devon event to pizza dinner.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sun Oct 25  \"Pizza dinner\", 6pm — confirmed · with Devon"
+          },
+          {
+            "id": "prefetch",
+            "quote": "2026-10-25 — Luigi's on 5th street"
+          }
+        ]
+      },
+      {
+        "id": "devon-street",
+        "status": "supported",
+        "reason": "Prefetch shows Luigi's on 5th street for 2026-10-25 instance.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "2026-10-25 — Luigi's on 5th street"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

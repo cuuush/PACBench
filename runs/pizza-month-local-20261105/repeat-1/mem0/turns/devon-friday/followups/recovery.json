@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "f612f5017c54676712ebee1ad76939c98158e8e212074b51a4924b98548817f6",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "pizza with Devon Friday October 23 moved Sunday",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850549526,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"ba86cc52-f04f-44d9-8ee1-f4361abffa25\", \"memory\": \"User and Devon moved pizza from Friday Oct 23 at 6pm to Sunday Oct 25 at 6pm at Luigi's on 5th Street same time same place because Devon was put on late shift till close Oct 23; Devon will text when parking, User will grab table if first, back-lot parking easier with 5th still annoying by bank with cones.\", \"score\": 0.8386103965380595}, {\"id\": \"5511f910-3311-4fa1-bdb6-0c7f0bc92f66\", \"memory\": \"User and Devon planned pizza dinner at 6pm on Friday, October 23, 2026 at Luigi's on 5th Street, with parking in the back lot and leaving early for traffic on 5th. User cannot do Friday October 16 due to covering work late, so they moved it to not this Friday but the one after.\", \"score\": 0.7747385807813578}, {\"id\": \"79309d18-ce67-4fe4-a0bd-2a62ed2548d2\", \"memory\": \"User and Devon agreed on October 6, 2026 to meet for pizza Friday on October 9, 2026 at 6:30 PM at Rosa's on Oak Street, heading straight after work, texting when close, with whoever arrives first grabbing a table and parking in the back lot. User said they need real pizza after this week.\", \"score\": 0.7329437587548049}, {\"id\": \"d3f9d836-ae65-426a-a10c-0768ff4d45bd\", \"memory\": \"On September 23, 2026 Devon reaffirmed he is passing on his work team's Saturday lunch at Domino's at 2pm on September 26, 2026 to help his mom with groceries instead, saying the team will not drop it after a long meeting that day.\", \"score\": 0.7230983536173183}, {\"id\": \"380e59fd-39f6-4546-b613-3c3f9b635da8\", \"memory\": \"User and Devon planned pizza dinner at Luigi's on 5th Street on Friday, September 18, 2026 at 6 p.m., meeting there after work to beat the dinner rush as a weekend kickoff with no cooking for User. Devon planned to leave work early, park in back and grab a table, with User heading straight from the office and texting when parking.\", \"score\": 0.7193155802228646}, {\"id\": \"18b1140b-cc1f-44b4-9685-5c8636b974f8\", \"memory\": \"User and Devon moved their dinner at Mario's on Pine Street on October 2, 2026 from 6 p.m. to 7 p.m. because Devon has to stay about 30 minutes late to cover something. They will text when leaving the office, aim for right at 7, use parking in back, and grab a table if first.\", \"score\": 0.7189254568060336}, {\"id\": \"0f72c0bf-c531-4a5b-8ede-d46322a317bd\", \"memory\": \"Dinner with Ben was moved from Thursday October 22, 2026 at 7pm to Saturday October 24, 2026 at 7pm at Juniper Cafe, 48 Maple Ave due to Ben's Thursday evening work deadline, which User confirmed.\", \"score\": 0.7143319198620439}, {\"id\": \"91e7288e-d8d8-41e3-8c59-be17905c279b\", \"memory\": \"User and Devon planned to try pizza at Mario's on Pine Street at 6 p.m. on Friday, October 2, 2026, with User heading straight from work, Devon able to leave on time, parking in back, and plans to text when leaving and grab a table.\", \"score\": 0.7127279722520321}, {\"id\": \"23476b19-a32d-4963-a252-6658bedcf5e5\", \"memory\": \"User and Devon planned on September 23, 2026 to grab pizza at Rosa's on Oak Street at 7pm on Friday, September 25, 2026 after work. Both said they had not been in ages and crave the crust, with User noting Oak is easier than 5th, and they agreed to meet there with User texting when close and Devon grabbing a table.\", \"score\": 0.7060241811863571}, {\"id\": \"bfd04d13-59bd-4ea7-8a43-e9caac4194f9\", \"memory\": \"Devon's work team dropped the Saturday 2 p.m. gatherings after everyone complained, with User calling 2 p.m. on a Saturday criminal on September 30, 2026, following a disappointing Domino's team lunch.\", \"score\": 0.6963157983494224}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 15.32,
+    "input_tokens": 9267,
+    "output_tokens": 591,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-friday-no-pizza",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-friday-no-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

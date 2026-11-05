@@ -1,0 +1,51 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "ben-dinner-reason",
+      "verdict": "correct",
+      "reason": "Answer states the move off Thursday was because Ben had a work deadline Thursday evening, to Saturday Oct 24."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "ben-dinner-reason",
+      "kind": "provided",
+      "reason": "Answer provides the work-deadline reason for the move."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "ben-dinner-reason",
+        "status": "supported",
+        "reason": "Provider material states the move to Sat Oct 24 was due to work deadline Thu evening Oct 22.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "to move it to Saturday, October 24 at 7pm due to a work deadline Thursday evening October 22"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Dinner moved to Saturday Oct 24",
+        "answer_quote": "you moved it to Saturday Oct 24",
+        "status": "supported",
+        "reason": "Source email proposes moving dinner to Saturday Oct 24.",
+        "citations": [
+          {
+            "id": "message-d81f6556e08e7c01fc206f0a",
+            "quote": "to Saturday October 24 instead"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "maya-dairy-free-friday",
+      "verdict": "correct",
+      "reason": "Answer states Friday Oct 23 is strict dairy-free with no milk, cheese, butter and marinara veggie no-cheese."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "maya-dairy-free-friday",
+      "kind": "provided",
+      "reason": "Correct dairy-free requirement was conveyed."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "maya-dairy-free-friday",
+        "status": "supported",
+        "reason": "Provider material explicitly ties dairy-free no-cheese plan to Oct 23.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "will both do marinara veggie no-cheese for Maya's dairy-free test"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Maya planned to go strictly dairy-free for the next few weeks, avoiding all milk, cheese, and butter not just lactose to test if it helps"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Maya skips olives after salty olive bomb",
+        "answer_quote": "No olives — she got a salty olive bomb last time, now skips them.",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence does not mention olives.",
+        "citations": []
+      },
+      {
+        "assertion": "Maya pushed switch from Rosa's to Mario's for vegan cheese and dairy-free knots",
+        "answer_quote": "She pushed to switch from Rosa's to Mario's for actual vegan cheese + dairy-free knots.",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence does not mention Mario's or vegan cheese.",
+        "citations": []
+      },
+      {
+        "assertion": "Rosa's temporarily closed, Mario's at 12:30 with just you two",
+        "answer_quote": "Note Rosa's is temporarily closed anyway, so you're on for Mario's at 12:30 with just you two.",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence does not mention closure, time or party size.",
+        "citations": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "verdict": "correct",
+      "reason": "Answer states the Oct 23 Willow Park walk is postponed, matching the claimed postponement."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "duck-pond-friday-postponed",
+        "status": "supported",
+        "reason": "Prefetch links duck-pond meeting to Oct 23 Willow Park walk and states that plan is postponed.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "User, Jen and Alex planned a walk at 2pm on Friday, October 23, 2026 at Willow Park, meeting at the west entrance by the duck pond near the playground and big lot off Willow Ave."
+          },
+          {
+            "id": "prefetch",
+            "quote": "Park pals plan for Friday Oct 23 is postponed with no new date"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "No new date has been set for the postponed walk.",
+        "answer_quote": "with no new date",
+        "status": "supported",
+        "reason": "Source shows agreement to pick a new day later, indicating no date set.",
+        "citations": [
+          {
+            "id": "message-859c594225cb760a3c181efe",
+            "quote": "same, we'll pick a new day later"
+          }
+        ]
+      },
+      {
+        "assertion": "Jen has to be home for her mom arriving around lunch.",
+        "answer_quote": "Jen has to be home for her mom arriving around lunch",
+        "status": "unverifiable",
+        "reason": "Supplied source messages do not mention Jen's mom or reason.",
+        "citations": []
+      },
+      {
+        "assertion": "Alex has mandatory work training that afternoon.",
+        "answer_quote": "Alex has mandatory work training that afternoon",
+        "status": "unverifiable",
+        "reason": "Supplied source messages do not mention Alex training reason.",
+        "citations": []
+      }
+    ]
+  }
+}

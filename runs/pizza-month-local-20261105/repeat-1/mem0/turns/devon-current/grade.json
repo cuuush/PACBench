@@ -1,0 +1,101 @@
+{
+  "correct": 4,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-day",
+      "verdict": "correct",
+      "reason": "Answer states 'Sunday, Oct 25' matching Sunday October 25."
+    },
+    {
+      "id": "devon-time",
+      "verdict": "correct",
+      "reason": "Answer states 'at 6pm' for that outing."
+    },
+    {
+      "id": "devon-venue",
+      "verdict": "correct",
+      "reason": "Answer states 'at Luigi's' for that outing."
+    },
+    {
+      "id": "devon-street",
+      "verdict": "correct",
+      "reason": "Answer states 'on 5th Street' for that Luigi's."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-day",
+      "kind": "provided",
+      "reason": "Answer provides the date."
+    },
+    {
+      "id": "devon-time",
+      "kind": "provided",
+      "reason": "Answer provides the time."
+    },
+    {
+      "id": "devon-venue",
+      "kind": "provided",
+      "reason": "Answer provides the venue."
+    },
+    {
+      "id": "devon-street",
+      "kind": "provided",
+      "reason": "Answer provides the street."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "devon-day",
+        "status": "supported",
+        "reason": "Prefetch states the move to Sunday Oct 25.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "to Sunday Oct 25 at 6pm"
+          }
+        ]
+      },
+      {
+        "id": "devon-time",
+        "status": "supported",
+        "reason": "Prefetch states the moved time is at 6pm.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Sunday Oct 25 at 6pm"
+          }
+        ]
+      },
+      {
+        "id": "devon-venue",
+        "status": "supported",
+        "reason": "Prefetch states the venue is Luigi's.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "at Luigi's on 5th Street"
+          }
+        ]
+      },
+      {
+        "id": "devon-street",
+        "status": "supported",
+        "reason": "Prefetch states Luigi's is on 5th Street.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Luigi's on 5th Street"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "state": "complete",
+  "plan_hash": "f612f5017c54676712ebee1ad76939c98158e8e212074b51a4924b98548817f6",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E16"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848471932,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E16  Pizza dinner\n\nwhen: Sunday 25 October 2026 at 18:00\nstate: You're going\nwhere: Luigi's on 5th street\nwho: Devon\nnote: Park in back lot\nsource: person:Devon\n\npages: pizza-dinner (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 22:01 · iMessage with Devon —\n * [2864] Devon · Wed 14 Oct 22:01 · Devon: yep friday is dead, sunday is the plan\n  — Mon Oct 12, 2026 19:21 · iMessage with Devon · 2 days earlier —\n * [1991] Devon · Mon 12 Oct 19:21 · me: parking in back like last time is easier\n * [1993] Devon · Mon 12 Oct 19:21 · Devon: yeah back lot, traffic on 5th is still dumb but whatever\n * [1995] Devon · Mon 12 Oct 19:22 · Devon: is 6 pm good for you that day?\n * [1998] Devon · Mon 12 Oct 19:28 · me: yeah that works\n * [1999] Devon · Mon 12 Oct 19:29 · Devon: perfect, i can leave on time that day, no chart hell\n  — Wed Oct 14, 2026 20:28 · iMessage with Devon · 2 days later —\n * [2818] Devon · Wed 14 Oct 20:28 · Devon: boss just put me on late shift next friday the 23rd\n * [2828] Devon · Wed 14 Oct 20:41 · Devon: like i have to stay till close, no way i can make 6\n * [2835] Devon · Wed 14 Oct 20:46 · Devon: i know, no chart hell but now this. can we move our pizza to sunday the 25th instead?\n * [2837] Devon · Wed 14 Oct 20:47 · Devon: yeah same time same place, just sunday instead of friday\n * [2850] Devon · Wed 14 Oct 21:03 · Devon: yeah 6 at Luigi's on 5th street, just sunday\n * [2863] Devon · Wed 14 Oct 21:59 · me: good, so sunday the 25th then, not friday\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-13T03:00  title: '' -> 'Pizza dinner' (by dream:nightly:born)\n  2026-10-13T03:00  location: '' -> \"Luigi's on 5th street\" (by dream:nightly:born)\n  2026-10-13T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-13T03:00  participants: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-10-13T03:00  series: '' -> 'pizza-dinner' (by dream:nightly:born-day)\n  2026-10-13T03:00  note: '' -> 'Park in back lot' (by dream:nightly:born)\n  2026-10-13T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-25' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.39,
+    "input_tokens": 10272,
+    "output_tokens": 901,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "devon-friday-no-pizza",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "devon-friday-no-pizza",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

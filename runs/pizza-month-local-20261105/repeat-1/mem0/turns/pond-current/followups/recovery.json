@@ -1,0 +1,82 @@
+{
+  "state": "complete",
+  "plan_hash": "0a153eb679b5b1b83ac53e1dfbad1e9370080ccfbc46b0346c9271fd52b0a879",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 1,
+    "total_tool_operations": 1,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "mem0_search",
+        "arguments": {
+          "query": "duck pond Friday Willow Park meeting postponed",
+          "top_k": 10
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793850139587,
+        "result": {
+          "tool": "mem0_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"id\": \"cd043577-f4d2-4a60-936f-81ddc6251cc7\", \"memory\": \"Park pals plan for Friday Oct 23 is postponed with no new date; Jen cannot attend because her mom changed trip to arrive Friday around lunch and Jen must be home all afternoon to let her in, and Alex cannot attend due to mandatory work training that afternoon, with all agreeing to pick a new day later.\", \"score\": 0.7395744684723773}, {\"id\": \"9515c531-80a5-4ba8-b05b-0e8eff8820af\", \"memory\": \"User, Jen and Alex planned a walk at 2pm on Friday, October 23, 2026 at Willow Park, meeting at the west entrance by the duck pond near the playground and big lot off Willow Ave. East entrance is by tennis courts. Plan is about an hour so Alex is back by 4:30, with coffee from the new cart near the park.\", \"score\": 0.7069890094557983}, {\"id\": \"ed6ac09b-41d8-4106-ac64-1cc0f3be72d5\", \"memory\": \"Alex's ankle is better than Oct 13 but still limpy with peas icing between emails; Mill Lane side entrance is closed through end of next week due to building work with scaffolding cones and back-wall work, but staff added temporary step-free metal ramp with rails at front entrance on Birch Street, so User and Alex will meet Friday Oct 16 at 11am at Birch front with User grabbing table early and saving cushioned chair.\", \"score\": 0.6153349866377265}, {\"id\": \"d126efc6-62e1-4f77-ac0b-49806b270af4\", \"memory\": \"For the October 23, 2026 Willow Park walk, Alex will bring his dog who chases squirrels and Jen and User agreed to help, with User bringing treats to be the favorite. Jen has a dentist appointment Friday October 16, and her mom visits Saturday October 24, making Friday timing perfect.\", \"score\": 0.5993975053084897}, {\"id\": \"f68770d6-5411-4df0-aa06-15bb908352fa\", \"memory\": \"Rosa's on Oak Street is temporarily closed with sign on door, so Friday crew switched Friday Oct 23 lunch to Mario's on Pine Street; Leo later dropped out due to work coverage on phones until 5pm, leaving User and Maya meeting 12:30pm out front, pushed from noon because User's meeting runs till 12:15, with no salty olives, crust perfect, and garlic knots pt 2.\", \"score\": 0.5915377118992773}, {\"id\": \"ca4d5750-dc04-406d-9494-174f855fda18\", \"memory\": \"The Friday crew planned to meet out front at Luigi's on 5th Street on October 9, 2026, with Maya taking the bus after early gym, User walking about 10 minutes from work, and Leo driving and planning to text when close, noting parking is better than Pine Street\", \"score\": 0.5872252637990971}, {\"id\": \"c1e0f8e0-c3f1-49fa-b569-3a1dceb14bba\", \"memory\": \"The Friday crew pizza lunch at Mario's on Pine was moved from noon to 1 p.m. on Friday, September 25, 2026 because Maya's 1:30 appointment was moved to noon into lunch, expected done by 12:45, with plan to meet out front at 1 and Maya wanting garlic knots.\", \"score\": 0.5861474764425953}, {\"id\": \"5511f910-3311-4fa1-bdb6-0c7f0bc92f66\", \"memory\": \"User and Devon planned pizza dinner at 6pm on Friday, October 23, 2026 at Luigi's on 5th Street, with parking in the back lot and leaving early for traffic on 5th. User cannot do Friday October 16 due to covering work late, so they moved it to not this Friday but the one after.\", \"score\": 0.565866751699921}, {\"id\": \"f8d3b0b7-dc9b-4d3b-a657-967b196ac87f\", \"memory\": \"The Friday crew decided not to return to the sandwich place from last week for lunch because service took forever and the line was too long, ruling it out for the Friday, September 25, 2026 pizza plan.\", \"score\": 0.5645108974195648}, {\"id\": \"f1bdfc57-d048-47b6-9946-5f38e96f3aae\", \"memory\": \"User and Ben confirmed dinner stays Saturday Oct 24 at 7pm at Juniper Cafe, 48 Maple Ave; Ben's deadline eased after manager moved it back and he offered to revert to original Thursday Oct 22, but User had already swapped things to free Saturday and is busy Thursday, so both kept Saturday with soup craving in soup weather.\", \"score\": 0.5574729012506623}], \"count\": 10}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 17.43,
+    "input_tokens": 5330,
+    "output_tokens": 739,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 1.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "duck-pond-friday-postponed",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "ben-dinner-reason",
+      "verdict": "correct",
+      "reason": "Answer states Ben had Thursday evening work deadline and move to Saturday Oct 24, matching the claimed reason."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "ben-dinner-reason",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "ben-dinner-reason",
+        "status": "supported",
+        "reason": "Prefetch directly states the move from Thursday Oct 22 and the Thursday evening work deadline reason.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Dinner with Ben was moved from Thursday October 22, 2026 at 7pm to Saturday October 24, 2026 at 7pm at Juniper Cafe, 48 Maple Ave due to Ben's Thursday evening work deadline, which User confirmed."
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The dinner was moved to Saturday Oct 24.",
+        "answer_quote": "you moved it to Saturday Oct 24",
+        "status": "supported",
+        "reason": "Source email proposes moving dinner to Saturday Oct 24.",
+        "citations": [
+          {
+            "id": "message-d81f6556e08e7c01fc206f0a",
+            "quote": "Can we move dinner from Thursday October 22 to Saturday October 24 instead?"
+          }
+        ]
+      }
+    ]
+  }
+}

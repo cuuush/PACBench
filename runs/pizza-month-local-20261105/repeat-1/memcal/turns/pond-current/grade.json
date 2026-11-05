@@ -1,0 +1,95 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "verdict": "correct",
+      "reason": "Answer explicitly states the Friday Oct 23 2pm Willow Park duck-pond walk was postponed."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "duck-pond-friday-postponed",
+      "kind": "provided",
+      "reason": "Postponement correctly conveyed, no recovery needed."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "duck-pond-friday-postponed",
+        "status": "supported",
+        "reason": "Provider material shows the Oct 23 walk at Willow Park duck pond location and explicit postpone/pause agreement.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "where: Willow Park, west entrance by the duck pond"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Friday 23 October 2026 at 14:00"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah let's just postpone then, that makes sense"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yes please, postponing is better"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "same, we'll pick a new day later"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The walk is Friday Oct 23 at 2pm at Willow Park west entrance by the duck pond",
+        "answer_quote": "Friday Oct 23 at 2pm at Willow Park (west entrance by the duck pond)",
+        "status": "supported",
+        "reason": "Source evidence shows willow park duck-pond meetup and Friday at 2 timing.",
+        "citations": [
+          {
+            "id": "message-27628b1cda9c3d279996c8e3",
+            "quote": "okay so willow park, meet at the west entrance by the duck pond?"
+          },
+          {
+            "id": "message-338b7e9dc45d2500a978b207",
+            "quote": "so next friday at 2, west side"
+          }
+        ]
+      },
+      {
+        "assertion": "Alex and Jen both can't do it",
+        "answer_quote": "Alex and Jen both can't do it",
+        "status": "unverifiable",
+        "reason": "Source evidence shows Jen can't do the 23rd but contains no Alex can't-do statement in the supplied partial sources.",
+        "citations": [
+          {
+            "id": "message-c3b593311bfbfe3368cbc205",
+            "quote": "I can't do Friday the 23rd anymore"
+          }
+        ]
+      },
+      {
+        "assertion": "You all agreed to pick a new day later",
+        "answer_quote": "you all agreed to pick a new day later",
+        "status": "supported",
+        "reason": "Source evidence contains explicit agreement to pick a new day later.",
+        "citations": [
+          {
+            "id": "message-859c594225cb760a3c181efe",
+            "quote": "same, we'll pick a new day later"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "Answer states call at 10am this Friday, matching the claimed time."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "Answer states purpose is reviewing cover letter for ops coordinator role, which is job application help."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Time correctly conveyed in answer."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Purpose correctly conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Provider material states 10am call on Friday Oct 23.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "have a 10am review call with user on Friday, October 23, 2026"
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "Provider material states call to review for ops coordinator application.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "to review it for the ops coordinator application"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

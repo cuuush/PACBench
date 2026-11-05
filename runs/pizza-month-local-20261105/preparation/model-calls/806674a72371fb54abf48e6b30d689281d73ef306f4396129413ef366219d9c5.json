@@ -1,0 +1,92 @@
+{
+  "created_at": "2026-10-15T14:54:35.760637+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-judge/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "$pacbench_text": [
+            "2505fb41a9a38ff876765c23506236d981bd1cd719de86c90d413cf349342787",
+            "1688cbbce8a7f5ffc126f91295e2c051dfb9c8d1d853c8620d835dc8e1f3eba3",
+            "afed04228c2fc8ccfa33e7b42e7845a6d0fc04ece7bc30daa76dacbab54f88cd",
+            "744d4403ca854d3c54c548560eb517c8aa938e2eeb31fa70289a6d98141f4ba3",
+            "25f7fb40830743bfd2a54b5f3e591ef8496f77c7a5070eaa7569d919678b226b",
+            "92ac9617deb55f2da16a893cff2eb589a27357e90d667f9ad8af630a5ab3f790",
+            "9443af2e882c4d7892cd0ecb2431005c9e538a5248e4264eab9cd6cbfa1577c8",
+            "b5e273cd98cfc99495a39d3128e154a46ded7d5bc94abe98b87b570d84e8123f",
+            "40add697d74a496769d1a67583fd478fcb0b18841dc1df501fd0e82cc62cfc42",
+            "80722c8cd04c2a29fe0c9259ae6c31887b3aa6ff575fc1d496b300d35e0b2182",
+            "32bdb5f8630c20f6d219136be87ac3803a46fa09d1821f044ec43289e48749f6",
+            "41b9ca462912154e4f33d3ed945c7cd38e6dee610174744060cb55555307a711",
+            "5f397845fc48e8499bd955924b9e422f34ee0e6242502ba4d0bedb4f8833147f",
+            "80d1dbd39e18efade603ef1d6b7b1ce81e86bf3e7f040d690079f81d7f4e9331",
+            "d4fabc982338a94aa1a22c6133867023003c0af3db3e37a90fc38636f60672df",
+            "df5c349e206df0d6b88e2d4b2c4c4c94852c0537e0f4d62139d48a9220ab7130",
+            "1b703df174d4435d940256835c497fa07d4010d997a559838c354970fbf90c95",
+            "c8c56cf27f4d305a6bb5dfac2a7abf7032c11abda13ebb47832c1b3cfb585535",
+            "30a9cd1ed0d2972ad6031a1d574082dd5e4790922898135ee5558c5f22a3d019",
+            "8cf44d99ee35095b167b29a558eb23fc85dfa1b4689b73c67d7172df12e23af7",
+            "74f4a4bafe672a329948b4dded6fe3952ab1c767bddd74c8b3dcb33e415fd9b6",
+            "7032e23d6bec969cde16f33afd6e9f5c44165ffcdfcf21d3b84b3c55e021feff",
+            "cd95174223b2bce7d5871ebbc86557445349cac26306bfde22203bfeef4e4152",
+            "29a3b375ae6a3da9c406af15ce6414c418464086213ec6dd28784a0b861bef51",
+            "9bd971a75f52e7ec74eebdc40e51b359434ea6ad4ef5f852fefd948fbcc9987b"
+          ],
+          "sha256": "fba5e4fcd08bdf855ba0f6c1ae4cf5c6adb5706e7c90fc61fad7734ce73ef1e8"
+        }
+      }
+    ]
+  },
+  "response": {
+    "id": "chatcmpl-01a1400e-d2c4-7784-81e8-ee50113ad50e",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"supported\": true, \"evidence\": [49, 50, 51, 52, 53, 54, 55, 56, 58, 62, 63, 89, 90], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [49, 50, 51, 52, 53, 54, 55, 56, 58, 62, 63, 89, 90], \"problem\": \"\"}]}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1792076075,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2926,
+      "prompt_tokens": 18914,
+      "total_tokens": 21840,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2804
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 10083
+      }
+    }
+  },
+  "text": "{\"supported\": true, \"evidence\": [49, 50, 51, 52, 53, 54, 55, 56, 58, 62, 63, 89, 90], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [49, 50, 51, 52, 53, 54, 55, 56, 58, 62, 63, 89, 90], \"problem\": \"\"}]}",
+  "usage": {
+    "completion_tokens": 2926,
+    "prompt_tokens": 18914,
+    "total_tokens": 21840,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2804
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 10083
+    }
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

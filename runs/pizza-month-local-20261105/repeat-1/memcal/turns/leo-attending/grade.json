@@ -1,0 +1,67 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "leo-out-friday-pizza",
+      "verdict": "correct",
+      "reason": "Answer states Leo is out and it is just you and Maya, conveying withdrawal/non-attendance."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "leo-out-friday-pizza",
+      "kind": "provided",
+      "reason": "Correct fact conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "leo-out-friday-pizza",
+        "status": "supported",
+        "reason": "Provider material explicitly records Leo out and removed from participants.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "Leo: not attending."
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The outing is just you and Maya",
+        "answer_quote": "it's just you and Maya",
+        "status": "supported",
+        "reason": "Source says you two go ahead, supporting just two attendees.",
+        "citations": [
+          {
+            "id": "message-bec8278a0d9e1903068aae50",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ]
+      },
+      {
+        "assertion": "The outing is at 12:30",
+        "answer_quote": "at 12:30",
+        "status": "contradicted",
+        "reason": "Supplied source evidence says noon, contrary to 12:30.",
+        "citations": [
+          {
+            "id": "message-df7ccbed83811bbe4675f979",
+            "quote": "we said the 23rd at noon"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "leo-out-friday-pizza",
+      "verdict": "correct",
+      "reason": "Answer states Leo is out Oct 23 and will not attend, matching withdrawal claim."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "leo-out-friday-pizza",
+      "kind": "provided",
+      "reason": "Fact correctly conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "leo-out-friday-pizza",
+        "status": "supported",
+        "reason": "Provider material states Leo is out for Oct 23 lunch due to coverage.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Leo is out for the lunch due to work phone coverage until around 5pm"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Leo's absence is due to work phone coverage until around 5pm.",
+        "answer_quote": "due to work phone coverage until around 5pm",
+        "status": "unverifiable",
+        "reason": "Work coverage supported but until around 5pm time not found in supplied source evidence.",
+        "citations": [
+          {
+            "id": "message-863a92a616594737a3427942",
+            "quote": "yeah i can't get away from work after all, i'm stuck on coverage"
+          }
+        ]
+      },
+      {
+        "assertion": "You and Maya are still on for 12:30 at Mario's on Pine without Leo.",
+        "answer_quote": "You and Maya are still on for 12:30 at Mario's on Pine without him.",
+        "status": "unverifiable",
+        "reason": "Still-on without Leo supported but 12:30 Mario's time/venue not found in supplied source evidence.",
+        "citations": [
+          {
+            "id": "message-bec8278a0d9e1903068aae50",
+            "quote": "yeah you two go ahead, i'm out for this one"
+          }
+        ]
+      }
+    ]
+  }
+}

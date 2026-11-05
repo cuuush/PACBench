@@ -1,0 +1,156 @@
+{
+  "scene_id": "w1-evening-pizza",
+  "attempt": 1,
+  "passed": true,
+  "model": "muse-spark-1.3-contributor",
+  "created_utc": "2026-10-15T14:39:33+00:00",
+  "spec": {
+    "id": "w1-evening-pizza",
+    "channel": "imessage",
+    "thread": "devon",
+    "scene": "Devon suggests pizza after work Friday and the user agrees. One ordinary aside is fine.",
+    "test_intent": "",
+    "facts": [
+      "They agree to pizza this Friday at 6 pm at Luigi's on 5th Street."
+    ],
+    "at": "2026-09-16T18:00:00-04:00",
+    "window_start": "2026-09-16T18:00:00-04:00",
+    "window_end": "2026-09-16T21:10:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      40,
+      80
+    ],
+    "participants": [
+      "Me",
+      "Devon"
+    ],
+    "chat_name": "",
+    "noise": "medium",
+    "messages_per_person": [
+      20,
+      40
+    ],
+    "prompt_version": "scene-v17",
+    "judge_prompt_version": "scene-judge-v10"
+  },
+  "dialogue": [
+    "Devon: you still at work or home already",
+    "Me: just walked in like 10 mins ago",
+    "Devon: same, traffic on 5th was stupid",
+    "Me: oh yeah they're doing construction again?",
+    "Devon: yeah by the bank, took forever",
+    "Me: I just threw laundry in, what's up",
+    "Devon: was thinking we should grab pizza after work Friday",
+    "Me: oh that sounds good actually",
+    "Devon: like Luigi's on 5th Street?",
+    "Me: yes I've been craving their garlic knots",
+    "Devon: lol same, 6 pm work?",
+    "Me: yeah that works for me",
+    "Devon: perfect, we can beat the dinner rush a little",
+    "Me: did you end up finishing that report today",
+    "Devon: ugh almost, still have like one chart to fix",
+    "Me: I hate when it's just one dumb thing left",
+    "Devon: right? my boss kept pinging me about it too",
+    "Me: mine asked me to cover Saturday morning, I said no",
+    "Devon: good for you, you work too many weekends",
+    "Me: seriously, I need an actual weekend",
+    "Devon: so Friday pizza will be like a kickoff",
+    "Me: exactly, no cooking for me that night",
+    "Devon: you want to just meet there or carpool?",
+    "Me: meet there is easier, I'll be coming from office",
+    "Devon: same, I can park in back like last time",
+    "Me: oh did your mom ever call back about Sunday?",
+    "Devon: yeah we're doing lunch at hers, you're invited btw",
+    "Me: oh nice, tell her I said thanks, I might come",
+    "Devon: she makes that potato salad you like",
+    "Me: okay now I definitely have to come lol",
+    "Devon: lol I told her you'd say that",
+    "Me: wait did you see the game last night",
+    "Devon: only the highlights, that ending was wild",
+    "Me: I screamed so loud the cat ran off",
+    "Devon: hahaha poor cat",
+    "Me: she forgave me with treats",
+    "Devon: so Friday 6 still good? I have to leave work a little early",
+    "Me: yep, I'll head straight there after I clock out",
+    "Devon: cool, I'll grab us a table if I get there first",
+    "Me: sounds good, I'll text when I'm parking",
+    "Devon: btw did you pay the electric bill? I forgot last month",
+    "Me: yeah I did autopay finally, so tired of late fees",
+    "Devon: smart, I should do that too",
+    "Me: it took like 5 mins online",
+    "Devon: I'll do it tomorrow on lunch",
+    "Me: okay, pizza Friday then",
+    "Devon: yep, can't wait honestly",
+    "Me: me too, been too long since Luigi's",
+    "Devon: for real, like a month?",
+    "Me: at least, see you at 6",
+    "Devon: see ya",
+    "Me: night!"
+  ],
+  "judge_prompt": {
+    "$pacbench_text": [
+      "8b126d5eb68c849499de2cfca004aaf8a2917aa144218eed70a424e82a64738d",
+      "afed04228c2fc8ccfa33e7b42e7845a6d0fc04ece7bc30daa76dacbab54f88cd",
+      "744d4403ca854d3c54c548560eb517c8aa938e2eeb31fa70289a6d98141f4ba3",
+      "25f7fb40830743bfd2a54b5f3e591ef8496f77c7a5070eaa7569d919678b226b",
+      "92ac9617deb55f2da16a893cff2eb589a27357e90d667f9ad8af630a5ab3f790",
+      "d929f213fcc12e1cc4f9c4a2a56e1af0ac15eecfd4dc2a288706255753b3176e",
+      "9b0df5f80bf18e8eed3f9ee7c8af84f983fe7fc6c558fa1a53f61ca0b5cbe321",
+      "5d01b48ccfa303bd0bb5a4c52159b75e44caa0a758f52f78be7eb68548fc31ce"
+    ],
+    "sha256": "3fed6fbe222feaa5ffc5e16f21c02b39e8d2e7b3511d31e0b0ca9ce39d39b0b0"
+  },
+  "judge_response": "{\"supported\": true, \"evidence\": [7, 8, 9, 10, 11, 12, 37, 38, 46, 50], \"problem\": \"\", \"facts\": [{\"index\": 1, \"supported\": true, \"evidence\": [7, 8, 9, 10, 11, 12, 37, 38, 46, 50], \"problem\": \"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      37,
+      38,
+      46,
+      50
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          37,
+          38,
+          46,
+          50
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 9799,
+  "response_chars": 195,
+  "model_call": "/workspace/PACBench/artifacts/pizza-month-medium-prep-20261015/model-calls/587e285c9bb37cab982a8b32957281e98d2044c1f468e93c8b2eaf619c79b01c.json",
+  "usage": {
+    "completion_tokens": 4204,
+    "prompt_tokens": 3608,
+    "total_tokens": 7812,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4100
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "cost_usd": null,
+  "cost_note": "API did not report a charge"
+}

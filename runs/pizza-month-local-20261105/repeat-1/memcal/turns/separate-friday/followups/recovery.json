@@ -1,0 +1,114 @@
+{
+  "state": "complete",
+  "plan_hash": "a6de8fff4a6de136fee357dcd153bb555d19ff8c7af60fe40ffd1bae0485cdca",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 2,
+    "total_tool_operations": 2,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 2
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E19"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848187404,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E19  Cover letter review call\n\nwhen: Friday 23 October 2026 at 10:00\nstate: You're going\nwho: Jen\nnote: Phone call, 20 mins max, to review Jen's ops coordinator cover letter; she'll send draft before\nsource: person:Jen\n\ncited sources (9 line(s)):\n  — Tue Oct 13, 2026 11:03 · iMessage with Jen —\n * [2256] Jen · Tue 13 Oct 11:03 · Jen: I'm applying for that ops coordinator thing\n * [2257] Jen · Tue 13 Oct 11:04 · Jen: internal posting but still need the whole application\n * [2272] Jen · Tue 13 Oct 11:10 · Jen: what about next friday? not this friday, next one\n * [2279] Jen · Tue 13 Oct 11:13 · Jen: lol yes, would 10am work for you?\n * [2280] Jen · Tue 13 Oct 11:14 · me: yeah that works, phone call?\n * [2283] Jen · Tue 13 Oct 11:19 · Jen: yeah just a normal phone call, like 20 mins max\n * [2284] Jen · Tue 13 Oct 11:19 · me: perfect, I can do 10am next friday\n * [2285] Jen · Tue 13 Oct 11:19 · Jen: you're the best, I'll send you the draft before so you can skim\n * [2368] Jen · Tue 13 Oct 12:39 · me: sounds good, 10am call next friday to review it\n\nchanges:\n  2026-10-14T03:00  time: '' -> '10:00' (by dream:nightly:born)\n  2026-10-14T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-10-14T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-10-14T03:00  title: '' -> 'Cover letter review call' (by dream:nightly:born-day)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-14T03:00  participants: '' -> '[\"Jen\"]' (by dream:nightly:born)\n  2026-10-14T03:00  note: '' -> \"Phone call, 20 mins max, to review Jen's ops coordinator cover letter; she'll send draft before\" (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Jen' (by dream:nightly:born-day)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E18"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848187415,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E18  Coffee\n\nwhen: Friday 23 October 2026 at 11:00\nstate: You're going\nwhere: Birch Cafe, front entrance on Birch Street\nwho: Alex\nnote: Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance\nsource: person:Alex\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 16:52 · iMessage with Alex —\n * [2645] Alex · Wed 14 Oct 16:52 · Alex: they put in a temporary step-free ramp at the front entrance on birch street\n  — Tue Oct 13, 2026 12:15 · iMessage with Alex · 1 day earlier —\n * [2351] Alex · Tue 13 Oct 12:15 · Alex: was thinking birch cafe? haven't been in forever\n * [2355] Alex · Tue 13 Oct 12:19 · Alex: would like 11 work? before work stuff gets crazy for me\n * [2360] Alex · Tue 13 Oct 12:27 · me: yeah that works, 11 is perfect\n * [2372] Alex · Tue 13 Oct 12:41 · Alex: can we do their side entrance on mill lane instead? thats step-free\n * [2374] Alex · Tue 13 Oct 12:41 · me: yeah let's just meet at the mill lane side, way easier\n * [2396] Alex · Tue 13 Oct 13:45 · Alex: cool so we're good for 11 at birch, mill lane side?\n * [2397] Alex · Tue 13 Oct 13:45 · me: yep, see you there, don't do more stairs till then\n  — Wed Oct 14, 2026 16:46 · iMessage with Alex · 1 day later —\n * [2635] Alex · Wed 14 Oct 16:46 · Alex: side entrance on mill lane is closed through the end of next week\n * [2682] Alex · Wed 14 Oct 17:19 · Alex: anyway so for friday can we just do the front entrance on birch street instead?\n * [2683] Alex · Wed 14 Oct 17:23 · me: yeah that works, ramp sounds easy\n * [2686] Alex · Wed 14 Oct 17:26 · Alex: yeah 11 is still good for me\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-14T03:00  title: '' -> 'Coffee' (by dream:nightly:born-day)\n  2026-10-14T03:00  location: '' -> 'Birch Cafe, Mill Lane side entrance' (by dream:nightly:born)\n  2026-10-14T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-10-14T03:00  participants: '' -> '[\"Alex\"]' (by dream:nightly:born)\n  2026-10-14T03:00  note: '' -> 'Alex sprained ankle; use step-free Mill Lane side entrance' (by dream:nightly:born)\n  2026-10-14T03:00  source: '' -> 'person:Alex' (by dream:nightly:born-day)\n  2026-10-15T03:00  location: 'Birch Cafe, Mill Lane side entrance' -> 'Birch Cafe, front entrance on Birch Street' (by dream:nightly)\n  2026-10-15T03:00  note: 'Alex sprained ankle; use step-free Mill Lane side entrance' -> 'Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": false,
+    "unclassified_operations": 0,
+    "latency_s": 11.59,
+    "input_tokens": 646,
+    "output_tokens": 63,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "jen-call-status",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still on."
+    },
+    {
+      "id": "alex-coffee-status",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still on."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 2,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 2,
+    "points": 2.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "jen-call-status",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      },
+      {
+        "claim_id": "alex-coffee-status",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": false,
+        "path_needs_review": false,
+        "points": 1.0
+      }
+    ],
+    "calibrated": false
+  }
+}

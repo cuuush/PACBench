@@ -1,0 +1,69 @@
+{
+  "correct": 1,
+  "missed": 1,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "coffee-time",
+      "verdict": "missed",
+      "reason": "Answer says the Oct 23 coffee is cancelled but gives no time; 11 am is absent."
+    },
+    {
+      "id": "coffee-venue",
+      "verdict": "correct",
+      "reason": "Answer identifies the Friday Oct 23 coffee with Alex as 'birch cafe coffee'."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "coffee-time",
+      "kind": "explicitly_requested",
+      "reason": "User asked 'when' and answer omits the 11 am time."
+    },
+    {
+      "id": "coffee-venue",
+      "kind": "provided",
+      "reason": "Venue correctly conveyed as birch cafe."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "coffee-time",
+        "status": "not_found",
+        "reason": "No 11 am time for Oct 23 coffee in visible provider material; 11 mentions refer to Oct 16 entrance.",
+        "citations": []
+      },
+      {
+        "id": "coffee-venue",
+        "status": "supported",
+        "reason": "Tool result states Oct 23 coffee was at birch cafe.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "planned to grab coffee on October 23, 2026 at birch cafe"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The Friday Oct 23 coffee with Alex is cancelled.",
+        "answer_quote": "the Friday Oct 23 birch cafe coffee with Alex is cancelled",
+        "status": "unverifiable",
+        "reason": "Supplied source messages cover only time/venue agreement, no cancellation; source scope is partial.",
+        "citations": []
+      },
+      {
+        "assertion": "Alex has work training that afternoon.",
+        "answer_quote": "he has work training that afternoon",
+        "status": "unverifiable",
+        "reason": "No mention of work training in supplied source messages; absence is unverifiable.",
+        "citations": []
+      }
+    ]
+  }
+}

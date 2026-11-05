@@ -1,0 +1,112 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "jen-call-status",
+      "verdict": "correct",
+      "reason": "Answer states call with Jen is still on for 10am Friday Oct 23."
+    },
+    {
+      "id": "alex-coffee-status",
+      "verdict": "correct",
+      "reason": "Answer states coffee with Alex is still on for 11am Friday Oct 23 at Birch Cafe."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "jen-call-status",
+      "kind": "provided",
+      "reason": "Correct status conveyed as still on."
+    },
+    {
+      "id": "alex-coffee-status",
+      "kind": "provided",
+      "reason": "Correct status conveyed as still on."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "jen-call-status",
+        "status": "supported",
+        "reason": "Provider material records agreed 10am Oct 23 call to review it with no cancellation.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "User agreed to a 20-minute phone call at 10am Friday October 23, 2026 to review it"
+          }
+        ]
+      },
+      {
+        "id": "alex-coffee-status",
+        "status": "supported",
+        "reason": "Provider material records planned 11am Oct 23 coffee at Birch Cafe with no cancellation.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "User and Alex plan coffee at 11am Friday October 23, 2026 at Birch Cafe because Alex will be stir crazy"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Call with Jen is at 10am to review cover letter",
+        "answer_quote": "Call with Jen is 10am Friday Oct 23 to review her cover letter",
+        "status": "supported",
+        "reason": "Source confirms 10am call to review it.",
+        "citations": [
+          {
+            "id": "message-4e4285b8102abef5e6ebf6d5",
+            "quote": "sounds good, 10am call next friday to review it"
+          }
+        ]
+      },
+      {
+        "assertion": "Coffee with Alex is at 11am at Birch Cafe",
+        "answer_quote": "Coffee with Alex is 11am Friday Oct 23 at Birch Cafe",
+        "status": "supported",
+        "reason": "Source confirms 11 at birch.",
+        "citations": [
+          {
+            "id": "message-5bed0adb3893e5fb57e825ed",
+            "quote": "cool so we're good for 11 at birch, mill lane side?"
+          }
+        ]
+      },
+      {
+        "assertion": "Jen's mom arrives around lunch and Jen has to be home all afternoon",
+        "answer_quote": "Her mom arrives around lunch and Jen has to be home all afternoon",
+        "status": "unverifiable",
+        "reason": "Supplied source messages contain no mom arrival or home-afternoon detail.",
+        "citations": []
+      },
+      {
+        "assertion": "Alex's training that afternoon caused 2pm walk postponement",
+        "answer_quote": "Alex's training is that afternoon, which is why the 2pm walk was postponed",
+        "status": "unverifiable",
+        "reason": "Supplied source messages contain no training or walk postponement detail.",
+        "citations": []
+      },
+      {
+        "assertion": "Mill Lane side entrance closed through end of next week for building work",
+        "answer_quote": "It's closed through end of next week for building work",
+        "status": "unverifiable",
+        "reason": "Supplied source messages contain no closure or building-work detail.",
+        "citations": []
+      },
+      {
+        "assertion": "Front on Birch Street has temporary step-free metal ramp with rails",
+        "answer_quote": "Use the front on Birch Street with the temporary step-free metal ramp with rails",
+        "status": "unverifiable",
+        "reason": "Supplied source mentions front but not ramp details; partial source cannot verify ramp.",
+        "citations": []
+      }
+    ]
+  }
+}

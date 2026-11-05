@@ -1,0 +1,84 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "devon-friday-no-pizza",
+      "verdict": "correct",
+      "reason": "Answer says 'No — moved to Sunday', directly conveying no agreed Friday pizza with Devon."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "devon-friday-no-pizza",
+      "kind": "provided",
+      "reason": "Correct fact was conveyed in answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "devon-friday-no-pizza",
+        "status": "supported",
+        "reason": "Provider material states Friday is dead and plan moved to Sunday, with no Friday Devon pizza remaining.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "yep friday is dead, sunday is the plan"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "good, so sunday the 25th then, not friday"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "like i have to stay till close, no way i can make 6"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Pizza moved to Sunday Oct 25",
+        "answer_quote": "Sunday Oct 25",
+        "status": "supported",
+        "reason": "Source evidence confirms Sunday 25th instead of Friday.",
+        "citations": [
+          {
+            "id": "message-418ac52e69ecd8070a3b68c1",
+            "quote": "good, so sunday the 25th then, not friday"
+          },
+          {
+            "id": "message-7c7f94bed4e2c0b78827bbdd",
+            "quote": "yep friday is dead, sunday is the plan"
+          }
+        ]
+      },
+      {
+        "assertion": "Moved pizza is at 6pm",
+        "answer_quote": "6pm",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence does not show Sunday 6pm time; partial coverage.",
+        "citations": []
+      },
+      {
+        "assertion": "Moved pizza is at Luigi's on 5th street",
+        "answer_quote": "Luigi's on 5th street",
+        "status": "unverifiable",
+        "reason": "Location not in supplied source evidence; partial coverage.",
+        "citations": []
+      },
+      {
+        "assertion": "Moved Sunday pizza is with Devon",
+        "answer_quote": "with Devon",
+        "status": "unverifiable",
+        "reason": "Source evidence is Devon thread about Sunday plan but does not explicitly state participant in quoted text; partial coverage.",
+        "citations": []
+      }
+    ]
+  }
+}

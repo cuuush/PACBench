@@ -1,0 +1,46 @@
+{
+  "correct": 0,
+  "missed": 0,
+  "misrepresented": 1,
+  "claims": [
+    {
+      "id": "birch-front-entrance",
+      "verdict": "misrepresented",
+      "reason": "Answer directs to Mill Lane side entrance for Friday, contradicting expected front entrance."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "birch-front-entrance",
+      "kind": "incorrect",
+      "reason": "Answer asserts wrong entrance Mill Lane instead of front for target Friday."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "birch-front-entrance",
+        "status": "contradicted",
+        "reason": "Provider memory explicitly states Oct 23 plan is Mill Lane side entrance instead of the front.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "They will meet at the step-free Mill Lane side entrance instead of the front"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The Mill Lane side entrance is step-free",
+        "answer_quote": "Mill Lane side entrance — step-free for Alex's ankle",
+        "status": "unverifiable",
+        "reason": "Source messages state step-free only for front entrance and that side entrance is closed, with no statement that Mill Lane is step-free.",
+        "citations": []
+      }
+    ]
+  }
+}

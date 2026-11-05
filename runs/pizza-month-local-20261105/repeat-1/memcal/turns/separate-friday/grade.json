@@ -1,0 +1,118 @@
+{
+  "correct": 2,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "jen-call-status",
+      "verdict": "correct",
+      "reason": "Answer states both still on for Friday and lists 10am cover letter review call with Jen."
+    },
+    {
+      "id": "alex-coffee-status",
+      "verdict": "correct",
+      "reason": "Answer states both still on for Friday and lists 11am coffee with Alex at Birch Cafe."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "jen-call-status",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still on."
+    },
+    {
+      "id": "alex-coffee-status",
+      "kind": "provided",
+      "reason": "Correctly conveyed as still on."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "jen-call-status",
+        "status": "supported",
+        "reason": "Prefetch shows confirmed Fri Oct 23 with Jen; tool shows You're going on that date.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Fri Oct 23  \"Cover letter review call\", 10am — confirmed · with Jen"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "when: Friday 23 October 2026 at 10:00"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "state: You're going"
+          }
+        ]
+      },
+      {
+        "id": "alex-coffee-status",
+        "status": "supported",
+        "reason": "Prefetch shows confirmed Fri Oct 23 Coffee with Alex; tool shows You're going at Birch Cafe.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Fri Oct 23  \"Coffee\", 11am — confirmed · with Alex"
+          },
+          {
+            "id": "tool-result-2",
+            "quote": "when: Friday 23 October 2026 at 11:00"
+          },
+          {
+            "id": "tool-result-2",
+            "quote": "state: You're going"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Jen call is at 10am",
+        "answer_quote": "10am cover letter review call with Jen",
+        "status": "supported",
+        "reason": "Source message confirms 10am call next friday.",
+        "citations": [
+          {
+            "id": "message-4e4285b8102abef5e6ebf6d5",
+            "quote": "sounds good, 10am call next friday to review it"
+          }
+        ]
+      },
+      {
+        "assertion": "Jen call is phone, 20 mins",
+        "answer_quote": "(phone, 20 mins)",
+        "status": "unverifiable",
+        "reason": "Supplied partial source evidence does not mention phone or duration.",
+        "citations": []
+      },
+      {
+        "assertion": "Alex coffee is at 11am at Birch Cafe",
+        "answer_quote": "11am coffee with Alex at Birch Cafe",
+        "status": "supported",
+        "reason": "Source messages confirm 11 at birch and 11 still good.",
+        "citations": [
+          {
+            "id": "message-5bed0adb3893e5fb57e825ed",
+            "quote": "cool so we're good for 11 at birch, mill lane side?"
+          },
+          {
+            "id": "message-681924bc3a1eebef7ce509f5",
+            "quote": "yeah 11 is still good for me"
+          }
+        ]
+      },
+      {
+        "assertion": "Alex coffee location is front entrance on Birch Street",
+        "answer_quote": "front entrance on Birch Street",
+        "status": "unverifiable",
+        "reason": "Partial evidence mentions front but not full Birch Street front entrance address.",
+        "citations": []
+      }
+    ]
+  }
+}

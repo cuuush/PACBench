@@ -1,0 +1,42 @@
+{
+  "correct": 1,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "dominos-too-far",
+      "verdict": "correct",
+      "reason": "Answer states 'Too far' which matches the claimed reason for ruling out Domino's."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "dominos-too-far",
+      "kind": "provided",
+      "reason": "Answer correctly provided the reason."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "dominos-too-far",
+        "status": "supported",
+        "reason": "Prefetch and tool results state Domino's was ruled out as too far for the Oct 23 plan.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "They ruled out Domino's as too far"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "They ruled out Domino's as too far"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": []
+  }
+}

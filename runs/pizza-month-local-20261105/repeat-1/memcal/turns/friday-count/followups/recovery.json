@@ -1,0 +1,122 @@
+{
+  "state": "complete",
+  "plan_hash": "d89b0964e7454e0666db4e0bff2f0ac3690f6266a66a77edee18ab0f3a9b0b2c",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 3,
+    "total_tool_operations": 3,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": false,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "memory_detail": 1,
+      "archive_search": 1,
+      "memory_search": 1
+    },
+    "operations": [
+      {
+        "name": "memcal_open",
+        "arguments": {
+          "ref": "E14"
+        },
+        "category": "memory_detail",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848036481,
+        "result": {
+          "tool": "memcal_open",
+          "success": true,
+          "policy_blocked": false,
+          "text": "E14  Pizza lunch\n\nwhen: Friday 23 October 2026 at 12:30\nstate: You're going\nwhere: Mario's on Pine Street\nwho: Maya\nnote: Maya is doing dairy-free test; Mario's has vegan cheese and dairy-free knots Leo: not attending.\nsource: person:Maya\n\npages: maya (person) · pizza-lunch (series)\n\ncited sources (12 line(s)):\n  — Wed Oct 14, 2026 17:14 · iMessage with Maya —\n * [2677] Maya · Wed 14 Oct 17:14 · Maya: yeah that works, 12:30 at Mario's on Pine Street is perfect for me\n  — Wed Oct 14, 2026 13:24 · iMessage with Friday crew —\n * [2579] Friday crew · Wed 14 Oct 13:24 · Leo: i know, you guys should still go tho, don't cancel for me\n * [2581] Friday crew · Wed 14 Oct 13:41 · Maya: yeah i still wanna go if you're still in?\n * [2583] Friday crew · Wed 14 Oct 13:48 · Maya: same, bus is easy for me. so just us two at mario's?\n * [2584] Friday crew · Wed 14 Oct 13:49 · Leo: yeah you two go ahead, i'm out for this one\n * [2605] Friday crew · Wed 14 Oct 15:38 · Maya: yep, out front at noon works for me, i'll text when close\n  — Wed Oct 14, 2026 16:40 · iMessage with Maya —\n * [2630] Maya · Wed 14 Oct 16:40 · Maya: yeah trying to be strict for a few weeks, no milk cheese butter\n * [2647] Maya · Wed 14 Oct 16:55 · Maya: then i saw Mario's on Pine Street has actual vegan cheese and dairy-free knots?\n * [2667] Maya · Wed 14 Oct 17:08 · Maya: wanna just switch our thing there? same vibe but i can actually eat\n * [2672] Maya · Wed 14 Oct 17:11 · me: yeah let's do Mario's, easier for your test\n * [2675] Maya · Wed 14 Oct 17:13 · me: my meeting on next friday, the 23rd got extended and now it runs till 12:15\n * [2676] Maya · Wed 14 Oct 17:14 · me: can we push from noon to like 12:30 instead?\n  … older cited lines omitted; memcal_open_source reads a larger evidence window\n\nchanges:\n  2026-10-15T03:00  time: '12:00' -> '12:30' (by dream:nightly)\n  2026-10-15T03:00  location: \"Rosa's on Oak Street\" -> \"Mario's on Pine Street\" (by dream:nightly)\n  2026-10-15T03:00  participants: '[\"Leo\", \"Maya\"]' -> '[\"Maya\"]' (by dream:nightly)\n  2026-10-15T03:00  note: 'Maya is doing dairy-free test; plan marinara and no-cheese option' -> \"Maya is doing dairy-free test; Mario's has vegan cheese and dairy-free knots Leo: not attending.\" (by dream:nightly)\n  2026-10-15T03:00  date: '2026-10-23' -> '2026-10-23' (by dream:nightly)\n  2026-10-15T03:00  kind: 'commitment' -> 'commitment' (by dream:nightly)\n  2026-10-15T03:00  title: 'Pizza lunch' -> 'Pizza lunch' (by dream:nightly)\n  2026-10-15T03:00  status: 'confirmed' -> 'confirmed' (by dream:nightly)",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_search_archive",
+        "arguments": {
+          "query": "pizza"
+        },
+        "category": "archive_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848036515,
+        "result": {
+          "tool": "memcal_search_archive",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"results\": [{\"line_id\": 2436, \"when\": \"2026-10-14T09:30\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"the pizza thing?\"}, {\"line_id\": 410, \"when\": \"2026-09-21T19:30\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"same, pizza sounds perfect\"}, {\"line_id\": 1511, \"when\": \"2026-10-08T20:08\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"the pizza ad one?\"}, {\"line_id\": 2210, \"when\": \"2026-10-13T09:58\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"the pizza ad one?\"}, {\"line_id\": 726, \"when\": \"2026-09-26T16:22\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"well for pizza i did\"}, {\"line_id\": 861, \"when\": \"2026-09-28T20:21\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"expert pizza friend\"}, {\"line_id\": 1319, \"when\": \"2026-10-05T19:35\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"friday works for me, pizza?\"}, {\"line_id\": 2484, \"when\": \"2026-10-14T10:37\", \"who\": \"Jen\", \"channel\": \"imessage\", \"thread\": \"id:chat1f59928de9e758c7acab5fae7f06386b\", \"text\": \"I ordered pizza last night\"}, {\"line_id\": 98, \"when\": \"2026-09-16T20:34\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:5d63d6f176e35400@example.test\", \"text\": \"okay, pizza Friday then\"}, {\"line_id\": 837, \"when\": \"2026-09-28T19:19\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"always down for pizza\"}, {\"line_id\": 193, \"when\": \"2026-09-17T22:48\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"okay but back to that pizza line\"}, {\"line_id\": 450, \"when\": \"2026-09-21T20:24\", \"who\": \"Maya\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"can't wait, need pizza after today\"}, {\"line_id\": 705, \"when\": \"2026-09-26T15:22\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"i passed out lol, pizza coma is real\"}, {\"line_id\": 1642, \"when\": \"2026-10-10T15:14\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"oh for pizza? good taste\"}, {\"line_id\": 1644, \"when\": \"2026-10-10T15:20\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"oh cute, birthday pizza party\"}, {\"line_id\": 1841, \"when\": \"2026-10-12T17:42\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"always thinking about pizza tbh\"}, {\"line_id\": 13, \"when\": \"2026-09-15T18:24\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:a9095a3309d85a3a@example.test\", \"text\": \"yes please, I'm craving pizza\"}, {\"line_id\": 107, \"when\": \"2026-09-17T20:00\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"its this fake ad for a pizza place\"}, {\"line_id\": 408, \"when\": \"2026-09-21T19:30\", \"who\": \"Leo\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"pizza? in honor of the crying suit guy\"}, {\"line_id\": 610, \"when\": \"2026-09-24T20:00\", \"who\": \"me\", \"channel\": \"imessage\", \"thread\": \"id:chat1dc0474a7aac5fa1885880222671c43c\", \"text\": \"i might join for one round after pizza fuel\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memcal_list_days",
+        "arguments": {
+          "days": 1,
+          "when": "2026-10-23"
+        },
+        "category": "memory_search",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1793848039291,
+        "result": {
+          "tool": "memcal_list_days",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"from\": \"2026-10-23\", \"to\": \"2026-10-23\", \"weekday\": \"Friday\", \"rows\": [{\"row\": \"Fri Oct 23  Cover letter review call, 10am \\u2014 confirmed \\u00b7 Phone call, 20 mins max, to review Jen's ops coordinator cover letter; she'll send draft before \\u00b7 with Jen\", \"source\": \"E19\"}, {\"row\": \"Fri Oct 23  Coffee, 11am \\u2014 confirmed \\u00b7 Birch Cafe, front entrance on Birch Street \\u00b7 Alex sprained ankle; Mill Lane side entrance closed through end of next week, use temporary step-free ramp at front entrance \\u00b7 with Alex\", \"source\": \"E18\"}, {\"row\": \"Fri Oct 23  Pizza lunch, 12:30pm \\u2014 confirmed \\u00b7 Mario's on Pine Street \\u00b7 Maya is doing dairy-free test; Mario's has vegan cheese and dairy-free knots Leo: not attending. \\u00b7 with Maya\", \"source\": \"E14\"}, {\"row\": \"Fri Oct 23  Walk, 2pm \\u2014 not going \\u00b7 Willow Park, west entrance by the duck pond \\u00b7 West entrance by big lot near playground; about an hour Alex: not attending. Jen: not attending.\", \"source\": \"E15\"}], \"free\": false}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "latency_s": 13.81,
+    "input_tokens": 23985,
+    "output_tokens": 1240,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "friday-pizza-count",
+      "kind": "provided",
+      "reason": "Answer provides the count as One."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 1,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 1,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "friday-pizza-count",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

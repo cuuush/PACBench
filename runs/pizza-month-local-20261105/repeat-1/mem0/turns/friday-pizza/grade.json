@@ -1,0 +1,131 @@
+{
+  "correct": 0,
+  "missed": 5,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "c-count",
+      "verdict": "missed",
+      "reason": "Answer only discusses Devon Luigi's Oct 23 plan moved to Sunday; never states Friday count or mentions Maya outing."
+    },
+    {
+      "id": "c-time",
+      "verdict": "missed",
+      "reason": "Answer gives 6pm only for historical Devon Luigi's plan; gives no 12:30 for target Maya plan. Historical detail does not contradict current."
+    },
+    {
+      "id": "c-venue",
+      "verdict": "missed",
+      "reason": "Answer gives Luigi's only for historical Devon plan; gives no Mario's for target Maya plan."
+    },
+    {
+      "id": "c-street",
+      "verdict": "missed",
+      "reason": "Answer gives 5th only for historical Devon plan; gives no Pine Street for target Maya plan."
+    },
+    {
+      "id": "c-attendees",
+      "verdict": "missed",
+      "reason": "Answer gives with Devon only for historical Devon plan; gives no user-and-Maya list for target plan."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "c-count",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad 'deal with pizza on Friday' is not explicit request for count."
+    },
+    {
+      "id": "c-time",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for time."
+    },
+    {
+      "id": "c-venue",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for venue."
+    },
+    {
+      "id": "c-street",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for street."
+    },
+    {
+      "id": "c-attendees",
+      "kind": "implicit_omission",
+      "reason": "Omitted without claiming unknown; broad request is not explicit request for attendee list."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "c-count",
+        "status": "not_found",
+        "reason": "Prefetch/tool results mention Oct 23 Devon Luigi's plan and its move to Sunday, but no Maya Oct 23 outing or count of one.",
+        "citations": []
+      },
+      {
+        "id": "c-time",
+        "status": "not_found",
+        "reason": "Only 12:30 in provider material is Oct 2 Rosa's with Maya, not Oct 23; no 12:30 attached to Oct 23.",
+        "citations": []
+      },
+      {
+        "id": "c-venue",
+        "status": "not_found",
+        "reason": "Mario's mentions in provider material are Sep 25 and Oct 2, not Oct 23 Maya plan.",
+        "citations": []
+      },
+      {
+        "id": "c-street",
+        "status": "not_found",
+        "reason": "Pine Street mentions in provider material are Sep 25 and Oct 2, not Oct 23 Maya plan.",
+        "citations": []
+      },
+      {
+        "id": "c-attendees",
+        "status": "not_found",
+        "reason": "User+Maya mentions in provider material are Oct 2 Rosa's, not complete list for Oct 23.",
+        "citations": []
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Devon pizza moved from Friday to Sunday",
+        "answer_quote": "you moved it to Sunday",
+        "status": "supported",
+        "reason": "Devon message confirms Friday dead and Sunday plan.",
+        "citations": [
+          {
+            "id": "message-7c7f94bed4e2c0b78827bbdd",
+            "quote": "yep friday is dead, sunday is the plan"
+          }
+        ]
+      },
+      {
+        "assertion": "Original Devon pizza was Oct 23 at 6pm at Luigi's on 5th with Devon",
+        "answer_quote": "It was Oct 23 at 6pm at Luigi's on 5th with Devon",
+        "status": "unverifiable",
+        "reason": "Supplied source evidence contains no mention of Luigi's, 6pm, or Devon Oct 23 details.",
+        "citations": []
+      },
+      {
+        "assertion": "Rescheduled Sunday pizza is Oct 25 at 6pm same place",
+        "answer_quote": "Sunday Oct 25 at 6pm same place",
+        "status": "unverifiable",
+        "reason": "Source confirms Sunday plan but gives no date, time, or place.",
+        "citations": []
+      },
+      {
+        "assertion": "Move reason is Devon late shift till close Oct 23",
+        "answer_quote": "because Devon is on late shift till close Oct 23",
+        "status": "unverifiable",
+        "reason": "No source evidence mentions late shift reason.",
+        "citations": []
+      }
+    ]
+  }
+}

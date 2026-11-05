@@ -1,0 +1,121 @@
+{
+  "created_at": "2026-10-15T14:39:51.525272+00:00",
+  "status": "ok",
+  "model": "muse-spark-1.3-contributor",
+  "url": "http://127.0.0.1:8099/p/pacbench-authoring/v1/responses",
+  "protocol": "responses",
+  "attempt": 1,
+  "request": {
+    "model": "muse-spark-1.3-contributor",
+    "temperature": 0.7,
+    "store": false,
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "max_output_tokens": 8192,
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "input_text",
+            "text": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Maya, Leo. Use only these speaker labels.\nConversation date: 2026-09-17. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 20:00 and 23:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Leo shares a ridiculous pizza slogan he heard in a sketch, with Maya and the user reacting. Make the joke sound like a quote, not an invitation.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Leo quotes a sketch saying 'we should get pizza on Saturday and never go back to work'. The group laughs; they make no Saturday plan.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 60 and 120 messages. Each chat member should send 20–40 messages across this exchange. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+          }
+        ]
+      }
+    ]
+  },
+  "response": {
+    "top_logprobs": 0,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "service_tier": "auto",
+    "model": "muse-spark-1.3-contributor",
+    "reasoning": {
+      "effort": "low",
+      "summary": "auto"
+    },
+    "background": false,
+    "tools": [],
+    "tool_choice": "auto",
+    "truncation": "disabled",
+    "id": "resp_6ad0e5b7bce2853149c74798",
+    "object": "response",
+    "status": "completed",
+    "created_at": 1792075174.0,
+    "completed_at": 1792075191.0,
+    "error": null,
+    "incomplete_details": null,
+    "output": [
+      {
+        "type": "reasoning",
+        "id": "rs_6ad0e5b7bce2853149c74798:rs_01a1400111a272b7883e6bbb04e9ea3f",
+        "encrypted_content": "<encrypted reasoning retained in private run artifact>",
+        "summary": [
+          {
+            "type": "summary_text",
+            "text": "Generating an iMessage-style dialogue with specified speakers, date, time window, and scenario while keeping references consistent and avoiding a Saturday plan."
+          },
+          {
+            "type": "summary_text",
+            "text": "Clarifying speaker-label rules and pronoun usage while enforcing the no-Saturday-plan constraint."
+          },
+          {
+            "type": "summary_text",
+            "text": "Adding a quoted sketch line as a joke while keeping the no-Saturday-plan constraint."
+          }
+        ],
+        "status": "completed"
+      },
+      {
+        "type": "message",
+        "id": "msg_01a14001297170fabc413eb5220057da",
+        "role": "assistant",
+        "content": [
+          {
+            "type": "output_text",
+            "text": "{\n  \"dialogue\": \"Leo: okay you guys have to hear this sketch i just watched\\nMaya: lol what now\\nLeo: its this fake ad for a pizza place\\nMe: oh no\\nLeo: the guy is in a suit crying into a slice\\nMaya: relatable tbh\\nLeo: and he's like \\\"we should get pizza on Saturday and never go back to work\\\"\\nMaya: HAHAHA stop\\nMe: that's actually amazing\\nLeo: right?? the delivery was so serious\\nMaya: never go back to work i'm in\\nMe: same honestly, let him cook\\nLeo: the sketch show is that one with the two british dudes\\nMaya: oh i know which one you mean\\nMe: did they have the tiny desk and the plant?\\nLeo: YES exactly that one\\nMaya: i love their office bits\\nLeo: this one was new from yesterday i think\\nMe: send me the name after, i need background noise for dishes\\nLeo: will do, its like 4 mins\\nMaya: speaking of dishes i finally unloaded mine\\nMe: proud of you\\nMaya: took me two days lol\\nLeo: two days is rookie numbers\\nMe: how long has yours been sitting?\\nLeo: don't worry about it\\nMaya: he has a whole ecosystem in his sink\\nLeo: rude but accurate\\nMe: did you end up finishing that report today?\\nMaya: ugh mostly\\nMaya: my laptop died at like 5pm so i gave up\\nLeo: classic sign to log off\\nMe: mine was dragging all afternoon too\\nLeo: did IT ever get back to you?\\nMe: nope, still waiting\\nMaya: did you try turning it off and on again\\nMe: three times lol\\nLeo: that's the full IT toolkit right there\\nMaya: anyway i'm making tea, anyone want virtual tea\\nLeo: always\\nMe: yes please, peppermint if you have it\\nMaya: i only have chamomile and some weird lemon thing\\nMe: lemon thing works\\nLeo: give me the weird one\\nMaya: okay one weird tea for leo\\nLeo: back to the sketch tho, the slogan kept repeating\\nMe: like a jingle?\\nLeo: yeah in this deep movie trailer voice\\nMaya: never go back to workkkk\\nMe: hahaha stop i can hear it\\nLeo: exactly!!\\nMaya: i needed that laugh today\\nMe: same, thursday felt so long\\nLeo: thursdays always drag\\nMaya: tomorrow's friday tho\\nMe: thank god\\nLeo: any big friday plans?\\nMaya: just gym in the morning then work\\nMe: i'm just trying to leave on time for once\\nLeo: good luck with that\\nMaya: fr tho you always get stuck late on fridays\\nMe: i know, i'm gonna put my laptop away at 5 sharp\\nLeo: manifesting that for you\\nMaya: what about you leo?\\nLeo: probably just laundry and that game\\nMe: which game?\\nLeo: the co-op cooking one, its chaos\\nMaya: oh i suck at that game\\nLeo: you're not bad, you just set the kitchen on fire once\\nMaya: ONCE?? it was like three times\\nMe: lol i remember that\\nLeo: we should play tomorrow night if you're free\\nMaya: maybe, i'll see how tired i am after gym\\nMe: i might join for a round\\nLeo: bet, no pressure tho\\nMaya: did you eat yet btw?\\nLeo: had leftover pasta\\nMe: i had cereal for dinner don't judge\\nMaya: no judgment, cereal slaps at night\\nLeo: what kind?\\nMe: honey nut something\\nLeo: solid choice\\nMaya: i had soup and toast, very grandma of me\\nMe: cozy tho\\nLeo: it's soup weather now finally\\nMaya: finally! it was freezing this morning\\nMe: i wore my heavy jacket\\nLeo: me too, broke out the fall one\\nMaya: okay but back to that pizza line\\nMaya: never go back to work is my new motto\\nMe: put it on a t-shirt\\nLeo: honestly it would sell\\nMaya: i'd buy one\\nMe: me too lol\\nLeo: the comments were all quoting it too\\nMaya: as they should\\nMe: alright i gotta finish these dishes, talk later?\\nLeo: yeah, i'll send that sketch link\\nMaya: send it here!\\nLeo: will do in a sec\\nMe: perfect, night guys\",\n  \"writer_note\": \"Framed Leo's line as a quoted sketch bit with clear attribution and over-the-top delivery, then had Maya and Me laugh it off as a motto without making any Saturday plan, burying it in normal evening chatter about work, food, and Friday.\"\n}",
+            "annotations": [],
+            "logprobs": []
+          }
+        ],
+        "status": "completed"
+      }
+    ],
+    "instructions": null,
+    "usage": {
+      "input_tokens": 539,
+      "input_tokens_details": {
+        "cached_tokens": 0
+      },
+      "output_tokens": 2060,
+      "output_tokens_details": {
+        "reasoning_tokens": 924
+      },
+      "total_tokens": 2599
+    },
+    "parallel_tool_calls": true,
+    "store": false,
+    "max_output_tokens": 8192
+  },
+  "text": "{\n  \"dialogue\": \"Leo: okay you guys have to hear this sketch i just watched\\nMaya: lol what now\\nLeo: its this fake ad for a pizza place\\nMe: oh no\\nLeo: the guy is in a suit crying into a slice\\nMaya: relatable tbh\\nLeo: and he's like \\\"we should get pizza on Saturday and never go back to work\\\"\\nMaya: HAHAHA stop\\nMe: that's actually amazing\\nLeo: right?? the delivery was so serious\\nMaya: never go back to work i'm in\\nMe: same honestly, let him cook\\nLeo: the sketch show is that one with the two british dudes\\nMaya: oh i know which one you mean\\nMe: did they have the tiny desk and the plant?\\nLeo: YES exactly that one\\nMaya: i love their office bits\\nLeo: this one was new from yesterday i think\\nMe: send me the name after, i need background noise for dishes\\nLeo: will do, its like 4 mins\\nMaya: speaking of dishes i finally unloaded mine\\nMe: proud of you\\nMaya: took me two days lol\\nLeo: two days is rookie numbers\\nMe: how long has yours been sitting?\\nLeo: don't worry about it\\nMaya: he has a whole ecosystem in his sink\\nLeo: rude but accurate\\nMe: did you end up finishing that report today?\\nMaya: ugh mostly\\nMaya: my laptop died at like 5pm so i gave up\\nLeo: classic sign to log off\\nMe: mine was dragging all afternoon too\\nLeo: did IT ever get back to you?\\nMe: nope, still waiting\\nMaya: did you try turning it off and on again\\nMe: three times lol\\nLeo: that's the full IT toolkit right there\\nMaya: anyway i'm making tea, anyone want virtual tea\\nLeo: always\\nMe: yes please, peppermint if you have it\\nMaya: i only have chamomile and some weird lemon thing\\nMe: lemon thing works\\nLeo: give me the weird one\\nMaya: okay one weird tea for leo\\nLeo: back to the sketch tho, the slogan kept repeating\\nMe: like a jingle?\\nLeo: yeah in this deep movie trailer voice\\nMaya: never go back to workkkk\\nMe: hahaha stop i can hear it\\nLeo: exactly!!\\nMaya: i needed that laugh today\\nMe: same, thursday felt so long\\nLeo: thursdays always drag\\nMaya: tomorrow's friday tho\\nMe: thank god\\nLeo: any big friday plans?\\nMaya: just gym in the morning then work\\nMe: i'm just trying to leave on time for once\\nLeo: good luck with that\\nMaya: fr tho you always get stuck late on fridays\\nMe: i know, i'm gonna put my laptop away at 5 sharp\\nLeo: manifesting that for you\\nMaya: what about you leo?\\nLeo: probably just laundry and that game\\nMe: which game?\\nLeo: the co-op cooking one, its chaos\\nMaya: oh i suck at that game\\nLeo: you're not bad, you just set the kitchen on fire once\\nMaya: ONCE?? it was like three times\\nMe: lol i remember that\\nLeo: we should play tomorrow night if you're free\\nMaya: maybe, i'll see how tired i am after gym\\nMe: i might join for a round\\nLeo: bet, no pressure tho\\nMaya: did you eat yet btw?\\nLeo: had leftover pasta\\nMe: i had cereal for dinner don't judge\\nMaya: no judgment, cereal slaps at night\\nLeo: what kind?\\nMe: honey nut something\\nLeo: solid choice\\nMaya: i had soup and toast, very grandma of me\\nMe: cozy tho\\nLeo: it's soup weather now finally\\nMaya: finally! it was freezing this morning\\nMe: i wore my heavy jacket\\nLeo: me too, broke out the fall one\\nMaya: okay but back to that pizza line\\nMaya: never go back to work is my new motto\\nMe: put it on a t-shirt\\nLeo: honestly it would sell\\nMaya: i'd buy one\\nMe: me too lol\\nLeo: the comments were all quoting it too\\nMaya: as they should\\nMe: alright i gotta finish these dishes, talk later?\\nLeo: yeah, i'll send that sketch link\\nMaya: send it here!\\nLeo: will do in a sec\\nMe: perfect, night guys\",\n  \"writer_note\": \"Framed Leo's line as a quoted sketch bit with clear attribution and over-the-top delivery, then had Maya and Me laugh it off as a motto without making any Saturday plan, burying it in normal evening chatter about work, food, and Friday.\"\n}",
+  "usage": {
+    "input_tokens": 539,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 2060,
+    "output_tokens_details": {
+      "reasoning_tokens": 924
+    },
+    "total_tokens": 2599
+  },
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "",
+  "error_response": null
+}

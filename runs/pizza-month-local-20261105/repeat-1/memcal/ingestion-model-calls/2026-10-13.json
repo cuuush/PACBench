@@ -1,0 +1,514 @@
+{
+  "bundles": [
+    {
+      "run_id": 29,
+      "entity": "person:Alex",
+      "bundle_id": "c1547d",
+      "label": "Alex",
+      "kind": "person",
+      "lines": 77,
+      "state": "reading",
+      "updated_at": "2026-10-14T03:00:00-04:00"
+    },
+    {
+      "run_id": 29,
+      "entity": "person:Ben",
+      "bundle_id": "0644b3",
+      "label": "Ben",
+      "kind": "person",
+      "lines": 3,
+      "state": "reading",
+      "updated_at": "2026-10-14T03:00:00-04:00"
+    },
+    {
+      "run_id": 29,
+      "entity": "person:Jen",
+      "bundle_id": "4f9c3a",
+      "label": "Jen",
+      "kind": "person",
+      "lines": 78,
+      "state": "reading",
+      "updated_at": "2026-10-14T03:00:00-04:00"
+    },
+    {
+      "run_id": 29,
+      "entity": "person:Maya",
+      "bundle_id": "aff481",
+      "label": "Maya",
+      "kind": "person",
+      "lines": 75,
+      "state": "reading",
+      "updated_at": "2026-10-14T03:00:00-04:00"
+    },
+    {
+      "run_id": 29,
+      "entity": "thread:imessage:id:chat1dc0474a7aac5fa1885880222671c43c",
+      "bundle_id": "17fbd0",
+      "label": "Friday crew",
+      "kind": "thread",
+      "lines": 100,
+      "state": "reading",
+      "updated_at": "2026-10-14T03:00:00-04:00"
+    }
+  ],
+  "calls": [
+    {
+      "generation_id": "chatcmpl-01a1a9a8-c8b9-71a0-83d4-0c703585ae66",
+      "run_id": 29,
+      "stage": "propose",
+      "label": "person:Ben",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-14T03:00:00-04:00",
+      "max_tokens": 16201,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "default",
+      "usage": {
+        "prompt_tokens": 4753,
+        "completion_tokens": 3345,
+        "cached_tokens": 0,
+        "reasoning_tokens": 3128,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "0644b3",
+          "entity": "person:Ben",
+          "label": "Ben",
+          "lines": 3
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho are explicitly taking part in this occasion. A message sender or recipient is not\nautomatically an attendee. An invitation, conditional interest, or availability still\npending another obligation belongs in the note, not in participants. Preserve stated\ncompanions when inviting another person to join them; the invitation does not replace\nthe established guests with its recipient.\nThe supplied conversation roster identifies who the exchange is with, not who accepted\nthis occasion. Use it to resolve speakers and group references. A guest invited in a DM\ndoes not replace the existing group's attendees. Performers and advertised lineups go\nin hosts or notes, never in the user's companion list.\nUse attendance to state each person's role and cite their actual acceptance, invitation,\nconditional reply, or performer announcement. Code applies these role changes separately:\ninviting a new person leaves the other guests intact. Do not use membership as acceptance.\nWrite titles and notes for the user reading them later: a visit to the user is \"Visit\nyou\", with the visitor as subject. Preserve conditional interest as tentative. Expand\nabbreviations when their meaning is supported by the conversation or supplied pages;\notherwise retain the abbreviation and explain the uncertainty in the note. For an\nemail opportunity, explain what it is and who announced it in the note.\nSet visit_target to me for someone coming to the user, so code renders that visit from\nthe user's perspective. Supply expansions with cited full wording for abbreviations;\ncode validates and spells them out in stored titles, locations, and notes.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Wednesday 2026-10-14.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Tue 13 Oct · Wed 14 Oct (TODAY) · Thu 15 Oct · Fri 16 Oct · Sat 17 Oct · Sun 18 Oct · Mon 19 Oct · Tue 20 Oct · Wed 21 Oct · Thu 22 Oct · Fri 23 Oct · Sat 24 Oct · Sun 25 Oct · Mon 26 Oct · Tue 27 Oct · Wed 28 Oct · Thu 29 Oct · Fri 30 Oct\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  potato-salad-pickup@2026-10-12 | 2026-10-12 | opportunity/mentioned | Potato salad pickup | Devon's mom has leftover potato salad via Devon; you said you might stop by tomorrow after noon\n  dinner@2026-10-22 | 2026-10-22 | commitment/confirmed | Dinner | 19:00 | Juniper Cafe, 48 Maple Ave | with Ben\n  pizza-lunch@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza lunch | 13:00 | Rosa's on Oak Street | Maya is doing dairy-free test; plan marinara and no-cheese option | with Maya\n  walk@2026-10-23 | 2026-10-23 | commitment/confirmed | Walk | 14:00 | Willow Park, west entrance by the duck pond | West entrance by big lot near playground; about an hour | with Alex, Jen\n  pizza-dinner@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza dinner | 18:00 | Luigi's on 5th street | Park in back lot | with Devon\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Alex, Ben, Devon, Jen, Leo, Maya\n\nWIKI PAGES: lunch, maya, pizza-dinner, pizza-lunch",
+      "suffix": "1 bundle(s) follow:\n  0644b3  Ben\nList all 1 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID 0644b3   (Ben)\nemail thread · 3 lines · 2026-10-12 to 2026-10-13\n-- Mon 2026-10-12 --\n  L1 [context] 21:15 (email) Ben <e4cf9e50-20dd-5ad4-af17-4f8ce6301f5f@mail.example.test>: Re: Dinner\n      Perfect, confirmed — 7pm Thursday at Juniper Cafe. See you then!\n-- Tue 2026-10-13 --\n  L2 [new] 10:00 (email) Ben <e4cf9e50-20dd-5ad4-af17-4f8ce6301f5f@mail.example.test>: Re: Dinner\n      Hi! Writing from work — I just got hit with a work deadline Thursday evening.\n      Can we move dinner from Thursday October 22 to Saturday October 24 instead? 7pm still works for me if that works for you?\n  L3 [new] 13:45 (email) me: Re: Dinner\n      No worries, work happens!\n      Saturday, October 24 at 7pm at Juniper Cafe works for me. See you then!\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nEVENTS CREATED OR UPDATED FROM THIS CONVERSATION\n  dinner@2026-10-22 | Thu 2026-10-22 | commitment/confirmed | Dinner | Juniper Cafe, 48 Maple Ave | with Ben\n    ←from here, on 2026-10-12: me: yeah that works / Ben: nice, I'll put it in my calendar / Ben: Dinner\n\nHi! Following up on the dinner we arranged in DM to pass along / me: Re: Dinner\n\nHi Ben! Yes, that's the same one from our DMs.\r\n\r\nConfirmi\nNO PAGE YET FOR: Ben — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\"diffs\": [{\"bundle\": \"0644b3\", \"events\": [{\"attendance\": [], \"cites\": [\"L2\", \"L3\"], \"date\": \"2026-10-24\", \"expansions\": [], \"field_cites\": {\"date\": [\"L2\", \"L3\"], \"instead_of\": [\"L2\"]}, \"instead_of\": \"2026-10-22\", \"key\": \"dinner@2026-10-22\", \"kind\": \"commitment\", \"links\": [], \"location\": \"Juniper Cafe, 48 Maple Ave\", \"note\": null, \"participants\": [], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"19:00\", \"title\": \"Dinner\", \"until\": null, \"visit_target\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}], \"reviewed\": [\"0644b3\"]}",
+      "parsed": {
+        "diffs": [
+          {
+            "bundle": "0644b3",
+            "events": [
+              {
+                "attendance": [],
+                "cites": [
+                  "L2",
+                  "L3"
+                ],
+                "date": "2026-10-24",
+                "expansions": [],
+                "field_cites": {
+                  "date": [
+                    "L2",
+                    "L3"
+                  ],
+                  "instead_of": [
+                    "L2"
+                  ]
+                },
+                "instead_of": "2026-10-22",
+                "key": "dinner@2026-10-22",
+                "kind": "commitment",
+                "links": [],
+                "location": "Juniper Cafe, 48 Maple Ave",
+                "note": null,
+                "participants": [],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "19:00",
+                "title": "Dinner",
+                "until": null,
+                "visit_target": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          }
+        ],
+        "reviewed": [
+          "0644b3"
+        ]
+      },
+      "echoed": [
+        "0644b3"
+      ],
+      "routed": [
+        {
+          "id": "0644b3",
+          "entity": "person:Ben",
+          "label": "Ben",
+          "lines": 3
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "chatcmpl-01a1a9a9-6632-726c-a98c-b9f041d3678e",
+      "run_id": 29,
+      "stage": "propose",
+      "label": "thread:imessage:id:chat1dc0474a7aac5fa1885880222671c43c, person:Alex, person:Maya, person:Jen",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-14T03:00:00-04:00",
+      "max_tokens": 22168,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "default",
+      "usage": {
+        "prompt_tokens": 15003,
+        "completion_tokens": 9182,
+        "cached_tokens": 0,
+        "reasoning_tokens": 8114,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "17fbd0",
+          "entity": "thread:imessage:id:chat1dc0474a7aac5fa1885880222671c43c",
+          "label": "Friday crew",
+          "lines": 100
+        },
+        {
+          "id": "c1547d",
+          "entity": "person:Alex",
+          "label": "Alex",
+          "lines": 77
+        },
+        {
+          "id": "aff481",
+          "entity": "person:Maya",
+          "label": "Maya",
+          "lines": 75
+        },
+        {
+          "id": "4f9c3a",
+          "entity": "person:Jen",
+          "label": "Jen",
+          "lines": 78
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho are explicitly taking part in this occasion. A message sender or recipient is not\nautomatically an attendee. An invitation, conditional interest, or availability still\npending another obligation belongs in the note, not in participants. Preserve stated\ncompanions when inviting another person to join them; the invitation does not replace\nthe established guests with its recipient.\nThe supplied conversation roster identifies who the exchange is with, not who accepted\nthis occasion. Use it to resolve speakers and group references. A guest invited in a DM\ndoes not replace the existing group's attendees. Performers and advertised lineups go\nin hosts or notes, never in the user's companion list.\nUse attendance to state each person's role and cite their actual acceptance, invitation,\nconditional reply, or performer announcement. Code applies these role changes separately:\ninviting a new person leaves the other guests intact. Do not use membership as acceptance.\nWrite titles and notes for the user reading them later: a visit to the user is \"Visit\nyou\", with the visitor as subject. Preserve conditional interest as tentative. Expand\nabbreviations when their meaning is supported by the conversation or supplied pages;\notherwise retain the abbreviation and explain the uncertainty in the note. For an\nemail opportunity, explain what it is and who announced it in the note.\nSet visit_target to me for someone coming to the user, so code renders that visit from\nthe user's perspective. Supply expansions with cited full wording for abbreviations;\ncode validates and spells them out in stored titles, locations, and notes.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Wednesday 2026-10-14.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Tue 13 Oct · Wed 14 Oct (TODAY) · Thu 15 Oct · Fri 16 Oct · Sat 17 Oct · Sun 18 Oct · Mon 19 Oct · Tue 20 Oct · Wed 21 Oct · Thu 22 Oct · Fri 23 Oct · Sat 24 Oct · Sun 25 Oct · Mon 26 Oct · Tue 27 Oct · Wed 28 Oct · Thu 29 Oct · Fri 30 Oct\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  potato-salad-pickup@2026-10-12 | 2026-10-12 | opportunity/mentioned | Potato salad pickup | Devon's mom has leftover potato salad via Devon; you said you might stop by tomorrow after noon\n  dinner@2026-10-22 | 2026-10-22 | commitment/confirmed | Dinner | 19:00 | Juniper Cafe, 48 Maple Ave | with Ben\n  pizza-lunch@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza lunch | 13:00 | Rosa's on Oak Street | Maya is doing dairy-free test; plan marinara and no-cheese option | with Maya\n  walk@2026-10-23 | 2026-10-23 | commitment/confirmed | Walk | 14:00 | Willow Park, west entrance by the duck pond | West entrance by big lot near playground; about an hour | with Alex, Jen\n  pizza-dinner@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza dinner | 18:00 | Luigi's on 5th street | Park in back lot | with Devon\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Alex, Ben, Devon, Jen, Leo, Maya\n\nWIKI PAGES: lunch, maya, pizza-dinner, pizza-lunch",
+      "suffix": "4 bundle(s) follow:\n  17fbd0  Friday crew\n  c1547d  Alex\n  aff481  Maya\n  4f9c3a  Jen\nList all 4 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID 17fbd0   (Friday crew)\ngroup chat on imessage · 100 lines · 2026-10-08 to 2026-10-13\n-- Thu 2026-10-08 --\n  L1 [context] 21:55 (imessage) Maya: anyway i'm gonna crash early after tea\n  L2 [context] 21:57 (imessage) me: same, dishes then bed\n  L3 [context] 22:00 (imessage) Leo: anyone want to do dishes together virtually lol\n  L4 [context] 22:07 (imessage) Maya: put the sketch on, makes it faster\n  L5 [context] 22:07 (imessage) me: doing the trailer voice while I scrub\n  L6 [context] 22:10 (imessage) Leo: exactly!!\n  … 4 days with nothing said …\n-- Tue 2026-10-13 --\n  L7 [new] 09:00 (imessage) Maya: morninggg my legs are dead\n  L8 [new] 09:00 (imessage) Leo: leg day again?\n  L9 [new] 09:05 (imessage) Maya: yesterday lol i can barely do stairs today\n  L10 [new] 09:09 (imessage) me: oof stairs still hurt for you?\n  L11 [new] 09:09 (imessage) Maya: yes send help\n  L12 [new] 09:14 (imessage) Leo: never go back to leg day\n  L13 [new] 09:15 (imessage) me: hahaha still stuck in my head\n  L14 [new] 09:16 (imessage) Maya: never go back to workkkk\n  L15 [new] 09:16 (imessage) Leo: crying suit guy lives on\n  L16 [new] 09:16 (imessage) me: i need coffee so bad this morning\n  L17 [new] 09:17 (imessage) Maya: same, i'm on cup two already at my desk\n  L18 [new] 09:22 (imessage) Leo: i'm still in line for coffee, this place is slow\n  L19 [new] 09:22 (imessage) me: did your laptop survive this morning?\n  L20 [new] 09:27 (imessage) Leo: barely, froze once already\n  L21 [new] 09:27 (imessage) Maya: ugh classic ghosted by IT energy\n  L22 [new] 09:31 (imessage) me: mine was dragging right at like 9\n  L23 [new] 09:36 (imessage) Leo: did you do the restart thing?\n  L24 [new] 09:37 (imessage) me: not yet, i just opened everything and prayed\n  L25 [new] 09:38 (imessage) Maya: that's the full toolkit right there\n  L26 [new] 09:38 (imessage) Leo: lol rude but accurate\n  L27 [new] 09:42 (imessage) me: it's freezing this morning again huh\n  L28 [new] 09:42 (imessage) Maya: yes wore the heavy jacket in\n  L29 [new] 09:47 (imessage) Leo: same, fall jacket uniform continues\n  L30 [new] 09:48 (imessage) me: i walked in and my hands were numb\n  L31 [new] 09:48 (imessage) Maya: need tea after this coffee tbh\n  L32 [new] 09:48 (imessage) Leo: get me the weird lemon one virtually\n  L33 [new] 09:52 (imessage) me: chamomile for me please\n  L34 [new] 09:52 (imessage) Maya: one weird one for leo, chamomile for you, got it\n  L35 [new] 09:53 (imessage) Leo: she remembers\n  L36 [new] 09:53 (imessage) me: sooo what's everyone up to today, slow work day?\n  L37 [new] 09:54 (imessage) Maya: meetings till like 11 then actually free\n  L38 [new] 09:54 (imessage) Leo: i have standup in 20 then nothing\n  L39 [new] 09:55 (imessage) me: lucky, i have dishes from breakfast already piled up at home lol\n  L40 [new] 09:55 (imessage) Maya: the never ending dishes\n  L41 [new] 09:56 (imessage) Leo: put that sketch on in the background, makes it faster\n  L42 [new] 09:58 (imessage) me: the pizza ad one?\n  L43 [new] 09:58 (imessage) Leo: yeah trailer voice makes scrubbing dramatic\n  L44 [new] 09:58 (imessage) Maya: okay so random but can i pull something from dms in here\n  L45 [new] 09:59 (imessage) me: yeah of course\n  L46 [new] 10:03 (imessage) Leo: oh no what\n  L47 [new] 10:04 (imessage) Maya: me and you were talking about doing pizza next friday\n  L48 [new] 10:08 (imessage) me: oh yeah Rosa's?\n  L49 [new] 10:09 (imessage) Maya: yes! Rosa's on Oak Street\n  L50 [new] 10:09 (imessage) Leo: ooo i haven't been there\n  L51 [new] 10:10 (imessage) Maya: we said the 23rd at noon cuz we're both off that friday\n  L52 [new] 10:10 (imessage) me: yeah noon on the 23rd works for me\n  L53 [new] 10:12 (imessage) Leo: wait you guys already locked that in?\n  L54 [new] 10:16 (imessage) Maya: kinda yeah in dms last night, but i wanted to add you here so you can come too\n  L55 [new] 10:18 (imessage) Leo: i'm down, i love rosa's\n  L56 [new] 10:22 (imessage) me: you been before?\n  L57 [new] 10:24 (imessage) Leo: once ages ago, crust was so good\n  L58 [new] 10:25 (imessage) Maya: so can you do the 23rd at noon too?\n  L59 [new] 10:30 (imessage) Leo: yeah that works for me\n  L60 [new] 10:30 (imessage) me: yay okay the three of us then\n  L61 [new] 10:30 (imessage) Maya: perfect, meet out front like usual?\n  L62 [new] 10:35 (imessage) Leo: bet, parking over there isn't awful right?\n  L63 [new] 10:35 (imessage) me: way better than Pine Street, you'll be fine\n  L64 [new] 10:35 (imessage) Maya: i can bus over easy\n  L65 [new] 10:37 (imessage) me: i can walk from work, like 10 mins\n  L66 [new] 10:37 (imessage) Leo: good cuz i circled forever at mario's last time\n  L67 [new] 10:41 (imessage) Maya: lol you did\n  L68 [new] 10:43 (imessage) me: garlic knots energy but rosa's version?\n  L69 [new] 10:43 (imessage) Maya: they do those parmesan ones i think\n  L70 [new] 10:43 (imessage) Leo: as long as no salty olive bomb like last time\n  L71 [new] 10:44 (imessage) Maya: ugh no, those olives were way too salty\n  L72 [new] 10:45 (imessage) me: yeah crust was perfect otherwise\n  L73 [new] 10:50 (imessage) Leo: exactly, skip olives forever\n  L74 [new] 10:50 (imessage) Maya: anyway you in for real for the 23rd?\n  L75 [new] 10:54 (imessage) Leo: yeah i'm in, noon at rosa's\n  L76 [new] 10:55 (imessage) me: nice, can't wait\n  L77 [new] 10:55 (imessage) Leo: my kitchen is a mess again btw\n  L78 [new] 10:55 (imessage) me: nooo you cleared the sink ecosystem!\n  L79 [new] 10:55 (imessage) Maya: reboot already?\n  L80 [new] 11:00 (imessage) Leo: rude but accurate, it lasted like four days\n  L81 [new] 11:00 (imessage) me: new record at least?\n  L82 [new] 11:05 (imessage) Maya: growth is slow\n  L83 [new] 11:05 (imessage) Leo: i'll put that sketch on while i do dishes tonight\n  L84 [new] 11:06 (imessage) me: same, endless dishes cycle\n  L85 [new] 11:10 (imessage) Maya: trailer voice makes everything dramatic\n  L86 [new] 11:10 (imessage) me: never go back to workkkk while scrubbing pans\n  L87 [new] 11:11 (imessage) Maya: HAHAHA stop\n  L88 [new] 11:11 (imessage) Leo: anyone wanna do that cooking game later tonight?\n  L89 [new] 11:11 (imessage) Maya: maybe one round, depends how sore i get\n  L90 [new] 11:11 (imessage) me: i could join for one, no promises i won't burn stuff\n  L91 [new] 11:13 (imessage) Leo: two fires max, house rule\n  L92 [new] 11:17 (imessage) Maya: hey that's my rule\n  L93 [new] 11:18 (imessage) me: lol she owns it now\n  L94 [new] 11:22 (imessage) Maya: okay i need more tea, i'm still cold in here\n  L95 [new] 11:23 (imessage) Leo: weird lemon one again please\n  L96 [new] 11:23 (imessage) me: chamomile me up round two\n  L97 [new] 11:23 (imessage) Maya: got you both\n  L98 [new] 11:24 (imessage) Leo: so 23rd, out front at noon, i'll text when i'm close\n  L99 [new] 11:25 (imessage) Maya: perfect, same\n  L100 [new] 11:30 (imessage) me: same, i'll walk over\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/Friday crew: Leo, Maya\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nOTHER POSSIBLY RELATED EVENTS INVOLVING PEOPLE HERE\n  pizza-lunch@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza lunch | Rosa's on Oak Street | with Maya\nPOSSIBLY THE SAME PLAN, DIFFERENTLY WORDED. Nothing links these to this conversation except wording, so decide: same row (return its key), a different occasion (return your own row with no key), or leave it alone if you cannot tell from what is here.\n  pizza-dinner@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza dinner | Luigi's on 5th street | with Devon\n  walk@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Walk | Willow Park, west entrance by the duck pond | with Alex, Jen\nNO PAGE YET FOR: Leo — open one only if this bundle contains a durable fact about them.\nPAGES FOR THIS BUNDLE\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID c1547d   (Alex)\n3 conversations on imessage · 77 lines · 2026-10-12 to 2026-10-13\n-- Mon 2026-10-12 --\n  L1 [context] 21:21 (imessage/Park pals) Jen: yeah like saturday after, so friday walk is perfect timing\n  L2 [context] 22:01 (imessage/Park pals) Jen: so we’re set for next week yeah?\n  L3 [context] 22:02 (imessage/Park pals) Alex: yep, 2pm willow park\n  L4 [context] 22:11 (imessage/Park pals) me: see you guys there\n  L5 [context] 22:12 (imessage/Park pals) Jen: can’t wait, need it\n  L6 [context] 22:15 (imessage/Park pals) Alex: same, night guys\n-- Tue 2026-10-13 --\n  L7 [context] 09:05 (imessage/Friday crew) Maya: yesterday lol i can barely do stairs today\n  L8 [context] 11:23 (imessage/Friday crew) me: chamomile me up round two\n  L9 [context] 11:23 (imessage/Friday crew) Maya: got you both\n  L10 [context] 11:24 (imessage/Friday crew) Leo: so 23rd, out front at noon, i'll text when i'm close\n  L11 [context] 11:25 (imessage/Friday crew) Maya: perfect, same\n  L12 [context] 11:30 (imessage/Friday crew) me: same, i'll walk over\n  L13 [new] 11:30 (imessage/Alex) Alex: yo you up for lunch break chaos\n  L14 [new] 11:30 (imessage/Alex) me: lol always, whats up\n  L15 [new] 11:30 (imessage/Alex) Alex: just microwaving the saddest leftovers again\n  L16 [new] 11:30 (imessage/Alex) me: rice and chicken pt 2?\n  L17 [new] 11:31 (imessage/Alex) Alex: nah pasta this time, basically plain noodles\n  L18 [new] 11:31 (imessage/Alex) Alex: would kill for six leaves of basil on top tbh\n  L19 [new] 11:31 (imessage/Alex) me: lmao hey six leaves is a full garnish now\n  L20 [new] 11:34 (imessage/Alex) Alex: exactly, pesto in 8 years still on track\n  L21 [new] 11:34 (imessage/Alex) me: i'm eating at my desk, sandwich falling apart everywhere\n  L22 [new] 11:37 (imessage/Alex) Alex: classic tuesday. work been insane?\n  L23 [new] 11:37 (imessage/Alex) me: yeah meetings all morning, finally getting a breather\n  L24 [new] 11:37 (imessage/Alex) Alex: same, my inbox is cursed today\n  L25 [new] 11:40 (imessage/Alex) Alex: btw i rolled my ankle yesterday like an idiot\n  L26 [new] 11:42 (imessage/Alex) me: oh no what happened\n  L27 [new] 11:50 (imessage/Alex) Alex: missed the last step on my stairs, foot just gave out\n  L28 [new] 11:53 (imessage/Alex) me: ugh are you okay??\n  L29 [new] 11:56 (imessage/Alex) Alex: yeah just sprained i think, wrapped it up\n  L30 [new] 11:58 (imessage/Alex) Alex: limping around the apartment scaring the basil\n  L31 [new] 11:59 (imessage/Alex) me: poor plant is traumatized at this point\n  L32 [new] 12:00 (imessage/Alex) Alex: fr, it survived tablespoon-gate and now this\n  L33 [new] 12:01 (imessage/Alex) me: did you get it checked or just walk it off\n  L34 [new] 12:01 (imessage/Alex) Alex: walk/limp it off, its already feeling a bit better\n  L35 [new] 12:03 (imessage/Alex) Alex: but stairs are my enemy rn\n  L36 [new] 12:12 (imessage/Alex) me: yeah take it easy for a few days\n  L37 [new] 12:12 (imessage/Alex) Alex: trying to. thats actually why i was texting\n  L38 [new] 12:15 (imessage/Alex) Alex: wanna grab coffee friday next week? im gonna be stir crazy by then\n  L39 [new] 12:15 (imessage/Alex) me: oh yeah definitely, i need an excuse to get out\n  L40 [new] 12:15 (imessage/Alex) Alex: was thinking birch cafe? haven't been in forever\n  L41 [new] 12:16 (imessage/Alex) me: ooh yes i love their iced lattes\n  L42 [new] 12:19 (imessage/Alex) Alex: would like 11 work? before work stuff gets crazy for me\n  L43 [new] 12:27 (imessage/Alex) me: yeah that works, 11 is perfect\n  L44 [new] 12:36 (imessage/Alex) Alex: nice, i can limp there slowly and you'll already have a table\n  L45 [new] 12:36 (imessage/Alex) me: lol i'll save you the good chair with the cushion\n  L46 [new] 12:38 (imessage/Alex) Alex: appreciate it, gonna need it\n  L47 [new] 12:39 (imessage/Alex) Alex: also quick favor - their front has those steps right?\n  L48 [new] 12:40 (imessage/Alex) me: yeah like three or four big ones out front i think\n  L49 [new] 12:40 (imessage/Alex) Alex: yeah thats gonna kill my ankle while it heals\n  L50 [new] 12:41 (imessage/Alex) Alex: can we do their side entrance on mill lane instead? thats step-free\n  L51 [new] 12:41 (imessage/Alex) me: oh totally, i forgot about that one\n  L52 [new] 12:41 (imessage/Alex) me: yeah let's just meet at the mill lane side, way easier\n  L53 [new] 12:42 (imessage/Alex) Alex: thank you, you're saving me from hopping up the front like an idiot\n  L54 [new] 12:45 (imessage/Alex) me: lol just picture you with coffee in one hand hopping\n  L55 [new] 12:45 (imessage/Alex) Alex: do NOT make me laugh, ankle can't handle it\n  L56 [new] 12:54 (imessage/Alex) me: sorry sorry. you icing it?\n  L57 [new] 13:02 (imessage/Alex) Alex: yeah freezer peas as we speak, very high tech\n  L58 [new] 13:03 (imessage/Alex) me: fancy. you still doing family dinner stuff this weekend?\n  L59 [new] 13:04 (imessage/Alex) Alex: no 2 hour burger lecture this week thank god?\n  L60 [new] 13:04 (imessage/Alex) me: not this week, my dad's saving it up i bet\n  L61 [new] 13:05 (imessage/Alex) Alex: he'll hit you with a double lecture next time\n  L62 [new] 13:05 (imessage/Alex) me: don't jinx me like that\n  L63 [new] 13:07 (imessage/Alex) Alex: speaking of food, i caved and got mario's takeout last night\n  L64 [new] 13:16 (imessage/Alex) me: ooooh did you get the garlic knots\n  L65 [new] 13:24 (imessage/Alex) Alex: obviously, unlimited in my heart if not in real life\n  L66 [new] 13:33 (imessage/Alex) me: the saturday pizza guy dream lives on\n  L67 [new] 13:34 (imessage/Alex) Alex: still waiting on basil to pick winning lottery numbers\n  L68 [new] 13:34 (imessage/Alex) me: six-leaf oracle hasn't delivered yet?\n  L69 [new] 13:35 (imessage/Alex) Alex: nah, bought a ticket and won absolutely nothing\n  L70 [new] 13:35 (imessage/Alex) me: harsh, plant dad of the year revoked\n  L71 [new] 13:36 (imessage/Alex) Alex: nah i forgave it, its still on the windowsill thriving\n  L72 [new] 13:44 (imessage/Alex) Alex: anyway i should get back to emails before my boss notices i'm gone\n  L73 [new] 13:44 (imessage/Alex) me: same, my sandwich mess isn't gonna clean itself\n  L74 [new] 13:45 (imessage/Alex) Alex: cool so we're good for 11 at birch, mill lane side?\n  L75 [new] 13:45 (imessage/Alex) me: yep, see you there, don't do more stairs till then\n  L76 [new] 13:54 (imessage/Alex) Alex: no promises, my apartment is all stairs\n  L77 [new] 13:55 (imessage/Alex) me: then crawl, protect the ankle\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/Alex: Alex\nimessage/Friday crew: Leo, Maya\nimessage/Park pals: Alex, Jen\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nOTHER POSSIBLY RELATED EVENTS INVOLVING PEOPLE HERE\n  walk@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Walk | Willow Park, west entrance by the duck pond | with Alex, Jen\n  pizza-lunch@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza lunch | Rosa's on Oak Street | with Maya\nPOSSIBLY THE SAME PLAN, DIFFERENTLY WORDED. Nothing links these to this conversation except wording, so decide: same row (return its key), a different occasion (return your own row with no key), or leave it alone if you cannot tell from what is here.\n  pizza-dinner@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza dinner | Luigi's on 5th street | with Devon\nNO PAGE YET FOR: Alex, Jen, Leo — open one only if this bundle contains a durable fact about them.\nPAGES FOR THIS BUNDLE\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID aff481   (Maya)\n2 conversations on imessage · 75 lines\n-- Tue 2026-10-13 --\n  L1 [new] 08:00 (imessage/Maya) Maya: ugh morning, my alarm went off like three times\n  L2 [new] 08:02 (imessage/Maya) me: same, i snoozed twice and now i'm rushing\n  L3 [new] 08:04 (imessage/Maya) Maya: lol are you already at work or still home\n  L4 [new] 08:04 (imessage/Maya) me: still home, leaving in like 10, coffee first\n  L5 [new] 08:04 (imessage/Maya) Maya: priorities, i just made oat latte again\n  L6 [new] 08:04 (imessage/Maya) me: ooh how is the dairy-free test going day 3\n  L7 [new] 08:04 (imessage/Maya) Maya: actually good, stomach way less gross this morning\n  L8 [new] 08:06 (imessage/Maya) me: that's promising, no cheese regrets?\n  L9 [new] 08:06 (imessage/Maya) Maya: so many regrets but my gut says thanks\n  L10 [new] 08:09 (imessage/Maya) me: lol fair trade i guess\n  L11 [new] 08:09 (imessage/Maya) Maya: did you water your sad plants again or are they still droopy\n  L12 [new] 08:09 (imessage/Maya) me: i watered them sunday so they're okay for now\n  L13 [new] 08:11 (imessage/Maya) Maya: proud, mine are fine, basil still living on the windowsill\n  L14 [new] 08:12 (imessage/Maya) me: miracle basil refuses to die, love that\n  L15 [new] 08:12 (imessage/Maya) Maya: right? it's getting so much sun there\n  L16 [new] 08:12 (imessage/Maya) me: my kitchen is still a cave, thinking of moving mine too\n  L17 [new] 08:12 (imessage/Maya) Maya: do it, windowsill changed everything\n  L18 [new] 08:13 (imessage/Maya) Maya: oh btw did you survive monday emails\n  L19 [new] 08:13 (imessage/Maya) me: barely, inbox was a nightmare yesterday\n  L20 [new] 08:13 (imessage/Maya) Maya: same, i have a standup at 9 so i'm just scrolling til then\n  L21 [new] 08:13 (imessage/Maya) me: good luck, mine start at like 9:30 ugh\n  L22 [new] 08:15 (imessage/Maya) Maya: hey so random planning thing\n  L23 [new] 08:16 (imessage/Maya) Maya: our Rosa's thing next friday, the 23rd\n  L24 [new] 08:16 (imessage/Maya) me: yeah i'm still counting down to it\n  L25 [new] 08:16 (imessage/Maya) Maya: me too, but can we move it earlier?\n  L26 [new] 08:16 (imessage/Maya) Maya: like noon instead of 1 pm?\n  L27 [new] 08:16 (imessage/Maya) me: oh yeah noon works for me\n  L28 [new] 08:19 (imessage/Maya) Maya: really? thank you, i have something at 2 that day now\n  L29 [new] 08:19 (imessage/Maya) me: oh work thing?\n  L30 [new] 08:19 (imessage/Maya) Maya: yeah dumb back to back got added, 1 is gonna be too tight\n  L31 [new] 08:19 (imessage/Maya) me: totally get it, noon is actually better for slipping out anyway\n  L32 [new] 08:19 (imessage/Maya) Maya: perfect, less rush for me too\n  L33 [new] 08:20 (imessage/Maya) me: are you still wfh that day so you can just walk over?\n  L34 [new] 08:20 (imessage/Maya) Maya: yeah, i'll walk over a little before\n  L35 [new] 08:23 (imessage/Maya) me: i'll slip out from office, grab us a table\n  L36 [new] 08:25 (imessage/Maya) Maya: patio if it's not freezing? or inside is fine\n  L37 [new] 08:27 (imessage/Maya) me: i'll check and do my chair safety test lol\n  L38 [new] 08:29 (imessage/Maya) Maya: your official duty, very important\n  L39 [new] 08:29 (imessage/Maya) me: seriously, can't risk wobbly chairs\n  L40 [new] 08:29 (imessage/Maya) Maya: did your maybe-mug survive glazing tonight?\n  L41 [new] 08:31 (imessage/Maya) me: oh it's tonight, i'm nervous lol it's so lopsided\n  L42 [new] 08:31 (imessage/Maya) Maya: functional art, the kiln will be kind\n  L43 [new] 08:32 (imessage/Maya) me: hopefully, tuesday guy says hi btw\n  L44 [new] 08:32 (imessage/Maya) Maya: lol tell him my sister still says someday\n  L45 [new] 08:32 (imessage/Maya) me: classic, she locked in her birthday thing right\n  L46 [new] 08:35 (imessage/Maya) Maya: yeah next saturday at 4 at Rosa's with her friends\n  L47 [new] 08:35 (imessage/Maya) me: cute, hope patio weather holds for them\n  L48 [new] 08:35 (imessage/Maya) Maya: me too, i told her half order knots to start\n  L49 [new] 08:35 (imessage/Maya) me: you're training her well\n  L50 [new] 08:35 (imessage/Maya) Maya: trying, tho i'll be doing veggie no-cheese while she gets real pizza, jealous\n  L51 [new] 08:36 (imessage/Maya) me: i'll do the same with you so you don't feel weird\n  L52 [new] 08:38 (imessage/Maya) Maya: you don't have to but thank you, dairy-free solidarity\n  L53 [new] 08:38 (imessage/Maya) me: it's fine, marinara + veggie still hits the pizza vibe\n  L54 [new] 08:39 (imessage/Maya) Maya: and i'll just smell the knots from other tables lol\n  L55 [new] 08:39 (imessage/Maya) me: tragic, stupid timing for the test\n  L56 [new] 08:39 (imessage/Maya) Maya: i know, but gotta be strict for a few weeks, no milk cheese butter\n  L57 [new] 08:42 (imessage/Maya) me: makes sense, then we go back to full knots after\n  L58 [new] 08:42 (imessage/Maya) Maya: exactly, countdown to real cheese again\n  L59 [new] 08:42 (imessage/Maya) Maya: what are you having for lunch today btw\n  L60 [new] 08:44 (imessage/Maya) me: probably sad desk salad again, very boring\n  L61 [new] 08:45 (imessage/Maya) Maya: lol classic, i'm doing soup again, tomato can supremacy\n  L62 [new] 08:47 (imessage/Maya) me: add grilled cheese? oh wait you can't\n  L63 [new] 08:47 (imessage/Maya) Maya: rude but true, just soup and crackers for me\n  L64 [new] 08:49 (imessage/Maya) me: sorryyy, oat latte and soup era\n  L65 [new] 08:50 (imessage/Maya) Maya: exactly, glamorous\n  L66 [new] 08:52 (imessage/Maya) Maya: okay i gotta hop on this call, talk later?\n  L67 [new] 08:52 (imessage/Maya) me: yeah good luck, hope it's not one that could've been a text\n  L68 [new] 08:54 (imessage/Maya) Maya: it definitely could've been, bye lol\n  L69 [new] 08:55 (imessage/Maya) me: bye, see you at noon on the 23rd!\n  L70 [context] 09:05 (imessage/Friday crew) Maya: yesterday lol i can barely do stairs today\n  L71 [context] 11:23 (imessage/Friday crew) me: chamomile me up round two\n  L72 [context] 11:23 (imessage/Friday crew) Maya: got you both\n  L73 [context] 11:24 (imessage/Friday crew) Leo: so 23rd, out front at noon, i'll text when i'm close\n  L74 [context] 11:25 (imessage/Friday crew) Maya: perfect, same\n  L75 [context] 11:30 (imessage/Friday crew) me: same, i'll walk over\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/Maya: Maya\nimessage/Friday crew: Leo, Maya\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nEVENTS CREATED OR UPDATED FROM THIS CONVERSATION\n  pizza-lunch@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza lunch | Rosa's on Oak Street | with Maya\n    ←from here, on 2026-10-12: Maya: 1 pm next friday at Rosa's? yeah that works for me / me: perfect, i'll grab us a table like last time / Maya: i think they do? i saw marinara + veggie no-cheese option on the menu / Maya: i can do that for now while i'm testing, no milk cheese butter for me\nPOSSIBLY THE SAME PLAN, DIFFERENTLY WORDED. Nothing links these to this conversation except wording, so decide: same row (return its key), a different occasion (return your own row with no key), or leave it alone if you cannot tell from what is here.\n  pizza-dinner@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza dinner | Luigi's on 5th street | with Devon\n  walk@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Walk | Willow Park, west entrance by the duck pond | with Alex, Jen\nNO PAGE YET FOR: Leo — open one only if this bundle contains a durable fact about them.\nPAGES FOR THIS BUNDLE\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID 4f9c3a   (Jen)\n3 conversations on imessage · 78 lines · 2026-10-12 to 2026-10-13\n-- Mon 2026-10-12 --\n  L1 [context] 19:11 (imessage/Park pals) Alex: no I meant not this one, Friday next week\n  L2 [context] 22:01 (imessage/Park pals) Jen: so we’re set for next week yeah?\n  L3 [context] 22:02 (imessage/Park pals) Alex: yep, 2pm willow park\n  L4 [context] 22:11 (imessage/Park pals) me: see you guys there\n  L5 [context] 22:12 (imessage/Park pals) Jen: can’t wait, need it\n  L6 [context] 22:15 (imessage/Park pals) Alex: same, night guys\n-- Tue 2026-10-13 --\n  L7 [context] 09:22 (imessage/Friday crew) me: did your laptop survive this morning?\n  L8 [new] 11:00 (imessage/Jen) Jen: hii are you at your desk\n  L9 [new] 11:00 (imessage/Jen) me: yeah stuck here, whats up\n  L10 [new] 11:01 (imessage/Jen) Jen: finally taking lunch in like 20 but ugh I have a favor\n  L11 [new] 11:02 (imessage/Jen) me: oh no that sounds serious lol\n  L12 [new] 11:02 (imessage/Jen) Jen: kind of, are you good with like cover letter stuff\n  L13 [new] 11:02 (imessage/Jen) me: decent enough, why\n  L14 [new] 11:03 (imessage/Jen) Jen: I'm applying for that ops coordinator thing\n  L15 [new] 11:04 (imessage/Jen) Jen: internal posting but still need the whole application\n  L16 [new] 11:04 (imessage/Jen) me: oh nice, getting away from micromanager boss?\n  L17 [new] 11:04 (imessage/Jen) Jen: exactly lol she doesn't know yet so shhh\n  L18 [new] 11:05 (imessage/Jen) me: lips sealed\n  L19 [new] 11:06 (imessage/Jen) Jen: the form itself is easy but my cover letter sounds so stiff\n  L20 [new] 11:06 (imessage/Jen) me: send it over I can look?\n  L21 [new] 11:07 (imessage/Jen) Jen: could we actually do a quick call to go through it?\n  L22 [new] 11:07 (imessage/Jen) Jen: it's easier than like 50 texts back and forth\n  L23 [new] 11:07 (imessage/Jen) me: yeah totally, when\n  L24 [new] 11:09 (imessage/Jen) Jen: I'm still drafting this week\n  L25 [new] 11:10 (imessage/Jen) Jen: what about next friday? not this friday, next one\n  L26 [new] 11:12 (imessage/Jen) me: the 10am brain is still fresh kind of time?\n  L27 [new] 11:13 (imessage/Jen) Jen: lol yes, would 10am work for you?\n  L28 [new] 11:14 (imessage/Jen) me: yeah that works, phone call?\n  L29 [new] 11:19 (imessage/Jen) Jen: yeah just a normal phone call, like 20 mins max\n  L30 [new] 11:19 (imessage/Jen) me: perfect, I can do 10am next friday\n  L31 [new] 11:19 (imessage/Jen) Jen: you're the best, I'll send you the draft before so you can skim\n  L32 [new] 11:19 (imessage/Jen) me: yes please do, otherwise I'll just be like uh sounds great\n  L33 [new] 11:21 (imessage/Jen) Jen: hahaha I need actual feedback not just vibes\n  L34 [new] 11:22 (imessage/Jen) Jen: my cat is currently sitting on my resume printout btw\n  L35 [new] 11:23 (imessage/Jen) me: oh my god not the gremlin sabotage\n  L36 [new] 11:23 (imessage/Jen) Jen: she loves paper, she's in full loaf mode on it\n  L37 [new] 11:23 (imessage/Jen) me: tell her this is important career business\n  L38 [context] 11:23 (imessage/Friday crew) me: chamomile me up round two\n  L39 [context] 11:23 (imessage/Friday crew) Maya: got you both\n  L40 [context] 11:24 (imessage/Friday crew) Leo: so 23rd, out front at noon, i'll text when i'm close\n  L41 [context] 11:25 (imessage/Friday crew) Maya: perfect, same\n  L42 [new] 11:28 (imessage/Jen) Jen: she does not care\n  L43 [context] 11:30 (imessage/Friday crew) me: same, i'll walk over\n  L44 [new] 11:30 (imessage/Jen) me: did your cheap umbrella survive today? it's so gross out\n  L45 [new] 11:30 (imessage/Jen) Jen: omg it's raining again here too\n  L46 [new] 11:35 (imessage/Jen) Jen: yeah it's holding up so far, black boring one\n  L47 [new] 11:35 (imessage/Jen) me: good, mine is still in my bag from last time\n  L48 [new] 11:36 (imessage/Jen) Jen: smart, I checked forecast and just gave up\n  L49 [new] 11:37 (imessage/Jen) me: same, my shoes are soaked from the walk in\n  L50 [new] 11:42 (imessage/Jen) Jen: are you squeaking around the office now\n  L51 [new] 11:44 (imessage/Jen) me: no that's you, I'm doing the wet sock shuffle\n  L52 [new] 11:44 (imessage/Jen) Jen: eww worst feeling\n  L53 [new] 11:44 (imessage/Jen) me: I have like 40 unread again too\n  L54 [new] 11:46 (imessage/Jen) Jen: ugh same, all cc nonsense from this morning\n  L55 [new] 11:51 (imessage/Jen) me: I just archived half without opening\n  L56 [new] 11:51 (imessage/Jen) Jen: wish, mine actually checks if I opened them\n  L57 [new] 11:52 (imessage/Jen) me: still?? you really do need this new job\n  L58 [new] 11:53 (imessage/Jen) Jen: literally why I'm applying lol\n  L59 [new] 11:53 (imessage/Jen) Jen: the new team is on the second floor, no leaky lobby\n  L60 [new] 11:54 (imessage/Jen) me: oh nice upgrade, no buckets by the elevators\n  L61 [new] 11:54 (imessage/Jen) Jen: right?? big selling point\n  L62 [new] 11:56 (imessage/Jen) me: so for the call, do you want me to just mark it up?\n  L63 [new] 11:56 (imessage/Jen) Jen: yeah if you can just note anything weird while we talk\n  L64 [new] 11:56 (imessage/Jen) Jen: I'm worried I sound too formal\n  L65 [new] 12:01 (imessage/Jen) me: got it, I'll be brutally honest but lovingly rude\n  L66 [new] 12:06 (imessage/Jen) Jen: lol perfect, that's our brand\n  L67 [new] 12:11 (imessage/Jen) Jen: btw are you doing pasta for lunch or going out\n  L68 [new] 12:16 (imessage/Jen) me: brought leftover pasta actually, finally boiled water\n  L69 [new] 12:17 (imessage/Jen) Jen: proud of you, growth\n  L70 [new] 12:22 (imessage/Jen) me: the cat watched me make it last night, judging the whole time\n  L71 [new] 12:23 (imessage/Jen) Jen: as she should, armrest stare?\n  L72 [new] 12:23 (imessage/Jen) me: yep full stare from the couch\n  L73 [new] 12:24 (imessage/Jen) Jen: creepy little gremlin never misses\n  L74 [new] 12:29 (imessage/Jen) me: okay I need more coffee before my next meeting\n  L75 [new] 12:34 (imessage/Jen) Jen: same, I'm grabbing mine then eating at my desk\n  L76 [new] 12:39 (imessage/Jen) Jen: I'll send the draft like thursday next week so it's fresh\n  L77 [new] 12:39 (imessage/Jen) me: sounds good, 10am call next friday to review it\n  L78 [new] 12:40 (imessage/Jen) Jen: yes thank youuu, lifesaver\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/Jen: Jen\nimessage/Friday crew: Leo, Maya\nimessage/Park pals: Alex, Jen\nALREADY ON THE CALENDAR, AND POSSIBLY WHAT THIS CONVERSATION IS ABOUT.\nA line that moves, cancels, confirms or adds detail to one of these is an\nupdate: return it with that exact key, not as a new row.\nOTHER POSSIBLY RELATED EVENTS INVOLVING PEOPLE HERE\n  walk@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Walk | Willow Park, west entrance by the duck pond | with Alex, Jen\n  pizza-lunch@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza lunch | Rosa's on Oak Street | with Maya\nPOSSIBLY THE SAME PLAN, DIFFERENTLY WORDED. Nothing links these to this conversation except wording, so decide: same row (return its key), a different occasion (return your own row with no key), or leave it alone if you cannot tell from what is here.\n  pizza-dinner@2026-10-23 | Fri 2026-10-23 | commitment/confirmed | Pizza dinner | Luigi's on 5th street | with Devon\nNO PAGE YET FOR: Alex, Jen, Leo — open one only if this bundle contains a durable fact about them.\nPAGES FOR THIS BUNDLE\n# Maya\n\n## Facts\n\n- **diet**: dairy-free for a few weeks  <!-- person:Maya 2026-10-12 #1710 #1720 -->\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\"diffs\": [{\"bundle\": \"17fbd0\", \"events\": [{\"attendance\": [{\"cites\": [\"L59\", \"L75\"], \"name\": \"Leo\", \"role\": \"attending\"}, {\"cites\": [\"L47\", \"L54\", \"L60\"], \"name\": \"Maya\", \"role\": \"attending\"}], \"cites\": [\"L47\", \"L49\", \"L51\", \"L52\", \"L58\", \"L59\", \"L60\", \"L75\", \"L98\"], \"date\": \"2026-10-23\", \"expansions\": [], \"field_cites\": {\"location\": [\"L49\"], \"time\": [\"L51\", \"L52\"]}, \"instead_of\": null, \"key\": \"pizza-lunch@2026-10-23\", \"kind\": \"commitment\", \"links\": [], \"location\": \"Rosa's on Oak Street\", \"note\": \"Maya is doing dairy-free test; plan marinara and no-cheese option\", \"participants\": [], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"12:00\", \"title\": \"Pizza lunch\", \"until\": null, \"visit_target\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"aff481\", \"events\": [{\"attendance\": [], \"cites\": [\"L23\", \"L25\", \"L26\", \"L27\", \"L69\"], \"date\": \"2026-10-23\", \"expansions\": [], \"field_cites\": {\"time\": [\"L25\", \"L26\", \"L27\"]}, \"instead_of\": null, \"key\": \"pizza-lunch@2026-10-23\", \"kind\": \"commitment\", \"links\": [], \"location\": \"Rosa's on Oak Street\", \"note\": \"Maya is doing dairy-free test; plan marinara and no-cheese option\", \"participants\": [], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"12:00\", \"title\": \"Pizza lunch\", \"until\": null, \"visit_target\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"c1547d\", \"events\": [{\"attendance\": [{\"cites\": [\"L38\", \"L42\", \"L74\"], \"name\": \"Alex\", \"role\": \"attending\"}], \"cites\": [\"L38\", \"L40\", \"L42\", \"L43\", \"L50\", \"L52\", \"L74\", \"L75\"], \"date\": \"2026-10-23\", \"expansions\": [], \"field_cites\": {\"date\": [\"L38\"], \"location\": [\"L40\", \"L50\", \"L52\"], \"note\": [\"L25\", \"L29\", \"L49\", \"L50\"], \"time\": [\"L42\", \"L43\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": \"Birch Cafe, Mill Lane side entrance\", \"note\": \"Alex sprained ankle; use step-free Mill Lane side entrance\", \"participants\": [], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"11:00\", \"title\": \"Coffee\", \"until\": null, \"visit_target\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}, {\"bundle\": \"4f9c3a\", \"events\": [{\"attendance\": [{\"cites\": [\"L25\", \"L27\", \"L31\"], \"name\": \"Jen\", \"role\": \"attending\"}], \"cites\": [\"L14\", \"L15\", \"L25\", \"L27\", \"L28\", \"L29\", \"L30\", \"L77\"], \"date\": \"2026-10-23\", \"expansions\": [], \"field_cites\": {\"date\": [\"L25\"], \"note\": [\"L14\", \"L15\", \"L29\"], \"time\": [\"L27\", \"L28\"]}, \"instead_of\": null, \"key\": null, \"kind\": \"commitment\", \"links\": [], \"location\": null, \"note\": \"Phone call, 20 mins max, to review Jen's ops coordinator cover letter; she'll send draft before\", \"participants\": [], \"series\": null, \"status\": \"confirmed\", \"subject\": \"me\", \"time\": \"10:00\", \"title\": \"Cover letter review call\", \"until\": null, \"visit_target\": null}], \"questions\": [], \"series\": [], \"threads\": [], \"todos\": [], \"wiki\": []}], \"reviewed\": [\"17fbd0\", \"c1547d\", \"aff481\", \"4f9c3a\"]}",
+      "parsed": {
+        "diffs": [
+          {
+            "bundle": "17fbd0",
+            "events": [
+              {
+                "attendance": [
+                  {
+                    "cites": [
+                      "L59",
+                      "L75"
+                    ],
+                    "name": "Leo",
+                    "role": "attending"
+                  },
+                  {
+                    "cites": [
+                      "L47",
+                      "L54",
+                      "L60"
+                    ],
+                    "name": "Maya",
+                    "role": "attending"
+                  }
+                ],
+                "cites": [
+                  "L47",
+                  "L49",
+                  "L51",
+                  "L52",
+                  "L58",
+                  "L59",
+                  "L60",
+                  "L75",
+                  "L98"
+                ],
+                "date": "2026-10-23",
+                "expansions": [],
+                "field_cites": {
+                  "location": [
+                    "L49"
+                  ],
+                  "time": [
+                    "L51",
+                    "L52"
+                  ]
+                },
+                "instead_of": null,
+                "key": "pizza-lunch@2026-10-23",
+                "kind": "commitment",
+                "links": [],
+                "location": "Rosa's on Oak Street",
+                "note": "Maya is doing dairy-free test; plan marinara and no-cheese option",
+                "participants": [],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "12:00",
+                "title": "Pizza lunch",
+                "until": null,
+                "visit_target": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "aff481",
+            "events": [
+              {
+                "attendance": [],
+                "cites": [
+                  "L23",
+                  "L25",
+                  "L26",
+                  "L27",
+                  "L69"
+                ],
+                "date": "2026-10-23",
+                "expansions": [],
+                "field_cites": {
+                  "time": [
+                    "L25",
+                    "L26",
+                    "L27"
+                  ]
+                },
+                "instead_of": null,
+                "key": "pizza-lunch@2026-10-23",
+                "kind": "commitment",
+                "links": [],
+                "location": "Rosa's on Oak Street",
+                "note": "Maya is doing dairy-free test; plan marinara and no-cheese option",
+                "participants": [],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "12:00",
+                "title": "Pizza lunch",
+                "until": null,
+                "visit_target": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "c1547d",
+            "events": [
+              {
+                "attendance": [
+                  {
+                    "cites": [
+                      "L38",
+                      "L42",
+                      "L74"
+                    ],
+                    "name": "Alex",
+                    "role": "attending"
+                  }
+                ],
+                "cites": [
+                  "L38",
+                  "L40",
+                  "L42",
+                  "L43",
+                  "L50",
+                  "L52",
+                  "L74",
+                  "L75"
+                ],
+                "date": "2026-10-23",
+                "expansions": [],
+                "field_cites": {
+                  "date": [
+                    "L38"
+                  ],
+                  "location": [
+                    "L40",
+                    "L50",
+                    "L52"
+                  ],
+                  "note": [
+                    "L25",
+                    "L29",
+                    "L49",
+                    "L50"
+                  ],
+                  "time": [
+                    "L42",
+                    "L43"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": "Birch Cafe, Mill Lane side entrance",
+                "note": "Alex sprained ankle; use step-free Mill Lane side entrance",
+                "participants": [],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "11:00",
+                "title": "Coffee",
+                "until": null,
+                "visit_target": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          },
+          {
+            "bundle": "4f9c3a",
+            "events": [
+              {
+                "attendance": [
+                  {
+                    "cites": [
+                      "L25",
+                      "L27",
+                      "L31"
+                    ],
+                    "name": "Jen",
+                    "role": "attending"
+                  }
+                ],
+                "cites": [
+                  "L14",
+                  "L15",
+                  "L25",
+                  "L27",
+                  "L28",
+                  "L29",
+                  "L30",
+                  "L77"
+                ],
+                "date": "2026-10-23",
+                "expansions": [],
+                "field_cites": {
+                  "date": [
+                    "L25"
+                  ],
+                  "note": [
+                    "L14",
+                    "L15",
+                    "L29"
+                  ],
+                  "time": [
+                    "L27",
+                    "L28"
+                  ]
+                },
+                "instead_of": null,
+                "key": null,
+                "kind": "commitment",
+                "links": [],
+                "location": null,
+                "note": "Phone call, 20 mins max, to review Jen's ops coordinator cover letter; she'll send draft before",
+                "participants": [],
+                "series": null,
+                "status": "confirmed",
+                "subject": "me",
+                "time": "10:00",
+                "title": "Cover letter review call",
+                "until": null,
+                "visit_target": null
+              }
+            ],
+            "questions": [],
+            "series": [],
+            "threads": [],
+            "todos": [],
+            "wiki": []
+          }
+        ],
+        "reviewed": [
+          "17fbd0",
+          "c1547d",
+          "aff481",
+          "4f9c3a"
+        ]
+      },
+      "echoed": [
+        "17fbd0",
+        "c1547d",
+        "aff481",
+        "4f9c3a"
+      ],
+      "routed": [
+        {
+          "id": "17fbd0",
+          "entity": "thread:imessage:id:chat1dc0474a7aac5fa1885880222671c43c",
+          "label": "Friday crew",
+          "lines": 100
+        },
+        {
+          "id": "c1547d",
+          "entity": "person:Alex",
+          "label": "Alex",
+          "lines": 77
+        },
+        {
+          "id": "aff481",
+          "entity": "person:Maya",
+          "label": "Maya",
+          "lines": 75
+        },
+        {
+          "id": "4f9c3a",
+          "entity": "person:Jen",
+          "label": "Jen",
+          "lines": 78
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "chatcmpl-01a1a9a9-7e79-743e-9d99-4678065a4668",
+      "run_id": 29,
+      "stage": "sweep",
+      "label": "state review",
+      "model": "muse-spark-1.3-contributor",
+      "at": "2026-10-14T03:00:00-04:00",
+      "max_tokens": 16647,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "default",
+      "usage": {
+        "prompt_tokens": 1062,
+        "completion_tokens": 888,
+        "cached_tokens": 0,
+        "reasoning_tokens": 868,
+        "cost": 0.0
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "You are reviewing the state of a personal memory system right after a batch of writes.\nYou are not adding anything new. You are looking for damage:\n\n  duplicate    two rows that are plainly the same event -> name both keys so code can merge them\n  junk         a row or fact that should never have been stored (banter, affection,\n               newsletter events, facts about software, other people's opinions)\n  contradiction  two rows that cannot both be true -> raise a question\n\nA booking that was really made and then called off is a `declined` row, not a duplicate\nor junk. Both rows stay. This summary has no source evidence, so it cannot authorize a\nstatus correction. Leave corrections to Merge and Apply, which can compare source lines.\nFor a duplicate, `key` is the redundant row and `keep_key` is the other row for the\nsame occasion. Code retains booking identity, calendar links, and source evidence.\nAn arrival observation can duplicate a confirmed booking; the booking still belongs\non the real calendar. For junk, `keep_key` is null. Never guess a missing survivor.\n\nKEYS ARE OPAQUE\nA row's key is an identifier, not data. It is minted once from the title and the date\nthe row was first seen, and it never changes afterwards — so a row that moved to a new\ndate keeps its original suffix, and `beer-garden@2026-08-01` dated 2026-08-02 is a row\nthat moved, working exactly as intended. The date field is the truth; the key is a\nname. Never raise a question about a key disagreeing with a date.\n\nQUESTIONS ARE FOR THE USER\nEvery question you raise is shown to a person and costs them a reply. Ask only about\ntheir life — never about this system's bookkeeping, formatting, or internal\nconsistency. If the only person who could act on the answer is the system itself, it\nis not a question.\n\nBe conservative. Deleting a real row is worse than leaving a slightly awkward one.\nReturn empty arrays when the state looks fine, which is the common case.\n",
+      "suffix": "MEMCAL AFTER THIS RUN\n  potato-salad-pickup@2026-10-12 | 2026-10-12 | opportunity/mentioned | Potato salad pickup\n  cover-letter-review-call@2026-10-23 | 2026-10-23 | commitment/confirmed | Cover letter review call | 10:00 | with Jen\n  coffee@2026-10-23 | 2026-10-23 | commitment/confirmed | Coffee | 11:00 | Birch Cafe, Mill Lane side entrance | with Alex\n  pizza-lunch@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza lunch | 12:00 | Rosa's on Oak Street | with Leo, Maya\n  walk@2026-10-23 | 2026-10-23 | commitment/confirmed | Walk | 14:00 | Willow Park, west entrance by the duck pond | with Alex, Jen\n  pizza-dinner@2026-10-23 | 2026-10-23 | commitment/confirmed | Pizza dinner | 18:00 | Luigi's on 5th street | with Devon\n  dinner@2026-10-22 | 2026-10-24 | commitment/confirmed | Dinner | 19:00 | Juniper Cafe, 48 Maple Ave | with Ben\n\nOPEN TO-DOS\n  (none)\n\nQUESTIONS ALREADY OPEN — do not ask any of these again\n  (none)\n\nWRITES IN THIS RUN\n  updated   2026-10-23 Pizza lunch [pizza-lunch@2026-10-23]\n  held      2026-10-23 Pizza lunch [pizza-lunch@2026-10-23]: source — older or uncited evidence\n  inserted  2026-10-23 Coffee [coffee@2026-10-23]\n  inserted  2026-10-23 Cover letter review call [cover-letter-review-call@2026-10-23]\n  updated   2026-10-24 Dinner [dinner@2026-10-22]\n\nReview this state.",
+      "completion": "{\"drop_events\":[],\"drop_todos\":[],\"questions\":[]}",
+      "parsed": {
+        "drop_events": [],
+        "drop_todos": [],
+        "questions": []
+      }
+    }
+  ]
+}

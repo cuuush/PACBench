@@ -78,11 +78,19 @@ def audit_honcho_receipt(batch, result, previous_work=None):
         ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
         witnesses = result.get('message_witnesses', [])
         final = changes[-1] if changes else {}
+        error_scope=result.get('source_error_scope')
+        if error_scope not in (None,'submitted-source-sessions-v1'):
+            errors.append('Unsupported Honcho source error scope')
+        def source_errors(state):
+            failures=state.get('errors',[])
+            if error_scope=='submitted-source-sessions-v1':
+                return [e for e in failures if e.get('session_name') is None or e['session_name'] in sessions]
+            return failures
         if (not ids or {r.get('id') for r in witnesses} != ids or
                 len({r.get('queue_id') for r in witnesses}) != len(witnesses) or
                 any(r.get('processed') is not True or r.get('has_error') is not False for r in witnesses) or
                 any(final.get(k) != 0 for k in ('claims','pending','embeddings')) or
-                any(s.get('errors') for s in changes)):
+                any(source_errors(s) for s in changes)):
             errors.append('Honcho simulated-clock message enrollment/completion is unproven')
         return errors
     if any(change.get('native_queue_errors') for change in changes):

@@ -104,6 +104,12 @@ def test_source_readiness_needs_each_actual_processed_message():
         'processing_status':[idle_snapshot()], 'message_witnesses':[
             {'id':'native-message','queue_id':1,'processed':True,'has_error':False}]}
     assert audit_honcho_receipt([source], result) == []
+    result['source_error_scope']='submitted-source-sessions-v1'
+    for failed_session in (session,None,'unrelated-hermes-session'):
+        result['processing_status'][0]['errors']=[{'id':9,'task_type':'summary','session_name':failed_session}]
+        assert bool(audit_honcho_receipt([source],result)) is (failed_session!='unrelated-hermes-session')
+    result['processing_status'][0]['errors']=[]
+    result.pop('source_error_scope')
     result['message_witnesses'][0]['processed'] = False
     assert audit_honcho_receipt([source], result)
     result['message_witnesses'] = []
@@ -118,10 +124,26 @@ def test_failed_native_work_keeps_enrollment_and_error_witnesses(monkeypatch, tm
     monkeypatch.setattr('provider_adapters.honcho_local.queue_errors', lambda *a,**kw:[
         {'id':1,'error_class':'ValueError','error_sha256':'a'*64}])
     result = clock.wait_for_batch(tmp_path, [
-        {'observer':{'peer_id':'hermes'},'messages':[{'id':'n1'}]}], {})
+        {'session_id':'source-session','observer':{'peer_id':'hermes'},'messages':[{'id':'n1'}]}], {})
     assert result['ready'] is False
     assert result['message_witnesses'][0]['has_error'] is True
     assert result['processing_status'][-1]['native_queue_errors'][0]['error_class'] == 'ValueError'
+
+
+@pytest.mark.parametrize('session',['source-session',None,'unrelated-hermes-session'])
+def test_source_readiness_checks_summary_errors_and_keeps_unrelated_work_separate(monkeypatch,tmp_path,session):
+    monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
+    state=idle_snapshot(errors=[{'id':9,'task_type':'summary','session_name':session}],
+        messages=[{'id':'n1','queue_id':1,'processed':True,'has_error':False}])
+    monkeypatch.setattr(clock,'snapshot',lambda *a:state)
+    monkeypatch.setattr('provider_adapters.honcho_local.queue_errors',lambda *a,**kw:[{
+        'id':9,'task_type':'summary','session_name':session,'error_class':'EmptySummaryError','error_sha256':'a'*64}])
+    receipt=clock.wait_for_batch(tmp_path,[{'session_id':'source-session',
+        'observer':{'peer_id':'hermes'},'messages':[{'id':'n1'}]}],{})
+    assert receipt['ready'] is (session=='unrelated-hermes-session')
+    assert receipt['source_error_scope']=='submitted-source-sessions-v1'
+    if not receipt['ready']:
+        assert receipt['processing_status'][-1]['native_queue_errors'][0]['error_class']=='EmptySummaryError'
 
 
 def test_scripted_checkpoint_cannot_use_already_later_provider_time(monkeypatch,tmp_path):

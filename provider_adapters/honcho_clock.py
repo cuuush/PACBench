@@ -122,8 +122,9 @@ def snapshot(root, ids=(), observer='hermes'):
             WHERE datname=current_database() AND pid<>pg_backend_pid()
             AND backend_type='client backend' AND state<>'idle'),
         'next_eligible_at',(SELECT min(oldest)+make_interval(secs=>{age}) FROM stats),
-        'errors',(SELECT coalesce(json_agg(json_build_object('id',id,'task_type',task_type)), '[]'::json)
-                  FROM queue WHERE error IS NOT NULL),
+        'errors',(SELECT coalesce(json_agg(json_build_object('id',q.id,'task_type',q.task_type,
+                        'session_name',s.name)), '[]'::json)
+                  FROM queue q LEFT JOIN sessions s ON s.id=q.session_id WHERE q.error IS NOT NULL),
         'messages',(SELECT coalesce(json_agg(json_build_object(
             'id',m.public_id,'queue_id',q.id,'processed',q.processed,
             'has_error',q.error IS NOT NULL)), '[]'::json)
@@ -367,6 +368,7 @@ def wait_for_batch(root, acknowledgments, roles):
     from pacbench.stop import check_stop
     from pacbench.usage import provider_model_health, snapshot as cost_snapshot
     expected = {m['id'] for ack in acknowledgments for m in ack['messages']}
+    sessions={ack['session_id'] for ack in acknowledgments}
     observers = {ack['observer']['peer_id'] for ack in acknowledgments}
     if not expected or len(observers) != 1:
         raise RuntimeError('Cannot establish native source enrollment')
@@ -376,6 +378,7 @@ def wait_for_batch(root, acknowledgments, roles):
         return {'ready': ready, 'interface': 'native messages + simulated wall clock',
                 'result': acknowledgments, 'processing_status': history,
                 'message_witnesses': list(evidence.values()), 'clock_protocol': VERSION,
+                'source_error_scope':'submitted-source-sessions-v1',
                 'model_health': health, 'readiness': reason}
     deadline = time.monotonic() + 900
     while time.monotonic() < deadline:
@@ -398,10 +401,11 @@ def wait_for_batch(root, acknowledgments, roles):
         progress = {k: v for k, v in state.items() if k not in ('db_now', 'busy_connections')}
         if progress != previous:
             history.append(state); previous = progress
-        if any(r['has_error'] for r in evidence.values()):
+        source_errors=[e for e in state['errors'] if e.get('session_name') is None or e['session_name'] in sessions]
+        if source_errors or any(r['has_error'] for r in evidence.values()):
             from provider_adapters.honcho_local import queue_errors
             history[-1]['native_queue_errors'] = queue_errors(root, include_all=True)
-            return receipt(False, 'Native Honcho source work failed; error witnesses preserved', health)
+            return receipt(False, 'Native Honcho source processing failed; error witnesses preserved', health)
         # Preserve a completion witness before simulated cleanup can remove it.
         if complete and not any(state[k] for k in ('claims', 'pending', 'embeddings')):
             return receipt(True, 'All submitted messages observed, processed and error-free', health)

@@ -119,10 +119,11 @@ def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage
     assert bool(audit_supermemory_receipt(receipt,'2026-10-19','Raw source text'))==(damage!='none')
 
 
-def test_native_json_acknowledgment_is_stored_once_without_losing_other_output():
+@pytest.mark.parametrize('text',['café plans','café\u2028plans\u2029next day'])
+def test_native_json_acknowledgment_is_stored_once_without_losing_other_output(text):
     from pacbench.document_ingestion import remove_duplicate_stdout
-    result={'ready':True,'result':{'memories':['café plans']}}
-    record={'stdout':'native progress\n'+json.dumps(result)+'\n\n','result':result,'stderr':'native warning'}
+    result={'ready':True,'result':{'memories':[text]}}
+    record={'stdout':'native progress\n'+json.dumps(result,ensure_ascii=False)+'\n\n','result':result,'stderr':'native warning'}
     assert remove_duplicate_stdout(record)
     assert record['stdout']=='native progress\n\n' and record['result']==result
     assert record['stderr']=='native warning' and record['stdout_json_in']=='result'

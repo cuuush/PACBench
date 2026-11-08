@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from . import harness
+from .gateway_client import ModelAccessBlocked, SpendingBlocked
 from .usage import tracked_turn
 from .followups import audit_followups, run_followups, save, tool_profile, initial_effort
 from .semantic_grade import Claim, grade_native_semantic, audit_native_judge_attempts, BenchmarkContractError, validate_diagnostic, DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, LEGACY_JUDGE_PROTOCOL, judge_prompt
@@ -142,6 +143,11 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',
                             recovery={'state':recovery['state'],'score':recovery['score'],'attempts':recovery['attempts']})
                     advance(state,turn,directory,provenance_version)
+            except (ModelAccessBlocked,SpendingBlocked) as exc:
+                item.update(state='ungraded',verdict=None,error_type='access_blocked' if isinstance(exc,ModelAccessBlocked) else 'budget_blocked',reason=str(exc))
+                report.update(state=item['error_type'],reason=str(exc))
+                save(directory/'status.json',item);save(root/'evaluation.json',report)
+                return report
             except OperatorStop:
                 item.update(state='interrupted', verdict=None, reason='operator stop requested')
                 save(directory / 'status.json', item)

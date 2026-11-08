@@ -37,13 +37,14 @@ raise SystemExit(main(sys.argv[2:]))
 
 def remove_duplicate_stdout(record):
     """Store a parsed native JSON acknowledgment once, preserving other output."""
-    lines=(record.get('stdout') or '').splitlines(keepends=True)
+    # JSON strings may legally contain U+2028/U+2029; only LF frames CLI output.
+    lines=(record.get('stdout') or '').split('\n')
     last=next((i for i in range(len(lines)-1,-1,-1) if lines[i].strip()),None)
     if last is None or not isinstance(record.get('result'),dict):return False
     try:same=json.loads(lines[last])==record['result']
     except (ValueError,TypeError):return False
     if not same:return False
-    record['stdout']=''.join(lines[:last]+lines[last+1:])
+    record['stdout']='\n'.join(lines[:last]+lines[last+1:])
     record['stdout_json_in']='result'
     return True
 
@@ -223,7 +224,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
         record.update(returncode=proc.returncode,stdout=proc.stdout,stderr=proc.stderr)
         if proc.stdout.strip():
             try:
-                result=json.loads(proc.stdout.splitlines()[-1])
+                result=json.loads(proc.stdout.rstrip('\r\n').rsplit('\n',1)[-1])
             except (ValueError,IndexError):
                 result=None
             if proc.returncode == 75 and isinstance(result, dict) and result.get('operator_stop') is True:
@@ -236,10 +237,33 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
         record.update(reason='Native ingestion/processing deadline exceeded',stdout=(exc.stdout or b'').decode() if isinstance(exc.stdout,bytes) else exc.stdout,
                       stderr=(exc.stderr or b'').decode() if isinstance(exc.stderr,bytes) else exc.stderr)
     except (OSError,ValueError,IndexError) as exc:
-        record['reason']=f'{type(exc).__name__}: {exc}'
+        if provider=='honcho':
+            from provider_adapters.document_connector import native_error_receipt
+            record.update(reason='Native worker failed; raw error withheld',native_error=native_error_receipt(exc))
+        else:record['reason']=f'{type(exc).__name__}: {exc}'
     finally:
         record['latency_s']=round(time.monotonic()-started,2)
         record['usage']=window(before,snapshot(roles))
+        if provider=='honcho':
+            journal=root/'ingestion-delivery'/source.name/'index.json'
+            if journal.exists():
+                raw=journal.read_bytes()
+                record['delivery_journal']={'path':str(journal.relative_to(root)),
+                                          'sha256':hashlib.sha256(raw).hexdigest()}
+                from provider_adapters.document_connector import verify_honcho_delivery
+                try:verify_honcho_delivery(journal,complete=record['ready'])
+                except (ValueError,OSError,KeyError,TypeError):
+                    record.update(ready=False,state='failed',reason='Native delivery receipt integrity failed')
+            # Keep parsed acknowledgments, not an SDK traceback that may echo
+            # the complete input or credentials. This also covers timeouts.
+            streams={}
+            for name in ('stdout','stderr'):
+                value=record.get(name) or ''
+                if value:
+                    raw=value.encode()
+                    streams[name]={'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+                record[name]=''
+            if streams:record['worker_diagnostics']=streams
         # Native exception messages must never publish an authentication token.
         token=env.get('OPENAI_API_KEY','')
         if token:

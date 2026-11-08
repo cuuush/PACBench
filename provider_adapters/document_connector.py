@@ -11,6 +11,104 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
+HONCHO_MESSAGE_LIMIT = 100  # Native MessageBatchCreateParams limit, including SDK 2.2.0.
+
+
+def native_error_receipt(error):
+    """Native exception bodies may echo complete sources or credentials."""
+    import hashlib
+    import re
+    name=type(error).__name__
+    if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,99}',name):name='NativeError'
+    value={'error_class':name,'error_sha256':hashlib.sha256(str(error).encode()).hexdigest()}
+    status=getattr(error,'status_code',getattr(error,'status',None))
+    if type(status) is int and 100<=status<=599:value['http_status']=status
+    if status in (401,403):value['authentication_blocked']=True
+    body=getattr(error,'body',None)
+    details=body.get('detail',[]) if isinstance(body,dict) else []
+    for detail in details if isinstance(details,list) else []:
+        if (isinstance(detail,dict) and detail.get('type')=='too_long' and
+                detail.get('loc')==['body','messages'] and isinstance(detail.get('ctx'),dict)):
+            value['validation_code']='too_long'
+            for field in ('max_length','actual_length'):
+                count=detail['ctx'].get(field)
+                if type(count) is int and 0<=count<=10_000_000:value[field]=count
+            break
+    return value
+
+
+def add_honcho_messages(session, messages, checkpoint):
+    """Ordered native requests, without retrying a possibly committed chunk."""
+    accepted=[]
+    for start in range(0,len(messages),HONCHO_MESSAGE_LIMIT):
+        chunk=messages[start:start+HONCHO_MESSAGE_LIMIT]
+        index=start//HONCHO_MESSAGE_LIMIT
+        checkpoint(accepted,index,chunk,'sending',None)
+        try:
+            response=session.add_messages(chunk)
+        except Exception as error:
+            failure={**native_error_receipt(error),'chunk_index':index,
+                     'request_messages':len(chunk),'acknowledged_messages':len(accepted)}
+            failure['commit_state']=('rejected' if failure.get('http_status') in (400,401,403,404,413,422)
+                                     else 'unknown')
+            checkpoint(accepted,index,chunk,'failed',failure)
+            return accepted,failure
+        try:
+            valid=isinstance(response,list) and len(response)==len(chunk) and all(
+                actual.session_id==session.id and actual.peer_id==sent.peer_id and
+                actual.content==sent.content and actual.created_at==sent.created_at and
+                all(actual.metadata.get(k)==v for k,v in sent.metadata.items())
+                for actual,sent in zip(response,chunk))
+            if valid:
+                identifiers=[m.id for m in response]
+                valid=(all(isinstance(i,str) and i for i in identifiers) and
+                    len(set(identifiers))==len(identifiers) and
+                    not {m.id for m in accepted}.intersection(identifiers))
+        except (AttributeError,TypeError):valid=False
+        if not valid:
+            import hashlib
+            failure={'error_class':'AcknowledgmentMismatch','chunk_index':index,
+                'request_messages':len(chunk),'acknowledged_messages':len(accepted),'commit_state':'unknown',
+                'received_messages':len(response) if isinstance(response,list) else None,
+                'unverified_response_sha256':hashlib.sha256(repr(response).encode()).hexdigest()}
+            checkpoint(accepted,index,chunk,'failed',failure)
+            return accepted,failure
+        accepted.extend(response)
+        checkpoint(accepted,index,chunk,'acknowledged',None)
+    return accepted,None
+
+
+def verify_honcho_delivery(path, *, complete=False):
+    """Bind the small manifest to every partial native acknowledgment receipt."""
+    import hashlib
+    import re
+    path=Path(path);manifest=json.loads(path.read_text())
+    if manifest.get('version')!='honcho-native-delivery-v1':raise ValueError('Unknown native delivery receipt')
+    if complete and manifest.get('state')!='submitted':raise ValueError('Native delivery is incomplete')
+    if complete and (not manifest['sessions'] or
+            sum(s['source_messages'] for s in manifest['sessions'])!=manifest['source_messages']):
+        raise ValueError('Native delivery omits sessions')
+    for session in manifest['sessions']:
+        name=session['session_id']
+        if not re.fullmatch(r'[A-Za-z0-9_-]{1,128}',name):raise ValueError('Unsafe native session receipt')
+        count=0
+        if complete and list(session['chunks'])!=[f'{i:06d}.json' for i in range(len(session['chunks']))]:
+            raise ValueError('Native chunk order is incomplete')
+        for filename,digest in session['chunks'].items():
+            chunk=path.parent/name/filename
+            if not re.fullmatch(r'[0-9]{6}\.json',filename) or chunk.is_symlink():
+                raise ValueError('Unsafe native chunk receipt')
+            raw=chunk.read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=digest:raise ValueError('Native chunk receipt changed')
+            value=json.loads(raw)
+            if value['session_id']!=name:raise ValueError('Native chunk session differs')
+            if complete and (value['state']!='acknowledged' or
+                    [m['source_id'] for m in value['acknowledged']]!=value['source_ids']):
+                raise ValueError('Native chunk acknowledgment is incomplete')
+            count+=len(value['acknowledged'])
+        if complete and count!=session['source_messages']:raise ValueError('Native delivery omits messages')
+    return manifest
+
 
 class ExtractionLog(logging.Handler):
     """Observe native errors; never turn swallowed parser failures into readiness."""
@@ -272,6 +370,12 @@ def honcho(source,root,at,processing_at):
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
     acknowledgments=[];sessions=[];minimum_work={}
+    from pacbench.followups import save
+    journal_path=root/'ingestion-delivery'/source.name/'index.json'
+    if journal_path.exists():raise RuntimeError('Existing native delivery receipt; refusing blind resubmission')
+    journal={'version':'honcho-native-delivery-v1','request_limit':HONCHO_MESSAGE_LIMIT,'source_messages':len(messages),
+             'state':'uploading','sessions':[]}
+    save(journal_path,journal)
     for identity,batch in groups.items():
         session=client.session('source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24])
         sessions.append(session)
@@ -306,13 +410,32 @@ def honcho(source,root,at,processing_at):
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
             pending.append(peers[peer_id].message(m['text'],created_at=m['written_at'],
                 metadata={k:v for k,v in m.items() if k!='text'}))
-        response=session.add_messages(pending)
-        if len(response)!=len(batch):raise RuntimeError('Honcho did not acknowledge the full batch')
-        for actual,sent in zip(response,pending):
-            if (actual.peer_id!=sent.peer_id or actual.content!=sent.content or
-                actual.created_at!=sent.created_at or
-                any(actual.metadata.get(k)!=v for k,v in sent.metadata.items())):
-                raise RuntimeError('Honcho source acknowledgment differs from the submitted message')
+        entry={'session_id':session.id,'source_messages':len(pending),
+               'chunks':{},
+               'observer':{'peer_id':observer,'observe_me':observed.observe_me,'observe_others':observed.observe_others}}
+        journal['sessions'].append(entry)
+        def checkpoint(accepted,index,chunk,state,error):
+            if state=='sending':
+                from pacbench.stop import check_stop
+                from pacbench.gateway_client import require_live_cost_boundary
+                check_stop();require_live_cost_boundary()
+            # Each chunk has its own atomic receipt: never rewrite the entire
+            # accepted corpus as a large daily import progresses.
+            chunk_receipt={'session_id':session.id,'state':state,'chunk_index':index,
+                'source_ids':[m.metadata.get('source_id') for m in chunk],
+                'acknowledged':[{'native_message_id':m.id,'source_id':m.metadata.get('source_id'),
+                    'binding_sha256':hashlib.sha256(json.dumps({
+                        'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
+                        'created_at':m.created_at.isoformat(),'metadata':m.metadata},
+                        sort_keys=True,ensure_ascii=False).encode()).hexdigest()}
+                    for m in accepted[index*HONCHO_MESSAGE_LIMIT:]]}
+            if error is not None:chunk_receipt['error']=error;journal['state']='failed'
+            chunk_path=journal_path.parent/session.id/(f'{index:06d}.json')
+            save(chunk_path,chunk_receipt)
+            entry['chunks'][chunk_path.name]=hashlib.sha256(chunk_path.read_bytes()).hexdigest()
+            entry.update(state=state,last_chunk=index,acknowledged_messages=len(accepted))
+            save(journal_path,journal)
+        response,failure=add_honcho_messages(session,pending,checkpoint)
         minimum_work[session.id]=baseline['total_work_units']+len(response)
         acknowledgments.append({'session_id':session.id,'processing_baseline':baseline,'minimum_work_units':minimum_work[session.id],'observer':{'peer_id':observer,
             'observe_me':observed.observe_me,'observe_others':observed.observe_others},
@@ -320,6 +443,11 @@ def honcho(source,root,at,processing_at):
             'messages':[m.model_dump(mode='json') if hasattr(m,'model_dump') else {
             'id':m.id,'session_id':m.session_id,'peer_id':m.peer_id,'content':m.content,
             'created_at':m.created_at.isoformat(),'metadata':m.metadata} for m in response]})
+        if failure:
+            return {'ready':False,'interface':'Native Honcho session.add_messages, ordered <=100-message requests',
+                'result':acknowledgments,'native_error':failure,'delivery_journal':str(journal_path.relative_to(root)),
+                'readiness':'Native message delivery incomplete; no blind retry; processing not verified'}
+    journal['state']='submitted';save(journal_path,journal)
     defaults=json.loads((root/'native-processing-settings.json').read_text())
     from provider_adapters.honcho_clock import enabled, wait_for_batch
     if enabled(root):
@@ -436,7 +564,18 @@ def main(args=None):
         return 75
     provider,src,arm,at,processing_at=args or sys.argv[1:]
     dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover,'supermemory':supermemory,'honcho':honcho}
-    result=dispatch[provider](Path(src),Path(arm),at,processing_at)
+    try:
+        result=dispatch[provider](Path(src),Path(arm),at,processing_at)
+    except OperatorStop:
+        print(json.dumps({'operator_stop':True}))
+        return 75
+    except Exception as error:
+        if provider!='honcho':raise
+        result={'ready':False,'interface':'Native Honcho connector',
+                'native_error':native_error_receipt(error),
+                'readiness':'Native connector failed; raw exception body withheld'}
+        journal=Path(arm)/'ingestion-delivery'/Path(src).name/'index.json'
+        if journal.exists():result['delivery_journal']=str(journal.relative_to(Path(arm)))
     print(json.dumps(result,ensure_ascii=False,default=lambda value:sorted(value) if isinstance(value,set) else str(value)))
     return 0 if result['ready'] else 1
 

@@ -17,7 +17,7 @@ from .model_calls import ModelClient
 from .semantic_contract import load_contract
 from .semantic_grade import Claim, grade_native_semantic
 from .followups import save
-from .gateway_client import client_settings, require_live_cost_boundary
+from .gateway_client import client_settings, require_live_cost_boundary, ModelAccessBlocked, SpendingBlocked
 from .followups import freeze_policy, run_followups
 from .evaluation import load_evaluations
 from .native_checks import run_checks
@@ -59,6 +59,9 @@ def ingest_pending(needed, ingested, failed_batches, output, root, provider, env
             ingested.append(batch['id'])
         else:
             failed_batches.add(batch['id'])
+        error=(record.get('result') or {}).get('native_error') or record.get('native_error') or {}
+        if error.get('authentication_blocked') is True or error.get('http_status') in (401,403):
+            raise ModelAccessBlocked('Native provider authentication blocked; live run stopped')
         check_stop(stop_file)
         if record['state'] != 'ready':
             check_model_health()
@@ -473,6 +476,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         report["state"] = "running"
         save(output / "summary.json", report)
     interrupted = False
+    live_stopped = False
     for repetition in range(1, repetitions + 1):
         for provider in selected:
             active_clock_root = None
@@ -633,11 +637,20 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     if sequence['state'] == 'interrupted':
                         result['reason'] = 'operator stop requested'
                         interrupted = True
+                    if sequence['state'] in ('access_blocked','budget_blocked'):
+                        live_stopped=True
+                        report['access_stop' if sequence['state']=='access_blocked' else 'spending_stop']=sequence['reason']
                 except RuntimeError as exc:
                     result.update(state='invalid',reason=str(exc))
             else:
                 try:
                     import_before_check({'at':resolved['question_at']},root)
+                except (ModelAccessBlocked,SpendingBlocked) as exc:
+                    result.update(state='blocked',reason=str(exc));live_stopped=True
+                    report['access_stop' if isinstance(exc,ModelAccessBlocked) else 'spending_stop']=str(exc)
+                    stop_arm_model_work(root)
+                    save(root/'status.json',result);save(output/'summary.json',report)
+                    break
                 except OperatorStop:
                     result.update(state='interrupted', reason='operator stop requested')
                     interrupted = True
@@ -701,6 +714,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                           "metrics": a["metrics"]} for a in recovery["attempts"]]}
                         if recovery["state"] != "complete":
                             result.update(state="invalid", reason="follow-up diagnostics incomplete")
+                except (ModelAccessBlocked,SpendingBlocked) as exc:
+                    result.update(state='blocked',reason=str(exc));live_stopped=True
+                    report['access_stop' if isinstance(exc,ModelAccessBlocked) else 'spending_stop']=str(exc)
                 except OperatorStop:
                     result.update(state="interrupted", reason="operator stop requested")
                     interrupted = True
@@ -712,9 +728,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)
-            if interrupted:
+            if interrupted or live_stopped:
                 break
-        if interrupted:
+        if interrupted or live_stopped:
             break
     report["state"] = ("diagnostic" if all(r["state"] == "diagnostic" for r in results)
                        else "incomplete") if source else "inventory"
@@ -725,7 +741,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         except RuntimeError as exc:
             # Budget stopping is a completed execution outcome, not a reason
             # to leave the public run permanently marked "running".
-            report.update(state='interrupted' if interrupted else 'incomplete', spending_stop=str(exc))
+            report['state']='interrupted' if interrupted else 'incomplete'
+            key=('access_stop' if isinstance(exc,ModelAccessBlocked) else
+                 'spending_stop' if isinstance(exc,SpendingBlocked) else 'gateway_stop')
+            report[key]=str(exc)
     save(output / "summary.json", report)
     if source:
         from .native_audit import audit

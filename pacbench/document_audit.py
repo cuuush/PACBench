@@ -171,6 +171,15 @@ def audit_ingestion(root, arm, messages, summary):
                       'email body differs from source')
                 check(item['folder']==('Sent' if m['from_owner'] else 'INBOX'), 'email ownership folder mismatch')
         record=json.loads((arm/row['file']).read_text())
+        if record.get('delivery_journal'):
+            delivery=record['delivery_journal'];path=arm/delivery['path']
+            check(path.resolve().is_relative_to(arm.resolve()),'Unsafe native delivery receipt path')
+            if path.resolve().is_relative_to(arm.resolve()):
+                from provider_adapters.document_connector import verify_honcho_delivery
+                try:
+                    check(hashlib.sha256(path.read_bytes()).hexdigest()==delivery['sha256'],'Native delivery manifest changed')
+                    verify_honcho_delivery(path,complete=record.get('ready') is True)
+                except (OSError,ValueError,KeyError,TypeError):errors.append('Native delivery receipt is missing or invalid')
         check(record['provider']==arm.name and record['version']==version and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
         check(record['document_sha256']==meta['document_sha256'],'provider document hash mismatch')
         check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')

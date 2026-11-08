@@ -140,6 +140,7 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
 def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monkeypatch):
     from provider_adapters.document_connector import honcho
     from datetime import datetime
+    monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
     source=tmp_path/'day';source.mkdir()
     messages=[{'source_id':f'm-{i}','channel':'imessage','thread':'group-1',
                'sender':sender,'from_owner':i==0,'text':text,

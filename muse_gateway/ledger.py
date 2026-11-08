@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from .protocol import safe_protocol
 
 NANO = 1_000_000_000
 DAILY_LIMIT = 10 * NANO
@@ -42,7 +44,7 @@ class Ledger:
                     key TEXT PRIMARY KEY, value TEXT NOT NULL);
             ''')
             columns={r['name'] for r in db.execute('PRAGMA table_info(calls)')}
-            for name,kind in (('finish_reason','TEXT'),('reasoning_tokens','INTEGER')):
+            for name,kind in (('finish_reason','TEXT'),('reasoning_tokens','INTEGER'),('protocol_diagnostic','TEXT')):
                 if name not in columns:db.execute(f'ALTER TABLE calls ADD COLUMN {name} {kind}')
 
     def connect(self):
@@ -83,6 +85,7 @@ class Ledger:
         if reason not in ('stop','length','tool_calls','function_call','content_filter'):reason=None
         reasoning=diagnostic.get('reasoning_tokens')
         if not (type(reasoning) is int and 0<=reasoning<=(usage[1] if valid else CONTEXT_TOKENS)):reasoning=None
+        protocol=safe_protocol(diagnostic.get('protocol'))
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT * FROM calls WHERE id=?', (request_id,)).fetchone()
@@ -90,10 +93,11 @@ class Ledger:
                 raise ValueError('Only an active request can be completed')
             price = usage[0]*INPUT_NANO + usage[1]*OUTPUT_NANO if valid else row['reserved']
             db.execute('UPDATE calls SET finished=?,state=?,input_tokens=?,output_tokens=?, '
-                       'accounted=?,http_status=?,error_label=?,finish_reason=?,reasoning_tokens=? WHERE id=?',
+                       'accounted=?,http_status=?,error_label=?,finish_reason=?,reasoning_tokens=?,protocol_diagnostic=? WHERE id=?',
                        (self.now(), 'settled' if valid else 'unknown',
                         usage[0] if valid else None, usage[1] if valid else None,
-                        price, status, error, reason, reasoning, request_id))
+                        price, status, error, reason, reasoning,
+                        json.dumps(protocol,sort_keys=True) if protocol else None,request_id))
 
     def recover_abandoned(self):
         # Caller must first acquire the exclusive server lock: no old gateway

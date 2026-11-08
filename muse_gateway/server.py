@@ -10,6 +10,7 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .ledger import BudgetRefused, CONTEXT_TOKENS, MODEL
+from .protocol import request_shape, observe_usage
 
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 DEADLINE_SECONDS = 180
@@ -190,7 +191,7 @@ class Handler(BaseHTTPRequestHandler):
             self.error(503,'request_refused','Spending ledger unavailable; inference blocked')
             return
         status, usage, error = None, None, None
-        diagnostic={}
+        diagnostic={'protocol':request_shape(value)}
         headers_sent = False
         completed = False
         def complete():
@@ -210,7 +211,9 @@ class Handler(BaseHTTPRequestHandler):
             deadline = time.monotonic() + DEADLINE_SECONDS
             with self.server.open(request, timeout=DEADLINE_SECONDS) as response:
                 status = response.status
-                stream = 'text/event-stream' in response.headers.get('Content-Type','')
+                media_type=response.headers.get('Content-Type','').split(';',1)[0].strip().lower()
+                stream = media_type == 'text/event-stream'
+                diagnostic['protocol']['wire']='sse' if stream else 'json' if media_type=='application/json' else 'other'
                 self.send_response(status)
                 self.send_header('Content-Type','text/event-stream' if stream else 'application/json')
                 self.send_header('X-Gateway-Request-ID',request_id)
@@ -223,6 +226,7 @@ class Handler(BaseHTTPRequestHandler):
                     def event_usage():
                         try:
                             parsed=json.loads(b'\n'.join(event))
+                            observe_usage(diagnostic['protocol'],parsed)
                             diagnostic.update(response_diagnostic(parsed))
                             return usage_from(parsed)
                         except (ValueError, TypeError, AttributeError):
@@ -259,6 +263,7 @@ class Handler(BaseHTTPRequestHandler):
                         raise ValueError('Response exceeds the transport bound')
                     try:
                         parsed=json.loads(data)
+                        observe_usage(diagnostic['protocol'],parsed)
                         usage = usage_from(parsed)
                         diagnostic.update(response_diagnostic(parsed))
                     except (ValueError,TypeError,AttributeError):
@@ -271,13 +276,14 @@ class Handler(BaseHTTPRequestHandler):
                     error = 'missing_usage_sse' if stream else 'missing_usage_json'
         except urllib.error.HTTPError as exc:
             status, error = exc.code, 'upstream_http_'+str(exc.code)
-            diagnostic = upstream_error_diagnostic(exc)
-            if diagnostic:error += ':'+':'.join(diagnostic[k] for k in sorted(diagnostic))
+            upstream_diagnostic = upstream_error_diagnostic(exc)
+            diagnostic.update(upstream_diagnostic)
+            if upstream_diagnostic:error += ':'+':'.join(upstream_diagnostic[k] for k in sorted(upstream_diagnostic))
             if status in (401,403):self.server.ledger.block_auth()
             complete()
             if not headers_sent:
                 self.reply(status, {'error':{'type':'upstream_error',
-                    'message':'Upstream model HTTP '+str(status), **diagnostic},
+                    'message':'Upstream model HTTP '+str(status), **upstream_diagnostic},
                     'gateway_request_id':request_id})
         except Exception as exc:
             error = 'transport_'+type(exc).__name__

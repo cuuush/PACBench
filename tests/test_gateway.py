@@ -114,7 +114,6 @@ def post(base,value,path='/p/test/v1/chat/completions',key='local-secret'):
  ('/p/test/v1/chat/completions',{'model':'unpriced'},'local-secret',400),
  ('/p/test/v1/responses',{'model':MODEL,'max_output_tokens':-1},'local-secret',400),
  ('/p/test/v1/responses',{'model':MODEL,'max_output_tokens':True},'local-secret',400),
- ('/p/test/v1/responses',{'model':MODEL,'input':'x'*CONTEXT_TOKENS},'local-secret',400),
  ('/p/test/v1/chat/completions',{'model':MODEL,'stream':'yes'},'local-secret',400),
  ('/p/test/v1/chat/completions',{'model':MODEL,'stream':True,'stream_options':[]},'local-secret',400),
 ])
@@ -125,6 +124,26 @@ def test_rejected_requests_never_reach_upstream_or_reserve(tmp_path,path,value,k
         assert error.value.code == status
         assert not calls
         assert server.ledger.health()['accounted_today_usd'] == 0
+
+
+def test_oversized_request_is_rejected_before_body_upload_or_reservation(tmp_path):
+    from http.client import HTTPConnection
+    calls=[]
+    with gateway(tmp_path,lambda *a,**k:calls.append(a)) as (server,base):
+        connection=HTTPConnection('127.0.0.1',server.server_port,timeout=5)
+        try:
+            connection.putrequest('POST','/p/test/v1/responses')
+            connection.putheader('Authorization','Bearer local-secret')
+            connection.putheader('Content-Length',str(CONTEXT_TOKENS))
+            connection.endheaders()
+            # An oversized upload is refused from its headers. Sending the
+            # full body races the early close and can mask the 400 with EPIPE.
+            response=connection.getresponse()
+            assert response.status==400
+            assert json.load(response)['error']['type']=='request_refused'
+        finally:connection.close()
+        assert not calls
+        assert server.ledger.health()['accounted_today_usd']==0
 
 
 def test_json_passthrough_settles_tokens_without_logging_content(tmp_path):
@@ -173,12 +192,14 @@ def test_metadata_migration_preserves_existing_costs_and_auth_circuit(tmp_path):
     ledger=Ledger(tmp_path/'ledger.db');id=ledger.reserve('test','responses');ledger.finish(id,status=401);ledger.block_auth()
     with ledger.connect() as db:
         db.execute('ALTER TABLE calls DROP COLUMN finish_reason');db.execute('ALTER TABLE calls DROP COLUMN reasoning_tokens')
+        db.execute('ALTER TABLE calls DROP COLUMN protocol_diagnostic')
     before=ledger.health();updated=Ledger(tmp_path/'ledger.db')
     assert updated.health()==before
     with updated.connect() as db:
         row=dict(db.execute('SELECT * FROM calls').fetchone())
     assert row['state']=='unknown' and row['accounted']==RESERVATION
     assert row['finish_reason'] is None and row['reasoning_tokens'] is None
+    assert row['protocol_diagnostic'] is None
 
 
 @pytest.mark.parametrize('endpoint', ['chat/completions','responses'])

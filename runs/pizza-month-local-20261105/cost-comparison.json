@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-11-05T17:31:06.414475+00:00",
+  "captured_at": "2026-11-08T02:00:54.451684+00:00",
   "providers": [
     {
       "provider": "memcal",
@@ -583,11 +583,15 @@
     },
     {
       "provider": "honcho",
-      "state": "invalid",
-      "daily_batches_attempted": 0,
-      "daily_batches_ready": 0,
-      "ingestion_wall_s": 0,
-      "initial_counts": {},
+      "state": "partial",
+      "daily_batches_attempted": 2,
+      "daily_batches_ready": 1,
+      "ingestion_wall_s": 417.99,
+      "initial_counts": {
+        "pass": 0,
+        "fail": 0,
+        "ungraded": 15
+      },
       "retention_points": 0,
       "retention_max_graded": 0,
       "complete_for_cost_comparison": false,
@@ -597,7 +601,26 @@
         "reason": "No native queue inspection receipt; the completed workload does not prove all deferred processing finished."
       },
       "lifecycle_cost_complete": null,
-      "cost": null,
+      "cost": {
+        "hermes": {
+          "model_requests": 0,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0,
+          "held_usd": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "unsettled_requests": 0
+        },
+        "memory_provider": {
+          "model_requests": 15,
+          "unobserved_requests": 0,
+          "settled_upper_bound_usd": 0.0156698,
+          "held_usd": 0,
+          "input_tokens": 34042,
+          "output_tokens": 61328,
+          "unsettled_requests": 0
+        }
+      },
       "phases": {
         "ingestion": {
           "hermes": {
@@ -610,12 +633,12 @@
             "unsettled_requests": 0
           },
           "memory_provider": {
-            "model_requests": 0,
+            "model_requests": 12,
             "unobserved_requests": 0,
-            "settled_upper_bound_usd": 0,
+            "settled_upper_bound_usd": 0.0141861,
             "held_usd": 0,
-            "input_tokens": 0,
-            "output_tokens": 0,
+            "input_tokens": 20855,
+            "output_tokens": 60503,
             "unsettled_requests": 0
           }
         },
@@ -690,12 +713,12 @@
             "unsettled_requests": 0
           },
           "memory_provider": {
-            "model_requests": 0,
+            "model_requests": 3,
             "unobserved_requests": 0,
-            "settled_upper_bound_usd": 0,
+            "settled_upper_bound_usd": 0.0014837000000000001,
             "held_usd": 0,
-            "input_tokens": 0,
-            "output_tokens": 0,
+            "input_tokens": 13187,
+            "output_tokens": 825,
             "unsettled_requests": 0
           }
         }
@@ -704,7 +727,19 @@
       "overlapping_phase_request_ids": {}
     }
   ],
-  "other_attempts": [],
+  "other_attempts": [
+    {
+      "provider": "honcho",
+      "state": "invalid",
+      "reason": "Explicitly replaced by another supplied run; original evidence and cost retained.",
+      "original_root": "/workspace/PACBench/artifacts/pizza-month-local-20261105",
+      "evidence": "attempts/pizza-month-local-20261105/repeat-1/honcho",
+      "selected_root": "/workspace/PACBench/artifacts/pizza-month-honcho-batched-20261108",
+      "cost": null,
+      "daily_batches_ready": 0,
+      "scope": "Previous or interrupted attempt; excluded from the selected arm costs, preserved as real trial spending."
+    }
+  ],
   "ledger_refreshed": true,
   "input_hash": "2d2b069bd40d7aef42e51d5e11665106112c2b7965eb812764beb1848f4ecaa6",
   "scope": [

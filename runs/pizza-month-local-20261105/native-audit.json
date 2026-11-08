@@ -5,9 +5,7 @@
     "repeat-1/mem0: incomplete arm",
     "repeat-1/hindsight: incomplete arm",
     "repeat-1/supermemory: incomplete arm",
-    "repeat-1/honcho: incomplete arm",
-    "repeat-1/honcho: arm hash mismatch",
-    "repeat-1/honcho: wiring not verified"
+    "repeat-1/honcho: incomplete arm"
   ],
   "component_audits": [
     {
@@ -18,10 +16,23 @@
           "repeat-1/memcal: incomplete arm",
           "repeat-1/mem0: incomplete arm",
           "repeat-1/hindsight: incomplete arm",
-          "repeat-1/supermemory: incomplete arm",
-          "repeat-1/honcho: incomplete arm",
-          "repeat-1/honcho: arm hash mismatch",
-          "repeat-1/honcho: wiring not verified"
+          "repeat-1/supermemory: incomplete arm"
+        ],
+        "selected_providers": [
+          "hindsight",
+          "mem0",
+          "memcal",
+          "supermemory"
+        ],
+        "scope": "native trace integrity, not calibrated provider quality"
+      }
+    },
+    {
+      "component": "pizza-month-honcho-batched-20261108",
+      "audit": {
+        "state": "fail",
+        "errors": [
+          "repeat-1/honcho: incomplete arm"
         ],
         "scope": "native trace integrity, not calibrated provider quality"
       }

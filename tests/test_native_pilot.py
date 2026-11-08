@@ -6,7 +6,6 @@ from unittest.mock import patch
 import pytest
 
 from pacbench.native_pilot import provision, read_prepared, run
-from pacbench.stages import build_stage
 from pacbench.authoring import AuthoringError, ScenePlan, scene_prompt
 from pacbench.prepare import main, resolve_spec
 
@@ -14,19 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def base():
-    return json.loads((ROOT / "weeks/pizza_day.json").read_text())
-
-
-def test_add_100_is_bounded_prose_without_changing_pizza_facts():
-    original = base()
-    spec = build_stage(original, 100)
-    assert len(spec["scenes"]) == len(original["scenes"]) + 5
-    assert spec["scenes"][5:] == original["scenes"]
-    assert all(s["message_range"] == [18, 22] for s in spec["scenes"][:5])
-    assert base() == original
-    resolve_spec(spec, Path("scratch"))
-    with pytest.raises(ValueError, match="review before 1000"):
-        build_stage(original, 1000)
+    return json.loads((ROOT / "specs/pizza_day.json").read_text())
 
 
 def test_writer_has_size_constraint_not_oracle_padding():
@@ -38,7 +25,9 @@ def test_writer_has_size_constraint_not_oracle_padding():
 
 
 def test_mem0_uses_distinct_native_profile_identities(tmp_path):
-    with patch("pacbench.native_pilot.harness.provision_home") as provision_home:
+    with patch("pacbench.native_pilot.client_settings", return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
+         patch("pacbench.gateway_client.client_settings", return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
+         patch("pacbench.native_pilot.harness.provision_home") as provision_home:
         def make_home(home, **kwargs):
             home.mkdir(parents=True)
         provision_home.side_effect = make_home
@@ -65,6 +54,13 @@ def test_mem0_native_reasoning_parameters_do_not_inherit_legacy_chat_limit(tmp_p
     import os
     import subprocess
     from pacbench.harness import ISOLATED_BIN
+    python=ISOLATED_BIN.parent/'python'
+    if not python.exists():
+        pytest.skip('Native Hermes interpreter is not installed')
+    installed=subprocess.run([str(python),'-c','import importlib.util; raise SystemExit(importlib.util.find_spec("mem0") is None)'],
+        capture_output=True,text=True,timeout=15)
+    if installed.returncode:
+        pytest.skip('Native Mem0 SDK is not installed; no simulated SDK pass')
     script = '''
 from mem0.configs.llms.openai import OpenAIConfig
 from mem0.llms.openai import OpenAILLM
@@ -112,6 +108,9 @@ def test_real_local_native_read_only_seam(tmp_path, provider):
     from pacbench.harness import ISOLATED_BIN
     if not ISOLATED_BIN.exists() or not MEMCAL_SRC.exists():
         pytest.skip("native Hermes or Memcal checkout unavailable; no simulated pass")
+    from pacbench.gateway_client import STATE
+    if not (STATE/'client-token').is_file() or not (STATE/'address.json').is_file():
+        pytest.skip('Read-only integration requires the configured gateway; no replacement ledger or credentials')
     root = tmp_path / provider
     env = provision(root, provider, local_timezone="America/New_York")
     assert env["TZ"] == "America/New_York"

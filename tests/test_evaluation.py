@@ -35,7 +35,7 @@ def test_recheck_normalizes_days_or_weeks_and_requires_fresh_corpus_review(tmp_p
     from pacbench.prepare import resolve_spec
     from pacbench.corpus_review import VERSION
     source=tmp_path/'source';source.mkdir()
-    authored=json.loads(Path('weeks',story+'.json').read_text())
+    authored=json.loads(Path('specs',story+'.json').read_text())
     _,_,original=resolve_spec(authored,source,week_start='2026-10-19')
     save(source/'spec.json',authored);save(source/'resolved-spec.json',original)
     save(source/'summary.json',{'bundle_hash':'original-bundle'})
@@ -78,7 +78,7 @@ def test_recheck_resume_rejects_changed_frozen_source_before_any_model_call(tmp_
     from pacbench.followups import save
     from pacbench.prepare import resolve_spec
     source=tmp_path/'source';source.mkdir()
-    authored=json.loads(Path('weeks/bike_pickup.json').read_text())
+    authored=json.loads(Path('specs/bike_pickup.json').read_text())
     _,_,resolved=resolve_spec(authored,source,week_start='2026-10-19')
     for name,value in {'spec':authored,'resolved-spec':resolved,'bundle':{'source':'original'},
                        'contract':{'contract_hash':'original'}}.items():save(source/(name+'.json'),value)

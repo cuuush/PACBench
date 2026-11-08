@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, time, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from .authoring import (ScenePlan, SceneRecord, SceneRealization, SceneJudgeError,
+    validate_participants,
     build_scene_observations, realize_scene, scene_spec, judge_prompt, judge_scene)
 from .creds import load_driver
 from .gateway_client import client_settings
@@ -17,6 +18,22 @@ from .model_calls import ModelClient, ResponsesWriter, public_record
 from .semantic_contract import build_contract, load_contract
 from .followups import freeze_policy, save
 from .preparation_audit import audit_prepared
+from .observation import CHANNELS
+from .authoring import norm_thread
+
+
+def read_spec(path):
+    def unique_keys(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f'Duplicate JSON key: {key!r}')
+            result[key] = value
+        return result
+    spec = json.loads(Path(path).read_text(encoding='utf-8'), object_pairs_hook=unique_keys)
+    if not isinstance(spec, dict):
+        raise ValueError('Spec must be a JSON object')
+    return spec
 
 def local_clock(value: str, zone: ZoneInfo | None) -> datetime:
     """Interpret an offset-free authored clock as local wall time for its day."""
@@ -190,6 +207,15 @@ def normalize_week(spec, week_start=None):
     for key,value in channels.items():
         if not isinstance(value,dict) or set(value)-allowed or not value.get('type') or not value.get('participants'):
             raise ValueError(f'Channel {key!r} needs type and participants, with an optional group name')
+        if not isinstance(key,str) or not key or key != norm_thread(key):
+            raise ValueError('Channel keys must be nonempty, stripped and lowercase')
+        if value['type'] not in CHANNELS:
+            raise ValueError(f'Unknown channel type: {value["type"]!r}')
+        validate_participants(value['participants'])
+        if value.get('name') and (not isinstance(value['name'],str) or len(value['participants'])<3):
+            raise ValueError('Channel name requires an explicit group roster')
+        if value.get('subject') and (value['type']!='email' or not isinstance(value['subject'],str)):
+            raise ValueError('Channel subject requires an email channel')
     cast = spec.get('cast', {})
     participants = {p for channel in channels.values() for p in channel['participants']}
     if (not isinstance(cast, dict) or any(
@@ -198,6 +224,7 @@ def normalize_week(spec, week_start=None):
             for name, description in cast.items())):
         raise ValueError('Cast needs channel participant names and nonempty descriptions')
     from datetime import date
+    week_start=week_start if week_start is not None else spec.get('week_start')
     monday=date.fromisoformat(week_start) if week_start else datetime.now(ZoneInfo(spec.get('timezone','America/New_York'))).date()
     if week_start and monday.weekday()!=0:raise ValueError('week-start must be a Monday')
     monday-=timedelta(days=monday.weekday())
@@ -489,10 +516,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Generate, verify and freeze source messages; never run providers.")
     parser.add_argument("spec", type=Path, help="JSON scene and fact specification")
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--week-start",help="Concrete Monday (YYYY-MM-DD) for compiling a weekday week; defaults to this week")
+    parser.add_argument("--week-start",help="Override the spec's first Monday (YYYY-MM-DD); legacy unpinned specs default to this week")
     parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
     args = parser.parse_args()
-    result = prepare(json.loads(args.spec.read_text()), args.output.resolve(),resume=args.resume,week_start=args.week_start)
+    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start)
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

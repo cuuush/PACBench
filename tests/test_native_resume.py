@@ -46,8 +46,9 @@ def test_resume_rejects_partial_processing_or_prior_evaluation(tmp_path,damage):
     with pytest.raises(ValueError):ready_prefix(tmp_path,report,rows)
 
 
-def test_resume_reopens_same_home_without_bootstrapping_new_memories(tmp_path):
+def test_resume_reopens_same_home_without_bootstrapping_new_memories(tmp_path, monkeypatch):
     from pacbench.native_pilot import provision
+    monkeypatch.setattr('pacbench.native_pilot.client_settings',lambda project:('http://127.0.0.1:8099/p/unit/v1','offline-test'))
     home=tmp_path/'hermes-home';home.mkdir();(home/'config.yaml').write_text('original config')
     with patch('pacbench.native_pilot.harness.provision_home') as bootstrap, \
          patch('provider_adapters.openviking_local.start',return_value=lambda:None):

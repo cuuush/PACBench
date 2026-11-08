@@ -73,7 +73,8 @@ class ParseTurnTokens(unittest.TestCase):
                           result.session_output_tokens), (30, 7))
 
     def test_timeout_turn_carries_no_tokens(self):
-        with tempfile.TemporaryDirectory(prefix="pacbench-tok-") as tmp:
+        with mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
+             tempfile.TemporaryDirectory(prefix="pacbench-tok-") as tmp:
             home = Path(tmp) / "h-home"
             harness.provision_home(home, provider_plugin_src=None,
                                    provider_name="none")

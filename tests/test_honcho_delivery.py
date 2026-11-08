@@ -28,7 +28,7 @@ class Session:
         return [SimpleNamespace(**vars(m),id='native-'+m.metadata['source_id'],session_id=self.id) for m in batch]
 
 
-@pytest.mark.parametrize('count,counts',[(100,[100]),(101,[100,1]),(201,[100,100,1])])
+@pytest.mark.parametrize('count,counts',[(100,[100]),(101,[100,1]),(201,[100,100,1]),(300,[100,100,100])])
 def test_native_transport_preserves_every_message_and_order(count,counts):
     session=Session();original=messages(count);checkpoints=[]
     accepted,error=connector.add_honcho_messages(session,original,lambda *a:checkpoints.append(a))

@@ -337,7 +337,7 @@ def test_frozen_sources_are_bound_to_the_actual_checked_transcript(tmp_path):
 def test_cast_is_private_scoped_and_bound_to_scene_cache(tmp_path):
     from pacbench.prepare import generation_spec, realization_binding
     from pacbench.authoring import scene_spec, build_scene_observations
-    spec = json.loads(open('weeks/bike_pickup.json').read())
+    spec = json.loads(open('specs/bike_pickup.json').read())
     plans, _, _ = resolve_spec(spec, tmp_path, week_start='2026-10-19')
     plan = plans[0]
     assert plan.cast == {'Riley': "The user's friend who works at Spoke Cycles."}
@@ -373,7 +373,7 @@ def test_scene_facts_share_one_checker_call():
 def test_cast_is_scoped_to_channel_and_absent_cast_preserves_spec(tmp_path):
     from pacbench.authoring import scene_spec
     from pacbench.prepare import normalize_week
-    spec = json.loads(open('weeks/bike_pickup.json').read())
+    spec = json.loads(open('specs/bike_pickup.json').read())
     original = normalize_week(spec, '2026-10-19')
     spec['channels']['other'] = {'type': 'imessage', 'participants': ['Me', 'Sam']}
     spec['weeks'][0]['monday']['scenes'][1]['channel'] = 'other'

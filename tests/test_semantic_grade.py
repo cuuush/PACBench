@@ -130,8 +130,9 @@ def test_test_intent_is_author_prose_and_private_to_scene_writer():
 
 def test_pizza_day_facts_keep_date_and_time_separate_without_requiring_year():
     from pathlib import Path
-    spec = json.loads((Path(__file__).parents[1] / "weeks/pizza_day.json").read_text())
-    plan = ScenePlan(**spec["scenes"][0])
+    spec = json.loads((Path(__file__).parents[1] / "specs/pizza_day.json").read_text())
+    from pacbench.prepare import resolve_spec
+    plan = resolve_spec(spec, Path("scratch"))[0][0]
     assert len(plan.facts) == 5
     assert plan.facts[3] == "The pizza plan is for Friday, September 11."
     assert plan.facts[4] == "The agreed time is 7pm."

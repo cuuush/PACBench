@@ -17,7 +17,7 @@ from tests.test_evaluation import _combined_fixture
 
 
 def test_bike_pickup_correction_is_followed_by_independent_session_checks(tmp_path):
-    scenes,_,resolved=resolve_spec(json.loads(Path('weeks/bike_pickup.json').read_text()),tmp_path,week_start='2026-10-19')
+    scenes,_,resolved=resolve_spec(json.loads(Path('specs/bike_pickup.json').read_text()),tmp_path,week_start='2026-10-19')
     checks={c['id']:c for c in resolved['checks']}
     assert len(scenes)==3 and len(checks)==5
     assert scenes[-1].channel=='email'
@@ -31,7 +31,7 @@ def test_bike_pickup_correction_is_followed_by_independent_session_checks(tmp_pa
 
 
 def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
-    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
     assert len(scenes)==19 and len(resolved['checks'])==17
     scene_by_id={s.id:s for s in scenes}
@@ -56,7 +56,7 @@ def test_one_week_resolves_facts_sessions_and_prefix_truth(tmp_path):
 
 
 def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
-    spec=json.loads(Path('weeks/pizza_week.json').read_text());spec['noise']='high'
+    spec=json.loads(Path('specs/pizza_week.json').read_text());spec['noise']='high'
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start="2026-09-07")
     assert resolved['noise']=='high'
     scene_by_id={s.id:s for s in scenes}
@@ -70,7 +70,7 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
 
 
 def test_medium_noise_keeps_email_volume_distinct_from_text_chat(tmp_path):
-    spec=json.loads(Path('weeks/pizza_week.json').read_text());spec['noise']='medium'
+    spec=json.loads(Path('specs/pizza_week.json').read_text());spec['noise']='medium'
     scenes,_,_=resolve_spec(spec,tmp_path,week_start='2026-09-07')
     email=next(s for s in scenes if s.id=='ben-email-reschedule')
     dm=next(s for s in scenes if s.id=='devon-invite')
@@ -256,7 +256,7 @@ def test_human_times_weekdays_and_dst_resolve_without_changing_author_file(tmp_p
     assert clock_on_day(date(2026,10,5),'8 pm').endswith('T20:00:00')
     for value in ('25 pm','0 am','7:90 am','2026-09-09T08:00:00'):
         with pytest.raises(ValueError,match='Invalid human time'):clock_on_day(date(2026,10,5),value)
-    spec=json.loads(Path('weeks/pizza_week.json').read_text());original=json.dumps(spec)
+    spec=json.loads(Path('specs/pizza_week.json').read_text());original=json.dumps(spec)
     spec['days']['sunday']={'conversations':[{'id':'sunday-fresh','time':'9 am','turns':[
         {'id':'sunday-recap','prompt':'What happened with pizza Friday?','expect':'Recap both Friday outings.'}]}]}
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-10-26')
@@ -344,7 +344,7 @@ def test_portable_corpus_reuse_never_calls_a_model(tmp_path,monkeypatch):
 
 def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_path):
     from pacbench.document_ingestion import daily_batches
-    spec=json.loads(Path('weeks/pizza_month.json').read_text())
+    spec=json.loads(Path('specs/pizza_month.json').read_text())
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-14')
     assert len(scenes)==48 and resolved['ingestion_days']==30 and resolved['noise']=='medium'
     assert scenes[0].at.startswith('2026-09-15') and scenes[-1].at.startswith('2026-10-14')
@@ -368,7 +368,7 @@ def test_month_has_thirty_batches_stable_threads_and_only_final_questions(tmp_pa
 
 
 def test_multiweek_scope_across_dst_and_repeated_scene_names(tmp_path):
-    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
     days=spec.pop('days');spec['weeks']=[days,json.loads(json.dumps(days))]
     for day in spec['weeks'][0].values():day.pop('conversations',None)
     scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-10-26')
@@ -400,7 +400,7 @@ def test_operator_stop_after_turn_preserves_answer_without_judging(tmp_path):
 
 def test_weekday_inline_recall_facts_are_frozen_as_authored(tmp_path):
     from pacbench.semantic_contract import build_contract
-    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
     turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
     turn.pop('expect'); facts=['The call is at 10 am.','The call concerns a job application.'];turn['facts']=facts
     _,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-07')
@@ -428,7 +428,7 @@ def test_weekday_inline_recall_facts_are_frozen_as_authored(tmp_path):
     {'kind':'behavior','facts':['A fact.']},
 ])
 def test_weekday_rejects_invalid_inline_turn_facts(changes):
-    spec=json.loads(Path('weeks/pizza_week.json').read_text())
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
     turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
     turn.pop('expect');turn.update(changes)
     with pytest.raises(ValueError):normalize_week(spec,'2026-09-07')

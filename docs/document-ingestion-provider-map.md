@@ -2,6 +2,10 @@
 
 Eligible systems have a practical documented way to ingest daily raw text locally. Real message capture qualifies alongside document import. Collect new messages, preserve their metadata and text, submit them through the native interface, and wait for processing. Hermes only receives later questions through its selected provider's normal context and tools.
 
+Honcho's 100-message bound is per API request, not per conversation. A nightly collector groups messages by their real thread, opens or reuses that thread's native session, enrolls the configured observer before submission, and sends ordered requests of at most 100 messages. A 300-message thread uses three requests in the same session; it does not become three conversations. Native processing decides its own extraction batches. This connector-side pagination needs no server code changes or raised limit. Delivery acknowledgments prove transport, not completed memory processing.
+
+Use the provider's native API and documented configuration. Run-owned stores, local embeddings and gateway transport are setup; processing choices such as Supermemory's `dreaming=instant`, Mem0's reasoning-model flag and Honcho's deriver allowance must remain explicit. None authorizes changing provider prompts, patching extraction, forcing queue completion or splitting out known answer facts. Local Honcho also needs PostgreSQL and its API/deriver services; this is self-hosted integration work, not a claim of a five-minute consumer iMessage connector. The benchmark's synthetic clock is test infrastructure, separate from the production collector.
+
 The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/memory-providers.md) was checked against pinned integrations on 10 October 2026. Memcal is an additional project requirement.
 
 | Provider | Native daily delivery | Local setup / current status |
@@ -74,7 +78,7 @@ DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS=8192 python -m pacbench.native_pilot \
 This is Honcho's standard environment configuration, equivalent to
 `max_output_tokens = 8192` under `[deriver.model_config]` in its
 [shipped configuration example](https://github.com/plastic-labs/honcho/blob/5314d0a8635f02375b8ad73c89eb80f86d7d1cb4/config.toml.example#L123).
-We run server 3.4.1 and Python SDK 2.7.0, configure the OpenAI-compatible transport
+We run server 3.4.1 and Hermes' pinned Python SDK 2.2.0, configure the OpenAI-compatible transport
 through the shared Spark gateway, and use local Ollama embeddings. Directional
 observation, source peers and timestamps are unchanged. Fresh Hermes homes explicitly
 set `sessionStrategy=per-session`, matching the current native setup wizard;

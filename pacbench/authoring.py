@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -18,6 +19,13 @@ Generate = Callable[[str], str | ModelOutput]
 
 class AuthoringError(RuntimeError):
     """A scene that cannot be built as specified."""
+
+
+def validate_participants(participants):
+    if (not isinstance(participants,(list,tuple)) or len(participants)<2 or
+            any(not isinstance(p,str) or not p.strip() for p in participants) or
+            len(set(participants)) != len(participants) or 'Me' not in participants):
+        raise AuthoringError('participants must be distinct source contacts including Me')
 
 
 class SceneRenderError(AuthoringError):
@@ -62,11 +70,15 @@ class ScenePlan:
     messages_per_person: tuple[int, int] | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.id,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}',self.id):
+            raise AuthoringError('scene id must be a safe name of at most 128 letters, digits, underscores or hyphens')
+        if self.channel not in CHANNELS:
+            raise AuthoringError(f'Unknown channel {self.channel!r}')
+        thread=self.thread or self.id
+        if not isinstance(thread,str) or not thread or thread != norm_thread(thread):
+            raise AuthoringError('thread must be nonempty, stripped and lowercase')
         if self.participants:
-            if (not isinstance(self.participants,(list,tuple)) or len(self.participants)<2 or
-                    any(not isinstance(p,str) or not p.strip() for p in self.participants) or
-                    len(set(self.participants)) != len(self.participants) or 'Me' not in self.participants):
-                raise AuthoringError('participants must be distinct source contacts including Me')
+            validate_participants(self.participants)
             object.__setattr__(self,'participants',tuple(self.participants))
         if (not isinstance(self.cast, dict) or any(
                 not isinstance(name, str) or not name.strip() or name not in self.participants or

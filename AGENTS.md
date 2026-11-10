@@ -1,5 +1,8 @@
 # PACBench operating guide
 
+Start with the user-requested [HANDOFF.md](HANDOFF.md) for current state and resume
+order. Keep it current rather than adding separate progress reports.
+
 ## User priorities
 
 Realism comes first. Use practical local providers, their documented setup and native ingestion. No seeded facts, benchmark summaries, fake assistant ingestion turns or provider-specific extraction hints. Fix product bugs only in `/workspace/memcal`; commit them there. Benchmark/gateway fixes belong in their own repositories. Commit coherent changes and push when authorized.
@@ -95,7 +98,7 @@ Use `python -m pacbench.native_resume <run>` only for a pre-recall OpenViking in
 
 ## Verification and explorer
 
-The gateway's private state is `/workspace/shared/muse-gateway`; preserve its ledger and credentials. Its October 19 ledger is not historical ledger recovery. The gateway checkout is backed up on PACBench's `gateway-recovery-20261019` branch because this GitHub account cannot create repositories. Server runtimes stay isolated from Hermes' pinned client environment: see `vendor/README`. Reuse only hash-verified installed tokenizer assets when native downloads are blocked.
+The gateway's private state is `/workspace/shared/muse-gateway`; preserve its ledger and credentials. Its October 19 ledger is not historical ledger recovery. Gateway development now lives in [cuuush/muse-gateway](https://github.com/cuuush/muse-gateway), branch `main`, normally cloned at `/workspace/muse-gateway`. PACBench's `gateway-recovery-20261019` branch is only a historical backup. Commit gateway changes in its independent repository; never change PACBench's origin to the gateway URL through a shared worktree. Server runtimes stay isolated from Hermes' pinned client environment: see `vendor/README`. Reuse only hash-verified installed tokenizer assets when native downloads are blocked.
 
 Relevant code under `pacbench/`: `prepare.py`, `authoring.py`, `semantic_contract.py`, `evaluation.py`, `document_ingestion.py`, `native_pilot.py`, `harness.py`, `native_checks.py`, `followups.py`, `source_policy.py`, `tool_policy.py` and `explorer_data.py`; native imports live in `provider_adapters/document_connector.py`.
 

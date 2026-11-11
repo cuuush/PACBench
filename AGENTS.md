@@ -1,7 +1,9 @@
 # PACBench operating guide
 
-Start with the user-requested [HANDOFF.md](HANDOFF.md) for current state and resume
-order. Keep it current rather than adding separate progress reports.
+Start with [README.md](README.md) for project scope and
+[CONTRIBUTING.md](CONTRIBUTING.md) for setup, current limitations and next steps.
+Keep those public contributor instructions current rather than adding separate
+handoff or progress reports.
 
 ## User priorities
 

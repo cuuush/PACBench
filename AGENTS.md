@@ -10,7 +10,7 @@ existing docs and run evidence in machine-readable artifacts.
   answer hints or fabricated assistant ingestion turns. Do not change third-party
   provider code to rescue a benchmark. Record documented configuration changes
   and preserve native defaults.
-- Keep Memcal product fixes in its repository, gateway fixes in muse-gateway,
+- Keep Memcal product fixes in its repository, embedded gateway fixes in `pacbench/gateway`,
   and benchmark fixes here. Preserve unrelated files, credentials, runtime
   dependencies, private stores and spending history. Push only when authorized.
 - Report progress and limitations in conversation. Do not accumulate handoff or

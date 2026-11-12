@@ -20,6 +20,11 @@ def record(project, receipt):
     row={'protocol':'direct-hermes-api-input-v1','request_id':receipt['id'],
          'project':project,'model':body['model'],'messages':messages,
          'canonical_request_sha256':hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()}
+    if os.environ.get('PACBENCH_PYTHON_CLOCK_NONCE'):
+        row.update(protocol='direct-hermes-api-input-v2',pid=os.getpid(),
+            process_start_ticks=int(Path('/proc/self/stat').read_text().rsplit(')',1)[1].split()[19]),
+            clock_role=os.environ.get('PACBENCH_PYTHON_CLOCK_ROLE'),
+            turn_nonce=os.environ['PACBENCH_PYTHON_CLOCK_NONCE'])
     encoded=json.dumps(row,ensure_ascii=False)+'\n'
     with path.open('a') as stream:
         path.chmod(0o600)

@@ -209,10 +209,10 @@ def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
     # Preserve the frozen v3 audit format; v4 additionally requires Python adoption.
     from pacbench.followups import save
     target=datetime.now(timezone.utc)
-    save(tmp_path/'provider-clock.json',{'version':'honcho-wall-clock-v3','library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock.json',{'version':'honcho-wall-clock-v3','library_sha256':clock.LEGACY_LIBRARY_SHA256,
         'wall_speed':1,'monotonic':'real','gateway_clock':'real',
         'source_timestamps':'unchanged','native_batching':'unchanged'})
-    save(tmp_path/'provider-clock-startup.json',{'version':'honcho-wall-clock-v3','library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock-startup.json',{'version':'honcho-wall-clock-v3','library_sha256':clock.LEGACY_LIBRARY_SHA256,
         'provider_at':target.isoformat(),'api_date':target.isoformat(),'db_at':target.isoformat(),
         'real_at':target.isoformat(),'monotonic':'real'})
     assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
@@ -318,3 +318,30 @@ def test_unsupported_freezer_runs_native_time_only_when_running_unpaused_is_veri
         assert row['pause_failure']['inspection']=={'Running':True,'Paused':False}
         assert datetime.fromisoformat(row['provider_finished_at'])>datetime.fromisoformat(row['provider_started_at'])
     assert provider.path.read_bytes()==offset
+@pytest.mark.parametrize('declared', ['honcho-wall-clock-v3', 'honcho-wall-clock-v5'])
+def test_clock_audit_keeps_versioned_hash_and_v3_overhead_semantics(tmp_path, declared):
+    from pacbench.followups import save
+    from pacbench.provider_clock import LEGACY_LIBRARY_SHA256
+    now = datetime.now(timezone.utc)
+    later = now + timedelta(minutes=10)
+    expected_hash = LIBRARY_SHA256 if declared == 'honcho-wall-clock-v5' else LEGACY_LIBRARY_SHA256
+    config = {'version': declared, 'library_sha256': expected_hash, 'wall_speed': 1,
+        'monotonic': 'real', 'gateway_clock': 'real', 'source_timestamps': 'unchanged', 'native_batching': 'unchanged'}
+    startup = {'version': declared, 'library_sha256': expected_hash,
+        'provider_at': now.isoformat(), 'api_date': now.isoformat(), 'db_at': now.isoformat(),
+        'real_at': now.isoformat(), 'monotonic': 'real'}
+    if declared==clock.VERSION:
+        config.update(python_clock={'os_clock':'real','tls_clock':'real'},processes={})
+        startup['python_adoptions']={}
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    overhead = {'kind': 'benchmark-overhead', 'version': declared, 'provider_at': now.isoformat(),
+        'real_started_at': now.isoformat(), 'real_at': later.isoformat(), 'database_paused': True,
+        'db_after': now.isoformat(), 'pre_step': idle_snapshot()}
+    (tmp_path/'provider-clock-steps.jsonl').write_text(json.dumps(overhead)+'\n')
+    assert clock.audit_evidence(tmp_path, declared) == []
+    config['library_sha256'] = LEGACY_LIBRARY_SHA256 if declared == 'honcho-wall-clock-v5' else LIBRARY_SHA256
+    startup['library_sha256'] = config['library_sha256']
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    assert clock.audit_evidence(tmp_path, declared)

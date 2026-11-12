@@ -1,4 +1,4 @@
-"""Connect to the shared Muse gateway; never fall back to the upstream API."""
+"""Connect to PACBench’s shared budget gateway; never bypass it."""
 from __future__ import annotations
 import json
 import os
@@ -6,7 +6,8 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-STATE = Path(os.environ.get('MUSE_GATEWAY_STATE', '/workspace/shared/muse-gateway'))
+STATE = Path(os.environ.get('PACBENCH_GATEWAY_STATE') or
+             os.environ.get('MUSE_GATEWAY_STATE') or '/workspace/shared/muse-gateway')
 
 
 class SpendingBlocked(RuntimeError):
@@ -81,7 +82,7 @@ def require_live_cost_boundary() -> dict:
             raise SpendingBlocked('OpenRouter run spending limit reached')
         return health
     daily, total = health.get('daily_limit_usd'), health.get('total_limit_usd')
-    if (health.get('service') != 'muse-budget-gateway' or
+    if (health.get('service') not in ('pacbench-budget-gateway', 'muse-budget-gateway') or
             type(daily) not in (int, float) or not 0 < daily <= 10 or
             'total_limit_usd' not in health or
             total is not None and (type(total) not in (int, float) or not 0 < total <= 10)):

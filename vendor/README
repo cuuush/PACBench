@@ -1,5 +1,58 @@
 # vendor/ — PACBench-owned isolated Hermes (W1)
 
+**Live trials remain held:** The isolated Hermes v0.23.1 integration has
+passed a free synthetic local gateway/CLI canary and a separate direct HTTPS
+check. Each turn owns and gracefully stops its native gateway. The current
+Honcho `honcho-wall-clock-v5` protocol uses a shared-offset Python clock for
+Hermes/API/deriver and the reproducible preload library for PostgreSQL only;
+OpenSSL and monotonic timers retain real time. Gateway and CLI adoption is bound
+to each process identity and turn nonce. The native system date line supplies a
+date, not exact current time. Historical clock receipts retain their original
+protocols and cannot resume as v5. These checks establish transport behavior,
+not model quality or native provider processing. Keep the persistent OpenRouter
+task ledger and its existing uncertain holds; never initialize a replacement.
+Verify provider readiness before enabling paid trials. The unrelated Muse route
+remains blocked if its historical ledger is missing.
+
+This release supports Python 3.14 for normal runtime use. Its lock explicitly
+overrides `browser-harness==0.1.13`'s `pillow==12.3.0` requirement with
+`pillow==13.0.0`; Hermes PM recognizes this intentional metadata mismatch.
+Use the upstream locked/PM installation, not an ordinary unconstrained pip
+install. The documented source developer activation selects the `all` extra:
+
+  export HERMES_HOME="$(mktemp -d)"
+  export HERMES_RUNTIME_DIR="$HERMES_HOME/tools"
+  cd vendor/hermes-isolated
+  source ./activate
+  hermes pm doctor
+
+Run this in an isolated shell from the PACBench root. Upstream documents this
+as a runtime-only developer setup, not the full user-facing installer. PM
+activation itself has not been verified here; native provider recall also
+remains unverified.
+
+The isolated target environment was built from the upstream lock using the
+`all` extra, then the selected client requirements and Memcal were installed.
+Reproduce this non-PM-managed environment from the PACBench root, with Python
+3.14.9 available and `/path/to/memcal` set to the intended checkout:
+
+  export UV_PROJECT_ENVIRONMENT="$PWD/vendor/venv-hermes-isolated"
+  (cd vendor/hermes-isolated && uv sync --locked --no-default-groups --extra all --python /path/to/python3.14)
+  uv pip install --python "$UV_PROJECT_ENVIRONMENT/bin/python" -r vendor/hermes-isolated-extra-requirements.txt -e /path/to/memcal
+
+This installed the upstream `all` extra, including browser harness, and then
+the pinned client requirements and editable Memcal resolved and imported successfully. The current integration
+preserves the existing `/workspace/memcal` checkout; the upgrade bundle's earlier
+`dea42cfdcb4f0dbf3375054dfd96e0f8a408d55a` import check is a separate environment.
+Observed versions were browser-harness 0.1.13, Pillow 13.0.0, MCP 2.3.0,
+httpx2 2.15.1, starlette 1.9.0, Supermemory 3.62.0, Mem0 2.0.10, Honcho 2.2.0,
+Hindsight client and embed 1.1.0, Memcal 0.8.10 and pytypedstream 0.1.0.
+The target also has pytest 9.1.1 for validation. A generic `uv pip check`
+reports the upstream Pillow mismatch; PM checks it against the locked override.
+These imports and resolution checks do not establish native provider operation.
+A subsequent `uv sync` may remove the separately installed clients; reinstall
+and recheck them after syncing.
+
 - `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
 - `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
   at that SHA plus exactly `patches/hermes-isolated.diff`; integrity tests reject other edits.
@@ -7,29 +60,10 @@
   (gitignored). Use with a scratch home, never `~/.hermes`:
   `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`
 
-For a fresh checkout, provision the pinned client without starting inference:
-
-```sh
-git init vendor/hermes-isolated
-git -C vendor/hermes-isolated remote add origin https://github.com/NousResearch/hermes-agent.git
-pin=$(sed -n 's/^HERMES_PIN=//p' vendor/HERMES_PIN)
-git -C vendor/hermes-isolated fetch --depth 1 origin "$pin"
-git -C vendor/hermes-isolated checkout FETCH_HEAD
-git -C vendor/hermes-isolated apply ../../patches/hermes-isolated.diff
-uv venv --python 3.12 vendor/venv-hermes-isolated
-uv pip install --python vendor/venv-hermes-isolated/bin/python \
-  -e vendor/hermes-isolated -e ../memcal -r vendor/hermes-isolated-extra-requirements.txt
-```
-
-The sibling Memcal checkout must already exist. Inspect existing vendor trees
-rather than rerunning initialization over them. The runtime requires a writable
-temporary directory outside every Git project. `TMPDIR=/var/tmp` works only if
-that path does not resolve to a sandbox's Git-marked `/tmp`. Gateway setup is
-separate: restore its original private state before starting the gateway.
-
-Install the pinned client integrations from `hermes-isolated-extra-requirements.txt`.
-Install the sibling Memcal checkout normally too, so its declared source-reader
-dependencies are present: `uv pip install --python vendor/venv-hermes-isolated/bin/python -e ../memcal`.
+The client versions in `hermes-isolated-extra-requirements.txt` document the
+target environment; they do not yet establish a PM-managed provisioning
+workflow. Install Memcal with its declared dependencies, including pytypedstream,
+when provisioning its provider; a source-only import is insufficient.
 Run native servers in their own environments: OpenViking requires MCP <2 whereas
 Hermes uses MCP 2. Keep Hindsight's API dependencies separate from Hermes' pinned
 clients too; its older API releases required an incompatible cryptography version.
@@ -51,3 +85,41 @@ Honcho uses the upstream manual self-hosting checkout at commit
 `uv sync --frozen --no-dev` in `vendor/honcho-local`. Keep its native batching
 and output defaults. Hermes pins the published `honcho-ai==2.2.0` client. A release update does not establish successful ingestion;
 verify a small native import and Hermes recall before larger runs.
+
+## Hermes catalog memory providers
+
+The pinned Hermes release moves these providers out of its source tree. Its reviewed
+catalog entries identify the following plugin sources and commits (these pins describe
+plugin code, not the independently provisioned native servers):
+
+| Provider | Source path | Catalog commit |
+| --- | --- | --- |
+| Mem0 | `mem0ai/mem0/integrations/hermes-plugin-mem0` | `43849c6e9d4d773b83a8144b6373aedc67241a5d` |
+| Honcho | `plastic-labs/honcho/hermes-plugin-honcho` | `894b88321872e01702a1aa638ddfdde6ad60f173` |
+| Hindsight | `vectorize-io/hindsight/hindsight-integrations/hermes` | `f14cc1eb5624b0374cb4d82768eb2e0b9c21ae24` |
+| Supermemory | `supermemoryai/hermes-supermemory` | `91405dd00fdf2a0b3515b25c25557598f6793299` |
+| OpenViking | `volcengine/OpenViking/examples/hermes-plugin` | `e855796c83f9eb575d9b0f3082926660730f6a63` |
+
+For fresh trial homes, PACBench invokes Hermes's documented source form with an
+explicit `--ref` and `--no-deps --no-enable`. The latter avoids changing the
+shared client environment; Hermes may still bootstrap a separate per-home
+package-manager runtime. PACBench checks the checkout catalog entry against its
+recorded pin, the install metadata and manifest, then checks the declared plugin
+dependencies and adapter imports in the trial interpreter before activating
+`memory.provider`. `catalog-plugin.json` records the source, revision, version,
+and declared dependencies. A failed install or probe blocks that arm. Fresh
+homes disable lazy installs after verification; they never use a live catalog
+refresh to choose their plugin. Configure the provider normally after setup; do
+not install into a real user home for a trial.
+
+The Supermemory pin requires `supermemory>=3.50.0,<4`; the isolated client pin
+above is 3.62.0. Hindsight also requires `hindsight-embed>=0.10.1,<2`. Its
+new default recall type is observation-only, including the recall tool; the
+install receipt records this and historical broader recall is not equivalent.
+OpenViking Quick Local installs a moving 0.5.x server version; preserve and
+record the separately pinned native server for comparable trials.
+
+These checks establish source identity, direct requirements and adapter import
+surfaces, not successful ingestion or recall. The separate live-trial gateway
+lifecycle guard remains authoritative. Catalog-provider resume is blocked until
+existing-home plugin provenance and recovery have a verified protocol.

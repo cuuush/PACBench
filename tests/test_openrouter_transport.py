@@ -63,6 +63,7 @@ def test_snapshot_filters_other_projects(route, monkeypatch):
 
 
 def test_pilot_does_not_create_output_without_transport(tmp_path, monkeypatch):
+    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
     monkeypatch.delenv('PACBENCH_TRANSPORT', raising=False)
     output = tmp_path / 'new-run'
     with pytest.raises(RuntimeError, match='run-local transport'):
@@ -70,7 +71,8 @@ def test_pilot_does_not_create_output_without_transport(tmp_path, monkeypatch):
     assert not output.exists()
 
 
-def test_pilot_does_not_route_unsupported_providers(route, tmp_path):
+def test_pilot_does_not_route_unsupported_providers(route, tmp_path, monkeypatch):
+    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
     output = tmp_path / 'new-run'
     with pytest.raises(ValueError, match='Unsupported OpenRouter'):
         native_pilot.run(None, output, providers=['holographic'], inference_route='openrouter')

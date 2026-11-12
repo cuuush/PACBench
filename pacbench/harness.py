@@ -88,6 +88,7 @@ class TurnResult:
     # This is a reported wall duration, not a provider retrieval measurement.
     native_result_duration_s: float | None = None
     clock_context: dict | None = None
+    hermes_gateway: dict | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -242,7 +243,9 @@ def turn_env(at: str, home: Path,
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
-    """Drive the verbatim public question through native Hermes prompt hooks."""
+    """Drive the verbatim question through a verified run-owned native gateway."""
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     home = home.resolve()
     _check_paths(home)
     requested_at = at
@@ -253,6 +256,8 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     if env.get('PACBENCH_CLOCK_CONTEXT_PROTOCOL', NATIVE) != NATIVE:
         raise ValueError('New execution requires native-question-v2; historical instruction conditions are audit-only')
     if (home.parent / 'provider-clock.json').exists():
+        from .hermes_gateway import require_simulated_clock_ready
+        require_simulated_clock_ready(home.parent)
         from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
         if recovery:
@@ -281,9 +286,22 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     from .api_input_trace import rows as api_input_rows
     api_inputs_before=[r['request_id'] for r in api_input_rows(home.parent/'api-inputs.jsonl')]
     started = time.monotonic()
+    gateway_witness = None
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=timeout_s, env=env, cwd=str(workspace))
+        from .hermes_gateway import turn_gateway
+        with turn_gateway(home, ISOLATED_BIN.parent / "python", env, cwd=workspace,
+                          startup_timeout=min(120.0, timeout_s)) as gateway_witness:
+            remaining = timeout_s - (time.monotonic() - started)
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(cmd, timeout_s)
+            if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
+                from .gateway_python_clock import run_cli
+                proc=run_cli(cmd,home=home,python=ISOLATED_BIN.parent/'python',env=env,
+                    cwd=workspace,timeout=remaining,witness=gateway_witness)
+                if clock_record:clock_record['actual_start_at']=gateway_witness['question_dispatch_at']
+            else:
+                proc = subprocess.run(cmd, capture_output=True, text=True,
+                                      timeout=remaining, env=env, cwd=str(workspace))
     except subprocess.TimeoutExpired as exc:
         # A timeout is a failed turn, not a missing one (§41: failures are
         # required artifacts). Synthesize the same diagnostic TurnResult a
@@ -299,9 +317,10 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result = _parse_turn(prompt, at, partial, latency)
         result.session_started_at = session_started_at
         result.provider_clock = clock_record
-        capture_clock_adoption(result,home,workspace,clock_adoptions_before)
+        result.hermes_gateway = gateway_witness
         result.stderr_tail = note
-        result.context_isolation = actual_context(home, result.session_id, workspace)
+        result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
+        capture_clock_adoption(result,home,workspace,clock_adoptions_before)
         _recover_tool_results(result, home / "state.db")
         capture_prefetch(result, context_trace, context_before)
         capture_clock_context(result,home,env,api_inputs_before,context_before)
@@ -312,8 +331,9 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
     result.session_started_at = session_started_at
-    result.context_isolation = actual_context(home, result.session_id, workspace)
+    result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
     result.provider_clock = clock_record
+    result.hermes_gateway = gateway_witness
     capture_clock_adoption(result,home,workspace,clock_adoptions_before)
     if result.context_isolation['state'] != 'pass':
         result.policy_blocks += 1
@@ -327,6 +347,16 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
 
 
 def capture_clock_adoption(turn, home, workspace, before):
+    if turn.provider_clock and turn.provider_clock.get('version')=='honcho-wall-clock-v5':
+        from .gateway_python_clock import audit_witness
+        try:
+            if (turn.hermes_gateway or {}).get('question_dispatch_at'):
+                turn.provider_clock['actual_start_at']=turn.hermes_gateway['question_dispatch_at']
+            config=json.loads((home.parent/'provider-clock.json').read_text())
+            audit_witness(home.parent,vars(turn),config)
+        except (OSError,ValueError,KeyError,TypeError,RuntimeError):
+            turn.policy_blocks+=1
+        return
     if not turn.provider_clock or turn.provider_clock.get('version') != 'honcho-wall-clock-v4':
         return
     from provider_adapters.honcho_clock import capture_turn_adoption

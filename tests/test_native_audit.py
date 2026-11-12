@@ -275,3 +275,22 @@ def test_native_question_protocol_rejects_legacy_prefix(trace):
     with sqlite3.connect(arm / 'hermes-home/state.db') as db:
         db.execute("UPDATE messages SET content=? WHERE role='user'", (recall['prompt'],))
     assert audit(root)['state'] == 'pass', audit(root)
+
+
+def test_audit_reads_private_session_bound_prompt_after_native_gc(trace):
+    root, arm = trace
+    home = arm / 'hermes-home'
+    workspace = Path(json.loads((arm / 'recall-workspace.json').read_text())['workspace'])
+    context = actual_context(home, 'recall', workspace, capture=True)
+    recall = json.loads((arm / 'recall.json').read_text())
+    recall['context_isolation'] = context
+    save(arm / 'recall.json', recall)
+    replacement = 'Later native system prompt'
+    digest = hashlib.sha256(replacement.encode()).hexdigest()
+    with sqlite3.connect(home / 'state.db') as db:
+        db.execute('INSERT INTO system_prompts VALUES (?,?)', (digest, replacement))
+        db.execute('UPDATE sessions SET system_prompt_hash=?', (digest,))
+        db.execute('DELETE FROM system_prompts WHERE hash=?', (context['system_prompt_sha256'],))
+    assert audit(root)['state'] == 'pass', audit(root)
+    next((home / 'private-system-prompts').rglob('*.json')).unlink()
+    assert any('snapshot unavailable or invalid' in e for e in audit(root)['errors'])

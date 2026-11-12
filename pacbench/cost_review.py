@@ -8,6 +8,7 @@ import sqlite3
 
 from .followups import save
 from .gateway_client import STATE
+from .usage import ledger_call, summarize_calls
 
 
 def read(path):
@@ -17,7 +18,11 @@ def read(path):
 def summarize(calls):
     unknown=[c for c in calls if c is None]
     known=[c for c in calls if c is not None]
-    return {'model_requests':len(calls),'unobserved_requests':len(unknown),
+    extra = summarize_calls(known)
+    if unknown:
+        for key in ('actual_cost_usd', 'token_price_estimate_usd', 'unconfirmed_budget_bound_usd'):
+            extra[key] = None
+    return {**extra, 'model_requests':len(calls),'unobserved_requests':len(unknown),
         'settled_upper_bound_usd':sum(c['accounted_upper_bound_usd'] for c in known if c['state']=='settled') if not unknown else None,
         'held_usd':sum(c['accounted_upper_bound_usd'] for c in known if c['state']!='settled') if not unknown else None,
         'input_tokens':sum(c['input_tokens'] for c in known) if not unknown and all(c.get('input_tokens') is not None for c in known) else None,
@@ -48,15 +53,35 @@ def processing_debt(arm,provider):
 
 def refreshed_calls(calls,connection):
     actual={}
+    columns = {r['name'] for r in connection.execute('PRAGMA table_info(calls)')} if connection else set()
+    fields = ('id','project','model','endpoint','started','finished','state','input_tokens','output_tokens',
+              'accounted','reserved','http_status','error_label','finish_reason','reasoning_tokens',
+              'upstream_request_id','generation_id','usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at',
+              'actual_cost_usd_decimal','generation_usage_detail','reconcile_status','reconcile_attempts',
+              'reconcile_last_attempt','reconcile_next_attempt')
+    select = ','.join(k if k in columns else 'NULL AS '+k for k in fields)
     for call in calls:
-        current=connection.execute('SELECT state,accounted,input_tokens,output_tokens,http_status FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
-        actual[call['id']]={**call,**({**dict(current),'accounted_upper_bound_usd':current['accounted']/1e9} if current else {})}
+        from .direct_accounting import VERSION as DIRECT_VERSION
+        if call.get('transport')==DIRECT_VERSION:
+            from .usage import direct_call
+            actual[call['id']]=direct_call(call,call.get('role'))
+            continue
+        current=connection.execute(f'SELECT {select} FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
+        actual[call['id']]={**call, **(ledger_call(current, call.get('role')) if current else {})}
     return actual
 
 
 def role_totals(calls):
     return {role:summarize([c for c in calls if c.get('role')==role])
             for role in ('hermes','memory_provider')}
+
+
+def model_groups(calls):
+    groups = {}
+    for call in calls:
+        key = (call.get('role'), call.get('project'), call.get('model'))
+        groups.setdefault(key, []).append(call)
+    return [{'role': k[0], 'project': k[1], 'model': k[2], **summarize(v)} for k, v in groups.items()]
 
 
 def review(root,*,ledger=STATE/'ledger.sqlite3'):
@@ -104,6 +129,11 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                 'lifecycle_cost_complete':False if debt['state']=='observed-pending' else None,
                 'cost':totals(set(actual)) if capture_available else None,
                 'phases':{phase:totals(ids) for phase,ids in phases.items()},
+                'request_costs':[{**call, 'provider':result['provider'],
+                                  'stages':[phase for phase,ids in phases.items() if id in ids]}
+                                 for id,call in actual.items()] if capture_available else None,
+                'model_groups':model_groups(list(actual.values())) if capture_available else None,
+                'phase_model_groups':{phase:model_groups([actual[id] for id in ids]) for phase,ids in phases.items()},
                 'terminal_snapshot_missing_requests':sorted(assigned-{c['id'] for c in snapshot['calls']}),
                 'overlapping_phase_request_ids':{id:[p for p,ids in phases.items() if id in ids]
                     for id in assigned if sum(id in ids for ids in phases.values())>1}})
@@ -121,7 +151,8 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
         'ledger_refreshed':connection is not None,'input_hash':summary['input_hash'],
         'scope':['All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.',
             'Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.',
-            'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown charges remain reservations.',
+            'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown actual charges retain safety bounds.',
+            'Provider identifies the benchmark arm, not a claim that every Hermes request was made by that memory provider. Stages are observed receipt windows; overlapping windows do not prove causal attribution.',
             'Only arms completing identical daily batches, initial questions and required recovery can be compared as observed workload costs.',
             'Observed workload costs stop at the recorded arm cutoff. Pending or unobserved deferred processing prevents a full lifecycle cost claim; future costs are unknown, not zero.',
             'Native canary execution and failed attempts are separate from month costs. Semantic correctness and source-assisted retention are separate scores.']}

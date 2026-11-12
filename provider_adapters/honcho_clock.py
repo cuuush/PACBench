@@ -22,10 +22,10 @@ import urllib.request
 from email.utils import parsedate_to_datetime
 
 from pacbench.followups import save
-from pacbench.provider_clock import LIBRARY, LIBRARY_SHA256, ProviderClock
+from pacbench.provider_clock import LIBRARY, LIBRARY_SHA256, LEGACY_LIBRARY_SHA256, ProviderClock
 
-VERSION = 'honcho-wall-clock-v4'
-SUPPORTED = ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION)
+VERSION = 'honcho-wall-clock-v5'
+SUPPORTED = ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4', VERSION)
 START_TOLERANCE_S = 5
 CONFIG = 'provider-clock.json'
 
@@ -513,6 +513,9 @@ def wait_for_batch(root, acknowledgments, roles):
 
 
 def audit_evidence(root, declared):
+    if declared=='honcho-wall-clock-v4':
+        from .honcho_split_clock_v4_audit import audit_evidence as historical
+        return historical(root,declared)
     """Offline/publication validation; it does not need a running native DB."""
     errors = []
     def check(value, message):
@@ -551,7 +554,7 @@ def audit_evidence(root, declared):
                           'Honcho unsupported-freezer fallback lacks a safe native state witness')
         check(declared in SUPPORTED and config['version'] == startup['version'] == declared,
               'Honcho clock condition/version mismatch')
-        check(config['library_sha256'] == startup['library_sha256'] == LIBRARY_SHA256 and
+        check(config['library_sha256'] == startup['library_sha256'] == (LIBRARY_SHA256 if declared==VERSION else LEGACY_LIBRARY_SHA256) and
               config['wall_speed'] == 1 and config['monotonic'] == startup['monotonic'] == 'real' and
               config['gateway_clock'] == 'real' and config['source_timestamps'] == 'unchanged' and
               config['native_batching'] == 'unchanged', 'Honcho clock isolation declaration differs')
@@ -567,7 +570,7 @@ def audit_evidence(root, declared):
             step = json.loads(line)
             if step.get('kind') == 'benchmark-overhead':
                 frozen = instant(step['provider_at']); real = instant(step['real_at'])
-                check(declared in ('honcho-wall-clock-v3', VERSION) and step['version'] == declared and
+                check(declared in ('honcho-wall-clock-v3','honcho-wall-clock-v4', VERSION) and step['version'] == declared and
                       step['database_paused'] is True and previous <= frozen and
                       previous_real <= instant(step['real_started_at']) <= real and
                       abs((instant(step['db_after'])-frozen).total_seconds()) <= 3 and
@@ -589,7 +592,7 @@ def audit_evidence(root, declared):
                 check({e['id'] for e in step.get('native_errors_before',[])} >=
                       {e['id'] for e in state['errors']},
                       'Honcho native errors were not preserved before aging')
-            if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION) and step.get('horizon'):
+            if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4', VERSION) and step.get('horizon'):
                 check(target <= instant(step['horizon']), 'Honcho clock advanced past checkpoint horizon')
             previous, previous_real = after, real
         if declared == VERSION:
@@ -598,14 +601,13 @@ def audit_evidence(root, declared):
             for role,pid in config['processes'].items():
                 check(startup['python_adoptions'][role]['pid']==pid,'Honcho native Python clock PID differs')
                 verify_adoption(root,startup['python_adoptions'][role],role=role)
-        if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION):
+        if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4', VERSION):
             for path in (root/'turns').glob('**/turn.json'):
                 turn = json.loads(path.read_text())
                 observed = turn.get('provider_clock') or {}
                 if declared == VERSION:
-                    adoption=observed.get('python_clock') or {}
-                    check(adoption.get('state')=='pass','Honcho turn lacks verified Python clock adoption')
-                    verify_adoption(root,adoption['adoption'],role='hermes')
+                    from pacbench.gateway_python_clock import audit_witness
+                    audit_witness(root,turn,config)
                 check(observed.get('version') == declared, 'Honcho turn lacks native clock observation')
                 actual = instant(observed['actual_start_at'])
                 requested = instant(observed['requested_at'])

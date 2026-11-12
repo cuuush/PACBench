@@ -29,6 +29,16 @@ def test_missing_history_is_not_recreated(tmp_path):
     assert not (tmp_path/'missing').exists()
 
 
+def test_three_completed_unmetered_responses_stop_background_admission(budget):
+    for i in range(3):
+        row=budget.reserve('provider',{'model':MODEL,'messages':[{'role':'user','content':str(i)}],'max_tokens':5})
+        budget.settle(row['id'],200,b'{}')
+    before=budget.snapshot()
+    with pytest.raises(RuntimeError,match='lack usable token usage'):
+        budget.reserve('provider',{'model':MODEL,'messages':[{'role':'user','content':'different fourth request'}],'max_tokens':5})
+    assert budget.snapshot()==before
+
+
 def test_reservations_bound_all_concurrent_work_and_merge_settlements(budget):
     # Each request costs at most .0002, so only two fit after a preserved hold.
     with budget.locked() as state:

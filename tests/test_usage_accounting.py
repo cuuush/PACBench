@@ -1,5 +1,6 @@
 """Offline native Hermes token accounting and artifact redaction."""
 
+from contextlib import nullcontext
 import json
 import subprocess
 import sys
@@ -73,7 +74,9 @@ class ParseTurnTokens(unittest.TestCase):
                           result.session_output_tokens), (30, 7))
 
     def test_timeout_turn_carries_no_tokens(self):
-        with mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
+        with mock.patch('pacbench.live_trials.require_live_trials_ready'), \
+             mock.patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
+             mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
              tempfile.TemporaryDirectory(prefix="pacbench-tok-") as tmp:
             home = Path(tmp) / "h-home"
             harness.provision_home(home, provider_plugin_src=None,
@@ -202,3 +205,73 @@ def test_simulated_native_trace_cannot_be_ordered_against_gateway_time():
                 assert profile['source_fallback_attempted']
             else:
                 assert profile['provider_internal_path_needs_review']
+
+
+def test_gateway_details_and_costs_remain_distinct(tmp_path):
+    import sqlite3
+    from pacbench.usage import snapshot, window
+    db = sqlite3.connect(tmp_path / 'ledger.sqlite3')
+    db.execute("CREATE TABLE calls (id TEXT, project TEXT, model TEXT, endpoint TEXT, started TEXT, finished TEXT, state TEXT, input_tokens INTEGER, output_tokens INTEGER, accounted INTEGER, reserved INTEGER, usage_detail TEXT, actual_cost_nano INTEGER, actual_cost_source TEXT, upstream_request_id TEXT, generation_id TEXT)")
+    db.executemany("INSERT INTO calls VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [
+        ('a','provider','spark','chat','1','2','settled',100,20,1000,1000,
+         json.dumps({'completion_tokens_details.reasoning_tokens': 5, 'prompt_tokens_details.cached_tokens': 40, 'prompt': 'secret'}), None, None, 'up-a', None),
+        ('b','provider','spark','chat','2',None,'unknown',None,None,2000,2000,None,None,None,None,None),
+        ('c','provider','spark','chat','3','4','settled',30,10,3000,3000,None,2500,'provider', 'up-c', 'gen-c')])
+    db.commit(); db.close()
+    capture = snapshot({'provider': 'memory_provider'}, tmp_path)
+    assert capture['state'] == 'captured'
+    assert capture['calls'][0]['usage_detail'] == {'completion_tokens_details.reasoning_tokens':5, 'prompt_tokens_details.cached_tokens':40}
+    assert capture['calls'][2]['actual_cost_usd'] == .0000025
+    result = window({'state':'captured','at':'0','calls':[]}, capture)
+    group = result['groups'][0]
+    assert group['input_tokens'] is None and group['actual_cost_usd'] is None
+    assert group['actual_cost_known_usd'] == .0000025 and group['actual_cost_unknown_calls'] == 2
+    assert group['token_price_estimate_usd'] == .000001
+    assert group['unconfirmed_budget_bound_usd'] == .000002
+    assert len(result['model_calls']) == 3
+
+
+def test_legacy_ledger_remains_readable(tmp_path):
+    import sqlite3
+    from pacbench.usage import snapshot
+    db = sqlite3.connect(tmp_path / 'ledger.sqlite3')
+    db.execute("CREATE TABLE calls (id TEXT, project TEXT, model TEXT, endpoint TEXT, started TEXT, finished TEXT, state TEXT, input_tokens INTEGER, output_tokens INTEGER, accounted INTEGER, reserved INTEGER)")
+    db.execute("INSERT INTO calls VALUES ('a','p','m','chat','1','2','settled',2,3,10,10)")
+    db.commit(); db.close()
+    call = snapshot({'p':'hermes'}, tmp_path)['calls'][0]
+    assert call['actual_cost_usd'] is None and call['usage_detail'] == {}
+
+
+def test_reconciliation_refreshes_only_original_request_ids(tmp_path):
+    from pacbench.usage import refresh_window, window
+    def call(id, state, actual=None):
+        return {'id':id, 'role':'memory_provider', 'project':'p', 'model':'spark',
+                'state':state, 'input_tokens':10, 'output_tokens':5,
+                'accounted_upper_bound_usd':.02, 'actual_cost_usd':actual, 'usage_detail':{}}
+    before={'state':'captured','at':'before','calls':[]}
+    original=window(before, {'state':'captured','at':'after','calls':[call('a','unknown')]})
+    latest={'state':'captured','at':'later','calls':[call('a','settled',.001),call('background','settled',.003)]}
+    updated=refresh_window(original, latest)
+    assert [c['id'] for c in updated['model_calls']] == ['a']
+    assert updated['roles']['memory_provider']['actual_cost_usd'] == .001
+    assert updated['roles']['memory_provider']['unconfirmed_budget_bound_usd'] == 0
+    assert original['model_calls'][0]['state'] == 'unknown'
+
+
+def test_reconciliation_metadata_keeps_exact_charge_and_separate_token_telemetry(tmp_path):
+    import sqlite3
+    from pacbench.usage import snapshot
+    db = sqlite3.connect(tmp_path / 'ledger.sqlite3')
+    db.execute("CREATE TABLE calls (id TEXT, project TEXT, model TEXT, endpoint TEXT, started TEXT, finished TEXT, state TEXT, input_tokens INTEGER, output_tokens INTEGER, accounted INTEGER, reserved INTEGER, actual_cost_nano INTEGER, actual_cost_usd_decimal TEXT, generation_usage_detail TEXT, usage_detail TEXT, reconcile_status TEXT, reconcile_attempts INTEGER, reconcile_last_attempt TEXT, reconcile_next_attempt TEXT)")
+    db.execute("INSERT INTO calls VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+        'a','p','m','chat','1','2','settled',100,20,2,2,2,'0.0000000011',
+        json.dumps({'native_tokens_prompt': 90,'native_tokens_reasoning':7,'secret':'x'}),
+        json.dumps({'prompt_tokens_details.cached_tokens':30}), 'reconciled',2,'last',None))
+    db.commit(); db.close()
+    call = snapshot({'p':'memory_provider'}, tmp_path)['calls'][0]
+    assert call['actual_cost_usd_decimal'] == '0.0000000011'
+    assert call['actual_cost_usd'] == .0000000011
+    assert call['actual_cost_guard_rounded_usd'] == .000000002
+    assert call['generation_usage_detail'] == {'native_tokens_prompt':90,'native_tokens_reasoning':7}
+    assert call['usage_detail'] == {'prompt_tokens_details.cached_tokens':30}
+    assert call['input_tokens'] == 100 and call['reconcile_attempts'] == 2

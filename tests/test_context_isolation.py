@@ -1,4 +1,5 @@
 """Saved native prompt and project-discovery isolation; no provider accuracy mocks."""
+from contextlib import nullcontext
 import hashlib
 import json
 import sqlite3
@@ -74,7 +75,9 @@ def test_recall_launches_outside_benchmark_without_disabling_memory_hooks(tmp_pa
         native_prompt(home, workspace, 'Native provider instructions')
         event = {'type': 'system', 'subtype': 'init', 'session_id': 'native-session'}
         return subprocess.CompletedProcess(args, 0, json.dumps(event), '')
-    with patch('pacbench.harness.subprocess.run', side_effect=run):
+    with patch('pacbench.live_trials.require_live_trials_ready'), \
+         patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
+         patch('pacbench.harness.subprocess.run', side_effect=run):
         turn = harness.run_turn('Recall my plan', at='2026-09-11T09:00:00-04:00',
                                 home=home, allowlist='mem0_search')
     assert turn.context_isolation['state'] == 'pass'
@@ -105,10 +108,52 @@ def test_turn_env_discards_inherited_and_explicit_prompt_overrides(tmp_path, mon
 
 
 @pytest.mark.parametrize('protocol',['user-clock-prefix-v1','ephemeral-system-clock-v2','unknown'])
-def test_historical_instruction_conditions_cannot_execute_again(tmp_path,protocol):
+def test_historical_instruction_conditions_cannot_execute_again(tmp_path,protocol, monkeypatch):
+    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
     home=tmp_path/'hermes-home';home.mkdir()
     with patch('pacbench.harness.subprocess.run') as launch:
         with pytest.raises(ValueError,match='New execution requires native-question-v2'):
             harness.run_turn('Recall my plan',at='2026-09-11T09:00:00-04:00',home=home,
                 allowlist='mem0_search',extra_env={'PACBENCH_CLOCK_CONTEXT_PROTOCOL':protocol})
     launch.assert_not_called()
+def test_private_native_prompt_snapshot_survives_database_gc(tmp_path):
+    from pacbench.context_isolation import SNAPSHOT_VERSION
+    home = tmp_path / 'arm/hermes-home'; workspace = workspace_for(home)
+    native_prompt(home, workspace, 'First native prompt')
+    first = actual_context(home, 'native-session', workspace, capture=True)
+    assert first['state'] == 'pass' and first['version'] == SNAPSHOT_VERSION
+    second = 'Second native prompt'; digest = hashlib.sha256(second.encode()).hexdigest()
+    with sqlite3.connect(home / 'state.db') as db:
+        db.execute('INSERT INTO system_prompts VALUES (?,?)', (digest, second))
+        db.execute('UPDATE sessions SET system_prompt_hash=?', (digest,))
+        db.execute('DELETE FROM system_prompts WHERE hash=?', (first['system_prompt_sha256'],))
+    assert actual_context(home, 'native-session', workspace,
+        prompt_hash=first['system_prompt_sha256'], receipt_version=SNAPSHOT_VERSION) == first
+    snapshot = next((home / 'private-system-prompts').rglob('*.json'))
+    original = snapshot.read_text()
+    data = json.loads(original); data['prompt'] = 'changed'; snapshot.write_text(json.dumps(data))
+    assert actual_context(home, 'native-session', workspace,
+        prompt_hash=first['system_prompt_sha256'], receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'
+    snapshot.write_text(original)
+    data = json.loads(original); data['session_id'] = 'another-session'; snapshot.write_text(json.dumps(data))
+    assert actual_context(home, 'native-session', workspace,
+        prompt_hash=first['system_prompt_sha256'], receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'
+    snapshot.unlink()
+    assert actual_context(home, 'native-session', workspace,
+        prompt_hash=first['system_prompt_sha256'], receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'
+
+
+def test_private_snapshot_never_overrides_corrupt_database_or_missing_session(tmp_path):
+    from pacbench.context_isolation import SNAPSHOT_VERSION
+    home = tmp_path / 'arm/hermes-home'; workspace = workspace_for(home)
+    native_prompt(home, workspace, 'First native prompt')
+    first = actual_context(home, 'native-session', workspace, capture=True)
+    digest = first['system_prompt_sha256']
+    with sqlite3.connect(home / 'state.db') as db:
+        db.execute('UPDATE system_prompts SET prompt=? WHERE hash=?', ('changed', digest))
+    assert actual_context(home, 'native-session', workspace, prompt_hash=digest,
+                          receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'
+    with sqlite3.connect(home / 'state.db') as db:
+        db.execute('DELETE FROM sessions')
+    assert actual_context(home, 'native-session', workspace, prompt_hash=digest,
+                          receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'

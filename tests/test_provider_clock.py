@@ -23,7 +23,7 @@ def test_relative_clock_children(tmp_path):
     program = '''import asyncio,json,sys,time
 async def main():
  for line in sys.stdin:
-  before=time.monotonic(); await asyncio.sleep(.08)
+  before=time.monotonic(); time.sleep(.01); await asyncio.sleep(.08)
   print(json.dumps([time.time(),time.monotonic()-before]),flush=True)
 asyncio.run(main())'''
     children = [subprocess.Popen([sys.executable, '-u', '-c', program],

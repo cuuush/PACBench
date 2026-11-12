@@ -1,4 +1,5 @@
 """A resumed simulated conversation keeps the date of its first turn."""
+from contextlib import nullcontext
 import subprocess
 import unittest
 from pathlib import Path
@@ -19,7 +20,9 @@ class SimulatedSessionStart(unittest.TestCase):
             captured.append(kwargs['env'])
             raise subprocess.TimeoutExpired('hermes', 1)
 
-        with TemporaryDirectory() as tmp, patch.object(harness, '_check_paths'), \
+        with TemporaryDirectory() as tmp, patch('pacbench.live_trials.require_live_trials_ready'), \
+             patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
+             patch.object(harness, '_check_paths'), \
              patch('pacbench.context_isolation.workspace_for', return_value=Path(tmp)), \
              patch('pacbench.context_isolation.actual_context', return_value={'state': 'pass'}), \
              patch.object(harness.subprocess, 'run', side_effect=timeout), \

@@ -109,9 +109,11 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     home=tmp_path/'arm/hermes-home';home.mkdir(parents=True)
     (home.parent/'document-ingestion-config.json').write_text(json.dumps({'dreaming':'instant'}))
     resolve=Mock(return_value='native_canonical_tag')
-    monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
+    plugin=SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
-        _resolve_container_tag=resolve))
+        _resolve_container_tag=resolve)
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     add=Mock(return_value=SimpleNamespace(
         id='doc-1',model_dump=lambda **kw:{'id':'doc-1'}))
     statuses=iter([{'status':'done'}] if dreaming_field is None else [
@@ -125,6 +127,7 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
     sleep=Mock();monkeypatch.setattr('provider_adapters.document_connector.time.sleep',sleep)
     result=supermemory(source,home.parent,'now','now')
+    resolver.assert_called_once_with('supermemory')
     resolve.assert_called_once_with('raw-tag','default')
     assert add.call_args.kwargs['container_tags']==['native_canonical_tag']
     assert add.call_args.kwargs['content']=='Raw daily text\n'
@@ -170,11 +173,14 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
     client=SimpleNamespace(session=lambda id:session,peer=Peer)
     monkeypatch.setitem(sys.modules,'honcho',SimpleNamespace(Honcho=lambda **kw:client))
     monkeypatch.setitem(sys.modules,'honcho.api_types',SimpleNamespace(SessionPeerConfig=lambda **kw:SimpleNamespace(**kw)))
-    monkeypatch.setitem(sys.modules,'plugins.memory.honcho.client',SimpleNamespace(
-        HonchoClientConfig=SimpleNamespace(from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
-            user_observe_me=True,user_observe_others=True))))
+    plugin=SimpleNamespace(HonchoClientConfig=SimpleNamespace(
+        from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
+            user_observe_me=True,user_observe_others=True)))
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     monkeypatch.setattr('provider_adapters.honcho_local.queue_errors',lambda root:[])
     result=honcho(source,home.parent,'now','now')
+    resolver.assert_called_once_with('honcho','client')
     assert result['ready'] and len(pending)==len(messages)
     assert list(result['processing_status'][0]['sessions'])==['session-1']
     assert participants==['user','Devon','hermes']

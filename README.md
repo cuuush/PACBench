@@ -93,8 +93,9 @@ saved results and audit support remain available as historical evidence.
 
 Running a new trial requires separate provider services, pinned Hermes
 integrations, embeddings and model access. It is a self-hosted development
-workflow. The [contribution guide](CONTRIBUTING.md) explains the prerequisites,
-validation commands and next steps.
+workflow. PACBench's budget gateway runs from this repository; it requires the
+existing private ledger before any paid work. The [contribution guide](CONTRIBUTING.md)
+explains the prerequisites, validation commands and next steps.
 
 ## Contribute
 

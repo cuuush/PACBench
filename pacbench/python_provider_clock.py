@@ -16,10 +16,11 @@ import re
 import sys
 import time
 
-VERSION = 'python-offset-clock-v1'
+VERSION = 'python-offset-clock-v2'
 PACKAGE_VERSION = '3.6.0'
 PACKAGE_PY_SHA256 = '95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd'
 PACKAGE_C_SHA256 = {
+    'cpython-314':'461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b',
     'cpython-312':'f3d64a7000cd6e114aa8de5bc9038b44860f2616313770e3aa5f87aff2f103b6',
     'cpython-313':'17fd4db930fca0dba6081546c404eb92c1ff62ec60f665cd43ae9a61841eef8e',
 }
@@ -94,6 +95,8 @@ def install():
     # Each exec records adoption without exposing environment values or keys.
     # Write atomically; the controller binds native service PIDs to these rows.
     adopted = {**metadata,'protocol':VERSION,'pid':os.getpid(),'python':sys.executable,
+        'process_start_ticks':int(Path('/proc/self/stat').read_text().rsplit(')',1)[1].split()[19]),
+        'turn_nonce':os.environ.get('PACBENCH_PYTHON_CLOCK_NONCE',''),
         'clock_file':str(path),'python_epoch_ns':time.time_ns(),
         'real_epoch_ns':time_machine.escape_hatch.time.time_ns(),
         'monotonic_ns':time.monotonic_ns(),'os_clock':'real','tls_clock':'real',

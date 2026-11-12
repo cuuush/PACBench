@@ -1,8 +1,8 @@
 diff --git a/agent/agent_init.py b/agent/agent_init.py
-index 246ab57..136440a 100644
+index 50cb0f1b..63ecacb6 100644
 --- a/agent/agent_init.py
 +++ b/agent/agent_init.py
-@@ -1253,13 +1253,23 @@ def _init_memory(agent, _agent_cfg, skip_memory, platform):
+@@ -1176,13 +1176,23 @@ def _init_memory(agent, _agent_cfg, skip_memory, platform, memory_manager=None):
          "memory" in (agent.enabled_toolsets or [])
          and "memory" not in (agent.disabled_toolsets or [])
      )
@@ -30,7 +30,7 @@ index 246ab57..136440a 100644
                  _agent_cfg
              )
 diff --git a/agent/inline_tool_executors.py b/agent/inline_tool_executors.py
-index 2b5f5f7..f244f41 100644
+index 5a51f557..48f4ba22 100644
 --- a/agent/inline_tool_executors.py
 +++ b/agent/inline_tool_executors.py
 @@ -10,6 +10,7 @@ lazily at call time so ``patch("tools.x.y")`` in tests keeps working.
@@ -41,7 +41,7 @@ index 2b5f5f7..f244f41 100644
  from dataclasses import dataclass
  from importlib import import_module
  from typing import Any, Callable, Dict, Optional, Tuple
-@@ -94,6 +95,12 @@ def _callback_tool(module: str, func: str, callback_attr: str, *arg_specs: _ArgS
+@@ -123,6 +124,12 @@ def _callback_tool(module: str, func: str, callback_attr: str, *arg_specs: _ArgS
  
  
  def _session_search(agent, args: dict, ctx: InlineToolContext) -> Any:
@@ -54,7 +54,7 @@ index 2b5f5f7..f244f41 100644
      session_db = agent._get_session_db_for_recall()
      if not session_db:
          from hermes_state import format_session_db_unavailable
-@@ -231,6 +238,34 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
+@@ -365,6 +372,34 @@ def resolve_invoke_tool_executor(agent, function_name: str) -> Optional[InlineTo
      Precedence: todo_list/session_search/memory, then memory-manager tools, then the
      remaining inline tools (``message_agent`` excluded).
      """
@@ -90,10 +90,10 @@ index 2b5f5f7..f244f41 100644
          return INLINE_TOOL_EXECUTORS[function_name]
      memory_manager = agent._memory_manager
 diff --git a/agent/system_prompt.py b/agent/system_prompt.py
-index 9d5c5e1..1d5e765 100644
+index 3b946fad..54c6e276 100644
 --- a/agent/system_prompt.py
 +++ b/agent/system_prompt.py
-@@ -192,6 +192,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
+@@ -198,6 +198,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
      build without either).
      """
      from datetime import datetime
@@ -106,7 +106,7 @@ index 9d5c5e1..1d5e765 100644
      def _to_display_tz(dt: Any) -> Any:
          if dt.tzinfo is None:
              try:
-@@ -290,7 +296,11 @@ def _tool_guidance_block(agent: Any) -> Optional[str]:
+@@ -297,7 +303,11 @@ def _tool_guidance_block(agent: Any) -> Optional[str]:
          _kanban_guidance = KANBAN_GUIDANCE
      tool_guidance = [
          memory_guidance,
@@ -119,25 +119,36 @@ index 9d5c5e1..1d5e765 100644
          SKILLS_GUIDANCE if "skill_manage" in names else None,
          _kanban_guidance,
      ]
-@@ -516,7 +526,12 @@ def _memory_parts(agent: Any) -> List[str]:
+@@ -511,9 +521,13 @@ def _timestamp_line(agent: Any) -> str:
+     rebuild days (the cache prefix is already invalidated at that boundary)."""
+     from hermes_time import get_timezone as _hermes_tz, now as _hermes_now, safe_strftime
+     now = _hermes_now()
+-    _bits = _zone_bits(now, _hermes_tz())
+-    _zone_suffix = f" ({', '.join(_bits)})" if _bits else ""
++    _tz = _hermes_tz()
++    _bits = _zone_bits(now, _tz)
+     _start = _session_start_like(agent, now)
++    # PACBench's simulated session start is immutable across DST boundaries.
++    # Keep its own UTC offset instead of borrowing the current turn's offset.
++    _start_bits = _zone_bits(_start, _tz) if os.environ.get("PACBENCH_NOW", "").strip() else _bits
++    _zone_suffix = f" ({', '.join(_start_bits)})" if _start_bits else ""
+     timestamp_line = f"Conversation started: {safe_strftime(_start, '%A, %B %d, %Y')}{_zone_suffix}"
+     # Second line (maintainer design, salvaging #96224's anchor): long-lived sessions — Bot Mode
+     # forever-chats, messenger channels people never close — span many days and many compactions. A lone
+@@ -537,7 +551,7 @@ def _memory_parts(agent: Any) -> list[str]:
      the same check ``inject_memory_provider_tools`` uses, so we never advertise
      tools the toolset config gated off)."""
-     parts: List[str] = []
+     parts: list[str] = []
 -    if agent._memory_store:
-+    # PACBench isolated-run shim (benchmark harness only): never inject real
-+    # MEMORY.md/USER.md bytes into a benchmark episode's prompt. The external
-+    # provider block below is unaffected (provider tools are gated separately
-+    # by the dispatch boundary).
-+    _pacbench_no_builtin_memory = os.environ.get("PACBENCH_NO_BUILTIN_MEMORY", "").strip() == "1"
-+    if agent._memory_store and not _pacbench_no_builtin_memory:
++    if agent._memory_store and os.environ.get("PACBENCH_NO_BUILTIN_MEMORY", "").strip() != "1":
          for enabled, kind in ((agent._memory_enabled, "memory"), (agent._user_profile_enabled, "user")):
              block = agent._memory_store.format_for_system_prompt(kind) if enabled else None
              if block:
 diff --git a/agent/tool_executor.py b/agent/tool_executor.py
-index 4b55c1b..289b38e 100644
+index 019de243..542188f1 100644
 --- a/agent/tool_executor.py
 +++ b/agent/tool_executor.py
-@@ -1554,6 +1554,32 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
+@@ -1678,6 +1678,32 @@ def _resolve_sequential_dispatch(agent, ref: _ToolCallRef, messages: list) -> _S
      function_name, function_args, effective_task_id, tool_call_id, middleware_trace = (
          ref.name, ref.args, ref.task_id, ref.call_id, ref.trace,
      )
@@ -171,7 +182,7 @@ index 4b55c1b..289b38e 100644
          # Agent-level tools that need live AIAgent state; table shared with invoke_tool.
          inline_executor = INLINE_TOOL_EXECUTORS[function_name]
 diff --git a/agent/turn_context.py b/agent/turn_context.py
-index cc71fb4..520574a 100644
+index f6399b82..41599d74 100644
 --- a/agent/turn_context.py
 +++ b/agent/turn_context.py
 @@ -9,11 +9,14 @@ returns a ``TurnContext`` with only the locals the loop reads back.
@@ -189,7 +200,7 @@ index cc71fb4..520574a 100644
  from dataclasses import dataclass
  from typing import Any, Dict, List, Mapping, Optional, Tuple
  
-@@ -785,6 +788,14 @@ def _memory_turn_start_and_prefetch(
+@@ -1063,6 +1066,13 @@ def _memory_turn_start_and_prefetch(
      before the tool loop (skipped on trivial prompts with no semantic signal).
      Returns the prefetch text (``""`` when nothing was injected)."""
      if not agent._memory_manager:
@@ -198,13 +209,12 @@ index cc71fb4..520574a 100644
 +            with suppress(Exception):
 +                with Path(trace_path).open("a", encoding="utf-8") as trace:
 +                    trace.write(json.dumps({"session_id": agent.session_id,
-+                                            "query": original_user_message,
-+                                            "prefetch": ""},
-+                                           ensure_ascii=False) + "\n")
++                                            "query": _memory_query_text(original_user_message),
++                                            "prefetch": ""}, ensure_ascii=False) + "\n")
          return ""
-     _query = original_user_message if isinstance(original_user_message, str) else ""
+     _query = _memory_query_text(original_user_message)
      # The author rides along so a provider can attribute THIS turn, not whoever opened the session.
-@@ -799,6 +810,14 @@ def _memory_turn_start_and_prefetch(
+@@ -1079,6 +1089,14 @@ def _memory_turn_start_and_prefetch(
      with suppress(Exception):
          if not is_trivial_prompt(_query):
              ext_prefetch_cache = agent._memory_manager.prefetch_all(_query, session_id=agent.session_id) or ""
@@ -219,12 +229,43 @@ index cc71fb4..520574a 100644
      # Deterministic recall indicator via _emit_status so the model can't silently
      # drop injected memory.
      if ext_prefetch_cache:
-@@ -889,6 +908,21 @@ def build_turn_context(
-     Order matters: the DB session row is created only AFTER the system prompt is built
-     (else it persists system_prompt=NULL and costs a cache miss) and BEFORE preflight
-     compression."""
-+    # PACBench provider-only condition: expose only exact native provider schemas.
-+    # No extra prompting or provider-specific retrieval instructions.
+@@ -1189,6 +1207,31 @@ def _persist_turn_start(
+     )
+ 
+ 
++def _pacbench_refresh_date(agent, prompt):
++    """Refresh native date before and after compaction for simulated turns."""
++    if not os.environ.get("PACBENCH_NOW", "").strip() or not prompt:
++        return prompt
++    import re
++    from agent.system_prompt import _timestamp_line
++    native_lines = _timestamp_line(agent).splitlines()
++    native_date = "\n".join(line for line in native_lines if
++        line.startswith("Conversation started: ") or
++        line.startswith("Today's date (as of the last context rebuild): "))
++    pattern = r"(?m)^Conversation started: [^\n]*(?:\nToday's date \(as of the last context rebuild\): [^\n]*)?"
++    refreshed, count = re.subn(pattern, lambda _: native_date, prompt)
++    if count != 1 or not native_date:
++        raise RuntimeError("PACBench cannot refresh native session date")
++    if refreshed != prompt:
++        agent._cached_system_prompt = refreshed
++        static = getattr(agent, "_cached_system_prompt_static", None)
++        if static and not refreshed.startswith(static):
++            agent._cached_system_prompt_static = None
++        if not agent._session_db:
++            raise RuntimeError("PACBench cannot persist native session date")
++        agent._session_db.update_system_prompt(agent.session_id, refreshed)
++    return refreshed
++
++
+ def build_turn_context(
+     agent, user_message: Any, system_message: Optional[str],
+     conversation_history: Optional[list[dict[str, Any]]], task_id: Optional[str], stream_callback,
+@@ -1238,6 +1281,19 @@ def build_turn_context(
+     agent._restore_primary_runtime()
+     _publish_runtime_main(agent)
+     _refresh_mcp_tools_between_turns(agent)
++    # Filter after MCP refresh, which can repopulate available tool schemas.
 +    if os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
 +        allowed = {n.strip() for n in os.environ.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
 +                   if n.strip() and "*" not in n}
@@ -237,15 +278,45 @@ index cc71fb4..520574a 100644
 +                record.write(json.dumps({"allowed_tools": sorted(allowed),
 +                    "offered_tools": sorted(agent.valid_tool_names),
 +                    "source_argument_rules": json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))}) + "\n")
-+
-     from agent.turn_context_compaction import run_turn_start_compaction
  
-     # Guard stdio against OSError from broken pipes (systemd/headless/daemon).
+     if isinstance(user_message, str):
+         user_message = sanitize_surrogates(user_message)
+@@ -1319,7 +1375,22 @@ def build_turn_context(
+     except Exception:
+         logger.debug("message_agent injection skipped", exc_info=True)
+ 
++    # Pinned-session restore and bot-tool injection can repopulate schemas.
++    # Reapply the provider-only boundary before any request or persistence.
++    if os.environ.get("PACBENCH_PROVIDER_ONLY") == "1":
++        allowed = {n.strip() for n in os.environ.get("PACBENCH_TOOL_ALLOWLIST", "").split(",")
++                   if n.strip() and "*" not in n}
++        agent.tools = [t for t in (agent.tools or []) if t.get("function", {}).get("name") in allowed]
++        agent.valid_tool_names = {t["function"]["name"] for t in agent.tools}
++        trace_path = os.environ.get("PACBENCH_CONTEXT_TRACE")
++        if trace_path:
++            with open(trace_path + ".tools.jsonl", "a", encoding="utf-8") as record:
++                record.write(json.dumps({"allowed_tools": sorted(allowed),
++                    "offered_tools": sorted(agent.valid_tool_names),
++                    "source_argument_rules": json.loads(os.environ.get("PACBENCH_SOURCE_ARGUMENT_RULES", "{}"))}) + "\n")
++
+     _ensure_session_row(agent, pending_cli_message)
++    active_system_prompt = _pacbench_refresh_date(agent, active_system_prompt)
+ 
+     # A turn interrupted before admission could not write its accepted input because
+     # it did not own the session lease. Persist that carried-forward row now, before
+@@ -1352,6 +1423,7 @@ def build_turn_context(
+     )
+     messages = compaction.messages
+     active_system_prompt = compaction.active_system_prompt
++    active_system_prompt = _pacbench_refresh_date(agent, active_system_prompt)
+     conversation_history = compaction.conversation_history
+     current_turn_user_idx = compaction.current_turn_user_idx
+     # Every turn, not only on a prompt restore: a long-lived agent (CLI, TUI, Desktop) keeps its
 diff --git a/hermes_time.py b/hermes_time.py
-index a8cab27..bcad634 100644
+index 00f1362c..49a4b2f4 100644
 --- a/hermes_time.py
 +++ b/hermes_time.py
-@@ -107,5 +107,55 @@ def reset_cache() -> None:
+@@ -146,5 +146,55 @@ def reset_cache() -> None:
  
  def now() -> datetime:
      """Current time as a tz-aware datetime: configured zone, else server-local."""
@@ -302,10 +373,10 @@ index a8cab27..bcad634 100644
 +            return True
 +    return False
 diff --git a/model_tools.py b/model_tools.py
-index f0e56c1..b5619c7 100644
+index 22b293f0..6fc81645 100644
 --- a/model_tools.py
 +++ b/model_tools.py
-@@ -885,6 +885,24 @@ def handle_function_call(
+@@ -916,6 +916,24 @@ def handle_function_call(
          function_args = {}
      trace = list(tool_request_middleware_trace or [])
      function_name = _LEGACY_TOOL_ALIASES.get(function_name, function_name)
@@ -327,6 +398,6 @@ index f0e56c1..b5619c7 100644
 +        if not _pb_ok:
 +            return json.dumps({"error": f"PACBENCH-BLOCKED: tool '{function_name}' is outside "
 +                                        f"the benchmark memory-tool boundary and did not execute"})
-     ids = _CallIds(task_id, session_id, tool_call_id, turn_id, api_request_id)
+     ids = _CallIds(task_id, session_id, tool_call_id, turn_id, api_request_id, conversation_id)
      start = time.monotonic()
  

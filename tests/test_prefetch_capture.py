@@ -46,12 +46,15 @@ def test_rotated_trace_does_not_prove_current_context(tmp_path):
 
 @pytest.mark.parametrize('timeout', [False, True])
 def test_run_turn_captures_native_hook_on_both_exit_paths(tmp_path, monkeypatch, timeout):
+    monkeypatch.setattr('pacbench.live_trials.require_live_trials_ready', lambda: None)
     home=tmp_path/'home'
     home.mkdir()
     path=tmp_path/'context.jsonl'
     path.write_bytes(row(session='stale'))
     monkeypatch.setattr('pacbench.context_isolation.workspace_for',lambda _: tmp_path)
-    monkeypatch.setattr('pacbench.context_isolation.actual_context',lambda *a: {'state':'pass'})
+    monkeypatch.setattr('pacbench.context_isolation.actual_context',lambda *a, **kw: {'state':'pass'})
+    from contextlib import nullcontext
+    monkeypatch.setattr('pacbench.hermes_gateway.turn_gateway', lambda *a, **kw: nullcontext({}))
     monkeypatch.setattr(harness,'provider_trace_snapshot',lambda _: {})
     def child(cmd, **kwargs):
         with path.open('ab') as f:

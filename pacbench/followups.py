@@ -547,7 +547,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                 check(provider_paths_match(turn,read(directory/'usage.json')),
                     'follow-up provider path timing differs from recorded inference inputs')
             clock = turn.provider_clock
-            recovery_at = turn.at if clock and clock.get('version') in ('honcho-wall-clock-v2','honcho-wall-clock-v3') else initial_turn.at
+            recovery_at = turn.at if clock and clock.get('version') in ('honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4','honcho-wall-clock-v5') else initial_turn.at
             if clock:
                 from datetime import datetime
                 check(clock.get('role') == 'recovery' and clock.get('requested_at') == initial_turn.at and

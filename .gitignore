@@ -49,3 +49,19 @@ docs/corpus-explorer.html
 
 # Preserve local OpenRouter spending reservations outside published evidence.
 *.openrouter-private/
+
+# Native backends are installed separately; never commit runtime symlinks.
+/vendor/venv-cognee
+/vendor/venv-reme
+/vendor/cognee-integrations
+/vendor/reme
+/vendor/memos
+
+# Runtime dependencies may be symlinks in an isolated integration checkout.
+/vendor/byterover-local
+/vendor/venv-openviking
+/vendor/venv-hindsight
+/vendor/supermemory-local
+/vendor/honcho-local
+/vendor/ollama
+/vendor/libfaketime/runtime

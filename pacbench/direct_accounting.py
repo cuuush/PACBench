@@ -113,6 +113,10 @@ class DirectBudget:
             own=[c for c in calls if c['project']==project]
             if sum(c.get('http_status') in (400,422) for c in own)>=3:
                 raise RuntimeError('Provider repeated request rejection')
+            if sum(c.get('finished') is not None and c.get('http_status')==200 and
+                   c.get('state')=='uncertain' and
+                   (c.get('input_tokens') is None or c.get('output_tokens') is None) for c in own)>=3:
+                raise RuntimeError('Three completed provider responses lack usable token usage; project stopped')
             if any(c.get('transport')==VERSION and c['state']=='uncertain' and
                    c.get('http_status') not in (400,422,429) and
                    (not c.get('request_sha256') or c['request_sha256']==fingerprint) for c in own):

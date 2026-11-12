@@ -9,7 +9,7 @@ from pathlib import Path
 from .frozen import load_bundle, messages_for
 from .semantic_contract import load_contract
 from .followups import load_questions, audit_followups
-from .harness import TurnResult
+from .harness import TurnResult, question_prompt, PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
 from .evaluation import load_evaluations
 from .native_checks import audit_checks
 from .tool_policy import SUPPORTED_VERSIONS, policy_record
@@ -171,7 +171,8 @@ def audit(root: Path, *, providers=None) -> dict:
                                       f'{label}: native prefetch provenance is missing or differs from actual context')
                             context = actual_context(arm / 'hermes-home', data.get('session_id'),
                                 Path(workspace_record['workspace']),
-                                prompt_hash=(data.get('context_isolation') or {}).get('system_prompt_sha256'))
+                                prompt_hash=(data.get('context_isolation') or {}).get('system_prompt_sha256'),
+                                receipt_version=(data.get('context_isolation') or {}).get('version', 'empty-recall-workspace-v1'))
                             check(context['state'] == 'pass',
                                   f'{label}: {context.get("reason", "recall context isolation failed")}')
                             check(data.get('context_isolation') == context,

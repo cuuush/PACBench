@@ -31,16 +31,16 @@ trials or hosted alternative are part of the lineup.
 
 Every connector uses the same frozen public message records. Daily document v3 is a readable chronological transcript: conversation/channel, roster and subject headers, written times, senders, ownership and every original body, including email quotes. Different delivery/capture times remain visible. Full canonical records and IDs remain in `messages.json` for audits and native fixtures; repetitive machine IDs and identical metadata do not inflate the LLM's text. v1/v2 JSON documents retain their original audit rules. No messages are selected, summarized or extracted by the connector.
 
-New direct OpenRouter runs declare `ephemeral-system-clock-v2`. The scenario
-date is supplied through native `HERMES_EPHEMERAL_SYSTEM_PROMPT`; automatic
-retrieval receives the unchanged natural question. An HTTP-boundary observer
-records the actual system/user inputs and verifies the date, native query and
-injected context. The exact pinned native session-title request is recorded as
-auxiliary and charged, but cannot prove answer-context delivery. The semantic
+New direct OpenRouter runs require `native-question-v2`: send the authored
+question verbatim and add no PACBench text to Hermes's user or system prompts.
+The scenario date comes from Hermes's native clock seam. An HTTP-boundary
+observer records actual system/user inputs and verifies the native date line,
+unchanged query and injected context. A pinned native session-title request is
+auxiliary and charged, and cannot prove answer-context delivery. The semantic
 judge separately retains the explicit scenario date. Historical
-`user-clock-prefix-v1` trials keep their original conditions: MemOS treated that
-ISO date as an exact identifier and filtered out relevant traces. Never silently
-regrade those trials as natural-query runs.
+`user-clock-prefix-v1` and `ephemeral-system-clock-v2` trials retain their original
+conditions and cannot execute or resume as current trials. Never silently
+regrade those trials as native-question runs.
 
 Direct harness authoring and judging use a real 180-second total HTTP deadline,
 including non-streaming whitespace keepalives; an interrupted outcome retains
@@ -56,11 +56,23 @@ passing fact grades alone is insufficient calibration.
 
 Memcal's source database preserves realistic GUIDs, Apple-epoch timestamps, sender handles, service fields, chat membership and joins. Names live in a separate contacts fixture. No provider-specific facts or extraction hints are inserted. Future iMessage connectors can use that same source fixture. Nightly worker deadlines allow 15 minutes for a multi-conversation batch. All inference remains under the shared daily spending cap.
 
-Honcho's explicit `--honcho-clock simulated` profile advances its actual PostgreSQL, API, deriver and Hermes wall clocks between daily bulk imports. Install the pinned Linux x86_64 runtime with `vendor/libfaketime/install-runtime.sh`. Native batching settings remain unchanged; pending messages become eligible when the isolated clock reaches the native age threshold. The harness still witnesses their actual processing. Gateway budgets, operational deadlines and monotonic timers remain real. Clock steps, native observations and message witnesses are audited; future checkpoint exposure is refused. The older real-clock profile retains its native waiting time and is a separate condition.
+Honcho's explicit `--honcho-clock simulated` profile advances PostgreSQL,
+API, deriver and Hermes wall clocks between daily bulk imports. The upgraded
+`honcho-wall-clock-v5` condition retains the split clock: PostgreSQL alone uses
+the reproducible runtime built by `vendor/libfaketime/install-runtime-v4.sh`;
+Python services and the native Hermes gateway/CLI use a pinned shared-offset
+`time-machine` runtime. OS certificate validation, operational deadlines and
+monotonic timers remain real. A free direct HTTPS check passed; applying the
+preload library to the HTTPS client instead failed certificate validity checks.
+Actual gateway and CLI adoption is bound to distinct PIDs, process start ticks
+and a per-turn nonce. These are transport checks; provider readiness and live
+recall still require validation. Older v1–v4 receipts keep their original runtime
+identity and cannot resume as v5. Native batching defaults remain unchanged;
+actual processing witnesses and future-checkpoint guards remain required.
 
 The shipped Honcho SDK has a 100-message request limit. A daily thread with more messages uses consecutive native requests in its existing observed session, followed by one processing barrier for the complete import. This is transport batching; no text is summarized or extracted by the connector. Atomic, hash-bound chunk receipts retain verified native IDs and mark uncertain delivery without automatic replay.
 
-Clock v3 suspends the native runtime during benchmark judging only at an observed idle boundary, excluding that harness overhead from provider wall time. Database/queue and gateway snapshots cannot prove arbitrary in-memory quiescence; monotonic deadlines still elapse. Active observed work proceeds normally. A separate real-clock watchdog stops services if the owner is killed during suspension. No frozen absolute-time mode is used: its native sleep compatibility probe failed. Native trace dates on the simulated clock cannot establish timing against the gateway's real timestamps, so uncertain source paths remain uncredited.
+Clocks v3–v5 attempt to suspend the native runtime during benchmark judging only at an observed idle boundary, excluding that harness overhead from provider wall time. Database/queue and gateway snapshots cannot prove arbitrary in-memory quiescence; monotonic deadlines still elapse. Active observed work proceeds normally. A separate real-clock watchdog stops services if the owner is killed during suspension. No frozen absolute-time mode is used: its native sleep compatibility probe failed. Native trace dates on the simulated clock cannot establish timing against the gateway's real timestamps, so uncertain source paths remain uncredited.
 
 Memcal email delivery uses a real local TLS IMAP server with Inbox/Sent folders, reply references and separate account addresses linked by standard Contacts cards. This is a text-message fixture implementing the commands used by the native reader, not a Proton Bridge installation or a full mailbox server. No reader methods are replaced. The connector waits for native ingestion and processing before Hermes starts.
 
@@ -116,7 +128,7 @@ store cannot establish those windows with the inspected native API and remain
 unsupported under this new qualification. Older saved trials retain their
 original condition and findings.
 
-Clock v4 separates the Python wall clock from the OS clock. PostgreSQL retains
+Historical clock v4 separates the Python wall clock from the OS clock. PostgreSQL retains
 the pinned libfaketime runtime; the API, deriver and Hermes use the pinned
 `time-machine` runtime installed with `vendor/python-clock/install-runtime.py`.
 Each Python time read uses the shared atomic offset file. OpenSSL certificate
@@ -132,7 +144,7 @@ under the frozen source penalty. Its explicit deriver thinking effort is `none`;
 the native 2,500-token output allowance and batching defaults are unchanged.
 This establishes this small workload's integration, not calibrated accuracy.
 
-Some managed Docker runtimes lack `cgroup.freeze`. New v4 trials allow an
+Some managed Docker runtimes lack `cgroup.freeze`. The split-clock v4 and v5 protocols allow an
 explicitly recorded fallback only after the native pause reports unsupported
 freezing and an independent inspect confirms the container is running and
 unpaused. Resume the apps and leave the shared offset unchanged. Record real,

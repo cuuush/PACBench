@@ -17,6 +17,8 @@ def native(tmp_path,monkeypatch):
     monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
         _resolve_container_tag=lambda *a:'native-tag'))
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',
+        lambda *a, **kw: sys.modules['plugins.memory.supermemory'])
     documents=SimpleNamespace(add=Mock(return_value=SimpleNamespace(
         id='accepted-id',model_dump=lambda **kw:{'id':'accepted-id','status':'queued'})),get=Mock())
     client=Mock(return_value=SimpleNamespace(documents=documents))

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -204,18 +205,42 @@ finally:
 '''
 
 
-def provider_names() -> list[str]:
-    """Inventory the pinned checkout, with known names for offline validation.
+def catalog_migrated_providers() -> set[str]:
+    """Read Hermes' own migration inventory and the pinned checkout's catalog."""
+    migration = harness.ISOLATED_TREE / "hermes_cli" / "memory_provider_migration.py"
+    if not migration.exists():
+        return set()  # Older bundled-provider Hermes releases.
+    tree = ast.parse(migration.read_text())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_LEFT_CORE" for t in node.targets):
+            value = node.value
+            if not (isinstance(value, ast.Call) and isinstance(value.func, ast.Name)
+                    and value.func.id == "frozenset" and len(value.args) == 1):
+                raise RuntimeError("Unrecognized Hermes provider migration inventory")
+            names = ast.literal_eval(value.args[0])
+            if not isinstance(names, (set, frozenset)) or not all(isinstance(n, str) for n in names):
+                raise RuntimeError("Invalid Hermes provider migration inventory")
+            catalog = harness.ISOLATED_TREE / "plugin-catalog"
+            return {n for n in names if (catalog / f"{n}.yaml").is_file()}
+    raise RuntimeError("Hermes provider migration inventory is missing")
 
-    The fallback is a selection catalog, not evidence that any provider is
-    installed or ready. Provisioning still requires the native runtime.
-    """
-    root = harness.ISOLATED_TREE / "plugins" / "memory"
-    if not root.is_dir():
-        return sorted(ISOLATED_PROVIDERS | {'memori'})
-    names = sorted(p.name for p in root.iterdir()
-                   if p.is_dir() and (p / "plugin.yaml").is_file())
-    return sorted((set(names) | ISOLATED_PROVIDERS | {"memori", "memcal"}) - RETIRED_PROVIDERS.keys())
+
+def provider_names() -> list[str]:
+    """Offline selection catalog; presence does not establish provider readiness."""
+    root=harness.ISOLATED_TREE/'plugins/memory'
+    names={p.name for p in root.iterdir() if p.is_dir() and (p/'plugin.yaml').is_file()} if root.is_dir() else set()
+    return sorted((names | catalog_migrated_providers() | ISOLATED_PROVIDERS | {'memori','memcal'})-RETIRED_PROVIDERS.keys())
+
+
+def require_trial_provider(provider: str, *, resume: bool = False) -> None:
+    """Refuse moved providers without a reviewed provisioning route."""
+    from .catalog_plugins import CATALOG
+    bundled = harness.ISOLATED_TREE / "plugins" / "memory" / provider
+    if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
+        if provider not in CATALOG:
+            raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
+        if resume:
+            raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
@@ -232,6 +257,9 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         if model != MODEL or os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
             raise ValueError('OpenRouter pilot requires its exact model and run-owned transport')
         require_live_cost_boundary()
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
+    require_trial_provider(provider, resume=resume)
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
@@ -240,16 +268,28 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     _, memory_key = client_settings(memory_project)
     if resume and (provider!='openviking' or not (home/'config.yaml').exists()):
         raise ValueError('Only an existing OpenViking home supports verified ingestion resume')
+    from .catalog_plugins import CATALOG, install_catalog_provider
+    external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
     if not resume:harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
-        provider_name=native_provider_name(provider), model=('gpt-6-luna' if inference_route == 'codex-subscription' else model),
+        provider_name="" if external else native_provider_name(provider), model=('gpt-6-luna' if inference_route == 'codex-subscription' else model),
         model_provider=('openai-codex' if inference_route == 'codex-subscription' else
                         'openrouter' if inference_route == 'openrouter' else 'meta-ai'),
         model_base_url=(None if inference_route == 'codex-subscription' else driver_url))
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
+    if external:
+        receipt = install_catalog_provider(provider, home, fallback, harness.ISOLATED_BIN, harness.ISOLATED_TREE)
+        save(root / "catalog-plugin.json", receipt)
+        # A memory provider is activated by memory.provider, not plugins.enabled.
+        # Do this only after the exact source and dependencies pass preflight.
+        from ruamel.yaml import YAML
+        config = YAML(typ="safe").load((home / "config.yaml").read_text())
+        config["memory"]["provider"] = provider
+        config.setdefault("security", {})["allow_lazy_installs"] = False
+        harness._write_yaml(home / "config.yaml", config)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),
@@ -293,8 +333,10 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
             builder = '''
 import json,sys
 from pathlib import Path
-from plugins.memory.mem0._setup import build_oss_config
-from plugins.memory.mem0 import Mem0MemoryProvider
+sys.path.insert(0, sys.argv[4])
+from pacbench.provider_loader import provider_module
+build_oss_config = provider_module("mem0", "_setup").build_oss_config
+Mem0MemoryProvider = provider_module("mem0").Mem0MemoryProvider
 flags=json.loads(sys.argv[1])
 oss,_=build_oss_config(flags)
 Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},sys.argv[3])
@@ -304,7 +346,7 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
                      "oss_embedder_model": "nomic-embed-text", "oss_embedder_url": "http://127.0.0.1:11435",
                      "oss_vector": "qdrant", "oss_vector_path": str((root / "qdrant").resolve())}
             proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c", builder,
-                                   json.dumps(flags), identity, str(home.resolve())],
+                                   json.dumps(flags), identity, str(home.resolve()), str(harness.REPO)],
                                   env={**os.environ, **env, "HERMES_HOME": str(home.resolve())},
                                   cwd=harness.ISOLATED_TREE, capture_output=True, text=True, timeout=30)
             save(root / "native-manual-setup.json", {"route": "README manual OSS mem0.json",
@@ -521,6 +563,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
         question_dir: Path | None = None, honcho_clock: str = 'real',
         inference_route: str = 'muse-gateway', judge_reasoning_effort: str | None = None) -> dict:
+    for provider in providers or []:require_not_retired(provider)
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
         raise ValueError('Unknown inference route')

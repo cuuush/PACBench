@@ -77,6 +77,8 @@ def ready_prefix(output, report, messages):
 
 
 def resume(output, *, max_messages=4500, question_dir=None):
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     from .native_pilot import (read_prepared, provision, probe, smoke_succeeded,
                                stop_arm_model_work)
     from .gateway_client import client_settings, require_live_cost_boundary, validate_route

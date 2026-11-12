@@ -10,6 +10,10 @@ SUPPORTED=(LEGACY,VERSION,NATIVE)
 # This auxiliary call has no answer role; it remains in costs and input traces.
 NATIVE_TITLE_PROMPT_SHA256='3f1eef0616ddd2c13d45a3f8cef4ed648dadfdacdba7fbedceebf5a04d549998'
 NATIVE_TITLE_SOURCE_SHA256='8d5e38f31819f89677d1893e4332e049889a662fbaf09bcff77b8a3f004f70ab'
+# Both reviewed pinned revisions render the identical default title prompt.
+# Historical records keep their original hashes and auxiliary classification.
+NATIVE_TITLE_SOURCE_HASHES={NATIVE_TITLE_SOURCE_SHA256,
+    'e5beaa6185f91e887d27a35a5acdde613c0144c156e63ed053566127ff25ce0f'}
 
 
 def instruction(at):
@@ -45,7 +49,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
             raise ValueError('Missing/ambiguous actual HTTP input witness')
         actor_ids=[];auxiliary_ids=[]
         for row in candidates:
-            if row.get('protocol')!='direct-hermes-api-input-v1':
+            if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2'):
                 raise ValueError('Unknown HTTP input witness protocol')
             systems=[m.get('content') for m in row['messages'] if m['role']=='system']
             users=[m.get('content') for m in row['messages'] if m['role']=='user']
@@ -53,7 +57,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
                     hashlib.sha256(systems[0].encode()).hexdigest()==NATIVE_TITLE_PROMPT_SHA256):
                 from pathlib import Path
                 source=Path(__file__).resolve().parents[1]/'vendor/hermes-isolated/agent/title_generator.py'
-                if hashlib.sha256(source.read_bytes()).hexdigest()!=NATIVE_TITLE_SOURCE_SHA256:
+                if hashlib.sha256(source.read_bytes()).hexdigest() not in NATIVE_TITLE_SOURCE_HASHES:
                     raise ValueError('Native auxiliary-title source differs from pinned classifier')
                 auxiliary_ids.append(row['request_id'])
                 continue
@@ -71,6 +75,12 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
                         hashlib.sha256(systems[0].encode()).hexdigest()!=native.get('system_prompt_sha256') or
                         '[Simulated now:' in systems[0]):
                     raise ValueError('Actual system input differs from the native saved prompt or contains benchmark clock instructions')
+                if (getattr(turn,'provider_clock',None) or {}).get('version')=='honcho-wall-clock-v5':
+                    gateway=getattr(turn,'hermes_gateway',None) or {}
+                    if (row.get('protocol')!='direct-hermes-api-input-v2' or row.get('pid')!=gateway.get('pid') or
+                        row.get('process_start_ticks')!=gateway.get('start_time') or
+                        row.get('clock_role')!='hermes-gateway' or row.get('turn_nonce')!=gateway.get('turn_nonce')):
+                        raise ValueError('Actual actor request lacks the verified gateway clock identity')
             actor_ids.append(row['request_id'])
         if not actor_ids:
             raise ValueError('No actual answer request; auxiliary calls cannot prove clock delivery')

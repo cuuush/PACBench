@@ -242,9 +242,13 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     gateway_witness = None
     try:
         from .hermes_gateway import turn_gateway
-        with turn_gateway(home, ISOLATED_BIN.parent / "python", env, cwd=workspace) as gateway_witness:
+        with turn_gateway(home, ISOLATED_BIN.parent / "python", env, cwd=workspace,
+                          startup_timeout=min(120.0, timeout_s)) as gateway_witness:
+            remaining = timeout_s - (time.monotonic() - started)
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(cmd, timeout_s)
             proc = subprocess.run(cmd, capture_output=True, text=True,
-                                  timeout=timeout_s, env=env, cwd=str(workspace))
+                                  timeout=remaining, env=env, cwd=str(workspace))
     except subprocess.TimeoutExpired as exc:
         # A timeout is a failed turn, not a missing one (§41: failures are
         # required artifacts). Synthesize the same diagnostic TurnResult a

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import fcntl
+import hashlib
+import math
 import json
 import os
 import subprocess
@@ -79,13 +81,58 @@ def _ready(home: Path, pid: int) -> bool:
                 and (home / 'gateway.sock').exists() and not (home / 'gateway.sock').is_symlink())
 
 
-def _stop(home: Path, proc: subprocess.Popen, *, timeout: float):
+def _control_ready(home: Path, pid: int, python: Path, env: dict, timeout: float) -> bool:
+    """Require the same native identify check the CLI uses, in the same clock."""
+    code = ("import sys; from pathlib import Path; "
+            "from hermes_cli.gateway_runtime_discovery import query_identify; "
+            "from hermes_cli.gateway_runtime import _endpoint; "
+            "h=Path(sys.argv[1]); p=query_identify(h,timeout=2.0); "
+            "sys.exit(0 if p.get('pid')==int(sys.argv[2]) and "
+            "_endpoint(p,h,control_home=h).state=='ready' else 1)")
+    try:
+        result = subprocess.run([str(python), '-I', '-c', code, str(home), str(pid)],
+                                env=env, cwd=str(home), stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, timeout=timeout, check=False)
+        return result.returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def _gateway_marker_time(home: Path, python: Path, env: dict) -> datetime:
+    """Read wall time in a no-network child with the gateway's exact clock environment."""
+    faketime_keys = {key for key in env if key.startswith('FAKETIME_') or key == 'FAKETIME'}
+    if not env.get('LD_PRELOAD') and not faketime_keys:
+        return datetime.now(timezone.utc)
+    from .provider_clock import LIBRARY, LIBRARY_SHA256
+    expected = {'FAKETIME_TIMESTAMP_FILE', 'FAKETIME_NO_CACHE', 'FAKETIME_DONT_FAKE_MONOTONIC'}
+    try:
+        library = Path(env['LD_PRELOAD']).resolve(strict=True)
+        offset_file = Path(env['FAKETIME_TIMESTAMP_FILE']).resolve(strict=True)
+        if (library != LIBRARY.resolve(strict=True) or hashlib.sha256(library.read_bytes()).hexdigest() != LIBRARY_SHA256
+                or faketime_keys != expected or env.get('FAKETIME_NO_CACHE') != '1'
+                or env.get('FAKETIME_DONT_FAKE_MONOTONIC') != '1'
+                or offset_file != (home.parent / 'provider-clock' / 'offset').resolve(strict=True)):
+            raise ValueError('unsupported process clock')
+        offset = float(offset_file.read_text())
+        if not math.isfinite(offset):
+            raise ValueError('invalid offset')
+        result = subprocess.run([str(python), '-I', '-S', '-c', 'import time;print(time.time())'],
+                                env=env, cwd=str(home), capture_output=True, text=True, timeout=5, check=True)
+        value = float(result.stdout.strip())
+        if not math.isfinite(value) or abs(value - (time.time() + offset)) > 5:
+            raise ValueError('gateway clock did not adopt the expected offset')
+        return datetime.fromtimestamp(value, timezone.utc)
+    except (KeyError, OSError, ValueError, OverflowError, subprocess.SubprocessError) as exc:
+        raise GatewayLifecycleError('Cannot verify the run-owned gateway process clock') from exc
+
+
+def _stop(home: Path, proc: subprocess.Popen, *, python: Path, env: dict, timeout: float):
     if proc.poll() is not None:
         raise GatewayLifecycleError('Run-owned gateway exited unexpectedly')
     record = _identity(home, proc.pid)
     marker = home / '.gateway-planned-stop.json'
     data = {'target_pid': proc.pid, 'target_start_time': record['start_time'],
-            'stopper_pid': os.getpid(), 'written_at': datetime.now(timezone.utc).isoformat()}
+            'stopper_pid': os.getpid(), 'written_at': _gateway_marker_time(home, python, env).isoformat()}
     try:
         fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
         with os.fdopen(fd, 'w') as out:
@@ -101,15 +148,15 @@ def _stop(home: Path, proc: subprocess.Popen, *, timeout: float):
 
 
 @contextmanager
-def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_timeout: float = 30, shutdown_timeout: float = 30):
+def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_timeout: float = 120, shutdown_timeout: float = 45):
     """Start, verify and gracefully stop a private native gateway; refuse uncertain ownership."""
     home = home.resolve()
     if not home.is_dir() or os.name != 'posix' or not Path('/proc/self/stat').exists():
         raise GatewayLifecycleError('A private existing home and Linux process identities are required')
     if env.get('HERMES_HOME') != str(home) or env.get('HERMES_TUI_GATEWAY_URL'):
         raise GatewayLifecycleError('Gateway environment does not identify the private home')
-    if env.get('LD_PRELOAD') or any(k.startswith('FAKETIME_') or k == 'FAKETIME' for k in env):
-        raise GatewayLifecycleError('Faketime gateway shutdown requires a verified simulated-clock marker')
+    # Fail before spawning for unknown preload or clock settings.
+    _gateway_marker_time(home, python, env)
     for key in ('HOME', 'XDG_STATE_HOME', 'HERMES_GATEWAY_LOCK_DIR'):
         value = env.get(key)
         if key == 'HOME' and not value:
@@ -125,7 +172,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
         except BlockingIOError as exc:
             raise GatewayLifecycleError('Another benchmark turn owns this gateway home') from exc
         _assert_clear(home)
-        proc = subprocess.Popen([str(python), '-m', 'hermes_cli.main', 'gateway', 'run', '--quiet', '--idle-exit'],
+        proc = subprocess.Popen([str(python), '-m', 'hermes_cli.main', 'gateway', 'run', '--quiet'],
                                 env=env, cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         ready = False
         try:
@@ -134,7 +181,9 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                 if proc.poll() is not None:
                     raise GatewayLifecycleError('Run-owned gateway exited during startup')
                 if (home / 'gateway.pid').exists():
-                    if _ready(home, proc.pid):
+                    if _ready(home, proc.pid) and _control_ready(
+                            home, proc.pid, python, env, timeout=min(8., max(.1, deadline-time.monotonic()))):
+                        _identity(home, proc.pid)
                         ready = True
                         break
                 time.sleep(.05)
@@ -145,7 +194,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
             yield witness
         finally:
             if ready:
-                _stop(home, proc, timeout=shutdown_timeout)
+                _stop(home, proc, python=python, env=env, timeout=shutdown_timeout)
                 witness['stopped'] = True
             elif proc.poll() is None:
                 # The subprocess was launched by this scope and has not been reaped.

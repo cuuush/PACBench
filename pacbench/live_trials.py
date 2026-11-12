@@ -1,8 +1,8 @@
-"""Fail closed until the isolated Hermes gateway lifecycle is integrated."""
+"""Fail closed while the upgraded runtime and provider integrations are validated."""
 
 LIVE_TRIALS = {
     'enabled': False,
-    'reason': 'Hermes v0.23.1 retains its startup environment in a persistent local gateway; per-turn clock, tool and provider settings require a verified run-owned gateway lifecycle.',
+    'reason': 'The Hermes upgrade has not completed independent offline integration and native provider readiness validation.',
 }
 
 

@@ -1,12 +1,13 @@
 # vendor/ — PACBench-owned isolated Hermes (W1)
 
-**Upgrade test only:** Native trials are blocked until a run-owned gateway is
-stopped and verified between turns. Hermes v0.23.1 reuses its gateway's startup
-environment, so a later CLI child cannot independently update the simulated
-clock or tool policy. The per-turn date shim refreshes Hermes's stock date line;
-it does not supply exact time. Process and gateway clocks remain real except in
-the separately declared Honcho clock condition. TLS was not tested in the
-local capture.
+**Upgrade test only:** Native trials remain blocked while integration and
+provider readiness are validated. The harness owns and verifies a fresh
+Hermes gateway for each turn, then stops it gracefully; real-clock offline
+captures confirmed refreshed dates and tool grants. Simulated native gateway
+clocks remain blocked: their control-plane discovery failed in offline testing
+and needs a separately verified fix. The per-turn date shim refreshes Hermes's
+stock date line; it does not supply exact time. TLS was not tested in the
+local capture. The existing spending-ledger guard remains independent.
 
 This release supports Python 3.14 for normal runtime use. Its lock explicitly
 overrides `browser-harness==0.1.13`'s `pillow==12.3.0` requirement with

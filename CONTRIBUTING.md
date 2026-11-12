@@ -76,16 +76,33 @@ When resuming existing work, recover the actual private gateway state, including
 its spending ledger and credentials. Gateway source and public request receipts
 do not recover spending history. If that state is missing, paid work remains
 blocked; do not initialize a replacement ledger to continue the experiment. With
-the actual private state restored, start and reconcile the in-repository gateway:
+the actual private state restored, start the in-repository gateway:
 
 ```sh
 python -m pacbench.gateway --state /workspace/shared/muse-gateway
-python -m pacbench.gateway.reconcile_cli --state /workspace/shared/muse-gateway
 ```
 
 The client uses `PACBENCH_GATEWAY_STATE` when set, falls back to the legacy
 `MUSE_GATEWAY_STATE`, and otherwise uses `/workspace/shared/muse-gateway`. The
 existing ledger, unknown cost bounds and authentication circuit remain authoritative.
+
+Request evidence retains available input/output, reasoning and cache token
+counts, request/generation IDs, model and observed benchmark-stage attribution.
+Reported charges, token-price estimates and unconfirmed budget bounds are
+separate; reasoning and cached tokens are components of the totals, not extra
+tokens to add again. Missing service telemetry stays unknown.
+
+The current inference route is direct Meta. OpenRouter reconciliation applies
+only to genuine OpenRouter-origin rows with a generation ID; it cannot supply
+charges for direct Meta requests. With an authorized `OPENROUTER_API_KEY`, an
+explicit pass against an existing ledger is:
+
+```sh
+python -m pacbench.gateway.reconcile_cli --state /workspace/shared/muse-gateway
+```
+
+The command records retry status and backoff for unresolved eligible requests.
+It does not initialize a ledger or schedule future passes automatically.
 
 Prefer an existing verified preparation. After services and gateway access are
 ready, a month trial follows this shape:
@@ -102,9 +119,10 @@ Use a fresh output directory. This example assumes Memcal and its native
 dependencies are installed; it is not an installer. Pull current Memcal before
 a requested retest and record its actual revision. Do not overwrite frozen
 evidence, reingest completed days to probe authentication or blindly reuse a
-failed native store. Only OpenViking currently has a dedicated pre-recall resume
-protocol (`python3 -m pacbench.native_resume <run>`), with strict unchanged-input
-and successful-prefix checks.
+failed native store. The historical OpenViking pre-recall resume protocol has
+strict unchanged-input and successful-prefix checks. Catalog-provider resume
+remains blocked until existing-home plugin provenance and recovery are verified;
+do not resume an older store under the upgraded integration by relabeling it.
 
 For a new scenario, follow [authoring](docs/authoring-options.md) and
 [conversation checks](docs/flexible-checks.md). Validate the spec offline first,

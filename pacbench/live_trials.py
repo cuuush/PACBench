@@ -1,8 +1,8 @@
-"""Fail closed while the upgraded runtime and provider integrations are validated."""
+"""Keep paid trials stopped pending restored state and native provider canaries."""
 
 LIVE_TRIALS = {
     'enabled': False,
-    'reason': 'The Hermes upgrade has not completed independent offline integration and native provider readiness validation.',
+    'reason': 'Offline Hermes, clock and TLS integration passed; restore the original budget ledger and verify native provider readiness before enabling paid trials.',
 }
 
 

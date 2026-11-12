@@ -7,10 +7,11 @@ from .gateway_client import ModelAccessBlocked, SpendingBlocked
 from .usage import tracked_turn
 from .followups import audit_followups, run_followups, save, tool_profile, initial_effort
 from .semantic_grade import Claim, grade_native_semantic, audit_native_judge_attempts, BenchmarkContractError, validate_diagnostic, DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, LEGACY_JUDGE_PROTOCOL, judge_prompt
+from .clock_context import judge_question
 
 
 def extend_history(history, turn):
-    return history + [{'role': 'user', 'content': turn.prompt},
+    return history + [{'role': 'user', 'content': judge_question(turn)},
                       {'role': 'assistant', 'content': turn.answer}]
 
 
@@ -115,7 +116,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                 else:
                     behavior = row.get('kind') == 'behavior'
                     interactive = 'session' in row or behavior
-                    grade = grade_native_semantic(row['id'], turn.prompt, turn.answer,
+                    grade = grade_native_semantic(row['id'], judge_question(turn), turn.answer,
                         tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims), judge,
                         record_path=directory / 'judgment.json', conversation=state['history'],
                         assess_recovery=not behavior, assess_interaction=interactive,
@@ -159,7 +160,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                 # execution failure poisons that session, not independent ones.
                 if turn and not turn.returncode and not turn.policy_blocks and turn.session_id:
                     advance(state,turn,directory,provenance_version)
-                elif turn is not None:state['failed'] = row['id']
+                else:state['failed'] = row['id']
                 reason=f'{type(exc).__name__}: {exc}'
                 token=env.get('OPENAI_API_KEY','')
                 if token:reason=reason.replace(token,'<gateway-token>')
@@ -178,7 +179,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     return report
 
 
-def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL):
+def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, clock_context_protocol='user-clock-prefix-v1', prompt_protocol=None):
     errors, sessions, seen = [], {}, {}
     def check(ok, text):
         if not ok:errors.append(text)
@@ -204,24 +205,29 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 continue
             if not (directory/'turn.json').exists():
                 check(item['state']=='ungraded' and bool(item.get('reason')),f"{row['id']}: missing turn evidence")
+                state['failed']=row['id']
                 continue
+            check(not state['failed'],f"{row['id']}: executed after an unavailable turn in the same conversation")
             turn=harness.TurnResult(**read(directory/'turn.json'))
             from .usage import provider_paths_match
             if (directory/'usage.json').exists():
                 check(provider_paths_match(turn,read(directory/'usage.json')),
                     f"{row['id']}: provider path timing differs from recorded inference inputs")
-            expected=f"[Simulated now: {row['at']}. Treat this as the current date and time for everything in this turn.]\n\n{contract.question}"
+            from .clock_context import expected_prompt
+            expected=expected_prompt(row['at'],contract.question,clock_context_protocol)
+            if prompt_protocol is not None:expected=harness.question_prompt(contract.question,row['at'],prompt_protocol)
             check(turn.at==row['at'] and turn.prompt==expected,f"{row['id']}: evaluation question/clock mismatch")
             if judge_protocol != LEGACY_JUDGE_PROTOCOL and (directory/'judgment.json').exists():
                 claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
                 inputs = diagnostic_inputs(turn, contract, evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
-                audit_native_judge_attempts(directory/'judgment.json', question=turn.prompt, answer=turn.answer,
+                audit_native_judge_attempts(directory/'judgment.json', question=judge_question(turn), answer=turn.answer,
                     claims=claim_objects, judge_protocol=judge_protocol, conversation=state['history'],
                     assess_recovery=row.get('kind') != 'behavior', assess_interaction='session' in row or row.get('kind') == 'behavior',
                     diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
             if item['state']!='diagnostic':
                 check(bool(item.get('reason')) and item.get('verdict') in (None,'fail'),f"{row['id']}: unexplained ungraded turn")
-                if not turn.returncode and not turn.policy_blocks and turn.session_id:advance(state,turn,directory,provenance_version)
+                if not turn.returncode and not turn.policy_blocks and turn.answer.strip() and turn.session_id:advance(state,turn,directory,provenance_version)
+                else:state['failed']=row['id']
                 continue
             check(not turn.returncode and not turn.policy_blocks and bool(turn.answer.strip()),f"{row['id']}: failed evaluation turn")
             if state['session']:check(turn.session_id==state['session'],f"{row['id']}: shared conversation changed")
@@ -229,7 +235,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
             seen[turn.session_id]=key
             judgment,grade=read(directory/'judgment.json'),read(directory/'grade.json')
             check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == judge_protocol, f"{row['id']}: judge protocol mismatch")
-            check(judgment['question']==turn.prompt and judgment['answer']==turn.answer and judgment.get('conversation')==state['history'],f"{row['id']}: judge conversation mismatch")
+            check(judgment['question']==judge_question(turn) and judgment['answer']==turn.answer and judgment.get('conversation')==state['history'],f"{row['id']}: judge conversation mismatch")
             response=json.loads(judgment['response'])
             check(response['verdicts']==grade['claims'] and response.get('recovery')==grade.get('recovery'),f"{row['id']}: grade differs from judge")
             if evidence_by_id is not None:
@@ -238,7 +244,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 inputs = judgment.get('diagnostic_inputs', {})
                 check(diagnostic_version in DIAGNOSTIC_VERSIONS and judgment.get('diagnostic_protocol') == diagnostic_version, f"{row['id']}: unsupported diagnostic protocol")
                 claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
-                expected_prompt = judge_prompt(turn.prompt, turn.answer, claim_objects, conversation=state['history'],
+                expected_prompt = judge_prompt(judge_question(turn), turn.answer, claim_objects, conversation=state['history'],
                     assess_recovery=row.get('kind') != 'behavior', assess_interaction='session' in row or row.get('kind') == 'behavior',
                     diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
                 check(judgment.get('prompt') == expected_prompt + judgment.get('prompt_suffix', ''), f"{row['id']}: diagnostic judge prompt mismatch")
@@ -259,7 +265,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 errors.extend(f"{row['id']}: {e}" for e in audit_followups(contract=contract,plan=policy,
                     initial_turn=turn,initial_grade=grade,output=directory/'followups',previous_turn=state['previous'],
                     conversation=state['history'],inherited_path=state['path'],provenance_version=provenance_version,
-                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol))
+                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol, clock_context_protocol=clock_context_protocol, prompt_protocol=prompt_protocol))
                 recovery=read(directory/'followups/recovery.json')
                 check(item['recovery']['score']==recovery['score'] and item['recovery']['attempts']==recovery['attempts'],f"{row['id']}: summary/score mismatch")
             advance(state,turn,directory,provenance_version)

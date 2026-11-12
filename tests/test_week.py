@@ -66,7 +66,40 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
     assert 'unrelated topics' in scene_prompt(scene_by_id['leo-joins'])
     assert 'members can be silent' not in scene_prompt(scene_by_id['leo-joins']).lower()
     spec['noise']='extreme'
-    with pytest.raises(ValueError,match='low, medium or high'):resolve_spec(spec,tmp_path,week_start="2026-09-07")
+    with pytest.raises(ValueError,match='low, medium, high or authored'):resolve_spec(spec,tmp_path,week_start="2026-09-07")
+
+
+def test_authored_noise_leaves_volume_to_scene_and_preserves_explicit_range(tmp_path):
+    from pacbench.authoring import scene_spec
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
+    spec['noise']='authored'
+    spec['days']['wednesday']['scenes'][1]['message_range']=[3, 7]
+    scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-07')
+    by_id={s.id:s for s in scenes}
+    assert resolved['noise']=='authored'
+    chat=by_id['maya-invite']; email=by_id['ben-email-reschedule']
+    assert chat.message_range is None and chat.messages_per_person is None
+    assert email.message_range is None and email.messages_per_person is None
+    assert 'Noise:' not in scene_prompt(chat)
+    assert 'Write between' not in scene_prompt(chat)
+    assert 'short email' not in scene_prompt(email)
+    assert 'Use a short exchange' not in scene_prompt(email)
+    explicit=by_id['devon-invite']
+    assert explicit.message_range==(3, 7)
+    assert 'Write between 3 and 7 messages.' in scene_prompt(explicit)
+    assert scene_spec(chat)['prompt_version']=='scene-authored-v1'
+
+
+def test_omitted_noise_and_pizza_day_keep_low_defaults(tmp_path):
+    from pacbench.authoring import scene_spec
+    spec=json.loads(Path('specs/pizza_day.json').read_text())
+    explicit,_,_=resolve_spec(spec,tmp_path)
+    del spec['noise']
+    default,_,resolved=resolve_spec(spec,tmp_path)
+    assert resolved['noise']=='low'
+    assert [scene_spec(s) for s in default]==[scene_spec(s) for s in explicit]
+    assert 'Noise: low.' in scene_prompt(default[0])
+    assert default[0].message_range==(2, 12)
 
 
 def test_medium_noise_keeps_email_volume_distinct_from_text_chat(tmp_path):
@@ -432,3 +465,35 @@ def test_weekday_rejects_invalid_inline_turn_facts(changes):
     turn=next(t for day in spec['days'].values() for c in day.get('conversations',[]) for t in c['turns'])
     turn.pop('expect');turn.update(changes)
     with pytest.raises(ValueError):normalize_week(spec,'2026-09-07')
+
+
+def test_unavailable_pre_turn_poisoning_skips_followups_but_preserves_independent_sessions(tmp_path):
+    checks=checkpoints(tmp_path)
+    first,last=checks
+    first[0]['session']='unavailable'
+    follow=({'id':'follow-after-undelivered','at':'2026-09-11T09:02:00-04:00','session':'unavailable'},first[1],first[2])
+    last[0]['session']='independent'
+    called=[]
+    def before(row,directory):
+        if row['id']==first[0]['id']:raise RuntimeError('Provider clock already passed this checkpoint')
+    def runner(prompt,**kw):
+        called.append(prompt);return runner_result(prompt,kw)
+    def judge(prompt):
+        v=json.loads(correct_judge(prompt));v.update(interaction='answer',benchmark_error=None);return json.dumps(v)
+    root=tmp_path/'arm'
+    report=run_checks([first,follow,last],'shared',root,judge,'',{},question_dir=tmp_path/'q',
+        run_turn=runner,before_check=before,budget_snapshot=lambda:{'projects':[]})
+    assert called==[last[1].question]
+    assert [r['state'] for r in report['checks']]==['ungraded','skipped','diagnostic']
+    assert report['checks'][1]['cause']==first[0]['id']
+    assert not (root/'turns/follow-after-undelivered/turn.json').exists()
+    assert audit_checks([first,follow,last],'shared',root)==[]
+    # An older runner could continue here without the opening question. The
+    # offline auditor must reject that history even when the later turn works.
+    from pacbench.followups import save
+    invalid=runner_result(follow[1].question,{'at':follow[0]['at'],'session_id':None})
+    save(root/'turns/follow-after-undelivered/turn.json',vars(invalid))
+    report['checks'][1].update(state='ungraded',reason='Legacy continuation without its opening turn')
+    save(root/'turns/follow-after-undelivered/status.json',report['checks'][1])
+    save(root/'evaluation.json',report)
+    assert any('executed after an unavailable turn' in e for e in audit_checks([first,follow,last],'shared',root))

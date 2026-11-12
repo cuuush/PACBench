@@ -40,6 +40,18 @@ def trial(tmp_path):
     return root, arm
 
 
+def test_retired_provider_evidence_is_visible_and_labeled_historical(tmp_path):
+    root,arm=trial(tmp_path)
+    original=(arm/'grade.json').read_bytes()
+    retired=arm.with_name('byterover');arm.rename(retired)
+    result=explorer.native_run(root,tmp_path/'runs')
+    saved=result['arms']['byterover-repeat-1']
+    assert saved['provider_lifecycle']=='retired'
+    assert 'historical only' in saved['label']
+    assert saved['exchanges'][0]['turn']['answer']=='First fact'
+    assert (retired/'grade.json').read_bytes()==original
+
+
 def test_native_judges_followup_subset_and_private_files(tmp_path):
     root, arm = trial(tmp_path)
     home = arm / 'hermes-home'

@@ -178,3 +178,12 @@ def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,ti
     assert record['stdout']==record['stderr']==''
     assert 'SECRET_ERROR_INPUT' not in json.dumps(record)
     assert set(record['worker_diagnostics'])=={'stdout','stderr'}
+def test_operator_stop_precedes_honcho_readiness_poll(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from pacbench.stop import OperatorStop
+    from provider_adapters.document_connector import wait_honcho_sessions
+    marker=tmp_path/'STOP';marker.write_text('stop queued processing')
+    monkeypatch.setenv('PACBENCH_STOP_FILE',str(marker))
+    session=SimpleNamespace(id='source',queue_status=lambda:pytest.fail('polled after operator stop'))
+    with pytest.raises(OperatorStop):
+        wait_honcho_sessions([session],{},minimum_work={'source':1})

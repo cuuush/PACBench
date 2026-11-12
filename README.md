@@ -44,7 +44,8 @@ interrupted service.
 ## How it works
 
 1. **Author a scenario.** A JSON spec describes people, channels, scenes and
-   natural questions. Day, week and month scenarios use the same format.
+   natural questions. Scenes can supply exact messages or ask a writer to generate
+   a conversation. Day, week and month scenarios use the same format.
 2. **Prepare and freeze the sources.** Generate synthetic conversations, review
    their coherence and answerability, and freeze the messages and judging criteria
    before any provider runs. Reuse that same corpus across providers.
@@ -82,10 +83,13 @@ and [judging and recovery policy](docs/followups.md) for the precise rules.
 
 ## Providers and setup
 
-The harness has integrations for **Memcal, Mem0, Hindsight, Supermemory, Honcho,
-OpenViking and ByteRover**. Integration does not mean every provider has completed
+The active local lineup is **Memcal, Mem0 OSS, Hindsight, Supermemory, Honcho,
+OpenViking, ReMe, Cognee and MemOS**. Integration does not mean every provider has completed
 the current scenario. See the [provider map](docs/document-ingestion-provider-map.md)
 for native delivery methods, configuration and known limitations.
+
+ByteRover is retired from the active benchmark at the user's direction. Its
+saved results and audit support remain available as historical evidence.
 
 Running a new trial requires separate provider services, pinned Hermes
 integrations, embeddings and model access. It is a self-hosted development

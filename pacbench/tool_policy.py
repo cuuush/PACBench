@@ -32,11 +32,19 @@ def policy_record(provider, native_tools, *, version=VERSION):
         allowed,blocked = retained_tools(native_tools)
         rules = SOURCE_ARGUMENT_RULES
     elif version == VERSION:
-        allowed,blocked,rules = native_names(native_tools),[],{}
+        if provider == 'reme' and native_tools == []:
+            # Its pinned shipped integration supplies automatic prefetch only.
+            # Provider-only dispatch and schema filtering also enforce [] as
+            # deny-all; an empty allowlist must never enable built-in tools.
+            allowed,blocked,rules = [],[],{}
+        else:
+            allowed,blocked,rules = native_names(native_tools),[],{}
     else:
         raise ValueError('Unknown provider tool policy')
     record = {'version':version,'provider':provider,'allowed_tools':allowed,
         'blocked_source_tools':blocked,'source_argument_rules':rules,'builtin_memory':False,'os_sandbox':False}
+    if provider == 'reme' and not allowed:
+        record['native_mode'] = 'automatic-prefetch-only'
     if version == VERSION:
         record['source_fallback_penalty'] = {'retention_weight':0.0,
             'answer_correctness_unchanged':True,

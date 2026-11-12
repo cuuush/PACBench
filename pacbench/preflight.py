@@ -6,12 +6,50 @@ import json
 import os
 import subprocess
 import tempfile
+import shutil
 from pathlib import Path
 
 from . import harness
 from .context_isolation import outside_project
 from .gateway_client import STATE, require_live_cost_boundary
 from .preparation_audit import audit_prepared
+
+
+def provider_inventory(repo: Path = harness.REPO) -> dict:
+    """Inspect installation paths only; do not launch providers or inference."""
+    paths = {
+        'memcal': ['../memcal/integrations/hermes/memcal/__init__.py'],
+        'mem0': [],
+        'hindsight': ['vendor/venv-hindsight/bin/python'],
+        'openviking': ['vendor/venv-openviking/bin/openviking-server'],
+        'reme': ['vendor/venv-reme/bin/python'],
+        'cognee': ['vendor/venv-cognee/bin/python'],
+        'memos': ['vendor/memos/apps/memos-local-plugin/dist/bridge.cjs'],
+        'supermemory': ['vendor/supermemory-local/supermemory-server-linux-x64',
+                        'vendor/supermemory-local/installation.json'],
+        'honcho': ['vendor/honcho-local/.venv/bin/python'],
+    }
+    requirements = {
+        'memcal': 'Native Messages and TLS IMAP fixtures; installed Memcal and Hermes client dependencies.',
+        'mem0': 'Hermes Mem0 SDK, local Qdrant and Ollama nomic-embed-text.',
+        'hindsight': 'Hindsight 1.1.0 server and client in separate environments.',
+        'openviking': 'OpenViking server and Ollama nomic-embed-text.',
+        'reme': 'Pinned ReMe runtime, Hermes resource plugin and local embeddings.',
+        'cognee': 'Pinned Cognee server, native HTTP Hermes plugin and local Ollama embeddings.',
+        'memos': 'Pinned local MemOS bridge, Hermes memtensor plugin and offline MiniLM assets.',
+        'supermemory': 'Verified local server, SDK and Ollama nomic-embed-text.',
+        'honcho': 'Honcho 3.4.1 checkout, SDK 2.2.0, Docker/pgvector and Ollama; simulated clock additionally needs pinned libfaketime.',
+    }
+    providers = []
+    for name, files in paths.items():
+        missing = [path for path in files if not (repo / path).is_file()]
+        providers.append({'provider': name, 'missing_paths': missing,
+                          'other_requirements': requirements[name],
+                          'openrouter_pilot': 'native route implemented; installation and live readiness must be verified',
+                          'installed_paths_present': not missing})
+    return {'providers': providers, 'docker_executable_present': bool(shutil.which('docker')),
+            'inference_calls': 0,
+            'scope': 'File presence only; versions, service readiness, model compatibility, route enforcement and recall are not verified.'}
 
 
 def _git(root: Path, *args: str) -> str:
@@ -136,8 +174,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--prepared', required=True, type=Path)
     parser.add_argument('--check-gateway', action='store_true', help='Also perform free GET /health against existing state')
+    parser.add_argument('--all-providers', action='store_true', help='Include a read-only inventory of seven provider installation paths')
     args = parser.parse_args()
     result = inspect(args.prepared, check_gateway=args.check_gateway)
+    if args.all_providers:
+        result['provider_inventory'] = provider_inventory()
     print(json.dumps(result, indent=2))
     return int(result['state'] == 'blocked')
 

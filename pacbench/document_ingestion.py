@@ -201,13 +201,6 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
             defaults=json.loads((root/'native-processing-settings.json').read_text())
             timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     native_at=processing_at(at,provider,timezone)
-    if provider == 'honcho':
-        from provider_adapters.honcho_clock import enabled, before_turn
-        if enabled(root):
-            # The connector itself must remain real-time: it controls the
-            # native clock and its operational deadlines. Discard child-only
-            # preload env; the provider services are already isolated.
-            before_turn(root, native_at, env)
     child_env=harness.turn_env(native_at,root/'hermes-home','',env)
     roles=json.loads(env['PACBENCH_USAGE_ROLES'])
     before=snapshot(roles)
@@ -218,6 +211,28 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
             'delivery':('native-sources' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),
             'hermes_ingestion_turns':0,'state':'failed','ready':False}
     try:
+        if provider == 'honcho':
+            from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL
+            if env.get(ENVIRONMENT):
+                if env[ENVIRONMENT] != PROTOCOL:
+                    raise ValueError('Unsupported Honcho membership protocol')
+                # Real-clock controller; only native DB/API/deriver use the
+                # provider calendar. Enroll before advancing to overnight import.
+                enrollment = subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),
+                    '-m','provider_adapters.honcho_enrollment',str(source),str(root)],
+                    cwd=harness.REPO,env=child_env,capture_output=True,text=True,timeout=180)
+                result=json.loads(enrollment.stdout.rstrip('\r\n').rsplit('\n',1)[-1])
+                record['membership_protocol']=PROTOCOL
+                record['enrollment']=result
+                if enrollment.returncode == 75 and result.get('operator_stop') is True:
+                    raise OperatorStop('operator stop requested during native enrollment')
+                if enrollment.returncode or result.get('ready') is not True:
+                    record.update(reason='Native chronological membership could not be established',
+                                  native_error=result.get('native_error',{}))
+                    return record
+            from provider_adapters.honcho_clock import enabled, before_turn
+            if enabled(root):
+                before_turn(root, native_at, env)
         proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',WORKER,
                             str(harness.REPO),provider,str(source),str(root),at,native_at],
                            cwd=harness.ISOLATED_TREE,env=child_env,capture_output=True,text=True,timeout=timeout_s)

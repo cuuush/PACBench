@@ -95,12 +95,44 @@ def verify_persisted_messages(acknowledgments,actual):
     return sorted(expected)
 
 
+
+def plan_config(root, model, base, key, *, db_port):
+    """Build Honcho native environment overrides without launching services."""
+    source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
+    config={'transport':'openai','model':model,'overrides':{'base_url':base,'api_key_env':'PACBENCH_MEMORY_API_KEY'}}
+    return {'PYTHONPATH':str(source), 'HONCHO_CONFIG_TOML_DISABLED':'1',
+        'DB_CONNECTION_URI':f'postgresql+psycopg://postgres:postgres@127.0.0.1:{db_port}/postgres',
+        'AUTH_USE_AUTH':'false','CACHE_ENABLED':'false','SENTRY_ENABLED':'false','TELEMETRY_ENABLED':'false',
+        'LLM_OPENAI_API_KEY':key,'PACBENCH_MEMORY_API_KEY':key,'LLM_OPENAI_BASE_URL':base,
+        'COLLECT_METRICS_LOCAL':'true','LOCAL_METRICS_FILE':str(root/'honcho-model-metrics.jsonl'),
+        'REASONING_TRACES_FILE':str(root/'honcho-reasoning-traces.jsonl'),
+        'DERIVER_MODEL_CONFIG':json.dumps(config),'SUMMARY_MODEL_CONFIG':json.dumps(config),
+        'DREAM_DEDUCTION_MODEL_CONFIG':json.dumps(config),'DREAM_INDUCTION_MODEL_CONFIG':json.dumps(config),
+        'DIALECTIC_LEVELS':json.dumps({level:{'MODEL_CONFIG':config} for level in ('minimal','low','medium','high','max')}),
+        'EMBEDDING_VECTOR_DIMENSIONS':'768',
+        'EMBEDDING_MODEL_CONFIG':json.dumps({'transport':'openai','model':'nomic-embed-text',
+            'dimensions_mode':'never','overrides':{'base_url':'http://127.0.0.1:11435/v1','api_key_env':'PACBENCH_MEMORY_API_KEY'}})}
+
+
+
+def child_environment(inherited, env, overrides, model):
+    """Merge native settings, removing the Spark-only allowance for DeepSeek."""
+    child = {**inherited, **env, **overrides}
+    from pacbench.openrouter_route import MODEL as OPENROUTER_MODEL
+    if model == OPENROUTER_MODEL:
+        child.pop('DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS', None)
+    return child
+
 def start(root,env,model,base,key,*,resume=False,simulated_at=None):
     check_operator_condition(root)
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
     python=source/'.venv/bin/python'
     if not python.exists():raise RuntimeError('Install the Honcho server using its documented uv sync first')
+    # A healthy API/database alone does not establish embedding readiness.
+    # Catch a missing local service before startup dialectic/model smoke calls.
+    from .embedding_health import check as check_embeddings
+    save(root/'native-embedding-preflight.json', check_embeddings())
     ports=[]
     for _ in range(2):
         with socket.socket() as s:s.bind(('127.0.0.1',0));ports.append(s.getsockname()[1])
@@ -151,19 +183,7 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
         subprocess.run([*docker,'stop',name],env=docker_env,capture_output=True,timeout=30)
     atexit.register(stop)
     if proc.returncode:raise RuntimeError('Honcho local database startup failed: '+proc.stderr)
-    config={'transport':'openai','model':model,'overrides':{'base_url':base,'api_key_env':'PACBENCH_MEMORY_API_KEY'}}
-    child={**os.environ,**env,'PYTHONPATH':str(source), 'HONCHO_CONFIG_TOML_DISABLED':'1',
-        'DB_CONNECTION_URI':f'postgresql+psycopg://postgres:postgres@127.0.0.1:{db_port}/postgres',
-        'AUTH_USE_AUTH':'false','CACHE_ENABLED':'false','SENTRY_ENABLED':'false','TELEMETRY_ENABLED':'false',
-        'LLM_OPENAI_API_KEY':key,'PACBENCH_MEMORY_API_KEY':key,'LLM_OPENAI_BASE_URL':base,
-        'COLLECT_METRICS_LOCAL':'true','LOCAL_METRICS_FILE':str(root/'honcho-model-metrics.jsonl'),
-        'REASONING_TRACES_FILE':str(root/'honcho-reasoning-traces.jsonl'),
-        'DERIVER_MODEL_CONFIG':json.dumps(config),'SUMMARY_MODEL_CONFIG':json.dumps(config),
-        'DREAM_DEDUCTION_MODEL_CONFIG':json.dumps(config),'DREAM_INDUCTION_MODEL_CONFIG':json.dumps(config),
-        'DIALECTIC_LEVELS':json.dumps({level:{'MODEL_CONFIG':config} for level in ('minimal','low','medium','high','max')}),
-        'EMBEDDING_VECTOR_DIMENSIONS':'768',
-        'EMBEDDING_MODEL_CONFIG':json.dumps({'transport':'openai','model':'nomic-embed-text',
-            'dimensions_mode':'never','overrides':{'base_url':'http://127.0.0.1:11435/v1','api_key_env':'PACBENCH_MEMORY_API_KEY'}})}
+    child=child_environment(os.environ,env,plan_config(root,model,base,key,db_port=db_port),model)
     for k in ('LLM_ANTHROPIC_API_KEY','LLM_GEMINI_API_KEY','ANTHROPIC_API_KEY','GEMINI_API_KEY'):
         child.pop(k,None)
     # Preserve native batching and global limits. Explicit documented per-model
@@ -171,7 +191,7 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
     for k in ('DERIVER_FLUSH_ENABLED','LLM_DEFAULT_MAX_TOKENS'):
         child.pop(k,None)
     if clock:
-        child = clock.environment(child)
+        child = clock.python_environment(child)
     # Check every resolved generation model/endpoint before migrations or workers.
     guard='''
 from src.config import settings
@@ -190,12 +210,16 @@ processing={name:getattr(settings.DERIVER,name) for name in (
 assert all(value==fields[name].default for name,value in processing.items())
 assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT_MAX_TOKENS'].default
 deriver_limit=settings.DERIVER.MODEL_CONFIG.max_output_tokens
-print(json.dumps({'native_defaults_verified':deriver_limit is None,
+deriver_thinking=settings.DERIVER.MODEL_CONFIG.thinking_effort
+print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_thinking is None,
                  'native_batching_defaults_verified':True,
-                 'deriver_max_output_tokens':deriver_limit,'deriver':processing,
+                 'deriver_max_output_tokens':deriver_limit,'deriver_thinking_effort':deriver_thinking,
+                 'deriver':processing,
                  'llm_default_max_tokens':settings.LLM.DEFAULT_MAX_TOKENS}))
 '''
     child['PYTHONPATH']=str(source)+os.pathsep+str(Path(__file__).resolve().parents[1])
+    from pacbench.openrouter_direct import runtime_environment
+    runtime_environment(child)
     child['PACBENCH_EXPECTED_MODEL']=model
     # Use the exact tokenizer already bundled by the installed LiteLLM runtime.
     # Native tiktoken cache loading/hash verification is unchanged; no network
@@ -241,7 +265,8 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None,
     for label,args in [('api',['-m','uvicorn','src.main:app','--host','127.0.0.1','--port',str(api_port)]),
                        ('deriver',['-m','src.deriver'])]:
         log=(root/f'honcho-{label}.log').open('ab')
-        processes.append(subprocess.Popen([str(python),*args],cwd=root,env=child,
+        native_env={**child,**({'PACBENCH_PYTHON_CLOCK_ROLE':label} if clock else {})}
+        processes.append(subprocess.Popen([str(python),*args],cwd=root,env=native_env,
             start_new_session=bool(clock), stdin=subprocess.DEVNULL,stdout=log,stderr=log))
         native_processes[label] = processes[-1]
         log.close()
@@ -260,7 +285,7 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None,
          'hermes_session_strategy':'per-session',
          'processing':processing,'processing_option':('Unmodified native batching and output defaults'
              if processing['native_defaults_verified'] else
-             'Native batching defaults; explicit documented deriver model output allowance')})
+             'Native batching defaults; explicit documented deriver model configuration')})
     if health is None:raise RuntimeError('Honcho native API startup failed; inspect local logs')
     if clock:
         from .honcho_clock import register

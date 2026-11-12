@@ -95,6 +95,7 @@ UNIFORM_PROVENANCE = 'source-provenance-v2'
 
 
 def category(call, *, provenance_version=LEGACY_PROVENANCE):
+    if provenance_version=='source-provenance-v3':provenance_version=UNIFORM_PROVENANCE
     if provenance_version not in {LEGACY_PROVENANCE, UNIFORM_PROVENANCE}:
         raise ValueError('Unknown source provenance version')
     name=call.get('toolName');result=call.get('result')

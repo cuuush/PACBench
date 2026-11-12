@@ -12,6 +12,20 @@ from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
 
+
+def plan_config(root, model, base, key, *, port):
+    """Build native environment overrides without launching a server."""
+    directory=root/'supermemory-data'
+    return {'PORT':str(port),'SUPERMEMORY_PORT':str(port),
+        'SUPERMEMORY_DATA_DIR':str(directory),'SUPERMEMORY_DISABLE_TELEMETRY':'1',
+        'OPENAI_API_KEY':key,'OPENAI_BASE_URL':base,'OPENAI_MODEL':model,
+        'OPENAI_FAST_MODEL':model,'OPENAI_TEXT_MODEL':model,
+        'SUPERMEMORY_EMBEDDING_PROVIDER':'openai',
+        'SUPERMEMORY_EMBEDDING_MODEL':'nomic-embed-text',
+        'SUPERMEMORY_EMBEDDING_DIMENSIONS':'768',
+        'SUPERMEMORY_EMBEDDING_BASE_URL':'http://127.0.0.1:11435/v1'}
+
+
 def start(root, env, model, base, key, *, resume=False):
     validate_route(base, key)
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
@@ -22,17 +36,16 @@ def start(root, env, model, base, key, *, resume=False):
     directory=root/'supermemory-data'
     if resume and not (directory/'data').is_file():raise ValueError('No persisted native Supermemory store to reopen')
     directory.mkdir(exist_ok=resume)
+    from pacbench.openrouter_direct import active
+    if active():
+        # The shipped executable loads bunfig.toml preloads. Its older bundled
+        # runtime ignores BUN_OPTIONS --preload; verify the actual entrypoint.
+        hook=Path(__file__).resolve().parents[1]/'pacbench/direct_runtime/fetch.cjs'
+        (root/'bunfig.toml').write_text('preload = ['+json.dumps(str(hook))+']\n')
     endpoint=f'http://127.0.0.1:{port}'
     # Only local embeddings and the shared spending gateway. Do not inherit
     # alternative LLM providers from the host or use a hosted Supermemory key.
-    child={**os.environ, **env, 'PORT':str(port),'SUPERMEMORY_PORT':str(port),
-        'SUPERMEMORY_DATA_DIR':str(directory),'SUPERMEMORY_DISABLE_TELEMETRY':'1',
-        'OPENAI_API_KEY':key,'OPENAI_BASE_URL':base,'OPENAI_MODEL':model,
-        'OPENAI_FAST_MODEL':model,'OPENAI_TEXT_MODEL':model,
-        'SUPERMEMORY_EMBEDDING_PROVIDER':'openai',
-        'SUPERMEMORY_EMBEDDING_MODEL':'nomic-embed-text',
-        'SUPERMEMORY_EMBEDDING_DIMENSIONS':'768',
-        'SUPERMEMORY_EMBEDDING_BASE_URL':'http://127.0.0.1:11435/v1'}
+    child={**os.environ, **env, **plan_config(root,model,base,key,port=port)}
     for name in ('ANTHROPIC_API_KEY','GEMINI_API_KEY','GROQ_API_KEY','WORKERS_AI_API_KEY',
                  'CLOUDFLARE_ACCOUNT_ID','GOOGLE_VERTEX_PROJECT_ID','GOOGLE_VERTEX_LOCATION',
                  'SUPERMEMORY_API_KEY','SUPERMEMORY_BASE_URL'):

@@ -51,7 +51,7 @@ class SceneJudgeError(AuthoringError):
 class ScenePlan:
     """Describe a thread and, optionally, the facts it must establish."""
 
-    scene: str
+    scene: str = ""
     test_intent: str = ""
     facts: tuple[str, ...] = ()
     id: str = "scene"
@@ -68,6 +68,7 @@ class ScenePlan:
     email_subject: str = ""
     noise: str = "low"
     messages_per_person: tuple[int, int] | None = None
+    messages: tuple[dict[str, str], ...] | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.id,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}',self.id):
@@ -96,15 +97,15 @@ class ScenePlan:
                     not 2 <= bounds[0] <= bounds[1] <= 30000):
                 raise AuthoringError("message_range must be two integers between 2 and 30000")
             object.__setattr__(self, "message_range", tuple(bounds))
-        if self.noise not in ('low', 'medium', 'high'):
-            raise AuthoringError('noise must be low, medium or high')
+        if self.noise not in ('low', 'medium', 'high', 'authored'):
+            raise AuthoringError('noise must be low, medium, high or authored')
         if self.messages_per_person is not None:
             bounds = self.messages_per_person
             if (not self.participants or not isinstance(bounds, (tuple,list)) or len(bounds)!=2 or
                     any(type(n) is not int for n in bounds) or not 1<=bounds[0]<=bounds[1]<=800):
                 raise AuthoringError('messages_per_person needs a roster and positive bounds up to 800')
             object.__setattr__(self,'messages_per_person',tuple(bounds))
-        if not self.scene.strip():
+        if not isinstance(self.scene, str) or (not self.scene.strip() and self.messages is None):
             raise AuthoringError("scene needs a description")
         if (not isinstance(self.facts, (list, tuple)) or
                 any(not isinstance(f, str) or not f.strip() for f in self.facts)):
@@ -123,6 +124,43 @@ class ScenePlan:
             if self.timezone:
                 end = end.astimezone(ZoneInfo(self.timezone))
             object.__setattr__(self, "window_end", end.isoformat(timespec="seconds"))
+        if self.messages is not None:
+            if not self.participants:
+                raise AuthoringError("supplied messages need explicit channel participants")
+            if self.message_range is not None or self.messages_per_person is not None:
+                raise AuthoringError("supplied messages cannot use generated message quotas")
+            if not isinstance(self.messages, (list, tuple)) or not self.messages:
+                raise AuthoringError("messages must be a nonempty list of sender/text/at objects")
+            previous = None
+            start_clock = datetime.fromisoformat(self.window_start)
+            end_clock = datetime.fromisoformat(self.window_end)
+            if start_clock.tzinfo is None or end_clock.tzinfo is None or end_clock <= start_clock:
+                raise AuthoringError("supplied messages need an offset-aware, increasing scene window")
+            for message in self.messages:
+                if (not isinstance(message, dict) or set(message) != {"sender", "text", "at"} or
+                        any(not isinstance(message[k], str) or not message[k].strip()
+                            for k in ("sender", "text", "at"))):
+                    raise AuthoringError("messages need exactly nonempty sender, text and at strings")
+                try:
+                    clock = datetime.fromisoformat(message["at"])
+                except ValueError as exc:
+                    raise AuthoringError("supplied message at must be an ISO timestamp with an offset") from exc
+                if clock.tzinfo is None:
+                    raise AuthoringError("supplied message at must include a UTC offset")
+                if self.timezone:
+                    local = clock.astimezone(ZoneInfo(self.timezone))
+                    if (local.replace(tzinfo=None) != clock.replace(tzinfo=None) or
+                            local.utcoffset() != clock.utcoffset()):
+                        raise AuthoringError("supplied message offset conflicts with the scene time zone")
+                if not start_clock <= clock <= end_clock:
+                    raise AuthoringError("supplied message timestamp is outside the scene window")
+                if previous is not None and clock <= previous:
+                    raise AuthoringError("supplied messages must have strictly increasing timestamps")
+                previous = clock
+            object.__setattr__(self, "messages", tuple(dict(m) for m in self.messages))
+            # Use the same structural checks as generated scenes before any model call.
+            build_scene_observations("supplied-validation", self,
+                                     [(m["sender"], m["text"]) for m in self.messages])
 
 
 #: Prompt version for scene-level authoring.
@@ -150,12 +188,12 @@ def scene_prompt(plan: ScenePlan,
         "message just arrived.\n\n"
         if prior_lines else "")
     if plan.email_subject:
-        return (f"Write a natural short email exchange. Subject: {plan.email_subject}. "
+        return (f"Write a natural {'' if plan.noise == 'authored' else 'short '}email exchange. Subject: {plan.email_subject}. "
                 f"Participants: {', '.join(plan.participants)}; Me is the owner's speaker label, not a spoken name. "
                 f"Date: {plan.window_start[:10]}, local time {plan.window_start[11:16]}–{plan.window_end[11:16]}.\n"
                 f"{continuity}{cast}Scenario: {plan.scene}{required}\n"
-                + (f"Use {plan.message_range[0]}–{plan.message_range[1]} short emails. "
-                   if plan.message_range else "Use a short exchange. ") +
+                + (f"Use {plan.message_range[0]}–{plan.message_range[1]} {'' if plan.noise == 'authored' else 'short '}emails. "
+                   if plan.message_range else ("" if plan.noise == 'authored' else "Use a short exchange. ")) +
                 "The subject is header metadata; do not put a Subject: prefix inside an email body. "
                 "Copy quoted earlier messages faithfully; never invent different addresses, dates or wording for them. "
                 'Return only JSON with dialogue (an array of {"sender": "Name", "body": "email text"}) '
@@ -180,7 +218,8 @@ def scene_prompt(plan: ScenePlan,
         "greeting, joke or tired-after-work aside into every exchange. "
         + {'low': 'Noise: low. Use the shortest natural exchange with a little incidental chatter. ',
            'medium': 'Noise: medium. Mix the topic into ordinary daily chatter, unrelated facts and side plans. ',
-           'high': 'Noise: high. Make a very chatty day, with many unrelated topics, facts and other plans. ' }[plan.noise] +
+           'high': 'Noise: high. Make a very chatty day, with many unrelated topics, facts and other plans. ',
+           'authored': '' }[plan.noise] +
         "Write only text messages: no bracketed stage directions, photo "
         "placeholders, or imaginary attachment markers.\n\n"
         "Make commitments clear, but never turn confirmations into a recital "
@@ -229,7 +268,9 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         **({'cast':plan.cast} if plan.cast else {}),
         **({'email_subject':plan.email_subject} if plan.email_subject else {}),
         "noise": plan.noise, "messages_per_person": list(plan.messages_per_person) if plan.messages_per_person is not None else None,
-        "prompt_version": SCENE_PROMPT_VERSION,
+        **({"messages": [dict(m) for m in plan.messages]} if plan.messages is not None else {}),
+        "prompt_version": ("scene-supplied-v1" if plan.messages is not None else
+                           "scene-authored-v1" if plan.noise == "authored" else SCENE_PROMPT_VERSION),
         "judge_prompt_version": JUDGE_PROMPT_VERSION,
     }
 
@@ -340,7 +381,12 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
             raise AuthoringError(
                 f"scene {plan.id!r}: verbatim dupe {text[:60]!r}")
         seen.add(key)
-    stamps = spread_timestamps(plan, len(lines))
+    if plan.messages is not None:
+        if [tuple(line) for line in lines] != [(m["sender"], m["text"]) for m in plan.messages]:
+            raise AuthoringError("supplied scene lines differ from exact authored messages")
+        stamps = [m["at"] for m in plan.messages]
+    else:
+        stamps = spread_timestamps(plan, len(lines))
     # Author scene names can reveal cancellations or outcomes. Export only
     # opaque source identities; readable authoring labels stay in audit files.
     thread='thread-'+hashlib.sha256(f'{plan.channel}:{plan.thread}'.encode()).hexdigest()[:24]
@@ -365,6 +411,9 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
     """Verify that the transcript establishes the authored scene."""
     transcript = "\n".join(f"{i + 1}. {s}: {t}"
                            for i, (s, t) in enumerate(lines))
+    if plan.messages is not None:
+        transcript = "\n".join(f"{i + 1}. [{m['at']}] {s}: {t}"
+                               for i, ((s, t), m) in enumerate(zip(lines, plan.messages)))
     cast = ("Private character context, not evidence that a fact appears in the dialogue:\n" + "\n".join(
         f"{name}: {description}" for name, description in plan.cast.items()) + "\n\n"
         if plan.cast else "")
@@ -468,6 +517,7 @@ class SceneRecord:
     judgment_paths: list[str] = field(default_factory=list)
     generation_paths: list[str] = field(default_factory=list)
     writer_notes: list[str] = field(default_factory=list)
+    source_mode: str = "generated"
 
 
 @dataclass
@@ -564,12 +614,27 @@ def _record(plan: ScenePlan, lines: list[tuple[str, str]], prompt: str,
         model_call=model_call, model_usage=model_usage)
 
 
-def realize_scene(plan: ScenePlan, generate: Generate,
+def realize_scene(plan: ScenePlan, generate: Generate | None,
                   judge_generate: Generate, *, model: str = "",
                   record_dir: str | Path | None = None,
                   prior_lines: tuple[tuple[str, ...], ...] = (),
                   verification_lines: tuple[tuple[str, ...], ...] | None = None) -> SceneRealization:
     """Render and verify a scene, with at most one revision after rejection."""
+    if plan.messages is not None:
+        lines = [(m["sender"], m["text"]) for m in plan.messages]
+        build_scene_observations("scene-build", plan, lines)
+        # Exact source is author-owned: check once, never redraw a rejected message.
+        verdict, pc, rc, jpath = judge_scene(
+            plan, lines, judge_generate, model=model, record_dir=record_dir,
+            prior_lines=verification_lines if verification_lines is not None else prior_lines)
+        record = SceneRecord(scene_id=plan.id, status="ok", source_mode="supplied",
+                             judge_calls=1, prompt_chars=pc, response_chars=rc,
+                             judgment_paths=[jpath] if jpath else [],
+                             scene_sha=hashlib.sha256(
+                                 "\n".join(f"{s}: {t}" for s, t in lines).encode()).hexdigest()[:16])
+        return SceneRealization(plan.id, tuple(lines), record, verdict)
+    if generate is None:
+        raise AuthoringError("generated scenes require a writer")
     if plan.message_range and plan.message_range[1] > 150:
         # Bounded authoring calls, with the same conversation carried forward.
         # Never duplicate, truncate or pad messages to reach a noise target.

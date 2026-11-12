@@ -101,3 +101,15 @@ class ProviderClock:
         env.update(LD_PRELOAD=str(library), FAKETIME_TIMESTAMP_FILE=str(timestamp_file or self.path),
                    FAKETIME_NO_CACHE='1', FAKETIME_DONT_FAKE_MONOTONIC='1')
         return env
+
+    def python_environment(self, base: dict[str, str]) -> dict[str, str]:
+        from .python_provider_clock import VERSION
+        if base.get('LD_PRELOAD'):
+            raise ValueError('Python provider clock refuses inherited OS clock interception')
+        env = {k:v for k,v in base.items() if k != 'FAKETIME' and not k.startswith('FAKETIME_')
+               and k != 'DONT_FAKE_MONOTONIC'}
+        repo = Path(__file__).resolve().parents[1]
+        paths = [str(repo/'pacbench/direct_runtime'),str(repo),*filter(None,env.get('PYTHONPATH','').split(os.pathsep))]
+        env.update(PACBENCH_PYTHON_CLOCK_FILE=str(self.path),
+            PACBENCH_PYTHON_CLOCK_PROTOCOL=VERSION,PYTHONPATH=os.pathsep.join(dict.fromkeys(paths)))
+        return env

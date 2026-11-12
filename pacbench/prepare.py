@@ -65,8 +65,8 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     if not isinstance(rows, list) or not rows:
         raise ValueError("experiment needs at least one scene")
     noise = spec.get('noise','low')
-    if noise not in ('low','medium','high'):
-        raise ValueError('noise must be low, medium or high')
+    if noise not in ('low','medium','high','authored'):
+        raise ValueError('noise must be low, medium, high or authored')
     if "facts" in spec and (not isinstance(spec["facts"], list) or
                             not spec["facts"] or
                             any(not isinstance(f, str) or not f.strip()
@@ -84,12 +84,16 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     scenes = []
     counts = {}
     for row in rows:
+        if row.get('messages') is not None:
+            continue  # Exact source never shares a generated chat-volume target.
         key=(row.get('channel','text'),row.get('thread',row.get('id','')),str(row.get('at',row.get('window_start','')))[:10])
         counts[key]=counts.get(key,0)+1
     for index, authored in enumerate(rows, 1):
         row = dict(authored)
+        if 'messages' in row and row['messages'] is None:
+            raise ValueError('messages must be a nonempty list, not null')
         row['noise']=noise
-        if 'message_range' not in row:
+        if 'message_range' not in row and noise != 'authored' and 'messages' not in row:
             if row.get('channel')=='email':row['message_range']=[2,6]
             elif noise=='low':row['message_range']=[2,12]
             else:
@@ -286,6 +290,8 @@ def realization_binding(plan, lines, verification_lines):
 def reuse_realization(plan, previous, judge, *, model, record_dir, verification_lines):
     """Recheck cached text when its actual evidence context or checker changes."""
     lines=tuple(tuple(line) for line in previous['lines'])
+    if plan.messages is not None:
+        build_scene_observations('cached-supplied-validation', plan, list(lines))
     record=SceneRecord(**previous['record'])
     if previous.get('verification_binding')==realization_binding(plan,lines,verification_lines):
         return SceneRealization(plan.id,lines,record,previous['verdict'])
@@ -307,6 +313,8 @@ def load_scene_cache(root):
 
 def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     scenes, target, resolved = resolve_spec(spec, root,week_start=progress.get("week_start"))
+    if progress.get('imported_scenes') is not None and set(progress['imported_scenes']['scenes']) != {s.id for s in scenes}:
+        raise ValueError('Imported scene IDs differ from the compiled source spec')
     cache=load_scene_cache(root) if progress.get('resume') else {}
     reusable={sid:entry['realization'] for sid,entry in cache.items()
         if entry['realization']['record']['status']=='ok' and entry['realization']['verdict'].get('supported') is True and
@@ -322,21 +330,33 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     life_id = resolved["id"]
     progress["stage"] = "scene generation and verification"
     save(root / "experiment-status.json", progress)
-    driver = load_driver()
-    key = os.environ["META_API_KEY"]
     call_dir = root / "model-calls"
-    writer = ResponsesWriter(key=key, model=driver.model_id, record_dir=call_dir,
-                             url=client_settings("pacbench-authoring")[0] + "/responses",
-                             cache_dir=root / "model-cache")
-    judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
-                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                        cache_dir=root / "model-cache")
-    # Keep independent verification and answer grading unchanged. Native low
-    # reasoning produced valid criterion drafts where the default setting
-    # repeatedly emitted malformed JSON on the larger multi-outing question.
-    draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
-                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                        cache_dir=root / "model-cache", reasoning_effort="low")
+    needs_writer = any(scene.messages is None for scene in scenes)
+    if progress.get('inference_route', 'muse-gateway') == 'codex-subscription':
+        from types import SimpleNamespace
+        from .codex_model_calls import CodexModelClient
+        driver = SimpleNamespace(model_id='gpt-6-luna')
+        options = {'model': driver.model_id, 'record_dir': call_dir,
+                   'cache_dir': root / 'model-cache'}
+        writer = CodexModelClient(**options) if needs_writer else None
+        judge = CodexModelClient(**options)
+        draft = CodexModelClient(**options, reasoning_effort='low')
+    else:
+        driver = load_driver()
+        key = os.environ["META_API_KEY"]
+        routed = progress.get('inference_route') == 'openrouter'
+        writer_type = ModelClient if routed else ResponsesWriter
+        writer = (writer_type(key=key, model=driver.model_id, record_dir=call_dir,
+                                 url=client_settings("pacbench-authoring")[0] + ('/chat/completions' if routed else '/responses'),
+                                 cache_dir=root / "model-cache",
+                                 **({'reasoning_effort':'low'} if routed else {})) if needs_writer else None)
+        judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                            cache_dir=root / "model-cache",reasoning_effort=progress.get('judge_reasoning_effort'))
+        # Spark's native low reasoning avoids malformed criterion drafts.
+        draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                            cache_dir=root / "model-cache", reasoning_effort="low")
     observations = []
     scene_records = []
     thread_history: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
@@ -350,12 +370,31 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             continue
         try:
             realized=None
+            imported = progress.get('imported_scenes')
+            if imported is not None:
+                lines = imported['scenes'][plan.id]
+                if (not isinstance(lines, list) or not lines or
+                        any(not isinstance(line, (list, tuple)) or len(line) != 2 or
+                            not all(isinstance(x, str) and x.strip() for x in line)
+                            for line in lines)):
+                    raise ValueError('Invalid imported dialogue')
+                if plan.participants and any(line[0] not in plan.participants for line in lines):
+                    raise ValueError('Imported sender is absent from the current roster')
+                build_scene_observations(life_id, plan, lines)
+                verdict, pc, rc, path = judge_scene(plan, lines, judge, model=driver.model_id,
+                    record_dir=root/'scene-verifications', prior_lines=verification_lines)
+                record = SceneRecord(scene_id=plan.id, status='ok', judge_calls=1,
+                    prompt_chars=pc, response_chars=rc, judgment_paths=[path] if path else [],
+                    writer_notes=['Imported original dialogue; current IDs and timing are newly compiled. Source bundle: '+imported['source_bundle_hash']])
+                realized = SceneRealization(plan.id, tuple(tuple(x) for x in lines), record, verdict)
             if plan.id in reusable:
                 previous=reusable[plan.id]
                 try:
                     realized=reuse_realization(plan,previous,judge,model=driver.model_id,
                         record_dir=root/'scene-verifications',verification_lines=verification_lines)
                 except SceneJudgeError:
+                    if plan.messages is not None:
+                        raise  # Preserve a rejected supplied-source review; never reroll it.
                     pass  # Preserve the rejected review; redraw only this inconsistent scene.
             if realized is None:
                 realized = realize_scene(plan, writer, judge, model=driver.model_id,
@@ -483,16 +522,50 @@ def import_week(source, root):
     if report['state']!='pass':raise ValueError('Frozen week failed preparation audit: '+str(report['errors']))
     return root
 
-def prepare(spec: dict, root: Path, *, resume=False, week_start=None) -> dict:
+def prepare(spec: dict, root: Path, *, resume=False, week_start=None,
+            inference_route='muse-gateway', imported_scenes=None, judge_reasoning_effort=None) -> dict:
     """Run once and leave a diagnosis even when authoring fails early."""
+    if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
+        raise ValueError('Unknown preparation inference route')
+    if judge_reasoning_effort is not None and (inference_route!='openrouter' or
+            judge_reasoning_effort not in {'none','low','medium','high'}):
+        raise ValueError('Explicit judge reasoning requires the direct OpenRouter condition')
+    if inference_route == 'openrouter' and os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
+        raise ValueError('OpenRouter preparation requires its authorized task transport')
     if resume and not (root/'resolved-spec.json').exists():raise ValueError('Resume requires an existing authoring directory')
+    if resume:
+        old_path = root/'experiment-status.json'
+        old = json.loads(old_path.read_text()) if old_path.exists() else {}
+        if old.get('inference_route', 'muse-gateway') != inference_route:
+            raise ValueError('Cannot resume preparation under a different inference route')
+        if old.get('judge_reasoning_effort') != judge_reasoning_effort:
+            raise ValueError('Cannot resume preparation under a different judge reasoning condition')
     root.mkdir(parents=True, exist_ok=resume)
     save(root / "spec.json", spec)
     progress = {"state": "running", "stage": "spec validation",
-                "started_at": datetime.now(timezone.utc).isoformat(), 'resume':resume,'week_start':week_start}
+                "started_at": datetime.now(timezone.utc).isoformat(), 'resume':resume,'week_start':week_start,
+                'inference_route':inference_route}
+    if judge_reasoning_effort is not None:progress['judge_reasoning_effort']=judge_reasoning_effort
+    if imported_scenes is not None:
+        save(root/'imported-scenes.json', imported_scenes)
+        progress['imported_scenes'] = imported_scenes
     save(root / "experiment-status.json", progress)
     try:
         summary = _prepare_body(spec, root, progress)
+        if inference_route=='openrouter' and imported_scenes is None:
+            summary['author_generation_conditions']={'reasoning_effort':'low',
+                'scope':'Synthetic source writer only; independent native memory processing unchanged'}
+            save(root/'summary.json',summary)
+        if judge_reasoning_effort is not None:
+            summary['judge_generation_conditions']={'reasoning_effort':judge_reasoning_effort,
+                'scope':'Independent preparation reviews only; source writer configuration unchanged'}
+            save(root/'summary.json',summary)
+        if inference_route == 'codex-subscription':
+            summary['inference_route'] = inference_route
+            summary['author_model'] = 'gpt-6-luna'
+            summary['verification_model'] = 'gpt-6-luna'
+            summary['usage_cost_status'] = 'subscription-unpriced'
+            save(root / 'summary.json', summary)
         audit = audit_prepared(root) if summary['state']=='prepared' else {'state':'fail','errors':summary.get('errors',[])}
         save(root / "run-audit.json", audit)
         if audit["state"] != "pass":
@@ -518,8 +591,11 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--week-start",help="Override the spec's first Monday (YYYY-MM-DD); legacy unpinned specs default to this week")
     parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
+    parser.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription'),
+                        default='muse-gateway', help='Explicit author and verifier model route')
     args = parser.parse_args()
-    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start)
+    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start,
+                     inference_route=args.inference_route)
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

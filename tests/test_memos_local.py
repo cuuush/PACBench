@@ -1,0 +1,27 @@
+from pathlib import Path
+
+from pacbench.native_pilot import native_provider_name, provider_names
+from pacbench.followups import tool_category
+from provider_adapters.memos_local import plan_config
+
+
+def test_memos_uses_native_provider_name_without_conflating_results():
+    assert native_provider_name('memos')=='memtensor'
+    assert native_provider_name('mem0')=='mem0'
+    assert 'memos' in provider_names()
+
+
+def test_memos_local_memory_keeps_selected_model_and_disables_other_host_inference():
+    result=plan_config(Path('/offline/memos'),'selected-model','https://openrouter.ai/api/v1','inert')
+    assert result['llm']['fallbackToHost'] is False
+    assert result['llm']['model']=='selected-model'
+    assert result['embedding']['local']['offline'] is True
+    assert result['embedding']['provider']=='local'
+    assert result['hub']['enabled'] is result['telemetry']['enabled'] is False
+
+
+def test_memos_original_trace_search_is_source_access():
+    assert tool_category('memos_search',{'query':'plan'})=='source_evidence'
+    assert tool_category('memos_get',{'kind':'trace'})=='source_evidence'
+    assert tool_category('memos_get',{'kind':'world_model'})=='memory_detail'
+    assert tool_category('memos_timeline',{})=='source_messages'

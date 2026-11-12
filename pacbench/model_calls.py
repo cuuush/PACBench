@@ -18,6 +18,32 @@ MODEL_TIMEOUT_S = 180
 ENCRYPTED_REDACTION = "<encrypted reasoning retained in private run artifact>"
 
 
+def read_direct_response(response, started, timing=None):
+    """Bound the whole direct response, including whitespace keepalives.
+
+    HTTP socket timeouts measure inactivity. A slow non-streaming model can
+    otherwise keep a judge alive indefinitely by sending whitespace. read1
+    returns available bytes so each read can use the remaining real deadline.
+    The direct accounting wrapper captures these reads and retains the bound
+    when an incomplete response is closed. No uncertain request is repeated.
+    """
+    timing=timing if timing is not None else {}
+    timing['headers_after_s']=round(time.monotonic()-started,6)
+    chunks=[]
+    while True:
+        remaining=MODEL_TIMEOUT_S-(time.monotonic()-started)
+        if remaining<=0:
+            raise RuntimeError('Direct model request wall deadline exceeded; outcome uncertain, do not retry')
+        sock=getattr(getattr(getattr(response,'fp',None),'raw',None),'_sock',None)
+        if sock is not None:sock.settimeout(remaining)
+        chunk=response.read1(65536)
+        if not chunk:return b''.join(chunks)
+        timing.setdefault('first_body_after_s',round(time.monotonic()-started,6))
+        timing['last_body_after_s']=round(time.monotonic()-started,6)
+        timing['body_bytes']=timing.get('body_bytes',0)+len(chunk)
+        chunks.append(chunk)
+
+
 def public_record(value: Any) -> Any:
     """Keep readable prompts, answers and usage; exclude encrypted replay blobs."""
     if isinstance(value, dict):
@@ -103,6 +129,8 @@ class ModelClient:
                     return ModelOutput(saved["text"], saved["model"],
                                        saved.get("usage") or {}, str(path), key)
         for attempt in (1, 2):
+            request_started=time.monotonic()
+            response_timing={}
             raw: dict[str, Any] | None = None
             error_response: str | None = None
             error = ""
@@ -117,7 +145,11 @@ class ModelClient:
                     headers={"Authorization": f"Bearer {self.key}",
                              "Content-Type": "application/json"})
                 with urllib.request.urlopen(req, timeout=MODEL_TIMEOUT_S) as response:
-                    raw = json.loads(response.read())
+                    raw = json.loads(read_direct_response(response,request_started,response_timing)
+                        if os.environ.get('PACBENCH_DIRECT')=='1' else response.read())
+                if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+                    if isinstance(raw.get('usage'), dict) and 'cost' in raw['usage']:
+                        raw['usage']['cost_usd'] = raw['usage']['cost']
                 content = (_response_text(raw) if protocol == "responses" else
                            raw["choices"][0]["message"]["content"])
                 if not isinstance(content, str) or not content.strip():
@@ -142,6 +174,8 @@ class ModelClient:
                 error = f"{type(exc).__name__}: {exc}"
                 transient = isinstance(exc, (urllib.error.URLError, ConnectionError,
                                              TimeoutError, OSError))
+                if os.environ.get('PACBENCH_DIRECT')=='1':
+                    transient=False  # A disconnect can conceal a charged request.
                 content = ""
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
                       "status": "failed" if error else "ok", "model": self.model,
@@ -152,6 +186,11 @@ class ModelClient:
                       "cost_status": ("reported" if (raw or {}).get("usage", {}).get("cost_usd") is not None
                                       else "not reported by API"),
                       "error": error, "error_response": error_response}
+            if os.environ.get('PACBENCH_DIRECT')=='1':
+                record['direct_timing']={**response_timing,
+                    'wall_duration_s':round(time.monotonic()-request_started,6),
+                    'wall_deadline_s':MODEL_TIMEOUT_S,
+                    'scope':'Client-observed HTTP timing; does not identify upstream queue or model compute'}
             _write_record(path, record)
             if spending_refused:
                 from .gateway_client import SpendingBlocked

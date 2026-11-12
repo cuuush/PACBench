@@ -24,8 +24,8 @@ from email.utils import parsedate_to_datetime
 from pacbench.followups import save
 from pacbench.provider_clock import LIBRARY, LIBRARY_SHA256, ProviderClock
 
-VERSION = 'honcho-wall-clock-v3'
-SUPPORTED = ('honcho-wall-clock-v1','honcho-wall-clock-v2', VERSION)
+VERSION = 'honcho-wall-clock-v4'
+SUPPORTED = ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION)
 START_TOLERANCE_S = 5
 CONFIG = 'provider-clock.json'
 
@@ -34,12 +34,17 @@ def create(root: Path, at: str) -> ProviderClock:
     if hashlib.sha256(LIBRARY.read_bytes()).hexdigest() != LIBRARY_SHA256:
         raise RuntimeError('Install the pinned provider clock runtime before native setup')
     clock = ProviderClock(root / 'provider-clock', datetime.fromisoformat(at))
+    from pacbench.python_provider_clock import package_metadata, VERSION as PYTHON_CLOCK, PACKAGE_C_SHA256
+    metadata = package_metadata()
     save(root / CONFIG, {'version': VERSION, 'initial_at': at,
         'library_sha256': LIBRARY_SHA256, 'clock_directory': str(clock.directory),
         'wall_speed': 1, 'monotonic': 'real', 'gateway_clock': 'real',
         'suspend_during_benchmark_overhead': True,
+        'overhead_fallback': 'native-clock-runs; no rewind; scripted checkpoint gates remain enforced',
         'source_timestamps': 'unchanged', 'native_batching': 'unchanged',
-        'scope': 'isolated PostgreSQL, API, deriver and Hermes processes only'})
+        'python_clock':{**metadata,'protocol':PYTHON_CLOCK,'extensions_by_abi':PACKAGE_C_SHA256,
+                        'os_clock':'real','tls_clock':'real','shared_offset':'per-read; no polling'},
+        'scope': 'PostgreSQL uses libfaketime; Python API/deriver/Hermes use shared-offset time-machine; TLS/OS remain real'})
     return clock
 
 
@@ -84,7 +89,55 @@ def register(root, container, endpoint, processes):
     save(root / 'provider-clock-startup.json', {'version': VERSION,
         'real_at': datetime.now(timezone.utc).isoformat(), 'provider_at': now.isoformat(),
         'api_date': observed.isoformat(), 'db_at': state['db_now'],
-        'library_sha256': LIBRARY_SHA256, 'monotonic': 'real'})
+        'library_sha256': LIBRARY_SHA256, 'monotonic': 'real',
+        'python_adoptions':{name:read_adoption(root,proc.pid,role=name) for name,proc in processes.items()}})
+
+
+def verify_adoption(root, value, *, role):
+    _, config = load(root)
+    expected = config['python_clock']
+    if (value.get('protocol') != expected['protocol'] or value.get('version') != expected['version'] or
+            value.get('python_sha256') != expected['python_sha256'] or
+            value.get('extension_sha256') != expected['extensions_by_abi'].get(value.get('abi')) or
+            value.get('bootstrap_sha256') != expected['bootstrap_sha256'] or
+            value.get('clock_file') != str(root.resolve()/'provider-clock/offset') or
+            value.get('os_clock') != 'real' or value.get('tls_clock') != 'real' or value.get('role') != role):
+        raise RuntimeError('Python provider clock adoption differs from declared runtime')
+    return value
+
+
+def read_adoption(root, pid, *, role):
+    path=root/'provider-clock/python-adoptions'/(str(pid)+'.json')
+    value=json.loads(path.read_text())
+    if value.get('pid') != pid:
+        raise RuntimeError('Python provider clock PID differs')
+    return verify_adoption(root,value,role=role)
+
+
+def adoption_files(root):
+    return {path.name for path in (root/'provider-clock/python-adoptions').glob('*.json')}
+
+
+def capture_turn_adoption(home, workspace, before):
+    root=home.parent
+    rows=[]
+    try:
+        for path in (root/'provider-clock/python-adoptions').glob('*.json'):
+            if path.name in before:continue
+            value=json.loads(path.read_text())
+            if value.get('role')=='hermes' and value.get('home')==str(home.resolve()) and value.get('cwd')==str(workspace.resolve()):
+                rows.append(verify_adoption(root,value,role='hermes'))
+        if len(rows) != 1:
+            raise RuntimeError('Expected one fresh Hermes Python clock adoption')
+        return {'state':'pass','adoption':rows[0]}
+    except (OSError,ValueError,KeyError,TypeError,RuntimeError) as exc:
+        return {'state':'fail','reason':type(exc).__name__}
+
+
+def python_environment(clock, env):
+    child=clock.python_environment(env)
+    child['PACBENCH_PYTHON_CLOCK_ROLE']='hermes'
+    return child
 
 
 def _literal(value):
@@ -189,6 +242,8 @@ def benchmark_overhead(root, roles):
     clock, config = load(root)
     from pacbench.usage import snapshot as cost_snapshot
     stack = ExitStack(); database_paused = False; frozen = None
+    unexcluded_reason = None; running_started = None; running_provider = None
+    running_offset = None; running_db = None; pause_failure = None
     real_started = datetime.now(timezone.utc)
     marker = clock.directory / ('overhead-' + uuid.uuid4().hex + '.json')
     save(marker, {'owner':os.getpid(),'started':_process_started(os.getpid())})
@@ -205,12 +260,32 @@ def benchmark_overhead(root, roles):
             for c in usage.get('calls',[]))
         if busy_model or any(state[k] for k in ('claims','eligible','embeddings','busy_connections')):
             stack.close()  # Native work proceeds concurrently; never suspend it for a judge.
+            unexcluded_reason = 'native-work-active'
         else:
             paused = _docker(config,'pause',config['container'])
             if paused.returncode:
-                raise RuntimeError('Cannot suspend the native database for benchmark overhead')
-            database_paused = True
-            frozen = clock.now()  # Read after the cgroup is actually stopped.
+                inspected = _docker(config,'inspect','--format','{{json .State}}',config['container'])
+                try: inspection=json.loads(inspected.stdout)
+                except (ValueError,TypeError):inspection={}
+                if ('freezer not supported' not in (paused.stderr or '').lower() or inspected.returncode or
+                        inspection.get('Paused') is not False or inspection.get('Running') is not True):
+                    raise RuntimeError('Cannot suspend the native database for benchmark overhead')
+                # A managed runtime may lack cgroup.freeze. Do not rebase an
+                # unpaused database: let all native processes and clocks run.
+                stack.close()
+                unexcluded_reason = 'container-freezer-unavailable'
+                error=paused.stderr.strip()
+                pause_failure={'returncode':paused.returncode,'error':error,
+                    'error_sha256':hashlib.sha256(error.encode()).hexdigest(),
+                    'inspection':{k:inspection[k] for k in ('Running','Paused')}}
+            else:
+                database_paused = True
+                frozen = clock.now()  # Read after the cgroup is actually stopped.
+        if unexcluded_reason:
+            running_db=snapshot(root)['db_now']
+            running_started = datetime.now(timezone.utc)
+            running_provider = clock.now()
+            running_offset=hashlib.sha256(clock.path.read_bytes()).hexdigest()
         yield
     finally:
         try:
@@ -236,6 +311,21 @@ def benchmark_overhead(root, roles):
                         'real_at':datetime.now(timezone.utc).isoformat(),
                         'provider_at':frozen.isoformat(),'db_after':observed['db_now'],
                         'pre_step':state,'database_paused':True})+'\n')
+            elif running_started is not None:
+                record={'version':'native-running-overhead-v1','clock_protocol':VERSION,
+                    'reason':unexcluded_reason,'database_paused':False,'native_clock_running':True,
+                    'offset_adjustment':False,'real_started_at':running_started.isoformat(),
+                    'provider_started_at':running_provider.isoformat(),'db_started_at':running_db,
+                    'offset_before_sha256':running_offset,'pause_failure':pause_failure}
+                try:
+                    observed=snapshot(root)
+                    record.update(state='observed',real_finished_at=datetime.now(timezone.utc).isoformat(),
+                        provider_finished_at=clock.now().isoformat(),db_finished_at=observed['db_now'],
+                        offset_after_sha256=hashlib.sha256(clock.path.read_bytes()).hexdigest())
+                except Exception as exc:
+                    record.update(state='unverified',error_class=type(exc).__name__)
+                with (root/'provider-clock-running-overhead.jsonl').open('a') as stream:
+                    stream.write(json.dumps(record)+'\n')
         finally:
             try:
                 stack.close()
@@ -336,14 +426,14 @@ def before_turn(root, at, env):
         if (now-target).total_seconds() > START_TOLERANCE_S:
             raise RuntimeError('Provider clock is past the scripted checkpoint; refusing future-time exposure')
         if target <= now:
-            return clock.environment(env)
+            return python_environment(clock,env)
         state=snapshot(root)
         next_event=target
         if state['pending'] and state.get('next_eligible_at'):
             due=datetime.fromisoformat(state['next_eligible_at'])+timedelta(milliseconds=10)
             if now < due < target:next_event=due
         if step_if_idle(root,next_event,horizon=target):
-            if next_event == target:return clock.environment(env)
+            if next_event == target:return python_environment(clock,env)
             continue  # Let actual due work finish before the later question.
         if time.monotonic() >= deadline:
             raise RuntimeError('Native Honcho did not become idle before the next simulated turn')
@@ -359,7 +449,7 @@ def before_recovery(root, initial_at, env):
     if (now.astimezone(initial.tzinfo).date() != initial.date() or
             next_at and now >= datetime.fromisoformat(next_at)):
         raise RuntimeError('Recovery no longer fits before the next scripted checkpoint')
-    return now.isoformat(), clock.environment(env)
+    return now.isoformat(), python_environment(clock,env)
 
 
 def wait_for_batch(root, acknowledgments, roles):
@@ -434,6 +524,31 @@ def audit_evidence(root, declared):
     try:
         config = json.loads((root/CONFIG).read_text())
         startup = json.loads((root/'provider-clock-startup.json').read_text())
+        running_overhead=root/'provider-clock-running-overhead.jsonl'
+        if running_overhead.exists():
+            check(config.get('overhead_fallback')=='native-clock-runs; no rewind; scripted checkpoint gates remain enforced',
+                  'Honcho unexcluded judging overhead condition is undeclared')
+            for line in running_overhead.read_text().splitlines():
+                record=json.loads(line)
+                real_before,real_after=instant(record['real_started_at']),instant(record['real_finished_at'])
+                provider_before,provider_after=instant(record['provider_started_at']),instant(record['provider_finished_at'])
+                check(record.get('version')=='native-running-overhead-v1' and record.get('clock_protocol')==declared and
+                      record.get('reason') in {'native-work-active','container-freezer-unavailable'} and
+                      record.get('state')=='observed' and record.get('database_paused') is False and
+                      record.get('native_clock_running') is True and record.get('offset_adjustment') is False and
+                      len(record.get('offset_before_sha256',''))==64 and
+                      record['offset_before_sha256']==record.get('offset_after_sha256') and
+                      real_before<=real_after and provider_before<=provider_after and
+                      abs(((provider_after-provider_before)-(real_after-real_before)).total_seconds())<=3 and
+                      abs((instant(record['db_started_at'])-provider_before).total_seconds())<=3 and
+                      abs((instant(record['db_finished_at'])-provider_after).total_seconds())<=3,
+                      'Honcho unexcluded judging overhead clock witness is inconsistent')
+                if record.get('reason')=='container-freezer-unavailable':
+                    failure=record.get('pause_failure') or {}
+                    check(failure.get('returncode') and 'freezer not supported' in failure.get('error','').lower() and
+                          hashlib.sha256(failure.get('error','').encode()).hexdigest()==failure.get('error_sha256') and
+                          failure.get('inspection')=={'Running':True,'Paused':False},
+                          'Honcho unsupported-freezer fallback lacks a safe native state witness')
         check(declared in SUPPORTED and config['version'] == startup['version'] == declared,
               'Honcho clock condition/version mismatch')
         check(config['library_sha256'] == startup['library_sha256'] == LIBRARY_SHA256 and
@@ -452,7 +567,7 @@ def audit_evidence(root, declared):
             step = json.loads(line)
             if step.get('kind') == 'benchmark-overhead':
                 frozen = instant(step['provider_at']); real = instant(step['real_at'])
-                check(declared == VERSION and step['version'] == declared and
+                check(declared in ('honcho-wall-clock-v3', VERSION) and step['version'] == declared and
                       step['database_paused'] is True and previous <= frozen and
                       previous_real <= instant(step['real_started_at']) <= real and
                       abs((instant(step['db_after'])-frozen).total_seconds()) <= 3 and
@@ -474,13 +589,23 @@ def audit_evidence(root, declared):
                 check({e['id'] for e in step.get('native_errors_before',[])} >=
                       {e['id'] for e in state['errors']},
                       'Honcho native errors were not preserved before aging')
-            if declared in ('honcho-wall-clock-v2', VERSION) and step.get('horizon'):
+            if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION) and step.get('horizon'):
                 check(target <= instant(step['horizon']), 'Honcho clock advanced past checkpoint horizon')
             previous, previous_real = after, real
-        if declared in ('honcho-wall-clock-v2', VERSION):
+        if declared == VERSION:
+            check(config['python_clock']['tls_clock']=='real' and config['python_clock']['os_clock']=='real',
+                  'Honcho split clock declaration differs')
+            for role,pid in config['processes'].items():
+                check(startup['python_adoptions'][role]['pid']==pid,'Honcho native Python clock PID differs')
+                verify_adoption(root,startup['python_adoptions'][role],role=role)
+        if declared in ('honcho-wall-clock-v2','honcho-wall-clock-v3', VERSION):
             for path in (root/'turns').glob('**/turn.json'):
                 turn = json.loads(path.read_text())
                 observed = turn.get('provider_clock') or {}
+                if declared == VERSION:
+                    adoption=observed.get('python_clock') or {}
+                    check(adoption.get('state')=='pass','Honcho turn lacks verified Python clock adoption')
+                    verify_adoption(root,adoption['adoption'],role='hermes')
                 check(observed.get('version') == declared, 'Honcho turn lacks native clock observation')
                 actual = instant(observed['actual_start_at'])
                 requested = instant(observed['requested_at'])
@@ -497,7 +622,7 @@ def audit_evidence(root, declared):
                               'Honcho recovery crossed next scripted checkpoint')
                 else:
                     errors.append('Honcho turn clock role is unknown')
-    except (OSError, ValueError, KeyError, TypeError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
         errors.append('Honcho native clock evidence missing or invalid: '+type(exc).__name__)
     return errors
 

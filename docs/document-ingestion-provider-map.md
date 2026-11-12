@@ -13,15 +13,46 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 | Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings and gateway inference. Set the documented `is_reasoning_model: true` flag for Spark; the SDK then chooses its native reasoning-model parameters. No custom output budget or reasoning effort. The earlier legacy-chat classification was a setup error; larger-output trials remain a different configuration. |
 | Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank; 1.1.0 server/client and native API `meta` adapter for Spark, using the gateway base URL. The updated pair passed the two-day raw-message/email and fresh-session persistence canary. |
 | OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Native resource processing is distinct from interactive memory capture. Expose `viking_read`; original-source access earns no retention credit. Check model-health receipts independently of native completion. |
-| ByteRover | `brv curate --files imports/<day>/messages.txt --format json` | Local CLI/context tree, OpenAI-compatible BYOK. Completed curation is readable immediately. Its pending-review log is retrospective: native rejection restores prior files. Leave it unchanged; never auto-approve. Native diagnostic recall confirmed this behavior. |
 | Supermemory | `documents.add(dreaming="instant")` with raw content, canonical container tags and custom ID; wait for indexing and memory consolidation | Published local server and native SDK, Ollama embeddings. Use the native namespace resolver. Explicit instant mode processes each already-batched daily document instead of default dynamic grouping across documents. The October 23 native canary completed extraction and populated the profile. The mode is recorded in setup and ingestion receipts; earlier dynamic-mode blockers are separate conditions. |
 | Honcho | Real source peers, original timestamps and native configured recall observer through `session.add_messages` | Documented pgvector/API/deriver self-hosting, native server 3.4.1. The default 2,500-token deriver limit exhausted Spark's allowance without JSON. The user-authorized documented 8,192-token setting passed the source/recall canary; record it as a configured condition. Retain native batching and directional observation for the owner and non-speaking AI observer before messages. Require actual work enrollment/completion, including captured assistant-session instructions before fresh-session checks. Original-message fallback earns no retention credit. |
 | Memcal | Native Messages SQLite and TLS IMAP readers, separate contacts, normal nightly processing | Provider-independent Apple schema and RFC 5322 fixtures; nightly processing at 03:00 scenario-local time. Version 0.8.2 with product fixes on `main`. |
+| ReMe | Publish the complete raw transcript under native `resource/`; default `auto_resource` watcher extracts a source-linked daily card | Isolated local Application/workspace and native BM25 indexing. Observe the actual resource action, generated card and indexed chunk IDs. Hermes exposes automatic prefetch only; no invented query tool. |
+| Cognee | Shipped `HttpBackend.remember_permanent`: raw multipart upload to native `/api/v1/remember`, which runs add and cognify | Local 1.6.6 server, isolated dataset and native Ollama embeddings. Wait for actual document extraction and exact raw-source readback. Incremental loads additionally require this new item's cognify completion stamp, not an earlier dataset status. Native first-turn prefetch can be empty because retrieval is queued after a preceding turn. |
+| MemOS | Native `/api/v1/import?ownership=target` with the raw document as trace text and summary, empty assistant text | Local SQLite/FTS and native offline CPU MiniLM. Require exact API readback. This import does no extraction: automatic or explicit retrieval of imported documents is source-assisted. |
 | Holographic | Fact storage and regex extraction | Excluded: no practical general automatic source ingestion. |
+| Memobase | Inspected native dispatcher processes chat/summary, not accepted raw-document blocks | Excluded at the inspected pin. Do not fabricate assistant turns to bypass document eligibility. |
 | RetainDB | Hosted storage/import | Excluded: Hermes documents no verified local backend. |
 | Memori | Documented Hermes plugin uses cloud service | Excluded: no verified local Hermes integration for this condition. |
 
+ByteRover is retired from active execution at the user's direction. Its saved
+CLI curation, retrieval and timeout traces remain historical evidence; adapter
+and audit code is retained only to interpret those records. No new ByteRover
+trials or hosted alternative are part of the lineup.
+
 Every connector uses the same frozen public message records. Daily document v3 is a readable chronological transcript: conversation/channel, roster and subject headers, written times, senders, ownership and every original body, including email quotes. Different delivery/capture times remain visible. Full canonical records and IDs remain in `messages.json` for audits and native fixtures; repetitive machine IDs and identical metadata do not inflate the LLM's text. v1/v2 JSON documents retain their original audit rules. No messages are selected, summarized or extracted by the connector.
+
+New direct OpenRouter runs declare `ephemeral-system-clock-v2`. The scenario
+date is supplied through native `HERMES_EPHEMERAL_SYSTEM_PROMPT`; automatic
+retrieval receives the unchanged natural question. An HTTP-boundary observer
+records the actual system/user inputs and verifies the date, native query and
+injected context. The exact pinned native session-title request is recorded as
+auxiliary and charged, but cannot prove answer-context delivery. The semantic
+judge separately retains the explicit scenario date. Historical
+`user-clock-prefix-v1` trials keep their original conditions: MemOS treated that
+ISO date as an exact identifier and filtered out relevant traces. Never silently
+regrade those trials as natural-query runs.
+
+Direct harness authoring and judging use a real 180-second total HTTP deadline,
+including non-streaming whitespace keepalives; an interrupted outcome retains
+its cost bound and the identical request is not automatically repeated. A
+different question can proceed only if its full reservation still fits alongside
+every unknown hold and the external allocation. An older unknown outcome without
+a request fingerprint blocks that entire project. The source writer explicitly
+uses low reasoning. `--judge-reasoning-effort low` is an independently recorded
+benchmark-judge condition, bound by the native audit to actual request records.
+It changes neither Hermes nor memory-provider model settings. Scoring sanity
+controls must cover correct and wrong answers plus valid evidence diagnostics;
+passing fact grades alone is insufficient calibration.
 
 Memcal's source database preserves realistic GUIDs, Apple-epoch timestamps, sender handles, service fields, chat membership and joins. Names live in a separate contacts fixture. No provider-specific facts or extraction hints are inserted. Future iMessage connectors can use that same source fixture. Nightly worker deadlines allow 15 minutes for a multi-conversation batch. All inference remains under the shared daily spending cap.
 
@@ -65,6 +96,64 @@ per acknowledged source message before accepting an empty queue. Counts are
 periodically cleaned by Honcho; if that prevents proving enrollment, withhold
 readiness rather than guessing success. Native assistant capture uses host time;
 source-message capture explicitly preserves original timestamps.
+
+New Honcho document runs declare `honcho-chronological-membership-v1` separately
+from their processing-clock profile. Native perspective search filters messages
+by the session peer's actual `joined_at`/`left_at`, so joining just before a bulk
+upload does not establish visibility of older message timestamps. The adapter
+requires an explicit, static source roster including the owner, enrolls those
+members and the configured silent Hermes observer through `Session.add_peers`,
+and reads actual membership windows before advancing to nightly import. It
+rechecks those windows immediately before source submission. It never backdates
+membership rows, substitutes collection time for message time, or inserts facts.
+
+The simulated profile now starts before the earliest source event so this
+enrollment can happen chronologically. Missing membership after that event,
+roster transitions, changed source bindings and left/rejoined peers stop source
+delivery. Existing active memberships can be reused only while their native
+windows still cover the source. Real-clock historical bulk imports into a fresh
+store cannot establish those windows with the inspected native API and remain
+unsupported under this new qualification. Older saved trials retain their
+original condition and findings.
+
+Clock v4 separates the Python wall clock from the OS clock. PostgreSQL retains
+the pinned libfaketime runtime; the API, deriver and Hermes use the pinned
+`time-machine` runtime installed with `vendor/python-clock/install-runtime.py`.
+Each Python time read uses the shared atomic offset file. OpenSSL certificate
+validation and monotonic timers retain real time. Package hashes and actual
+service/turn PID adoption are audited. Older whole-process clock trials retain
+their HTTPS failures; TLS verification remains enabled in every condition.
+
+The fresh `runs/pizza-day-honcho-clock4-embedding-ready-20261112` development
+trial completed native extraction and injected the pizza plan into Hermes's
+actual model input. Both native tool calls succeeded and all five claims graded
+correct. Native source search was also used, so retention credit remains zero
+under the frozen source penalty. Its explicit deriver thinking effort is `none`;
+the native 2,500-token output allowance and batching defaults are unchanged.
+This establishes this small workload's integration, not calibrated accuracy.
+
+Some managed Docker runtimes lack `cgroup.freeze`. New v4 trials allow an
+explicitly recorded fallback only after the native pause reports unsupported
+freezing and an independent inspect confirms the container is running and
+unpaused. Resume the apps and leave the shared offset unchanged. Record real,
+provider and DB timestamps plus the unchanged offset hash in
+`provider-clock-running-overhead.jsonl`. This is unexcluded judging time, not a
+suspension. Other pause failures remain fatal. The scripted checkpoint guard
+still refuses future-time exposure, so long judging can make later checks
+unavailable; this condition cannot establish equivalent wall-time aging.
+
+A saved answer that failed before its first judge request can receive a
+separately versioned first-judgment review. Bind the original source, contract,
+clock, answer, visible evidence, tool provenance and actual judge receipt.
+Preserve the original ungraded execution and do not claim recovery ran. This
+does not authorize replaying a judge request with an unknown outcome.
+
+An earlier v4 trial found the local embedding service unavailable and stopped
+without recall after 900 real seconds. Honcho's immediate-embedding lease has a
+native ten-minute retry backoff, checked on a five-minute reconciler cadence.
+Its reconciliation was enqueued shortly before the harness deadline; the failed
+trial is preserved. New Honcho setup checks an actual local embedding before
+starting model work. The successful fresh trial did not reuse that failed store.
 
 The native completion counter also includes terminally errored queue items.
 The local runner observes the run-owned PostgreSQL queue without modifying it,

@@ -173,7 +173,8 @@ def test_clock_processes_due_native_batch_before_later_scripted_question(monkeyp
     monkeypatch.setattr(clock,'step_if_idle',step)
     result=clock.before_turn(tmp_path,target.isoformat(),{})
     assert advances==[due+timedelta(milliseconds=10),target]
-    assert result['FAKETIME_DONT_FAKE_MONOTONIC']=='1'
+    assert result['PACBENCH_PYTHON_CLOCK_FILE']==str(provider.path)
+    assert 'LD_PRELOAD' not in result
 
 
 def test_source_age_step_cannot_cross_question_horizon(monkeypatch,tmp_path):
@@ -197,33 +198,35 @@ def test_recovery_uses_current_time_without_crossing_next_check(monkeypatch,tmp_
     at, env=clock.before_recovery(tmp_path,(now-timedelta(minutes=1)).isoformat(),{
         'PACBENCH_CLOCK_NEXT_CHECKPOINT':(now+timedelta(minutes=1)).isoformat()})
     assert datetime.fromisoformat(at)>=now
-    assert env['FAKETIME_DONT_FAKE_MONOTONIC']=='1'
+    assert env['PACBENCH_PYTHON_CLOCK_FILE']==str(provider.path)
+    assert 'LD_PRELOAD' not in env
     with pytest.raises(RuntimeError,match='checkpoint'):
         clock.before_recovery(tmp_path,(now-timedelta(minutes=1)).isoformat(),{
             'PACBENCH_CLOCK_NEXT_CHECKPOINT':(now-timedelta(seconds=1)).isoformat()})
 
 
 def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
+    # Preserve the frozen v3 audit format; v4 additionally requires Python adoption.
     from pacbench.followups import save
     target=datetime.now(timezone.utc)
-    save(tmp_path/'provider-clock.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock.json',{'version':'honcho-wall-clock-v3','library_sha256':LIBRARY_SHA256,
         'wall_speed':1,'monotonic':'real','gateway_clock':'real',
         'source_timestamps':'unchanged','native_batching':'unchanged'})
-    save(tmp_path/'provider-clock-startup.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock-startup.json',{'version':'honcho-wall-clock-v3','library_sha256':LIBRARY_SHA256,
         'provider_at':target.isoformat(),'api_date':target.isoformat(),'db_at':target.isoformat(),
         'real_at':target.isoformat(),'monotonic':'real'})
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
     later=target+timedelta(minutes=30)
-    step={'version':clock.VERSION,'from':target.isoformat(),'to':later.isoformat(),
+    step={'version':'honcho-wall-clock-v3','from':target.isoformat(),'to':later.isoformat(),
         'target':later.isoformat(),'real_at':target.isoformat(),'db_after':later.isoformat(),
         'pre_step':idle_snapshot(),'horizon':later.isoformat()}
     path=tmp_path/'provider-clock-steps.jsonl'; path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)==[]
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')==[]
     step['pre_step']['claims']=1;path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
     step['pre_step']['claims']=0;step['horizon']=target.isoformat()
     path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
 
 
 def test_checkpoint_order_uses_instants_across_dst_fallback():
@@ -237,7 +240,8 @@ def test_checkpoint_order_uses_instants_across_dst_fallback():
 def test_judging_never_suspends_observed_native_work(monkeypatch,tmp_path,busy):
     provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
     monkeypatch.setattr(clock,'load',lambda r:(provider,{}))
-    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(**({busy:1} if busy!='model' else {})))
+    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat(),
+        **({busy:1} if busy!='model' else {})))
     monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[
         {'role':'memory_provider','finished':None}] if busy=='model' else []})
     events=[]
@@ -267,3 +271,50 @@ def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path,abort):
     assert events==[('unpause','owned-db'),'cleanup',('stop','--time','5','owned-db')]
     assert not marker.exists()
     assert json.loads((tmp_path/'provider-clock-interrupted.json').read_text())['scored'] is False
+
+
+@pytest.mark.parametrize('error,inspection,allowed',[
+    ('OCI runtime pause failed: freezer not supported',{'Running':True,'Paused':False},True),
+    ('permission denied',{'Running':True,'Paused':False},False),
+    ('freezer not supported',{'Running':False,'Paused':False},False),
+    ('freezer not supported',{'Running':True,'Paused':True},False),
+    ('freezer not supported',{},False),
+])
+def test_unsupported_freezer_runs_native_time_only_when_running_unpaused_is_verified(monkeypatch,tmp_path,error,inspection,allowed):
+    from types import SimpleNamespace
+    import time
+    provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
+    monkeypatch.setattr(clock,'load',lambda r:(provider,{'container':'owned-db'}))
+    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat()))
+    monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[]})
+    events=[]
+    @contextmanager
+    def paused(root):
+        events.append('apps-paused')
+        try:yield
+        finally:events.append('apps-resumed')
+    monkeypatch.setattr(clock,'paused_apps',paused)
+    def docker(config,*args):
+        events.append(args[0])
+        if args[0]=='pause':return SimpleNamespace(returncode=1,stderr=error,stdout='')
+        if args[0]=='inspect':return SimpleNamespace(returncode=0,stderr='',stdout=json.dumps(inspection))
+        pytest.fail('Fallback must never unpause, restart or edit the database')
+    monkeypatch.setattr(clock,'_docker',docker)
+    monkeypatch.setattr(provider,'resume_suspended',lambda *a:pytest.fail('A running database must never be rewound'))
+    offset=provider.path.read_bytes()
+    if not allowed:
+        with pytest.raises(RuntimeError,match='Cannot suspend'):
+            with clock.benchmark_overhead(tmp_path,{}):pytest.fail('Unsafe pause failure reached judge')
+        assert events[-1]=='apps-resumed'
+        assert not (tmp_path/'provider-clock-running-overhead.jsonl').exists()
+    else:
+        with clock.benchmark_overhead(tmp_path,{}):
+            assert events[-1]=='apps-resumed'
+            time.sleep(.02)
+        row=json.loads((tmp_path/'provider-clock-running-overhead.jsonl').read_text())
+        assert row['state']=='observed' and row['native_clock_running'] is True
+        assert row['database_paused'] is False and row['offset_adjustment'] is False
+        assert row['offset_before_sha256']==row['offset_after_sha256']
+        assert row['pause_failure']['inspection']=={'Running':True,'Paused':False}
+        assert datetime.fromisoformat(row['provider_finished_at'])>datetime.fromisoformat(row['provider_started_at'])
+    assert provider.path.read_bytes()==offset

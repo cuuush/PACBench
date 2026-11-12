@@ -38,10 +38,13 @@ def test_hindsight_does_not_fail_at_one_hundred_operations_or_miss_later_pending
 @pytest.mark.parametrize('status,pending,expected', [('completed',None,True),
     ('completed',{'count':1},True),('completed',{'count':0},True),
     ('error',None,False),('queued',None,False)])
-def test_byterover_requires_completion_without_approving_retrospective_review(tmp_path,monkeypatch,status,pending,expected):
+@pytest.mark.parametrize('transport,model', [('muse-gateway','muse-spark-1.3-contributor'),
+                                          ('openrouter','deepseek/deepseek-v4.1-flash-1017')])
+def test_byterover_requires_completion_without_approving_retrospective_review(tmp_path,monkeypatch,status,pending,expected,transport,model):
+    monkeypatch.setenv('PACBENCH_TRANSPORT',transport)
     config=tmp_path/'config/brv';config.mkdir(parents=True)
     (config/'providers.json').write_text(json.dumps({'activeProvider':'openai-compatible',
-        'providers':{'openai-compatible':{'activeModel':'muse-spark-1.3-contributor','baseUrl':'http://127.0.0.1:1/v1'}}}))
+        'providers':{'openai-compatible':{'activeModel':model,'baseUrl':'http://127.0.0.1:1/v1'}}}))
     monkeypatch.setenv('XDG_CONFIG_HOME',str(config.parent))
     monkeypatch.setenv('OPENAI_COMPATIBLE_API_KEY','unit-test-token')
     source=tmp_path/'source';source.mkdir();(source/'messages.txt').write_text('Unmodified source text\n')

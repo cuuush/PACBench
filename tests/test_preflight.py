@@ -7,6 +7,27 @@ import pytest
 from pacbench import preflight
 
 
+def test_provider_inventory_is_read_only_and_reports_route_gaps(tmp_path, monkeypatch):
+    monkeypatch.setattr(preflight.shutil, 'which', lambda _: None)
+    binary = tmp_path / 'vendor/venv-openviking/bin/openviking-server'
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    result = preflight.provider_inventory(tmp_path)
+    rows = {row['provider']: row for row in result['providers']}
+    assert set(rows) == {'memcal', 'mem0', 'hindsight', 'openviking', 'supermemory', 'honcho', 'reme', 'cognee', 'memos'}
+    assert rows['openviking']['installed_paths_present']
+    assert rows['honcho']['missing_paths']
+    assert all(row['openrouter_pilot'] == 'native route implemented; installation and live readiness must be verified'
+               for row in rows.values())
+    assert result['inference_calls'] == 0
+
+
+def test_offline_provider_catalog_does_not_require_vendor_checkout(tmp_path, monkeypatch):
+    from pacbench import native_pilot
+    monkeypatch.setattr(native_pilot.harness, 'ISOLATED_TREE', tmp_path / 'missing')
+    assert {'memcal', 'mem0', 'hindsight', 'openviking', 'supermemory', 'honcho', 'reme', 'cognee', 'memos'} <= set(native_pilot.provider_names())
+
+
 @pytest.fixture
 def setup(tmp_path, monkeypatch):
     repo = tmp_path / 'PACBench'

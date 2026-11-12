@@ -46,8 +46,9 @@ Work on small, inspectable changes before expanding the benchmark:
    ungraded. It is not the native default. Offline controls verify parsing and
    preservation only; live correct and wrong controls are required before use.
 2. **Investigate provider compatibility with small canaries.** Supermemory stopped
-   before completing the month; OpenViking and ByteRover have no selected current
-   month arm. Establish native processing and recall before trying a full month.
+   before completing the month; OpenViking has no selected current month arm.
+   ByteRover is retired; preserve its historical traces without new execution.
+   Establish native processing and recall before trying a full month.
    Prior error labels alone do not establish a cause or a fix.
 3. **Keep Honcho's processing failures separate from recall.** Its selected month
    attempt failed structured-output processing before questions. The small clock
@@ -69,7 +70,7 @@ before provisioning services. Native servers use separate environments from
 Hermes' pinned client environment. Record actual revisions, model settings,
 clock conditions and every processing deviation from defaults.
 
-All writer, verifier, judge, Hermes and provider inference for this project uses
+The default writer, verifier, judge, Hermes and provider inference route uses
 **Spark Contributor through [muse-gateway](https://github.com/cuuush/muse-gateway)**,
 an independent repository normally checked out at `/workspace/muse-gateway`.
 The shared limit is **$10 per UTC day**, with no lifetime cap. Check the live
@@ -82,17 +83,90 @@ its spending ledger and credentials. Gateway source and public request receipts
 do not recover spending history. If that state is missing, paid work remains
 blocked; do not initialize a replacement ledger to continue the experiment.
 
+An explicit `--inference-route codex-subscription` selects GPT-6 Luna for
+preparation or for the native pilot's Hermes and judge calls. Subscription
+usage is unpriced and is not represented by gateway receipts. Provider-internal
+inference still uses Spark through Muse, so its ledger and access gates remain
+required. The native pilot route is experimental and fails before ingestion: each fresh
+Hermes profile requires its own native Codex OAuth login, and the pilot does not
+yet offer a provision/login/resume handoff. Do not copy the Codex CLI refresh
+token into Hermes; the pinned Hermes integration warns that refresh tokens are
+single-use. The route does not authorize bypassing a missing provider ledger.
+Text-only Codex calls keep SQLite state inside their disposable workspace using
+the documented `sqlite_home` setting, without changing the authentication home.
+The Codex CLI must still be able to start with its existing native login; a
+read-only runtime startup failure is an execution blocker, not a model result.
+
+The experimental OpenRouter planner uses the selected
+`deepseek/deepseek-v4.1-flash-1017` model and exact `deepinfra/fp8/flex`
+endpoint for Hermes, native extraction and judging. Inspect it without a key,
+network access or paid calls:
+
+```sh
+python -m pacbench.openrouter_run --plan
+# Inspect a selection instead:
+python -m pacbench.openrouter_run --plan --providers memcal honcho
+```
+
+The current Pizza Day task has a separately approved $20 total OpenRouter budget,
+including preparation, diagnostics, all providers and retries. Its persistent
+task state is `/workspace/shared/pacbench-openrouter-pizza-day-20261112`.
+Preserve that ledger and its uncertain charges across every restart. This is new
+authorized OpenRouter accounting; Muse's historical ledger remains missing.
+
+The user retired the local inference proxy. `openrouter_run --plan` reviews
+direct HTTPS configuration. Its execution path uses client-side transport hooks
+in Python urllib/HTTPX and native JavaScript fetch; no local inference server or
+forwarding connection is started. Keep old proxy source and trial evidence for
+reproducibility. Prior proxy scores remain provisional.
+
+Each request durably reserves its full-context/output cost bound in the same
+task ledger before connecting directly to OpenRouter. Short admission and
+settlement locks never cover network work. Interrupted requests retain their
+bounds and uncertain outcomes prevent automatic replay. Native clients receive
+labelled accounting capabilities; only the transport hooks substitute the real
+credential. Requests that bypass those hooks cannot authenticate. Hooks add only
+the exact routing/price ceilings and streaming usage reporting, without changing
+source processing, prompts or generation limits. Node uses its require preload;
+the shipped Supermemory binary loads the hook through native `bunfig.toml`.
+A separate key or routing preset is not required by this path.
+
+Run only against audited frozen preparation, with a new output directory:
+
+```sh
+python -m pacbench.openrouter_run \
+  --prepared artifacts/pizza-day-openrouter-20261112/week.json \
+  --output runs/my-direct-pizza-trial --providers memcal --spend-limit-usd 20
+```
+
+For the historical Pizza Day archive, prepare fresh review inputs without
+changing the sources or copying old approvals:
+
+```sh
+python -m pacbench.pizza_day_recovery <historical-preparation-directory>
+```
+
+This prints the original messages, a proposed current check and exact contract
+and corpus review prompts. Add `--source-only` to emit just the source records
+and public question for independent review. The archive's source IDs and timing
+differ from the current compiler; the output remains blocked until provenance
+compatibility, current reviews and the actual preparation audit are resolved.
+
 Before a Memcal canary, inspect the local prerequisites without inference:
 
 ```sh
 python3 -m pacbench.preflight \
-  --prepared runs/bike-pickup-native-clock-20261105/preparation/week.json
+  --prepared runs/bike-pickup-native-clock-20261105/preparation/week.json \
+  --all-providers
 ```
 
 This checks frozen preparation, the exact Hermes pin and patch, installed client
 dependencies, the sibling Memcal checkout, isolated scratch space, driver
 configuration and existing gateway files. It does not initialize stores or
-recover spending history. Add `--check-gateway` for a free authenticated health
+recover spending history. The optional all-provider inventory reports installation
+paths and additional requirements for all seven integrations; file presence alone
+does not establish native readiness or OpenRouter compatibility.
+Add `--check-gateway` for a free authenticated health
 check after restoring the original state. A passing setup check is not proof of
 model access or recall; verify the recovered ledger and free model inventory
 before running paid controls. If the configured temporary directory resolves

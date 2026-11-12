@@ -14,6 +14,41 @@ def same_submitted_text(observed,text):
     return isinstance(observed,str) and (observed==text or text.endswith('\n') and observed==text[:-1])
 
 
+def audit_reme_resource_receipt(result, day, text, source_ids):
+    """Require actual native action and indexed source-linked card witnesses."""
+    errors=[]
+    digest=hashlib.sha256(text.encode()).hexdigest()
+    relative=f'resource/{day}/source-{digest}.txt'
+    receipt=result.get('native_result',{})
+    response=receipt.get('response',{})
+    items=response.get('metadata',{}).get('results',[])
+    matches=[i for i in items if i.get('path')==relative]
+    metadata=(matches[0].get('metadata') or {}) if len(matches)==1 else {}
+    nodes=receipt.get('hook_metadata',{}).get('observed_index_nodes',[])
+    card=result.get('card_text')
+    if (result.get('ingestion_condition')!='native-resource-document-extraction-v1' or
+            result.get('resource_path')!=relative or result.get('document_sha256')!=digest or
+            result.get('stored_source_sha256')!=digest or result.get('source_ids')!=source_ids or
+            result.get('source_readback_exact') is not True or result.get('manual_job_invocations')!=0 or
+            result.get('native_defaults') is not True):
+        errors.append('ReMe native document delivery/source binding is unproven')
+    if (receipt.get('protocol')!='reme-native-resource-observer-v1' or
+            receipt.get('processing_forced') is not False or response.get('success') is not True or
+            receipt.get('response_sha256')!=hashlib.sha256(json.dumps(response,sort_keys=True,ensure_ascii=False).encode()).hexdigest() or
+            len(matches)!=1 or matches[0].get('success') is not True or
+            metadata.get('action')!='added' or metadata.get('source_resource')!=f'[[{relative}]]' or
+            'error' in (metadata.get('index') or {})):
+        errors.append('ReMe native resource processing did not complete')
+    if (not isinstance(card,str) or hashlib.sha256(card.encode()).hexdigest()!=result.get('card_sha256') or
+            f'[[{relative}]]' not in (card or '') or result.get('card_path')!=metadata.get('path') or
+            not str(result.get('card_path','')).startswith(f'daily/{day}/') or
+            receipt.get('hook_metadata',{}).get('index_observation_complete') is not True or
+            len(nodes)!=1 or nodes[0].get('path')!=result.get('card_path') or not nodes[0].get('chunk_ids') or
+            nodes[0].get('front_matter',{}).get('source_resource')!=f'[[{relative}]]'):
+        errors.append('ReMe generated memory card/index provenance is unproven')
+    return errors
+
+
 def audit_supermemory_receipt(result, day, text):
     statuses=result.get('processing_status',[])
     final=statuses[-1] if statuses else {}
@@ -43,10 +78,21 @@ def audit_openviking_receipt(result):
     return []
 
 
-def audit_honcho_receipt(batch, result, previous_work=None):
+def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=None):
     """Independently bind native acknowledgments and readiness to frozen sources."""
     if previous_work is None:previous_work={}
     errors=[];seen=[];sessions=set();minimum={}
+    if result.get('membership_protocol') is not None:
+        from provider_adapters.honcho_enrollment import PROTOCOL, source_plans, validate_windows, validate_roster_continuity
+        try:
+            if result['membership_protocol'] != PROTOCOL:
+                raise ValueError('Unsupported Honcho membership protocol')
+            plans = source_plans(batch, {'peerName':'user','aiPeer':'hermes'})
+            validate_windows(plans, result['membership_witness'])
+            if previous_rosters is not None:
+                previous_rosters.update(validate_roster_continuity(plans, previous_rosters))
+        except (ValueError,KeyError,TypeError):
+            errors.append('Honcho chronological source membership is unproven')
     expected={m['source_id']:m for m in batch}
     for ack in result.get('result',[]):
         sessions.add(ack['session_id'])
@@ -77,7 +123,8 @@ def audit_honcho_receipt(batch, result, previous_work=None):
     error_scope=result.get('source_error_scope')
     if error_scope not in (None,'submitted-source-sessions-v1'):
         errors.append('Unsupported Honcho source error scope')
-    if result.get('clock_protocol') in ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3'):
+    from provider_adapters.honcho_clock import SUPPORTED as HONCHO_CLOCK_PROTOCOLS
+    if result.get('clock_protocol') in HONCHO_CLOCK_PROTOCOLS:
         ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
         witnesses = result.get('message_witnesses', [])
         final = changes[-1] if changes else {}
@@ -126,7 +173,7 @@ def audit_ingestion(root, arm, messages, summary):
     check(version in SUPPORTED_VERSIONS,'unsupported ingestion version')
     batches=daily_batches(messages,summary['process_timezone'] or 'America/New_York')
     check(len(schedule)==len(batches),'daily ingestion schedule incomplete')
-    honcho_work={}
+    honcho_work={};honcho_rosters={};cognee_prior=[]
     cumulative=[]
     cumulative_mail=[]
     for row,(day,batch) in zip(schedule,batches):
@@ -189,7 +236,23 @@ def audit_ingestion(root, arm, messages, summary):
         check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York',version=version),'native processing clock mismatch')
         if arm.name=='honcho':
-            errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work))
+            membership = summary.get('provider_membership_protocols',{}).get('honcho')
+            if membership is not None:
+                from provider_adapters.honcho_enrollment import PROTOCOL, source_plans
+                check(membership == PROTOCOL and
+                      record.get('membership_protocol') == record.get('result',{}).get('membership_protocol') == membership,
+                      'Honcho native membership protocol differs from declared condition')
+                enrollment = record.get('enrollment',{})
+                check(enrollment.get('protocol') == membership and enrollment.get('state') == 'enrolled' and
+                      enrollment.get('source_messages_submitted') == 0 and
+                      enrollment.get('source_sha256') == hashlib.sha256((source/'messages.json').read_bytes()).hexdigest(),
+                      'Honcho chronological enrollment is missing or bound to different source')
+                try:
+                    check(enrollment.get('plans') == source_plans(batch, {'peerName':'user','aiPeer':'hermes'}),
+                          'Honcho enrolled roster differs from original source membership')
+                except (ValueError,KeyError,TypeError):
+                    errors.append('Honcho source membership cannot be qualified')
+            errors.extend(audit_honcho_receipt(batch,record.get('result',{}),honcho_work,honcho_rosters))
             declared = summary.get('provider_clocks',{}).get('honcho')
             check(record.get('result',{}).get('clock_protocol') == declared,
                   'Honcho native clock differs from declared trial condition')
@@ -202,6 +265,43 @@ def audit_ingestion(root, arm, messages, summary):
                       'Supermemory delivery differs from its saved native SDK configuration')
         if arm.name=='openviking':
             errors.extend(audit_openviking_receipt(record.get('result',{})))
+        if arm.name=='reme':
+            errors.extend(audit_reme_resource_receipt(record.get('result',{}),day,text,ids))
+        if arm.name=='cognee':
+            native=record.get('result',{})
+            setup=json.loads((arm/'native-server-setup.json').read_text())
+            check(native.get('protocol') in {'cognee-native-document-qualification-v1','cognee-native-incremental-document-v2'} and
+                  native.get('source_sha256')==native.get('document_sha256')==meta['document_sha256'] and
+                  native.get('source_ids')==ids and native.get('source_at')==at and
+                  native.get('dataset')==setup.get('dataset') and native.get('service')==setup.get('endpoint') and
+                  bool(native.get('dataset_id')) and bool(native.get('data_id')) and
+                  native.get('pipeline')=='cognify_pipeline' and
+                  native.get('observed_statuses',[])[-1:] == ['DATASET_PROCESSING_COMPLETED'] and
+                  native.get('stored_source_verified') is True and native.get('processing_complete') is True,
+                  'Cognee native extraction/source completion is unproven')
+            if native.get('protocol')=='cognee-native-incremental-document-v2':
+                snapshots=native.get('item_completion_observations',[])
+                final=snapshots[-1] if snapshots else {}
+                items=final.get('items',[])
+                expected_ids={p['data_id'] for p in cognee_prior}|{native.get('data_id')}
+                check(native.get('prior_sources')==cognee_prior and
+                      len(items)==len(expected_ids) and {i.get('id') for i in items}==expected_ids and
+                      all(i.get('completed') is True for i in items) and
+                      final.get('total')==final.get('completed')==len(expected_ids) and final.get('pending')==0,
+                      'Cognee incremental completion is not bound to this new source item')
+            elif cognee_prior:
+                errors.append('Single-document Cognee proof cannot certify incremental ingestion')
+            cognee_prior.append({'data_id':native.get('data_id'),'source_sha256':native.get('source_sha256')})
+        if arm.name=='memos':
+            from provider_adapters.reme_memos_documents import payload
+            expected,_=payload('memos',source)
+            native=record.get('result',{});actual=native.get('native_readback',{})
+            check(native.get('ingestion_condition')=='native-raw-document-import-v1' and
+                  native.get('retrieval_credit')=='source-assisted' and native.get('extraction_performed') is False and
+                  native.get('document_sha256')==meta['document_sha256'] and native.get('source_ids')==ids and
+                  native.get('native_readback_exact') is True and
+                  all(actual.get(key)==value for key,value in expected['traces'][0].items()),
+                  'MemOS native raw-document import/readback is unproven')
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

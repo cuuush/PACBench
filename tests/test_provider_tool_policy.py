@@ -85,9 +85,10 @@ def test_attempt_fails_even_if_agent_answers_correctly():
     assert turn.policy_blocks == 1
 
 
-def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_path):
+@pytest.mark.parametrize('allowlist,expected',[('hindsight_recall,hindsight_reflect',{'hindsight_recall'}),('',set())])
+def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_path, allowlist, expected):
     monkeypatch.setenv('PACBENCH_PROVIDER_ONLY', '1')
-    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', 'hindsight_recall,hindsight_reflect')
+    monkeypatch.setenv('PACBENCH_TOOL_ALLOWLIST', allowlist)
     monkeypatch.setenv('PACBENCH_CONTEXT_TRACE', str(tmp_path / 'context.jsonl'))
     tree = ast.parse((TREE / 'agent/turn_context.py').read_text())
     fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'build_turn_context')
@@ -96,9 +97,9 @@ def test_actual_schema_filter_keeps_only_native_provider_tools(monkeypatch, tmp_
                             ('terminal', 'memory', 'tool_search', 'hindsight_recall', 'hindsight_fake')])
     exec(compile(ast.fix_missing_locations(ast.Module(body=[policy], type_ignores=[])),
                  'actual_schema_filter', 'exec'), {'agent': agent, 'os': os, 'json': json})
-    assert agent.valid_tool_names == {'hindsight_recall'}
+    assert agent.valid_tool_names == expected
     evidence = json.loads((tmp_path / 'context.jsonl.tools.jsonl').read_text())
-    assert evidence['offered_tools'] == ['hindsight_recall']
+    assert evidence['offered_tools'] == sorted(expected)
 
 
 def test_registry_guard_blocks_before_registry_or_hooks(monkeypatch):

@@ -89,6 +89,32 @@ class ParseTurnTokens(unittest.TestCase):
         self.assertIsNone(result.session_output_tokens)
 
 
+class ParseTurnDurations(unittest.TestCase):
+    def test_native_result_and_whole_process_timings_remain_distinct(self):
+        stdout = _event({"type": "result", "text": "answer", "duration_ms": 29579})
+        result = harness._parse_turn("p", "t", _completed(stdout), 84.43)
+        self.assertEqual(result.native_result_duration_s, 29.579)
+        self.assertEqual(result.latency_s, 84.43)
+
+    def test_absent_or_invalid_native_duration_stays_unknown(self):
+        for duration in (None, True, "29579", -1, float('nan'), float('inf'), 10**1000):
+            with self.subTest(duration=repr(duration)[:60]):
+                stdout = _event({"type": "result", "text": "answer", "duration_ms": duration})
+                result = harness._parse_turn("p", "t", _completed(stdout), 84.43)
+                self.assertIsNone(result.native_result_duration_s)
+        result = harness._parse_turn("p", "t", _completed(_event({"type": "text", "text": "partial"}), 1), 84.43)
+        self.assertIsNone(result.native_result_duration_s)
+
+    def test_later_result_cannot_reuse_an_earlier_duration(self):
+        stdout = '\n'.join([
+            _event({"type": "result", "text": "earlier", "duration_ms": 500}),
+            _event({"type": "result", "text": "final"}),
+        ])
+        result = harness._parse_turn("p", "t", _completed(stdout), 84.43)
+        self.assertEqual(result.answer, "final")
+        self.assertIsNone(result.native_result_duration_s)
+
+
 class RedactKeepsTokenCounts(unittest.TestCase):
     """Regression: usage-accounting keys survive artifact redaction while
     string secrets are still scrubbed (a pilot once persisted its whole

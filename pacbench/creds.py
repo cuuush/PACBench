@@ -88,6 +88,14 @@ def load_driver(env_path: str | Path = DEFAULT_ENV) -> DriverConfig:
     Raises ``GenerationError`` on any problem — callers fail the run, never
     fall back to another model or to live-profile credentials.
     """
+    if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        from .gateway_client import client_settings, require_live_cost_boundary
+        from .openrouter_route import MODEL
+        require_live_cost_boundary()
+        base_url, client_key = client_settings('pacbench-driver')
+        os.environ[KEY_ENV_VAR] = client_key
+        return DriverConfig(configured_model=MODEL, model_id=MODEL,
+                            provider='openrouter', base_url=base_url)
     config, credential = load_config(env_path)
     from .gateway_client import client_settings
     base_url, client_key = client_settings("pacbench-driver")

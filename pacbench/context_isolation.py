@@ -84,3 +84,30 @@ def actual_context(home: Path, session_id: str | None, workspace: Path,
     if '# Project Context' in prompt:
         return {**record, 'reason': 'Hermes loaded project context into recall'}
     return {**record, 'state': 'pass', 'reason': 'No project context in native saved system prompt'}
+def memory_delivery(home,session_id,prompt,prefetch):
+    """Read native API-bound input evidence without invoking a provider.
+
+    Hermes keeps display content separate from its API-bound memory injection.
+    Missing sidecar evidence stays unknown; this does not infer model attention.
+    """
+    record={'state':'unknown','scope':'Native saved API-bound input, not proof of model attention'}
+    if not isinstance(prefetch,str) or not session_id:
+        return {**record,'reason':'Missing captured prefetch or native session'}
+    try:
+        with sqlite3.connect(f'file:{Path(home)/"state.db"}?mode=ro',uri=True) as db:
+            rows=db.execute("SELECT id,api_content FROM messages WHERE session_id=? AND role='user' AND content=?",
+                            (session_id,prompt)).fetchall()
+    except sqlite3.Error:
+        return {**record,'reason':'Native API-bound sidecar unavailable'}
+    if len(rows)!=1:return {**record,'reason':'Missing or ambiguous exact native user row'}
+    row_id,api_content=rows[0]
+    record.update(native_user_row_id=row_id,prefetch_chars=len(prefetch),
+        prefetch_sha256=hashlib.sha256(prefetch.encode()).hexdigest(),
+        api_content_sha256=hashlib.sha256(api_content.encode()).hexdigest() if isinstance(api_content,str) else None)
+    if not prefetch:
+        return {**record,'state':'empty','reason':'Captured native hook returned no automatic memory context'}
+    present=(isinstance(api_content,str) and api_content.startswith(prompt+'\n\n') and
+             '<memory-context>' in api_content and prefetch in api_content)
+    return {**record,'state':'confirmed' if present else 'inconsistent',
+            'reason':'Exact captured provider context is in the native API-bound input' if present else
+                     'Captured provider context is absent or differs in the saved API-bound input'}

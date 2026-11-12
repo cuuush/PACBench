@@ -139,3 +139,34 @@ def test_managed_model_config_and_explicit_file_precedence(tmp_path):
 def test_native_smoke_error_cannot_be_a_wiring_pass(smoke):
     from pacbench.native_pilot import smoke_succeeded
     assert smoke_succeeded({"read_only_smoke": smoke}) is False
+
+
+def test_codex_provision_routes_hermes_separately_from_provider(tmp_path):
+    from unittest.mock import patch
+    from pacbench.native_pilot import provision
+    root = tmp_path / 'arm'
+    root.mkdir()
+    with patch('pacbench.native_pilot.client_settings', return_value=('http://127.0.0.1:8099/p/test/v1', 'test-key')), \
+         patch('pacbench.native_pilot.harness.provision_home') as home:
+        env = provision(root, 'holographic', 'muse-spark-1.3-contributor', inference_route='codex-subscription')
+    assert home.call_args.kwargs['model'] == 'gpt-6-luna'
+    assert home.call_args.kwargs['model_provider'] == 'openai-codex'
+    assert home.call_args.kwargs['model_base_url'] is None
+    assert env['PACBENCH_INFERENCE_ROUTE'] == 'codex-subscription'
+    assert set(json.loads(env['PACBENCH_USAGE_ROLES']).values()) == {'memory_provider'}
+
+
+def test_native_pilot_rejects_unknown_route_before_creating_output(tmp_path):
+    from pacbench.native_pilot import run
+    output = tmp_path / 'output'
+    with pytest.raises(ValueError, match='Unknown inference route'):
+        run(None, output, inference_route='unknown')
+    assert not output.exists()
+
+
+def test_codex_native_pilot_fails_before_creating_output(tmp_path):
+    output = tmp_path / 'output'
+    with patch('pacbench.native_pilot.provider_names', return_value=['holographic']):
+        with pytest.raises(RuntimeError, match='provision/login/resume'):
+            run(tmp_path / 'prepared', output, providers=['holographic'], inference_route='codex-subscription')
+    assert not output.exists()

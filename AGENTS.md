@@ -1,108 +1,101 @@
 # PACBench operating guide
 
-Start with [README.md](README.md) for project scope and
-[CONTRIBUTING.md](CONTRIBUTING.md) for setup, current limitations and next steps.
-Keep those public contributor instructions current rather than adding separate
-handoff or progress reports.
+Read [README.md](README.md) for scope and [CONTRIBUTING.md](CONTRIBUTING.md)
+for setup, current limitations and next steps. Keep detailed procedures in the
+existing docs and run evidence in machine-readable artifacts.
 
-## User priorities
+## Working rules
 
-Realism comes first. Use practical local providers, their documented setup and native ingestion. No seeded facts, benchmark summaries, fake assistant ingestion turns or provider-specific extraction hints. Fix product bugs only in `/workspace/memcal`; commit them there. Benchmark/gateway fixes belong in their own repositories. Commit coherent changes and push when authorized.
+- Use realistic sources and native provider ingestion. No seeded memories,
+  answer hints or fabricated assistant ingestion turns. Do not change third-party
+  provider code to rescue a benchmark. Record documented configuration changes
+  and preserve native defaults.
+- Keep Memcal product fixes in its repository, gateway fixes in muse-gateway,
+  and benchmark fixes here. Preserve unrelated files, credentials, runtime
+  dependencies, private stores and spending history. Push only when authorized.
+- Report progress and limitations in conversation. Do not accumulate handoff or
+  results documents. Historical runs and troubleshooting notes belong in evidence
+  and Git history, not this file.
 
-Ordinary documented configuration is allowed when needed for the actual model, hardware or collection workflow; record every processing deviation from defaults. Do not change third-party provider code to rescue a benchmark. API pagination/chunk limits are connector requirements, not reasons to patch the server or split one real thread into unrelated sessions. Do not claim a five-minute setup when self-hosting and source integration are substantial.
+## Paid execution
 
-Report work and decisions in the conversation, including limitations and choices the user may want to influence. Do not write standalone results summaries or accumulating progress docs. Maintain concise operating/API instructions and machine-readable run evidence. Development results are disposable: retain the current trial and necessary failure evidence; delete obsolete artifacts/code. Preserve runtime dependencies, credentials, the spending ledger and unrelated user files.
+- Follow the user's selected model and route. Existing Muse trials use the
+  shared gateway at `/workspace/muse-gateway` with a $10-per-UTC-day limit and
+  no lifetime cap. A new paid route requires a concrete approved spending limit.
+- The current OpenRouter Pizza Day task has a separately authorized **$20 total**
+  budget across all providers and retries. A $2 exclusive Pizza Week allocation
+  leaves at most $18 for this audit, including all historical costs and uncertain
+  bounds. Count the allocation once; do not append separate Week spending against
+  it while the full allocation remains held. Use the persistent task ledger and
+  exact DeepSeek/DeepInfra route. Muse's missing historical ledger does not block
+  this authorized route; never claim its history was recovered or reset it.
+- Check actual gateway state before paid work. Private state lives at
+  `/workspace/shared/muse-gateway`; source code and public receipts do not
+  recover its historical ledger. If that ledger is missing, keep Muse execution
+  blocked. Never create a blank replacement or reconstruct incomplete history.
+- Preserve unknown cost bounds, pending reservations and deferred provider costs.
+  Never bypass a refusal or relabel costs to free budget. A daily monetary refusal
+  stops live work until the next UTC day.
+- HTTP 401/403 or `upstream_auth_blocked` stops live work globally until a
+  successful free model inventory. Three definitive provider HTTP 400/422 errors,
+  or three completed requests without usable token usage, stop that provider arm.
+  Keep execution, access, cost and recall failures distinct.
 
-If a restored workspace lacks the gateway's private state, keep paid work blocked until the actual ledger is recovered. Recovering gateway source from Git does not recover its spending history. Never initialize a blank replacement ledger or reconstruct one from incomplete published request receipts to resume inference.
+## Sources and evaluation
 
-Delegate code investigations and large text/log reads to GPT-6.1 Terra subagents at medium reasoning, using focused briefs and compact evidence-backed findings. Keep policy decisions and final recommendations in the main agent. Use those investigators to review executed turns and tool calls; report uncertainty rather than inventing causal attribution.
+- Validate specs with `python -m pacbench.specs`. Use the existing compiler.
+  Generate and review once, then freeze and reuse `week.json` with all siblings.
+  Preserve bodies, identities, membership, threads and written/collection times.
+- Scenes may supply exact messages instead of using the writer. Keep the normal
+  independent checks and freeze audit; never rewrite rejected supplied source.
+- Require current source, contract and corpus reviews bound to actual inputs
+  and receipts. Bulk review is advisory; retain required independent source
+  audits. Never relabel stale reviews, reroll a rejected verdict for approval,
+  or silently migrate historical evidence to a new protocol.
+- Freeze natural questions, evidence-cited criteria and recovery rules before
+  execution. Grade only facts reasonably invited by the question. Preserve
+  original grades; corrective reviews need a separately versioned overlay.
+  Missing or malformed judgments remain ungraded.
+- Follow [authoring](docs/authoring-options.md),
+  [conversation checks](docs/flexible-checks.md) and
+  [judging/recovery](docs/followups.md). Keep semantic grades, retention credit,
+  compatibility failures and unknown costs separate.
 
-Use Spark Contributor for every writer, verifier, judge, Hermes and provider inference request through `/workspace/muse-gateway`. The hard boundary is **$10 per UTC day, no lifetime cap**. Unknown costs retain their historical bounds on request dates; only active reservations span future days. The user authorized correcting the old perpetual-reservation bug on 2026-10-15. Reclassify abandoned workers only after proving execution ended; retain the full request-day bound. Same-day review frees no budget that day. Never zero unknown costs, change labels or bypass the gateway to get around a refusal. After a daily monetary refusal, stop live work until the next UTC day. Check the live ledger before paid work. Fixed upstream error labels/protocol shape may be logged; prompts, credentials and raw error text may not.
+## Native execution
 
-HTTP 401/403 and `upstream_auth_blocked` are terminal global access failures, distinct from provider recall failures. Stop authoring/review attempts across independent scenes; resume only after a successful free model inventory. The gateway latches this auth circuit across workers/restarts and preserves all previous cost bounds.
+- Use local-capable memory backends. Keep Mem0 OSS and hosted Mem0 separate;
+  hosted BYOK is reserved for the final full benchmark, never development.
+  The selected OpenRouter inference route remains unchanged.
+- Follow the [provider map](docs/document-ingestion-provider-map.md) and
+  [runtime setup](vendor/README). Memcal uses native Messages/Contacts and TLS
+  IMAP fixtures through its collection lifecycle; other providers use native
+  import/capture. Preserve source chronology and within-thread chunk order.
+- Wait for actual processing and consolidation before recall. Accepted writes,
+  queue counters and indexing completion alone are insufficient. Preserve
+  native errors and submitted-work witnesses; never repair queues, force flushes
+  or raise output limits to manufacture readiness. ByteRover is retired from
+  active execution; preserve its historical traces and audit support.
+- Keep the scenario's fixed calendar and America/New_York timezone. Disclose
+  actual provider clock conditions. Simulated time does not prove processing
+  completion; spending and harness deadlines use real time.
+- Start Hermes in an empty directory outside Git, with only the selected
+  provider's shipped tools. Disable built-in memory, session search, OS tools
+  and outside connectors. Do not use `--ignore-rules`, which disables native
+  memory hooks. Verify the actual saved prompt and working directory.
+- Send the authored public question verbatim and add no PACBench instructions
+  to Hermes user or system prompts. Historical date-prefix and ephemeral-system
+  clock trials are separate conditions. New execution and supported resumes
+  require the verified `native-question-v2` condition.
+- Apply the [tool and source boundary](docs/provider-tool-boundary.md).
+  Source-assisted answers keep semantic grades but receive zero retention
+  credit; uncertain provenance remains uncredited pending review.
+- Resume only through a verified native recovery protocol. OpenViking's
+  `python -m pacbench.native_resume <run>` supports a successful pre-recall
+  prefix; do not reingest completed days or blindly reuse failed stores.
 
-## Source and execution rules
+## Validation and publication
 
-- Generate and verify a corpus once; freeze it before provider execution. Reuse its plain-JSON `week.json` manifest and sibling files without writer/verifier calls. Hash references avoid embedding a second copy of the evidence; keep the preparation directory together. Resume only unchanged verified scenes/contracts. Changed source truth, question scope or judging rules require fresh relevant review.
-- Preparation independently reviews corpus-wide coherence and question answerability after freezing criteria. The v7 source-blind review sees all lossless source and public question times, but no authored facts, expectations or scene intent. Treat automated bulk review as advisory evidence, not proof of source quality. Scene checking and contract review assess factual coverage; before provider execution an independent source-only Terra audit must verify all 15 semantic claims. A positive valid corpus review is also required by the execution gate. Bind each review to its actual request and inputs. A stale review must be regenerated, never relabeled; preserve a rejected review and stop before provider execution. Exact unchanged requests reuse their successful receipt.
-- Keep one author JSON per scenario in `specs/`, with a pinned `week_start`, low/medium/high noise, optional recurring-person `cast` before reusable channels, weekday sections, scenes with human-readable times and lists of inline English facts, and assistant turns with public prompts/English expectations. Day, week and month use the same format. `python -m pacbench.specs` validates all specs offline before paid preparation; reuse the real compiler rather than building a parallel validator. Do not restore the retired stage/noise-spec generator. Keep each fact to one checkable outcome or constraint; no top-level fact catalog. Independently review all facts in each scene together in one call, not one call per fact. Use `days` for one week or a `weeks` array of Monday–Sunday maps for several. Channels persist across weeks; `ingestion_days` validates contiguous daily sources and final-only questions. See [authoring](docs/authoring-options.md) and [conversations](docs/flexible-checks.md).
-- Source/thread IDs are opaque. Author outcome labels never enter provider data. Preserve sender, membership, channel, thread and written/collection times. Exact citation aliases may simplify draft authoring; normalize them to real IDs and independently review actual evidence. Unknown citations fail.
-- Memcal reads a reusable synthetic Apple Messages SQLite database plus separate Contacts, then processes normally. Email uses RFC 5322 messages over a real local TLS IMAP fixture with Inbox/Sent ownership and reply references. No native reader replacements or direct archive insertion. Other providers receive the same lossless raw message records through native import/capture. See [provider setup](docs/document-ingestion-provider-map.md).
-- New Memcal imports use the native CLI collection lifecycle (`open_collection`, `sources.catch_up`, `close_collection`) at the simulated nightly processing time. Require persisted complete source outcomes; errors, missing outcomes and unfinished catch-up block readiness. Receipts declare `native-cli-collection-v1`; historical direct-reader receipts keep their original condition. Quiet gaps can legitimately show Memcal's stale warning: do not suppress it, invent messages or record polls that never occurred.
-- Import chronologically, wait for native processing, and withhold recall after failed readiness. Queue acceptance or a native “done” receipt alone is insufficient. Honcho must witness messages through its configured non-speaking observer and prove enrollment/completion of newly submitted work. Do not fabricate AI source messages or retrospectively attach an observer.
-- Honcho source readiness also requires its submitted sessions' summary/dream work to be error-free; completed representation witnesses alone are insufficient. New receipts declare `submitted-source-sessions-v1` error scope. Preserve class/hash/session witnesses, reject unattributed errors, and keep known unrelated capture errors separate. Historical unscoped receipts retain their conservative audit. A medium run exposed an incorrect live ready claim after `EmptySummaryError`; never restore that shortcut.
-- Hermes pins Honcho SDK 2.2.0; its native message API accepts at most 100 messages per request. Split larger daily thread imports into ordered requests in the same observed session, preserving bodies, peers, timestamps and metadata. Hash-bound per-chunk delivery receipts preserve only verified acknowledgments; uncertain/mismatched replies are not accepted writes and must not be blindly retried. Native error bodies can contain the whole source: store safe class/status/limit/count/hash fields and redact worker diagnostic streams, including timeouts. Authentication and budget blocks stop independent live work too.
-- Preserve provider processing defaults. The user rejected Honcho's eager-flush override: new runs use native batching and the current setup's directional observation default, including owner membership. The user authorized documented Spark compatibility settings on October 25: use and record `DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS=8192` for configured Spark trials; preserve explicit default-limit trials separately; this differs from the default-limit condition. Honor the declared accumulation delay before a stall cutoff. Gateway/model/embedding transport configuration remains explicit. Do not silently raise output budgets or flush thresholds to rescue a model incompatibility.
-- Use `America/New_York`, including DST, for sources and native processes. Daily ingestion v2/v3 schedules every provider at 03:00 after the collection day; v1 receipts retain their original condition. v3 renders raw chronological transcripts with conversation metadata headers, original bodies and meaningful timing differences; canonical full records remain beside them. Do not inflate inference with repeated machine IDs/identical metadata. The scenario owns its fixed simulated calendar: reuse its dates regardless of the host date, and judge upcoming plans relative to each simulated question. Hermes receives `PACBENCH_NOW`; Memcal receives `MEMCAL_TODAY`. Native backend clocks are not universally simulated; disclose the actual condition. Never expose future state. Gateway budgets and harness deadlines always use real time.
-- The user authorized Honcho's actual provider clock to advance between nightly bulk imports. Use the explicit `--honcho-clock simulated` condition (`honcho-wall-clock-v3`): pinned libfaketime isolates PostgreSQL, API, deriver and Hermes wall clocks, while monotonic timers remain real. Preserve the native token threshold and age limit; do not use eager flush or edit queue/source timestamps. Pause only verified run-owned app groups and check fresh native DB state before clock steps. These are observed idle boundaries, not proof about arbitrary in-memory tasks. v3 excludes benchmark judging time by suspending the observed-idle API/deriver and database, compensating the shared offset before resuming; skip suspension when observed native work or a provider model request is active. Monotonic deadlines still elapse during suspension. An external real-clock watchdog stops orphaned services if the owner dies. Require per-message observer enrollment and error-free processing witnesses, and persist errors before simulated retention can remove them. A background capture error does not invalidate an unrelated verified conclusion. Do not compare simulated native trace timestamps with real gateway timestamps to waive source penalties. Do not advance past a checkpoint horizon; a missed scripted time is an execution problem. Recovery uses its actual delivery time and must fit before the next checkpoint. Legacy clock conditions retain their original receipts. Advancing time only makes native work eligible: wait for real processing, never synthesize completion.
-- Hermes starts in a genuinely empty directory outside every Git project, without source sessions or built-in memory. In this cloud environment use `TMPDIR=/var/tmp`; `/tmp/.git` can be a sandbox artifact. Do not use `--ignore-rules`, which also disables native memory hooks. Verify the actual saved native system prompt and working directory.
-- New trials expose only the selected provider's exact shipped tools, including message/source readers (`provider-memory-with-source-penalty-v3`). OS tools, outside connectors, generic discovery/dispatch, built-in memory and session search stay blocked before execution. A prohibited attempt fails the check. This is a tool boundary, not an OS sandbox.
-- Source-assisted answers retain their semantic grade but earn zero retention credit. Carry that source path into dependent turns sharing its context. Memcal's normal event opener, retained pages, generated summaries and attached citations keep normal credit. Unclassified/background source paths without proven attribution remain uncredited pending review. See [tool boundary](docs/provider-tool-boundary.md).
-- Stop further paid checks in an arm after three definitive native provider HTTP 400/422 responses. Preserve errors/holds and continue independent arms. Pending calls or successful calls without usage are not definitive HTTP errors. Do not automatically approve ByteRover review requests.
-- Three completed provider requests with missing usable token usage trigger a separate arm-level cost-observability stop. Preserve their bounds; classify neither HTTP nor memory recall as failed. Pending requests do not count. The global $10 daily guard remains unchanged.
-- ByteRover's pending-review marker is retrospective, not an ingestion gate: completed changes are already readable and rejection restores backups. Accept successful completed curation, preserve the review log and never approve it on the user's behalf. October 19 native recall confirmed this; older blocked receipts used an incorrect harness barrier.
-
-## Judging and cost
-
-Freeze questions, evidence-cited criteria and recovery policy before arms run. For supplied factual questions, `event-scoped-v7` independently reviews the drafted claims and supplied question together in one request; both reviews must pass. Corpus-wide realism review remains separate. Judge only facts a natural prompt reasonably invites: event identity, current state and change history. No preferred assistant style/tool choice, forced clarification, redundant wording requirement or assumption that an elapsed appointment happened. Acknowledgement proves neither persistence nor an external action; check later in a fresh session if that behavior is being tested.
-
-New native trials declare `semantic-judge-date-scope-v2`: judge an upcoming occurrence against its actual date, not just the weekday. One fresh complete response may follow a receipted malformed judge response; preserve both attempts. Do not retry a benchmark contract error or failed gateway call. Keep original model grades. Corrective reviews use a separately versioned, independently audited overlay; preserve original checks, recovery and source penalties, and label reviewed semantic totals separately. Never grant revised retention credit without recomputing the applicable source penalty. Missing ground truth, malformed judgments and execution errors are ungraded with causes. Initial pass/fail/ungraded counts are disjoint; recovery authoring errors do not erase valid initial grades. Continue independent conversations and skip only unavailable dependencies. Prior replies resolve references but cannot supply facts absent from the current answer.
-
-Cross-session `requires` checks must distinguish write acceptance from processing completion. Supermemory/OpenViking/Honcho use the read-only `accepted-native-writes-v2` status barrier, preserving native defaults; never trigger consolidation to make a test pass. Observe explicit submitted IDs when present; use session capture when no explicit write exists, so an unrelated background capture failure cannot stand in for an explicit write's outcome. Supermemory capture must contain every actual delivered user instruction in native user-role blocks: an older document with the same session ID or an assistant quoting the instruction is insufficient. Preserve a running trial's declared v1 protocol; do not silently migrate its receipts. Cache failures as well as success to avoid repeating a deadline. Simulated elapsed time does not drain native queues. Audit existing live traces even when later turns are ungraded; retain the incomplete outcome. A diagnostic after the cutoff may find retained information while native status remains pending; keep it separate from the original withheld checks.
-
-Honcho's explicit `conclude` creation persists synchronously. For v2, accepted tool inputs may establish write availability through exact native conclusion records: require content, session, observer, target, every accepted write and every dependency input to match. Do not add a 30-minute capture wait after those writes have already persisted. Otherwise retain the captured-input/enrolled-queue barrier. This checks transport availability, not whether the assistant saved the right facts; later recall still determines that.
-
-One combined follow-up is allowed only for silent implicit omissions when at least one fact was correct. Wrong values, admitted retrieval failure, missed explicit requests or zero recall get none. Spark writes a short question from the original prompt and missing facts, with one independent coverage/leakage review; one rejected draft may be revised once before delivery. Preserve event/date scope. Initial facts earn one point and recovered facts half a point; source penalties are separate. See [recovery](docs/followups.md).
-
-Record calls/arguments/results, retries/failures, latency and observed tokens separately for Hermes, provider internals and benchmark overhead. Separate ingestion, initial questions and follow-ups. Provider work after answering can be capture/consolidation; deferred work is not free. Per-tool causal prices and missing token counts remain unknown. Display later-settled costs for the same recorded request IDs; preserve original turn windows, unknown charges and background attribution. A reservation captured mid-turn is not the final observed cost. Measure whether Memcal is cheaper without assuming it wins or choosing only favorable cost windows.
-
-## Current trial and lessons
-
-Hindsight reflection can return original source chunks inside its internal `recall`, even when the outer Hermes plugin returns only synthesized text. Observe its default `/llm-requests` native trace API without modifying vendor code or requesting reflection. Capture native tool arguments/results, IDs, completion times and token telemetry; omit full model prompts/reasoning. New runs declare `source-provenance-v2`: raw-only retrieval or deliberate expansion is source access; retained records with explicitly linked attached citations retain credit; unlinked mixed records/chunks remain unclassified. Historical v1 receipts retain their blanket chunk rule. Missing/truncated reflection traces remain unclassified; late work cannot supply an earlier Hermes input. The pinned 1.1.0 trace writer flushes every 0.5 seconds. New v2 observers allow that flush and stop as soon as explicit reflection coverage is complete, with a three-second deadline; prior v1 trials retain their actual six-second observation setting. Gateway usage remains the cost authority; native trace usage is separate telemetry, not an extra invoice. Earlier runs without these traces cannot establish clean internal source paths.
-
-New answer judges include `answer-visible-evidence-v2` diagnostics in the existing request, separate from expected-fact grades. Preserve v1 reads and prompts for existing trials. Bind short verbatim quotes to actual provider prefetch/tool results and partial cited source evidence with sender/time/thread context. User requests and tool arguments are separate from retrieval evidence. Evidence availability is not proof the assistant used or ignored it; uncited extra assertions are unverifiable, not automatically false. Keep historical grades unchanged. Run the live evidence controls, including actual native Unicode output and altered-quote rejection, before enabling a new diagnostic condition. Never repair a judge's invalid quote into passing evidence.
-
-The original Pizza Month source had ambiguous date cues; its provider date-error attributions were withdrawn. The repaired reusable preparation is `artifacts/pizza-month-jen-scope-repair-v2-20261105/week.json`: 2,868 messages, 30 nightly imports and 15 final questions, with 15 changed scenes and 33 reused. Source-only audits verified the dates and state; scope review removed unasked requirements. Reuse it without generating messages again, preserving its historical calendar. Public evidence is `runs/pizza-month-local-20261105`; incomplete grading and ingestion statuses remain visible.
-
-The ambiguous month’s exact private archive and hash receipt are `artifacts/retired-public-pizza-month-20261023-20261104.tgz` and its sibling JSON. Never combine its grades with repaired corpora. The current small clock canary is `runs/bike-pickup-native-clock-20261105`: Honcho, 11 unchanged messages, two nightly imports and five checks. Questions use wider Monday intervals and an explicit 11am correction; events remain October 31/November 1. All five checkpoints executed, including fresh recall after a native `conclude`; the omitted pickup venue required a source-search recovery. Semantic accuracy and retention credit remain separate. Its `preparation/week.json` is reusable. Older public Bike trials were removed; compact compatibility diagnostics remain private under `artifacts/retired-public-bike-compatibility-20261026`. Behavior reviews use `observable-reply-v2`: acknowledgement is not persistence, and permitted brief acknowledgements need no restatement. Superseded attempts may be removed publicly; their charges remain in the ledger.
-
-Pull Memcal before a requested retest and record its actual revision. Current checkout is 0.8.3 plus collection-link fix `a517487` and replacement-key matching fix `dd6e004`; the latter addresses the Ben replacement case. Its native Eastern-time unit suite passed (2,584 tests, 37 skipped). Upstream replaced its Git history; the previous `8bb7ee1` checkout is preserved on `backup/pre-upstream-rewrite-20261030`. Provider compatibility canaries precede another month: a successful API response alone is not proof of recall. Intermittent upstream 401s have occurred alongside successful requests in the same native burst; retain the auth circuit and error bounds, never relabel interrupted work as memory failure. Do not replay large completed prefixes just to probe authentication.
-
-Do not shift the simulated calendar to match today’s date. Fix source ambiguity with focused scene and contract review, and inspect native clock leaks without calendar churn.
-
-The month covers repeated Fridays, contextual time changes, quotations and old email chains, hypothetical/declined invitations, third-party meals, DM-to-group updates, cross-channel rescheduling, one person's withdrawal, an unnamed group cancellation, dietary needs and an accessible entrance. Full old-source negative controls failed under v5, v6 and v7: all semantically approved the ambiguity despite timestamps. The v6 wrong-thread format failure and v7 single invalid quote (52 of 53 valid) do not prove ambiguity detection. Stop prompt iteration; the bulk review is advisory and the independent source-only audit and existing positive-review gate must pass before providers run. Before earlier provider execution, manual criterion review removed unasked background requirements; actual Spark judge controls exposed and then rejected an invented extra attendee and outing. A natural correct recap and a plain correct negative answer pass. Keep control receipts separate from provider scores.
-
-Put only graded facts in `expect`. Complete lists must remain complete in derived claims; an inclusion claim cannot reject an invented extra attendee. Inspect claims and use plausible wrong/correct judge controls before scaling. Semantic equivalents need no redundant lunch label or injury explanation. Recovery anchors must identify the event/date. A past appointment does not prove attendance. Cancellation tests must not require a particular clarification style.
-
-Natural recap questions invite people, time and place without explicitly enumerating them. Resolve ordinary upcoming weekdays using question time; old occurrences alone do not make the question ambiguous. A private question reviewer that demands a checklist is a harness problem, not grounds to change the public question or give a provider extra hints.
-
-Spark must use Mem0's documented `is_reasoning_model: true` setting (Hermes Mem0 README manual OSS config). The SDK's model-name heuristic otherwise treats it as a legacy chat model and sends its generic 2,000-token budget. With the explicit flag, the native SDK chooses its reasoning-model request shape, omitting that legacy cap and temperature. This is model classification, not a benchmark output-budget override. The repaired month completed 30 imports under this condition; its incomplete judgments remain visible. Keep explicit larger-output trials and legacy misconfigured attempts outside this condition. Never invent custom output or reasoning limits to rescue providers.
-
-Audit RFC 5322 email from UTF-8 bytes. The compat parser's string path escapes non-ASCII 8-bit bodies and falsely reports source changes. The native byte transport is unchanged; rerun the integrity audit rather than regenerating correct source or overriding answer judgments.
-
-Document v3 removes repeated machine IDs and identical per-message metadata from the LLM transcript while preserving every body and meaningful context. The medium export is 78.4% smaller by bytes than v2 JSON lines; full canonical records remain available for audits/native readers. Early v2 attempts were stopped before recall; a Hindsight upstream authentication error and uncertain request costs remain recorded. Do not combine their format condition or costs with selected v3 scores, or erase their charges.
-
-Historical Memcal development revision `8bb7ee1` of 0.8.2 added retained-record-first guidance for empty wiki searches in MCP/Hermes. The roster fix is `477ac83`: cited keyed roster corrections now replace the roster, partial lists remain additive, and older evidence cannot restore a withdrawn guest. Its shipped MCP/Hermes/brief guidance prefers opening retained records before archive search. No benchmark-specific retrieval hint was added. Honcho preserves native batching and directional observation defaults, with the explicit configured Spark deriver output allowance; its earlier eager-flush/unified results cannot qualify this condition. OpenViking/Supermemory had native Spark HTTP 400 compatibility failures; ByteRover was incorrectly blocked by a retrospective review marker; the corrected connector preserves that log and allows completed curation. Those old blockers are not medium memory grades. Preserve genuine default delays and report unsupported execution separately.
-
-Do not treat deferred capture/consolidation as free. Background work after an answer cannot causally penalize that answer, but its cost still counts. Hindsight readiness paginates all operations. Final evaluation dates follow the frozen simulated calendar; accelerated replay does not measure real-time aging. Continue independent conversations after a failure and distinguish source, harness, model execution and recall issues.
-
-Supermemory daily documents use the documented `dreaming="instant"` SDK parameter because each already contains a complete nightly batch. Save this explicit choice in `document-ingestion-config.json` and each receipt; it differs from native dynamic grouping. Never relabel old default-mode results. Supermemory readiness requires both document `status=done` and native `dreamingStatus=done`. Indexing can finish while memory consolidation is still running. Do not stop its server or start recall at that earlier boundary. Missing consolidation status is unready; poll under the shared nightly deadline and stop on global access/cost barriers or repeated model errors. Save changed status snapshots rather than duplicate polls. The current month’s day 28 later failed after an ordinary restart; retain the original cutoff and incomplete outcome. The later recovery made no LLM calls, and the embedding HTTP 400 cause is unknown. Do not alter the provider or resubmit to manufacture readiness.
-
-Fresh Honcho homes must explicitly use `sessionStrategy=per-session`, matching the current setup wizard. Omitting it selects the integration's legacy per-directory fallback. Native-write readiness must verify accepted synchronous conclusions or witness captured user content and enrolled, completed owner work; empty discovery is never completion. AI acknowledgements need not create observation work when native defaults exclude observing the AI.
-
-Hindsight's local API and Hermes client are pinned to 1.1.0. Successful current inference proves recovered access, not the cause or permanent resolution of earlier intermittent upstream 401s.
-
-Honcho's public `completed_work_units` includes terminal errors. Read the run-owned native PostgreSQL queue as telemetry and withhold readiness if submitted-source work has an error. Do not change or repair its queue. Publish only error classes/hashes, keeping raw errors private. A three-error canary confirmed this behavior after its default 30-minute accumulation delay. A native Spark format diagnostic exhausted Honcho's default 2,500-token limit with 2,498 reasoning tokens and no visible JSON. HTTP 200 with `finish_reason=length` is truncation, not authentication or proven memory loss. The user authorized the documented deriver model output allowance on October 25. Use the native setting and record it; preserve batching defaults, source delivery and prompts. Do not relabel the earlier default-limit failures. OpenViking's output limit remains unspecified, its native default; do not restore the old hard-coded 16,384-token override.
-
-The later Honcho month hit both its native 1,500-token summary limit and the authorized 8,192-token deriver allowance, with nearly all output spent on reasoning. Its small clock canary succeeded, but this medium-model condition is blocked before recall. Do not raise more budgets or grade it as recall failure. Manual self-hosting legitimately defaults to Redis/cache disabled; Redis caches DB reads, not model generations. Honcho has no documented reasoning-model classification switch equivalent to Mem0's.
-
-Use `python -m pacbench.native_resume <run>` only for a pre-recall OpenViking interruption after a successful daily prefix. It reopens the original native store and verifies every persisted resource, unchanged configuration/source/contracts/policy, and absence of previous answers. It rejects partial or failed imports and interim questions. Preserve original status/cost receipts under `resumes/`; do not reingest completed days or reuse stale settlement overlays. Other providers need a verified native recovery protocol before supporting resume. A timeout or nonzero OpenViking queue error counter is unready even when the error-text array is empty.
-
-## Verification and explorer
-
-The gateway's private state is `/workspace/shared/muse-gateway`; preserve its ledger and credentials. Its October 19 ledger is not historical ledger recovery. Gateway development now lives in [cuuush/muse-gateway](https://github.com/cuuush/muse-gateway), branch `main`, normally cloned at `/workspace/muse-gateway`. PACBench's `gateway-recovery-20261019` branch is only a historical backup. Commit gateway changes in its independent repository; never change PACBench's origin to the gateway URL through a shared worktree. Server runtimes stay isolated from Hermes' pinned client environment: see `vendor/README`. Reuse only hash-verified installed tokenizer assets when native downloads are blocked.
-
-Relevant code under `pacbench/`: `prepare.py`, `authoring.py`, `semantic_contract.py`, `evaluation.py`, `document_ingestion.py`, `native_pilot.py`, `harness.py`, `native_checks.py`, `followups.py`, `source_policy.py`, `tool_policy.py` and `explorer_data.py`; native imports live in `provider_adapters/document_connector.py`.
+Run checks appropriate to the change:
 
 ```sh
 python -m pytest -q
@@ -110,17 +103,13 @@ python -m pacbench.preparation_audit runs/<current>/preparation
 python -m pacbench.native_audit runs/<current>
 node --check explorer/dashboard.js
 node --check explorer/timeline.js
-python serve_explorer.py
 ```
 
-Full native re-auditing needs private homes/stores; saved audit receipts and preparation are portable. Publication re-exports audited `preparation/week.json` as a small hash manifest for corpus reuse and rejects preparation differing from the executed frozen files. Offline tests/trace integrity do not establish accuracy. The harness suite needs loopback networking and `TMPDIR=/var/tmp` in this environment; a restricted sandbox supplies a synthetic `/tmp/.git`. Memcal no longer ships the old temporal benchmark; use its current isolated unit suite. Verify desktop/mobile and a staged clean-checkout explorer before publishing. Repeat checks when changes justify it, not for documentation-only cleanup.
+Harness isolation tests need loopback and `TMPDIR=/var/tmp` outside Git;
+the managed sandbox can supply synthetic Git ancestors. Native re-audits need
+private stores. Offline tests establish harness integrity, not provider accuracy.
 
-The explorer is important evidence for reviewing sources, provider execution and judgments; verify its presentation as well as its underlying receipts. The explorer counts messages per day in one pass and reuses timezone formatters; never restore a full-corpus scan or formatter constructor per day button/message. It reads `runs/` directly, showing sources, daily ingestion, Hermes turns, criteria, judges, tool paths and costs. Full authoring calls and duplicate scene-checker prompts load on demand; keep their exact saved evidence without sending every prompt at startup. The record endpoint must reject private paths, traversal and symlinks. Track public evidence; ignore private homes/databases/caches and encrypted replay. Never export a dashboard snapshot or duplicate results report. Keep only the latest public trial for each active story, with relative preparation paths; inspect staged artifacts for secrets before pushing. Cloud localhost is separate from the user's Mac: pull the branch and run `python3 serve_explorer.py` locally.
-
-Preparation evidence uses hash-checked shared text for repeated exact request blocks. Publication audits before and after compaction, retains referenced receipts, and exports the shared store in `week.json`. Never truncate or summarize source/judge evidence to reduce size. The explorer lists runs first and loads selected details, full authoring calls and frozen bundles on demand.
-
-Contract review prompts also use exact shared text; compare expanded contract objects and preserve their existing semantic hashes. Copy `shared-text.json` with prepared inputs and scene receipts, including rechecks. Rechecking either `days` or `weeks` must normalize once using the frozen start date, preserve source bytes, and require fresh contract and corpus reviews before a prepared result is accepted.
-
-When combining runs, take provider clocks and operator conditions from each selected component, removing a replaced hold. Shared judge, provenance, diagnostic and execution policies must match; a component's valid audit does not validate incorrectly assembled metadata.
-
-New corpus reviews use `source-realism-v9`: exact citations may include prior unconditional public user inputs, with sequence, timestamp and transitive conditional-dependency bounds. A definite user update establishes intended state across sessions; provider persistence is tested later, not assumed successful by the reviewer. This repairs review scope, not the unresolved semantic negative controls: bulk review stays advisory. Keep older review protocols reproducible and archive rejected receipts. Rechecks resume only unchanged inputs and verified receipts; an identical negative model verdict remains blocked rather than being rerolled for approval.
+Preserve exact source/judge evidence and shared-text hashes. Publish only audited
+frozen inputs and selected public trials; exclude credentials and private stores.
+Verify the explorer on desktop/mobile and from a clean checkout before publishing.
+Keep its record endpoint protected against private paths, traversal and symlinks.

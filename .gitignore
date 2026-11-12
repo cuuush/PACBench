@@ -1,4 +1,5 @@
 .env
+/.venv/
 .env.*
 !.env.example
 __pycache__/
@@ -44,3 +45,7 @@ docs/corpus-explorer.html
 /vendor/venv-hindsight/
 /vendor/supermemory-local/
 /vendor/honcho-local/
+/vendor/ollama/
+
+# Preserve local OpenRouter spending reservations outside published evidence.
+*.openrouter-private/

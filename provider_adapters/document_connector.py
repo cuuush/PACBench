@@ -124,6 +124,11 @@ def mem0(source, root, at, processing_at):
     from mem0 import Memory
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'hermes-home/mem0.json').read_text())
+    from pacbench.openrouter_direct import active
+    if active():
+        # The bare SDK prioritizes this environment key over config.api_key.
+        # Hermes' shipped DirectOpenAILLM instead uses the explicit config key.
+        os.environ['OPENROUTER_API_KEY']=cfg['oss']['llm']['config']['api_key']
     validate_route(cfg['oss']['llm']['config']['openai_base_url'],os.environ['OPENAI_API_KEY'])
     # The SDK explicitly documents string input and infer=True. No plugin sync
     # truncation, fake user/assistant pair, custom extraction prompt or infer=False.
@@ -327,8 +332,12 @@ def byterover(source,root,at,processing_at):
     from pacbench.gateway_client import validate_route
     cfg=json.loads((Path(os.environ['XDG_CONFIG_HOME'])/'brv/providers.json').read_text())
     active=cfg['providers'].get('openai-compatible',{})
-    if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!='muse-spark-1.3-contributor':
-        raise ValueError('ByteRover inference must use configured Contributor')
+    expected_model = 'muse-spark-1.3-contributor'
+    if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        from pacbench.openrouter_route import MODEL
+        expected_model = MODEL
+    if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!=expected_model:
+        raise ValueError('ByteRover inference must use the configured route model')
     validate_route(active['baseUrl'],os.environ['OPENAI_COMPATIBLE_API_KEY'])
     project=root/'hermes-home/byterover'
     target=project/'imports'/source.name/'messages.txt';target.parent.mkdir(parents=True)
@@ -367,6 +376,14 @@ def honcho(source,root,at,processing_at):
     observer=host['aiPeer']
     client=Honcho(base_url=cfg['baseUrl'],workspace_id=host['workspace'],environment='local',max_retries=0,timeout=30)
     messages=json.loads((source/'messages.json').read_text())
+    from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL, source_plans, verify_before_submission
+    membership = None
+    membership_plans = {}
+    if os.environ.get(ENVIRONMENT):
+        if os.environ[ENVIRONMENT] != PROTOCOL:
+            raise ValueError('Unsupported Honcho membership protocol')
+        membership = verify_before_submission(root, source, messages, host)
+        membership_plans = {p['session_id']:p for p in source_plans(messages, host)}
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
     acknowledgments=[];sessions=[];minimum_work={}
@@ -383,6 +400,11 @@ def honcho(source,root,at,processing_at):
         for m in batch:
             peer_id=host['peerName'] if m['from_owner'] else m['sender']
             peers[peer_id]=client.peer(peer_id)
+        if membership is not None:
+            # Include silent source-declared participants, especially the owner
+            # receiving a single incoming message, without inventing utterances.
+            for peer_id in membership_plans[session.id]['source_peers']:
+                peers.setdefault(peer_id, client.peer(peer_id))
         # Real source participants, not a fabricated user/assistant exchange.
         # Hermes recalls from its AI observer's perspective. Honcho requires
         # this observer to witness source messages as they arrive; adding it
@@ -404,6 +426,10 @@ def honcho(source,root,at,processing_at):
             if (owner.observe_me!=native_config.user_observe_me or
                     owner.observe_others!=native_config.user_observe_others):
                 raise RuntimeError('Honcho did not apply the configured owner membership')
+        if membership is not None:
+            # Re-adding active peers must not move joined_at. Verify after the
+            # SDK call, immediately before any original messages are submitted.
+            membership = verify_before_submission(root, source, messages, host)
         baseline=session.queue_status().model_dump(mode='json')
         pending=[]
         for m in batch:
@@ -450,14 +476,16 @@ def honcho(source,root,at,processing_at):
     journal['state']='submitted';save(journal_path,journal)
     defaults=json.loads((root/'native-processing-settings.json').read_text())
     from provider_adapters.honcho_clock import enabled, wait_for_batch
+    membership_fields = ({'membership_protocol':PROTOCOL,'membership_witness':membership}
+                         if membership is not None else {})
     if enabled(root):
-        return wait_for_batch(root, acknowledgments,
-            json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))
+        return {**wait_for_batch(root, acknowledgments,
+            json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))), **membership_fields}
     grace=defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     from provider_adapters.honcho_local import queue_errors
     statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work,
         batch_grace_s=grace,read_errors=lambda:queue_errors(root))
-    return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
+    return {**membership_fields, 'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
         'source_error_scope':'submitted-source-sessions-v1',
         'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
@@ -474,8 +502,10 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
     statuses=[];started=time.monotonic();last_progress=started
     done=False;reason='';health={}
     from pacbench.usage import provider_model_health, snapshot
+    from pacbench.stop import check_stop
     previous=None;last_error_check=None;previous_errors=[]
     while True:
+        check_stop()
         status={session.id:session.queue_status().model_dump(mode='json') for session in sessions}
         elapsed=time.monotonic()-started
         if status!=previous:
@@ -590,7 +620,21 @@ def main(args=None):
         print(json.dumps({'operator_stop': True}))
         return 75
     provider,src,arm,at,processing_at=args or sys.argv[1:]
-    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover,'supermemory':supermemory,'honcho':honcho}
+    from pacbench.provider_lineup import require_not_retired
+    require_not_retired(provider)
+    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'supermemory':supermemory,'honcho':honcho}
+    if provider=='reme':
+        from provider_adapters.reme_resource import ingest
+        dispatch['reme']=lambda source,root,at,processing_at:ingest(source,root)
+    if provider=='cognee':
+        from provider_adapters.cognee_documents import ingest
+        dispatch['cognee']=lambda source,root,at,processing_at:ingest(source,root)
+    if provider=='memos':
+        from provider_adapters.reme_memos_documents import ingest
+        def ingest_memos(source,root,at,processing_at):
+            endpoint=json.loads((root/'memos-document-config.json').read_text())['endpoint']
+            return ingest('memos',source,endpoint)
+        dispatch['memos']=ingest_memos
     try:
         result=dispatch[provider](Path(src),Path(arm),at,processing_at)
     except OperatorStop:

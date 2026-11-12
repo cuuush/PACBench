@@ -90,12 +90,18 @@ def resume(output, *, max_messages=4500, question_dir=None):
     from .native_audit import audit
     output=output.resolve();report=read(output/'summary.json')
     from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
-    if report.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
+    if report.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2', 'source-provenance-v3'}:
         raise ValueError('Unsupported provenance protocol')
     if 'evidence_diagnostic_protocol' in report and report['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
         raise ValueError('Unsupported evidence diagnostic protocol')
     if report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
         raise ValueError('Unsupported semantic judge protocol')
+    from .harness import PROMPT_PROTOCOL
+    from .clock_context import NATIVE
+    if report.get('question_prompt_protocol') != PROMPT_PROTOCOL:
+        raise ValueError('Resume requires the current question prompt protocol; legacy or unknown runs cannot change condition')
+    if report.get('clock_context_protocol') != NATIVE:
+        raise ValueError('Resume requires native-question-v2 clock context; historical instruction conditions are audit-only')
     if (report.get('state')!='incomplete' or len(report['results'])!=1 or
             report['results'][0]['provider']!='openviking' or report['results'][0]['repetition']!=1):
         raise ValueError('Resume requires one interrupted OpenViking arm')
@@ -133,6 +139,10 @@ def resume(output, *, max_messages=4500, question_dir=None):
     env=None
     try:
         env=provision(root,'openviking',driver.model_id,local_timezone=report['process_timezone'],resume=True)
+        if report.get('clock_context_protocol'):
+            env['PACBENCH_CLOCK_CONTEXT_PROTOCOL']=report['clock_context_protocol']
+            from .clock_context import NATIVE as CLOCK_CONTEXT
+            if report['clock_context_protocol']==CLOCK_CONTEXT:env['PACBENCH_API_INPUT_TRACE']=str(root/'api-inputs.jsonl')
         restarted=read(root/'ov.conf')
         if any(restarted.get(k)!=cfg.get(k) for k in ('storage','embedding','vlm')):
             raise ValueError('Native processing configuration changed on restart')
@@ -188,7 +198,8 @@ def resume(output, *, max_messages=4500, question_dir=None):
         if (root/'turns').exists():shutil.move(root/'turns',history/'turns')
         (root/'evaluation.json').unlink(missing_ok=True)
         judge=ModelClient(key=key,model=driver.model_id,record_dir=output/'model-calls',
-                          url=client_settings('pacbench-judge')[0]+'/chat/completions')
+                          url=client_settings('pacbench-judge')[0]+'/chat/completions',
+                          reasoning_effort=report.get('judge_generation_conditions',{}).get('reasoning_effort'))
         def evidence_for_check(row):
             return judge_evidence(output, messages, resolved, row, plan['context'], diagnostic_version=report.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION))
         sequence=run_checks(checks,plan['context'],root,judge,','.join(policy['allowed_tools']),env,

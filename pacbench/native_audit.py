@@ -14,6 +14,7 @@ from .evaluation import load_evaluations
 from .native_checks import audit_checks
 from .tool_policy import SUPPORTED_VERSIONS, policy_record
 from .source_policy import source_read_blocked
+from .clock_context import judge_question
 
 
 def audit(root: Path, *, providers=None) -> dict:
@@ -25,16 +26,35 @@ def audit(root: Path, *, providers=None) -> dict:
         if not ok:
             errors.append(message)
     def clock_prompt(at, text):
-        return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
+        if summary.get('question_prompt_protocol') is not None:
+            from .harness import question_prompt
+            return question_prompt(text, at, summary['question_prompt_protocol'])
+        from .clock_context import LEGACY, expected_prompt
+        return expected_prompt(at,text,summary.get('clock_context_protocol',LEGACY))
     try:
         summary = read(root / 'summary.json')
+        from .clock_context import LEGACY, VERSION as CLOCK_CONTEXT, NATIVE, SUPPORTED as CLOCK_CONTEXT_PROTOCOLS
+        clock_protocol=summary.get('clock_context_protocol',LEGACY)
+        if clock_protocol not in CLOCK_CONTEXT_PROTOCOLS:raise ValueError('Unknown clock context protocol')
+        from .harness import PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
+        prompt_protocol=summary.get('question_prompt_protocol')
+        if prompt_protocol not in (None,PROMPT_PROTOCOL,LEGACY_PROMPT_PROTOCOL):
+            raise ValueError('Unsupported question prompt protocol')
+        if clock_protocol==NATIVE and prompt_protocol!=PROMPT_PROTOCOL:
+            raise ValueError('Native clock context requires native question prompt protocol')
+        if prompt_protocol==PROMPT_PROTOCOL and clock_protocol==CLOCK_CONTEXT:
+            raise ValueError('Native question condition cannot include ephemeral benchmark instructions')
         from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
-        if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
+        if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2', 'source-provenance-v3'}:
             raise ValueError('Unsupported provenance protocol')
         if 'evidence_diagnostic_protocol' in summary and summary['evidence_diagnostic_protocol'] not in DIAGNOSTIC_VERSIONS:
             raise ValueError('Unsupported evidence diagnostic protocol')
         if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
             raise ValueError('Unsupported semantic judge protocol')
+        judge_conditions=summary.get('judge_generation_conditions')
+        if judge_conditions is not None and (summary.get('inference_route')!='openrouter' or
+                judge_conditions.get('reasoning_effort') not in {'none','low','medium','high'}):
+            raise ValueError('Invalid benchmark judge generation condition')
         check(summary.get('ingestion_mode') == 'documents', 'Native source ingestion required')
         check(summary.get('tool_policy') in SUPPORTED_VERSIONS, 'Provider tool boundary required')
         bundle = load_bundle(root / 'bundle.json', summary.get('bundle_hash') or read(root / 'bundle.json')['bundle_hash'])
@@ -87,6 +107,13 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(reviewable, f'{label}: incomplete arm')
                 check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
                 check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
+                if summary.get('provider_loader_protocol')=='native-loaded-source-v1' and result['provider'] in {'reme','cognee','memos'}:
+                    setup=read(arm/'native-server-setup.json')
+                    expected_name='memtensor' if result['provider']=='memos' else result['provider']
+                    check(result['capability'].get('loaded_native_provider')==expected_name and
+                          result['capability'].get('loaded_source_sha256')==setup.get('plugin_source_sha256') and
+                          bool(result['capability'].get('loaded_provider_module')),
+                          f'{label}: actual loaded native plugin differs from declared pinned source')
                 if not reviewable and not ((arm/'recall.json').exists() or list((arm/'turns').glob('*/turn.json'))):
                     # Unfinished arms still need their existing live traces
                     # checked; only a genuinely unexecuted arm has none.
@@ -106,7 +133,8 @@ def audit(root: Path, *, providers=None) -> dict:
                     rules = expected_policy['source_argument_rules']
                     check(policy == expected_policy,
                         f'{label}: provider tool policy mismatch')
-                    check(bool(allowed) and all('*' not in n for n in allowed),
+                    check((bool(allowed) or result['provider']=='reme' and
+                          policy.get('native_mode')=='automatic-prefetch-only') and all('*' not in n for n in allowed),
                         f'{label}: missing exact provider tool names')
                     schemas = [json.loads(line) for line in
                         (arm / 'context.jsonl.tools.jsonl').read_text().splitlines()]
@@ -120,6 +148,27 @@ def audit(root: Path, *, providers=None) -> dict:
                     for path in paths:
                         data = read(path)
                         if isinstance(data, dict) and 'tool_calls' in data and 'prompt' in data:
+                            judgment_path=path.parent/'judgment.json'
+                            if judge_conditions is not None and judgment_path.exists():
+                                judgment=read(judgment_path)
+                                call=root/'model-calls'/Path(judgment.get('model_call') or '').name
+                                check(call.is_file() and read(call).get('request',{}).get('reasoning_effort')==
+                                      judge_conditions['reasoning_effort'],
+                                      f'{label}: judge request differs from declared generation condition')
+                            if clock_protocol==CLOCK_CONTEXT or (clock_protocol==NATIVE and
+                                    summary.get('inference_route')=='openrouter'):
+                                from .clock_context import delivery
+                                saved=data.get('clock_context') or {}
+                                observed=delivery(arm,TurnResult(**data),identifiers=saved.get('api_input_ids',[]),
+                                    hook_index=saved.get('native_query_index'),protocol=clock_protocol)
+                                check(observed.get('state')=='pass' and observed==saved,
+                                      f'{label}: actual system clock or natural provider query is unproven')
+                            if summary.get('provenance_version')=='source-provenance-v3' and result['provider'] in {'cognee','memos'}:
+                                from .prefetch_provenance import observe
+                                declaration=read(arm/'prefetch-provenance.json')
+                                check(declaration.get('provider')==result['provider'] and
+                                      data.get('prefetch_provenance')==observe(declaration,data.get('prefetch_context')),
+                                      f'{label}: native prefetch provenance is missing or differs from actual context')
                             context = actual_context(arm / 'hermes-home', data.get('session_id'),
                                 Path(workspace_record['workspace']),
                                 prompt_hash=(data.get('context_isolation') or {}).get('system_prompt_sha256'))
@@ -144,20 +193,23 @@ def audit(root: Path, *, providers=None) -> dict:
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None,
                         diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
-                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL),
+                        clock_context_protocol=clock_protocol,prompt_protocol=prompt_protocol))
                     from .native_writes import audit_ready
                     errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
                         result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
                     check(result['checks'] == read(arm / 'evaluation.json')['checks'], f'{label}: evaluation summary mismatch')
                     continue
                 recall = read(arm / 'recall.json')
+                from types import SimpleNamespace
+                recall_turn=SimpleNamespace(**recall)
                 check(recall['prompt'] == clock_prompt(spec['question_at'], contract.question), f'{label}: recall/clock mismatch')
                 check(recall['at'] == spec['question_at'], f'{label}: recall time mismatch')
                 check(bool(recall['session_id']), f'{label}: recall session missing')
                 check(not recall['returncode'] and not recall['policy_blocks'], f'{label}: recall failure')
                 judgment = read(arm / 'judgment.json')
                 check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL), f'{label}: judge protocol mismatch')
-                check(judgment['question'] == recall['prompt'], f'{label}: judge lacks recall clock context')
+                check(judgment['question'] == judge_question(recall_turn), f'{label}: judge lacks recall clock context')
                 check(judgment['answer'] == recall['answer'], f'{label}: judge answer mismatch')
                 grade = read(arm / 'grade.json')
                 check(sorted(c['id'] for c in grade['claims']) == sorted(c.id for c in contract.claims), f'{label}: incomplete judgments')
@@ -171,12 +223,12 @@ def audit(root: Path, *, providers=None) -> dict:
                     response = json.loads(judgment['response'])
                     if summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) != LEGACY_JUDGE_PROTOCOL:
                         from .semantic_grade import audit_native_judge_attempts
-                        audit_native_judge_attempts(arm/'judgment.json', question=recall['prompt'], answer=recall['answer'], claims=claims,
+                        audit_native_judge_attempts(arm/'judgment.json', question=judge_question(recall_turn), answer=recall['answer'], claims=claims,
                             judge_protocol=summary['judge_protocol'], assess_recovery=True, diagnostic_inputs=inputs,
                             diagnostic_version=summary['evidence_diagnostic_protocol'])
                     check(judgment.get('diagnostic_protocol') == summary['evidence_diagnostic_protocol'] and judgment.get('diagnostic_inputs') == inputs,
                         f'{label}: evidence diagnostic scope mismatch')
-                    check(judgment.get('prompt') == judge_prompt(recall['prompt'], recall['answer'], claims,
+                    check(judgment.get('prompt') == judge_prompt(judge_question(recall_turn), recall['answer'], claims,
                         assess_recovery=True, diagnostic_inputs=inputs, diagnostic_version=summary['evidence_diagnostic_protocol'], judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)) + judgment.get('prompt_suffix', ''), f'{label}: evidence diagnostic prompt mismatch')
                     check(grade.get('evidence_diagnostic') == validate_diagnostic(response.get('evidence_diagnostic'),
                         claims, recall['answer'], inputs, summary['evidence_diagnostic_protocol']), f'{label}: evidence diagnostic differs from judge')
@@ -189,7 +241,8 @@ def audit(root: Path, *, providers=None) -> dict:
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=source_evidence(messages, summary['evidence_diagnostic_protocol']) if summary.get('evidence_diagnostic_protocol') else None,
                         diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
-                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL),
+                        clock_context_protocol=clock_protocol,prompt_protocol=prompt_protocol))
             except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
                 errors.append(f'{label}: {type(exc).__name__}: {exc}')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:

@@ -12,6 +12,7 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
+import math
 import os
 import shutil
 import sqlite3
@@ -24,6 +25,16 @@ REPO = Path(__file__).resolve().parents[1]
 ISOLATED_TREE = REPO / "vendor" / "hermes-isolated"
 ISOLATED_BIN = REPO / "vendor" / "venv-hermes-isolated" / "bin" / "hermes"
 PATCH_RECORD = REPO / "patches" / "hermes-isolated.diff"
+
+LEGACY_PROMPT_PROTOCOL = "simulated-now-prefix-v1"
+PROMPT_PROTOCOL = "native-question-v2"
+
+def question_prompt(text: str, at: str, protocol: str) -> str:
+    if protocol == PROMPT_PROTOCOL:
+        return text
+    if protocol == LEGACY_PROMPT_PROTOCOL:
+        return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
+    raise ValueError("Unknown question prompt protocol")
 
 #: Interpreter that owns the hindsight_api install (proven: 3.12.8 at this
 #: path; 3.14 lacks the deps → ModuleNotFoundError mid-run). The Hindsight
@@ -68,9 +79,15 @@ class TurnResult:
     session_output_tokens: int | None = None
     provider_traces: list[dict] = dataclasses.field(default_factory=list)
     prefetch_context: str | None = None
+    prefetch_provenance: dict | None = None
     context_isolation: dict | None = None
     session_started_at: str | None = None
     provider_clock: dict | None = None
+    # Native stream emitter initialization -> terminal result. Unlike latency_s,
+    # excludes process startup before emitter creation and cleanup after result.
+    # This is a reported wall duration, not a provider retrieval measurement.
+    native_result_duration_s: float | None = None
+    clock_context: dict | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -88,15 +105,29 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
                    provider_name: str, model: str = "muse-spark-1.3-contributor",
                    model_provider: str = "meta-ai",
                    model_base_url: str | None = None) -> dict:
-    """Build a private provider home, with gateway inference and no live auth.
+    """Build a private provider home, without copying any authentication.
 
-    Copy the selected plugin rather than symlinking a personal profile. The
-    provider process receives only task-owned gateway credentials. Native
+    Copy the selected plugin rather than symlinking a personal profile. Native
     dispatch enforces the exact provider allowlist; built-in memory stays off.
+    Codex provisioning requires a new home so that it cannot erase a login.
     """
-    if model_provider != 'meta-ai':
-        raise ValueError('Only gateway-routed Spark inference is supported')
+    if model_provider not in ('meta-ai', 'openai-codex', 'openrouter'):
+        raise ValueError('Unsupported Hermes model provider')
+    if model_provider == 'openai-codex':
+        if model != 'gpt-6-luna':
+            raise ValueError('The Codex condition requires the exact gpt-6-luna model')
+        if model_base_url is not None:
+            raise ValueError('Codex uses its native provider endpoint, not a custom URL')
+    if model_provider == 'openrouter':
+        if model != 'deepseek/deepseek-v4.1-flash-1017':
+            raise ValueError('OpenRouter requires the exact authorized model')
+        if not model_base_url:
+            raise ValueError('OpenRouter requires the guarded loopback transport')
+        from .gateway_client import validate_route
+        validate_route(model_base_url)
     _check_paths(home)
+    if home.exists() and model_provider == 'openai-codex':
+        raise ValueError('Refusing to replace an existing Codex Hermes home')
     if home.exists():
         shutil.rmtree(home)
     home.mkdir(parents=True)
@@ -111,12 +142,22 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
         record["plugin_copied"] = True
         record["plugin_files"] = sum(1 for _ in dest.rglob("*") if _.is_file())
 
-    from .gateway_client import client_settings, validate_route
-    base_url = model_base_url or client_settings("pacbench-driver")[0]
-    validate_route(base_url)
+    if model_provider == 'meta-ai':
+        from .gateway_client import client_settings, validate_route
+        base_url = model_base_url or client_settings("pacbench-driver")[0]
+        validate_route(base_url)
+        model_config = {"default": model, "provider": model_provider, "base_url": base_url}
+    elif model_provider == 'openrouter':
+        model_config = {'default': model, 'provider': 'openrouter',
+                        'base_url': model_base_url}
+    else:
+        # Hermes owns the OAuth Responses transport and its endpoint. A
+        # separate, explicitly authorized Hermes login is needed; never copy
+        # a Codex CLI refresh token into this scratch home.
+        model_config = {"default": model, "provider": model_provider,
+                        "api_mode": "codex_responses"}
     config = {
-        "model": {"default": model, "provider": model_provider,
-                  "base_url": base_url},
+        "model": model_config,
         "memory": {"memory_enabled": False, "user_profile_enabled": False,
                    "provider": provider_name},
         "agent": {"disabled_toolsets": [
@@ -128,6 +169,9 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
             "tts", "video", "video_gen", "vision", "web", "x_search",
         ]},
     }
+    if model_provider == 'openrouter':
+        # Full variant and tier slug; `only` excludes fallback providers.
+        config['provider_routing'] = {'only': ['deepinfra/fp8/flex']}
     _write_yaml(home / "config.yaml", config)
     record["config_written"] = True
     return record
@@ -185,25 +229,29 @@ def turn_env(at: str, home: Path,
     })
     if extra_env:
         env.update(extra_env)
+    # Integrated from audit/native-question-v2: neither inheritance nor an
+    # explicit per-turn override may add instructions or disable native hooks.
+    for key in ("HERMES_EPHEMERAL_SYSTEM_PROMPT", "HERMES_ENVIRONMENT_HINT",
+                "HERMES_IGNORE_RULES", "HERMES_DESKTOP_TERMINAL"):
+        env.pop(key, None)
+    from .openrouter_direct import runtime_environment
+    runtime_environment(env)
     return env
 
 
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
-    """Drive one noninteractive turn through the isolated clone and parse traces.
-
-    Every turn carries its simulated now in chat context (not only in the
-    PACBENCH_NOW tool-time shim): the model otherwise anchors "today" on
-    the host date — demonstrated by the adversarial clock probe answering
-    the host date under a fictional clock. The prefix is recorded in the
-    turn artifact, never hidden.
-    """
+    """Drive the verbatim public question through native Hermes prompt hooks."""
     home = home.resolve()
     _check_paths(home)
     requested_at = at
     clock_record = None
+    clock_adoptions_before = set()
     env = turn_env(at, home, allowlist, extra_env)
+    from .clock_context import NATIVE
+    if env.get('PACBENCH_CLOCK_CONTEXT_PROTOCOL', NATIVE) != NATIVE:
+        raise ValueError('New execution requires native-question-v2; historical instruction conditions are audit-only')
     if (home.parent / 'provider-clock.json').exists():
         from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
@@ -216,8 +264,9 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                         'actual_start_at': provider.now().isoformat(),
                         'role': 'recovery' if recovery else 'scripted',
                         'next_checkpoint': env.get('PACBENCH_CLOCK_NEXT_CHECKPOINT')}
-    prompt = (f"[Simulated now: {at}. Treat this as the current date and "
-              f"time for everything in this turn.]\n\n{prompt}")
+        from provider_adapters.honcho_clock import adoption_files
+        clock_adoptions_before = adoption_files(home.parent)
+    prompt = question_prompt(prompt, at, PROMPT_PROTOCOL)
     session_started_at = session_started_at or at
     env['PACBENCH_SESSION_STARTED_AT'] = session_started_at
     from .context_isolation import actual_context, workspace_for
@@ -227,6 +276,10 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     if session_id:
         cmd += ["--resume", session_id]
     provider_before = provider_trace_snapshot(env)
+    context_trace = home.parent / 'context.jsonl'
+    context_before = context_trace.read_bytes() if context_trace.exists() else b''
+    from .api_input_trace import rows as api_input_rows
+    api_inputs_before=[r['request_id'] for r in api_input_rows(home.parent/'api-inputs.jsonl')]
     started = time.monotonic()
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
@@ -246,9 +299,13 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result = _parse_turn(prompt, at, partial, latency)
         result.session_started_at = session_started_at
         result.provider_clock = clock_record
+        capture_clock_adoption(result,home,workspace,clock_adoptions_before)
         result.stderr_tail = note
         result.context_isolation = actual_context(home, result.session_id, workspace)
         _recover_tool_results(result, home / "state.db")
+        capture_prefetch(result, context_trace, context_before)
+        capture_clock_context(result,home,env,api_inputs_before,context_before)
+        capture_prefetch_provenance(result,env)
         capture_provider_traces(result, env, provider_before)
         enforce_provider_tools(result, env)
         return result
@@ -257,19 +314,62 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     result.session_started_at = session_started_at
     result.context_isolation = actual_context(home, result.session_id, workspace)
     result.provider_clock = clock_record
+    capture_clock_adoption(result,home,workspace,clock_adoptions_before)
     if result.context_isolation['state'] != 'pass':
         result.policy_blocks += 1
     _recover_tool_results(result, home / "state.db")
-    trace = home.parent / "context.jsonl"
-    if trace.exists():
-        try:
-            latest = json.loads(trace.read_text(encoding="utf-8").splitlines()[-1])
-            result.prefetch_context = latest.get("prefetch")
-        except (IndexError, ValueError, OSError):
-            pass
+    capture_prefetch(result, context_trace, context_before)
+    capture_clock_context(result,home,env,api_inputs_before,context_before)
+    capture_prefetch_provenance(result,env)
     capture_provider_traces(result, env, provider_before)
     enforce_provider_tools(result, env)
     return result
+
+
+def capture_clock_adoption(turn, home, workspace, before):
+    if not turn.provider_clock or turn.provider_clock.get('version') != 'honcho-wall-clock-v4':
+        return
+    from provider_adapters.honcho_clock import capture_turn_adoption
+    value = capture_turn_adoption(home,workspace,before)
+    turn.provider_clock['python_clock'] = value
+    if value['state'] != 'pass':
+        turn.policy_blocks += 1
+
+
+def capture_prefetch_provenance(turn,env):
+    if env.get('PACBENCH_PREFETCH_PROVENANCE'):
+        from .prefetch_provenance import observe
+        turn.prefetch_provenance=observe(json.loads(env['PACBENCH_PREFETCH_PROVENANCE']),turn.prefetch_context)
+
+
+def capture_clock_context(turn,home,env,before,context_before):
+    from .clock_context import NATIVE, delivery
+    if env.get('PACBENCH_API_INPUT_TRACE') and env.get('PACBENCH_CLOCK_CONTEXT_PROTOCOL')==NATIVE:
+        turn.clock_context=delivery(home.parent,turn,before=before,hook_before=len(context_before.splitlines()),protocol=NATIVE)
+        if turn.clock_context['state']!='pass':turn.policy_blocks+=1
+
+
+def capture_prefetch(turn: TurnResult, path: Path, before: bytes) -> None:
+    """Attribute only a newly appended hook record for this exact turn.
+
+    A failed startup can leave an earlier turn's final row in place. Missing,
+    rotated, malformed or ambiguous evidence stays unknown, including when a
+    subprocess times out after successful context injection.
+    """
+    turn.prefetch_context = None
+    if not turn.session_id:
+        return
+    try:
+        current = path.read_bytes()
+        if not current.startswith(before):
+            return
+        rows = [json.loads(line) for line in current[len(before):].decode().splitlines()]
+        matches = [row for row in rows if isinstance(row, dict) and
+                   row.get('session_id') == turn.session_id and row.get('query') == turn.prompt]
+        if len(matches) == 1 and isinstance(matches[0].get('prefetch'), str):
+            turn.prefetch_context = matches[0]['prefetch']
+    except (OSError, UnicodeError, ValueError):
+        return
 
 
 
@@ -396,6 +496,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
     session_id: str | None = None
     session_in: int | None = None
     session_out: int | None = None
+    native_result_duration_s: float | None = None
     stdout_text = proc.stdout or ""
     stderr_text = proc.stderr or ""
     for line in stdout_text.splitlines():
@@ -423,6 +524,17 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
             if isinstance(delta, str) and delta:
                 text_deltas.append(delta)
         elif kind == "result":
+            # Keep the original complete subprocess latency; record the native
+            # timing separately so slow shutdown is not attributed to recall.
+            native_result_duration_s = None
+            reported = event.get("duration_ms")
+            if isinstance(reported, (int, float)) and not isinstance(reported, bool):
+                try:
+                    duration = float(reported)
+                    if math.isfinite(duration) and duration >= 0:
+                        native_result_duration_s = duration / 1000
+                except OverflowError:
+                    pass
             # Final turn payload: full answer text (preferred over deltas).
             text = event.get("text") or ""
             if isinstance(text, str) and text:
@@ -474,6 +586,7 @@ def _parse_turn(prompt: str, at: str, proc: subprocess.CompletedProcess,
                       stdout_tail=stdout_tail,
                       session_input_tokens=session_in,
                       session_output_tokens=session_out,
+                      native_result_duration_s=native_result_duration_s,
                       raw_events=events, session_id=session_id)
 
 

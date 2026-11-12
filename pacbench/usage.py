@@ -1,6 +1,7 @@
 """Read-only model-call attribution; never guess a tool's token cost."""
 from __future__ import annotations
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,29 @@ from .gateway_client import STATE
 def snapshot(roles, state=STATE):
     if not roles:
         return {'state':'unavailable','reason':'No isolated gateway project mapping','calls':[]}
+    if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        from .openrouter_direct import active
+        if active():
+            from .direct_accounting import live_budget,VERSION
+            try:
+                calls=[{**c,'role':roles[c['project']]} for c in live_budget().snapshot() if c['project'] in roles]
+                return {'state':'captured','at':datetime.now(timezone.utc).isoformat(),'calls':calls,'transport':VERSION}
+            except (OSError,ValueError,KeyError,RuntimeError) as exc:
+                return {'state':'unavailable','reason':type(exc).__name__,'calls':[]}
+        import urllib.request
+        from .gateway_client import client_settings
+        base, token = client_settings('usage-check')
+        request = urllib.request.Request(base.split('/p/', 1)[0] + '/usage',
+                                         headers={'Authorization': 'Bearer ' + token})
+        try:
+            with urllib.request.urlopen(request, timeout=10) as response:
+                capture = json.load(response)
+            calls = [{**row, 'role': roles[row['project']]} for row in capture['calls']
+                     if row['project'] in roles]
+            return {'state': 'captured', 'at': datetime.now(timezone.utc).isoformat(),
+                    'calls': calls, 'transport': 'openrouter'}
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            return {'state': 'unavailable', 'reason': type(exc).__name__, 'calls': []}
     try:
         with sqlite3.connect(f'file:{Path(state) / "ledger.sqlite3"}?mode=ro', uri=True) as db:
             db.row_factory = sqlite3.Row
@@ -95,6 +119,33 @@ def refresh_window(capture, latest):
 
 def tracked_turn(run_turn, prompt, *, usage_path, **kwargs):
     from .followups import save
+    if (kwargs.get('extra_env') or {}).get('PACBENCH_INFERENCE_ROUTE') == 'codex-subscription':
+        # Subscription requests do not appear in the Muse ledger. In
+        # particular, an empty ledger is not evidence of zero calls or cost.
+        # Hermes counters are session-cumulative, so preserve them as such
+        # rather than attributing their totals to this individual turn.
+        roles = json.loads((kwargs.get('extra_env') or {}).get('PACBENCH_USAGE_ROLES', '{}'))
+        before = snapshot(roles) if roles else None
+        result = None
+        try:
+            result = run_turn(prompt, **kwargs)
+            return result
+        finally:
+            provider_window = (window(before, snapshot(roles)) if roles else
+                               {'state': 'unavailable', 'reason': 'No provider gateway project mapping'})
+            capture = {
+                'provider_gateway_window': provider_window,
+                'state': 'unavailable', 'route': 'codex-subscription',
+                'reason': 'Subscription request-level cost and model-call count are not reported by the gateway',
+                'cost_usd': None, 'cost_status': 'unpriced subscription usage',
+                'model_calls': [], 'model_call_count': None, 'per_tool_tokens': None,
+                'session_cumulative_tokens': {
+                    'input_tokens': getattr(result, 'session_input_tokens', None),
+                    'output_tokens': getattr(result, 'session_output_tokens', None),
+                },
+                'path_attribution_version': 'native-completion-v1',
+            }
+            save(usage_path, capture)
     roles = json.loads((kwargs.get('extra_env') or {}).get('PACBENCH_USAGE_ROLES','{}'))
     before = snapshot(roles)
     try:

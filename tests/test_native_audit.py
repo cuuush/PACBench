@@ -89,6 +89,31 @@ def test_missing_native_ingestion_cannot_pass(trace):
     assert audit(root)['state'] == 'fail'
 
 
+def test_declared_judge_reasoning_requires_the_actual_model_request(trace):
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary.update(inference_route='openrouter',judge_generation_conditions={'reasoning_effort':'low'})
+    save(root/'summary.json',summary)
+    assert any('generation condition' in e for e in audit(root)['errors'])
+    judgment=json.loads((arm/'judgment.json').read_text());judgment['model_call']='judge.json'
+    save(arm/'judgment.json',judgment)
+    save(root/'model-calls/judge.json',{'request':{'reasoning_effort':'low'}})
+    assert audit(root)['state']=='pass'
+    save(root/'model-calls/judge.json',{'request':{'reasoning_effort':'high'}})
+    assert any('generation condition' in e for e in audit(root)['errors'])
+
+
+def test_v3_provenance_is_supported_without_rewriting_legacy_conditions(trace):
+    root,_=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary['provenance_version']='source-provenance-v3'
+    save(root/'summary.json',summary)
+    assert audit(root)['state']=='pass'
+    summary['provenance_version']='invented-protocol'
+    save(root/'summary.json',summary)
+    assert 'Unsupported provenance protocol' in str(audit(root)['errors'])
+
+
 def test_selected_completed_arm_can_be_audited_without_certifying_an_interrupted_one(trace):
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())
@@ -107,6 +132,19 @@ def test_source_document_corruption_cannot_pass(trace):
     root, _ = trace
     next((root / 'sources').glob('*/messages.txt')).write_text('A preloaded answer')
     assert 'delivered source text differs' in str(audit(root)['errors'])
+
+
+@pytest.mark.parametrize('field,value',[('sender','Maya'),('thread','other-thread')])
+def test_sender_or_thread_only_exposure_change_cannot_pass(trace,field,value):
+    root,_=trace
+    path=next((root/'sources').glob('*/messages.json'))
+    document=path.with_name('messages.txt');text=document.read_bytes()
+    messages=json.loads(path.read_text());body=messages[0]['text']
+    messages[0][field]=value;save(path,messages)
+    assert messages[0]['text']==body and document.read_bytes()==text
+    result=audit(root)
+    assert result['state']=='fail'
+    assert any('delivered source text differs from frozen observations' in e for e in result['errors'])
 
 
 @pytest.mark.parametrize('compact',[False,True])
@@ -217,3 +255,23 @@ def test_audit_rejects_unknown_recorded_protocol_before_reading_run(tmp_path, ke
     result = audit(tmp_path)
     assert result['state'] == 'fail'
     assert 'Unsupported' in str(result['errors'])
+
+
+def test_native_question_protocol_rejects_legacy_prefix(trace):
+    root, arm = trace
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['question_prompt_protocol'] = 'native-question-v2'
+    save(root / 'summary.json', summary)
+    assert any('recall/clock mismatch' in e for e in audit(root)['errors'])
+    recall = json.loads((arm / 'recall.json').read_text())
+    recall['prompt'] = 'When is dinner?'
+    save(arm / 'recall.json', recall)
+    judgment = json.loads((arm / 'judgment.json').read_text())
+    judgment['question'] = recall['prompt']
+    save(arm / 'judgment.json', judgment)
+    # The native saved input must agree too; changing only public receipts
+    # must not hide a prefixed question that Hermes actually received.
+    assert 'Native Hermes user messages differ' in str(audit(root)['errors'])
+    with sqlite3.connect(arm / 'hermes-home/state.db') as db:
+        db.execute("UPDATE messages SET content=? WHERE role='user'", (recall['prompt'],))
+    assert audit(root)['state'] == 'pass', audit(root)

@@ -13,6 +13,56 @@ Scene style:
 - Let channel and time metadata establish the thread and sequence.
 - Put one checkable outcome or constraint in each fact, including date scope and continuity; avoid narrative instructions.
 
+## Write for the context the writer actually receives
+
+Each scene is a separate writing request, but it is not entirely isolated: the
+writer receives earlier generated messages from **that same thread**, the
+current scene and its facts, relevant cast descriptions, and channel/time
+metadata. It does not receive the whole spec, other threads' transcripts,
+future scenes, or the later evaluation questions. The checker receives earlier
+source messages across channels; that wider view does not supply missing
+context to the writer. Check these boundaries against the generator revision
+you will actually use.
+
+Before writing a scene, decide which of these cases applies:
+
+- **Independent arrangement:** describe it on its own. Avoid “separately”,
+  “the other plan”, or “before the walk” when the referenced event is absent
+  from this thread and is not needed to write the exchange.
+- **Same-thread continuation:** rely on the preceding source where it is
+  unambiguous. “Same time” or “another day” can be natural when the earlier
+  exchange establishes the referent. A long gap or multiple similar events
+  may require an ordinary clarification.
+- **Cross-thread dependency:** put the minimum established background in the
+  scene prose: which event, its current state, who knows it, and what is being
+  communicated now. Do not assume the writer has read another scene. A person
+  who was absent from the earlier exchange needs a plausible relay before
+  responding as though they know its contents.
+
+For example, Jen's first DM does not contain the park-group arrangement.
+Instead of “Jen separately arranges a call before the Saturday walk; keep the
+appointments distinct”, write:
+
+> Jen asks the user for a short phone call to review her job application.
+> They agree on Saturday October 10 at 9 am.
+
+Keep the call's date/time and purpose in its inline facts. The separate
+channels and later cancellation-scope question test event separation; the
+dialogue need not explain the benchmark's distinction.
+
+By contrast, a group scene that depends on a DM can say: “Maya and the user
+agreed in their DM this morning to move the existing Friday lunch from 1 pm
+to noon. Leo has not heard about the change. The user relays it to him here,
+and he accepts.” This supplies writer context and motivates the relay without
+requiring a recap of every unchanged detail. This is prose in the existing
+`scene` field, not a new schema field.
+
+Background must describe only established information available before this
+scene. Do not introduce future outcomes or assume an earlier intended fact was
+successfully generated. Keep background distinct from the facts this scene
+must establish. During source review, verify the actual prior messages and
+the relay; private authoring prose is never provider evidence.
+
 Email channels use `type: "email"` and a `subject`. Each generated entry becomes an RFC 5322 email body with From/To, Date, Message-ID and reply references. Bodies preserve paragraphs and quoted reply history as part of the actual sender's message. Email exchanges stay at 2–6 messages at every noise level; more email volume comes from authored threads rather than text-chat quotas. Messaging and email addresses are distinct accounts on the same separate Contacts card. Memcal consumes Inbox/Sent through its native secure IMAP reader against a synthetic local mailbox; this is a protocol fixture, not a running Proton Bridge. No native readers or archive writes are substituted. The checker sees preceding source context across channels; the writer sees its own preceding thread and authored requirements.
 
 Every scene checker sees preceding cross-channel source context. Its cache binds the actual checked transcript and context, not just the scene description. A changed checker/context can reverify cached text without rewriting it; only a rejected realization needs a new draft. The private scene cache preserves unvisited renders through interrupted revisions. Frozen-source audits compare message bodies and metadata with the saved passing checker input and model receipt.

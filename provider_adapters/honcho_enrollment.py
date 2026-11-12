@@ -139,7 +139,8 @@ def verify_before_submission(root, source, messages, host):
 def enroll_source(source, root):
     from honcho import Honcho
     from honcho.api_types import SessionPeerConfig
-    from plugins.memory.honcho.client import HonchoClientConfig
+    from pacbench.provider_loader import provider_module
+    HonchoClientConfig=provider_module("honcho","client").HonchoClientConfig
     from provider_adapters import honcho_clock
     from pacbench.stop import check_stop
 

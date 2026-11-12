@@ -43,7 +43,11 @@ honcho.Honcho = lambda **kwargs: NativeHoncho(**kwargs,
 module = ModuleType('plugins.memory.honcho.client')
 module.HonchoClientConfig = SimpleNamespace(from_global_config=lambda: SimpleNamespace(
     user_observe_me=True,user_observe_others=False,ai_observe_me=False,ai_observe_others=True))
-sys.modules['plugins.memory.honcho.client'] = module
+from pacbench import provider_loader
+def resolve(name, submodule=None):
+    assert (name,submodule)==('honcho','client')
+    return module
+provider_loader.provider_module = resolve
 from provider_adapters import honcho_clock
 honcho_clock.enabled = lambda root: False
 enrollment.native_snapshot = lambda *args: deepcopy(state)

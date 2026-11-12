@@ -84,8 +84,12 @@ def native_fixture(tmp_path,monkeypatch,*,now=BEFORE,joined=None):
     plugin=ModuleType('plugins.memory.honcho.client');plugin.HonchoClientConfig=SimpleNamespace(
         from_global_config=lambda:SimpleNamespace(user_observe_me=True,user_observe_others=False,
                                                  ai_observe_me=False,ai_observe_others=True))
-    for name,value in [('honcho',native),('honcho.api_types',api),('plugins.memory.honcho.client',plugin)]:
+    for name,value in [('honcho',native),('honcho.api_types',api)]:
         monkeypatch.setitem(sys.modules,name,value)
+    def resolve(name,submodule=None):
+        assert (name,submodule)==('honcho','client')
+        return plugin
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolve)
     monkeypatch.setenv(enrollment.ENVIRONMENT,enrollment.PROTOCOL)
     monkeypatch.delenv('PACBENCH_STOP_FILE',raising=False)
     def read(root,workspace,plans):

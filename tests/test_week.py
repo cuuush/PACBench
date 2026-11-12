@@ -66,7 +66,40 @@ def test_noise_is_a_week_enum_and_high_is_per_member_not_per_group(tmp_path):
     assert 'unrelated topics' in scene_prompt(scene_by_id['leo-joins'])
     assert 'members can be silent' not in scene_prompt(scene_by_id['leo-joins']).lower()
     spec['noise']='extreme'
-    with pytest.raises(ValueError,match='low, medium or high'):resolve_spec(spec,tmp_path,week_start="2026-09-07")
+    with pytest.raises(ValueError,match='low, medium, high or authored'):resolve_spec(spec,tmp_path,week_start="2026-09-07")
+
+
+def test_authored_noise_leaves_volume_to_scene_and_preserves_explicit_range(tmp_path):
+    from pacbench.authoring import scene_spec
+    spec=json.loads(Path('specs/pizza_week.json').read_text())
+    spec['noise']='authored'
+    spec['days']['wednesday']['scenes'][1]['message_range']=[3, 7]
+    scenes,_,resolved=resolve_spec(spec,tmp_path,week_start='2026-09-07')
+    by_id={s.id:s for s in scenes}
+    assert resolved['noise']=='authored'
+    chat=by_id['maya-invite']; email=by_id['ben-email-reschedule']
+    assert chat.message_range is None and chat.messages_per_person is None
+    assert email.message_range is None and email.messages_per_person is None
+    assert 'Noise:' not in scene_prompt(chat)
+    assert 'Write between' not in scene_prompt(chat)
+    assert 'short email' not in scene_prompt(email)
+    assert 'Use a short exchange' not in scene_prompt(email)
+    explicit=by_id['devon-invite']
+    assert explicit.message_range==(3, 7)
+    assert 'Write between 3 and 7 messages.' in scene_prompt(explicit)
+    assert scene_spec(chat)['prompt_version']=='scene-authored-v1'
+
+
+def test_omitted_noise_and_pizza_day_keep_low_defaults(tmp_path):
+    from pacbench.authoring import scene_spec
+    spec=json.loads(Path('specs/pizza_day.json').read_text())
+    explicit,_,_=resolve_spec(spec,tmp_path)
+    del spec['noise']
+    default,_,resolved=resolve_spec(spec,tmp_path)
+    assert resolved['noise']=='low'
+    assert [scene_spec(s) for s in default]==[scene_spec(s) for s in explicit]
+    assert 'Noise: low.' in scene_prompt(default[0])
+    assert default[0].message_range==(2, 12)
 
 
 def test_medium_noise_keeps_email_volume_distinct_from_text_chat(tmp_path):

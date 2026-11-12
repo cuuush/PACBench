@@ -76,6 +76,13 @@ def audit_scenes(root, resolved, life_id, messages):
         expected.extend(built)
         if row['source_ids']!=[m['source_id'] for m in built] or row['record']['status']!='ok' or row['verdict'].get('supported') is not True:
             errors.append(f"{plan.id}: incomplete source verification")
+        if plan.messages is not None:
+            record = row['record']
+            if (record.get('source_mode') != 'supplied' or record.get('attempts') != 0 or
+                    record.get('generation_paths')):
+                errors.append(f'{plan.id}: supplied source has invalid writer provenance')
+            if not row.get('verification_binding'):
+                errors.append(f'{plan.id}: supplied source is missing its checker binding')
         if not row.get('verification_binding'):continue  # Legacy receipts keep their original protocol.
         paths=row['record'].get('judgment_paths',[])
         review=read_json(root/'scene-verifications'/Path(paths[-1]).name) if paths else {}

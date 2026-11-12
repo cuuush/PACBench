@@ -4,10 +4,11 @@ from unittest.mock import patch
 
 import pytest
 
-from pacbench import harness, native_pilot, native_resume
+from pacbench import harness, native_pilot, native_resume, live_trials
 
 
-def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path):
+def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path, monkeypatch):
+    monkeypatch.setitem(live_trials.LIVE_TRIALS, "enabled", False)
     with patch('pacbench.gateway_client.require_live_cost_boundary') as cost, \
          patch('pacbench.native_pilot.provision') as provider, \
          patch('pacbench.harness.subprocess.run') as child:
@@ -23,7 +24,8 @@ def test_live_entrypoints_stop_before_backend_and_gateway(tmp_path):
     assert not (tmp_path / 'new').exists()
 
 
-def test_direct_provision_stops_before_model_configuration(tmp_path):
+def test_direct_provision_stops_before_model_configuration(tmp_path, monkeypatch):
+    monkeypatch.setitem(live_trials.LIVE_TRIALS, "enabled", False)
     with patch('pacbench.native_pilot.client_settings') as settings:
         with pytest.raises(RuntimeError, match='Native trials blocked'):
             native_pilot.provision(tmp_path, 'memcal')

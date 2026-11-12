@@ -1,6 +1,8 @@
 # vendor/ — PACBench-owned isolated Hermes (W1)
 
-**Live trials remain held:** The isolated Hermes v0.23.1 integration has
+**Upgraded Pizza Day validation is enabled; the new Pizza Week remains held**
+until native provider and Honcho scheduling checks pass. The isolated Hermes
+v0.23.1 integration has
 passed a free synthetic local gateway/CLI canary and a separate direct HTTPS
 check. Each turn owns and gracefully stops its native gateway. The current
 Honcho `honcho-wall-clock-v5` protocol uses a shared-offset Python clock for
@@ -11,7 +13,8 @@ date, not exact current time. Historical clock receipts retain their original
 protocols and cannot resume as v5. These checks establish transport behavior,
 not model quality or native provider processing. Keep the persistent OpenRouter
 task ledger and its existing uncertain holds; never initialize a replacement.
-Verify provider readiness before enabling paid trials. The unrelated Muse route
+Every arm must pass native preflight and processing barriers before recall.
+The unrelated Muse route
 remains blocked if its historical ledger is missing.
 
 This release supports Python 3.14 for normal runtime use. Its lock explicitly

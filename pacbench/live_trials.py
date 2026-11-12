@@ -1,8 +1,8 @@
-"""Keep paid trials stopped pending restored state and native provider canaries."""
+"""Admission switch for authorized native trials after runtime verification."""
 
 LIVE_TRIALS = {
-    'enabled': False,
-    'reason': 'Offline Hermes, clock and TLS integration passed; restore the original budget ledger and verify native provider readiness before enabling paid trials.',
+    'enabled': True,
+    'reason': 'Isolated Hermes gateway/CLI, direct TLS, plugin APIs and persistent authorized OpenRouter accounting verified; every arm still requires native preflight and processing barriers.',
 }
 
 

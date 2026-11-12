@@ -17,8 +17,16 @@ class GatewayLifecycleError(RuntimeError):
     pass
 
 
-def require_simulated_clock_ready():
-    raise GatewayLifecycleError('Simulated native gateway clocks require verified shutdown marker and TLS handling')
+def require_simulated_clock_ready(root: Path):
+    """Reject legacy or unverified process clocks before any provider clock step."""
+    from .provider_clock import LIBRARY, LIBRARY_SHA256
+    from provider_adapters.honcho_clock import load
+    try:
+        load(root)  # v4 only; historical receipts remain readable but cannot resume.
+        if hashlib.sha256(LIBRARY.read_bytes()).hexdigest() != LIBRARY_SHA256:
+            raise ValueError('clock library hash mismatch')
+    except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
+        raise GatewayLifecycleError('Simulated native gateway clock is not verified v4') from exc
 
 
 def _live(pid: int) -> bool:

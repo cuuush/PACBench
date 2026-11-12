@@ -74,7 +74,7 @@ def audit_honcho_receipt(batch, result, previous_work=None):
                 errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
     if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
     changes=result.get('processing_status',[])
-    if result.get('clock_protocol') in ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3'):
+    if result.get('clock_protocol') in ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4'):
         ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
         witnesses = result.get('message_witnesses', [])
         final = changes[-1] if changes else {}

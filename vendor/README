@@ -3,9 +3,8 @@
 **Upgrade test only:** Native trials remain blocked while integration and
 provider readiness are validated. The harness owns and verifies a fresh
 Hermes gateway for each turn, then stops it gracefully; real-clock offline
-captures confirmed refreshed dates and tool grants. Simulated native gateway
-clocks remain blocked: their control-plane discovery failed in offline testing
-and needs a separately verified fix. The per-turn date shim refreshes Hermes's
+captures confirmed refreshed dates and tool grants. Simulated native gateway clocks use the separate v4 library after its hash and
+condition are verified; the old v3 runtime cannot resume a simulated trial. The per-turn date shim refreshes Hermes's
 stock date line; it does not supply exact time. TLS was not tested in the
 local capture. The existing spending-ledger guard remains independent.
 

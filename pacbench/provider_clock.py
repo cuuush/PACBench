@@ -14,8 +14,10 @@ from datetime import date, datetime, time as daytime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-LIBRARY = Path(__file__).resolve().parents[1] / 'vendor/libfaketime/runtime/libfaketime.so.1'
-LIBRARY_SHA256 = '45c4822a7516e9c41ec1b5498b0f08665ba4877330e9e9573c1213d16d6629a0'
+LEGACY_LIBRARY = Path(__file__).resolve().parents[1] / 'vendor/libfaketime/runtime/libfaketime.so.1'
+LEGACY_LIBRARY_SHA256 = '45c4822a7516e9c41ec1b5498b0f08665ba4877330e9e9573c1213d16d6629a0'
+LIBRARY = Path(__file__).resolve().parents[1] / 'vendor/libfaketime/runtime-v4/libfaketime.so.1'
+LIBRARY_SHA256 = 'd69f77e806fd01db81d8e26e5722704ad3951c3de2e68dfbcd9d32a2aff817fa'
 
 
 def nightly_time(collection_day: date, timezone_name: str = 'America/New_York') -> datetime:

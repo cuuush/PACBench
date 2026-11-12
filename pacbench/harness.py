@@ -217,7 +217,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     env = turn_env(at, home, allowlist, extra_env)
     if (home.parent / 'provider-clock.json').exists():
         from .hermes_gateway import require_simulated_clock_ready
-        require_simulated_clock_ready()
+        require_simulated_clock_ready(home.parent)
         from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
         if recovery:

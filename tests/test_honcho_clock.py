@@ -267,3 +267,29 @@ def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path,abort):
     assert events==[('unpause','owned-db'),'cleanup',('stop','--time','5','owned-db')]
     assert not marker.exists()
     assert json.loads((tmp_path/'provider-clock-interrupted.json').read_text())['scored'] is False
+
+
+@pytest.mark.parametrize('declared', ['honcho-wall-clock-v3', 'honcho-wall-clock-v4'])
+def test_clock_audit_keeps_versioned_hash_and_v3_overhead_semantics(tmp_path, declared):
+    from pacbench.followups import save
+    from pacbench.provider_clock import LEGACY_LIBRARY_SHA256
+    now = datetime.now(timezone.utc)
+    later = now + timedelta(minutes=10)
+    expected_hash = LIBRARY_SHA256 if declared == 'honcho-wall-clock-v4' else LEGACY_LIBRARY_SHA256
+    config = {'version': declared, 'library_sha256': expected_hash, 'wall_speed': 1,
+        'monotonic': 'real', 'gateway_clock': 'real', 'source_timestamps': 'unchanged', 'native_batching': 'unchanged'}
+    startup = {'version': declared, 'library_sha256': expected_hash,
+        'provider_at': now.isoformat(), 'api_date': now.isoformat(), 'db_at': now.isoformat(),
+        'real_at': now.isoformat(), 'monotonic': 'real'}
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    overhead = {'kind': 'benchmark-overhead', 'version': declared, 'provider_at': now.isoformat(),
+        'real_started_at': now.isoformat(), 'real_at': later.isoformat(), 'database_paused': True,
+        'db_after': now.isoformat(), 'pre_step': idle_snapshot()}
+    (tmp_path/'provider-clock-steps.jsonl').write_text(json.dumps(overhead)+'\n')
+    assert clock.audit_evidence(tmp_path, declared) == []
+    config['library_sha256'] = LEGACY_LIBRARY_SHA256 if declared == 'honcho-wall-clock-v4' else LIBRARY_SHA256
+    startup['library_sha256'] = config['library_sha256']
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    assert clock.audit_evidence(tmp_path, declared)

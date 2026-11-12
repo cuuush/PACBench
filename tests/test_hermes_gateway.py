@@ -99,7 +99,7 @@ def test_simulated_clock_is_blocked_before_native_clock_advance(tmp_path, monkey
     home = tmp_path / 'hermes-home'
     (tmp_path / 'provider-clock.json').write_text('{}')
     with patch('provider_adapters.honcho_clock.before_turn') as advance:
-        with pytest.raises(gateway.GatewayLifecycleError, match='Simulated native gateway clocks'):
+        with pytest.raises(gateway.GatewayLifecycleError, match='not verified v4'):
             harness.run_turn('q', at='2026-09-09T09:00:00-04:00', home=home, allowlist='')
     advance.assert_not_called()
 
@@ -161,3 +161,18 @@ def test_control_probe_requires_native_ready_and_same_environment(tmp_path, monk
     assert gateway._control_ready(tmp_path, 42, Path('/python'), env, timeout=3)
     assert probe.call_args.kwargs['env'] is env
     assert "p.get('pid')==int(sys.argv[2])" in probe.call_args.args[0][3]
+
+
+def test_simulated_clock_preflight_accepts_only_verified_v4(tmp_path):
+    from provider_adapters import honcho_clock
+    from pacbench.provider_clock import LEGACY_LIBRARY_SHA256, LIBRARY
+    if not LIBRARY.exists():
+        pytest.skip('Install pinned v4 clock runtime')
+    honcho_clock.create(tmp_path, '2026-09-09T09:00:00-04:00')
+    gateway.require_simulated_clock_ready(tmp_path)
+    path = tmp_path / 'provider-clock.json'
+    config = json.loads(path.read_text())
+    config.update(version='honcho-wall-clock-v3', library_sha256=LEGACY_LIBRARY_SHA256)
+    path.write_text(json.dumps(config))
+    with pytest.raises(gateway.GatewayLifecycleError, match='not verified v4'):
+        gateway.require_simulated_clock_ready(tmp_path)

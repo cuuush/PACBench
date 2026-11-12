@@ -107,12 +107,13 @@ def test_worker_setup_error_does_not_print_exception_body(monkeypatch,capsys,pro
 
 
 @pytest.mark.parametrize('fail_second',[False,True])
-def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,monkeypatch,fail_second):
+@pytest.mark.parametrize('speaker',['Riley','Alex Reed'])
+def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,monkeypatch,fail_second,speaker):
     cfg=SimpleNamespace(user_observe_me=True,user_observe_others=False,
         ai_observe_me=False,ai_observe_others=True)
     session=Session(fail_at=2 if fail_second else None,error=TimeoutError('SECRET_NATIVE_BODY'))
     session.add_peers=lambda peers:None
-    session.get_peer_configuration=lambda peer:SimpleNamespace(observe_me=False,observe_others=True)
+    session.get_peer_configuration=lambda peer:SimpleNamespace(observe_me=peer=='user',observe_others=peer!='user')
     session.queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'total_work_units':0})
     class Peer:
         def __init__(self,name):self.name=name
@@ -139,11 +140,19 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     (root/'hermes-home/honcho.json').write_text(json.dumps({'baseUrl':'http://127.0.0.1:1',
         'hosts':{'hermes':{'aiPeer':'hermes','peerName':'user','workspace':'isolated'}}}))
     (root/'native-processing-settings.json').write_text('{}')
-    records=[{'channel':'imessage','thread':'opaque','sender':'Riley','from_owner':False,
+    from provider_adapters import honcho_enrollment as enrollment
+    monkeypatch.setenv(enrollment.ENVIRONMENT,enrollment.PROTOCOL)
+    monkeypatch.setattr(enrollment,'verify_before_submission',lambda *a:{})
+    records=[{'channel':'imessage','thread':'opaque','sender':speaker,'from_owner':False,
+        'structured':{'participants':['Me',speaker]},
         'source_id':f'source-{i}','text':f'Message {i}','written_at':'2026-10-19T12:00:00-04:00'} for i in range(201)]
     (source/'messages.json').write_text(json.dumps(records))
     result=connector.honcho(source,root,'unused','unused')
     resolver.assert_called_once_with('honcho','client')
+    for ack in result['result']:
+        for message in ack['messages']:
+            assert message['peer_id']==speaker.replace(' ','-')
+            assert message['metadata']['sender']==speaker
     assert result['ready'] is not fail_second
     assert bool(processed) is not fail_second
     index=root/'ingestion-delivery/day/index.json'

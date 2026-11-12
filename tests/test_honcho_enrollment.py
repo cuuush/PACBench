@@ -243,3 +243,42 @@ def test_two_threads_enroll_in_chronological_order_before_nightly_delivery(tmp_p
     assert advances==[BEFORE,'2026-09-10T22:25:00+00:00']
     assert (source/'messages.json').read_text()==original
     enrollment.verify_before_submission(root,source,[second,message()],HOST)
+
+
+def test_native_peer_encoding_keeps_original_names_and_legacy_plans():
+    source=message();source['sender']='Alex Reed';source['structured']['participants']=['Me','Alex Reed']
+    original=deepcopy(source)
+    current=enrollment.source_plans([source],HOST)[0]
+    assert current['peer_ids']=={'Alex Reed':'Alex-Reed','Me':'user'}
+    assert current['source_peers']==['Alex-Reed','user']
+    legacy=enrollment.source_plans([source],HOST,protocol=enrollment.LEGACY_PROTOCOL)[0]
+    assert legacy['source_peers']==['Alex Reed','user'] and 'peer_ids' not in legacy
+    assert source==original
+
+
+def test_native_peer_encoding_collision_across_threads_or_batches_is_refused():
+    first=message();first['sender']='Alex Reed';first['structured']['participants']=['Me','Alex Reed']
+    second=message();second.update(source_id='two',thread='other',sender='Alex-Reed')
+    second['structured']['participants']=['Me','Alex-Reed']
+    with pytest.raises(enrollment.EnrollmentError,match='collide'):
+        enrollment.source_plans([first,second],HOST)
+    prior=enrollment.validate_peer_identities(enrollment.source_plans([first],HOST))
+    with pytest.raises(enrollment.EnrollmentError,match='collide'):
+        enrollment.validate_peer_identities(enrollment.source_plans([second],HOST),prior)
+
+
+def test_encoded_source_acknowledgments_still_require_original_sender_metadata():
+    from pacbench.document_audit import audit_honcho_receipt
+    source=message();source['sender']='Alex Reed';source['structured']['participants']=['Me','Alex Reed']
+    plan=enrollment.source_plans([source],HOST)[0]
+    result={'membership_protocol':enrollment.PROTOCOL,'membership_witness':snapshot(plan),
+        'clock_protocol':'honcho-wall-clock-v3','source_error_scope':'submitted-source-sessions-v1',
+        'result':[{'session_id':plan['session_id'],'observer':{'peer_id':'hermes','observe_others':True},
+            'messages':[{'id':'native-one','session_id':plan['session_id'],'peer_id':'Alex-Reed',
+                'content':source['text'],'created_at':source['written_at'],
+                'metadata':{k:v for k,v in source.items() if k!='text'}}]}],
+        'processing_status':[{'claims':0,'pending':0,'embeddings':0,'errors':[]}],
+        'message_witnesses':[{'id':'native-one','queue_id':1,'processed':True,'has_error':False}]}
+    assert audit_honcho_receipt([source],result)==[]
+    result['result'][0]['messages'][0]['metadata']['sender']='Alex-Reed'
+    assert 'Honcho acknowledged changed source text, speaker, time or metadata' in audit_honcho_receipt([source],result)

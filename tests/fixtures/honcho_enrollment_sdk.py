@@ -63,13 +63,13 @@ with tempfile.TemporaryDirectory(prefix='honcho-sdk-offline-') as directory:
         'baseUrl':'http://127.0.0.1:1','hosts':{'hermes':{
             'peerName':'user','aiPeer':'hermes','workspace':'isolated'}}}))
     original = json.dumps([{'source_id':'fixture','channel':'imessage','thread':'opaque',
-        'sender':'Sam','from_owner':False,'text':'Original source body.',
-        'written_at':'2026-09-10T22:00:00+00:00','structured':{'participants':['Me','Sam']}}])
+        'sender':'Alex Reed','from_owner':False,'text':'Original source body.',
+        'written_at':'2026-09-10T22:00:00+00:00','structured':{'participants':['Me','Alex Reed']}}])
     (source/'messages.json').write_text(original)
     result = enrollment.enroll_source(source,root)
     assert result['ready'] is True
     assert requests[-1]['path'].endswith('/peers')
-    assert set(requests[-1]['body']) == {'Sam','user','hermes'}
+    assert set(requests[-1]['body']) == {'Alex-Reed','user','hermes'}
     assert requests[-1]['body']['user']['observe_me'] is True
     assert requests[-1]['body']['hermes']['observe_others'] is True
     assert not any('/messages' in r['path'] or '/chat' in r['path'] for r in requests)

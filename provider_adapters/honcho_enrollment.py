@@ -9,13 +9,16 @@ from datetime import datetime, timedelta
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
 
 from pacbench.followups import save
 
-PROTOCOL = 'honcho-chronological-membership-v1'
+LEGACY_PROTOCOL = 'honcho-chronological-membership-v1'
+PROTOCOL = 'honcho-chronological-membership-v2'
+SUPPORTED = {LEGACY_PROTOCOL, PROTOCOL}
 ENVIRONMENT = 'PACBENCH_HONCHO_MEMBERSHIP_PROTOCOL'
 
 
@@ -35,7 +38,33 @@ def initial_at(messages):
     return (min(instant(m['written_at']) for m in messages) - timedelta(minutes=5)).isoformat()
 
 
-def source_plans(messages, host):
+def source_peer_id(name, host, *, protocol=PROTOCOL):
+    """Native ID encoding only; original sender/roster metadata stays intact.
+
+    Match the shipped Hermes Honcho sanitize_peer_id convention. Reject alias
+    collisions before writes rather than merging distinct people.
+    """
+    if protocol not in SUPPORTED:raise EnrollmentError('Unsupported Honcho membership protocol')
+    value=host['peerName'] if name=='Me' else name
+    if protocol==LEGACY_PROTOCOL:return value
+    value=re.sub(r'[^a-zA-Z0-9_-]','-',value)
+    if not value or len(value)>512:raise EnrollmentError('Source identity cannot fit the native peer-ID contract')
+    return value
+
+
+def validate_peer_identities(plans, previous=None):
+    identities=dict(previous or {})
+    for plan in plans:
+        for name,peer in plan.get('peer_ids',{}).items():
+            if name in identities and identities[name]!=peer:
+                raise EnrollmentError('Source identity mapping changed')
+            if any(other!=name and old==peer for other,old in identities.items()):
+                raise EnrollmentError('Distinct source identities collide after native peer-ID encoding')
+            identities[name]=peer
+    return identities
+
+
+def source_plans(messages, host, *, protocol=PROTOCOL):
     if not messages:
         raise EnrollmentError('Honcho enrollment requires a nonempty source batch')
     groups = {}
@@ -58,13 +87,15 @@ def source_plans(messages, host):
             speaker = 'Me' if message['from_owner'] else message['sender']
             if speaker not in roster:
                 raise EnrollmentError('Honcho source speaker is absent from declared membership')
-        native = {name: host['peerName'] if name == 'Me' else name for name in roster}
+        native = {name: source_peer_id(name,host,protocol=protocol) for name in roster}
         if len(set(native.values())) != len(native) or host['aiPeer'] in native.values():
             raise EnrollmentError('Honcho source/native peer identity collision')
         session_id = 'source-' + hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24]
         plans.append({'session_id': session_id, 'participants': sorted(roster),
             'source_peers': sorted(native.values()), 'observer': host['aiPeer'],
-            'earliest_source_at': min(instant(m['written_at']) for m in batch).isoformat()})
+            'earliest_source_at': min(instant(m['written_at']) for m in batch).isoformat(),
+            **({'peer_ids':dict(sorted(native.items()))} if protocol==PROTOCOL else {})})
+    validate_peer_identities(plans)
     return sorted(plans, key=lambda p: (instant(p['earliest_source_at']), p['session_id']))
 
 
@@ -159,10 +190,14 @@ def enroll_source(source, root):
     rosters_path = root/'honcho-enrollment-rosters.json'
     rosters = json.loads(rosters_path.read_text()) if rosters_path.exists() else {}
     validate_roster_continuity(plans, rosters)
+    identities_path=root/'honcho-peer-identities.json'
+    identities=json.loads(identities_path.read_text()) if identities_path.exists() else {}
+    identities=validate_peer_identities(plans,identities)
     record = {'protocol':PROTOCOL,'state':'enrolling','ready':False,'plans':plans,
         'source_sha256':hashlib.sha256((source/'messages.json').read_bytes()).hexdigest(),
         'observations':[],'native_writes':'Session.add_peers only','source_messages_submitted':0}
     save(path, record)
+    save(identities_path,identities)
     try:
         cfg = HonchoClientConfig.from_global_config()
         client = Honcho(base_url=config['baseUrl'], workspace_id=host['workspace'],

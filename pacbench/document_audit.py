@@ -83,11 +83,11 @@ def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=Non
     if previous_work is None:previous_work={}
     errors=[];seen=[];sessions=set();minimum={}
     if result.get('membership_protocol') is not None:
-        from provider_adapters.honcho_enrollment import PROTOCOL, source_plans, validate_windows, validate_roster_continuity
+        from provider_adapters.honcho_enrollment import SUPPORTED, source_plans, validate_windows, validate_roster_continuity
         try:
-            if result['membership_protocol'] != PROTOCOL:
+            if result['membership_protocol'] not in SUPPORTED:
                 raise ValueError('Unsupported Honcho membership protocol')
-            plans = source_plans(batch, {'peerName':'user','aiPeer':'hermes'})
+            plans = source_plans(batch, {'peerName':'user','aiPeer':'hermes'},protocol=result['membership_protocol'])
             validate_windows(plans, result['membership_witness'])
             if previous_rosters is not None:
                 previous_rosters.update(validate_roster_continuity(plans, previous_rosters))
@@ -113,7 +113,12 @@ def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=Non
             session='source-'+hashlib.sha256(json.dumps(identity).encode()).hexdigest()[:24]
             if actual.get('session_id')!=session or ack['session_id']!=session:
                 errors.append('Honcho acknowledged the wrong source session')
-            if (actual.get('peer_id')!=('user' if original['from_owner'] else original['sender']) or
+            from provider_adapters.honcho_enrollment import source_peer_id, LEGACY_PROTOCOL, SUPPORTED
+            peer_protocol=result.get('membership_protocol') or LEGACY_PROTOCOL
+            if peer_protocol not in SUPPORTED:peer_protocol=LEGACY_PROTOCOL
+            peer=source_peer_id('Me' if original['from_owner'] else original['sender'],
+                {'peerName':'user','aiPeer':'hermes'},protocol=peer_protocol)
+            if (actual.get('peer_id')!=peer or
                     actual.get('content')!=original['text'] or
                     datetime.fromisoformat(actual['created_at'])!=datetime.fromisoformat(original['written_at']) or
                     any(metadata.get(k)!=v for k,v in original.items() if k!='text')):
@@ -238,8 +243,8 @@ def audit_ingestion(root, arm, messages, summary):
         if arm.name=='honcho':
             membership = summary.get('provider_membership_protocols',{}).get('honcho')
             if membership is not None:
-                from provider_adapters.honcho_enrollment import PROTOCOL, source_plans
-                check(membership == PROTOCOL and
+                from provider_adapters.honcho_enrollment import SUPPORTED, source_plans
+                check(membership in SUPPORTED and
                       record.get('membership_protocol') == record.get('result',{}).get('membership_protocol') == membership,
                       'Honcho native membership protocol differs from declared condition')
                 enrollment = record.get('enrollment',{})
@@ -248,7 +253,7 @@ def audit_ingestion(root, arm, messages, summary):
                       enrollment.get('source_sha256') == hashlib.sha256((source/'messages.json').read_bytes()).hexdigest(),
                       'Honcho chronological enrollment is missing or bound to different source')
                 try:
-                    check(enrollment.get('plans') == source_plans(batch, {'peerName':'user','aiPeer':'hermes'}),
+                    check(enrollment.get('plans') == source_plans(batch, {'peerName':'user','aiPeer':'hermes'},protocol=membership),
                           'Honcho enrolled roster differs from original source membership')
                 except (ValueError,KeyError,TypeError):
                     errors.append('Honcho source membership cannot be qualified')

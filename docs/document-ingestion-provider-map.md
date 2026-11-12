@@ -119,7 +119,7 @@ periodically cleaned by Honcho; if that prevents proving enrollment, withhold
 readiness rather than guessing success. Native assistant capture uses host time;
 source-message capture explicitly preserves original timestamps.
 
-New Honcho document runs declare `honcho-chronological-membership-v1` separately
+New Honcho document runs declare `honcho-chronological-membership-v2` separately
 from their processing-clock profile. Native perspective search filters messages
 by the session peer's actual `joined_at`/`left_at`, so joining just before a bulk
 upload does not establish visibility of older message timestamps. The adapter
@@ -127,7 +127,12 @@ requires an explicit, static source roster including the owner, enrolls those
 members and the configured silent Hermes observer through `Session.add_peers`,
 and reads actual membership windows before advancing to nightly import. It
 rechecks those windows immediately before source submission. It never backdates
-membership rows, substitutes collection time for message time, or inserts facts.
+membership rows, substitutes collection time for message time, or inserts facts. Version 2
+uses the shipped native peer-ID encoding convention for names containing spaces
+or punctuation (for example, `Alex Reed` becomes `Alex-Reed`). Original source
+sender and roster metadata remain unchanged. Enrollment records the mapping;
+collisions between distinct names, including across batches, stop before native
+writes. Historical v1 receipts keep their original raw-ID audit semantics.
 
 The simulated profile now starts before the earliest source event so this
 enrollment can happen chronologically. Missing membership after that event,

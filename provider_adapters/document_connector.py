@@ -379,9 +379,10 @@ def honcho(source,root,at,processing_at):
     observer=host['aiPeer']
     client=Honcho(base_url=cfg['baseUrl'],workspace_id=host['workspace'],environment='local',max_retries=0,timeout=30)
     messages=json.loads((source/'messages.json').read_text())
-    from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL, source_plans, verify_before_submission
+    from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL, LEGACY_PROTOCOL, source_peer_id, source_plans, verify_before_submission
     membership = None
     membership_plans = {}
+    peer_protocol=PROTOCOL if os.environ.get(ENVIRONMENT)==PROTOCOL else LEGACY_PROTOCOL
     if os.environ.get(ENVIRONMENT):
         if os.environ[ENVIRONMENT] != PROTOCOL:
             raise ValueError('Unsupported Honcho membership protocol')
@@ -401,7 +402,7 @@ def honcho(source,root,at,processing_at):
         sessions.append(session)
         peers={}
         for m in batch:
-            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            peer_id=source_peer_id('Me' if m['from_owner'] else m['sender'],host,protocol=peer_protocol)
             peers[peer_id]=client.peer(peer_id)
         if membership is not None:
             # Include silent source-declared participants, especially the owner
@@ -436,7 +437,7 @@ def honcho(source,root,at,processing_at):
         baseline=session.queue_status().model_dump(mode='json')
         pending=[]
         for m in batch:
-            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            peer_id=source_peer_id('Me' if m['from_owner'] else m['sender'],host,protocol=peer_protocol)
             pending.append(peers[peer_id].message(m['text'],created_at=m['written_at'],
                 metadata={k:v for k,v in m.items() if k!='text'}))
         entry={'session_id':session.id,'source_messages':len(pending),

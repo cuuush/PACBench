@@ -227,3 +227,22 @@ def test_reconciliation_refreshes_only_original_request_ids(tmp_path):
     assert updated['roles']['memory_provider']['actual_cost_usd'] == .001
     assert updated['roles']['memory_provider']['unconfirmed_budget_bound_usd'] == 0
     assert original['model_calls'][0]['state'] == 'unknown'
+
+
+def test_reconciliation_metadata_keeps_exact_charge_and_separate_token_telemetry(tmp_path):
+    import sqlite3
+    from pacbench.usage import snapshot
+    db = sqlite3.connect(tmp_path / 'ledger.sqlite3')
+    db.execute("CREATE TABLE calls (id TEXT, project TEXT, model TEXT, endpoint TEXT, started TEXT, finished TEXT, state TEXT, input_tokens INTEGER, output_tokens INTEGER, accounted INTEGER, reserved INTEGER, actual_cost_nano INTEGER, actual_cost_usd_decimal TEXT, generation_usage_detail TEXT, usage_detail TEXT, reconcile_status TEXT, reconcile_attempts INTEGER, reconcile_last_attempt TEXT, reconcile_next_attempt TEXT)")
+    db.execute("INSERT INTO calls VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+        'a','p','m','chat','1','2','settled',100,20,2,2,2,'0.0000000011',
+        json.dumps({'native_tokens_prompt': 90,'native_tokens_reasoning':7,'secret':'x'}),
+        json.dumps({'prompt_tokens_details.cached_tokens':30}), 'reconciled',2,'last',None))
+    db.commit(); db.close()
+    call = snapshot({'p':'memory_provider'}, tmp_path)['calls'][0]
+    assert call['actual_cost_usd_decimal'] == '0.0000000011'
+    assert call['actual_cost_usd'] == .0000000011
+    assert call['actual_cost_guard_rounded_usd'] == .000000002
+    assert call['generation_usage_detail'] == {'native_tokens_prompt':90,'native_tokens_reasoning':7}
+    assert call['usage_detail'] == {'prompt_tokens_details.cached_tokens':30}
+    assert call['input_tokens'] == 100 and call['reconcile_attempts'] == 2

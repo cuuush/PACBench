@@ -50,6 +50,9 @@ def test_native_costs_count_unique_requests_and_keep_background_and_holds(tmp_pa
     assert row['cost']['memory_provider']['settled_upper_bound_usd']==.01
     assert row['cost']['memory_provider']['held_usd']==.1
     assert row['cost']['memory_provider']['input_tokens'] is None
+    requests_by_id={c['id']:c for c in row['request_costs']}
+    assert requests_by_id['ingest']['provider']=='local' and requests_by_id['ingest']['stages']==['ingestion']
+    assert requests_by_id['background']['stages']==['outside_captured_windows']
     assert row['phases']['ingestion']['memory_provider']['model_requests']==1
     assert row['phases']['outside_captured_windows']['memory_provider']['model_requests']==1
     assert row['complete_for_cost_comparison'] is True

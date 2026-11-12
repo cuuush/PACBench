@@ -403,9 +403,9 @@ function usageDetails(ex) {
     money(g.unconfirmed_budget_bound_usd ?? g.accounted_upper_bound_usd) + '</td></tr>').join('');
   const requestRows = calls.map(c => '<tr><td>' + esc(c.id ?? 'unknown') + '</td><td>' + esc(c.upstream_request_id ?? 'unknown') +
     '</td><td>' + esc(c.generation_id ?? 'unknown') + '</td><td>' + esc([c.role, c.project, c.model, c.upstream_origin].filter(Boolean).join(' / ')) +
-    '</td><td>' + esc(c.state ?? 'unknown') + '</td><td>' + esc(c.input_tokens ?? 'unknown') + ' / ' + esc(c.output_tokens ?? 'unknown') +
-    '</td><td>' + esc(JSON.stringify(c.usage_detail || {})) + '</td><td>' + money(c.actual_cost_usd) + (c.actual_cost_source ? ' (' + esc(c.actual_cost_source) + (c.reconciled_at ? ', ' + esc(c.reconciled_at) : '') + ')' : '') +
-    '</td><td>' + (c.state === 'settled' && c.actual_cost_usd == null ? money(c.accounted_upper_bound_usd) : '—') +
+    '</td><td>' + esc(c.state ?? 'unknown') + (c.reconcile_status ? ' / reconciliation: ' + esc(c.reconcile_status) : '') + (c.reconcile_attempts != null ? ' · attempts: ' + esc(c.reconcile_attempts) : '') + (c.reconcile_last_attempt ? ' · last: ' + esc(c.reconcile_last_attempt) : '') + (c.reconcile_next_attempt ? ' · next: ' + esc(c.reconcile_next_attempt) : '') + '</td><td>' + esc(c.input_tokens ?? 'unknown') + ' / ' + esc(c.output_tokens ?? 'unknown') +
+    '</td><td>' + esc(JSON.stringify(c.usage_detail || {})) + '</td><td>' + esc(JSON.stringify(c.generation_usage_detail || {})) + '</td><td>' + (c.actual_cost_usd_decimal != null ? '$' + esc(c.actual_cost_usd_decimal) : c.actual_cost_usd != null ? money(c.actual_cost_usd) + ' (rounded)' : 'unknown') + (c.actual_cost_source ? ' (' + esc(c.actual_cost_source) + (c.reconciled_at ? ', ' + esc(c.reconciled_at) : '') + ')' : '') +
+    '</td><td>' + (c.actual_cost_guard_rounded_usd != null ? '$' + esc(c.actual_cost_guard_rounded_usd) : '—') + '</td><td>' + (c.state === 'settled' && c.actual_cost_usd == null ? money(c.accounted_upper_bound_usd) : '—') +
     '</td><td>' + (c.state !== 'settled' ? money(c.accounted_upper_bound_usd) : '—') + '</td></tr>').join('');
   const authoring = ex.question_plan?.authoring_calls;
   const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
@@ -413,9 +413,9 @@ function usageDetails(ex) {
   return details('Model calls and token usage', usage?.state === 'captured' ?
     '<p class="muted">This window is the current stage. Actual charges are shown only when reported by the gateway. Token-price estimates and unconfirmed budget bounds are separate from actual charges. Unknown totals mean at least one request lacks that value.</p>' +
     '<div class="usage-table"><table><thead><tr><th>Role / project / model</th><th>Calls</th><th>Input</th><th>Output</th><th>Actual charge</th><th>Token-price estimate</th><th>Unconfirmed budget bound</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-    '<h4>Requests</h4><div class="usage-table"><table><thead><tr><th>Gateway ID</th><th>Upstream ID</th><th>Generation ID</th><th>Role / project / model</th><th>Status</th><th>Input / output</th><th>Token details</th><th>Actual charge</th><th>Token-price estimate</th><th>Unconfirmed budget bound</th></tr></thead><tbody>' + requestRows + '</tbody></table></div>' +
+    '<h4>Requests</h4><div class="usage-table"><table><thead><tr><th>Gateway ID</th><th>Upstream ID</th><th>Generation ID</th><th>Role / project / model</th><th>Status</th><th>Input / output</th><th>Native token details</th><th>OpenRouter generation token details</th><th>Actual charge</th><th>Rounded charge used by guard</th><th>Token-price estimate</th><th>Unconfirmed budget bound</th></tr></thead><tbody>' + requestRows + '</tbody></table></div>' +
     (ex.usage_after_settlement ? '<p class="muted">Usage updated from a later arm receipt; the original window and request IDs are unchanged.</p>' : '') +
-    '<p class="muted">Token details can be subsets of input or output; do not add them to the total. Per-tool tokens are unknown. Background requests may finish later. Local embedding/model tokens are not captured here.</p>' + benchmark :
+    '<p class="muted">Native details can be subsets of input or output. OpenRouter generation details are separate telemetry and must not be added to native totals. Per-tool tokens are unknown. Background requests may finish later. Local embedding/model tokens are not captured here.</p>' + benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
 

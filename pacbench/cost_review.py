@@ -56,7 +56,9 @@ def refreshed_calls(calls,connection):
     columns = {r['name'] for r in connection.execute('PRAGMA table_info(calls)')} if connection else set()
     fields = ('id','project','model','endpoint','started','finished','state','input_tokens','output_tokens',
               'accounted','reserved','http_status','error_label','finish_reason','reasoning_tokens',
-              'upstream_request_id','generation_id','usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at')
+              'upstream_request_id','generation_id','usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at',
+              'actual_cost_usd_decimal','generation_usage_detail','reconcile_status','reconcile_attempts',
+              'reconcile_last_attempt','reconcile_next_attempt')
     select = ','.join(k if k in columns else 'NULL AS '+k for k in fields)
     for call in calls:
         current=connection.execute(f'SELECT {select} FROM calls WHERE id=?',(call['id'],)).fetchone() if connection else None
@@ -122,7 +124,9 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
                 'lifecycle_cost_complete':False if debt['state']=='observed-pending' else None,
                 'cost':totals(set(actual)) if capture_available else None,
                 'phases':{phase:totals(ids) for phase,ids in phases.items()},
-                'request_costs':list(actual.values()) if capture_available else None,
+                'request_costs':[{**call, 'provider':result['provider'],
+                                  'stages':[phase for phase,ids in phases.items() if id in ids]}
+                                 for id,call in actual.items()] if capture_available else None,
                 'model_groups':model_groups(list(actual.values())) if capture_available else None,
                 'phase_model_groups':{phase:model_groups([actual[id] for id in ids]) for phase,ids in phases.items()},
                 'terminal_snapshot_missing_requests':sorted(assigned-{c['id'] for c in snapshot['calls']}),
@@ -142,7 +146,8 @@ def review(root,*,ledger=STATE/'ledger.sqlite3'):
         'ledger_refreshed':connection is not None,'input_hash':summary['input_hash'],
         'scope':['All native arm requests, including setup, automatic recall and background capture; benchmark authoring/judging are separate overhead.',
             'Phase windows identify request start times, not causal per-tool prices. Outside-window work is included in total costs.',
-            'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown charges remain reservations.',
+            'Usage-priced figures are conservative uncached-price bounds, not invoices. Unknown actual charges retain safety bounds.',
+            'Provider identifies the benchmark arm, not a claim that every Hermes request was made by that memory provider. Stages are observed receipt windows; overlapping windows do not prove causal attribution.',
             'Only arms completing identical daily batches, initial questions and required recovery can be compared as observed workload costs.',
             'Observed workload costs stop at the recorded arm cutoff. Pending or unobserved deferred processing prevents a full lifecycle cost claim; future costs are unknown, not zero.',
             'Native canary execution and failed attempts are separate from month costs. Semantic correctness and source-assisted retention are separate scores.']}

@@ -2,6 +2,7 @@
 from __future__ import annotations
 import json
 import sqlite3
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
 from pathlib import Path
 from .gateway_client import STATE
@@ -19,7 +20,9 @@ def snapshot(roles, state=STATE):
             error = 'error_label' if 'error_label' in columns else 'NULL AS error_label'
             diagnostics=','.join(name if name in columns else 'NULL AS '+name
                                  for name in ('finish_reason','reasoning_tokens','upstream_request_id','generation_id',
-                                              'usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at'))
+                                              'usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at',
+                                              'actual_cost_usd_decimal','generation_usage_detail','reconcile_status',
+                                              'reconcile_attempts','reconcile_last_attempt','reconcile_next_attempt'))
             rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status},{error},{diagnostics} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
         return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[ledger_call(r, roles[r['project']]) for r in rows]}
     except (OSError,sqlite3.Error) as exc:
@@ -30,6 +33,9 @@ def snapshot(roles, state=STATE):
 TOKEN_DETAILS = ('prompt_tokens', 'completion_tokens', 'input_tokens', 'output_tokens', 'total_tokens', 'cached_tokens', 'cache_read_tokens', 'cache_write_tokens', 'reasoning_tokens',
                  'audio_tokens', 'image_tokens', 'accepted_prediction_tokens', 'rejected_prediction_tokens')
 
+GENERATION_TOKEN_DETAILS = ('native_tokens_prompt', 'native_tokens_completion', 'native_tokens_reasoning',
+                            'native_tokens_cached', 'tokens_prompt', 'tokens_completion', 'native_tokens_completion_images')
+
 def ledger_call(row, role):
     call = dict(row)
     raw = call.pop('usage_detail', None)
@@ -39,8 +45,24 @@ def ledger_call(row, role):
         detail = None
     call['usage_detail'] = {k: v for k, v in (detail or {}).items()
                             if (k in TOKEN_DETAILS or (k.rpartition('.')[0] in ('prompt_tokens_details', 'completion_tokens_details', 'input_tokens_details', 'output_tokens_details') and k.rpartition('.')[2] in TOKEN_DETAILS)) and type(v) is int and v >= 0} if isinstance(detail, dict) else {}
+    generation = call.pop('generation_usage_detail', None)
+    try:
+        generation = json.loads(generation) if isinstance(generation, str) else generation
+    except (ValueError, TypeError):
+        generation = None
+    call['generation_usage_detail'] = {k:v for k,v in (generation or {}).items()
+        if k in GENERATION_TOKEN_DETAILS and type(v) is int and v >= 0} if isinstance(generation, dict) else {}
     nano = call.pop('actual_cost_nano', None)
-    call['actual_cost_usd'] = nano / 1e9 if type(nano) is int and nano >= 0 else None
+    call['actual_cost_guard_rounded_usd'] = nano / 1e9 if type(nano) is int and nano >= 0 else None
+    exact = call.get('actual_cost_usd_decimal')
+    try:
+        amount = Decimal(exact) if isinstance(exact, str) else None
+        if amount is not None and (not amount.is_finite() or amount < 0): amount = None
+    except InvalidOperation:
+        amount = None
+    call['actual_cost_usd_decimal'] = exact if amount is not None else None
+    # Legacy reconciled rows only carry rounded nanos. Preserve them, labeled as rounded.
+    call['actual_cost_usd'] = float(amount) if amount is not None else call['actual_cost_guard_rounded_usd']
     call['role'] = role
     call['accounted_upper_bound_usd'] = call['accounted'] / 1e9
     return call
@@ -99,7 +121,7 @@ def provider_model_health(capture):
                        'Three completed provider requests lack usable token usage; stop this arm '
                        'before unmetered work accumulates. This is a cost-observability blocker, '
                        'not an HTTP or memory-recall failure.' if unknown else ''),
-            'scope': 'Execution/cost barrier, not a semantic memory grade. Held charges remain held.'}
+            'scope': 'Execution/cost barrier, not a semantic memory grade. Actual charges may be unknown; safety bounds remain in force.'}
 
 
 def window(before, after):

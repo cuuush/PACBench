@@ -96,6 +96,9 @@ def resume(output, *, max_messages=4500, question_dir=None):
         raise ValueError('Unsupported evidence diagnostic protocol')
     if report.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) not in JUDGE_PROTOCOLS:
         raise ValueError('Unsupported semantic judge protocol')
+    from .harness import PROMPT_PROTOCOL
+    if report.get('question_prompt_protocol') != PROMPT_PROTOCOL:
+        raise ValueError('Resume requires the current question prompt protocol; legacy or unknown runs cannot change condition')
     if (report.get('state')!='incomplete' or len(report['results'])!=1 or
             report['results'][0]['provider']!='openviking' or report['results'][0]['repetition']!=1):
         raise ValueError('Resume requires one interrupted OpenViking arm')

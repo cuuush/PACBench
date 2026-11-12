@@ -16,6 +16,26 @@ captures remain source-assisted. Preserve the actual result as evidence.
 
 The current Pizza Month cohort exercises v3. Audits validate each saved trial's frozen permissions; do not relabel an older policy or compare unlike tool grants as matched trials.
 
+New trials use `native-question-v2`: Hermes receives the question verbatim,
+without a PACBench instruction prefix or appended system prompt. Its stock
+Hermes prompt and native provider prompt hooks remain enabled. The simulated
+clock still supplies the date rendered by Hermes's native prompt and provider
+clock interfaces; it adds no instruction text. Recall starts in an empty
+directory outside Git projects, so repository instructions are not loaded.
+
+Earlier trials used a question prefix, `[Simulated now: … Treat this as the
+current date and time for everything in this turn.]`. Those results retain that
+historical condition and do not establish performance with unmodified
+questions. Removing the prefix requires a fresh recall trial before comparing
+the two conditions; it does not retroactively change saved answers or grades.
+The selected public month/canary evidence contains 51 prefixed Hermes turns
+(15 each for Memcal, Mem0 and Hindsight, and 6 for Honcho). Their isolation
+receipts retain prompt hashes, but the full saved native system prompts and
+private session databases are unavailable in this checkout. Those receipts
+establish the recorded project-context check, not a complete historical
+byte-for-byte prompt provenance audit. The other integrated providers have no
+recall turns in these selected trials.
+
 This is a tool boundary, not OS isolation. Native provider internals can read their stores, run subprocesses and call models. All inference remains metered through the gateway; nested work is not assumed free.
 
 For Hindsight 1.1.0, read its native `/llm-requests` trace API. Under historical

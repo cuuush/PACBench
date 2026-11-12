@@ -178,7 +178,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     return report
 
 
-def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL):
+def audit_checks(checks, context, root, *, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, prompt_protocol=harness.LEGACY_PROMPT_PROTOCOL):
     errors, sessions, seen = [], {}, {}
     def check(ok, text):
         if not ok:errors.append(text)
@@ -210,7 +210,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
             if (directory/'usage.json').exists():
                 check(provider_paths_match(turn,read(directory/'usage.json')),
                     f"{row['id']}: provider path timing differs from recorded inference inputs")
-            expected=f"[Simulated now: {row['at']}. Treat this as the current date and time for everything in this turn.]\n\n{contract.question}"
+            expected=harness.question_prompt(contract.question, row['at'], prompt_protocol)
             check(turn.at==row['at'] and turn.prompt==expected,f"{row['id']}: evaluation question/clock mismatch")
             if judge_protocol != LEGACY_JUDGE_PROTOCOL and (directory/'judgment.json').exists():
                 claim_objects = tuple(Claim(c.id, c.statement, c.evidence) for c in contract.claims)
@@ -259,7 +259,7 @@ def audit_checks(checks, context, root, *, provenance_version='source-provenance
                 errors.extend(f"{row['id']}: {e}" for e in audit_followups(contract=contract,plan=policy,
                     initial_turn=turn,initial_grade=grade,output=directory/'followups',previous_turn=state['previous'],
                     conversation=state['history'],inherited_path=state['path'],provenance_version=provenance_version,
-                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol))
+                    evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol, prompt_protocol=prompt_protocol))
                 recovery=read(directory/'followups/recovery.json')
                 check(item['recovery']['score']==recovery['score'] and item['recovery']['attempts']==recovery['attempts'],f"{row['id']}: summary/score mismatch")
             advance(state,turn,directory,provenance_version)

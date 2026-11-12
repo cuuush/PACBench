@@ -9,7 +9,7 @@ from pathlib import Path
 from .frozen import load_bundle, messages_for
 from .semantic_contract import load_contract
 from .followups import load_questions, audit_followups
-from .harness import TurnResult
+from .harness import TurnResult, question_prompt, PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL
 from .evaluation import load_evaluations
 from .native_checks import audit_checks
 from .tool_policy import SUPPORTED_VERSIONS, policy_record
@@ -24,10 +24,10 @@ def audit(root: Path, *, providers=None) -> dict:
     def check(ok, message):
         if not ok:
             errors.append(message)
-    def clock_prompt(at, text):
-        return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
     try:
         summary = read(root / 'summary.json')
+        prompt_protocol = summary.get('question_prompt_protocol', LEGACY_PROMPT_PROTOCOL)
+        check(prompt_protocol in (PROMPT_PROTOCOL, LEGACY_PROMPT_PROTOCOL), 'Unsupported question prompt protocol')
         from .semantic_grade import DIAGNOSTIC_VERSIONS, LEGACY_DIAGNOSTIC_VERSION, JUDGE_PROTOCOLS, LEGACY_JUDGE_PROTOCOL
         if summary.get('provenance_version', 'source-provenance-v1') not in {'source-provenance-v1', 'source-provenance-v2'}:
             raise ValueError('Unsupported provenance protocol')
@@ -144,14 +144,14 @@ def audit(root: Path, *, providers=None) -> dict:
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=evidence_for_check if summary.get('evidence_diagnostic_protocol') else None,
                         diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
-                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL), prompt_protocol=prompt_protocol))
                     from .native_writes import audit_ready
                     errors.extend(f'{label}: {e}' for e in audit_ready(evaluations,evaluation_plan['context'],arm,
                         result.get('write_readiness_protocol',summary.get('write_readiness_protocol'))))
                     check(result['checks'] == read(arm / 'evaluation.json')['checks'], f'{label}: evaluation summary mismatch')
                     continue
                 recall = read(arm / 'recall.json')
-                check(recall['prompt'] == clock_prompt(spec['question_at'], contract.question), f'{label}: recall/clock mismatch')
+                check(recall['prompt'] == question_prompt(contract.question, spec['question_at'], prompt_protocol), f'{label}: recall/clock mismatch')
                 check(recall['at'] == spec['question_at'], f'{label}: recall time mismatch')
                 check(bool(recall['session_id']), f'{label}: recall session missing')
                 check(not recall['returncode'] and not recall['policy_blocks'], f'{label}: recall failure')
@@ -189,7 +189,7 @@ def audit(root: Path, *, providers=None) -> dict:
                         provenance_version=summary.get('provenance_version', 'source-provenance-v1'),
                         evidence_by_id=source_evidence(messages, summary['evidence_diagnostic_protocol']) if summary.get('evidence_diagnostic_protocol') else None,
                         diagnostic_version=summary.get('evidence_diagnostic_protocol', LEGACY_DIAGNOSTIC_VERSION),
-                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL)))
+                        judge_protocol=summary.get('judge_protocol', LEGACY_JUDGE_PROTOCOL), prompt_protocol=prompt_protocol))
             except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:
                 errors.append(f'{label}: {type(exc).__name__}: {exc}')
     except (OSError, ValueError, KeyError, TypeError, RuntimeError) as exc:

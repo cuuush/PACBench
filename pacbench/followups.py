@@ -456,7 +456,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL, prompt_protocol='simulated-now-prefix-v1') -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -524,8 +524,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                 check(clock.get('role') == 'recovery' and clock.get('requested_at') == initial_turn.at and
                       datetime.fromisoformat(turn.at) >= datetime.fromisoformat(initial_turn.at),
                       'invalid simulated recovery clock')
-            expected_prompt = (f'[Simulated now: {recovery_at}. Treat this as the current date and '
-                               f'time for everything in this turn.]\n\n{question}')
+            expected_prompt = harness.question_prompt(question, recovery_at, prompt_protocol)
             check(turn.prompt == expected_prompt and turn.at == recovery_at, 'follow-up clock/prompt mismatch')
             check(turn.session_id == initial_turn.session_id, 'follow-up lost recall conversation')
             check(not turn.returncode and not turn.policy_blocks, 'follow-up turn failed/blocked')

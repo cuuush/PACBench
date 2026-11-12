@@ -217,3 +217,23 @@ def test_audit_rejects_unknown_recorded_protocol_before_reading_run(tmp_path, ke
     result = audit(tmp_path)
     assert result['state'] == 'fail'
     assert 'Unsupported' in str(result['errors'])
+
+
+def test_native_question_protocol_rejects_legacy_prefix(trace):
+    root, arm = trace
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['question_prompt_protocol'] = 'native-question-v2'
+    save(root / 'summary.json', summary)
+    assert any('recall/clock mismatch' in e for e in audit(root)['errors'])
+    recall = json.loads((arm / 'recall.json').read_text())
+    recall['prompt'] = 'When is dinner?'
+    save(arm / 'recall.json', recall)
+    judgment = json.loads((arm / 'judgment.json').read_text())
+    judgment['question'] = recall['prompt']
+    save(arm / 'judgment.json', judgment)
+    # The native saved input must agree too; changing only public receipts
+    # must not hide a prefixed question that Hermes actually received.
+    assert 'Native Hermes user messages differ' in str(audit(root)['errors'])
+    with sqlite3.connect(arm / 'hermes-home/state.db') as db:
+        db.execute("UPDATE messages SET content=? WHERE role='user'", (recall['prompt'],))
+    assert audit(root)['state'] == 'pass', audit(root)

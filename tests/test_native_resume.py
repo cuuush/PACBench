@@ -65,6 +65,7 @@ def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_p
     from pacbench.native_resume import resume
     rows,root,report=checkpoint(tmp_path)
     save(tmp_path/'summary.json',{**report,'state':'incomplete','source':'.',
+        'question_prompt_protocol':'native-question-v2',
         'results':[{'provider':'openviking','repetition':1}],
         'input_hash':'changed','contract_hash':'contract','bundle_hash':'bundle'})
     with patch('pacbench.native_pilot.read_prepared',return_value=(rows,
@@ -100,3 +101,16 @@ def test_resume_rejects_unknown_protocol_before_model_access(tmp_path, key):
     (tmp_path / 'summary.json').write_text(json.dumps({key: 'unknown-protocol'}))
     with pytest.raises(ValueError, match='Unsupported'):
         resume(tmp_path)
+
+
+@pytest.mark.parametrize('protocol', [None, 'simulated-now-prefix-v1', 'unknown'])
+def test_resume_rejects_changed_question_condition_before_model_access(tmp_path, protocol):
+    from pacbench.native_resume import resume
+    summary = {} if protocol is None else {'question_prompt_protocol': protocol}
+    save(tmp_path / 'summary.json', summary)
+    with patch('pacbench.gateway_client.require_live_cost_boundary') as boundary, \
+         patch('pacbench.native_pilot.provision') as backend:
+        with pytest.raises(ValueError, match='question prompt protocol'):
+            resume(tmp_path)
+    boundary.assert_not_called()
+    backend.assert_not_called()

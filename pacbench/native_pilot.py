@@ -414,6 +414,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
               "builtin_memory": False, "tool_policy": TOOL_POLICY, "session_search": False,'ingestion_mode':'documents'}
+    report['question_prompt_protocol'] = harness.PROMPT_PROTOCOL
     report['provenance_version'] = 'source-provenance-v2'
     if honcho_clock == 'simulated':
         from provider_adapters.honcho_clock import VERSION as HONCHO_CLOCK

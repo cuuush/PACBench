@@ -25,6 +25,16 @@ ISOLATED_TREE = REPO / "vendor" / "hermes-isolated"
 ISOLATED_BIN = REPO / "vendor" / "venv-hermes-isolated" / "bin" / "hermes"
 PATCH_RECORD = REPO / "patches" / "hermes-isolated.diff"
 
+LEGACY_PROMPT_PROTOCOL = "simulated-now-prefix-v1"
+PROMPT_PROTOCOL = "native-question-v2"
+
+def question_prompt(text: str, at: str, protocol: str) -> str:
+    if protocol == PROMPT_PROTOCOL:
+        return text
+    if protocol == LEGACY_PROMPT_PROTOCOL:
+        return f"[Simulated now: {at}. Treat this as the current date and time for everything in this turn.]\n\n{text}"
+    raise ValueError("Unknown question prompt protocol")
+
 #: Interpreter that owns the hindsight_api install (proven: 3.12.8 at this
 #: path; 3.14 lacks the deps → ModuleNotFoundError mid-run). The Hindsight
 #: MCP server MUST launch under this binary — never bare sys.executable
@@ -185,20 +195,18 @@ def turn_env(at: str, home: Path,
     })
     if extra_env:
         env.update(extra_env)
+    # Inherited Hermes overrides must not inject instructions or disable
+    # the native provider hooks in a benchmark turn.
+    for key in ("HERMES_EPHEMERAL_SYSTEM_PROMPT", "HERMES_ENVIRONMENT_HINT",
+                "HERMES_IGNORE_RULES", "HERMES_DESKTOP_TERMINAL"):
+        env.pop(key, None)
     return env
 
 
 def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
-    """Drive one noninteractive turn through the isolated clone and parse traces.
-
-    Every turn carries its simulated now in chat context (not only in the
-    PACBENCH_NOW tool-time shim): the model otherwise anchors "today" on
-    the host date — demonstrated by the adversarial clock probe answering
-    the host date under a fictional clock. The prefix is recorded in the
-    turn artifact, never hidden.
-    """
+    """Drive a native question through the isolated clone and parse traces."""
     home = home.resolve()
     _check_paths(home)
     requested_at = at
@@ -216,8 +224,6 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                         'actual_start_at': provider.now().isoformat(),
                         'role': 'recovery' if recovery else 'scripted',
                         'next_checkpoint': env.get('PACBENCH_CLOCK_NEXT_CHECKPOINT')}
-    prompt = (f"[Simulated now: {at}. Treat this as the current date and "
-              f"time for everything in this turn.]\n\n{prompt}")
     session_started_at = session_started_at or at
     env['PACBENCH_SESSION_STARTED_AT'] = session_started_at
     from .context_isolation import actual_context, workspace_for

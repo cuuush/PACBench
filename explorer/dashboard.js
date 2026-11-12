@@ -394,21 +394,31 @@ function effortDetails(ex) {
 }
 function usageDetails(ex) {
   const usage = ex.usage_after_settlement || ex.usage;
-  let rows = "";
-  if (usage?.state === 'captured') {
-    rows = Object.entries(usage.roles || {}).map(([role,total]) => '<tr><td>' + (role === 'hermes' ? 'Hermes' : 'Memory provider') +
-      '</td><td>' + esc(total.model_calls) + '</td><td>' + esc(total.input_tokens ?? 'unknown') + '</td><td>' + esc(total.output_tokens ?? 'unknown') +
-      '</td><td>' + (total.accounted_upper_bound_usd == null ? 'unknown' : '$' + esc(Number(total.accounted_upper_bound_usd).toFixed(6))) + (total.unsettled_calls ? ' · includes reservations' : '') + '</td></tr>').join('');
-  }
+  const money = value => value == null ? 'unknown' : '$' + esc(Number(value).toFixed(6));
+  const calls = usage?.model_calls || [];
+  const groups = usage?.groups || Object.entries(usage?.roles || {}).map(([role, total]) => ({role, ...total}));
+  const rows = groups.map(g => '<tr><td>' + esc([g.role, g.project, g.model].filter(Boolean).join(' / ')) +
+    '</td><td>' + esc(g.model_calls) + '</td><td>' + esc(g.input_tokens ?? 'unknown') + '</td><td>' + esc(g.output_tokens ?? 'unknown') +
+    '</td><td>' + money(g.actual_cost_usd) + '</td><td>' + money(g.token_price_estimate_usd) + '</td><td>' +
+    money(g.unconfirmed_budget_bound_usd ?? g.accounted_upper_bound_usd) + '</td></tr>').join('');
+  const requestRows = calls.map(c => '<tr><td>' + esc(c.id ?? 'unknown') + '</td><td>' + esc(c.upstream_request_id ?? 'unknown') +
+    '</td><td>' + esc(c.generation_id ?? 'unknown') + '</td><td>' + esc([c.role, c.project, c.model, c.upstream_origin].filter(Boolean).join(' / ')) +
+    '</td><td>' + esc(c.state ?? 'unknown') + '</td><td>' + esc(c.input_tokens ?? 'unknown') + ' / ' + esc(c.output_tokens ?? 'unknown') +
+    '</td><td>' + esc(JSON.stringify(c.usage_detail || {})) + '</td><td>' + money(c.actual_cost_usd) + (c.actual_cost_source ? ' (' + esc(c.actual_cost_source) + (c.reconciled_at ? ', ' + esc(c.reconciled_at) : '') + ')' : '') +
+    '</td><td>' + (c.state === 'settled' && c.actual_cost_usd == null ? money(c.accounted_upper_bound_usd) : '—') +
+    '</td><td>' + (c.state !== 'settled' ? money(c.accounted_upper_bound_usd) : '—') + '</td></tr>').join('');
   const authoring = ex.question_plan?.authoring_calls;
   const benchmark = authoring?.length ? '<h4>Follow-up writer and reviewer</h4><p class="muted">' +
     (ex.question_authoring_reused ? 'Reused wording; these are the original authoring records, not fresh charges for this answer.' : 'Separate benchmark overhead, outside Hermes and the memory provider.') + '</p>' + dump(authoring) : '';
-  return details('Model calls and token usage', rows ? '<div class="usage-table"><table><thead><tr><th>Who</th><th>LLM calls</th><th>Input tokens</th><th>Output tokens</th><th>Cost upper bound</th></tr></thead><tbody>' + rows +
-    '</tbody></table></div>' + (ex.usage_after_settlement ? '<p class="muted">Usage updated from a later arm receipt; the original window and request IDs are unchanged.</p>' : '') +
-    '<p class="muted">Per-tool tokens are unknown: the native trace does not link each model request to a specific tool. Background requests may finish later. Local embedding/model tokens are not captured in this gateway table.</p>' +
-    benchmark :
+  return details('Model calls and token usage', usage?.state === 'captured' ?
+    '<p class="muted">This window is the current stage. Actual charges are shown only when reported by the gateway. Token-price estimates and unconfirmed budget bounds are separate from actual charges. Unknown totals mean at least one request lacks that value.</p>' +
+    '<div class="usage-table"><table><thead><tr><th>Role / project / model</th><th>Calls</th><th>Input</th><th>Output</th><th>Actual charge</th><th>Token-price estimate</th><th>Unconfirmed budget bound</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+    '<h4>Requests</h4><div class="usage-table"><table><thead><tr><th>Gateway ID</th><th>Upstream ID</th><th>Generation ID</th><th>Role / project / model</th><th>Status</th><th>Input / output</th><th>Token details</th><th>Actual charge</th><th>Token-price estimate</th><th>Unconfirmed budget bound</th></tr></thead><tbody>' + requestRows + '</tbody></table></div>' +
+    (ex.usage_after_settlement ? '<p class="muted">Usage updated from a later arm receipt; the original window and request IDs are unchanged.</p>' : '') +
+    '<p class="muted">Token details can be subsets of input or output; do not add them to the total. Per-tool tokens are unknown. Background requests may finish later. Local embedding/model tokens are not captured here.</p>' + benchmark :
     notice('Separate Hermes/provider usage was not captured for this turn. Unknown does not mean free.') + benchmark);
 }
+
 function reviewedSemanticSummary(run, arm) {
   if (!run.reviewed_judgment) return '';
   if (run.reviewed_judgment.state !== 'valid') return notice('Reviewed semantic totals unavailable: overlay validation failed.');
@@ -447,8 +457,8 @@ function costPage(run) {
   const money = value => value == null ? 'unknown' : '$' + Number(value).toFixed(6);
   return '<section class="stage"><h2>Observed costs</h2>' +
     (run.reviewed_judgment ? '<p>Pass, fail, ungraded and retention figures below use the original judgment protocol, separate from reviewed judgments.</p>' : '') +
-    '<p>These are costs through each arm’s recorded cutoff. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
-    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes</th><th>Provider internals</th><th>Held reservations</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
+    '<p>These are guard estimates and bounds through each arm’s recorded cutoff, not confirmed invoices. Actual charges, where available, appear in the details. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
+    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes settled guard estimate</th><th>Provider settled guard estimate</th><th>Unconfirmed budget bounds</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
     review.providers.map(row => {
       const h = row.cost?.hermes, p = row.cost?.memory_provider, counts = row.initial_counts;
       const held = h && p && h.held_usd != null && p.held_usd != null ? h.held_usd + p.held_usd : null;

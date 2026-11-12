@@ -18,12 +18,53 @@ def snapshot(roles, state=STATE):
             status = 'http_status' if 'http_status' in columns else 'NULL AS http_status'
             error = 'error_label' if 'error_label' in columns else 'NULL AS error_label'
             diagnostics=','.join(name if name in columns else 'NULL AS '+name
-                                 for name in ('finish_reason','reasoning_tokens'))
+                                 for name in ('finish_reason','reasoning_tokens','upstream_request_id','generation_id',
+                                              'usage_detail','actual_cost_nano','actual_cost_source','upstream_origin','reconciled_at'))
             rows = db.execute(f'SELECT id,project,model,endpoint,started,finished,state,input_tokens,output_tokens,accounted,reserved,{status},{error},{diagnostics} FROM calls WHERE project IN ({marks}) ORDER BY started,id',tuple(roles)).fetchall()
-        return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[{**dict(r), 'role':roles[r['project']],
-            'accounted_upper_bound_usd':r['accounted']/1e9} for r in rows]}
+        return {'state':'captured','at':datetime.now(timezone.utc).isoformat(), 'calls':[ledger_call(r, roles[r['project']]) for r in rows]}
     except (OSError,sqlite3.Error) as exc:
         return {'state':'unavailable','reason':type(exc).__name__,'calls':[]}
+
+
+# Only numeric token dimensions are exported; raw upstream payloads never leave the ledger.
+TOKEN_DETAILS = ('prompt_tokens', 'completion_tokens', 'input_tokens', 'output_tokens', 'total_tokens', 'cached_tokens', 'cache_read_tokens', 'cache_write_tokens', 'reasoning_tokens',
+                 'audio_tokens', 'image_tokens', 'accepted_prediction_tokens', 'rejected_prediction_tokens')
+
+def ledger_call(row, role):
+    call = dict(row)
+    raw = call.pop('usage_detail', None)
+    try:
+        detail = json.loads(raw) if isinstance(raw, str) else raw
+    except (ValueError, TypeError):
+        detail = None
+    call['usage_detail'] = {k: v for k, v in (detail or {}).items()
+                            if (k in TOKEN_DETAILS or (k.rpartition('.')[0] in ('prompt_tokens_details', 'completion_tokens_details', 'input_tokens_details', 'output_tokens_details') and k.rpartition('.')[2] in TOKEN_DETAILS)) and type(v) is int and v >= 0} if isinstance(detail, dict) else {}
+    nano = call.pop('actual_cost_nano', None)
+    call['actual_cost_usd'] = nano / 1e9 if type(nano) is int and nano >= 0 else None
+    call['role'] = role
+    call['accounted_upper_bound_usd'] = call['accounted'] / 1e9
+    return call
+
+def summarize_calls(calls):
+    """Keep measured charges, estimates and unresolved guard amounts separate."""
+    def complete_sum(key):
+        values = [c.get(key) for c in calls]
+        return sum(values) if all(v is not None for v in values) else None
+    actual = [c.get('actual_cost_usd') for c in calls]
+    return {'model_calls': len(calls),
+            'input_tokens': complete_sum('input_tokens'), 'output_tokens': complete_sum('output_tokens'),
+            'token_details': {key: sum(c.get('usage_detail', {}).get(key, 0) for c in calls)
+                              if all(key in c.get('usage_detail', {}) for c in calls) else None
+                              for key in sorted(set(TOKEN_DETAILS) | {k for c in calls for k in c.get('usage_detail', {})})},
+            'actual_cost_usd': sum(actual) if all(v is not None for v in actual) else None,
+            'actual_cost_known_usd': sum(v for v in actual if v is not None),
+            'actual_cost_unknown_calls': sum(v is None for v in actual),
+            'token_price_estimate_usd': sum(c['accounted_upper_bound_usd'] for c in calls
+                                            if c.get('state') == 'settled' and c.get('actual_cost_usd') is None),
+            'unconfirmed_budget_bound_usd': sum(c['accounted_upper_bound_usd'] for c in calls
+                                                if c.get('state') != 'settled'),
+            'accounted_upper_bound_usd': sum(c['accounted_upper_bound_usd'] for c in calls),
+            'unsettled_calls': sum(c.get('state') != 'settled' for c in calls)}
 
 
 def provider_model_health(capture):
@@ -70,13 +111,15 @@ def window(before, after):
     totals = {}
     for role in ('hermes','memory_provider'):
         calls = [c for c in new if c['role'] == role]
-        totals[role] = {'model_calls':len(calls),
-            **{field:sum(c[field] for c in calls) if all(c[field] is not None for c in calls) else None
-               for field in ('input_tokens','output_tokens')},
-            'accounted_upper_bound_usd':sum(c['accounted_upper_bound_usd'] for c in calls),
-            'unsettled_calls':sum(c['state'] != 'settled' for c in calls)}
+        totals[role] = summarize_calls(calls)
+    grouped = {}
+    for call in new:
+        key = (call.get('role'), call.get('project'), call.get('model'))
+        grouped.setdefault(key, []).append(call)
+    groups = [{'role': key[0], 'project': key[1], 'model': key[2], **summarize_calls(calls)}
+              for key, calls in grouped.items()]
     return {'state':'captured','started':before['at'],'finished':after['at'],'roles':totals,
-        'model_calls':new,'late_settlements':late,'per_tool_tokens':None,
+        'model_calls':new,'groups':groups,'late_settlements':late,'per_tool_tokens':None,
         'scope':'Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.'}
 
 
@@ -89,7 +132,7 @@ def refresh_window(capture, latest):
     if calls==capture.get('model_calls',[]):return None
     updated=window({'state':'captured','at':capture['started'],'calls':[]},
         {'state':'captured','at':capture['finished'],'calls':calls})
-    return {**capture,'model_calls':calls,'roles':updated['roles'],
+    return {**capture,'model_calls':calls,'roles':updated['roles'],'groups':updated['groups'],
             'settlement_observed_at':latest.get('at')}
 
 

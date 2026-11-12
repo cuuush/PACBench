@@ -1,0 +1,626 @@
+{
+  "id": "pizza-week-delayed-replies-state-changes",
+  "week_start": "2026-10-05",
+  "timezone": "America/New_York",
+  "ingestion_days": 7,
+  "cast": {
+    "Me": "The owner uses short, friendly replies and asks practical questions; never calls themselves Me in message bodies. Do not invent a name or occupation.",
+    "Maya": "A close friend, warm and conversational; sometimes sends two short thoughts in a row. Explains preferences concretely, without recapping every plan.",
+    "Leo": "A friend with variable work shifts; dry, concise replies. Group membership does not imply attendance or a response in every scene.",
+    "Devon": "A friend who favors terse messages and specific practical details; enthusiastic about practical film effects.",
+    "Jen": "A friend preparing job applications and an interview; direct, appreciative, and usually brief.",
+    "Alex": "A friend in the park group; concise and matter-of-fact.",
+    "Ben": "A friend who uses short complete sentences in emails and plainer fragments in texts. Uses both channels for the same arrangements."
+  },
+  "channels": {
+    "friday-crew": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo"
+      ],
+      "name": "Friday crew"
+    },
+    "maya": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Maya"
+      ]
+    },
+    "devon": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Devon"
+      ]
+    },
+    "park-pals": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen",
+        "Alex"
+      ],
+      "name": "Park pals"
+    },
+    "jen": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Jen"
+      ]
+    },
+    "ben": {
+      "type": "imessage",
+      "participants": [
+        "Me",
+        "Ben"
+      ]
+    },
+    "ben-email": {
+      "type": "email",
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "subject": "Dinner this week"
+    }
+  },
+  "weeks": [
+    {
+      "monday": {
+        "scenes": [
+          {
+            "id": "lunch-invite-unanswered",
+            "channel": "friday-crew",
+            "time": "6 pm",
+            "until": "6:25 pm",
+            "scene": "Maya and the user arrange Friday lunch in the group and invite Leo. Only Maya and the user send messages; Leo sends nothing in this scene or elsewhere on Monday. They leave his invitation open rather than deciding for him. The user asks whether Leo has answered and Maya says not yet. Their only aside is a short disagreement about thin versus thick crust; it creates no other plans.",
+            "facts": [
+              "Maya and the user agree to pizza on Friday October 9.",
+              "The agreed lunch time is 1 pm.",
+              "The agreed lunch venue is Rosa's on Oak Street.",
+              "Leo is invited but has not replied by Monday night.",
+              "Leo has not accepted or declined the invitation by Monday night."
+            ]
+          },
+          {
+            "id": "devon-evening",
+            "channel": "devon",
+            "time": "7 pm",
+            "until": "7:20 pm",
+            "scene": "Devon and the user arrange a separate Friday evening pizza. Devon mentions a disastrous homemade crust as an anecdote, not another invitation.",
+            "facts": [
+              "Devon and the user agree to pizza on Friday October 9.",
+              "Their agreed time is 6 pm.",
+              "Their agreed venue is Luigi's on 5th Street."
+            ]
+          },
+          {
+            "id": "maya-dairy",
+            "channel": "maya",
+            "time": "8 pm",
+            "until": "8:20 pm",
+            "scene": "Maya asks for a temporary food accommodation. They discuss oat milk versus lactose-free milk without making another meal plan. Keep this preference in its stated date range; do not invent an allergy or medical diagnosis.",
+            "facts": [
+              "Maya asks for fully dairy-free food when eating with the user through Sunday October 11 inclusive.",
+              "Lactose-free dairy does not meet this temporary request.",
+              "Maya says she will decide after Sunday whether to continue avoiding dairy."
+            ]
+          }
+        ]
+      },
+      "tuesday": {
+        "scenes": [
+          {
+            "id": "leo-next-day-reply",
+            "channel": "friday-crew",
+            "time": "8 am",
+            "until": "8:20 am",
+            "scene": "Leo's first reply to Monday's invitation arrives Tuesday morning. He apologizes for not replying last night while his phone was off and accepts that invitation. The user acknowledges; Maya may stay silent. Do not invent any earlier message or off-channel acceptance from Leo.",
+            "facts": [
+              "Leo first accepts Monday's invitation on Tuesday October 6.",
+              "Leo joins the existing Friday October 9 lunch at 1 pm at Rosa's on Oak Street."
+            ]
+          },
+          {
+            "id": "park-plan",
+            "channel": "park-pals",
+            "time": "5 pm",
+            "until": "5:25 pm",
+            "scene": "Jen and Alex arrange a Saturday walk with the user in the park group. They discuss muddy shoes, without inventing a forecast, backup venue or second outing.",
+            "facts": [
+              "The user, Jen and Alex agree to a walk on Saturday October 10.",
+              "They agree to meet at 10 am.",
+              "The meeting point is the west entrance to the duck pond in Willow Park."
+            ]
+          },
+          {
+            "id": "jen-call",
+            "channel": "jen",
+            "time": "6 pm",
+            "until": "6:20 pm",
+            "scene": "Jen separately arranges a short application call with the user before the Saturday walk. Keep the two appointments distinct.",
+            "facts": [
+              "Jen and the user agree to a phone call on Saturday October 10 at 9 am.",
+              "The call is to review her job application."
+            ]
+          },
+          {
+            "id": "ben-original-email",
+            "channel": "ben-email",
+            "time": "7 pm",
+            "until": "8 pm",
+            "scene": "Ben and the user agree on dinner over email. Use short ordinary messages, with no invented reservation number or booking claim.",
+            "facts": [
+              "Ben and the user agree to dinner on Thursday October 8.",
+              "The agreed dinner time is 7 pm.",
+              "The agreed venue is Juniper Cafe."
+            ]
+          }
+        ]
+      },
+      "wednesday": {
+        "scenes": [
+          {
+            "id": "lunch-time-only",
+            "channel": "maya",
+            "time": "8 am",
+            "until": "8:20 am",
+            "scene": "Maya asks in the DM to move Friday lunch an hour earlier and the user agrees. The original lunch was arranged in the Friday group: Friday October 9, 1 pm, Rosa's on Oak Street, with Leo having joined Tuesday. Use a natural time-only change rather than reciting the plan.",
+            "facts": [
+              "The Friday October 9 lunch time changes from 1 pm to noon.",
+              "This exchange does not change the lunch venue or attendees."
+            ]
+          },
+          {
+            "id": "relay-time-and-change-venue",
+            "channel": "friday-crew",
+            "time": "9 am",
+            "until": "9:25 am",
+            "scene": "The user tells Leo that Maya and the user just agreed in their DM to noon for Friday's existing lunch; Leo accepts noon. Maya then reports that Rosa's is closed this Friday and suggests Mario's on Pine Street. Everyone agrees. This is the group's first notice of the DM's time change. Do not invent a second lunch or a new time change.",
+            "facts": [
+              "Leo accepts noon for the existing Friday October 9 lunch.",
+              "The group changes the Friday October 9 lunch venue from Rosa's on Oak Street to Mario's on Pine Street.",
+              "The venue change leaves the noon time unchanged."
+            ]
+          },
+          {
+            "id": "movie-debate",
+            "channel": "devon",
+            "time": "8 pm",
+            "until": "8:35 pm",
+            "scene": "Devon and the user disagree about whether a film's predictable ending ruins its practical spaceship effects. Devon defends the model work; the user dislikes the ending. They can explain themselves at length. No invitation, screening, purchase, work schedule, food preference or change to an existing plan is introduced.",
+            "facts": [
+              "Devon likes the film's practical spaceship effects.",
+              "The user dislikes the film's predictable ending."
+            ]
+          }
+        ]
+      },
+      "thursday": {
+        "scenes": [
+          {
+            "id": "leo-withdraws",
+            "channel": "friday-crew",
+            "time": "8 am",
+            "until": "8:20 am",
+            "scene": "Leo learns he must cover a work shift during Friday lunch and withdraws. Maya and the user keep their lunch. Do not equate leaving the outing with leaving the chat, or turn this into a complete plan recap.",
+            "facts": [
+              "Leo withdraws from the Friday October 9 lunch because of a work shift.",
+              "The complete remaining attendee list for that lunch is Maya and the user.",
+              "The lunch itself remains agreed."
+            ]
+          },
+          {
+            "id": "ben-email-reschedule",
+            "channel": "ben-email",
+            "time": "9 am",
+            "until": "10 am",
+            "scene": "Ben asks to move tonight's dinner to Saturday because of a work deadline; the user explicitly agrees. Ben quotes one actual earlier Thursday confirmation faithfully below his new message. Copy its wording; do not fabricate a quotation or headers. Retain the old date only as quoted history.",
+            "facts": [
+              "The dinner with Ben moves from Thursday October 8 to Saturday October 10.",
+              "The dinner time remains 7 pm.",
+              "The venue remains Juniper Cafe.",
+              "The quoted Thursday confirmation is superseded history, not a second current dinner."
+            ]
+          },
+          {
+            "id": "devon-moves-day",
+            "channel": "devon",
+            "time": "6 pm",
+            "until": "6:25 pm",
+            "scene": "Devon gets a late Friday shift and asks to move the existing pizza two days later, to Sunday October 11. The user accepts. Time and venue are carried from the earlier DM; no other meal is added.",
+            "facts": [
+              "The pizza outing with Devon moves from Friday October 9 to Sunday October 11.",
+              "Its time remains 6 pm.",
+              "Its venue remains Luigi's on 5th Street.",
+              "There is no longer an agreed Friday pizza outing with Devon."
+            ]
+          }
+        ]
+      },
+      "friday": {
+        "scenes": [
+          {
+            "id": "ben-declined-reversion",
+            "channel": "ben",
+            "time": "8 am",
+            "until": "8:20 am",
+            "scene": "This is the first Ben DM of the week. Ben refers naturally to the dinner they moved by email from Thursday October 8 to Saturday October 10, 7 pm at Juniper Cafe. He asks whether they could instead eat tonight, Friday October 9. The user declines and Ben accepts keeping Saturday. Do not infer an extra meal or claim the Saturday meal has happened.",
+            "facts": [
+              "Ben proposes Friday October 9 dinner, but the user declines.",
+              "They retain the Saturday October 10 dinner agreed by email."
+            ]
+          },
+          {
+            "id": "park-postponed",
+            "channel": "park-pals",
+            "time": "9 am",
+            "until": "9:20 am",
+            "scene": "In the park group Jen says she cannot do tomorrow; Alex cannot either and the user agrees to postpone. The group relies on its Tuesday walk arrangement and does not name the activity again. Nobody chooses a replacement date or discusses the separate Jen DM call.",
+            "facts": [
+              "The Saturday October 10 group walk is postponed.",
+              "No replacement date is agreed."
+            ]
+          },
+          {
+            "id": "family-pizza-distractor",
+            "channel": "maya",
+            "time": "5 pm",
+            "until": "5:25 pm",
+            "scene": "Maya tells the user about her sister Nora's separate pizza gathering this Sunday. The user asks who is going and Maya explains the invitation is for Nora's flatmates only. This is third-party news, not an invitation to Maya or the user. Do not report whether today's lunch occurred.",
+            "facts": [
+              "Nora and her flatmates have a pizza gathering on Sunday October 11 at 6 pm at Luigi's on 5th Street.",
+              "Neither Maya nor the user is invited to Nora's gathering.",
+              "Nora's gathering is separate from the user's outing with Devon."
+            ]
+          }
+        ]
+      },
+      "saturday": {
+        "scenes": [
+          {
+            "id": "jen-next-week-call",
+            "channel": "jen",
+            "time": "11 am",
+            "until": "11:25 am",
+            "scene": "Jen has an interview next week and asks for another call Tuesday October 13. They agree. This is a new appointment, not a reschedule of today's 9 am application call; do not claim whether that earlier call took place.",
+            "facts": [
+              "Jen and the user agree to a new phone call on Tuesday October 13 at 10 am.",
+              "The new call is to prepare for her interview.",
+              "The October 13 call does not replace the October 10 application call."
+            ]
+          },
+          {
+            "id": "key-pickup",
+            "channel": "devon",
+            "time": "2 pm",
+            "until": "2:20 pm",
+            "scene": "Devon asks the user to collect his spare key from the bartender at Luigi's on Monday morning. The user agrees to 8:30 am. Devon will be out of town Monday and will not attend the pickup. This is an errand separate from Sunday's pizza, not a meal or a reschedule.",
+            "facts": [
+              "The user agrees to collect Devon's spare key.",
+              "The collection point is the bartender at Luigi's on 5th Street.",
+              "The agreed pickup is Monday October 12 at 8:30 am.",
+              "Devon is not supposed to attend the key pickup."
+            ]
+          },
+          {
+            "id": "leo-tentative-next-friday",
+            "channel": "friday-crew",
+            "time": "4 pm",
+            "until": "4:20 pm",
+            "scene": "Leo floats pizza next Friday, October 16, but cannot yet confirm his shift. The user says to wait before booking. Maya may be silent. No venue or time is settled; do not turn interest into acceptance.",
+            "facts": [
+              "Leo proposes pizza on Friday October 16.",
+              "The user does not commit to that proposal.",
+              "Leo does not confirm his own availability for October 16."
+            ]
+          },
+          {
+            "id": "recipe-discussion",
+            "channel": "maya",
+            "time": "5 pm",
+            "until": "5:35 pm",
+            "scene": "Maya and the user compare two ways of making tomato sauce: roasting tomatoes versus slowly simmering them. They explain texture and washing-up tradeoffs, with a few short reactions. Keep it to recipe discussion: no meal, shopping trip, cooking session, dietary change or new personal obligation is arranged.",
+            "facts": [
+              "Maya prefers roasting tomatoes for sauce.",
+              "The user prefers simmering tomatoes for sauce."
+            ]
+          }
+        ]
+      },
+      "sunday": {
+        "scenes": [
+          {
+            "id": "maya-next-friday",
+            "channel": "maya",
+            "time": "10 am",
+            "until": "10:25 am",
+            "scene": "Maya and the user arrange their own lunch for Friday October 16 at 1 pm at Mario's on Pine Street. They explicitly settle on just the two of them; Leo has not confirmed his availability. This is a new week's outing, not a change to October 9. They do not discuss food restrictions or assume Maya's temporary dairy request continues beyond today.",
+            "facts": [
+              "Maya and the user agree to a new pizza lunch on Friday October 16.",
+              "The new lunch time is 1 pm.",
+              "The new lunch venue is Mario's on Pine Street.",
+              "The complete confirmed attendee list for October 16 is Maya and the user."
+            ]
+          },
+          {
+            "id": "relay-new-plan",
+            "channel": "friday-crew",
+            "time": "11 am",
+            "until": "11:20 am",
+            "scene": "The user tells Leo that Maya and the user arranged lunch for Friday October 16, at 1 pm at Mario's, in their DM this morning. Leo replies that his shift is still unsettled and asks them not to count him in. No one claims he declined permanently or changes the two-person plan. Maya can remain silent.",
+            "facts": [
+              "Leo remains unconfirmed for the October 16 lunch.",
+              "Leo asks not to be counted among its confirmed attendees."
+            ]
+          },
+          {
+            "id": "key-no-longer-needed",
+            "channel": "devon",
+            "time": "2 pm",
+            "until": "2:20 pm",
+            "scene": "Devon says he recovered the spare key himself and the user no longer needs to collect it tomorrow. The user acknowledges. The referent is Saturday's key errand, not tonight's pizza. Do not repeat or cancel the pizza arrangement.",
+            "facts": [
+              "Devon has already recovered his spare key.",
+              "The Monday October 12 key pickup is no longer needed."
+            ]
+          },
+          {
+            "id": "dairy-still-undecided",
+            "channel": "maya",
+            "time": "4 pm",
+            "until": "4:20 pm",
+            "scene": "Maya says her dairy-free trial ends tonight and she has not decided whether to extend it. The user acknowledges and leaves the decision open. No new food rule or meal arrangement is made.",
+            "facts": [
+              "Maya has not decided whether to continue the dairy-free request beyond Sunday October 11.",
+              "No food requirement for the October 16 lunch has yet been agreed."
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "monday": {
+        "conversations": [
+          {
+            "id": "leo-monday-status-fresh",
+            "time": "9 am",
+            "turns": [
+              {
+                "id": "leo-monday-status",
+                "prompt": "Had Leo confirmed the October 9 pizza invitation by Monday night, or when did he first accept?",
+                "facts": [
+                  "Leo had not confirmed by Monday October 5 night.",
+                  "Leo first accepted on Tuesday October 6 morning."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "past-friday-final-fresh",
+            "time": "9:10 am",
+            "turns": [
+              {
+                "id": "past-friday-final",
+                "prompt": "What was the final agreed pizza plan for Friday October 9? Who was coming, and where and when?",
+                "facts": [
+                  "Exactly one pizza outing remained agreed for Friday October 9.",
+                  "Its agreed time was noon.",
+                  "Its venue was Mario's on Pine Street.",
+                  "Its complete agreed attendee list was Maya and the user."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lunch-changes-fresh",
+            "time": "9:20 am",
+            "turns": [
+              {
+                "id": "lunch-changes",
+                "prompt": "What changed about the time and place of Maya's October 9 lunch from the original invitation?",
+                "facts": [
+                  "The lunch time changed from 1 pm to noon.",
+                  "The venue changed from Rosa's on Oak Street to Mario's on Pine Street."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "leo-final-status-fresh",
+            "time": "9:30 am",
+            "turns": [
+              {
+                "id": "leo-final-status",
+                "prompt": "Why wasn't Leo in the final October 9 lunch plan?",
+                "facts": [
+                  "Leo withdrew because of a work shift."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "devon-final-fresh",
+            "time": "9:40 am",
+            "turns": [
+              {
+                "id": "devon-final",
+                "prompt": "What did Devon and I ultimately arrange for pizza last week?",
+                "facts": [
+                  "Their final agreed pizza date was Sunday October 11.",
+                  "Their final agreed time was 6 pm.",
+                  "Their final agreed venue was Luigi's on 5th Street."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "third-party-party-fresh",
+            "time": "9:50 am",
+            "turns": [
+              {
+                "id": "third-party-party",
+                "prompt": "Was I invited to Nora's Sunday pizza gathering, or was my plan with Devon separate?",
+                "facts": [
+                  "The user was not invited to Nora's gathering.",
+                  "The user's outing with Devon was separate from Nora's gathering."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "ben-final-fresh",
+            "time": "10 am",
+            "turns": [
+              {
+                "id": "ben-final",
+                "prompt": "What date, time and place did Ben and I finally settle on for dinner last week?",
+                "facts": [
+                  "The final agreed dinner date was Saturday October 10.",
+                  "The final agreed dinner time was 7 pm.",
+                  "The final agreed dinner venue was Juniper Cafe."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "ben-old-options-fresh",
+            "time": "10:10 am",
+            "turns": [
+              {
+                "id": "ben-old-options",
+                "prompt": "Did Ben and I keep Thursday dinner too, or accept his Friday suggestion?",
+                "facts": [
+                  "The Thursday October 8 dinner was replaced, not retained as an additional meal.",
+                  "The Friday October 9 dinner proposal was declined."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "park-status-fresh",
+            "time": "10:20 am",
+            "turns": [
+              {
+                "id": "park-status",
+                "prompt": "What happened to the Saturday duck-pond plan? Did we settle another date?",
+                "facts": [
+                  "The Saturday October 10 walk was postponed.",
+                  "No replacement date was agreed."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "separate-call-fresh",
+            "time": "10:30 am",
+            "turns": [
+              {
+                "id": "separate-call",
+                "prompt": "Did postponing the park walk also cancel my Saturday application call with Jen?",
+                "facts": [
+                  "The group postponement did not cancel the separate Saturday October 10 application call with Jen."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "jen-upcoming-fresh",
+            "time": "10:40 am",
+            "turns": [
+              {
+                "id": "jen-upcoming",
+                "prompt": "When is my next call with Jen, what is it for, and is it the application call moved?",
+                "facts": [
+                  "The next agreed call with Jen is Tuesday October 13 at 10 am.",
+                  "Its purpose is interview preparation.",
+                  "It is a new call, not a rescheduled application call."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "key-status-fresh",
+            "time": "10:50 am",
+            "turns": [
+              {
+                "id": "key-status",
+                "prompt": "Did I still need to collect Devon's spare key this morning?",
+                "facts": [
+                  "The Monday October 12 pickup was no longer needed because Devon had already recovered the key."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "key-original-fresh",
+            "time": "11 am",
+            "turns": [
+              {
+                "id": "key-original",
+                "prompt": "What had I offered to do about Devon's key, and was he going to meet me there?",
+                "facts": [
+                  "The user had offered to collect Devon's spare key.",
+                  "The collection point was the bartender at Luigi's on 5th Street.",
+                  "The agreed pickup was Monday October 12 at 8:30 am.",
+                  "Devon was not supposed to attend that pickup."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "next-friday-current-fresh",
+            "time": "11:10 am",
+            "turns": [
+              {
+                "id": "next-friday-current",
+                "prompt": "What's the agreed pizza plan for this Friday, October 16: time, place and confirmed people?",
+                "facts": [
+                  "The agreed lunch time is 1 pm.",
+                  "The agreed lunch venue is Mario's on Pine Street.",
+                  "The complete confirmed attendee list is Maya and the user."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "leo-next-friday-fresh",
+            "time": "11:20 am",
+            "turns": [
+              {
+                "id": "leo-next-friday",
+                "prompt": "Has Leo committed to joining our October 16 lunch yet?",
+                "facts": [
+                  "Leo has not committed to joining the October 16 lunch."
+                ]
+              }
+            ]
+          },
+          {
+            "id": "food-date-scope-fresh",
+            "time": "11:30 am",
+            "turns": [
+              {
+                "id": "food-date-scope",
+                "prompt": "Have we settled whether Maya needs dairy-free food for our October 16 lunch?",
+                "facts": [
+                  "No food requirement for October 16 has been agreed; Maya had not decided whether to extend the trial that ended October 11."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "tuesday": {},
+      "wednesday": {},
+      "thursday": {},
+      "friday": {},
+      "saturday": {},
+      "sunday": {}
+    }
+  ]
+}

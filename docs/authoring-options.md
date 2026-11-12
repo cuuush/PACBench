@@ -1,6 +1,6 @@
 # Writing a spec
 
-Keep one JSON per scenario in `specs/`; its duration can be a day, a month or longer. [Pizza Week](../specs/pizza_week.json) shows the format: `week_start`, `noise`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. Empty days are `{}`. `python -m pacbench.specs` checks the whole directory for structural errors without generating text, creating artifacts or calling a model. Preparation still requires independent semantic checks.
+Keep one JSON per scenario in `specs/`; its duration can be a day, a month or longer. [Pizza Day](../specs/pizza_day.json) shows `week_start`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. [Challenging Pizza Week](../specs/pizza_week_challenging.json) uses `weeks` to place its final questions after seven full source days. Empty days are `{}`. `python -m pacbench.specs` checks the whole directory for structural errors without generating text, creating artifacts or calling a model. Preparation still requires independent semantic checks.
 
 Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
 
@@ -45,6 +45,49 @@ For an update scene, describe what changes. Use “same time” or “venue unch
 `noise` is `low`, `medium` or `high`. Low is the shortest natural exchange (normally 2–12 messages). Medium targets 20–40 messages per person per conversation per day. High targets 600–800 per person, including unrelated topics, facts and side plans. Multiple scenes in the same chat/day share that target. Each member must meet the minimum; the total exchange stays bounded, while individual speakers may exceed their target share. Larger exchanges use bounded chunks; messages are never padded, copied or truncated to meet a count. Start with low. An optional `until` sets the scene's ending wall time; high otherwise continues through the rest of its day, respecting the next scene in that chat. Authored start times remain unchanged. Within each window, deterministic uneven gaps provide synthetic pacing; they do not claim to reproduce an empirically measured distribution.
 
 For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sunday maps. Channels remain shared, so an ongoing chat keeps its identity across the month. Scene IDs gain a week prefix when compiled; assistant turn and session IDs stay as authored. [Pizza Month](../specs/pizza_month.json) covers 30 consecutive source days, then asks upcoming-plan questions. `ingestion_days: 30` verifies that exact daily coverage and prevents interim questions.
+
+## Challenging Pizza Week
+
+[Challenging Pizza Week](../specs/pizza_week_challenging.json) has 24 scenes on October 5–11, 2026,
+and 16 independent questions on Monday October 12, after the final nightly
+collection boundary at 03:00 Monday. `ingestion_days: 7` requires seven consecutive source days;
+the second week map contains questions only. Every question starts a fresh
+assistant session so earlier answers cannot supply the next answer.
+
+The spec omits global `noise` and per-person quotas. Its film and recipe
+discussions have explicit topics and forbid new commitments; a separate,
+authored third-party gathering supplies a controlled event distractor. On the
+legacy compiler, omitted noise still resolves to `low`, with 2–12 messages per
+chat scene and 2–6 per email scene (48–276 messages total). This is a seven-day
+continuity pilot, not a large-volume stress test or proof of quota-free generation.
+
+| Scenes / question IDs | Challenge |
+| --- | --- |
+| `lunch-invite-unanswered`, `leo-next-day-reply` / `leo-monday-status` | Leo stays silent Monday and first accepts Tuesday. Membership and silence are not acceptance; later acceptance must not rewrite Monday's state. |
+| `lunch-time-only`, `relay-time-and-change-venue` / `past-friday-final`, `lunch-changes` | A DM changes time; an explicit relay informs the group before the venue changes. Preserve event identity and unchanged attributes across threads. |
+| `leo-withdraws` / `leo-final-status` | One attendee withdraws without cancelling the other attendees' lunch. |
+| `devon-moves-day` / `devon-final`, `past-friday-final` | Move a separate Friday outing to Sunday without creating a duplicate or retaining it in Friday's count. |
+| `ben-email-reschedule`, `ben-declined-reversion` / `ben-final`, `ben-old-options` | Quoted Thursday history does not undo Saturday's agreement; a later Friday proposal in a DM is declined. |
+| `park-postponed` / `park-status`, `separate-call` | Resolve an unnamed cancellation from its own thread; do not cancel Jen's separate DM appointment. No replacement date is invented. |
+| `family-pizza-distractor` / `third-party-party` | A third-party gathering shares the owner's Sunday pizza time and venue, but has a different attendee set and is not the owner's invitation. |
+| `jen-next-week-call` / `jen-upcoming` | Distinguish a new interview-preparation call from an earlier application call with the same person. |
+| `key-pickup`, `key-no-longer-needed` / `key-status`, `key-original` | Keep a favour separate from a meal at the same venue; cancel the obligation while retaining its historical details and non-attending beneficiary. |
+| `leo-tentative-next-friday`, `maya-next-friday`, `relay-new-plan` / `next-friday-current`, `leo-next-friday` | Separate next week's similar outing from last week's, and confirmed attendees from a still-unconfirmed invitee. |
+| `maya-dairy`, `dairy-still-undecided` / `food-date-scope` | A temporary request expires without establishing its opposite. Next Friday's food requirement remains undecided, not definitely dairy-free or definitely unrestricted. |
+
+Scenes gain the `w1-` prefix when compiled. All past-event criteria concern
+agreements, not proof a meal or call actually happened. Compound event details
+should remain independently assessable when contracts are frozen. Speaker
+silence is a scene requirement, not an enforced speaker whitelist: inspect the
+generated Monday transcript for any Leo message. The delayed reply uses an
+existing three-person group, so it does not require unsupported one-sided DM
+generation. The writer receives relevant cross-thread background in scene
+prose; this does not substitute for checking the actual source continuity.
+
+Before paid preparation, validate this spec with the actual generator revision.
+After generation, inspect silence, cross-thread relays, faithful email quotes,
+incidental commitments and all answer criteria against the source. Structural
+validation cannot establish any of these semantic properties.
 
 Concrete dates are assigned during preparation from the spec's `week_start` Monday. `--week-start` explicitly overrides it; update any prose containing concrete dates when moving a scenario. Legacy unpinned inputs can still prepare relative to the host week, but the inventory requires a fixed date. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 

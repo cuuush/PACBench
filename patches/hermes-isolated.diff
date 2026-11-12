@@ -90,7 +90,7 @@ index 5a51f557..48f4ba22 100644
          return INLINE_TOOL_EXECUTORS[function_name]
      memory_manager = agent._memory_manager
 diff --git a/agent/system_prompt.py b/agent/system_prompt.py
-index 3b946fad..183dd17a 100644
+index 3b946fad..54c6e276 100644
 --- a/agent/system_prompt.py
 +++ b/agent/system_prompt.py
 @@ -198,6 +198,12 @@ def _session_start_like(agent: Any, now: Any) -> Any:
@@ -119,7 +119,23 @@ index 3b946fad..183dd17a 100644
          SKILLS_GUIDANCE if "skill_manage" in names else None,
          _kanban_guidance,
      ]
-@@ -537,7 +547,7 @@ def _memory_parts(agent: Any) -> list[str]:
+@@ -511,9 +521,13 @@ def _timestamp_line(agent: Any) -> str:
+     rebuild days (the cache prefix is already invalidated at that boundary)."""
+     from hermes_time import get_timezone as _hermes_tz, now as _hermes_now, safe_strftime
+     now = _hermes_now()
+-    _bits = _zone_bits(now, _hermes_tz())
+-    _zone_suffix = f" ({', '.join(_bits)})" if _bits else ""
++    _tz = _hermes_tz()
++    _bits = _zone_bits(now, _tz)
+     _start = _session_start_like(agent, now)
++    # PACBench's simulated session start is immutable across DST boundaries.
++    # Keep its own UTC offset instead of borrowing the current turn's offset.
++    _start_bits = _zone_bits(_start, _tz) if os.environ.get("PACBENCH_NOW", "").strip() else _bits
++    _zone_suffix = f" ({', '.join(_start_bits)})" if _start_bits else ""
+     timestamp_line = f"Conversation started: {safe_strftime(_start, '%A, %B %d, %Y')}{_zone_suffix}"
+     # Second line (maintainer design, salvaging #96224's anchor): long-lived sessions — Bot Mode
+     # forever-chats, messenger channels people never close — span many days and many compactions. A lone
+@@ -537,7 +551,7 @@ def _memory_parts(agent: Any) -> list[str]:
      the same check ``inject_memory_provider_tools`` uses, so we never advertise
      tools the toolset config gated off)."""
      parts: list[str] = []

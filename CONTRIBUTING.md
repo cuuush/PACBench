@@ -41,6 +41,10 @@ Work on small, inspectable changes before expanding the benchmark:
    malformed judge JSON and the permitted retry. Use controlled correct and wrong
    answers to test changes. Version any new judging condition and preserve the
    original grades and failed attempts.
+   Experimental `semantic-judge-compact-v3` keeps the date-scoped grading
+   criteria but omits the evidence diagnostic from that request and marks it
+   ungraded. It is not the native default. Offline controls verify parsing and
+   preservation only; live correct and wrong controls are required before use.
 2. **Investigate provider compatibility with small canaries.** Supermemory stopped
    before completing the month; OpenViking and ByteRover have no selected current
    month arm. Establish native processing and recall before trying a full month.
@@ -77,6 +81,23 @@ When resuming existing work, recover the actual private gateway state, including
 its spending ledger and credentials. Gateway source and public request receipts
 do not recover spending history. If that state is missing, paid work remains
 blocked; do not initialize a replacement ledger to continue the experiment.
+
+Before a Memcal canary, inspect the local prerequisites without inference:
+
+```sh
+python3 -m pacbench.preflight \
+  --prepared runs/bike-pickup-native-clock-20261105/preparation/week.json
+```
+
+This checks frozen preparation, the exact Hermes pin and patch, installed client
+dependencies, the sibling Memcal checkout, isolated scratch space, driver
+configuration and existing gateway files. It does not initialize stores or
+recover spending history. Add `--check-gateway` for a free authenticated health
+check after restoring the original state. A passing setup check is not proof of
+model access or recall; verify the recovered ledger and free model inventory
+before running paid controls. If the configured temporary directory resolves
+inside Git, choose a writable `TMPDIR` outside every project; do not disable the
+context-isolation check.
 
 Prefer an existing verified preparation. After services and gateway access are
 ready, a month trial follows this shape:

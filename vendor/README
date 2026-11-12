@@ -7,6 +7,26 @@
   (gitignored). Use with a scratch home, never `~/.hermes`:
   `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`
 
+For a fresh checkout, provision the pinned client without starting inference:
+
+```sh
+git init vendor/hermes-isolated
+git -C vendor/hermes-isolated remote add origin https://github.com/NousResearch/hermes-agent.git
+pin=$(sed -n 's/^HERMES_PIN=//p' vendor/HERMES_PIN)
+git -C vendor/hermes-isolated fetch --depth 1 origin "$pin"
+git -C vendor/hermes-isolated checkout FETCH_HEAD
+git -C vendor/hermes-isolated apply ../../patches/hermes-isolated.diff
+uv venv --python 3.12 vendor/venv-hermes-isolated
+uv pip install --python vendor/venv-hermes-isolated/bin/python \
+  -e vendor/hermes-isolated -e ../memcal -r vendor/hermes-isolated-extra-requirements.txt
+```
+
+The sibling Memcal checkout must already exist. Inspect existing vendor trees
+rather than rerunning initialization over them. The runtime requires a writable
+temporary directory outside every Git project. `TMPDIR=/var/tmp` works only if
+that path does not resolve to a sandbox's Git-marked `/tmp`. Gateway setup is
+separate: restore its original private state before starting the gateway.
+
 Install the pinned client integrations from `hermes-isolated-extra-requirements.txt`.
 Install the sibling Memcal checkout normally too, so its declared source-reader
 dependencies are present: `uv pip install --python vendor/venv-hermes-isolated/bin/python -e ../memcal`.

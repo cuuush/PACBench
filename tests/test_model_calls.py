@@ -126,7 +126,8 @@ def test_rejected_pizza_draft_replays_encrypted_reasoning(tmp_path):
     saved = [json.loads(path.read_text()) for path in (tmp_path / "private").glob("*.json")]
     assert any(row["response"]["output"][0]["encrypted_content"] == "sealed-first"
                for row in saved)
-    assert all(path.stat().st_mode & 0o077 == 0 for path in tmp_path.rglob("*.json"))
+    records = list(tmp_path.glob("*.json")) + list((tmp_path / "private").glob("*.json"))
+    assert records and all(path.stat().st_mode & 0o077 == 0 for path in records)
     public = [path.read_text() for path in tmp_path.glob("*.json")]
     assert all("sealed-first" not in row and "sealed-second" not in row for row in public)
     # The existing public request still reuses its private record without a call.

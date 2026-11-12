@@ -266,7 +266,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result.provider_clock = clock_record
         result.hermes_gateway = gateway_witness
         result.stderr_tail = note
-        result.context_isolation = actual_context(home, result.session_id, workspace)
+        result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
         _recover_tool_results(result, home / "state.db")
         capture_provider_traces(result, env, provider_before)
         enforce_provider_tools(result, env)
@@ -274,7 +274,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
     result.session_started_at = session_started_at
-    result.context_isolation = actual_context(home, result.session_id, workspace)
+    result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
     result.provider_clock = clock_record
     result.hermes_gateway = gateway_witness
     if result.context_isolation['state'] != 'pass':

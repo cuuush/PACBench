@@ -122,7 +122,8 @@ def audit(root: Path, *, providers=None) -> dict:
                         if isinstance(data, dict) and 'tool_calls' in data and 'prompt' in data:
                             context = actual_context(arm / 'hermes-home', data.get('session_id'),
                                 Path(workspace_record['workspace']),
-                                prompt_hash=(data.get('context_isolation') or {}).get('system_prompt_sha256'))
+                                prompt_hash=(data.get('context_isolation') or {}).get('system_prompt_sha256'),
+                                receipt_version=(data.get('context_isolation') or {}).get('version', 'empty-recall-workspace-v1'))
                             check(context['state'] == 'pass',
                                   f'{label}: {context.get("reason", "recall context isolation failed")}')
                             check(data.get('context_isolation') == context,

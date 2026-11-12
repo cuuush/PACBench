@@ -459,11 +459,14 @@ def honcho(source,root,at,processing_at):
         batch_grace_s=grace,read_errors=lambda:queue_errors(root))
     return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
+        'source_error_scope':'submitted-source-sessions-v1',
         'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
         'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
 
 
 def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read_errors=None):
+    if not sessions:
+        return [],False,'No submitted Honcho sessions; source processing is unproven',{}
     minimum_work=minimum_work or {}
     # A finite, isolated import has no concurrent producers. This is a scoped
     # benchmark readiness barrier, not a production requirement that the entire
@@ -471,7 +474,7 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
     statuses=[];started=time.monotonic();last_progress=started
     done=False;reason='';health={}
     from pacbench.usage import provider_model_health, snapshot
-    previous=None;last_error_check=None
+    previous=None;last_error_check=None;previous_errors=[]
     while True:
         status={session.id:session.queue_status().model_dump(mode='json') for session in sessions}
         elapsed=time.monotonic()-started
@@ -481,10 +484,16 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
         done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 and
             s.get('total_work_units',0)>=minimum_work.get(id,0) for id,s in status.items())
         if read_errors and (done or last_error_check is None or elapsed-last_error_check>=10):
-            failures=read_errors();last_error_check=elapsed
-            failures=[r for r in failures if r.get('session_name') in status]
+            observed_errors=read_errors();last_error_check=elapsed
+            # An absent session cannot prove an error belongs to unrelated
+            # capture work. Match the simulated-clock barrier's fail-closed scope.
+            failures=[r for r in observed_errors if not r.get('session_name') or r['session_name'] in status]
+            unrelated=[r for r in observed_errors if r.get('session_name') and r['session_name'] not in status]
+            if observed_errors!=previous_errors:
+                statuses.append({'elapsed_s':round(elapsed,2),'sessions':status,
+                    'native_queue_errors':failures,'unrelated_queue_errors':unrelated})
+                previous_errors=observed_errors
             if failures:
-                statuses.append({'elapsed_s':round(elapsed,2),'sessions':status,'native_queue_errors':failures})
                 done=False;reason='Native Honcho submitted-source work failed; public completion counts include errors';break
         if roles:
             health=provider_model_health(snapshot(roles))
@@ -517,17 +526,34 @@ def supermemory(source,root,at,processing_at):
     client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
     delivery=json.loads((root/'document-ingestion-config.json').read_text())
     if delivery.get('dreaming')!='instant':raise ValueError('Undeclared Supermemory ingestion mode')
-    result=client.documents.add(content=(source/'messages.txt').read_text(),
-        container_tags=[tag],custom_id=source.name,dreaming=delivery['dreaming'],
-        metadata={'source':'daily-transcript','collected_at':at})
+    content=(source/'messages.txt').read_text()
+    try:
+        result=client.documents.add(content=content,
+            container_tags=[tag],custom_id=source.name,dreaming=delivery['dreaming'],
+            metadata={'source':'daily-transcript','collected_at':at})
+    except Exception as error:
+        failure={**native_error_receipt(error),'phase':'document-add'}
+        failure['commit_state']=('rejected' if failure.get('http_status') in (400,401,403,404,413,422)
+                                 else 'unknown')
+        return {'ready':False,'reason':'Native document delivery failed; no blind retry; raw error withheld',
+                'interface':'Supermemory SDK documents.add(raw content) + documents.get',
+                'native_error':failure,'container_tag':tag,'processing_status':[],
+                'delivery_options':{'dreaming':delivery['dreaming']}}
     from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
     from pacbench.gateway_client import require_live_cost_boundary
     from pacbench.usage import snapshot,provider_model_health
     roles=json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))
     statuses=[];deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
-    ready=False;reason='Native memory processing deadline exceeded'
+    ready=False;reason='Native memory processing deadline exceeded';failure=None
     while True:
-        status=client.documents.get(result.id).model_dump(mode='json')
+        try:
+            status=client.documents.get(result.id).model_dump(mode='json')
+        except Exception as error:
+            # Delivery already succeeded. Preserve its ID and every observed
+            # state, rather than losing them to a traceback or resubmitting.
+            failure={**native_error_receipt(error),'phase':'document-status','commit_state':'accepted'}
+            reason='Native document status unavailable; accepted delivery retained; raw error withheld'
+            break
         # SDK responses duplicate camel/snake aliases and may append complete
         # memories on every poll. Keep the source witness and state changes,
         # not repeated native memory dumps or duplicate spelling aliases.
@@ -551,6 +577,7 @@ def supermemory(source,root,at,processing_at):
         time.sleep(1)
     return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
+            **({'native_error':failure} if failure else {}),
             'delivery_options':{'dreaming':delivery['dreaming']},
             'readiness_requirement':'Native document processing and memory dreaming both done'}
 
@@ -570,12 +597,12 @@ def main(args=None):
         print(json.dumps({'operator_stop':True}))
         return 75
     except Exception as error:
-        if provider!='honcho':raise
-        result={'ready':False,'interface':'Native Honcho connector',
+        if provider not in ('honcho','supermemory'):raise
+        result={'ready':False,'interface':f'Native {provider.title()} connector',
                 'native_error':native_error_receipt(error),
                 'readiness':'Native connector failed; raw exception body withheld'}
         journal=Path(arm)/'ingestion-delivery'/Path(src).name/'index.json'
-        if journal.exists():result['delivery_journal']=str(journal.relative_to(Path(arm)))
+        if provider=='honcho' and journal.exists():result['delivery_journal']=str(journal.relative_to(Path(arm)))
     print(json.dumps(result,ensure_ascii=False,default=lambda value:sorted(value) if isinstance(value,set) else str(value)))
     return 0 if result['ready'] else 1
 

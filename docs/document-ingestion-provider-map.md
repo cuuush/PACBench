@@ -43,6 +43,10 @@ session ID alone can refer to an older turn. v1 trials retain their frozen rules
 Supermemory can expose an extracted memory while its document still reports
 `dreaming`; a read-only diagnostic can demonstrate that discrepancy, but it does
 not retroactively complete the original availability-gated test.
+If a document-status request fails, retain its accepted ID and earlier status
+observations, withhold readiness and do not resubmit. Submission failures without
+a definitive rejection remain uncertain. Public failure receipts keep safe error
+classes, status codes and hashes, not native exception bodies or worker streams.
 
 For Honcho, v2 can instead verify a synchronous explicit `conclude` write through native conclusion records. Match the actual accepted tool text, originating session, observer and target, covering every required input and accepted write. That path needs no conversation-capture queue wait. The captured-input/queue barrier remains the fallback; a saved acknowledgement alone never proves persistence. No conclusion is created by this observer.
 
@@ -65,7 +69,9 @@ source-message capture explicitly preserves original timestamps.
 The native completion counter also includes terminally errored queue items.
 The local runner observes the run-owned PostgreSQL queue without modifying it,
 stops on submitted-source errors and saves their classes/hashes. A cleared queue
-alone must not turn failed extraction into successful ingestion.
+alone must not turn failed extraction into successful ingestion. Errors without
+session attribution also block readiness. Known unrelated errors remain separate
+in the evidence; an empty list of submitted sessions never proves completion.
 
 
 For Spark on Honcho we explicitly set the native per-model deriver allowance:

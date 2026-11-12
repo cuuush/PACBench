@@ -95,10 +95,11 @@ def test_duplicate_native_id_cannot_prove_distinct_source_messages():
     assert error['error_class']=='AcknowledgmentMismatch'
 
 
-def test_worker_setup_error_does_not_print_exception_body(monkeypatch,capsys):
+@pytest.mark.parametrize('provider',['honcho','supermemory'])
+def test_worker_setup_error_does_not_print_exception_body(monkeypatch,capsys,provider):
     def broken(*a):raise ValueError('SECRET_VALIDATION_BODY')
-    monkeypatch.setattr(connector,'honcho',broken)
-    assert connector.main(['honcho','source','root','at','processing_at'])==1
+    monkeypatch.setattr(connector,provider,broken)
+    assert connector.main([provider,'source','root','at','processing_at'])==1
     captured=capsys.readouterr()
     assert 'SECRET_VALIDATION_BODY' not in captured.out+captured.err
     assert json.loads(captured.out)['native_error']['error_class']=='ValueError'
@@ -159,7 +160,8 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
 
 
 @pytest.mark.parametrize('timeout',[False,True])
-def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,timeout):
+@pytest.mark.parametrize('provider',['honcho','supermemory'])
+def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,timeout,provider):
     from pacbench import document_ingestion as ingestion
     from tests.test_document_ingestion import message
     schedule=ingestion.prepare_sources(tmp_path,[message('one')],'America/New_York')
@@ -171,7 +173,7 @@ def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,ti
         if timeout:raise subprocess.TimeoutExpired(a[0],1,output=b'SECRET_ERROR_INPUT',stderr=b'SECRET_ERROR_INPUT')
         return subprocess.CompletedProcess(a[0],1,'SECRET_ERROR_INPUT','SECRET_ERROR_INPUT')
     monkeypatch.setattr(ingestion.subprocess,'run',run)
-    record=ingestion.ingest_day('honcho',source,root,{'PACBENCH_USAGE_ROLES':'{}'},schedule[0]['at'],'America/New_York')
+    record=ingestion.ingest_day(provider,source,root,{'PACBENCH_USAGE_ROLES':'{}'},schedule[0]['at'],'America/New_York')
     assert record['ready'] is False
     assert record['stdout']==record['stderr']==''
     assert 'SECRET_ERROR_INPUT' not in json.dumps(record)

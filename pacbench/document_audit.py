@@ -74,13 +74,13 @@ def audit_honcho_receipt(batch, result, previous_work=None):
                 errors.append('Honcho acknowledged changed source text, speaker, time or metadata')
     if sorted(seen)!=sorted(expected):errors.append('Honcho acknowledgments omit or duplicate sources')
     changes=result.get('processing_status',[])
+    error_scope=result.get('source_error_scope')
+    if error_scope not in (None,'submitted-source-sessions-v1'):
+        errors.append('Unsupported Honcho source error scope')
     if result.get('clock_protocol') in ('honcho-wall-clock-v1','honcho-wall-clock-v2','honcho-wall-clock-v3'):
         ids = {m['id'] for ack in result.get('result', []) for m in ack['messages']}
         witnesses = result.get('message_witnesses', [])
         final = changes[-1] if changes else {}
-        error_scope=result.get('source_error_scope')
-        if error_scope not in (None,'submitted-source-sessions-v1'):
-            errors.append('Unsupported Honcho source error scope')
         def source_errors(state):
             failures=state.get('errors',[])
             if error_scope=='submitted-source-sessions-v1':
@@ -95,6 +95,9 @@ def audit_honcho_receipt(batch, result, previous_work=None):
         return errors
     if any(change.get('native_queue_errors') for change in changes):
         errors.append('Honcho submitted-source work completed with native errors')
+    if any(not e.get('session_name') or e['session_name'] in sessions
+           for change in changes for e in change.get('unrelated_queue_errors',[])):
+        errors.append('Honcho excluded native error lacks unrelated-session attribution')
     final=changes[-1].get('sessions',{}) if changes else {}
     if set(final)!=sessions or not final or any(
             status.get('pending_work_units')!=0 or status.get('in_progress_work_units')!=0

@@ -237,7 +237,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
         record.update(reason='Native ingestion/processing deadline exceeded',stdout=(exc.stdout or b'').decode() if isinstance(exc.stdout,bytes) else exc.stdout,
                       stderr=(exc.stderr or b'').decode() if isinstance(exc.stderr,bytes) else exc.stderr)
     except (OSError,ValueError,IndexError) as exc:
-        if provider=='honcho':
+        if provider in ('honcho','supermemory'):
             from provider_adapters.document_connector import native_error_receipt
             record.update(reason='Native worker failed; raw error withheld',native_error=native_error_receipt(exc))
         else:record['reason']=f'{type(exc).__name__}: {exc}'
@@ -254,6 +254,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
                 try:verify_honcho_delivery(journal,complete=record['ready'])
                 except (ValueError,OSError,KeyError,TypeError):
                     record.update(ready=False,state='failed',reason='Native delivery receipt integrity failed')
+        if provider in ('honcho','supermemory'):
             # Keep parsed acknowledgments, not an SDK traceback that may echo
             # the complete input or credentials. This also covers timeouts.
             streams={}

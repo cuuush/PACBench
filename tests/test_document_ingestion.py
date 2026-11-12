@@ -304,7 +304,8 @@ def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path)
     assert json.loads((tmp_path/'pre-recall-isolation.json').read_text())['hermes_sessions_before_recall']==[]
 
 
-@pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer','enrollment'])
+@pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer','enrollment',
+                                  'unknown-error-scope','unattributed-error','misattributed-source-error'])
 def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damage):
     from pacbench.document_audit import audit_honcho_receipt
     import hashlib
@@ -322,6 +323,13 @@ def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damag
     elif damage=='pending':receipt['processing_status'][0]['sessions'][session]['pending_work_units']=1
     elif damage=='observer':receipt['result'][0]['observer']['observe_others']=False
     elif damage=='enrollment':receipt['processing_status'][0]['sessions'][session]['total_work_units']=0
+    elif damage=='unknown-error-scope':receipt['source_error_scope']='ignore-all-errors'
+    elif damage in ('unattributed-error','misattributed-source-error'):
+        receipt['processing_status'][0]['unrelated_queue_errors']=[{
+            'session_name':None if damage=='unattributed-error' else session,'error_class':'StructuredOutputError'}]
+    else:
+        receipt['processing_status'][0]['unrelated_queue_errors']=[{
+            'session_name':'unrelated-capture-session','error_class':'StructuredOutputError'}]
     errors=audit_honcho_receipt([original],receipt)
     assert bool(errors)==bool(damage)
 

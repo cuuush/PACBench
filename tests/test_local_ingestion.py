@@ -183,16 +183,25 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
         assert native.metadata=={k:v for k,v in original.items() if k!='text'}
 
 
-@pytest.mark.parametrize('session_name',['source','unrelated'])
+@pytest.mark.parametrize('session_name',['source','unrelated',None,''])
 def test_honcho_public_completed_counter_does_not_hide_failed_source_work(session_name):
     from provider_adapters.document_connector import wait_honcho_sessions
     session=SimpleNamespace(id='source',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{
         'total_work_units':1,'completed_work_units':1,'pending_work_units':0,'in_progress_work_units':0}))
     failure={'session_name':session_name,'error_class':'StructuredOutputError','error_sha256':'error-hash'}
     records,ready,reason,_=wait_honcho_sessions([session],{}, {'source':1},read_errors=lambda:[failure])
-    assert ready==(session_name!='source')
-    if session_name=='source':
+    assert ready==(session_name=='unrelated')
+    if session_name!='unrelated':
         assert 'work failed' in reason and records[-1]['native_queue_errors']==[failure]
+    else:
+        assert records[-1]['unrelated_queue_errors']==[failure]
+        assert not records[-1]['native_queue_errors']
+
+
+def test_honcho_empty_session_discovery_cannot_prove_source_processing():
+    from provider_adapters.document_connector import wait_honcho_sessions
+    records,ready,reason,_=wait_honcho_sessions([],{})
+    assert not ready and not records and 'unproven' in reason
 
 
 def test_honcho_native_queue_telemetry_never_exports_raw_error_text(tmp_path,monkeypatch):

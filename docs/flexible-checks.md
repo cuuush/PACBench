@@ -48,3 +48,29 @@ prove completion. These are availability-gated recall trials; simulated question
 clocks are not measurements of wall-clock aging or a response-time SLA.
 
 Answer evidence diagnostics can be requested alongside the existing semantic judgment. They report whether captured prefetch or direct tool results contain evidence for each criterion, and separately assess factual assertions made beyond the criteria against the cited source excerpts. These are diagnostic observations and do not change claim scores or recovery. Source coverage is partial: missing support is unverifiable, and only direct contrary evidence supports a contradiction. Captured inputs record truncation and missing citations; provider background traces are not treated as visible to the answer. Availability alone does not establish whether the assistant used or ignored evidence. Malformed diagnostics remain ungraded without discarding an otherwise valid answer grade; older judgments remain unchanged.
+
+### Offline review of incomplete diagnostics
+
+`judge-diagnostic-isolation-v1` is an opt-in, format-only review for saved
+responses with complete semantic fields followed by an unfinished diagnostic.
+It accepts only missing closing containers in the final diagnostic, rejects
+duplicate keys and damaged or incomplete semantic values, and replays the
+existing verdicts through the original validator. It never repairs or credits
+diagnostic evidence, calls a model, or changes the native judge protocol.
+
+```sh
+python -m pacbench.judge_format_review create \
+  runs/pizza-month-local-20261105/reviews/judge-format-isolation-v1 \
+  --source runs/pizza-month-local-20261105
+python -m pacbench.judge_format_review audit \
+  runs/pizza-month-local-20261105/reviews/judge-format-isolation-v1
+```
+
+Creation requires a new overlay directory. Review includes every saved judgment
+and binds contracts, answers, model requests and original attempts. The audit
+recomputes the review and rejects changed evidence. This recovers an existing
+model verdict, not independent proof of answer correctness. Original summaries,
+recovery attempts and source penalties remain unchanged; no new retention credit
+is assigned. Unexecuted checks and provider ingestion failures are outside this
+review and remain incomplete. New live judging conditions still require their
+own correct/wrong-answer controls and cost authorization.

@@ -1,0 +1,2086 @@
+[
+  {
+    "id": "case_00",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.953597266000031,
+    "usage": {
+      "prompt_tokens": 1142,
+      "completion_tokens": 245,
+      "total_tokens": 1387,
+      "cost": 0.0001471568,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0001471568,
+        "upstream_inference_prompt_cost": 8.95328e-05,
+        "upstream_inference_completions_cost": 5.7624e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527603-VmEM58dh6z1d0S6dL8eP",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_00",
+          "status": "supported",
+          "reason": "The source states Nora suggested Oak Park and no venue is confirmed, matching the claim.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Nora suggested Oak Park, but no venue has been confirmed."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "The assistant does not know what venue was suggested.",
+          "answer_quote": "I do not know what venue was suggested.",
+          "status": "contradicted",
+          "reason": "The source explicitly states Nora suggested Oak Park, so the suggested venue is known.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Nora suggested Oak Park"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_01",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 1.8294248650000213,
+    "usage": {
+      "prompt_tokens": 1135,
+      "completion_tokens": 147,
+      "total_tokens": 1282,
+      "cost": 5.5419392e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.5419392e-05,
+        "upstream_inference_prompt_cost": 2.0844992e-05,
+        "upstream_inference_completions_cost": 3.45744e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527606-Ff3hzeyv4B1Nzuxkso2H",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_01",
+          "status": "contradicted",
+          "reason": "The source states the cake must not contain walnuts, while the answer says walnuts are allowed.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The cake must not contain walnuts."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_02",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.9985615780000217,
+    "usage": {
+      "prompt_tokens": 1169,
+      "completion_tokens": 291,
+      "total_tokens": 1460,
+      "cost": 9.1953792e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 9.1953792e-05,
+        "upstream_inference_prompt_cost": 2.3510592e-05,
+        "upstream_inference_completions_cost": 6.84432e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527607-Ljgof9ufVW1E4DxrDJT9",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_02",
+          "status": "supported",
+          "reason": "The source states that if it rains, meet inside the library, which directly supports the rain contingency being inside the library.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "There is a weather contingency.",
+          "answer_quote": "We have a weather contingency",
+          "status": "supported",
+          "reason": "The source describes a rain contingency plan.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        },
+        {
+          "assertion": "The assistant does not know where the weather contingency is.",
+          "answer_quote": "but I do not know where",
+          "status": "contradicted",
+          "reason": "The source specifies the rain contingency location as inside the library.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_03",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 3.9827854519999732,
+    "usage": {
+      "prompt_tokens": 1166,
+      "completion_tokens": 238,
+      "total_tokens": 1404,
+      "cost": 6.9518848e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.9518848e-05,
+        "upstream_inference_prompt_cost": 1.3541248e-05,
+        "upstream_inference_completions_cost": 5.59776e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527610-Ekmk8mJg2DSXkjru38cU",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_03",
+          "status": "contradicted",
+          "reason": "The source states the rain contingency is inside the library, while the answer says the courtyard.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "If it rains, they meet in the courtyard.",
+          "answer_quote": "If it rains we meet in the courtyard.",
+          "status": "contradicted",
+          "reason": "The source specifies the library as the rain location, not the courtyard.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_04",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.722410428000046,
+    "usage": {
+      "prompt_tokens": 1123,
+      "completion_tokens": 139,
+      "total_tokens": 1262,
+      "cost": 5.2596992e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.2596992e-05,
+        "upstream_inference_prompt_cost": 1.9904192e-05,
+        "upstream_inference_completions_cost": 3.26928e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527614-rdZq3PLdbO4YYLBlCWjd",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_04",
+          "status": "supported",
+          "reason": "The source explicitly states Lee is collecting tickets, and the answer conveys this.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Lee is collecting tickets."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_05",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.5154923510000344,
+    "usage": {
+      "prompt_tokens": 1143,
+      "completion_tokens": 148,
+      "total_tokens": 1291,
+      "cost": 5.6281792e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.6281792e-05,
+        "upstream_inference_prompt_cost": 2.1472192e-05,
+        "upstream_inference_completions_cost": 3.48096e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527616-M38i2HCbYcmpsctPew2F",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_05",
+          "status": "supported",
+          "reason": "The source states the approved budget is 150 dollars, and the answer reports the total budget as $150.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The approved budget is 150 dollars"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_06",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 2.938063205999981,
+    "usage": {
+      "prompt_tokens": 1155,
+      "completion_tokens": 150,
+      "total_tokens": 1305,
+      "cost": 5.7692992e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.7692992e-05,
+        "upstream_inference_prompt_cost": 2.2412992e-05,
+        "upstream_inference_completions_cost": 3.528e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527618-PLqA4PtMVMQAw4yOxT7Q",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_06",
+          "status": "supported",
+          "reason": "The source states Jun later said Pat is bringing dessert instead, and Pat confirmed.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Jun later said Pat is bringing dessert instead, and Pat confirmed."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_07",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.7399634270000206,
+    "usage": {
+      "prompt_tokens": 1132,
+      "completion_tokens": 204,
+      "total_tokens": 1336,
+      "cost": 5.8856448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.8856448e-05,
+        "upstream_inference_prompt_cost": 1.0875648e-05,
+        "upstream_inference_completions_cost": 4.79808e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527620-frY33kSWESZz1JJSOrps",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_07",
+          "status": "supported",
+          "reason": "The source explicitly states the cake must not contain walnuts.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The cake must not contain walnuts."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Almonds are allowed.",
+          "answer_quote": "Almonds are allowed.",
+          "status": "supported",
+          "reason": "The source explicitly states almonds are allowed.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Almonds are allowed."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_08",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 3.1533035669999663,
+    "usage": {
+      "prompt_tokens": 1120,
+      "completion_tokens": 210,
+      "total_tokens": 1330,
+      "cost": 5.9326848e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.9326848e-05,
+        "upstream_inference_prompt_cost": 9.934848e-06,
+        "upstream_inference_completions_cost": 4.9392e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527623-XOVPRf3L3GrGgQwC3Op6",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_08",
+          "status": "contradicted",
+          "reason": "The answer attributes ticket collection to Sam, while the source says Lee is collecting tickets.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Lee is collecting tickets."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Sam is collecting tickets.",
+          "answer_quote": "Sam is collecting tickets.",
+          "status": "contradicted",
+          "reason": "The source says Lee is collecting tickets and Sam is booking transport.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Lee is collecting tickets. Sam is booking transport."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_09",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 3.1108768670000018,
+    "usage": {
+      "prompt_tokens": 1183,
+      "completion_tokens": 311,
+      "total_tokens": 1494,
+      "cost": 9.7755392e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 9.7755392e-05,
+        "upstream_inference_prompt_cost": 2.4608192e-05,
+        "upstream_inference_completions_cost": 7.31472e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527626-GdMGaTjm7ZRGu4eGUBUJ",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_09",
+          "status": "supported",
+          "reason": "The source explicitly states the call starts at 18:00 UTC.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The call starts at 18:00 UTC"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "The call is in the morning locally.",
+          "answer_quote": "The call is in the morning locally",
+          "status": "supported",
+          "reason": "The source states 18:00 UTC is 10:00 in the stated UTC-8 local time, which is morning.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "10:00 in the stated UTC-8 local time"
+            }
+          ]
+        },
+        {
+          "assertion": "No precise time is given.",
+          "answer_quote": "no precise time given",
+          "status": "contradicted",
+          "reason": "The source provides the precise start time of 18:00 UTC.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The call starts at 18:00 UTC"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_10",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.979005691999987,
+    "usage": {
+      "prompt_tokens": 1135,
+      "completion_tokens": 144,
+      "total_tokens": 1279,
+      "cost": 4.4979648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.4979648e-05,
+        "upstream_inference_prompt_cost": 1.1110848e-05,
+        "upstream_inference_completions_cost": 3.38688e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527629-XffLnRijatv6VuHj6T0h",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_10",
+          "status": "supported",
+          "reason": "The source explicitly states the cake must not contain walnuts, matching the claim.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The cake must not contain walnuts."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_11",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.5292832929999918,
+    "usage": {
+      "prompt_tokens": 1127,
+      "completion_tokens": 147,
+      "total_tokens": 1274,
+      "cost": 5.4792192e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.4792192e-05,
+        "upstream_inference_prompt_cost": 2.0217792e-05,
+        "upstream_inference_completions_cost": 3.45744e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527631-gno1rbfScgYfwGaSH2Yv",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_11",
+          "status": "supported",
+          "reason": "The source confirms the pickup time is 4pm, and the answer conveys four in the afternoon.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The confirmed pickup time is 4pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_12",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.743000940999991,
+    "usage": {
+      "prompt_tokens": 1119,
+      "completion_tokens": 196,
+      "total_tokens": 1315,
+      "cost": 5.5955648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.5955648e-05,
+        "upstream_inference_prompt_cost": 9.856448e-06,
+        "upstream_inference_completions_cost": 4.60992e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527633-gUpn2kJqjhHbw0mQ7wKI",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_12",
+          "status": "supported",
+          "reason": "The source explicitly states Lee is collecting tickets.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Lee is collecting tickets."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Sam books transport.",
+          "answer_quote": "Sam books transport.",
+          "status": "supported",
+          "reason": "The source explicitly states Sam is booking transport.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Sam is booking transport."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_13",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.495603390000042,
+    "usage": {
+      "prompt_tokens": 1175,
+      "completion_tokens": 145,
+      "total_tokens": 1320,
+      "cost": 5.8084992e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.8084992e-05,
+        "upstream_inference_prompt_cost": 2.3980992e-05,
+        "upstream_inference_completions_cost": 3.4104e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527636-G6ADLveaIM1dHvSg86wa",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_13",
+          "status": "supported",
+          "reason": "The source states Mia corrected the dinner to Saturday Nov 21.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_14",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 2.268138307000015,
+    "usage": {
+      "prompt_tokens": 1145,
+      "completion_tokens": 148,
+      "total_tokens": 1293,
+      "cost": 4.6704448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.6704448e-05,
+        "upstream_inference_prompt_cost": 1.1894848e-05,
+        "upstream_inference_completions_cost": 3.48096e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527637-4HYipi7qDMgUa7o8cvIK",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_14",
+          "status": "supported",
+          "reason": "The source states Nora suggested Oak Park and no venue has been confirmed, matching the claim.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Nora suggested Oak Park, but no venue has been confirmed."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_15",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.9429858259999833,
+    "usage": {
+      "prompt_tokens": 1147,
+      "completion_tokens": 136,
+      "total_tokens": 1283,
+      "cost": 5.3772992e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.3772992e-05,
+        "upstream_inference_prompt_cost": 2.1785792e-05,
+        "upstream_inference_completions_cost": 3.19872e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527640-vvETPiSERO1O4OirBN5z",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_15",
+          "status": "supported",
+          "reason": "The source explicitly states that for the school event Alex brings juice.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "For the school event Alex brings juice"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_16",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 3.071365027000013,
+    "usage": {
+      "prompt_tokens": 1138,
+      "completion_tokens": 201,
+      "total_tokens": 1339,
+      "cost": 6.8355392e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.8355392e-05,
+        "upstream_inference_prompt_cost": 2.1080192e-05,
+        "upstream_inference_completions_cost": 4.72752e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527641-W7ojpEClyY5MjHYSntv7",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_16",
+          "status": "not_found",
+          "reason": "The answer does not mention the birthday dinner venue.",
+          "citations": []
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "The team lunch is at Cedar.",
+          "answer_quote": "The team lunch is at Cedar.",
+          "status": "supported",
+          "reason": "The source states the team lunch is at Cedar.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The team lunch is at Cedar."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_17",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 1.6708637820000263,
+    "usage": {
+      "prompt_tokens": 1180,
+      "completion_tokens": 174,
+      "total_tokens": 1354,
+      "cost": 5.5563648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.5563648e-05,
+        "upstream_inference_prompt_cost": 1.4638848e-05,
+        "upstream_inference_completions_cost": 4.09248e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527645-DcVogdDU0dM9hk3qfIHL",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_17",
+          "status": "contradicted",
+          "reason": "The source states the call starts at 18:00 UTC, while the answer says 10:00 UTC.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The call starts at 18:00 UTC"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_18",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 2.6944878360000075,
+    "usage": {
+      "prompt_tokens": 1137,
+      "completion_tokens": 219,
+      "total_tokens": 1356,
+      "cost": 6.2776448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.2776448e-05,
+        "upstream_inference_prompt_cost": 1.1267648e-05,
+        "upstream_inference_completions_cost": 5.15088e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527646-5RRp0VmlhtpNLjEZCGJi",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_18",
+          "status": "contradicted",
+          "reason": "The source states the birthday dinner is at Maple, while the answer says Cedar.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The birthday dinner is at Maple."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "The birthday dinner is at Cedar.",
+          "answer_quote": "Birthday dinner is at Cedar.",
+          "status": "contradicted",
+          "reason": "The source explicitly states the birthday dinner is at Maple, not Cedar.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The birthday dinner is at Maple."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_19",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 2.2304391989999885,
+    "usage": {
+      "prompt_tokens": 1144,
+      "completion_tokens": 166,
+      "total_tokens": 1310,
+      "cost": 5.0859648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.0859648e-05,
+        "upstream_inference_prompt_cost": 1.1816448e-05,
+        "upstream_inference_completions_cost": 3.90432e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527649-t1N6bIbZeSz659CTZ1if",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_19",
+          "status": "contradicted",
+          "reason": "The source explicitly says the budget is not per person, while the answer says it is per person.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The approved budget is 150 dollars, not 150 dollars per person."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_20",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.856044560999976,
+    "usage": {
+      "prompt_tokens": 1142,
+      "completion_tokens": 214,
+      "total_tokens": 1356,
+      "cost": 6.1992448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.1992448e-05,
+        "upstream_inference_prompt_cost": 1.1659648e-05,
+        "upstream_inference_completions_cost": 5.03328e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527651-IrbJS1lwZj8QYoE7McAK",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_20",
+          "status": "not_found",
+          "reason": "The answer does not mention the $150 amount; it only states an approved budget exists.",
+          "citations": []
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "There is an approved budget.",
+          "answer_quote": "There is an approved budget.",
+          "status": "supported",
+          "reason": "The source states the approved budget is 150 dollars, confirming an approved budget exists.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The approved budget is 150 dollars"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_21",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 1.948602477999998,
+    "usage": {
+      "prompt_tokens": 1154,
+      "completion_tokens": 196,
+      "total_tokens": 1350,
+      "cost": 5.8699648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.8699648e-05,
+        "upstream_inference_prompt_cost": 1.2600448e-05,
+        "upstream_inference_completions_cost": 4.60992e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527654-xJ2JrQULpetDe2s9CFzS",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_21",
+          "status": "not_found",
+          "reason": "The answer does not mention Pat or the current dessert owner.",
+          "citations": []
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Jun originally offered dessert.",
+          "answer_quote": "Jun originally offered dessert.",
+          "status": "supported",
+          "reason": "The source states Jun first offered to bring dessert.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Jun first offered to bring dessert."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_22",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.558229813999958,
+    "usage": {
+      "prompt_tokens": 1128,
+      "completion_tokens": 241,
+      "total_tokens": 1369,
+      "cost": 6.7245248e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.7245248e-05,
+        "upstream_inference_prompt_cost": 1.0562048e-05,
+        "upstream_inference_completions_cost": 5.66832e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527656-aConA5N4wy0sXxcY8BmV",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_22",
+          "status": "supported",
+          "reason": "The source explicitly states the confirmed pickup time is 4pm.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The confirmed pickup time is 4pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Pickup time is not specified in the assistant's notes.",
+          "answer_quote": "Pickup time is not specified in my notes.",
+          "status": "contradicted",
+          "reason": "The source explicitly states the confirmed pickup time is 4pm, contradicting the claim that it is unspecified.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The confirmed pickup time is 4pm."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_23",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 2.5569852529999935,
+    "usage": {
+      "prompt_tokens": 1166,
+      "completion_tokens": 146,
+      "total_tokens": 1312,
+      "cost": 4.7880448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.7880448e-05,
+        "upstream_inference_prompt_cost": 1.3541248e-05,
+        "upstream_inference_completions_cost": 3.43392e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527658-NwRu3fZLbZUE97OofWX3",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_23",
+          "status": "supported",
+          "reason": "The source states the rain contingency is to meet inside the library, and the answer conveys this.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "If it rains, meet inside the library."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_24",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 2.3366928389999657,
+    "usage": {
+      "prompt_tokens": 1145,
+      "completion_tokens": 151,
+      "total_tokens": 1296,
+      "cost": 5.7144192e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 896,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.7144192e-05,
+        "upstream_inference_prompt_cost": 2.1628992e-05,
+        "upstream_inference_completions_cost": 3.55152e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527661-bFx40kV3h1dMLADyrY5B",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_24",
+          "status": "supported",
+          "reason": "The source states the required supplies are plates, cups, and napkins, matching the claim.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Required supplies are plates, cups, and napkins."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_25",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 1.6955058790000521,
+    "usage": {
+      "prompt_tokens": 1174,
+      "completion_tokens": 157,
+      "total_tokens": 1331,
+      "cost": 5.1094848e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.1094848e-05,
+        "upstream_inference_prompt_cost": 1.4168448e-05,
+        "upstream_inference_completions_cost": 3.69264e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527663-NzmWAj4qunFQOiNF9y1i",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_25",
+          "status": "supported",
+          "reason": "The source states Mia corrected the dinner to Saturday Nov 21.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_26",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 3.5171828849999542,
+    "usage": {
+      "prompt_tokens": 1157,
+      "completion_tokens": 248,
+      "total_tokens": 1405,
+      "cost": 7.1165248e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 7.1165248e-05,
+        "upstream_inference_prompt_cost": 1.2835648e-05,
+        "upstream_inference_completions_cost": 5.83296e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527665-4IS5hmAHk5AqtyFiXGb4",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_26",
+          "status": "contradicted",
+          "reason": "The source states Pat is bringing dessert instead and confirmed, while the answer says Jun is currently bringing dessert.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Jun later said Pat is bringing dessert instead, and Pat confirmed."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Jun is the person currently bringing dessert.",
+          "answer_quote": "Jun is the person currently bringing dessert.",
+          "status": "contradicted",
+          "reason": "The source says Jun first offered but later said Pat is bringing dessert instead, and Pat confirmed.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Jun first offered to bring dessert. Jun later said Pat is bringing dessert instead, and Pat confirmed."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_27",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 2.1121372860000065,
+    "usage": {
+      "prompt_tokens": 1151,
+      "completion_tokens": 167,
+      "total_tokens": 1318,
+      "cost": 5.1643648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.1643648e-05,
+        "upstream_inference_prompt_cost": 1.2365248e-05,
+        "upstream_inference_completions_cost": 3.92784e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527669-A6N4NNxZEgyHrvq1bYvx",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_27",
+          "status": "contradicted",
+          "reason": "The source states the required supplies are plates, cups, and napkins, while the answer substitutes forks for napkins.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Required supplies are plates, cups, and napkins."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_28",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 3.064963523000017,
+    "usage": {
+      "prompt_tokens": 1175,
+      "completion_tokens": 174,
+      "total_tokens": 1349,
+      "cost": 5.5171648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.5171648e-05,
+        "upstream_inference_prompt_cost": 1.4246848e-05,
+        "upstream_inference_completions_cost": 4.09248e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527671-BffhEuWUjfbjIIg7WQqC",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_28",
+          "status": "contradicted",
+          "reason": "The source says Mia corrected the dinner to Saturday Nov 21, while the answer says Friday November 20.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_29",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 1.5347893310000131,
+    "usage": {
+      "prompt_tokens": 1187,
+      "completion_tokens": 148,
+      "total_tokens": 1335,
+      "cost": 4.9997248e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.9997248e-05,
+        "upstream_inference_prompt_cost": 1.5187648e-05,
+        "upstream_inference_completions_cost": 3.48096e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527674-z0WLnztkrV48DKvqfUE5",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_29",
+          "status": "supported",
+          "reason": "The source explicitly states the call starts at 18:00 UTC, and the answer conveys this.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The call starts at 18:00 UTC"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_30",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 4.020512845000042,
+    "usage": {
+      "prompt_tokens": 1143,
+      "completion_tokens": 230,
+      "total_tokens": 1373,
+      "cost": 6.5834048e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.5834048e-05,
+        "upstream_inference_prompt_cost": 1.1738048e-05,
+        "upstream_inference_completions_cost": 5.4096e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527675-lDYMy1Z5PCOTp1V99kr5",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_30",
+          "status": "supported",
+          "reason": "The source states the confirmed pickup time is 4pm.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The confirmed pickup time is 4pm."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Pickup is at 5pm.",
+          "answer_quote": "it is at 5pm",
+          "status": "contradicted",
+          "reason": "The source confirms pickup is at 4pm, contradicting 5pm.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The confirmed pickup time is 4pm."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_31",
+    "expected": "missed",
+    "verdict": "missed",
+    "status": 200,
+    "latency_seconds": 2.9671946830000024,
+    "usage": {
+      "prompt_tokens": 1147,
+      "completion_tokens": 224,
+      "total_tokens": 1371,
+      "cost": 6.4736448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.4736448e-05,
+        "upstream_inference_prompt_cost": 1.2051648e-05,
+        "upstream_inference_completions_cost": 5.26848e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527679-unRc8M85P7Tw7yi6vDxd",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_31",
+          "status": "not_found",
+          "reason": "The answer does not mention the school event or juice; it only discusses the office event and coffee.",
+          "citations": []
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Alex brings coffee to the office event.",
+          "answer_quote": "Alex brings coffee to the office event.",
+          "status": "supported",
+          "reason": "The source explicitly states that for the office event Alex brings coffee.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "for the office event Alex brings coffee"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "case_32",
+    "expected": "correct",
+    "verdict": "correct",
+    "status": 200,
+    "latency_seconds": 3.2612989929999685,
+    "usage": {
+      "prompt_tokens": 1137,
+      "completion_tokens": 132,
+      "total_tokens": 1269,
+      "cost": 4.2314048e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.2314048e-05,
+        "upstream_inference_prompt_cost": 1.1267648e-05,
+        "upstream_inference_completions_cost": 3.10464e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527682-KFkUe6ED2osZ2aVrJQ0f",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_32",
+          "status": "supported",
+          "reason": "The source explicitly states the birthday dinner is at Maple.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "The birthday dinner is at Maple."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_33",
+    "expected": "missed",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 6.391293174999987,
+    "usage": {
+      "prompt_tokens": 1141,
+      "completion_tokens": 157,
+      "total_tokens": 1298,
+      "cost": 4.8507648e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 4.8507648e-05,
+        "upstream_inference_prompt_cost": 1.1581248e-05,
+        "upstream_inference_completions_cost": 3.69264e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527686-x6oUsgPWMjJYXrpbuXbd",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_33",
+          "status": "contradicted",
+          "reason": "The source states the required supplies include napkins, but the answer omits napkins.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Required supplies are plates, cups, and napkins."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_34",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 3.7157360479999966,
+    "usage": {
+      "prompt_tokens": 1140,
+      "completion_tokens": 172,
+      "total_tokens": 1312,
+      "cost": 5.1957248e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 5.1957248e-05,
+        "upstream_inference_prompt_cost": 1.1502848e-05,
+        "upstream_inference_completions_cost": 4.04544e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527692-upyKswEIbi3F4Uiqy2Ut",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_34",
+          "status": "contradicted",
+          "reason": "The source says Nora suggested Oak Park and no venue is confirmed, while the answer calls it the confirmed venue.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "Nora suggested Oak Park, but no venue has been confirmed."
+            }
+          ]
+        }
+      ],
+      "extra_assertions": []
+    }
+  },
+  {
+    "id": "case_35",
+    "expected": "misrepresented",
+    "verdict": "misrepresented",
+    "status": 200,
+    "latency_seconds": 9.980422363999992,
+    "usage": {
+      "prompt_tokens": 1147,
+      "completion_tokens": 224,
+      "total_tokens": 1371,
+      "cost": 6.4736448e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1024,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 6.4736448e-05,
+        "upstream_inference_prompt_cost": 1.2051648e-05,
+        "upstream_inference_completions_cost": 5.26848e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "generation_id": "gen-1794527696-2YVUtZVAOsCzqX4A6rcs",
+    "provider": "DeepInfra",
+    "served_model": "deepseek/deepseek-v4.1-flash-1017",
+    "error": null,
+    "diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "case_35",
+          "status": "contradicted",
+          "reason": "The source states Alex brings juice for the school event, but the answer says coffee.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "For the school event Alex brings juice"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Alex brings coffee to the school event.",
+          "answer_quote": "Alex brings coffee to the school event.",
+          "status": "contradicted",
+          "reason": "The source assigns coffee to the office event, not the school event.",
+          "citations": [
+            {
+              "id": "source",
+              "quote": "for the office event Alex brings coffee"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

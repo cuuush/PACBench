@@ -1,0 +1,45 @@
+{
+  "protocol": "36 separate actual judge_prompt and grade_semantic calls, one claim per case, full recovery/interaction/evidence diagnostics, date-scope-v2; JSON mode, no strict schema, no retries",
+  "n": 36,
+  "correct": 35,
+  "failures": 0,
+  "confusion_matrix": {
+    "correct": {
+      "correct": 12,
+      "missed": 0,
+      "misrepresented": 0,
+      "failure": 0
+    },
+    "missed": {
+      "correct": 0,
+      "missed": 11,
+      "misrepresented": 1,
+      "failure": 0
+    },
+    "misrepresented": {
+      "correct": 0,
+      "missed": 0,
+      "misrepresented": 12,
+      "failure": 0
+    }
+  },
+  "reported_cost_usd": 0.002208524864,
+  "latency_total_seconds": 103.08724425700007,
+  "latency_median_seconds": 2.717225631500014,
+  "latency_p95_seconds": 6.391293174999987,
+  "source_code_sha256": "455e605333c0fb01729cba68290b9e5270cca145b134c9d6e773032797ab6e7d",
+  "noncomparabilities": [
+    "Earlier decision models saw all cases and shared rubric in one batch, with label-only outputs.",
+    "Exact baseline uses native PACBench rubric, full diagnostic and recovery output, one case per request.",
+    "Synthetic question is constructed from target claim; not an original real user question.",
+    "4096 output cap and disabled reasoning are recorded safeguards; parent request did not supply original output settings.",
+    "No frozen label changes or independent human review."
+  ],
+  "verified_route": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "provider": "DeepInfra",
+    "service_tier": "flex",
+    "verified_responses": 36
+  },
+  "diagnostics_complete": 36
+}

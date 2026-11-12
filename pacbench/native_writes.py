@@ -304,14 +304,16 @@ def worker(args):
         provider=inputs['provider']
         if provider=='supermemory':
             from supermemory import Supermemory
-            from plugins.memory.supermemory import _load_supermemory_config,_resolve_container_tag
+            from pacbench.provider_loader import provider_module
+            plugin = provider_module("supermemory")
+            _load_supermemory_config, _resolve_container_tag = plugin._load_supermemory_config, plugin._resolve_container_tag
             cfg=_load_supermemory_config(str(root/'hermes-home'))
             if not cfg['base_url'].startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')
             client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
             tag=_resolve_container_tag(cfg['container_tag'],'default')
             captures=None
             if 'captures' in inputs:
-                from plugins.memory.supermemory import _clean_text_for_capture
+                _clean_text_for_capture = plugin._clean_text_for_capture
                 captures=[{'session':c['session'],'user':_clean_text_for_capture(c['prompt']),
                            'binding':digest(c)} for c in inputs['captures']]
             observe=lambda:supermemory_status(client,tag,inputs['accepted_ids'],inputs['sessions'],captures)
@@ -321,8 +323,9 @@ def worker(args):
             headers={'X-OpenViking-Account':os.environ['OPENVIKING_ACCOUNT'],'X-OpenViking-User':os.environ['OPENVIKING_USER']}
             observe=lambda:openviking_status(endpoint,headers,inputs['accepted_ids'],inputs['sessions'])
         elif provider=='honcho':
-            from plugins.memory.honcho.client import HonchoClientConfig
-            from plugins.memory.honcho.session_peers import sanitize_peer_id
+            from pacbench.provider_loader import provider_module
+            HonchoClientConfig = provider_module("honcho", "client").HonchoClientConfig
+            sanitize_peer_id = provider_module("honcho", "session_peers").sanitize_peer_id
             from agent.memory_manager import sanitize_context
             from provider_adapters.honcho_local import queue_errors
             cfg=HonchoClientConfig.from_global_config()

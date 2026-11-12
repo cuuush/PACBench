@@ -207,6 +207,8 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
              extra_env: dict | None = None, timeout_s: float = 600.0,
              session_id: str | None = None, session_started_at: str | None = None) -> TurnResult:
     """Drive a native question through the isolated clone and parse traces."""
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     home = home.resolve()
     _check_paths(home)
     requested_at = at

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -116,17 +117,48 @@ finally:
 '''
 
 
+def catalog_migrated_providers() -> set[str]:
+    """Read Hermes' own migration inventory and the pinned checkout's catalog."""
+    migration = harness.ISOLATED_TREE / "hermes_cli" / "memory_provider_migration.py"
+    if not migration.exists():
+        return set()  # Older bundled-provider Hermes releases.
+    tree = ast.parse(migration.read_text())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_LEFT_CORE" for t in node.targets):
+            value = node.value
+            if not (isinstance(value, ast.Call) and isinstance(value.func, ast.Name)
+                    and value.func.id == "frozenset" and len(value.args) == 1):
+                raise RuntimeError("Unrecognized Hermes provider migration inventory")
+            names = ast.literal_eval(value.args[0])
+            if not isinstance(names, (set, frozenset)) or not all(isinstance(n, str) for n in names):
+                raise RuntimeError("Invalid Hermes provider migration inventory")
+            catalog = harness.ISOLATED_TREE / "plugin-catalog"
+            return {n for n in names if (catalog / f"{n}.yaml").is_file()}
+    raise RuntimeError("Hermes provider migration inventory is missing")
+
+
 def provider_names() -> list[str]:
-    """Inventory the pinned checkout, rather than maintaining a vendor wish list."""
+    """Inventory bundled and catalog-migrated providers from pinned Hermes."""
     root = harness.ISOLATED_TREE / "plugins" / "memory"
-    names = sorted(p.name for p in root.iterdir()
-                   if p.is_dir() and (p / "plugin.yaml").is_file())
-    return names + ["memori", "memcal"]
+    names = {p.name for p in root.iterdir()
+             if p.is_dir() and (p / "plugin.yaml").is_file()}
+    return sorted(names | catalog_migrated_providers() | {"memori", "memcal"})
+
+
+def require_trial_provider(provider: str) -> None:
+    """Fail closed until fresh homes can provision and verify catalog plugin pins."""
+    bundled = harness.ISOLATED_TREE / "plugins" / "memory" / provider
+    if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
+        raise RuntimeError(f"Catalog provider {provider!r} cannot run: fresh trial homes do not "
+                           "yet provision and verify the pinned plugin; see vendor/README")
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
               local_timezone: str = "", resume: bool = False,
               honcho_simulated_at: str | None = None) -> dict:
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
+    require_trial_provider(provider)
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
@@ -176,8 +208,10 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
             builder = '''
 import json,sys
 from pathlib import Path
-from plugins.memory.mem0._setup import build_oss_config
-from plugins.memory.mem0 import Mem0MemoryProvider
+sys.path.insert(0, sys.argv[4])
+from pacbench.provider_loader import provider_module
+build_oss_config = provider_module("mem0", "_setup").build_oss_config
+Mem0MemoryProvider = provider_module("mem0").Mem0MemoryProvider
 flags=json.loads(sys.argv[1])
 oss,_=build_oss_config(flags)
 Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},sys.argv[3])
@@ -187,7 +221,7 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
                      "oss_embedder_model": "nomic-embed-text", "oss_embedder_url": "http://127.0.0.1:11435",
                      "oss_vector": "qdrant", "oss_vector_path": str((root / "qdrant").resolve())}
             proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c", builder,
-                                   json.dumps(flags), identity, str(home.resolve())],
+                                   json.dumps(flags), identity, str(home.resolve()), str(harness.REPO)],
                                   env={**os.environ, **env, "HERMES_HOME": str(home.resolve())},
                                   cwd=harness.ISOLATED_TREE, capture_output=True, text=True, timeout=30)
             save(root / "native-manual-setup.json", {"route": "README manual OSS mem0.json",
@@ -394,6 +428,8 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
         question_dir: Path | None = None, honcho_clock: str = 'real') -> dict:
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 100000:
         raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")

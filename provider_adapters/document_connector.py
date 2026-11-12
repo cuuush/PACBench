@@ -261,7 +261,8 @@ def hindsight_operations(provider,client,bank_id,deadline):
 
 
 def hindsight(source,root,at,processing_at):
-    from plugins.memory.hindsight import HindsightMemoryProvider
+    from pacbench.provider_loader import provider_module
+    HindsightMemoryProvider = provider_module("hindsight").HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
     from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
     deadline=time.monotonic()+PROCESSING_TIMEOUT_S
@@ -298,7 +299,8 @@ def hindsight(source,root,at,processing_at):
 
 
 def openviking(source,root,at,processing_at):
-    from plugins.memory.openviking import OpenVikingMemoryProvider
+    from pacbench.provider_loader import provider_module
+    OpenVikingMemoryProvider = provider_module("openviking").OpenVikingMemoryProvider
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'ov.conf').read_text())
     validate_route(cfg['vlm']['api_base'],cfg['vlm']['api_key'])
@@ -357,7 +359,8 @@ def byterover(source,root,at,processing_at):
 def honcho(source,root,at,processing_at):
     from honcho import Honcho
     from honcho.api_types import SessionPeerConfig
-    from plugins.memory.honcho.client import HonchoClientConfig
+    from pacbench.provider_loader import provider_module
+    HonchoClientConfig = provider_module("honcho", "client").HonchoClientConfig
     import hashlib
     cfg=json.loads((root/'hermes-home/honcho.json').read_text())
     if not cfg['baseUrl'].startswith('http://127.0.0.1:'):
@@ -509,7 +512,9 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
 
 def supermemory(source,root,at,processing_at):
     from supermemory import Supermemory
-    from plugins.memory.supermemory import _load_supermemory_config, _resolve_container_tag
+    from pacbench.provider_loader import provider_module
+    plugin = provider_module("supermemory")
+    _load_supermemory_config, _resolve_container_tag = plugin._load_supermemory_config, plugin._resolve_container_tag
     cfg=_load_supermemory_config(str(root/'hermes-home'))
     tag=_resolve_container_tag(cfg['container_tag'],'default')
     if not cfg['base_url'].startswith('http://127.0.0.1:'):

@@ -1,4 +1,5 @@
 """Saved native prompt and project-discovery isolation; no provider accuracy mocks."""
+from contextlib import nullcontext
 import hashlib
 import json
 import sqlite3
@@ -74,7 +75,9 @@ def test_recall_launches_outside_benchmark_without_disabling_memory_hooks(tmp_pa
         native_prompt(home, workspace, 'Native provider instructions')
         event = {'type': 'system', 'subtype': 'init', 'session_id': 'native-session'}
         return subprocess.CompletedProcess(args, 0, json.dumps(event), '')
-    with patch('pacbench.harness.subprocess.run', side_effect=run):
+    with patch('pacbench.live_trials.require_live_trials_ready'), \
+         patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
+         patch('pacbench.harness.subprocess.run', side_effect=run):
         turn = harness.run_turn('Recall my plan', at='2026-09-11T09:00:00-04:00',
                                 home=home, allowlist='mem0_search')
     assert turn.context_isolation['state'] == 'pass'

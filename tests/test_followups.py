@@ -305,7 +305,10 @@ def test_resumed_turn_recovers_only_its_full_tool_results(tmp_path):
 
 def test_timeout_preserves_tool_attempts_and_errors(tmp_path, monkeypatch):
     import subprocess
-    from pacbench import harness
+    from contextlib import nullcontext
+    from pacbench import harness, live_trials, hermes_gateway
+    monkeypatch.setattr(live_trials, 'require_live_trials_ready', lambda: None)
+    monkeypatch.setattr(hermes_gateway, 'turn_gateway', lambda *a, **kw: nullcontext({'state': 'mock'}))
     monkeypatch.setattr(harness, '_check_paths', lambda _: None)
     monkeypatch.setattr(harness, 'turn_env', lambda *args: {})
     def timeout(*args, **kwargs):

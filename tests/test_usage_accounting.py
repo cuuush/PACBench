@@ -1,5 +1,6 @@
 """Offline native Hermes token accounting and artifact redaction."""
 
+from contextlib import nullcontext
 import json
 import subprocess
 import sys
@@ -73,7 +74,9 @@ class ParseTurnTokens(unittest.TestCase):
                           result.session_output_tokens), (30, 7))
 
     def test_timeout_turn_carries_no_tokens(self):
-        with mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
+        with mock.patch('pacbench.live_trials.require_live_trials_ready'), \
+             mock.patch('pacbench.hermes_gateway.turn_gateway', return_value=nullcontext({'state': 'mock'})), \
+             mock.patch('pacbench.gateway_client.client_settings',return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
              tempfile.TemporaryDirectory(prefix="pacbench-tok-") as tmp:
             home = Path(tmp) / "h-home"
             harness.provision_home(home, provider_plugin_src=None,

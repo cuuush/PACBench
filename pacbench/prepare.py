@@ -65,8 +65,8 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     if not isinstance(rows, list) or not rows:
         raise ValueError("experiment needs at least one scene")
     noise = spec.get('noise','low')
-    if noise not in ('low','medium','high'):
-        raise ValueError('noise must be low, medium or high')
+    if noise not in ('low','medium','high','authored'):
+        raise ValueError('noise must be low, medium, high or authored')
     if "facts" in spec and (not isinstance(spec["facts"], list) or
                             not spec["facts"] or
                             any(not isinstance(f, str) or not f.strip()
@@ -84,12 +84,16 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     scenes = []
     counts = {}
     for row in rows:
+        if row.get('messages') is not None:
+            continue  # Exact source never shares a generated chat-volume target.
         key=(row.get('channel','text'),row.get('thread',row.get('id','')),str(row.get('at',row.get('window_start','')))[:10])
         counts[key]=counts.get(key,0)+1
     for index, authored in enumerate(rows, 1):
         row = dict(authored)
+        if 'messages' in row and row['messages'] is None:
+            raise ValueError('messages must be a nonempty list, not null')
         row['noise']=noise
-        if 'message_range' not in row:
+        if 'message_range' not in row and noise != 'authored' and 'messages' not in row:
             if row.get('channel')=='email':row['message_range']=[2,6]
             elif noise=='low':row['message_range']=[2,12]
             else:
@@ -286,6 +290,8 @@ def realization_binding(plan, lines, verification_lines):
 def reuse_realization(plan, previous, judge, *, model, record_dir, verification_lines):
     """Recheck cached text when its actual evidence context or checker changes."""
     lines=tuple(tuple(line) for line in previous['lines'])
+    if plan.messages is not None:
+        build_scene_observations('cached-supplied-validation', plan, list(lines))
     record=SceneRecord(**previous['record'])
     if previous.get('verification_binding')==realization_binding(plan,lines,verification_lines):
         return SceneRealization(plan.id,lines,record,previous['verdict'])
@@ -325,9 +331,10 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     driver = load_driver()
     key = os.environ["META_API_KEY"]
     call_dir = root / "model-calls"
-    writer = ResponsesWriter(key=key, model=driver.model_id, record_dir=call_dir,
+    writer = (ResponsesWriter(key=key, model=driver.model_id, record_dir=call_dir,
                              url=client_settings("pacbench-authoring")[0] + "/responses",
                              cache_dir=root / "model-cache")
+              if any(s.messages is None for s in scenes) else None)
     judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
                         url=client_settings("pacbench-judge")[0] + "/chat/completions",
                         cache_dir=root / "model-cache")
@@ -356,6 +363,8 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
                     realized=reuse_realization(plan,previous,judge,model=driver.model_id,
                         record_dir=root/'scene-verifications',verification_lines=verification_lines)
                 except SceneJudgeError:
+                    if plan.messages is not None:
+                        raise  # Preserve a rejected supplied-source review; never reroll it.
                     pass  # Preserve the rejected review; redraw only this inconsistent scene.
             if realized is None:
                 realized = realize_scene(plan, writer, judge, model=driver.model_id,

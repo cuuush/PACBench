@@ -44,7 +44,8 @@ interrupted service.
 ## How it works
 
 1. **Author a scenario.** A JSON spec describes people, channels, scenes and
-   natural questions. Day, week and month scenarios use the same format.
+   natural questions. Scenes can supply exact messages or ask a writer to generate
+   a conversation. Day, week and month scenarios use the same format.
 2. **Prepare and freeze the sources.** Generate synthetic conversations, review
    their coherence and answerability, and freeze the messages and judging criteria
    before any provider runs. Reuse that same corpus across providers.

@@ -66,8 +66,7 @@ Hermes' pinned client environment. Record actual revisions, model settings,
 clock conditions and every processing deviation from defaults.
 
 All writer, verifier, judge, Hermes and provider inference for this project uses
-**Spark Contributor through [muse-gateway](https://github.com/cuuush/muse-gateway)**,
-an independent repository normally checked out at `/workspace/muse-gateway`.
+**Spark Contributor through PACBench's budget gateway** in `pacbench/gateway`.
 The shared limit is **$10 per UTC day**, with no lifetime cap. Check the live
 ledger before paid work. A daily budget refusal stops live work until the next
 UTC day; authentication failures stop it globally until a successful free model
@@ -76,7 +75,17 @@ inventory. Never bypass a refusal or erase unknown cost bounds.
 When resuming existing work, recover the actual private gateway state, including
 its spending ledger and credentials. Gateway source and public request receipts
 do not recover spending history. If that state is missing, paid work remains
-blocked; do not initialize a replacement ledger to continue the experiment.
+blocked; do not initialize a replacement ledger to continue the experiment. With
+the actual private state restored, start and reconcile the in-repository gateway:
+
+```sh
+python -m pacbench.gateway --state /workspace/shared/muse-gateway
+python -m pacbench.gateway.reconcile_cli --state /workspace/shared/muse-gateway
+```
+
+The client uses `PACBENCH_GATEWAY_STATE` when set, falls back to the legacy
+`MUSE_GATEWAY_STATE`, and otherwise uses `/workspace/shared/muse-gateway`. The
+existing ledger, unknown cost bounds and authentication circuit remain authoritative.
 
 Prefer an existing verified preparation. After services and gateway access are
 ready, a month trial follows this shape:
@@ -147,8 +156,7 @@ request. For evaluation changes, identify the affected protocol and demonstrate
 plausible correct and incorrect controls. Report limitations and uncertainty
 instead of assigning causes that the evidence cannot establish.
 
-Benchmark and explorer changes belong here. Gateway fixes belong in
-[muse-gateway](https://github.com/cuuush/muse-gateway); Memcal product fixes belong
+Benchmark, explorer and gateway changes belong here. Memcal product fixes belong
 in [Memcal](https://github.com/cuuush/memcal). Do not modify third-party provider
 code to rescue a benchmark result.
 

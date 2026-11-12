@@ -25,11 +25,9 @@ def test_writer_has_size_constraint_not_oracle_padding():
 
 
 def test_mem0_uses_distinct_native_profile_identities(tmp_path):
-    from pacbench.native_pilot import require_trial_provider
-    try:
-        require_trial_provider("mem0")
-    except RuntimeError as exc:
-        pytest.skip(str(exc))
+    from pacbench.native_pilot import catalog_migrated_providers
+    if 'mem0' in catalog_migrated_providers():
+        pytest.skip('Legacy test needs a real pinned catalog plugin in its trial home')
     with patch("pacbench.native_pilot.client_settings", return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
          patch("pacbench.gateway_client.client_settings", return_value=('http://127.0.0.1:8099/p/unit/v1','offline-test')), \
          patch("pacbench.native_pilot.harness.provision_home") as provision_home:
@@ -80,7 +78,8 @@ assert not {'max_tokens','max_completion_tokens','temperature','reasoning_effort
 
 
 def test_live_budget_block_happens_before_any_model_call(tmp_path):
-    with patch("pacbench.native_pilot.read_prepared", return_value=([], None, {})), \
+    with patch("pacbench.live_trials.require_live_trials_ready"), \
+         patch("pacbench.native_pilot.read_prepared", return_value=([], None, {})), \
          patch("pacbench.native_pilot.require_live_cost_boundary", side_effect=RuntimeError("cannot enforce $10 total spend")), \
          patch("pacbench.native_pilot.load_driver") as driver, \
          patch("pacbench.native_pilot.harness.run_turn") as turn:

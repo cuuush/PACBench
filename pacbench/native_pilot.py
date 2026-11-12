@@ -145,12 +145,15 @@ def provider_names() -> list[str]:
     return sorted(names | catalog_migrated_providers() | {"memori", "memcal"})
 
 
-def require_trial_provider(provider: str) -> None:
-    """Fail closed until fresh homes can provision and verify catalog plugin pins."""
+def require_trial_provider(provider: str, *, resume: bool = False) -> None:
+    """Refuse moved providers without a reviewed provisioning route."""
+    from .catalog_plugins import CATALOG
     bundled = harness.ISOLATED_TREE / "plugins" / "memory" / provider
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
-        raise RuntimeError(f"Catalog provider {provider!r} cannot run: fresh trial homes do not "
-                           "yet provision and verify the pinned plugin; see vendor/README")
+        if provider not in CATALOG:
+            raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
+        if resume:
+            raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
@@ -158,7 +161,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
               honcho_simulated_at: str | None = None) -> dict:
     from .live_trials import require_live_trials_ready
     require_live_trials_ready()
-    require_trial_provider(provider)
+    require_trial_provider(provider, resume=resume)
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
@@ -166,14 +169,26 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     driver_url, client_key = client_settings(driver_project)
     if resume and (provider!='openviking' or not (home/'config.yaml').exists()):
         raise ValueError('Only an existing OpenViking home supports verified ingestion resume')
+    from .catalog_plugins import CATALOG, install_catalog_provider
+    external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
     if not resume:harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
-        provider_name=provider, model=model, model_provider="meta-ai",
+        provider_name="" if external else provider, model=model, model_provider="meta-ai",
         model_base_url=driver_url)
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
+    if external:
+        receipt = install_catalog_provider(provider, home, fallback, harness.ISOLATED_BIN, harness.ISOLATED_TREE)
+        save(root / "catalog-plugin.json", receipt)
+        # A memory provider is activated by memory.provider, not plugins.enabled.
+        # Do this only after the exact source and dependencies pass preflight.
+        from ruamel.yaml import YAML
+        config = YAML(typ="safe").load((home / "config.yaml").read_text())
+        config["memory"]["provider"] = provider
+        config.setdefault("security", {})["allow_lazy_installs"] = False
+        harness._write_yaml(home / "config.yaml", config)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),

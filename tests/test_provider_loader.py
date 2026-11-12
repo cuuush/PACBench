@@ -34,15 +34,11 @@ def test_catalog_load_errors_are_not_masked_as_legacy_imports(monkeypatch):
         provider_loader.provider_module("supermemory")
 
 
-def test_catalog_moved_providers_are_selectable_but_fresh_home_fails_closed(tmp_path, monkeypatch):
+def test_catalog_moved_providers_selectable_and_unknown_migration_blocked():
     from pacbench import native_pilot
-    monkeypatch.setattr("pacbench.live_trials.require_live_trials_ready", lambda: None)
     names = native_pilot.provider_names()
     assert {"mem0", "honcho", "hindsight", "supermemory", "openviking"} <= set(names)
-    def no_gateway(*args, **kwargs):
-        pytest.fail("gateway must not be touched before catalog preflight")
-    monkeypatch.setattr(native_pilot, "client_settings", no_gateway)
-    for name in ("mem0", "honcho", "hindsight", "supermemory", "openviking"):
-        with pytest.raises(RuntimeError, match="fresh trial homes.*pinned plugin"):
-            native_pilot.provision(tmp_path / name, name)
-        assert not (tmp_path / name).exists()
+    with pytest.raises(RuntimeError, match="No reviewed trial-home"):
+        native_pilot.require_trial_provider("holographic")
+    with pytest.raises(RuntimeError, match="recovery protocol"):
+        native_pilot.require_trial_provider("openviking", resume=True)

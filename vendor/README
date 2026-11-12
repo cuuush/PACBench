@@ -93,25 +93,26 @@ plugin code, not the independently provisioned native servers):
 | Supermemory | `supermemoryai/hermes-supermemory` | `91405dd00fdf2a0b3515b25c25557598f6793299` |
 | OpenViking | `volcengine/OpenViking/examples/hermes-plugin` | `e855796c83f9eb575d9b0f3082926660730f6a63` |
 
-For a reproducible isolated home, the documented source form is
-`hermes plugins install <source-path> --ref <full-commit-sha> --enable`, followed by
-`hermes memory setup <provider>` or the provider's documented manual profile
-configuration. Check the installed metadata and dependencies before running; a
-bare catalog name may resolve through the live catalog instead of this checkout's
-pins. Automatic migration also depends on the configured home and lazy-install
-policy. Never install plugins or run setup into a real user home for a trial.
+For fresh trial homes, PACBench invokes Hermes's documented source form with an
+explicit `--ref` and `--no-deps --no-enable`. The latter avoids changing the
+shared client environment; Hermes may still bootstrap a separate per-home
+package-manager runtime. PACBench checks the checkout catalog entry against its
+recorded pin, the install metadata and manifest, then checks the declared plugin
+dependencies and adapter imports in the trial interpreter before activating
+`memory.provider`. `catalog-plugin.json` records the source, revision, version,
+and declared dependencies. A failed install or probe blocks that arm. Fresh
+homes disable lazy installs after verification; they never use a live catalog
+refresh to choose their plugin. Configure the provider normally after setup; do
+not install into a real user home for a trial.
 
-The pinned Supermemory plugin declares `supermemory>=3.50.0,<4`, conflicting with
-this repository's existing `supermemory==5.0.0` client requirement. Resolve and
-test that compatibility before provisioning this arm; this is not evidence that
-it works. The Hindsight plugin also declares `hindsight-embed>=0.10.1,<2`. Its
-new default recall type is observation-only, including the recall tool, so record
-the actual condition and do not equate it with historical broader recall.
-OpenViking Quick Local installs a moving 0.5.x server version; preserve and record
-the separately pinned native server for comparable trials.
+The Supermemory pin requires `supermemory>=3.50.0,<4`; the isolated client pin
+above is 3.62.0. Hindsight also requires `hindsight-embed>=0.10.1,<2`. Its
+new default recall type is observation-only, including the recall tool; the
+install receipt records this and historical broader recall is not equivalent.
+OpenViking Quick Local installs a moving 0.5.x server version; preserve and
+record the separately pinned native server for comparable trials.
 
-PACBench currently creates a fresh home for each arm and does not install or copy
-these catalog plugins into it. Its preflight therefore blocks migrated providers
-that are absent from the bundled tree, including OpenViking resume, before setup
-or inference. The installation instructions above document the upstream route;
-they do not yet provide a PACBench trial-home provisioning workflow.
+These checks establish source identity, direct requirements and adapter import
+surfaces, not successful ingestion or recall. The separate live-trial gateway
+lifecycle guard remains authoritative. Catalog-provider resume is blocked until
+existing-home plugin provenance and recovery have a verified protocol.

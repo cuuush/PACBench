@@ -1,0 +1,326 @@
+[
+  {
+    "category": "provisional",
+    "evidence": "Source: Nora suggested Oak Park, but no venue has been confirmed.",
+    "claim": "Oak Park is a suggestion, not a confirmed venue.",
+    "answer": "I do not know what venue was suggested.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_00"
+  },
+  {
+    "category": "negation",
+    "evidence": "Source: The cake must not contain walnuts. Almonds are allowed.",
+    "claim": "Walnuts are forbidden in the cake.",
+    "answer": "Walnuts are allowed in the cake.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_01"
+  },
+  {
+    "category": "conditional",
+    "evidence": "Source: If it rains, meet inside the library. Otherwise meet in the courtyard. The forecast is not yet known.",
+    "claim": "The rain contingency is inside the library.",
+    "answer": "We have a weather contingency but I do not know where.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_02"
+  },
+  {
+    "category": "conditional",
+    "evidence": "Source: If it rains, meet inside the library. Otherwise meet in the courtyard. The forecast is not yet known.",
+    "claim": "The rain contingency is inside the library.",
+    "answer": "If it rains we meet in the courtyard.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_03"
+  },
+  {
+    "category": "attribution",
+    "evidence": "Source: Lee is collecting tickets. Sam is booking transport.",
+    "claim": "Lee is collecting tickets.",
+    "answer": "Ticket collection is Lee’s responsibility.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_04"
+  },
+  {
+    "category": "units",
+    "evidence": "Source: The approved budget is 150 dollars, not 150 dollars per person.",
+    "claim": "The approved total budget is $150.",
+    "answer": "The total budget is $150.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_05"
+  },
+  {
+    "category": "update",
+    "evidence": "Source: Jun first offered to bring dessert. Jun later said Pat is bringing dessert instead, and Pat confirmed.",
+    "claim": "Pat is the current dessert owner.",
+    "answer": "Pat is bringing dessert now.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_06"
+  },
+  {
+    "category": "negation",
+    "evidence": "Source: The cake must not contain walnuts. Almonds are allowed.",
+    "claim": "Walnuts are forbidden in the cake.",
+    "answer": "Almonds are allowed.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_07"
+  },
+  {
+    "category": "attribution",
+    "evidence": "Source: Lee is collecting tickets. Sam is booking transport.",
+    "claim": "Lee is collecting tickets.",
+    "answer": "Sam is collecting tickets.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_08"
+  },
+  {
+    "category": "time-zone",
+    "evidence": "Source: The call starts at 18:00 UTC, which is 10:00 in the stated UTC-8 local time.",
+    "claim": "The call starts at 18:00 UTC.",
+    "answer": "The call is in the morning locally; no precise time given.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_09"
+  },
+  {
+    "category": "negation",
+    "evidence": "Source: The cake must not contain walnuts. Almonds are allowed.",
+    "claim": "Walnuts are forbidden in the cake.",
+    "answer": "Do not put walnuts in the cake.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_10"
+  },
+  {
+    "category": "contradiction",
+    "evidence": "Source: The confirmed pickup time is 4pm.",
+    "claim": "Pickup is at 4pm.",
+    "answer": "Pickup is at four in the afternoon.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_11"
+  },
+  {
+    "category": "attribution",
+    "evidence": "Source: Lee is collecting tickets. Sam is booking transport.",
+    "claim": "Lee is collecting tickets.",
+    "answer": "Sam books transport.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_12"
+  },
+  {
+    "category": "date",
+    "evidence": "Source: On Monday Mia proposed Friday Nov 20. On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm.",
+    "claim": "The current dinner date is Nov 21.",
+    "answer": "Dinner is Saturday November 21.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_13"
+  },
+  {
+    "category": "provisional",
+    "evidence": "Source: Nora suggested Oak Park, but no venue has been confirmed.",
+    "claim": "Oak Park is a suggestion, not a confirmed venue.",
+    "answer": "Oak Park was suggested; the venue is still unconfirmed.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_14"
+  },
+  {
+    "category": "scope",
+    "evidence": "Source: For the school event Alex brings juice; for the office event Alex brings coffee.",
+    "claim": "For the school event Alex brings juice.",
+    "answer": "Alex brings juice to the school event.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_15"
+  },
+  {
+    "category": "event",
+    "evidence": "Source: The team lunch is at Cedar. The birthday dinner is at Maple.",
+    "claim": "The birthday dinner venue is Maple.",
+    "answer": "The team lunch is at Cedar.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_16"
+  },
+  {
+    "category": "time-zone",
+    "evidence": "Source: The call starts at 18:00 UTC, which is 10:00 in the stated UTC-8 local time.",
+    "claim": "The call starts at 18:00 UTC.",
+    "answer": "The call starts at 10:00 UTC.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_17"
+  },
+  {
+    "category": "event",
+    "evidence": "Source: The team lunch is at Cedar. The birthday dinner is at Maple.",
+    "claim": "The birthday dinner venue is Maple.",
+    "answer": "Birthday dinner is at Cedar.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_18"
+  },
+  {
+    "category": "units",
+    "evidence": "Source: The approved budget is 150 dollars, not 150 dollars per person.",
+    "claim": "The approved total budget is $150.",
+    "answer": "The budget is $150 per person.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_19"
+  },
+  {
+    "category": "units",
+    "evidence": "Source: The approved budget is 150 dollars, not 150 dollars per person.",
+    "claim": "The approved total budget is $150.",
+    "answer": "There is an approved budget.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_20"
+  },
+  {
+    "category": "update",
+    "evidence": "Source: Jun first offered to bring dessert. Jun later said Pat is bringing dessert instead, and Pat confirmed.",
+    "claim": "Pat is the current dessert owner.",
+    "answer": "Jun originally offered dessert.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_21"
+  },
+  {
+    "category": "contradiction",
+    "evidence": "Source: The confirmed pickup time is 4pm.",
+    "claim": "Pickup is at 4pm.",
+    "answer": "Pickup time is not specified in my notes.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_22"
+  },
+  {
+    "category": "conditional",
+    "evidence": "Source: If it rains, meet inside the library. Otherwise meet in the courtyard. The forecast is not yet known.",
+    "claim": "The rain contingency is inside the library.",
+    "answer": "If it rains we meet inside the library.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_23"
+  },
+  {
+    "category": "partial",
+    "evidence": "Source: Required supplies are plates, cups, and napkins.",
+    "claim": "The complete required supply list is plates, cups, and napkins.",
+    "answer": "Bring plates, cups, and napkins.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_24"
+  },
+  {
+    "category": "date",
+    "evidence": "Source: On Monday Mia proposed Friday Nov 20. On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm.",
+    "claim": "The current dinner date is Nov 21.",
+    "answer": "I cannot find the date.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_25"
+  },
+  {
+    "category": "update",
+    "evidence": "Source: Jun first offered to bring dessert. Jun later said Pat is bringing dessert instead, and Pat confirmed.",
+    "claim": "Pat is the current dessert owner.",
+    "answer": "Jun is the person currently bringing dessert.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_26"
+  },
+  {
+    "category": "partial",
+    "evidence": "Source: Required supplies are plates, cups, and napkins.",
+    "claim": "The complete required supply list is plates, cups, and napkins.",
+    "answer": "Bring plates, cups, and forks; those are the complete required supplies.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_27"
+  },
+  {
+    "category": "date",
+    "evidence": "Source: On Monday Mia proposed Friday Nov 20. On Tuesday Mia corrected the dinner to Saturday Nov 21 at 7pm.",
+    "claim": "The current dinner date is Nov 21.",
+    "answer": "Dinner is Friday November 20.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_28"
+  },
+  {
+    "category": "time-zone",
+    "evidence": "Source: The call starts at 18:00 UTC, which is 10:00 in the stated UTC-8 local time.",
+    "claim": "The call starts at 18:00 UTC.",
+    "answer": "The call is at 10:00 UTC-8 (18:00 UTC).",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_29"
+  },
+  {
+    "category": "contradiction",
+    "evidence": "Source: The confirmed pickup time is 4pm.",
+    "claim": "Pickup is at 4pm.",
+    "answer": "Pickup is at 4pm. Pickup is definitely not at 4pm; it is at 5pm.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_30"
+  },
+  {
+    "category": "scope",
+    "evidence": "Source: For the school event Alex brings juice; for the office event Alex brings coffee.",
+    "claim": "For the school event Alex brings juice.",
+    "answer": "Alex brings coffee to the office event.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_31"
+  },
+  {
+    "category": "event",
+    "evidence": "Source: The team lunch is at Cedar. The birthday dinner is at Maple.",
+    "claim": "The birthday dinner venue is Maple.",
+    "answer": "Birthday dinner is at Maple.",
+    "label": "correct",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_32"
+  },
+  {
+    "category": "partial",
+    "evidence": "Source: Required supplies are plates, cups, and napkins.",
+    "claim": "The complete required supply list is plates, cups, and napkins.",
+    "answer": "Bring plates and cups.",
+    "label": "missed",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_33"
+  },
+  {
+    "category": "provisional",
+    "evidence": "Source: Nora suggested Oak Park, but no venue has been confirmed.",
+    "claim": "Oak Park is a suggestion, not a confirmed venue.",
+    "answer": "Oak Park is the confirmed venue.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_34"
+  },
+  {
+    "category": "scope",
+    "evidence": "Source: For the school event Alex brings juice; for the office event Alex brings coffee.",
+    "claim": "For the school event Alex brings juice.",
+    "answer": "Alex brings coffee to the school event.",
+    "label": "misrepresented",
+    "provenance": "Synthetic PACBench-style minimal case authored before inference; no real provider answer or human adjudication.",
+    "id": "case_35"
+  }
+]

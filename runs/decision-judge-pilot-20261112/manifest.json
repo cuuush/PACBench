@@ -1,0 +1,40 @@
+{
+  "n": 36,
+  "labels": {
+    "correct": 12,
+    "missed": 12,
+    "misrepresented": 12
+  },
+  "protocol": "single batched request per model, 36 independent questions; no answer-specific retries; identical state/rubric; latency measured per batch, not per case",
+  "limitations": [
+    "Agent-authored labels are human-verifiable but not independently human-labeled.",
+    "Synthetic minimal cases, correlated triplets, no real long-context PACBench cases.",
+    "Small pilot cannot establish superiority.",
+    "One latency measurement per model; batch speed, not per-case latency distribution.",
+    "Shared state includes all cases, so interference and cross-case leakage are possible.",
+    "DeepSeek uses strict JSON-schema chat, decisions use Choice; label output only, not full PACBench explanations/diagnostics.",
+    "No independent reviewer or human adjudicator; omitted claim vs explicit denial of source knowledge is rubric-dependent.",
+    "DeepSeek V4 Pro received cached tokens; actual costs are not directly normalized."
+  ],
+  "budget_reserved_usd": 1,
+  "frozen_at": "2026-11-12 before first inference",
+  "completed_at": "2026-11-12T23:51:28.933180+00:00",
+  "reported_cost_usd": 0.007120046235,
+  "uncertain_cost_reservation_usd": 0.15,
+  "accounted_upper_usd": 0.157120046235,
+  "budget_remaining_reserved_usd": 0.842879953765,
+  "requests": 8,
+  "successful_requests": 7,
+  "retries": 0,
+  "excluded_candidate": {
+    "model": "inception/mercury-decide",
+    "reason": "Live endpoint inventory returned no providers; no inference attempted."
+  },
+  "drex_failure": "HTTP 422: route supports 1..16 questions; fixed 36-question pilot incompatible. No retry. Not an accuracy result. No usage supplied; conservative $0.15 retained.",
+  "baseline_limit": "Restored repository does not identify the active parent judge model/route; V3.2 and V4 Pro 0423 are named baselines, not proven reproduction of current PACBench judge.",
+  "sources": [
+    "https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-request",
+    "https://openrouter.ai/docs/guides/community/jev-tutorial",
+    "https://openrouter.ai/api/v1/models"
+  ]
+}

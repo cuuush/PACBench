@@ -1,0 +1,636 @@
+[
+  {
+    "model": "typesafe/jev-1.14",
+    "source": "https://openrouter.ai/api/v1/models/typesafe/jev-1.14/endpoints",
+    "providers": [
+      {
+        "provider": "TypeSafe",
+        "tag": "typesafe",
+        "pricing": {
+          "prompt": "0.000000042",
+          "completion": "0",
+          "discount": 0
+        },
+        "context_length": 262144,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "nace-ai/drex-max",
+    "source": "https://openrouter.ai/api/v1/models/nace-ai/drex-max/endpoints",
+    "providers": [
+      {
+        "provider": "DeepInfra",
+        "tag": "deepinfra/us",
+        "pricing": {
+          "prompt": "0.00000006",
+          "completion": "0",
+          "input_cache_read": "0.00000006",
+          "discount": 0.5
+        },
+        "context_length": 262144,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "perplexity/pplx-decider-v1.3:free",
+    "source": "https://openrouter.ai/api/v1/models/perplexity/pplx-decider-v1.3:free/endpoints",
+    "providers": [
+      {
+        "provider": "Perplexity",
+        "tag": "perplexity",
+        "pricing": {
+          "prompt": "0",
+          "completion": "0",
+          "discount": 0
+        },
+        "context_length": 262144,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "deepseek/deepseek-v3.2",
+    "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v3.2/endpoints",
+    "providers": [
+      {
+        "provider": "GMICloud",
+        "tag": "gmicloud/fp8",
+        "pricing": {
+          "prompt": "0.0000002088",
+          "completion": "0.0000003096",
+          "input_cache_read": "0.0000000216",
+          "discount": 0.28
+        },
+        "context_length": 163840,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "seed",
+          "tools",
+          "tool_choice"
+        ]
+      },
+      {
+        "provider": "SiliconFlow",
+        "tag": "siliconflow/fp8",
+        "pricing": {
+          "prompt": "0.000000259",
+          "completion": "0.0000008",
+          "input_cache_read": "0.00000014",
+          "discount": 0
+        },
+        "context_length": 163840,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "top_k",
+          "frequency_penalty",
+          "response_format",
+          "tools",
+          "tool_choice",
+          "structured_outputs",
+          "max_tokens"
+        ]
+      },
+      {
+        "provider": "DeepInfra",
+        "tag": "deepinfra/fp4",
+        "pricing": {
+          "prompt": "0.00000026",
+          "completion": "0.00000038",
+          "input_cache_read": "0.00000013",
+          "discount": 0
+        },
+        "context_length": 163840,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "stop",
+          "frequency_penalty",
+          "presence_penalty",
+          "repetition_penalty",
+          "top_k",
+          "seed",
+          "min_p",
+          "tool_choice",
+          "tools",
+          "response_format",
+          "logit_bias",
+          "structured_outputs"
+        ]
+      },
+      {
+        "provider": "AtlasCloud",
+        "tag": "atlas-cloud/fp8",
+        "pricing": {
+          "prompt": "0.00000026",
+          "completion": "0.00000038",
+          "input_cache_read": "0.00000013",
+          "discount": 0
+        },
+        "context_length": 163840,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "response_format",
+          "tools",
+          "tool_choice",
+          "seed",
+          "logit_bias",
+          "stop",
+          "min_p",
+          "top_k",
+          "frequency_penalty",
+          "presence_penalty",
+          "repetition_penalty",
+          "structured_outputs",
+          "logprobs",
+          "top_logprobs"
+        ]
+      },
+      {
+        "provider": "Baidu",
+        "tag": "baidu/fp8",
+        "pricing": {
+          "prompt": "0.00000028",
+          "completion": "0.00000042",
+          "input_cache_read": "0.000000028",
+          "discount": 0
+        },
+        "context_length": 131072,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "max_tokens",
+          "stop",
+          "seed",
+          "response_format",
+          "structured_outputs"
+        ]
+      },
+      {
+        "provider": "DigitalOcean",
+        "tag": "digitalocean",
+        "pricing": {
+          "prompt": "0.0000003",
+          "completion": "0.00000096",
+          "input_cache_read": "0.00000009",
+          "discount": 0
+        },
+        "context_length": 163840,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "max_tokens",
+          "logprobs",
+          "top_logprobs"
+        ]
+      }
+    ]
+  },
+  {
+    "model": "openai/gpt-6-luna-decisions",
+    "source": "https://openrouter.ai/api/v1/models/openai/gpt-6-luna-decisions/endpoints",
+    "providers": [
+      {
+        "provider": "Azure",
+        "tag": "azure",
+        "pricing": {
+          "prompt": "0.0000001",
+          "completion": "0",
+          "web_search": "0.01",
+          "input_cache_read": "0",
+          "input_cache_write": "0",
+          "discount": 0
+        },
+        "context_length": 1050000,
+        "supported_parameters": []
+      },
+      {
+        "provider": "OpenAI",
+        "tag": "openai",
+        "pricing": {
+          "prompt": "0.0000001",
+          "completion": "0",
+          "web_search": "0.01",
+          "input_cache_read": "0",
+          "input_cache_write": "0",
+          "discount": 0
+        },
+        "context_length": 1050000,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "microsoft/microsoft-decision-1",
+    "source": "https://openrouter.ai/api/v1/models/microsoft/microsoft-decision-1/endpoints",
+    "providers": [
+      {
+        "provider": "Azure",
+        "tag": "azure",
+        "pricing": {
+          "prompt": "0.000000042",
+          "completion": "0",
+          "discount": 0
+        },
+        "context_length": 32768,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "perplexity/pplx-decider-v1.2",
+    "source": "https://openrouter.ai/api/v1/models/perplexity/pplx-decider-v1.2/endpoints",
+    "providers": [
+      {
+        "provider": "Perplexity",
+        "tag": "perplexity",
+        "pricing": {
+          "prompt": "0.00000002",
+          "completion": "0",
+          "discount": 0
+        },
+        "context_length": 262144,
+        "supported_parameters": []
+      }
+    ]
+  },
+  {
+    "model": "deepseek/deepseek-v4-pro",
+    "source": "https://openrouter.ai/api/v1/models/deepseek/deepseek-v4-pro/endpoints",
+    "providers": [
+      {
+        "provider": "Relace",
+        "tag": "relace/fp4",
+        "pricing": {
+          "prompt": "0.0000009",
+          "completion": "0.0000015",
+          "input_cache_read": "0.00000025",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "top_k",
+          "min_p",
+          "stop",
+          "max_tokens",
+          "logit_bias",
+          "frequency_penalty",
+          "presence_penalty",
+          "repetition_penalty",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "StreamLake",
+        "tag": "streamlake/fp8",
+        "pricing": {
+          "prompt": "0.00000095526",
+          "completion": "0.00000191052",
+          "input_cache_read": "0.000000079605",
+          "discount": 0.451
+        },
+        "context_length": 1024000,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "logprobs",
+          "top_logprobs",
+          "structured_outputs",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "stop",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "GMICloud",
+        "tag": "gmicloud/fp8",
+        "pricing": {
+          "prompt": "0.000000957",
+          "completion": "0.000001914",
+          "input_cache_read": "0.00000007975",
+          "discount": 0.45
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "seed",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "SiliconFlow",
+        "tag": "siliconflow/fp8",
+        "pricing": {
+          "prompt": "0.000001",
+          "completion": "0.0000015",
+          "input_cache_read": "0.000000135",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "top_k",
+          "frequency_penalty",
+          "max_tokens",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "DigitalOcean",
+        "tag": "digitalocean",
+        "pricing": {
+          "prompt": "0.000001044",
+          "completion": "0.000002088",
+          "input_cache_read": "0.0000002088",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "max_tokens",
+          "response_format",
+          "tool_choice",
+          "tools",
+          "logprobs",
+          "top_logprobs",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "DeepInfra",
+        "tag": "deepinfra/fp8",
+        "pricing": {
+          "prompt": "0.0000013",
+          "completion": "0.0000026",
+          "input_cache_read": "0.0000001",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "stop",
+          "frequency_penalty",
+          "presence_penalty",
+          "repetition_penalty",
+          "top_k",
+          "seed",
+          "min_p",
+          "logit_bias",
+          "tools",
+          "tool_choice",
+          "structured_outputs",
+          "response_format",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Alibaba",
+        "tag": "alibaba/fp8",
+        "pricing": {
+          "prompt": "0.000001416",
+          "completion": "0.000002832",
+          "input_cache_read": "0.000000118",
+          "discount": 0
+        },
+        "context_length": 1000000,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "seed",
+          "presence_penalty",
+          "response_format",
+          "tool_choice",
+          "tools",
+          "structured_outputs",
+          "top_k",
+          "frequency_penalty",
+          "stop",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Alibaba",
+        "tag": "alibaba/fp8/us-east-1",
+        "pricing": {
+          "prompt": "0.00000156",
+          "completion": "0.00000312",
+          "input_cache_read": "0.00000013",
+          "discount": 0
+        },
+        "context_length": 1000000,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "seed",
+          "presence_penalty",
+          "response_format",
+          "tool_choice",
+          "tools",
+          "structured_outputs",
+          "top_k",
+          "frequency_penalty",
+          "stop",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Novita",
+        "tag": "novita/fp8",
+        "pricing": {
+          "prompt": "0.0000016",
+          "completion": "0.0000032",
+          "input_cache_read": "0.000000135",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "stop",
+          "frequency_penalty",
+          "presence_penalty",
+          "seed",
+          "top_k",
+          "repetition_penalty",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "logprobs",
+          "top_logprobs",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Venice",
+        "tag": "venice",
+        "pricing": {
+          "prompt": "0.00000165",
+          "completion": "0.000003301",
+          "input_cache_read": "0.00000033",
+          "discount": 0
+        },
+        "context_length": 1000000,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "stop",
+          "frequency_penalty",
+          "presence_penalty",
+          "top_k",
+          "response_format",
+          "structured_outputs",
+          "tools",
+          "tool_choice",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "AtlasCloud",
+        "tag": "atlas-cloud/fp4",
+        "pricing": {
+          "prompt": "0.00000168",
+          "completion": "0.00000338",
+          "input_cache_read": "0.00000013",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "top_k",
+          "min_p",
+          "frequency_penalty",
+          "presence_penalty",
+          "repetition_penalty",
+          "stop",
+          "seed",
+          "logit_bias",
+          "tools",
+          "structured_outputs",
+          "response_format",
+          "tool_choice",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Baidu",
+        "tag": "baidu/fp8",
+        "pricing": {
+          "prompt": "0.00000169",
+          "completion": "0.00000338",
+          "input_cache_read": "0.00000014",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "temperature",
+          "top_p",
+          "max_tokens",
+          "stop",
+          "response_format",
+          "structured_outputs",
+          "tools",
+          "tool_choice",
+          "reasoning_effort"
+        ]
+      },
+      {
+        "provider": "Azure",
+        "tag": "azure/us",
+        "pricing": {
+          "prompt": "0.00000191",
+          "completion": "0.00000383",
+          "input_cache_read": "0.00000016",
+          "discount": 0
+        },
+        "context_length": 1048576,
+        "supported_parameters": [
+          "reasoning",
+          "include_reasoning",
+          "max_tokens",
+          "temperature",
+          "top_p",
+          "max_completion_tokens",
+          "tools",
+          "tool_choice",
+          "response_format",
+          "reasoning_effort"
+        ]
+      }
+    ]
+  },
+  {
+    "model": "inception/mercury-decide",
+    "source": "https://openrouter.ai/api/v1/models/inception/mercury-decide/endpoints",
+    "providers": []
+  }
+]

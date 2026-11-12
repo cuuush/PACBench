@@ -1,0 +1,612 @@
+[
+  {
+    "model": "typesafe/jev-1.14",
+    "status": 200,
+    "batch_latency_seconds": 0.40259521199999426,
+    "n": 36,
+    "correct": 35,
+    "accuracy": 0.9722222222222222,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 11,
+        "misrepresented": 1,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [
+      {
+        "id": "case_22",
+        "category": "contradiction",
+        "expected": "missed",
+        "actual": "misrepresented"
+      }
+    ],
+    "usage": {
+      "input_tokens": 9007,
+      "output_tokens": 1565,
+      "cost": 0.000378294,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.000378294,
+        "upstream_inference_prompt_cost": 0.000378294,
+        "upstream_inference_completions_cost": 0
+      }
+    },
+    "served_model": "typesafe/jev-1.14-20261014",
+    "provider": "TypeSafe",
+    "parse_error": null
+  },
+  {
+    "model": "openai/gpt-6-luna-decisions",
+    "status": 200,
+    "batch_latency_seconds": 0.7317806410000003,
+    "n": 36,
+    "correct": 34,
+    "accuracy": 0.9444444444444444,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 1,
+        "missed": 10,
+        "misrepresented": 1,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [
+      {
+        "id": "case_07",
+        "category": "negation",
+        "expected": "missed",
+        "actual": "correct"
+      },
+      {
+        "id": "case_21",
+        "category": "update",
+        "expected": "missed",
+        "actual": "misrepresented"
+      }
+    ],
+    "usage": {
+      "input_tokens": 9473,
+      "output_tokens": 0,
+      "cost": 0.0009473,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.0009473,
+        "upstream_inference_prompt_cost": 0.0009473,
+        "upstream_inference_completions_cost": 0
+      }
+    },
+    "served_model": "openai/gpt-6-luna-decisions-20261006",
+    "provider": "OpenAI",
+    "parse_error": null
+  },
+  {
+    "model": "microsoft/microsoft-decision-1",
+    "status": 200,
+    "batch_latency_seconds": 0.7293662220000101,
+    "n": 36,
+    "correct": 36,
+    "accuracy": 1.0,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 12,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [],
+    "usage": {
+      "input_tokens": 6805,
+      "output_tokens": 36,
+      "cost": 0.00028581,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.00028581,
+        "upstream_inference_prompt_cost": 0.00028581,
+        "upstream_inference_completions_cost": 0
+      }
+    },
+    "served_model": "microsoft/microsoft-decision-1-20261009",
+    "provider": "Azure",
+    "parse_error": null
+  },
+  {
+    "model": "deepseek/deepseek-v3.2",
+    "status": 200,
+    "batch_latency_seconds": 15.280283868999987,
+    "n": 36,
+    "correct": 36,
+    "accuracy": 1.0,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 12,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [],
+    "usage": {
+      "prompt_tokens": 7394,
+      "completion_tokens": 350,
+      "total_tokens": 7744,
+      "cost": 0.002195046,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.002195046,
+        "upstream_inference_prompt_cost": 0.001915046,
+        "upstream_inference_completions_cost": 0.00028
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "served_model": "deepseek/deepseek-v3.2",
+    "provider": "SiliconFlow",
+    "parse_error": null
+  },
+  {
+    "model": "deepseek/deepseek-v4-pro",
+    "status": 200,
+    "batch_latency_seconds": 6.360726825,
+    "n": 36,
+    "correct": 35,
+    "accuracy": 0.9722222222222222,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 1,
+        "missed": 11,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [
+      {
+        "id": "case_00",
+        "category": "provisional",
+        "expected": "missed",
+        "actual": "correct"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 7394,
+      "completion_tokens": 350,
+      "total_tokens": 7744,
+      "cost": 0.003168836235,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 5211,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.003168836235,
+        "upstream_inference_prompt_cost": 0.002500154235,
+        "upstream_inference_completions_cost": 0.000668682
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "served_model": "deepseek/deepseek-v4-pro",
+    "provider": "StreamLake",
+    "parse_error": null
+  },
+  {
+    "model": "perplexity/pplx-decider-v1.3:free",
+    "status": 200,
+    "batch_latency_seconds": 2.105840764999982,
+    "n": 36,
+    "correct": 36,
+    "accuracy": 1.0,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 12,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [],
+    "usage": {
+      "input_tokens": 7059,
+      "output_tokens": 36,
+      "cost": 0,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      }
+    },
+    "served_model": "perplexity/pplx-decider-v1.3-20261112",
+    "provider": "Perplexity",
+    "parse_error": null
+  },
+  {
+    "model": "perplexity/pplx-decider-v1.2",
+    "status": 200,
+    "batch_latency_seconds": 0.5730067119999944,
+    "n": 36,
+    "correct": 36,
+    "accuracy": 1.0,
+    "failures": 0,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 12,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 12,
+        "misrepresented": 0,
+        "failure": 0
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 12,
+        "failure": 0
+      }
+    },
+    "errors": [],
+    "usage": {
+      "input_tokens": 7238,
+      "output_tokens": 36,
+      "cost": 0.00014476,
+      "is_byok": false,
+      "cost_details": {
+        "upstream_inference_cost": 0.00014476,
+        "upstream_inference_prompt_cost": 0.00014476,
+        "upstream_inference_completions_cost": 0
+      }
+    },
+    "served_model": "perplexity/pplx-decider-v1.2-20261016",
+    "provider": "Perplexity",
+    "parse_error": null
+  },
+  {
+    "model": "nace-ai/drex-max",
+    "status": 422,
+    "batch_latency_seconds": 0.27446144300000697,
+    "n": 36,
+    "correct": 0,
+    "accuracy": 0.0,
+    "failures": 36,
+    "confusion_matrix": {
+      "correct": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 12
+      },
+      "missed": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 12
+      },
+      "misrepresented": {
+        "correct": 0,
+        "missed": 0,
+        "misrepresented": 0,
+        "failure": 12
+      }
+    },
+    "errors": [
+      {
+        "id": "case_00",
+        "category": "provisional",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_01",
+        "category": "negation",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_02",
+        "category": "conditional",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_03",
+        "category": "conditional",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_04",
+        "category": "attribution",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_05",
+        "category": "units",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_06",
+        "category": "update",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_07",
+        "category": "negation",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_08",
+        "category": "attribution",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_09",
+        "category": "time-zone",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_10",
+        "category": "negation",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_11",
+        "category": "contradiction",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_12",
+        "category": "attribution",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_13",
+        "category": "date",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_14",
+        "category": "provisional",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_15",
+        "category": "scope",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_16",
+        "category": "event",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_17",
+        "category": "time-zone",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_18",
+        "category": "event",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_19",
+        "category": "units",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_20",
+        "category": "units",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_21",
+        "category": "update",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_22",
+        "category": "contradiction",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_23",
+        "category": "conditional",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_24",
+        "category": "partial",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_25",
+        "category": "date",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_26",
+        "category": "update",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_27",
+        "category": "partial",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_28",
+        "category": "date",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_29",
+        "category": "time-zone",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_30",
+        "category": "contradiction",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_31",
+        "category": "scope",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_32",
+        "category": "event",
+        "expected": "correct",
+        "actual": "failure"
+      },
+      {
+        "id": "case_33",
+        "category": "partial",
+        "expected": "missed",
+        "actual": "failure"
+      },
+      {
+        "id": "case_34",
+        "category": "provisional",
+        "expected": "misrepresented",
+        "actual": "failure"
+      },
+      {
+        "id": "case_35",
+        "category": "scope",
+        "expected": "misrepresented",
+        "actual": "failure"
+      }
+    ],
+    "usage": null,
+    "served_model": null,
+    "provider": null,
+    "parse_error": "KeyError"
+  }
+]

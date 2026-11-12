@@ -1,5 +1,5 @@
 # Hermes' MCP client is optional upstream but required by PACBench's Hindsight arm.
-mcp==2.2.0
+mcp==2.3.0
 # Native Mem0 OSS: recommended Ollama embedder and local Qdrant, not a cloud SDK shim.
 mem0ai==2.0.10
 ollama==0.6.3
@@ -7,4 +7,5 @@ qdrant-client==1.19.1
 hindsight-client==1.1.0
 # Match Hermes' pyproject, lockfile and native Honcho setup CLI.
 honcho-ai==2.2.0
-supermemory==5.0.0
+# The pinned catalog plugin requires the v3 SDK (>=3.50.0,<4).
+supermemory==3.62.0

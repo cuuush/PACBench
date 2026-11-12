@@ -115,3 +115,16 @@ def test_replaced_attempt_cost_does_not_disappear_or_blend_into_selected_arm(tmp
     attempt=report['other_attempts'][0]
     assert attempt['daily_batches_ready']==1
     assert attempt['cost']['memory_provider']['held_usd']==.1
+
+
+def test_reconciled_charges_stay_separate_from_estimates_and_legacy_guard_amount():
+    calls = [call('actual', 'hermes', cost=.02), call('estimated', 'hermes', cost=.03),
+             call('pending', 'hermes', state='unknown', cost=.04)]
+    calls[0]['actual_cost_usd'] = .015
+    summary = summarize(calls)
+    assert summary['actual_cost_usd'] is None  # Other requests have no confirmed charge.
+    assert summary['actual_cost_known_usd'] == .015
+    assert summary['token_price_estimate_usd'] == .03
+    assert summary['unconfirmed_budget_bound_usd'] == .04
+    # Historical guard amount remains readable but is not an estimate subtotal.
+    assert summary['settled_upper_bound_usd'] == .05

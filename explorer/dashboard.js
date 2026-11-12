@@ -399,7 +399,7 @@ function usageDetails(ex) {
   const groups = usage?.groups || Object.entries(usage?.roles || {}).map(([role, total]) => ({role, ...total}));
   const rows = groups.map(g => '<tr><td>' + esc([g.role, g.project, g.model].filter(Boolean).join(' / ')) +
     '</td><td>' + esc(g.model_calls) + '</td><td>' + esc(g.input_tokens ?? 'unknown') + '</td><td>' + esc(g.output_tokens ?? 'unknown') +
-    '</td><td>' + money(g.actual_cost_usd) + '</td><td>' + money(g.token_price_estimate_usd) + '</td><td>' +
+    '</td><td>' + money(g.actual_cost_usd) + (g.actual_cost_usd == null && g.actual_cost_known_usd != null ? ' (known subtotal ' + money(g.actual_cost_known_usd) + '; ' + esc(g.actual_cost_unknown_calls) + ' unknown)' : '') + '</td><td>' + money(g.token_price_estimate_usd) + '</td><td>' +
     money(g.unconfirmed_budget_bound_usd ?? g.accounted_upper_bound_usd) + '</td></tr>').join('');
   const requestRows = calls.map(c => '<tr><td>' + esc(c.id ?? 'unknown') + '</td><td>' + esc(c.upstream_request_id ?? 'unknown') +
     '</td><td>' + esc(c.generation_id ?? 'unknown') + '</td><td>' + esc([c.role, c.project, c.model, c.upstream_origin].filter(Boolean).join(' / ')) +
@@ -457,16 +457,17 @@ function costPage(run) {
   const money = value => value == null ? 'unknown' : '$' + Number(value).toFixed(6);
   return '<section class="stage"><h2>Observed costs</h2>' +
     (run.reviewed_judgment ? '<p>Pass, fail, ungraded and retention figures below use the original judgment protocol, separate from reviewed judgments.</p>' : '') +
-    '<p>These are guard estimates and bounds through each arm’s recorded cutoff, not confirmed invoices. Actual charges, where available, appear in the details. Deferred processing is unknown unless inspected; these figures do not establish a full lifecycle price ranking.</p>' +
-    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Hermes settled guard estimate</th><th>Provider settled guard estimate</th><th>Unconfirmed budget bounds</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
+    '<p>Amounts cover each arm’s recorded cutoff. Actual charges, token-price estimates, and unconfirmed bounds are separate. Settled guard amounts are retained for historical receipts and may include reconciled charges; do not add them to the other columns. Deferred processing is unknown unless inspected.</p>' +
+    '<div class="usage-table"><table><thead><tr><th>Provider</th><th>Initial pass / fail / ungraded</th><th>Retention</th><th>Actual charges</th><th>Token-price estimates</th><th>Unconfirmed budget bounds</th><th>Settled guard amount (historical)</th><th>Model calls</th><th>Workload complete</th><th>Deferred work</th></tr></thead><tbody>' +
     review.providers.map(row => {
       const h = row.cost?.hermes, p = row.cost?.memory_provider, counts = row.initial_counts;
-      const held = h && p && h.held_usd != null && p.held_usd != null ? h.held_usd + p.held_usd : null;
+      const combined = key => h && p && h[key] != null && p[key] != null ? h[key] + p[key] : null;
+      const held = combined('unconfirmed_budget_bound_usd') ?? combined('held_usd');
       const counted = counts && ['pass','fail','ungraded'].every(key => Number.isInteger(counts[key]));
       return '<tr><td>' + esc(row.provider) + '</td><td>' + esc(counted ? [counts.pass, counts.fail, counts.ungraded].join(' / ') : row.state === 'not-run' ? 'not run' : 'ungraded') +
         '</td><td>' + esc(row.retention_max_graded ? row.retention_points + ' / ' + row.retention_max_graded : 'ungraded') +
-        '</td><td>' + money(h?.settled_upper_bound_usd) + '</td><td>' + money(p?.settled_upper_bound_usd) +
-        '</td><td>' + money(held) + '</td><td>' + esc(h && p ? h.model_requests + p.model_requests : 'unknown') +
+        '</td><td>' + money(combined('actual_cost_usd')) + (combined('actual_cost_usd') == null && combined('actual_cost_known_usd') != null ? ' (known subtotal ' + money(combined('actual_cost_known_usd')) + '; ' + esc(combined('actual_cost_unknown_calls')) + ' unknown)' : '') + '</td><td>' + money(combined('token_price_estimate_usd')) +
+        '</td><td>' + money(held) + '</td><td>' + money(combined('settled_upper_bound_usd')) + '</td><td>' + esc(h && p ? h.model_requests + p.model_requests : 'unknown') +
         '</td><td>' + (row.complete_for_cost_comparison ? 'yes' : 'no') + '</td><td>' +
         esc(row.state === 'not-run' ? 'not run' : row.deferred_processing?.pending_items != null ? row.deferred_processing.pending_items + ' pending' : 'unobserved') + '</td></tr>';
     }).join('') + '</tbody></table></div>' +

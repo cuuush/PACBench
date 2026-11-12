@@ -157,3 +157,11 @@ def test_private_snapshot_never_overrides_corrupt_database_or_missing_session(tm
         db.execute('DELETE FROM sessions')
     assert actual_context(home, 'native-session', workspace, prompt_hash=digest,
                           receipt_version=SNAPSHOT_VERSION)['state'] == 'fail'
+
+
+def test_bad_temporary_root_is_rejected_before_native_source_work(tmp_path,monkeypatch):
+    from pacbench.context_isolation import validate_recall_environment
+    (tmp_path/'.git').mkdir()
+    monkeypatch.setattr('pacbench.context_isolation.tempfile.gettempdir',lambda:str(tmp_path))
+    with pytest.raises(RuntimeError,match='before native ingestion'):
+        validate_recall_environment()

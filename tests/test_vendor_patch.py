@@ -60,6 +60,12 @@ class VendorPatchIntegrity(unittest.TestCase):
             "agent/system_prompt.py",
             "agent/tool_executor.py",
             "agent/turn_context.py",
+            # Clock-only submission/admission witnesses and deadline guards.
+            "gateway/session_authority.py",
+            "gateway/session_controls.py",
+            "hermes_cli/gateway_agent.py",
+            "hermes_cli/gateway_chat_view.py",
+            "hermes_state_runtime.py",
             "hermes_time.py",
             "model_tools.py",
         ])

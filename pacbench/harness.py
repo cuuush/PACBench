@@ -258,12 +258,12 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     if (home.parent / 'provider-clock.json').exists():
         from .hermes_gateway import require_simulated_clock_ready
         require_simulated_clock_ready(home.parent)
-        from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
+        from provider_adapters.honcho_clock import stage_turn, before_recovery, load, VERSION
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
         if recovery:
             at, env = before_recovery(home.parent, at, env)
         else:
-            env = before_turn(home.parent, at, env)
+            env = stage_turn(home.parent, at, env)
         provider, _ = load(home.parent)
         clock_record = {'version': VERSION, 'requested_at': requested_at,
                         'actual_start_at': provider.now().isoformat(),
@@ -272,6 +272,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         from provider_adapters.honcho_clock import adoption_files
         clock_adoptions_before = adoption_files(home.parent)
     prompt = question_prompt(prompt, at, PROMPT_PROTOCOL)
+    env['PACBENCH_QUESTION_SHA256']=hashlib.sha256(prompt.encode()).hexdigest()
     session_started_at = session_started_at or at
     env['PACBENCH_SESSION_STARTED_AT'] = session_started_at
     from .context_isolation import actual_context, workspace_for
@@ -298,7 +299,11 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                 from .gateway_python_clock import run_cli
                 proc=run_cli(cmd,home=home,python=ISOLATED_BIN.parent/'python',env=env,
                     cwd=workspace,timeout=remaining,witness=gateway_witness)
-                if clock_record:clock_record['actual_start_at']=gateway_witness['question_dispatch_at']
+                if clock_record and gateway_witness.get('question_accepted_at'):
+                    clock_record['actual_start_at']=gateway_witness['question_accepted_at']
+                    if clock_record['role']=='recovery':
+                        at=datetime.fromisoformat(gateway_witness['question_accepted_at']).astimezone(
+                            datetime.fromisoformat(requested_at).tzinfo).isoformat()
             else:
                 proc = subprocess.run(cmd, capture_output=True, text=True,
                                       timeout=remaining, env=env, cwd=str(workspace))
@@ -350,8 +355,11 @@ def capture_clock_adoption(turn, home, workspace, before):
     if turn.provider_clock and turn.provider_clock.get('version')=='honcho-wall-clock-v5':
         from .gateway_python_clock import audit_witness
         try:
-            if (turn.hermes_gateway or {}).get('question_dispatch_at'):
-                turn.provider_clock['actual_start_at']=turn.hermes_gateway['question_dispatch_at']
+            if (turn.hermes_gateway or {}).get('question_accepted_at'):
+                turn.provider_clock['actual_start_at']=turn.hermes_gateway['question_accepted_at']
+                if turn.provider_clock['role']=='recovery':
+                    turn.at=datetime.fromisoformat(turn.hermes_gateway['question_accepted_at']).astimezone(
+                        datetime.fromisoformat(turn.provider_clock['requested_at']).tzinfo).isoformat()
             config=json.loads((home.parent/'provider-clock.json').read_text())
             audit_witness(home.parent,vars(turn),config)
         except (OSError,ValueError,KeyError,TypeError,RuntimeError):

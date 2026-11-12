@@ -58,6 +58,12 @@ def outside_project(path: Path) -> bool:
         (p / '.git').exists() for p in (path, *path.parents))
 
 
+def validate_recall_environment():
+    """Reject an unusable temporary root before paid source processing."""
+    if not outside_project(Path(tempfile.gettempdir())):
+        raise RuntimeError('Temporary recall root must be outside every Git project; set TMPDIR before native ingestion')
+
+
 def workspace_for(home: Path) -> Path:
     """Normal CLI working directory, outside Git; keep native memory hooks enabled.
 

@@ -157,3 +157,13 @@ def test_incomplete_stream_keeps_full_bound(monkeypatch,budget):
                 headers={'Authorization':'Bearer pbdirect-native'},json={'model':MODEL,'stream':True})
     assert budget.snapshot()[0]['state']=='uncertain'
     assert budget.snapshot()[0]['accounted']=='0.0002'
+
+
+def test_native_public_inventory_needs_no_credential_but_inference_still_does(monkeypatch,budget):
+    hook=install(monkeypatch,budget)
+    value=hook.admitted('https://openrouter.ai/api/v1/models',{},b'')
+    assert value=={'headers':{},'free':True}
+    assert not budget.snapshot()
+    for path,body in [('chat/completions',b'{"model":"anything"}'),('key',b'')]:
+        with pytest.raises(RuntimeError,match='Unaccounted'):
+            hook.admitted('https://openrouter.ai/api/v1/'+path,{},body)

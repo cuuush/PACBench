@@ -65,7 +65,17 @@ Python services and the native Hermes gateway/CLI use a pinned shared-offset
 monotonic timers remain real. A free direct HTTPS check passed; applying the
 preload library to the HTTPS client instead failed certificate validity checks.
 Actual gateway and CLI adoption is bound to distinct PIDs, process start ticks
-and a per-turn nonce. These are transport checks; provider readiness and live
+and a per-turn nonce. Its declared `forward-only-natural-startup-prelude-v1`
+condition stages at most 60 seconds before the authored checkpoint, then leaves
+the offset unchanged while the native gateway and CLI run. Native startup hooks
+and caches remain intact. The client waits naturally until the checkpoint;
+actual client submit, gateway receipt, in-transaction admission and committed
+acceptance must fit the original five-second window and precede the next
+checkpoint. A delayed committed acceptance is retained as an execution failure,
+never relabeled as an unsent request. Natural recovery uses its actual acceptance
+time, with the original local-date and next-checkpoint restrictions. Gateway
+lifecycle exclusion and surviving-consumer checks refuse clock mutations while
+Hermes is alive. These are transport checks; provider readiness and live
 recall still require validation. Older v1–v4 receipts keep their original runtime
 identity and cannot resume as v5. Native batching defaults remain unchanged;
 actual processing witnesses and future-checkpoint guards remain required.

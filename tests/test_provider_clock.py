@@ -76,3 +76,17 @@ def test_suspended_clock_rechecks_under_controller_lock(tmp_path):
     with pytest.raises(RuntimeError,match='resumed'):
         clock.resume_suspended(clock.now(),lambda:next(checks))
     assert clock.path.read_bytes() == before
+
+
+def test_clock_steps_refuse_a_live_gateway_lifecycle(tmp_path):
+    import fcntl
+    home=tmp_path/'hermes-home';home.mkdir()
+    clock=ProviderClock(tmp_path/'provider-clock',datetime.fromisoformat('2026-09-11T09:00:00-04:00'))
+    before=clock.path.read_bytes()
+    with (home/'.pacbench-gateway.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        with pytest.raises(RuntimeError,match='lifecycle'):
+            clock.advance(datetime.fromisoformat('2026-09-12T09:00:00-04:00'))
+        with pytest.raises(RuntimeError,match='lifecycle'):
+            clock.resume_suspended(clock.now(),lambda:True)
+    assert clock.path.read_bytes()==before

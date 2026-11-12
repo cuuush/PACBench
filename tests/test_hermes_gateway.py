@@ -176,3 +176,15 @@ def test_simulated_clock_preflight_accepts_only_verified_v4(tmp_path):
     path.write_text(json.dumps(config))
     with pytest.raises(gateway.GatewayLifecycleError, match='not verified current protocol'):
         gateway.require_simulated_clock_ready(tmp_path)
+
+
+def test_long_home_socket_pointer_does_not_mask_running_native_state(tmp_path,monkeypatch):
+    monkeypatch.setattr(gateway,'_identity',lambda home,pid:{'start_time':123})
+    (tmp_path/'gateway_state.json').write_text(json.dumps({'pid':42,'start_time':123,
+        'hermes_home':str(tmp_path),'gateway_state':'running'}))
+    (tmp_path/'gateway.sock.path').write_text('/private/native/short/control.sock')
+    # _ready is the PID/state precheck; the separate native identify call must
+    # authenticate the pointer and listener before turn_gateway yields.
+    assert gateway._ready(tmp_path,42)
+    with pytest.raises(gateway.GatewayLifecycleError,match='remains'):
+        gateway._assert_clear(tmp_path)

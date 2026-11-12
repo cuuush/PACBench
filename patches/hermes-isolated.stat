@@ -1,8 +1,13 @@
- agent/agent_init.py            | 16 ++++++++--
- agent/inline_tool_executors.py | 35 ++++++++++++++++++++
- agent/system_prompt.py         | 22 ++++++++++---
- agent/tool_executor.py         | 26 +++++++++++++++
- agent/turn_context.py          | 72 ++++++++++++++++++++++++++++++++++++++++++
- hermes_time.py                 | 50 +++++++++++++++++++++++++++++
- model_tools.py                 | 18 +++++++++++
- 7 files changed, 232 insertions(+), 7 deletions(-)
+ agent/agent_init.py             | 16 +++++++--
+ agent/inline_tool_executors.py  | 35 ++++++++++++++++++++
+ agent/system_prompt.py          | 22 ++++++++++---
+ agent/tool_executor.py          | 26 +++++++++++++++
+ agent/turn_context.py           | 72 +++++++++++++++++++++++++++++++++++++++++
+ gateway/session_authority.py    |  4 +++
+ gateway/session_controls.py     | 15 +++++++--
+ hermes_cli/gateway_agent.py     |  3 ++
+ hermes_cli/gateway_chat_view.py |  7 +++-
+ hermes_state_runtime.py         |  8 +++++
+ hermes_time.py                  | 50 ++++++++++++++++++++++++++++
+ model_tools.py                  | 18 +++++++++++
+ 12 files changed, 266 insertions(+), 10 deletions(-)

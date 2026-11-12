@@ -8,8 +8,10 @@ from __future__ import annotations
 import os
 import math
 import fcntl
+import json
 import tempfile
 import time
+from contextlib import contextmanager
 from datetime import date, datetime, time as daytime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -18,6 +20,31 @@ LEGACY_LIBRARY = Path(__file__).resolve().parents[1] / 'vendor/libfaketime/runti
 LEGACY_LIBRARY_SHA256 = '45c4822a7516e9c41ec1b5498b0f08665ba4877330e9e9573c1213d16d6629a0'
 LIBRARY = Path(__file__).resolve().parents[1] / 'vendor/libfaketime/runtime-v4/libfaketime.so.1'
 LIBRARY_SHA256 = 'd69f77e806fd01db81d8e26e5722704ad3951c3de2e68dfbcd9d32a2aff817fa'
+
+
+@contextmanager
+def without_hermes(directory):
+    """Exclude native gateway startup and refuse surviving clock consumers."""
+    home=directory.parent/'hermes-home'
+    if not home.exists():
+        yield
+        return
+    from .hermes_gateway import _assert_clear
+    path=home/'.pacbench-gateway.lock'
+    if path.is_symlink():raise RuntimeError('Gateway lifecycle lock must not be a symlink')
+    with path.open('a') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError:raise RuntimeError('Cannot step a clock while Hermes owns its lifecycle') from None
+        _assert_clear(home)
+        for receipt in (directory/'python-adoptions').glob('*.json'):
+            row=json.loads(receipt.read_text())
+            if row.get('role') not in {'hermes','hermes-gateway','hermes-cli'}:continue
+            proc=Path('/proc')/str(row['pid'])/'stat'
+            try:started=int(proc.read_text().rsplit(')',1)[1].split()[19])
+            except FileNotFoundError:continue
+            if started==row.get('process_start_ticks'):
+                raise RuntimeError('A native Hermes clock consumer still exists; no clock step')
+        yield
 
 
 def nightly_time(collection_day: date, timezone_name: str = 'America/New_York') -> datetime:
@@ -40,7 +67,7 @@ class ProviderClock:
     def advance(self, target: datetime) -> float:
         if target.tzinfo is None or target.utcoffset() is None:
             raise ValueError('Clock target must include a timezone')
-        with (self.directory / 'control.lock').open('a') as lock:
+        with without_hermes(self.directory), (self.directory / 'control.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             offset = target.timestamp() - time.time()
             previous = float(self.path.read_text()) if self.path.exists() else None
@@ -81,7 +108,7 @@ class ProviderClock:
         """
         if at.tzinfo is None or not verify_suspended():
             raise RuntimeError('Clock compensation requires a fully suspended native runtime')
-        with (self.directory/'control.lock').open('a') as lock:
+        with without_hermes(self.directory), (self.directory/'control.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             if not verify_suspended():
                 raise RuntimeError('Native runtime resumed during clock compensation')

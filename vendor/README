@@ -8,7 +8,10 @@ check. Each turn owns and gracefully stops its native gateway. The current
 Honcho `honcho-wall-clock-v5` protocol uses a shared-offset Python clock for
 Hermes/API/deriver and the reproducible preload library for PostgreSQL only;
 OpenSSL and monotonic timers retain real time. Gateway and CLI adoption is bound
-to each process identity and turn nonce. The native system date line supplies a
+to each process identity and turn nonce. The bounded natural startup interval
+and native submission/admission guards are documented in the provider map;
+CLI launch time is never reported as actual question dispatch. Long homes use
+Hermes's authenticated native short-socket pointer, not a guessed socket path. The native system date line supplies a
 date, not exact current time. Historical clock receipts retain their original
 protocols and cannot resume as v5. These checks establish transport behavior,
 not model quality or native provider processing. Keep the persistent OpenRouter

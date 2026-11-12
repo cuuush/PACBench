@@ -312,6 +312,131 @@ index f6399b82..41599d74 100644
      conversation_history = compaction.conversation_history
      current_turn_user_idx = compaction.current_turn_user_idx
      # Every turn, not only on a prompt restore: a long-lived agent (CLI, TUI, Desktop) keeps its
+diff --git a/gateway/session_authority.py b/gateway/session_authority.py
+index 96152d34..aa525c6c 100644
+--- a/gateway/session_authority.py
++++ b/gateway/session_authority.py
+@@ -11,6 +11,7 @@ from contextvars import ContextVar
+ from dataclasses import asdict, dataclass, field
+ from functools import partial
+ import sqlite3
++import os
+ from types import SimpleNamespace
+ import uuid
+ 
+@@ -638,6 +639,9 @@ class SessionAuthority:
+         return current if current in self.sessions else session_id
+ 
+     def _admitted(self, ref, event, row):
++        if os.environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++            from pacbench.clock_dispatch import admitted
++            admitted(row)
+         if event is not None:
+             event._gateway_accepted = True
+             if row['status'] == 'queued' and (committed := getattr(event, '_on_commit', None)) is not None:
+diff --git a/gateway/session_controls.py b/gateway/session_controls.py
+index 48bdf7e1..dd9334cb 100644
+--- a/gateway/session_controls.py
++++ b/gateway/session_controls.py
+@@ -1,6 +1,7 @@
+ """Authenticated WS projection of the gateway authority; no TUI execution fallback."""
+ import asyncio
+ import logging
++import os
+ import re
+ from dataclasses import asdict
+ from functools import partial
+@@ -794,12 +795,22 @@ class AuthorityConnection:
+         return {**replay, 'open_requests': open_requests(stream, ref.session_id)}
+ 
+     async def submit(self, ref, params):
++        if os.environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++            from pacbench.clock_dispatch import received, ClockWindowError
++            try:received(ref.session_id,params)
++            except ClockWindowError:raise RuntimeStoreError('pacbench_clock_window_missed') from None
+         if self._voice_stop_replay(ref, params) or await self._typed_voice_stop(ref, params):
+             self._record_voice_stop(ref, params)
+             return {'voice_stopped': True}
+         # The interactive WS is the one surface a restart's after-turn wait admits (#139041).
+-        receipt = await self.authority.submit(self.actor, self.submission(ref, params),
+-                                              queue_while_restarting=self._operator is True)
++        try:
++            receipt = await self.authority.submit(self.actor, self.submission(ref, params),
++                                                  queue_while_restarting=self._operator is True)
++        except Exception:
++            if os.environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++                from pacbench.clock_dispatch import refused
++                refused(ref.session_id,params)
++            raise
+         return asdict(receipt)
+ 
+     def _voice_stop_key(self, ref, params):
+diff --git a/hermes_cli/gateway_agent.py b/hermes_cli/gateway_agent.py
+index 59155892..39fa5673 100644
+--- a/hermes_cli/gateway_agent.py
++++ b/hermes_cli/gateway_agent.py
+@@ -777,6 +777,9 @@ class GatewayAgent:
+                 params = self._submit_params(user_message, persist_user_message, turn_author)
+                 if self._stop(turn)():
+                     raise CallStopped("prompt.submit")
++                if __import__("os").environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++                    from pacbench.clock_dispatch import before_submit
++                    before_submit(turn.session_id,params.get("submission_id") or params.get("input_id"),params["text"])
+                 receipt = self.connection.call("prompt.submit", **{**params, "session_id": turn.session_id})
+             except CallStopped:  # main moved on (a later turn, /new, Ctrl-C's bound) before the submit
+                 self._give_back_turn_route()  # nothing was sent: the pick is still owed
+diff --git a/hermes_cli/gateway_chat_view.py b/hermes_cli/gateway_chat_view.py
+index e9ea4980..7bafe9ad 100644
+--- a/hermes_cli/gateway_chat_view.py
++++ b/hermes_cli/gateway_chat_view.py
+@@ -2,6 +2,7 @@
+ import asyncio
+ from contextlib import suppress
+ import logging
++import os
+ import sys
+ import uuid
+ 
+@@ -343,8 +344,12 @@ class GatewayChatView:
+     async def submit(self, text):
+         self.mutations.retire(self.session_id)
+         sid, gaps = self.session_id, self.gaps
++        input_id=uuid.uuid4().hex
++        if os.environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++            from pacbench.clock_dispatch import before_submit_async
++            await before_submit_async(self.session_id,input_id,text)
+         receipt = await self.client.rpc("prompt.submit", session_id=self.session_id,
+-                                        input_id=uuid.uuid4().hex, text=text,
++                                        input_id=input_id, text=text,
+                                         **({"finite": True} if self.finite else {}),
+                                         **({"unattended": True} if self.finite and self.unattended else {}))
+         if (receipt or {}).get("voice_stopped") is True:
+diff --git a/hermes_state_runtime.py b/hermes_state_runtime.py
+index 49207f55..42075f7e 100644
+--- a/hermes_state_runtime.py
++++ b/hermes_state_runtime.py
+@@ -4,6 +4,7 @@ No execution, transport, or authority objects live here. Every mutation uses the
+ SessionDB transaction owner, including its inode guard and SQLite retry policy.
+ """
+ import json
++import os
+ import uuid
+ from typing import NamedTuple, Optional
+ 
+@@ -149,6 +150,13 @@ def admit_session_input(db, *, epoch: int, principal_id: str, session_id: str,
+     if retired is not None:
+         return retired
+     digest = admission_fingerprint(canonical_target=session_id, payload={'input': json.loads(encoded), 'intent': intent})
++    if os.environ.get("PACBENCH_PYTHON_CLOCK_FILE"):
++        from pacbench.clock_dispatch import admission_guard, ClockWindowError
++        clock_guard=admission_guard(_authorize_write,session_id,request_id,payload)
++        def bounded_write(conn):
++            try:clock_guard(conn)
++            except ClockWindowError:raise RuntimeStoreError('pacbench_clock_window_missed') from None
++        _authorize_write=bounded_write
+     def write(conn):
+         _epoch(conn, epoch)
+         _session(conn, session_id)
 diff --git a/hermes_time.py b/hermes_time.py
 index 00f1362c..49a4b2f4 100644
 --- a/hermes_time.py

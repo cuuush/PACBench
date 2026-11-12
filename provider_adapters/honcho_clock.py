@@ -36,12 +36,15 @@ def create(root: Path, at: str) -> ProviderClock:
     clock = ProviderClock(root / 'provider-clock', datetime.fromisoformat(at))
     from pacbench.python_provider_clock import package_metadata, VERSION as PYTHON_CLOCK, PACKAGE_C_SHA256
     metadata = package_metadata()
+    from pacbench import clock_dispatch
     save(root / CONFIG, {'version': VERSION, 'initial_at': at,
         'library_sha256': LIBRARY_SHA256, 'clock_directory': str(clock.directory),
         'wall_speed': 1, 'monotonic': 'real', 'gateway_clock': 'real',
         'suspend_during_benchmark_overhead': True,
         'overhead_fallback': 'native-clock-runs; no rewind; scripted checkpoint gates remain enforced',
         'source_timestamps': 'unchanged', 'native_batching': 'unchanged',
+        'dispatch_condition':{'version':clock_dispatch.VERSION,'startup':clock_dispatch.PRELUDE,
+            'lead_seconds':60,'source_sha256':hashlib.sha256(Path(clock_dispatch.__file__).read_bytes()).hexdigest()},
         'python_clock':{**metadata,'protocol':PYTHON_CLOCK,'extensions_by_abi':PACKAGE_C_SHA256,
                         'os_clock':'real','tls_clock':'real','shared_offset':'per-read; no polling'},
         'scope': 'PostgreSQL uses libfaketime; Python API/deriver/Hermes use shared-offset time-machine; TLS/OS remain real'})
@@ -438,6 +441,27 @@ def before_turn(root, at, env):
         if time.monotonic() >= deadline:
             raise RuntimeError('Native Honcho did not become idle before the next simulated turn')
         time.sleep(.2)
+
+
+def stage_turn(root, at, env):
+    """Start the native lifecycle before the target, then let time tick normally.
+
+    All advances use the existing backend idle barrier and gateway exclusion.
+    A current time after the prelude is accepted without rewinding; actual
+    native submission/admission guards still enforce the authored checkpoint.
+    """
+    clock,_=load(root)
+    from pacbench.clock_dispatch import PRELUDE
+    target=datetime.fromisoformat(at)
+    now=clock.now()
+    if (now-target).total_seconds()>START_TOLERANCE_S:
+        raise RuntimeError('Provider clock is past the scripted checkpoint; refusing future-time exposure')
+    prelude=target-timedelta(seconds=60)
+    child=before_turn(root,(prelude if now<prelude else now).isoformat(),env)
+    save(root/'provider-clock-startup-condition.json',{'version':PRELUDE,
+        'lead_seconds':60,'offset_steps_while_hermes_alive':False,
+        'question_window_seconds':START_TOLERANCE_S,'startup_hooks':'native; unchanged'})
+    return child
 
 
 def before_recovery(root, initial_at, env):

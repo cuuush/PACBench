@@ -589,6 +589,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         raise ValueError('Transport and inference route differ')
     if source and inference_route == 'codex-subscription':
         raise RuntimeError('Codex native pilot is blocked: an isolated Hermes OAuth provision/login/resume workflow is not implemented; no ingestion or inference was started')
+    if source:
+        from .context_isolation import validate_recall_environment
+        validate_recall_environment()
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     stop_file = Path(os.environ.get('PACBENCH_STOP_FILE') or output / 'STOP').resolve()
@@ -833,10 +836,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                ingest_day, check_model_health)
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
                 if provider == 'honcho' and honcho_clock == 'simulated':
-                    from provider_adapters.honcho_clock import before_turn
+                    from provider_adapters.honcho_clock import stage_turn
                     # Age any genuine capture work before checking a later
                     # session's dependency; never flush or backdate that work.
-                    before_turn(root, row['at'], env)
+                    stage_turn(root, row['at'], env)
                 if evaluations:
                     from .native_writes import ensure_ready
                     ensure_ready(provider,row,evaluations,evaluation_plan['context'],root,env,directory)

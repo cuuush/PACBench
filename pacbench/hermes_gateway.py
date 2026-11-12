@@ -68,7 +68,7 @@ def _assert_clear(home: Path):
         record = _read_record(home / name)
         if record and _live(record['pid']):
             raise GatewayLifecycleError('A gateway control record names a live process; refusing to attach or stop it')
-    for name in ('gateway.sock', '.gateway-planned-stop.json'):
+    for name in ('gateway.sock', 'gateway.sock.path', '.gateway-planned-stop.json'):
         node = home / name
         if node.exists() or node.is_symlink():
             raise GatewayLifecycleError('Gateway control path remains after shutdown')
@@ -86,8 +86,9 @@ def _ready(home: Path, pid: int) -> bool:
     record = _identity(home, pid)
     state = _read_record(home / 'gateway_state.json')
     return bool(state and state.get('pid') == pid and state.get('start_time') == record['start_time']
-                and state.get('hermes_home') == str(home) and state.get('gateway_state') == 'running'
-                and (home / 'gateway.sock').exists() and not (home / 'gateway.sock').is_symlink())
+                and state.get('hermes_home') == str(home) and state.get('gateway_state') == 'running')
+    # Native discovery authenticates either the direct socket or its private
+    # short-path pointer. Long run homes exceed Unix sun_path limits.
 
 
 def _control_ready(home: Path, pid: int, python: Path, env: dict, timeout: float) -> bool:
@@ -174,6 +175,8 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
     if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
         from .gateway_python_clock import environment
         env['PACBENCH_PYTHON_CLOCK_NONCE']=uuid.uuid4().hex
+        offset=Path(env['PACBENCH_PYTHON_CLOCK_FILE']).read_bytes()
+        env['PACBENCH_CLOCK_OFFSET_SHA256']=hashlib.sha256(offset).hexdigest()
         env['PACBENCH_PYTHON_CLOCK_ROLE']='hermes-cli'
         gateway_env=environment(home,python,env,'hermes-gateway')
     else:gateway_env=env
@@ -196,6 +199,9 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
         _assert_clear(home)
         proc = subprocess.Popen([str(python), '-m', 'hermes_cli.main', 'gateway', 'run', '--quiet'],
                                 env=gateway_env, cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        witness = {'version': 'per-turn-owned-gateway-v1', 'pid': proc.pid,
+                   'start_time': _start_time(proc.pid), 'home': str(home), 'stopped': False,
+                   'real_started_at':datetime.now(timezone.utc).isoformat()}
         ready = False
         try:
             deadline = time.monotonic() + startup_timeout
@@ -211,22 +217,34 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                 time.sleep(.05)
             if not ready:
                 raise GatewayLifecycleError('Run-owned gateway did not become ready')
-            witness = {'version': 'per-turn-owned-gateway-v1', 'pid': proc.pid,
-                       'start_time': _start_time(proc.pid), 'home': str(home), 'stopped': False}
             if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
                 from .gateway_python_clock import adoption
                 witness['turn_nonce']=env['PACBENCH_PYTHON_CLOCK_NONCE']
+                witness['clock_offset']=offset.decode('ascii')
+                witness['offset_sha256']=env['PACBENCH_CLOCK_OFFSET_SHA256']
                 witness['gateway_adoption']=adoption(home,python,gateway_env,proc.pid,
                     witness['start_time'],'hermes-gateway',cwd=cwd)
             yield witness
         finally:
-            if ready:
-                _stop(home, proc, python=python, env=gateway_env, timeout=shutdown_timeout)
-                witness['stopped'] = True
-            elif proc.poll() is None:
-                # The subprocess was launched by this scope and has not been reaped.
-                proc.terminate()
-                try:
-                    proc.wait(timeout=shutdown_timeout)
-                except subprocess.TimeoutExpired as exc:
-                    raise GatewayLifecycleError('Gateway startup cleanup is uncertain') from exc
+            try:
+                owned=False
+                if proc.poll() is None:
+                    try:_identity(home,proc.pid);owned=True
+                    except GatewayLifecycleError:pass
+                if ready or owned:
+                    _stop(home, proc, python=python, env=gateway_env, timeout=shutdown_timeout)
+                    witness['stopped'] = True
+                elif proc.poll() is None:
+                    # This directly spawned startup never published a native identity.
+                    proc.terminate()
+                    try:proc.wait(timeout=shutdown_timeout)
+                    except subprocess.TimeoutExpired as exc:
+                        raise GatewayLifecycleError('Gateway startup cleanup is uncertain') from exc
+            finally:
+                witness['real_finished_at']=datetime.now(timezone.utc).isoformat()
+                witness['returncode']=proc.poll()
+                if env.get('PACBENCH_PYTHON_CLOCK_FILE'):
+                    witness['offset_unchanged']=Path(env['PACBENCH_PYTHON_CLOCK_FILE']).read_bytes()==offset
+                directory=home.parent/'gateway-lifecycles';directory.mkdir(exist_ok=True)
+                receipt=directory/(env.get('PACBENCH_PYTHON_CLOCK_NONCE') or uuid.uuid4().hex)
+                receipt.with_suffix('.json').write_text(json.dumps(witness,sort_keys=True)+'\n')

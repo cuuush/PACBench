@@ -71,7 +71,15 @@ def dispatch_time(env):
 
 def run_cli(cmd,*,home,python,env,cwd,timeout,witness):
     child=environment(home,python,env,'hermes-cli')
-    witness['question_dispatch_at']=dispatch_time(child)
+    # This is launch time only. The pinned native seams separately record the
+    # actual client submit and committed acceptance before native scheduling.
+    launch=datetime.fromtimestamp(time.time()+float(Path(child['PACBENCH_PYTHON_CLOCK_FILE']).read_text()),timezone.utc)
+    target=datetime.fromisoformat(child['PACBENCH_NOW'])
+    horizon=child.get('PACBENCH_CLOCK_NEXT_CHECKPOINT')
+    if ((child.get('PACBENCH_CLOCK_RECOVERY')!='1' and (launch-target).total_seconds()>5) or
+        horizon and launch>=datetime.fromisoformat(horizon)):
+        raise RuntimeError('Gateway startup passed the admission window; CLI not launched')
+    witness['cli_launch_at']=launch.isoformat()
     proc=subprocess.Popen(cmd,env=child,cwd=cwd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     started=start_ticks(proc.pid)
     try:out,err=proc.communicate(timeout=timeout)
@@ -82,6 +90,13 @@ def run_cli(cmd,*,home,python,env,cwd,timeout,witness):
         proc.kill();proc.wait();raise
     finally:
         witness['cli_adoption']=adoption(home,python,child,proc.pid,started,'hermes-cli',cwd=cwd)
+        path=home.parent/'provider-clock/native-submissions'/(child['PACBENCH_PYTHON_CLOCK_NONCE']+'.jsonl')
+        rows=[json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+        witness['native_submission']=rows
+        submitted=[r for r in rows if r.get('phase')=='client-submit']
+        accepted=[r for r in rows if r.get('phase')=='post-commit']
+        if len(submitted)==1:witness['question_dispatch_at']=submitted[0]['provider_at']
+        if len(accepted)==1:witness['question_accepted_at']=accepted[0]['provider_at']
     return subprocess.CompletedProcess(cmd,proc.returncode,out,err)
 
 def audit_witness(root,turn,config):
@@ -104,6 +119,6 @@ def audit_witness(root,turn,config):
             raise ValueError('Split-clock gateway/CLI adoption identity mismatch')
     if len(set(seen))!=2 or seen[0]!=witness.get('pid') or witness['gateway_adoption']['process_start_ticks']!=witness.get('start_time'):
         raise ValueError('Gateway or CLI process identity is ambiguous')
-    at=datetime.fromisoformat(witness['question_dispatch_at']);requested=datetime.fromisoformat(turn['at'])
-    if not 0<=(at-requested).total_seconds()<=5:raise ValueError('Question dispatch missed its scripted window')
+    from .clock_dispatch import audit_chain
+    audit_chain(turn,witness,config)
     return witness

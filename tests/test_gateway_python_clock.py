@@ -3,7 +3,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 import hashlib,json
 import pytest
-from pacbench import gateway_python_clock as clock,python_provider_clock as runtime
+from pacbench import gateway_python_clock as clock,python_provider_clock as runtime,clock_dispatch as dispatch
 
 def data(tmp_path):
     home=tmp_path/'hermes-home';home.mkdir();folder=tmp_path/'provider-clock';folder.mkdir()
@@ -47,7 +47,19 @@ def test_mandatory_v5_gateway_and_cli_are_distinct(tmp_path):
     cli={**row,'role':'hermes-cli','pid':43,'process_start_ticks':124}
     at='2026-09-11T09:00:00-04:00';turn={'at':at,'context_isolation':{'workspace':str(tmp_path)},
         'hermes_gateway':{'turn_nonce':'this-turn','stopped':True,'pid':42,'start_time':123,
-            'gateway_adoption':row,'cli_adoption':cli,'question_dispatch_at':at}}
+            'gateway_adoption':row,'cli_adoption':cli,'question_dispatch_at':at,'question_accepted_at':at,
+            'clock_offset':'+0.000000\n','offset_sha256':hashlib.sha256(b'+0.000000\n').hexdigest()}}
+    turn.update(prompt='q',session_id='session')
+    config['dispatch_condition']={'version':dispatch.VERSION,'startup':dispatch.PRELUDE,'lead_seconds':60,'source_sha256':'fixture-guard'}
+    turn['hermes_gateway']['native_submission']=[]
+    for index,phase in enumerate(['client-submit','gateway-received','pre-commit','post-commit']):
+        who=cli if index==0 else row
+        turn['hermes_gateway']['native_submission'].append({
+            'version':dispatch.VERSION,'phase':phase,'source_sha256':'fixture-guard','turn_nonce':'this-turn',
+            'pid':who['pid'],'process_start_ticks':who['process_start_ticks'],'role':who['role'],
+            'home':str(home),'offset_sha256':turn['hermes_gateway']['offset_sha256'],
+            'question_sha256':hashlib.sha256(b'q').hexdigest(),'session_id':'session','request_id':'native-request',
+            'provider_at':at,'real_at':at,'monotonic_ns':index,'in_window':True,'admission_id':'native-admission'})
     assert clock.audit_witness(tmp_path,turn,config)
     turn['hermes_gateway']['cli_adoption']={**cli,'role':'gateway-marker-probe'}
     with pytest.raises(ValueError):clock.audit_witness(tmp_path,turn,config)

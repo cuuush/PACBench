@@ -24,10 +24,15 @@ def admitted(url,headers,body):
         if auth and auth=='Bearer '+os.environ.get('PACBENCH_DIRECT_UPSTREAM_KEY',''):
             raise RuntimeError('Upstream credential destination refused')
         return None
-    project=project_from_authorization(headers.get('authorization',headers.get('Authorization')))
-    if not project:raise RuntimeError('Unaccounted OpenRouter credential refused')
     if parsed.scheme!='https' or parsed.netloc!='openrouter.ai' or parsed.query or parsed.fragment:
         raise RuntimeError('Unexpected direct OpenRouter URL')
+    supplied=headers.get('authorization',headers.get('Authorization'))
+    # Native Hermes metadata probes use this public, unmetered inventory without
+    # credentials. Do not attach the upstream key or weaken paid admission.
+    if not supplied and not body and parsed.path=='/api/v1/models':
+        return {'headers':dict(headers),'free':True}
+    project=project_from_authorization(supplied)
+    if not project:raise RuntimeError('Unaccounted OpenRouter credential refused')
     auth='Bearer '+os.environ['PACBENCH_DIRECT_UPSTREAM_KEY']
     if not body and parsed.path in {'/api/v1/models','/api/v1/key'}:
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}

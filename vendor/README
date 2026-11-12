@@ -21,27 +21,30 @@ install. The documented source developer activation selects the `all` extra:
   hermes pm doctor
 
 Run this in an isolated shell from the PACBench root. Upstream documents this
-as a runtime-only developer setup, not the full user-facing installer; the
-`all` installation and provider recalls have not yet been verified here. The
-existing `venv-hermes-isolated` is a lean diagnostic environment, not evidence
-of a complete installation. Catalog plugin installation and pin verification
-in fresh homes are also not implemented.
+as a runtime-only developer setup, not the full user-facing installer. PM
+activation itself has not been verified here; native provider recall also
+remains unverified.
 
-For a separate resolution diagnostic, from the PACBench root, with Python
+The isolated target environment was built from the upstream lock using the
+`all` extra, then the selected client requirements and Memcal were installed.
+Reproduce this non-PM-managed environment from the PACBench root, with Python
 3.14.9 available and `/path/to/memcal` set to the intended checkout:
 
-  export UV_PROJECT_ENVIRONMENT="$(mktemp -d)/venv"
-  (cd vendor/hermes-isolated && uv sync --locked --no-default-groups --extra mcp --python /path/to/python3.14)
+  export UV_PROJECT_ENVIRONMENT="$PWD/vendor/venv-hermes-isolated"
+  (cd vendor/hermes-isolated && uv sync --locked --no-default-groups --extra all --python /path/to/python3.14)
   uv pip install --python "$UV_PROJECT_ENVIRONMENT/bin/python" -r vendor/hermes-isolated-extra-requirements.txt -e /path/to/memcal
 
-This installed the locked base and MCP extra, including browser harness, in a
-disposable environment. Adding the pinned client requirements and editable Memcal at
+This installed the upstream `all` extra, including browser harness, and then
+the pinned client requirements and editable Memcal at
 `dea42cfdcb4f0dbf3375054dfd96e0f8a408d55a` resolved and imported successfully.
 Observed versions were browser-harness 0.1.13, Pillow 13.0.0, MCP 2.3.0,
 httpx2 2.15.1, starlette 1.9.0, Supermemory 3.62.0, Mem0 2.0.10, Honcho 2.2.0,
-Hindsight 1.1.0, Memcal 0.8.10 and pytypedstream 0.1.0. A generic `uv pip check`
+Hindsight client and embed 1.1.0, Memcal 0.8.10 and pytypedstream 0.1.0.
+The target also has pytest 9.1.1 for validation. A generic `uv pip check`
 reports the upstream Pillow mismatch; PM checks it against the locked override.
 These imports and resolution checks do not establish native provider operation.
+A subsequent `uv sync` may remove the separately installed clients; reinstall
+and recheck them after syncing.
 
 - `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
 - `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
@@ -51,7 +54,7 @@ These imports and resolution checks do not establish native provider operation.
   `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`
 
 The client versions in `hermes-isolated-extra-requirements.txt` document the
-diagnostic environment; they do not yet establish a PM-managed provisioning
+target environment; they do not yet establish a PM-managed provisioning
 workflow. Install Memcal with its declared dependencies, including pytypedstream,
 when provisioning its provider; a source-only import is insufficient.
 Run native servers in their own environments: OpenViking requires MCP <2 whereas

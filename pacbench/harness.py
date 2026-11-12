@@ -81,6 +81,7 @@ class TurnResult:
     context_isolation: dict | None = None
     session_started_at: str | None = None
     provider_clock: dict | None = None
+    hermes_gateway: dict | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -215,6 +216,8 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     clock_record = None
     env = turn_env(at, home, allowlist, extra_env)
     if (home.parent / 'provider-clock.json').exists():
+        from .hermes_gateway import require_simulated_clock_ready
+        require_simulated_clock_ready()
         from provider_adapters.honcho_clock import before_turn, before_recovery, load, VERSION
         recovery = env.get('PACBENCH_CLOCK_RECOVERY') == '1'
         if recovery:
@@ -236,9 +239,12 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         cmd += ["--resume", session_id]
     provider_before = provider_trace_snapshot(env)
     started = time.monotonic()
+    gateway_witness = None
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=timeout_s, env=env, cwd=str(workspace))
+        from .hermes_gateway import turn_gateway
+        with turn_gateway(home, ISOLATED_BIN.parent / "python", env, cwd=workspace) as gateway_witness:
+            proc = subprocess.run(cmd, capture_output=True, text=True,
+                                  timeout=timeout_s, env=env, cwd=str(workspace))
     except subprocess.TimeoutExpired as exc:
         # A timeout is a failed turn, not a missing one (§41: failures are
         # required artifacts). Synthesize the same diagnostic TurnResult a
@@ -254,6 +260,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         result = _parse_turn(prompt, at, partial, latency)
         result.session_started_at = session_started_at
         result.provider_clock = clock_record
+        result.hermes_gateway = gateway_witness
         result.stderr_tail = note
         result.context_isolation = actual_context(home, result.session_id, workspace)
         _recover_tool_results(result, home / "state.db")
@@ -265,6 +272,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
     result.session_started_at = session_started_at
     result.context_isolation = actual_context(home, result.session_id, workspace)
     result.provider_clock = clock_record
+    result.hermes_gateway = gateway_witness
     if result.context_isolation['state'] != 'pass':
         result.policy_blocks += 1
     _recover_tool_results(result, home / "state.db")

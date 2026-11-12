@@ -83,8 +83,9 @@ and [judging and recovery policy](docs/followups.md) for the precise rules.
 
 ## Providers and setup
 
-The harness has integrations for **Memcal, Mem0, Hindsight, Supermemory, Honcho,
-OpenViking and ByteRover**. Integration does not mean every provider has completed
+The active provider lineup is **Memcal, Mem0, Hindsight, Supermemory, Honcho and
+OpenViking**. Historical ByteRover evidence remains available for audit. Integration
+does not mean every provider has completed
 the current scenario. See the [provider map](docs/document-ingestion-provider-map.md)
 for native delivery methods, configuration and known limitations.
 

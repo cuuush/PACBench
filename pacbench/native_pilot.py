@@ -28,7 +28,7 @@ from .stop import OperatorStop, check_stop
 
 MEMCAL_SRC = harness.REPO.parent / "memcal"
 # These use profile-local stores without requiring a shared remote namespace.
-ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
+ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "supermemory", "honcho"}
 _ARM_SHUTDOWNS = {}
 
 
@@ -142,7 +142,7 @@ def provider_names() -> list[str]:
     root = harness.ISOLATED_TREE / "plugins" / "memory"
     names = {p.name for p in root.iterdir()
              if p.is_dir() and (p / "plugin.yaml").is_file()}
-    return sorted(names | catalog_migrated_providers() | {"memori", "memcal"})
+    return sorted((names | catalog_migrated_providers() | {"memori", "memcal"}) - {"byterover"})
 
 
 def require_trial_provider(provider: str, *, resume: bool = False) -> None:
@@ -159,6 +159,8 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
               local_timezone: str = "", resume: bool = False,
               honcho_simulated_at: str | None = None) -> dict:
+    if provider == "byterover":
+        raise ValueError("ByteRover is not an active trial provider")
     from .live_trials import require_live_trials_ready
     require_live_trials_ready()
     require_trial_provider(provider, resume=resume)

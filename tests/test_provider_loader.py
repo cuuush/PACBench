@@ -42,3 +42,14 @@ def test_catalog_moved_providers_selectable_and_unknown_migration_blocked():
         native_pilot.require_trial_provider("holographic")
     with pytest.raises(RuntimeError, match="recovery protocol"):
         native_pilot.require_trial_provider("openviking", resume=True)
+
+
+def test_byterover_is_not_selectable_or_provisioned(tmp_path, monkeypatch):
+    from pacbench import native_pilot
+    assert "byterover" not in native_pilot.provider_names()
+    def no_configuration(*args, **kwargs):
+        pytest.fail("ByteRover must be rejected before model configuration")
+    monkeypatch.setattr(native_pilot, "client_settings", no_configuration)
+    with pytest.raises(ValueError, match="not an active trial provider"):
+        native_pilot.provision(tmp_path / "arm", "byterover")
+    assert not (tmp_path / "arm").exists()

@@ -59,7 +59,7 @@ def test_catalog_resume_rejects_unverified_home_before_bootstrap(tmp_path, monke
     backend.assert_not_called()
     assert (home/'config.yaml').read_text()=='original config'
     with pytest.raises(ValueError,match='Only an existing OpenViking'):
-        provision(tmp_path,'byterover',resume=True)
+        provision(tmp_path,'memcal',resume=True)
 
 
 def test_changed_frozen_identity_blocks_resume_before_backend_or_paid_work(tmp_path, monkeypatch):

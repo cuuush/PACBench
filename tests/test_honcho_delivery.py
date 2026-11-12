@@ -5,6 +5,7 @@ import json
 import subprocess
 import sys
 from types import ModuleType
+from unittest.mock import Mock
 
 import pytest
 
@@ -123,8 +124,10 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     api=ModuleType('honcho.api_types');api.SessionPeerConfig=SimpleNamespace
     plugin=ModuleType('plugins.memory.honcho.client')
     plugin.HonchoClientConfig=SimpleNamespace(from_global_config=lambda:cfg)
-    for name,value in [('honcho',native),('honcho.api_types',api),('plugins.memory.honcho.client',plugin)]:
+    for name,value in [('honcho',native),('honcho.api_types',api)]:
         monkeypatch.setitem(sys.modules,name,value)
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
     monkeypatch.setattr('pacbench.stop.check_stop',lambda *a:None)
     monkeypatch.setattr('provider_adapters.honcho_clock.enabled',lambda r:True)
@@ -139,6 +142,7 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
         'source_id':f'source-{i}','text':f'Message {i}','written_at':'2026-10-19T12:00:00-04:00'} for i in range(201)]
     (source/'messages.json').write_text(json.dumps(records))
     result=connector.honcho(source,root,'unused','unused')
+    resolver.assert_called_once_with('honcho','client')
     assert result['ready'] is not fail_second
     assert bool(processed) is not fail_second
     index=root/'ingestion-delivery/day/index.json'

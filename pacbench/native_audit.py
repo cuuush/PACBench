@@ -107,6 +107,12 @@ def audit(root: Path, *, providers=None) -> dict:
                 check(reviewable, f'{label}: incomplete arm')
                 check(result.get('input_hash') == digest, f'{label}: arm hash mismatch')
                 check(result['capability'].get('wiring_verified'), f'{label}: wiring not verified')
+                terminal=summary.get('terminal_processing_protocols',{}).get(result['provider'])
+                if terminal is not None:
+                    from .terminal_processing import VERSION as TERMINAL_PROTOCOL,audit_terminal
+                    check(result['provider']=='openviking' and terminal==TERMINAL_PROTOCOL,
+                          f'{label}: unsupported native terminal processing condition')
+                    for error in audit_terminal(arm):check(False,f'{label}: '+error)
                 if summary.get('provider_loader_protocol')=='native-loaded-source-v1' and result['provider'] in {'reme','cognee','memos'}:
                     setup=read(arm/'native-server-setup.json')
                     expected_name='memtensor' if result['provider']=='memos' else result['provider']

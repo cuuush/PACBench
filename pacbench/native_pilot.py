@@ -630,6 +630,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         report['subscription_cost_status'] = 'unpriced'
     report['provenance_version'] = ('source-provenance-v3' if any(p in {'cognee','memos','supermemory'} for p in selected) else 'source-provenance-v2')
     report['provider_loader_protocol']='native-loaded-source-v1'
+    if source and 'openviking' in selected:
+        from .terminal_processing import VERSION as TERMINAL_PROTOCOL
+        report['terminal_processing_protocols']={'openviking':TERMINAL_PROTOCOL}
     from .clock_context import NATIVE as CLOCK_CONTEXT
     from .openrouter_direct import active as direct_active
     report['clock_context_protocol']=CLOCK_CONTEXT
@@ -951,10 +954,28 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     result.update(state="interrupted", reason="operator stop requested")
                     interrupted = True
             from .usage import snapshot
-            # Stop this run-owned backend before moving to another provider.
-            # Leaving its workers alive until matrix exit permits background
-            # model work and late costs outside the completed arm's lifetime.
-            stop_arm_model_work(root)
+            try:
+                if provider=='openviking' and report.get('terminal_processing_protocols'):
+                    from .terminal_processing import observe_before_stop
+                    def terminal_boundary():
+                        check_stop(stop_file)
+                        check_model_health()
+                    terminal=observe_before_stop(root,env,boundary=terminal_boundary)
+                    result['terminal_processing']={'protocol':terminal['protocol'],'state':terminal['state'],
+                        'scope_hash':terminal['scope_hash']}
+                    if terminal['state']!='complete':
+                        capability['recall_verified']=capability.get('live_verified',False)
+                        capability['live_verified']=False
+                        if result['state']=='diagnostic':
+                            result.update(state='partial',failure_phase='terminal_processing',
+                                reason='Post-answer native processing '+terminal['state']+'; semantic grades preserved')
+                    if terminal['state']=='stopped_by_boundary':
+                        if terminal.get('error_type')=='OperatorStop':interrupted=True
+                        else:live_stopped=True
+                save(root/'pre-shutdown-model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+            finally:
+                # Even a failed observer or ledger snapshot must stop owned work.
+                stop_arm_model_work(root)
             save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)

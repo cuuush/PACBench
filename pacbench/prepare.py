@@ -354,11 +354,12 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
                                  **({'reasoning_effort':'low'} if routed else {})) if needs_writer else None)
         judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                            cache_dir=root / "model-cache",reasoning_effort=progress.get('judge_reasoning_effort'))
+                            cache_dir=root / "model-cache",reasoning_effort=progress.get('judge_reasoning_effort'),
+                            json_mode=routed)
         # Spark's native low reasoning avoids malformed criterion drafts.
         draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
                             url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                            cache_dir=root / "model-cache", reasoning_effort="low")
+                            cache_dir=root / "model-cache", reasoning_effort="low",json_mode=routed)
     observations = []
     scene_records = []
     thread_history: dict[tuple[str, str], list[tuple[str, str, str]]] = {}

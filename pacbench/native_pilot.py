@@ -689,7 +689,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             judge_base, judge_token = client_settings("pacbench-judge")
             model_judge = ModelClient(key=judge_token, model=driver.model_id,
                                 url=judge_base + "/chat/completions",
-                                record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort)
+                                record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort,
+                                json_mode=inference_route=='openrouter')
         def judge(*args, **kwargs):
             check_stop(stop_file)
             if active_clock_root is not None:

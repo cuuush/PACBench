@@ -12,4 +12,15 @@ Opening retained event/page detail may recover a fact. Native archive, original-
 
 Gateway windows separate agent inference, provider inference and benchmark overhead. Background work may settle later. Missing/reset token counters stay unknown; per-tool token prices and causal attribution are not invented. Native provider internal traces are shown separately when available, including prefetch. Audits verify eligibility, one-message coverage, question hashes, continuity, clocks, tool/token metrics and preserved initial penalties.
 
+Direct OpenRouter Chat Completions use `complete-chat-stream-v1`: streamed replies
+must contain a stable generation ID, a successful `stop` finish, `[DONE]`, answer
+text, and usable token counts and cost. The direct ledger must settle before a
+reply is accepted. JSON judges request JSON object mode; semantic validation still
+requires every expected verdict and field. Exact SSE bytes are retained privately
+with public hashes and completion receipts. Empty HTTP 200 bodies, interrupted
+streams and incomplete usage remain failures without automatic paid replay.
+A corrective judgment of a saved answer is a separately versioned overlay bound
+to the original turn, frozen criteria and failed request; it never replaces the
+original ungraded result or releases its uncertain charge.
+
 Initial pass/fail/ungraded counts are disjoint. If recovery authoring or review fails, preserve the completed initial verdict and report the recovery error separately. A question asking what happened to a specific object is valid; asking about a boolean status does not assert that status. Current scope-review artifacts flag overly literal criteria and vague event references without changing the original grades. Future contracts must identify the intended event rather than rely on author-only labels such as “first outing.”

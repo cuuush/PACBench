@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.request
@@ -51,7 +52,7 @@ def save_failed_response_body(record_path, body):
             'scope': 'Private raw HTTP body; not a usable judgment or verified cost receipt.'}
 
 
-def read_direct_response(response, started, timing=None):
+def read_direct_response(response, started, timing=None, body_sink=None, *, stop_at_done=False):
     """Bound the whole direct response, including whitespace keepalives.
 
     HTTP socket timeouts measure inactivity. A slow non-streaming model can
@@ -62,7 +63,7 @@ def read_direct_response(response, started, timing=None):
     """
     timing=timing if timing is not None else {}
     timing['headers_after_s']=round(time.monotonic()-started,6)
-    chunks=[]
+    chunks=[];tail=b''
     while True:
         remaining=MODEL_TIMEOUT_S-(time.monotonic()-started)
         if remaining<=0:
@@ -71,10 +72,16 @@ def read_direct_response(response, started, timing=None):
         if sock is not None:sock.settimeout(remaining)
         chunk=response.read1(65536)
         if not chunk:return b''.join(chunks)
+        if body_sink is not None:body_sink.extend(chunk)
         timing.setdefault('first_body_after_s',round(time.monotonic()-started,6))
         timing['last_body_after_s']=round(time.monotonic()-started,6)
         timing['body_bytes']=timing.get('body_bytes',0)+len(chunk)
         chunks.append(chunk)
+        if stop_at_done:
+            check=tail+chunk
+            if re.search(rb'(?:^|\n)data:[ \t]*\[DONE\]\r?\n\r?\n',check):
+                return b''.join(chunks)
+            tail=check[-128:]
 
 
 def public_record(value: Any) -> Any:
@@ -108,6 +115,7 @@ class ModelClient:
                  cache_dir: Path | None = None,
                  reasoning_effort: str | None = None,
                  json_mode: bool = False,
+                 streaming: bool | None = None,
                  url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"):
         self.key = key
         self.model = model
@@ -116,6 +124,7 @@ class ModelClient:
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.reasoning_effort = reasoning_effort
         self.json_mode = json_mode
+        self.streaming = streaming
         self.url = url
 
     def __call__(self, prompt: str) -> ModelOutput:
@@ -128,6 +137,10 @@ class ModelClient:
             request_body["reasoning_effort"] = self.reasoning_effort
         if self.json_mode:
             request_body["response_format"] = {"type": "json_object"}
+        streaming=(self.streaming if self.streaming is not None else
+                   os.environ.get('PACBENCH_DIRECT')=='1' and os.environ.get('PACBENCH_TRANSPORT')=='openrouter')
+        if streaming:
+            request_body.update(stream=True,stream_options={'include_usage':True})
         return self._request(request_body, protocol="chat")
 
     def _request(self, request_body: dict, *, protocol: str) -> ModelOutput:
@@ -166,6 +179,10 @@ class ModelClient:
             response_timing={}
             raw: dict[str, Any] | None = None
             response_body = None
+            received_body = bytearray()
+            stream_proof = None
+            accounting_receipt = None
+            response = None
             response_metadata = None
             error_response: str | None = None
             error = ""
@@ -180,15 +197,29 @@ class ModelClient:
                     headers={"Authorization": f"Bearer {self.key}",
                              "Content-Type": "application/json"})
                 with urllib.request.urlopen(req, timeout=MODEL_TIMEOUT_S) as response:
-                    if os.environ.get('PACBENCH_DIRECT') == '1':
+                    if os.environ.get('PACBENCH_DIRECT') == '1' or request_body.get('stream') is True:
                         response_metadata = direct_response_metadata(response)
-                        response_body = read_direct_response(response, request_started, response_timing)
+                        response_body = read_direct_response(response, request_started, response_timing, received_body,
+                                                             stop_at_done=request_body.get('stream') is True)
                         response_metadata.update(body_bytes=len(response_body),
                             body_sha256=hashlib.sha256(response_body).hexdigest())
-                        decoded = json.loads(response_body)
-                        if not isinstance(decoded, dict):
-                            raise ValueError('model response must be a JSON object')
-                        raw = decoded
+                        if request_body.get('stream') is True:
+                            from .chat_stream import parse_chat_stream
+                            raw,stream_proof=parse_chat_stream(response_body,self.model)
+                            capture=getattr(response,'capture',None)
+                            if os.environ.get('PACBENCH_DIRECT')=='1' and capture is None:
+                                raise ValueError('Direct judge stream has no accounting receipt')
+                            if capture is not None:
+                                capture.finish()
+                                accounting_receipt=next(row for row in capture.receipt['budget'].snapshot()
+                                                        if row['id']==capture.receipt['id'])
+                                if accounting_receipt['state']!='settled':
+                                    raise ValueError('Judge stream cost and token usage did not settle')
+                        else:
+                            decoded = json.loads(response_body)
+                            if not isinstance(decoded, dict):
+                                raise ValueError('model response must be a JSON object')
+                            raw = decoded
                     else:
                         raw = json.loads(response.read())
                 if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
@@ -215,12 +246,20 @@ class ModelClient:
                     pass
                 content = ""
             except Exception as exc:
+                from .chat_stream import IncompleteChatStream
+                if isinstance(exc,IncompleteChatStream):raw=exc.response
+                if received_body and response_body is None:response_body=bytes(received_body)
                 error = f"{type(exc).__name__}: {exc}"
                 transient = isinstance(exc, (urllib.error.URLError, ConnectionError,
                                              TimeoutError, OSError))
                 if os.environ.get('PACBENCH_DIRECT')=='1':
                     transient=False  # A disconnect can conceal a charged request.
                 content = ""
+            if accounting_receipt is None and response is not None:
+                capture=getattr(response,'capture',None)
+                if capture is not None:
+                    accounting_receipt=next((row for row in capture.receipt['budget'].snapshot()
+                                              if row['id']==capture.receipt['id']),None)
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
                       "status": "failed" if error else "ok", "model": self.model,
                       "url": self.url, "protocol": protocol, "attempt": attempt,
@@ -230,14 +269,30 @@ class ModelClient:
                       "cost_status": ("reported" if (raw or {}).get("usage", {}).get("cost_usd") is not None
                                       else "not reported by API"),
                       "error": error, "error_response": error_response}
+            if accounting_receipt is not None and accounting_receipt['state']=='settled':
+                record['cost_usd']=float(accounting_receipt['accounted'])
+                record['cost_status']='reported; retained in the linked accounting receipt'
             if os.environ.get('PACBENCH_DIRECT')=='1':
                 record['direct_timing']={**response_timing,
                     'wall_duration_s':round(time.monotonic()-request_started,6),
                     'wall_deadline_s':MODEL_TIMEOUT_S,
                     'scope':'Client-observed HTTP timing; does not identify upstream queue or model compute'}
                 if response_metadata is not None:
+                    if response_body is not None:response_metadata.update(body_bytes=len(response_body),body_sha256=hashlib.sha256(response_body).hexdigest())
                     record['direct_response'] = response_metadata
-                if error and response_body is not None:
+                if request_body.get('stream') is True:
+                    from .chat_stream import VERSION as STREAM_PROTOCOL
+                    record['response_transport']=STREAM_PROTOCOL
+                    if stream_proof is not None:record['stream_completion']=stream_proof
+                    if accounting_receipt is not None:
+                        record['accounting_receipt']={k:accounting_receipt.get(k) for k in
+                            ('id','state','accounted','reserved','input_tokens','output_tokens','upstream_request_id')}
+                    if response_body is not None:
+                        wire=save_failed_response_body(path,response_body)
+                        wire['scope']='Private original SSE response; completion and usage are validated separately.'
+                        record['stream_wire_response']=wire
+                        if error:record['failed_response_body']=wire
+                elif error and response_body is not None:
                     record['failed_response_body'] = save_failed_response_body(path, response_body)
             _write_record(path, record)
             if spending_refused:

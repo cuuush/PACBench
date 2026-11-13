@@ -18,6 +18,7 @@ parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--concurrency',type=int,choices=range(1,10),default=3)
 parser.add_argument('--detach',action='store_true',help='Keep the cohort running while the terminal or chat turn ends; save private PID/log receipt')
 parser.add_argument('--import-only',action='store_true',help='Run native import qualification without benchmark questions')
+parser.add_argument('--preflight-only',action='store_true',help='Verify frozen inputs, clean source, runtime and accounting without creating a run')
 ALL_PROVIDERS=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
 parser.add_argument('--providers',nargs='+',choices=ALL_PROVIDERS,default=ALL_PROVIDERS,
     help='Run only these arms in fresh stores; retain completed arms from earlier cohorts')
@@ -53,6 +54,8 @@ with budget.locked() as state:
 from pacbench.context_isolation import validate_recall_environment
 os.environ['TMPDIR']='/var/tmp'
 validate_recall_environment()
+if args.preflight_only:
+ print(json.dumps({'state':'preflight-passed','paid_calls':0}));raise SystemExit(0)
 root.mkdir(exist_ok=False)
 providers=args.providers
 record={'version':'stable-native-week-cohort-v3','state':'running','providers':providers,'concurrency':args.concurrency,

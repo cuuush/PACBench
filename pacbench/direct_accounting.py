@@ -202,6 +202,9 @@ class DirectBudget:
             Decimal(maximum)*money(self.config['completion_per_million']))/Decimal(1000000)
         with self.locked() as state:
             calls=state['calls']
+            admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
+            if admission_stop and Path(admission_stop).exists():
+                raise RuntimeError('Measured import admission stopped after rate limit or cancellation')
             if state.get('handoff',{}).get('frozen') is True:
                 raise RuntimeError('Task ledger frozen for session transfer; source spending is disabled')
             if any(c.get('reported_liability_exceeds_bound') for c in calls):
@@ -252,6 +255,14 @@ class DirectBudget:
                 return
             row.update(finished=now(),http_status=status or None,state='uncertain',
                        error_label='response_usage_unavailable' if status==200 else 'upstream_request_failed')
+            admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
+            if status==429 and admission_stop:
+                target=Path(admission_stop)
+                try:
+                    with target.open('x') as receipt:
+                        json.dump({'reason':'upstream_rate_limit','request_id':identifier,'at':now()},receipt)
+                except FileExistsError:
+                    pass
             try:
                 if isinstance(data,str):data=data.encode()
                 text=data.decode()

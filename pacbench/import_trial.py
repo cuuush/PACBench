@@ -16,18 +16,21 @@ from .openrouter_route import MODEL
 
 
 def run(source, output, *, providers, honcho_clock='real', max_messages=150):
+    from .import_metrics import ImportMetrics
     from .context_isolation import validate_recall_environment
     from .prepare import import_week
     from .document_audit import audit_ingestion
     validate_recall_environment()
     require_live_cost_boundary()
     output=Path(output).resolve();output.mkdir(exist_ok=False)
-    source=Path(source)
-    if source.is_file():source=import_week(source,output/'preparation')
-    messages,_,resolved=read_prepared(source,max_messages)
-    copy_prepared_files(source,output)
-    zone=resolved.get('timezone') or 'America/New_York'
-    schedule=prepare_sources(output,messages,zone)
+    metrics=ImportMetrics(output);metrics.emit('import-start')
+    with metrics.phase('source-preparation'):
+        source=Path(source)
+        if source.is_file():source=import_week(source,output/'preparation')
+        messages,_,resolved=read_prepared(source,max_messages)
+        copy_prepared_files(source,output)
+        zone=resolved.get('timezone') or 'America/New_York'
+        schedule=prepare_sources(output,messages,zone)
     report={'version':'native-import-validation-v1','mode':'native-import-validation',
         'state':'running','benchmark_questions_sent':0,'judge_calls':0,
         'semantic_review_state':'pending','message_count':len(messages),
@@ -50,11 +53,13 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
                 options['honcho_simulated_at']=initial_at(messages)
                 report['provider_clocks']={'honcho':CLOCK_VERSION}
                 report['provider_membership_protocols']={'honcho':MEMBERSHIP}
-            env=provision(root,provider,MODEL,local_timezone=zone,inference_route='openrouter',**options)
+            with metrics.phase('provider-provision',provider=provider):
+                env=provision(root,provider,MODEL,local_timezone=zone,inference_route='openrouter',**options)
             if provider=='hindsight':
                 result['native_request_timeout_s']=int(env.get('HINDSIGHT_API_LLM_TIMEOUT','120'))
             env['PACBENCH_STOP_FILE']=os.environ.get('PACBENCH_STOP_FILE',str(output/'STOP'))
-            capability=probe(root,provider,env,smoke=False)
+            with metrics.phase('native-probe',provider=provider):
+                capability=probe(root,provider,env,smoke=False)
             save(root/'preflight.json',capability)
             if not capability['available']:raise RuntimeError('Native provider initialization failed')
             roles=json.loads(env['PACBENCH_USAGE_ROLES'])
@@ -70,11 +75,14 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
                         if index+1<len(schedule) else
                         (datetime.fromisoformat(processing_at(batch['at'],provider,zone))+timedelta(days=1)).isoformat())
                     env['PACBENCH_CLOCK_HORIZON']=horizon
-                ingest_pending([batch],result['completed_batches'],failed,output,root,provider,env,
-                    zone,env['PACBENCH_STOP_FILE'],ingest_day,health)
+                with metrics.phase('native-batch-import-through-readiness',provider=provider,batch=batch['id']):
+                    ingest_pending([batch],result['completed_batches'],failed,output,root,provider,env,
+                        zone,env['PACBENCH_STOP_FILE'],ingest_day,health)
                 save(root/'status.json',result);save(output/'summary.json',report)
-            record_recall_isolation(root)
-            errors=audit_ingestion(output,root,messages,report,import_only=True)
+            result['native_ready_observed']=metrics.emit('native-all-batches-ready',provider=provider)
+            with metrics.phase('input-integrity-audit',provider=provider):
+                record_recall_isolation(root)
+                errors=audit_ingestion(output,root,messages,report,import_only=True)
             result['ingestion_audit']={'state':'fail' if errors else 'pass','errors':errors}
             result['state']='incomplete' if errors else 'processing-complete'
             result['stored_fact_review']='pending; processing receipts are not semantic verification'
@@ -85,12 +93,14 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
                     reason=reason.replace(value,'<redacted>')
             result.update(state='incomplete',error_class=type(exc).__name__,reason=reason)
         finally:
-            if env is not None:
-                try:save(root/'pre-shutdown-model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
-                finally:stop_arm_model_work(root)
-            else:stop_arm_model_work(root)
+            with metrics.phase('native-shutdown',provider=provider):
+                if env is not None:
+                    try:save(root/'pre-shutdown-model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+                    finally:stop_arm_model_work(root)
+                else:stop_arm_model_work(root)
             save(root/'status.json',result);save(output/'summary.json',report)
     report['state']='processing-complete' if all(r['state']=='processing-complete' for r in report['results']) else 'incomplete'
     report['gateway_after']=require_live_cost_boundary()
     save(output/'summary.json',report)
+    metrics.emit('import-terminal',state=report['state'])
     return report

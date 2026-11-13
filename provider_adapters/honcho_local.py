@@ -203,12 +203,19 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
             env=docker_env,capture_output=True,text=True,timeout=60)
         if owned.returncode:raise RuntimeError('Cannot initialize isolated PostgreSQL directory ownership')
     proc=subprocess.run([*docker,'run','--rm','-d','--name',name,
+        '--label','pacbench.import-root='+os.environ.get('PACBENCH_IMPORT_ROOT',str(root.resolve())),
         '-p',f'127.0.0.1:{db_port}:5432','-e','POSTGRES_PASSWORD=postgres',
         '-v',f'{dbdir}:/var/lib/postgresql/data',
         *clock_args,
         *(['--entrypoint','/bin/sh'] if resume else []),PGVECTOR_IMAGE,
         *(['-c','test -f "$PGDATA/PG_VERSION" && exec /usr/local/bin/docker-entrypoint.sh postgres'] if resume else [])],
         env=docker_env,capture_output=True,text=True,timeout=60)
+    if proc.returncode == 0:
+        save(root/'native-container-ownership.json',{'container_id':proc.stdout.strip(),
+            'run_root':str(root.resolve()),'data_bind_mount':str(dbdir.resolve()),
+            'label_root':os.environ.get('PACBENCH_IMPORT_ROOT',str(root.resolve())),
+            'preserve_data_on_stop':True})
+    owned_container_id=proc.stdout.strip() if proc.returncode == 0 else None
     processes=[]
     def stop():
         for p in processes:
@@ -216,7 +223,16 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
                 p.terminate()
                 try:p.wait(timeout=15)
                 except subprocess.TimeoutExpired:p.kill();p.wait(timeout=5)
-        subprocess.run([*docker,'stop',name],env=docker_env,capture_output=True,timeout=30)
+        if owned_container_id:
+            checked=subprocess.run([*docker,'inspect',owned_container_id],env=docker_env,
+                capture_output=True,text=True,timeout=10)
+            if checked.returncode == 0:
+                rows=json.loads(checked.stdout)
+                if (len(rows)==1 and rows[0].get('Id')==owned_container_id and
+                    rows[0].get('Config',{}).get('Labels',{}).get('pacbench.import-root')==os.environ.get('PACBENCH_IMPORT_ROOT',str(root.resolve())) and
+                    any(m.get('Type')=='bind' and m.get('Source')==str(dbdir.resolve())
+                        for m in rows[0].get('Mounts',[]))):
+                    subprocess.run([*docker,'stop',owned_container_id],env=docker_env,capture_output=True,timeout=30)
     atexit.register(stop)
     if proc.returncode:raise RuntimeError('Honcho local database startup failed: '+proc.stderr)
     child=child_environment(os.environ,env,plan_config(root,model,base,key,db_port=db_port),model)

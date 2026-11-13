@@ -332,3 +332,51 @@ This creates a private PID receipt and controller log beside the output director
 `launched` confirms process creation only; inspect the log and provider receipts
 for preflight, processing and verification results. A second launch with the same
 output name is refused. Continue to preserve previously completed providers.
+
+Measured import qualification with bounded cleanup has one entry point:
+
+```bash
+vendor/venv-hermes-isolated/bin/python -m pacbench.measured_import \
+  --output runs/week-import-measured --concurrency 2 --timeout-s 3600 --detach
+```
+
+It verifies the reviewed corpus and original shared accounting, creates fresh
+stores for the selected providers (all nine by default), and invokes only native
+import. It sends no benchmark questions and no judge calls. Use `--providers`
+to select affected arms. Choose concurrency explicitly: upstream rate limits and
+simultaneous conservative cost reservations can make nine arms impractical.
+This does not change provider model settings, batching or prompts.
+
+Cancel the entire measured cohort with `touch runs/week-import-measured/STOP`.
+The supervisor requests cooperative stopping, then enforces a bounded real-clock
+grace period against verified run-owned processes and containers. Its default
+one-hour per-provider limit includes provisioning, imports and native readiness;
+it does not classify a five-minute import as failed. Cancellation and timeouts
+preserve stores, failed receipts and all accounting holds. An HTTP 429 creates
+the cohort STOP atomically at settlement and blocks new admissions across its
+projects, preventing automatic SDK retry storms; it does not settle that charge.
+Use a new reviewed attempt after investigating the rate limit.
+
+Inspect `measured-cohort.json`, `<provider>.lifecycle.json` and
+`<provider>.metrics.json`. Private ownership receipts are written before native
+provisioning and updated during execution. They contain exact PID/start-time
+identities; they never contain credentials. Cleanup verifies exact Docker IDs,
+run labels and database bind mounts, preserving the underlying database files.
+`verified-inventory-stopped` covers observed descendants and processes with
+verified run bindings. This environment has no per-arm cgroup containment, so
+processes that discard every ownership binding between scans cannot be ruled out
+universally. Remote model requests also cannot be cancelled reliably: unknown
+usage retains its full accounting bound.
+
+The phase journal records real UTC and monotonic start/end boundaries for source
+preparation, initialization, probe, each batch through native readiness, input
+audit and shutdown. Crashes leave an explicitly unfinished phase. Metrics retain
+every observed request ID, request-body hash, timing, HTTP status, generation ID,
+token counts/details and reported charge or unresolved bound. Identical bodies
+are shown without assuming they constitute retries. Admission-to-response time
+includes network, model processing and provider queueing; remaining time cannot
+be separated reliably into local work, polling and harness overhead. Local
+compute and local embedding cost are excluded. Concurrent trials do not support
+an intrinsic latency ranking. Full source and stored-content review remains a
+separate gate after processing; full-week stores cannot feed earlier benchmark
+checkpoints.

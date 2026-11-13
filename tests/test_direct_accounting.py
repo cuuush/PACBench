@@ -29,6 +29,18 @@ def test_missing_history_is_not_recreated(tmp_path):
     assert not (tmp_path/'missing').exists()
 
 
+def test_measured_import_429_stops_all_projects_without_releasing_hold(budget,tmp_path,monkeypatch):
+    stop=tmp_path/'STOP';monkeypatch.setenv('PACBENCH_DIRECT_STOP_ON_429',str(stop))
+    row=budget.reserve('first',{'model':MODEL,'messages':[]})
+    before=budget.snapshot()[0]['accounted']
+    budget.settle(row['id'],429,b'{"error":{"message":"rate limited"}}')
+    assert json.loads(stop.read_text())['reason']=='upstream_rate_limit'
+    after=budget.snapshot();assert after[0]['accounted']==before and after[0]['state']=='uncertain'
+    with pytest.raises(RuntimeError,match='admission stopped'):
+        budget.reserve('different-project',{'model':MODEL,'messages':[]})
+    assert budget.snapshot()==after
+
+
 def test_nonblocking_snapshot_never_waits_on_suspended_ledger_owner(budget, monkeypatch):
     import fcntl
     from pacbench import usage

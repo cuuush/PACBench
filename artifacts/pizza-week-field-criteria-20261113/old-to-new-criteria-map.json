@@ -2,7 +2,7 @@
   "policy": "independent-requested-fields-v1",
   "state": "authored-revision-not-frozen",
   "old_spec_sha256": "102f1238543e3fdcdd1b18dd377ab9d2b24e518e941fbbda573e954b8758d0ea",
-  "new_spec_sha256": "a17f9b349a326f87a7ba2b2dbe33b37a02ded44037b19dfe3e7e4c3a2124d4b4",
+  "new_spec_sha256": "cd5c7269a5358ebde124d0aa718bba83caab6ff8c83fb83d56152a088c082c99",
   "old_denominator": 63,
   "new_denominator": 155,
   "arithmetic": "Existing equal points per claim and existing recovery arithmetic; no question reweighting or historical regrade.",
@@ -400,7 +400,7 @@
       "question_id": "withdrawal",
       "question": "What’s the Friday lunch plan—who, when and where?",
       "old_count": 2,
-      "new_count": 9,
+      "new_count": 8,
       "mapping": [
         {
           "old_id": "fact-1",
@@ -408,11 +408,9 @@
           "new_ids": [
             "fact-1",
             "fact-2",
-            "fact-3",
-            "fact-4"
+            "fact-3"
           ],
           "new_statements": [
-            "The lunch remains agreed.",
             "The Friday lunch time is 12:30 pm.",
             "The Friday lunch venue is Mario’s.",
             "The Friday lunch venue is on Pine Street."
@@ -422,11 +420,11 @@
           "old_id": "fact-2",
           "old_statement": "The complete confirmed roster is the user, Maya, Tess and Nora; Leo is no longer attending.",
           "new_ids": [
+            "fact-4",
             "fact-5",
             "fact-6",
             "fact-7",
-            "fact-8",
-            "fact-9"
+            "fact-8"
           ],
           "new_statements": [
             "the user is confirmed for the Friday October 9 lunch.",
@@ -978,7 +976,7 @@
       "question_id": "tasks-final",
       "question": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
       "old_count": 1,
-      "new_count": 3,
+      "new_count": 4,
       "mapping": [
         {
           "old_id": "fact-1",
@@ -993,6 +991,17 @@
             "The interview-room question is answered.",
             "The cover-letter proofreading obligation is closed."
           ]
+        },
+        {
+          "old_id": null,
+          "old_statement": null,
+          "new_ids": [
+            "fact-4"
+          ],
+          "new_statements": [
+            "Jen promised to correct the cover letter’s company name; completion of that correction is not established."
+          ],
+          "reason": "The unchanged between-Jen-and-me question invites her unconfirmed promised correction, as well as the owner’s completed proofreading."
         }
       ]
     },
@@ -1130,5 +1139,49 @@
         }
       ]
     }
-  ]
+  ],
+  "post_audit_revision": {
+    "reason": "Independent source-only/155-criterion review: remove entailed lunch-existence weight, and cover Jen’s unconfirmed promised correction invited by the unchanged broad question",
+    "changes": {
+      "withdrawal": {
+        "before": [
+          "The lunch remains agreed.",
+          "The Friday lunch time is 12:30 pm.",
+          "The Friday lunch venue is Mario’s.",
+          "The Friday lunch venue is on Pine Street.",
+          "the user is confirmed for the Friday October 9 lunch.",
+          "Maya is confirmed for the Friday October 9 lunch.",
+          "Tess is confirmed for the Friday October 9 lunch.",
+          "Nora is confirmed for the Friday October 9 lunch.",
+          "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+        ],
+        "after": [
+          "The Friday lunch time is 12:30 pm.",
+          "The Friday lunch venue is Mario’s.",
+          "The Friday lunch venue is on Pine Street.",
+          "the user is confirmed for the Friday October 9 lunch.",
+          "Maya is confirmed for the Friday October 9 lunch.",
+          "Tess is confirmed for the Friday October 9 lunch.",
+          "Nora is confirmed for the Friday October 9 lunch.",
+          "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+        ]
+      },
+      "tasks-final": {
+        "before": [
+          "The revised-checklist obligation is closed.",
+          "The interview-room question is answered.",
+          "The cover-letter proofreading obligation is closed."
+        ],
+        "after": [
+          "The revised-checklist obligation is closed.",
+          "The interview-room question is answered.",
+          "The cover-letter proofreading obligation is closed.",
+          "Jen promised to correct the cover letter’s company name; completion of that correction is not established."
+        ]
+      }
+    },
+    "denominator": 155,
+    "public_question_changes": 0,
+    "source_changes": 0
+  }
 }

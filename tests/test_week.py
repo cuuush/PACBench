@@ -90,16 +90,23 @@ def test_authored_noise_leaves_volume_to_scene_and_preserves_explicit_range(tmp_
     assert scene_spec(chat)['prompt_version']=='scene-authored-v1'
 
 
-def test_omitted_noise_and_pizza_day_keep_low_defaults(tmp_path):
-    from pacbench.authoring import scene_spec
+def test_omitted_noise_is_authored_and_explicit_pizza_day_stays_low(tmp_path):
+    from pacbench.prepare import generation_spec
     spec=json.loads(Path('specs/pizza_day.json').read_text())
-    explicit,_,_=resolve_spec(spec,tmp_path)
+    legacy,_,_=resolve_spec(spec,tmp_path)
+    assert legacy[0].noise=='low'
+    assert legacy[0].message_range==(2, 12)
     del spec['noise']
     default,_,resolved=resolve_spec(spec,tmp_path)
-    assert resolved['noise']=='low'
-    assert [scene_spec(s) for s in default]==[scene_spec(s) for s in explicit]
-    assert 'Noise: low.' in scene_prompt(default[0])
-    assert default[0].message_range==(2, 12)
+    authored,_,_=resolve_spec(dict(spec,noise='authored'),tmp_path)
+    assert resolved['noise']=='authored'
+    assert default[0].message_range is None
+    assert default[0].messages_per_person is None
+    assert 'Noise:' not in scene_prompt(default[0])
+    assert [generation_spec(s) for s in default]==[generation_spec(s) for s in authored]
+    assert generation_spec(default[0])!=generation_spec(legacy[0])
+    assert generation_spec(default[0])['prompt_version']=='scene-authored-v1'
+
 
 
 def test_medium_noise_keeps_email_volume_distinct_from_text_chat(tmp_path):

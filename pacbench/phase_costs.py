@@ -14,7 +14,11 @@ def total(rows):
         'unresolved_bound_usd':str(sum((Decimal(r['accounted']) for r in rows if r['state']!='settled'),Decimal(0))),
         'observed_input_tokens':sum(r.get('input_tokens') or 0 for r in rows),
         'observed_output_tokens':sum(r.get('output_tokens') or 0 for r in rows),
-        'requests_missing_token_counts':sum(r.get('input_tokens') is None or r.get('output_tokens') is None for r in rows)}
+        'requests_missing_token_counts':sum(r.get('input_tokens') is None or r.get('output_tokens') is None for r in rows),
+        'observed_generation_reasoning_tokens':sum(r.get('generation_usage_detail',{}).get('native_tokens_reasoning') or 0 for r in rows),
+        'observed_generation_cached_tokens':sum(r.get('generation_usage_detail',{}).get('native_tokens_cached') or 0 for r in rows),
+        'requests_missing_generation_reasoning_counts':sum(type(r.get('generation_usage_detail',{}).get('native_tokens_reasoning')) is not int for r in rows),
+        'requests_missing_generation_cached_counts':sum(type(r.get('generation_usage_detail',{}).get('native_tokens_cached')) is not int for r in rows)}
 
 
 def report(calls,components):
@@ -83,8 +87,13 @@ def report(calls,components):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--ledger',type=Path,required=True);p.add_argument('--since-index',type=int,required=True);p.add_argument('--components',type=Path,nargs='+',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
-    ledger=json.loads(a.ledger.read_text());r=report(ledger['calls'][a.since_index:],a.components)
+    p=argparse.ArgumentParser();p.add_argument('--ledger',type=Path,required=True);p.add_argument('--since-index',type=int,required=True);p.add_argument('--generation-index',type=Path);p.add_argument('--components',type=Path,nargs='+',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    ledger=json.loads(a.ledger.read_text());rows=ledger['calls'][a.since_index:]
+    if a.generation_index:
+        observed=json.loads(a.generation_index.read_text())['items']
+        rows=[{**row,'generation_usage_detail':observed.get(row['id'],{}).get('generation',{})} for row in rows]
+    r=report(rows,a.components)
+    r['token_detail_scope']='Generation reasoning/cached counts are observed subsets of completion/prompt counts; do not add them to token totals. Missing detail counts are explicit, not zero assumptions.'
     r['ledger_offset']=a.since_index;r['excluded_earlier_ledger']=total(ledger['calls'][:a.since_index]);r['excluded_earlier_ledger_scope']='Historical accounting entries include external allocations; their counts are accounting items, not solely model requests.';r['shared_cap_accounted_usd']=str(sum(Decimal(c['accounted']) for c in ledger['calls']))
     a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(r,indent=2)+'\n')
 

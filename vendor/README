@@ -5,7 +5,7 @@
 From a checkout of this branch on Linux x86-64, run:
 
 ```sh
-python3 -m pacbench.bootstrap --install
+python3 -m pacbench.bootstrap --install --start-services
 ```
 
 Requirements: Python 3.11+, `uv`, Git, GNU tar with `zstd`, Node 22.21+ with npm, and a working
@@ -23,7 +23,10 @@ Cognee and Honcho. MemOS and Supermemory assets are hash-verified. The clock
 uses the existing reproducible Docker build. Embeddings install a pinned
 CPU Ollama runtime, native Nomic model and offline MiniLM files. A temporary
 loopback Ollama server downloads the model and checks a 768-dimensional local
-embedding, then stops. No paid model requests or source ingestion occur.
+embedding, then stops. `--start-services` additionally leaves the verified runtime
+ready at `127.0.0.1:11435`, checking its version, model identity and actual local
+embedding. Existing mismatched services are refused. No paid model requests or
+source ingestion occur.
 
 Existing source trees at a different revision, untracked files, or changes
 other than Hermes's reviewed isolation patch fail closed. Preserve and move
@@ -39,7 +42,7 @@ at the desired review commit:
 ```sh
 set -eu
 cd /workspace/PACBench
-python3 -m pacbench.bootstrap --install
+python3 -m pacbench.bootstrap --install --start-services
 python3 -m pacbench.bootstrap --check
 ```
 

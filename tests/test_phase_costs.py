@@ -22,3 +22,11 @@ def test_stale_summary_uses_persisted_question_score_once(tmp_path):
 def test_duplicate_ledger_ids_rejected():
     import pytest
     with pytest.raises(ValueError):report([{'id':'same'},{'id':'same'}],[])
+
+
+def test_partial_generation_details_are_observed_counts_with_explicit_missingness():
+    from pacbench.phase_costs import total
+    r=total([{'id':'a','state':'settled','accounted':'0.01','input_tokens':10,'output_tokens':20,'generation_usage_detail':{'native_tokens_reasoning':15,'native_tokens_cached':7}}, {'id':'b','state':'uncertain','accounted':'0.17'}])
+    assert r['observed_generation_reasoning_tokens']==15 and r['observed_generation_cached_tokens']==7
+    assert r['requests_missing_generation_reasoning_counts']==1
+    assert r['observed_output_tokens']==20

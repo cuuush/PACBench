@@ -284,6 +284,7 @@ def verify(components):
             elif name == 'embeddings':
                 pins = json.loads((ROOT / 'vendor/EMBEDDING_PINS.json').read_text())
                 model_root = ROOT / 'vendor/ollama/models'
+                if file_digest(ROOT/'vendor/ollama/bin/ollama')!=pins['ollama']['binary_sha256']:raise RuntimeError('Ollama executable differs')
                 verify_nomic(model_root, pins['nomic']['manifest_sha256'])
                 for filename, digest in pins['minilm']['files'].items():
                     if file_digest(ROOT.parent / 'shared/pacbench-memos-models' / pins['minilm']['repository'] / filename) != digest:
@@ -310,16 +311,57 @@ await p.close();
             'scope': 'Offline installed identity checks; no native processing or paid readiness claim.'}
 
 
+def start_services():
+    """Leave the verified local embedding daemon ready; never load credentials."""
+    runtime=ROOT/'vendor/ollama';pins=json.loads((ROOT/'vendor/EMBEDDING_PINS.json').read_text())
+    if file_digest(runtime/'bin/ollama')!=pins['ollama']['binary_sha256']:
+        raise RuntimeError('Ollama executable differs from official archive pin')
+    verify_nomic(runtime/'models',pins['nomic']['manifest_sha256'])
+    base='http://127.0.0.1:11435'
+    def read(path):
+        with urllib.request.urlopen(base+path,timeout=2) as response:return json.load(response)
+    process=None
+    try:read('/api/version')
+    except OSError:
+        env=environment();env.update(OLLAMA_HOST='127.0.0.1:11435',OLLAMA_MODELS=str(runtime/'models'))
+        logpath=runtime/'runtime.private.log'
+        with logpath.open('ab') as log:
+            logpath.chmod(0o600)
+            process=subprocess.Popen([str(runtime/'bin/ollama'),'serve'],env=env,
+                stdin=subprocess.DEVNULL,stdout=log,stderr=log,start_new_session=True,close_fds=True)
+        deadline=time.monotonic()+30
+        while True:
+            try:read('/api/version');break
+            except OSError:
+                if process.poll() is not None or time.monotonic()>deadline:raise RuntimeError('Local embedding daemon failed to start')
+                time.sleep(.2)
+    if read('/api/version').get('version')!=pins['ollama']['version']:
+        raise RuntimeError('Existing endpoint is not the pinned Ollama version')
+    manifest=runtime/'models/manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+    models=read('/api/tags')['models']
+    if not any(m.get('name')=='nomic-embed-text:latest' and m.get('digest') in {file_digest(manifest),pins['nomic']['manifest_sha256']} for m in models):
+        raise RuntimeError('Existing embedding endpoint model differs from verified local manifest')
+    from provider_adapters.embedding_health import check
+    health=check(base+'/v1')
+    result={'state':'ready','endpoint':base,'model':'nomic-embed-text','paid_calls':0,
+        'started_pid':process.pid if process else None,'embedding_health':health}
+    (runtime/'runtime.private.json').write_text(json.dumps(result,indent=2)+'\n')
+    return result
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--install', action='store_true', help='Install and verify; briefly starts local Ollama for a CPU embedding check, never paid inference')
+    parser.add_argument('--start-services',action='store_true',help='Leave verified local Ollama running on port11435; no paid inference')
     parser.add_argument('--check', action='store_true', help='Offline verification of installed identities; no installation')
     parser.add_argument('--components', nargs='+', choices=COMPONENTS, default=list(COMPONENTS))
     args = parser.parse_args(argv)
+    if args.start_services and not (args.install or args.check):parser.error('--start-services requires --install or --check')
     if args.install and args.check:
         parser.error('Choose --install or --check')
     if args.check:
         result = verify(args.components)
+        if args.start_services and result['state']=='pass':result['services']=start_services()
         print(json.dumps(result, indent=2))
         return int(result['state'] != 'pass')
     if not args.install:
@@ -332,6 +374,7 @@ def main(argv=None):
         print(f'Installing {name}', flush=True)
         install(name)
     result = verify(args.components)
+    if args.start_services and result['state']=='pass':result['services']=start_services()
     print(json.dumps(result, indent=2))
     return int(result['state'] != 'pass')
 

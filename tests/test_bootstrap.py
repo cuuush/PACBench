@@ -83,3 +83,13 @@ def test_native_nomic_provenance_requires_unchanged_original(tmp_path, damage):
             bootstrap.verify_nomic(tmp_path, expected)
     else:
         bootstrap.verify_nomic(tmp_path, expected)
+
+
+def test_start_services_is_explicit_and_does_not_run_after_failed_identity_check(monkeypatch,capsys):
+    monkeypatch.setattr(bootstrap,'verify',lambda _:dict(state='pass'))
+    monkeypatch.setattr(bootstrap,'start_services',lambda:dict(state='ready',paid_calls=0))
+    assert bootstrap.main(['--check','--start-services'])==0
+    assert json.loads(capsys.readouterr().out)['services']['paid_calls']==0
+    monkeypatch.setattr(bootstrap,'verify',lambda _:dict(state='blocked'))
+    monkeypatch.setattr(bootstrap,'start_services',lambda:pytest.fail('started with failed identities'))
+    assert bootstrap.main(['--check','--start-services'])==1

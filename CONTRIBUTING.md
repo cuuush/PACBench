@@ -64,7 +64,7 @@ Work on small, inspectable changes before expanding the benchmark:
 
 ## Run a new experiment
 
-For a fresh environment, run `python3 -m pacbench.bootstrap --install` from
+For a fresh environment, run `python3 -m pacbench.bootstrap --install --start-services` from
 the repository root, then `python3 -m pacbench.bootstrap --check`. See the
 [runtime setup](vendor/README) for prerequisites and a copyable cloud setup
 snippet. This provisions pinned local components without paid inference.

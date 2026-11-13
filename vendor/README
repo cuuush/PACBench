@@ -111,6 +111,11 @@ releases; its current declared plugin 2.0.0 is pinned to full revision
 `a8f360166419958ce77b876c69f7be3bf0716d67`, requiring SDK 5.0.1.
 The published local server remains server-v0.0.9. Native v5 document import,
 namespace reads, processing and dreaming completion must all be verified.
+server-v0.0.9 omits `dreamingStatus` from v5 document responses. The runner
+observes its supported native v3 list/get API read-only, binding the namespace,
+public/native IDs, unchanged source, metadata and actual consolidation phase.
+Indexing completion alone remains insufficient. Actor SDK/plugin versions stay
+current; the observer neither resubmits source nor changes native processing.
 
 Cognee 1.6.8 runs in a private server environment with the unchanged 1.4.3 native
 HTTP integration. Its automatic local installer still selects 1.6.6; PACBench

@@ -579,7 +579,7 @@ def supermemory(source,root,at,processing_at):
     ready=False;reason='Native memory processing deadline exceeded';failure=None
     while True:
         try:
-            raw,status=document(client,tag,result.id)
+            raw,status=document(client,tag,result.id,endpoint=cfg['base_url'],key=os.environ['SUPERMEMORY_API_KEY'])
         except Exception as error:
             # Delivery already succeeded. Preserve its ID and every observed
             # state, rather than losing them to a traceback or resubmitting.

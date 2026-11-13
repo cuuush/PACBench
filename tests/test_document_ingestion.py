@@ -384,3 +384,57 @@ def test_v5_supermemory_document_audit_binds_namespace_source_and_both_statuses(
         if change=='source':broken['processing_status'][-1]['content']='Extracted or changed text'
         if change=='consolidation':broken['processing_status'][-1]['native_system']['dreamingStatus']='dreaming'
         assert audit_supermemory_receipt(broken,'2026-10-05','Exact original raw text')
+
+
+@pytest.mark.parametrize('mode',['pending','done','wrong-source','wrong-namespace'])
+def test_published_local_supermemory_v3_observer_supplies_actual_consolidation(monkeypatch,mode):
+    import io
+    from types import SimpleNamespace
+    from provider_adapters.supermemory_native import document
+    from pacbench.native_writes import complete
+    metadata={'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'}
+    original={'id':'source-day','content':'Original source','metadata':metadata,'system':{'status':'done'}}
+    def get(*args):return SimpleNamespace(model_dump=lambda **_:original)
+    seen=[]
+    def read(request,**kwargs):
+        seen.append((request.full_url,request.get_method(),request.data))
+        if request.full_url.endswith('/list'):
+            value={'memories':[{'id':'opaque-native-id','customId':'source-day','containerTags':['native-tag']}],
+                   'pagination':{'currentPage':1,'totalPages':1}}
+        else:
+            value={'id':'opaque-native-id','customId':'source-day',
+                   'containerTags':['other' if mode=='wrong-namespace' else 'native-tag'],
+                   'content':'Changed source' if mode=='wrong-source' else 'Original source',
+                   'metadata':metadata,'status':'done','dreamingStatus':'dreaming' if mode=='pending' else 'done'}
+        return io.BytesIO(json.dumps(value).encode())
+    monkeypatch.setattr('urllib.request.urlopen',read)
+    client=SimpleNamespace(documents=SimpleNamespace(get=get))
+    if mode.startswith('wrong'):
+        with pytest.raises(ValueError,match='differs from v5 source or namespace'):
+            document(client,'native-tag','source-day',endpoint='http://127.0.0.1:1234',key='native-local-key')
+        return
+    raw,state=document(client,'native-tag','source-day',endpoint='http://127.0.0.1:1234',key='native-local-key')
+    assert complete('supermemory',[state])==(mode=='done',False)
+    assert raw==original and 'dreamingStatus' not in raw['system']
+    assert state['native_completion_witness']['processing_forced'] is False
+    assert [x[1] for x in seen]==['POST','GET']
+    assert seen[0][0].endswith('/v3/documents/list') and seen[1][0].endswith('/v3/documents/opaque-native-id')
+    assert json.loads(seen[0][2])=={'containerTags':['native-tag'],'includeContent':False,'page':1,'limit':100}
+
+
+def test_v5_audit_accepts_only_source_bound_native_v3_completion_witness():
+    from copy import deepcopy
+    import hashlib
+    from pacbench.document_audit import audit_supermemory_receipt
+    text='Unchanged source';metadata={'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'}
+    witness={'protocol':'supermemory-native-v3-completion-observer-v1','native_id':'native-id','public_id':'day',
+        'namespace':'namespace','status':'done','dreaming_status':'done','metadata':metadata,
+        'content_sha256':hashlib.sha256(text.encode()).hexdigest(),'processing_forced':False}
+    final={'id':'day','content':text,'metadata':metadata,'status':'done','dreaming_status':'done',
+        'native_system':{'status':'done'},'request_namespace':'namespace','native_completion_witness':witness}
+    receipt={'native_api_protocol':'supermemory-v5-documents-v1','container_tag':'namespace','request_namespace':'namespace',
+        'result':{'id':'day'},'processing_status':[final]}
+    assert audit_supermemory_receipt(receipt,'day',text)==[]
+    for field,bad in [('namespace','other'),('content_sha256','0'*64),('dreaming_status','dreaming'),('processing_forced',True)]:
+        broken=deepcopy(receipt);broken['processing_status'][0]['native_completion_witness'][field]=bad
+        assert audit_supermemory_receipt(broken,'day',text)

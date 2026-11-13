@@ -166,7 +166,7 @@ def audit_ready(checks,context,root,version):
     return errors
 
 
-def supermemory_status(client,tag,ids,sessions,captures=None):
+def supermemory_status(client,tag,ids,sessions,captures=None,*,endpoint=None,key=None):
     from provider_adapters.supermemory_native import document
     found=set(ids);page=1
     while not ids:
@@ -187,7 +187,7 @@ def supermemory_status(client,tag,ids,sessions,captures=None):
         page+=1
     statuses=[]
     for id in sorted(found):
-        value,status=document(client,tag,id)
+        value,status=document(client,tag,id,endpoint=endpoint,key=key)
         statuses.append(status)
         if captures is not None and not ids:
             metadata=value.get('metadata') or {}
@@ -313,7 +313,8 @@ def worker(args):
                 _clean_text_for_capture = plugin._clean_text_for_capture
                 captures=[{'session':c['session'],'user':_clean_text_for_capture(c['prompt']),
                            'binding':digest(c)} for c in inputs['captures']]
-            observe=lambda:supermemory_status(client,tag,inputs['accepted_ids'],inputs['sessions'],captures)
+            observe=lambda:supermemory_status(client,tag,inputs['accepted_ids'],inputs['sessions'],captures,
+                endpoint=cfg['base_url'],key=os.environ['SUPERMEMORY_API_KEY'])
         elif provider=='openviking':
             endpoint=os.environ['OPENVIKING_ENDPOINT']
             if not endpoint.startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')

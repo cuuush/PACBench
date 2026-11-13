@@ -59,10 +59,22 @@ def audit_supermemory_receipt(result, day, text):
             final.get('dreaming_status',final.get('dreamingStatus'))!='done'):
         errors.append('Supermemory memory consolidation did not complete')
     v5=result.get('native_api_protocol')=='supermemory-v5-documents-v1'
+    system=final.get('native_system') or {}
+    native_phase=system.get('dreaming_status',system.get('dreamingStatus'))
+    witness=final.get('native_completion_witness') or {}
+    if v5 and native_phase is None:
+        content=final.get('content')
+        if (witness.get('protocol')=='supermemory-native-v3-completion-observer-v1'
+                and witness.get('namespace')==result.get('container_tag')
+                and witness.get('public_id')==day and witness.get('native_id')
+                and witness.get('status')=='done' and witness.get('processing_forced') is False
+                and witness.get('metadata')==final.get('metadata') and isinstance(content,str)
+                and witness.get('content_sha256')==hashlib.sha256(content.encode()).hexdigest()):
+            native_phase=witness.get('dreaming_status')
     identity_ok=(final.get('id')==day and final.get('request_namespace')==result.get('request_namespace')==result.get('container_tag')
                  and (final.get('metadata') or {}).get('collected_at')
                  and (final.get('native_system') or {}).get('status')=='done'
-                 and (final.get('native_system') or {}).get('dreaming_status', (final.get('native_system') or {}).get('dreamingStatus'))=='done') if v5 else (
+                 and native_phase=='done') if v5 else (
                      final.get('custom_id',final.get('customId'))==day and result.get('container_tag') in final.get('container_tags',final.get('containerTags',[])))
     if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or not identity_ok or
             not same_submitted_text(final.get('content'),text) or

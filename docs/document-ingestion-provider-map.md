@@ -230,3 +230,12 @@ That earlier canary used the legacy per-directory fallback; it does not prove
 fresh-session persistence under the current per-session setup.
 Historical evidence is under `artifacts/retired-public-bike-compatibility-20261026/provider-compatibility/honcho-8192-20261025/`.
 The current isolated-clock canary is `runs/bike-pickup-native-clock-20261105`.
+
+
+For the current Supermemory v5 actor integration, published local server-v0.0.9
+omits consolidation status from its v5 document read. PACBench observes the
+native v3 read endpoint for the same public/native document ID, namespace, exact
+content and metadata. A source-bound `supermemory-native-v3-completion-observer-v1`
+receipt is required before crediting completed dreaming. This is read-only API
+compatibility instrumentation; the v5 source write, shipped plugin, native
+processing and current SDK remain unchanged.

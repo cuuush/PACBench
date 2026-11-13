@@ -92,6 +92,26 @@ def file_digest(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def verify_nomic(model_root, expected):
+    manifest = model_root / 'manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+    model = json.loads(manifest.read_text())
+    if file_digest(manifest) != expected:
+        # Ollama 0.40 records the original registry manifest as one extra
+        # provenance layer. Verify its original bytes and every source field;
+        # this is native metadata, not a change to model weights or parameters.
+        layers = model.get('layers', [])
+        reference = layers[-1] if layers else {}
+        if reference.get('mediaType') != 'application/vnd.docker.distribution.manifest.v2+json' or reference.get('digest') != 'sha256:' + expected:
+            raise RuntimeError('Native embedding model differs from the registry pin')
+        original = model_root / 'blobs' / ('sha256-' + expected)
+        if file_digest(original) != expected or json.loads(original.read_text()) != {**model, 'layers': layers[:-1]}:
+            raise RuntimeError('Native embedding provenance does not bind unchanged source')
+    for layer in [model['config'], *model['layers']]:
+        digest = layer['digest']
+        if not digest.startswith('sha256:') or file_digest(model_root / 'blobs' / digest.replace(':', '-')) != digest.split(':')[1]:
+            raise RuntimeError('Nomic model blob differs')
+
+
 def embeddings():
     pins = json.loads((ROOT / 'vendor/EMBEDDING_PINS.json').read_text())
     pin = pins['minilm']
@@ -99,12 +119,14 @@ def embeddings():
         destination = ROOT.parent / 'shared/pacbench-memos-models' / pin['repository'] / name
         download(f"https://huggingface.co/{pin['repository']}/resolve/{pin['revision']}/{name}", destination, digest)
     runtime = ROOT / 'vendor/ollama'
-    archive = runtime / 'release.tgz'
+    archive = runtime / ('release-' + pins['ollama']['version'] + '.tar.zst')
     download(pins['ollama']['url'], archive, pins['ollama']['sha256'])
     # CPU-only runtime; retain all native CPU libraries, omit unused CUDA payloads.
-    with tarfile.open(archive) as stream:
-        members = [m for m in stream.getmembers() if m.name == 'bin/ollama' or m.name.startswith('lib/ollama/') and '/cuda_' not in m.name]
-        stream.extractall(runtime, members=members, filter='data')
+    # The official archive digest is checked above. GNU tar+zstd supports this
+    # release format on Python versions before tarfile gained zstd support.
+    command(['tar', '--zstd', '-xf', archive, '-C', runtime,
+             '--exclude=lib/ollama/cuda*', '--exclude=lib/ollama/vulkan*',
+             'bin/ollama', 'lib/ollama'])
     env = environment()
     env['OLLAMA_MODELS'] = str(runtime / 'models')
     with socket.socket() as sock:
@@ -125,9 +147,7 @@ def embeddings():
                     raise RuntimeError('Temporary local embedding server failed; inspect vendor/ollama/setup.log')
                 time.sleep(.2)
         subprocess.run([str(binary), 'pull', pins['nomic']['name']], env=env, check=True)
-        manifest = runtime / 'models/manifests/registry.ollama.ai/library/nomic-embed-text/latest'
-        if file_digest(manifest) != pins['nomic']['manifest_sha256']:
-            raise RuntimeError('Native embedding model changed upstream; review pin before use')
+        verify_nomic(runtime / 'models', pins['nomic']['manifest_sha256'])
         from provider_adapters.embedding_health import check
         check(f'http://127.0.0.1:{port}/v1')
     finally:
@@ -264,14 +284,7 @@ def verify(components):
             elif name == 'embeddings':
                 pins = json.loads((ROOT / 'vendor/EMBEDDING_PINS.json').read_text())
                 model_root = ROOT / 'vendor/ollama/models'
-                manifest = model_root / 'manifests/registry.ollama.ai/library/nomic-embed-text/latest'
-                if file_digest(manifest) != pins['nomic']['manifest_sha256']:
-                    raise RuntimeError('Nomic manifest differs')
-                model = json.loads(manifest.read_text())
-                for layer in [model['config'], *model['layers']]:
-                    digest = layer['digest']
-                    if not digest.startswith('sha256:') or file_digest(model_root / 'blobs' / digest.replace(':', '-')) != digest.split(':')[1]:
-                        raise RuntimeError('Nomic model blob differs')
+                verify_nomic(model_root, pins['nomic']['manifest_sha256'])
                 for filename, digest in pins['minilm']['files'].items():
                     if file_digest(ROOT.parent / 'shared/pacbench-memos-models' / pins['minilm']['repository'] / filename) != digest:
                         raise RuntimeError('MiniLM asset differs')

@@ -1,0 +1,137 @@
+{
+  "state": "prerequisites-pass",
+  "provider": "memcal",
+  "inference_route": "openrouter",
+  "inference_calls": 0,
+  "checks": [
+    {
+      "check": "frozen_preparation",
+      "state": "pass",
+      "detail": {
+        "path": "artifacts/pizza-week-hybrid-stream-v7-20261113",
+        "scope": "frozen preparation integrity; no provider quality claim"
+      }
+    },
+    {
+      "check": "pinned_hermes",
+      "state": "pass",
+      "detail": {
+        "revision": "3b421578588243f920886e6fe79a6faa87ea026e"
+      }
+    },
+    {
+      "check": "client_dependencies",
+      "state": "pass",
+      "detail": {
+        "hermes-agent": "0.0.0",
+        "memcal": "0.8.11",
+        "pytypedstream": "0.1.0",
+        "openai": "2.54.0",
+        "ruamel.yaml": "0.18.16"
+      }
+    },
+    {
+      "check": "memcal_checkout",
+      "state": "pass",
+      "detail": {
+        "revision": "e67b8d912484b5b4317dafcff4d60fc975194d8e",
+        "version": "0.8.11",
+        "source": "/workspace/memcal-stable-20261113",
+        "working_tree_changes": false
+      }
+    },
+    {
+      "check": "isolated_scratch",
+      "state": "pass",
+      "detail": "/var/tmp"
+    },
+    {
+      "check": "existing_openrouter_accounting",
+      "state": "pass",
+      "detail": {
+        "accounted_upper_bound_usd": "8.477384928512",
+        "cap_usd": "20",
+        "scope": "Read-only snapshot; request admission still rechecks the live ledger."
+      }
+    },
+    {
+      "check": "openrouter_credential",
+      "state": "pass",
+      "detail": {
+        "present": true,
+        "access_verified": false
+      }
+    }
+  ],
+  "scope": "Offline setup only; free endpoint access, provider readiness and per-request budget admission remain required.",
+  "provider_inventory": {
+    "providers": [
+      {
+        "provider": "memcal",
+        "missing_paths": [],
+        "other_requirements": "Native Messages and TLS IMAP fixtures; installed Memcal and Hermes client dependencies.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "mem0",
+        "missing_paths": [],
+        "other_requirements": "Hermes Mem0 SDK, local Qdrant and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "hindsight",
+        "missing_paths": [],
+        "other_requirements": "Hindsight 1.2.1 server and client in separate environments.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "openviking",
+        "missing_paths": [],
+        "other_requirements": "OpenViking server and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "reme",
+        "missing_paths": [],
+        "other_requirements": "Pinned ReMe runtime, Hermes resource plugin and local embeddings.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "cognee",
+        "missing_paths": [],
+        "other_requirements": "Pinned Cognee server, native HTTP Hermes plugin and local Ollama embeddings.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "memos",
+        "missing_paths": [],
+        "other_requirements": "Pinned local MemOS bridge, Hermes memtensor plugin and offline MiniLM assets.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "supermemory",
+        "missing_paths": [],
+        "other_requirements": "Verified local server, SDK and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "honcho",
+        "missing_paths": [],
+        "other_requirements": "Honcho 3.6.1 checkout, SDK 2.9.0, Docker/pgvector and Ollama; simulated clock additionally needs pinned libfaketime.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      }
+    ],
+    "docker_executable_present": true,
+    "inference_calls": 0,
+    "scope": "File presence only; versions, service readiness, model compatibility, route enforcement and recall are not verified."
+  }
+}

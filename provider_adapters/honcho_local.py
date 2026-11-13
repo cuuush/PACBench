@@ -14,6 +14,7 @@ from pathlib import Path
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
+PGVECTOR_IMAGE = 'pgvector/pgvector@sha256:88164492558c9773a1e17a8305abaca7863e05b3d8bbcdb792774890a2047e06'
 
 class OperatorConditionHold(RuntimeError):
     """An operator deferred this provider before native execution."""
@@ -198,14 +199,14 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
         # own PostgreSQL user. No database rows are changed here.
         owned=subprocess.run([*docker,'run','--rm','--user','0:0',
             '-v',f'{dbdir}:/var/lib/postgresql/data','--entrypoint','chown',
-            'pgvector/pgvector:pg15','999:999','/var/lib/postgresql/data'],
+            PGVECTOR_IMAGE,'999:999','/var/lib/postgresql/data'],
             env=docker_env,capture_output=True,text=True,timeout=60)
         if owned.returncode:raise RuntimeError('Cannot initialize isolated PostgreSQL directory ownership')
     proc=subprocess.run([*docker,'run','--rm','-d','--name',name,
         '-p',f'127.0.0.1:{db_port}:5432','-e','POSTGRES_PASSWORD=postgres',
         '-v',f'{dbdir}:/var/lib/postgresql/data',
         *clock_args,
-        *(['--entrypoint','/bin/sh'] if resume else []),'pgvector/pgvector:pg15',
+        *(['--entrypoint','/bin/sh'] if resume else []),PGVECTOR_IMAGE,
         *(['-c','test -f "$PGDATA/PG_VERSION" && exec /usr/local/bin/docker-entrypoint.sh postgres'] if resume else [])],
         env=docker_env,capture_output=True,text=True,timeout=60)
     processes=[]

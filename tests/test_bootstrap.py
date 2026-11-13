@@ -55,3 +55,31 @@ def test_source_patch_comparison_uses_fixed_abbreviation(tmp_path, monkeypatch):
         return b'exact patch'
     monkeypatch.setattr(bootstrap.subprocess, 'check_output', diff)
     bootstrap.source('unused', 'revision', tmp_path, patch=patch)
+
+
+@pytest.mark.parametrize('damage', [None, 'weights', 'parameters'])
+def test_native_nomic_provenance_requires_unchanged_original(tmp_path, damage):
+    blobs = tmp_path / 'blobs'
+    blobs.mkdir()
+    def blob(data):
+        digest = hashlib.sha256(data).hexdigest()
+        (blobs / ('sha256-' + digest)).write_bytes(data)
+        return {'digest': 'sha256:' + digest, 'size': len(data), 'mediaType': 'application/vnd.ollama.image.model'}
+    original = {'config': blob(b'config'), 'layers': [blob(b'weights')]}
+    data = json.dumps(original).encode()
+    reference = blob(data)
+    reference['mediaType'] = 'application/vnd.docker.distribution.manifest.v2+json'
+    expected = reference['digest'].split(':')[1]
+    native = {**original, 'layers': [*original['layers'], reference]}
+    if damage == 'weights':
+        (blobs / original['layers'][0]['digest'].replace(':', '-')).write_bytes(b'changed')
+    elif damage == 'parameters':
+        native['config'] = blob(b'changed')
+    manifest = tmp_path / 'manifests/registry.ollama.ai/library/nomic-embed-text/latest'
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(json.dumps(native))
+    if damage:
+        with pytest.raises(RuntimeError):
+            bootstrap.verify_nomic(tmp_path, expected)
+    else:
+        bootstrap.verify_nomic(tmp_path, expected)

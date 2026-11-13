@@ -8,7 +8,7 @@ From a checkout of this branch on Linux x86-64, run:
 python3 -m pacbench.bootstrap --install
 ```
 
-Requirements: Python 3.11+, `uv`, Git, Node 22.21+ with npm, and a working
+Requirements: Python 3.11+, `uv`, Git, GNU tar with `zstd`, Node 22.21+ with npm, and a working
 local Docker daemon. Keep the inherited HTTPS proxy and CA trust. Run as the
 normal user with writable workspace and home directories. Stock Ollama creates
 its native identity in `~/.ollama`; a sandbox that makes the home read-only

@@ -2,7 +2,7 @@
   "policy": "independent-requested-fields-v1",
   "state": "authored-revision-not-frozen",
   "old_spec_sha256": "102f1238543e3fdcdd1b18dd377ab9d2b24e518e941fbbda573e954b8758d0ea",
-  "new_spec_sha256": "cd5c7269a5358ebde124d0aa718bba83caab6ff8c83fb83d56152a088c082c99",
+  "new_spec_sha256": "8e61e6c0d251a32878a8a513a97408362f995c797ecdc80f17992600ba66616c",
   "old_denominator": 63,
   "new_denominator": 155,
   "arithmetic": "Existing equal points per claim and existing recovery arithmetic; no question reweighting or historical regrade.",
@@ -999,7 +999,7 @@
             "fact-4"
           ],
           "new_statements": [
-            "Jen promised to correct the cover letter’s company name; completion of that correction is not established."
+            "Completion of Jen’s company-name correction is not established."
           ],
           "reason": "The unchanged between-Jen-and-me question invites her unconfirmed promised correction, as well as the owner’s completed proofreading."
         }
@@ -1183,5 +1183,16 @@
     "denominator": 155,
     "public_question_changes": 0,
     "source_changes": 0
+  },
+  "post_contract_review_revision": {
+    "question_id": "tasks-final",
+    "before": "Jen promised to correct the cover letter’s company name; completion of that correction is not established.",
+    "after": "Completion of Jen’s company-name correction is not established.",
+    "reason": "The independent contract reviewer rejected a promise-plus-completion compound. Grade only the outstanding completion-status field; person/task names anchor that field without separately requiring a promise recital.",
+    "rejected_review": "/workspace/PACBench-stable-20261113/artifacts/pizza-week-hybrid-stream-v4-20261113/evaluation-errors.json",
+    "denominator": 155,
+    "public_question_changes": 0,
+    "source_changes": 0,
+    "prior_spec_sha256": "cd5c7269a5358ebde124d0aa718bba83caab6ff8c83fb83d56152a088c082c99"
   }
 }

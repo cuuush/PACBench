@@ -176,10 +176,10 @@ def test_large_corpus_deadline_is_confined_and_does_not_change_review_request(tm
     seen=[]
     def completed(self,prompt):
         seen.append((self.timeout_s,prompt))
-        path=tmp_path/'actual-call.json';path.write_text(json.dumps({'client_wall_deadline_s':self.timeout_s}))
+        path=tmp_path/'actual-call.json';path.write_text(json.dumps({'client_wall_deadline_s':self.timeout_s,'client_max_attempts':self.max_attempts}))
         return SimpleNamespace(text=json.dumps(verdict),record_path=str(path),usage={})
     monkeypatch.setattr(ModelClient,'__call__',completed)
     client=ModelClient(key='inert',model='offline',record_dir=tmp_path)
     result=review_corpus([msg],resolved,client,tmp_path)
-    assert client.timeout_s==180 and seen==[(900,review_prompt([msg],resolved))]
-    assert result['execution_condition']=={'version':'corpus-review-real-deadline-v1','wall_deadline_s':900}
+    assert client.timeout_s==180 and client.max_attempts==2 and seen==[(900,review_prompt([msg],resolved))]
+    assert result['execution_condition']=={'version':'corpus-review-real-deadline-v1','wall_deadline_s':900,'max_attempts':1}

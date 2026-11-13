@@ -269,7 +269,7 @@ def review_corpus(messages, resolved, model, root: Path):
     # the client deadline, keeping the actual model request and review standard.
     if isinstance(model,ModelClient) and len(resolved['checks'])>8:
         import copy
-        model=copy.copy(model);model.timeout_s=900
+        model=copy.copy(model);model.timeout_s=900;model.max_attempts=1
     result = model(review_prompt(messages, resolved))
     verdict = json.loads(result.text)
     passed = verdict_passes(verdict, messages, resolved)
@@ -282,6 +282,7 @@ def review_corpus(messages, resolved, model, root: Path):
         deadline=call.get('client_wall_deadline_s',call.get('direct_timing',{}).get('wall_deadline_s'))
         if deadline is not None:
             receipt['execution_condition']={'version':'corpus-review-real-deadline-v1','wall_deadline_s':deadline}
+            if 'client_max_attempts' in call:receipt['execution_condition']['max_attempts']=call['client_max_attempts']
     if VERSION in SOURCE_BLIND:
         receipt['scope'] = 'source-coherence-and-public-question-answerability'
         receipt['validation_errors'] = validation_errors(verdict, messages, resolved)

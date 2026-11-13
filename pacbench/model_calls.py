@@ -118,6 +118,7 @@ class ModelClient:
                  json_mode: bool = False,
                  streaming: bool | None = None,
                  timeout_s: int = MODEL_TIMEOUT_S,
+                 max_attempts: int = 2,
                  url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"):
         self.key = key
         self.model = model
@@ -129,6 +130,8 @@ class ModelClient:
         self.streaming = streaming
         if type(timeout_s) is not int or not 0<timeout_s<=900:raise ValueError('Invalid model wall deadline')
         self.timeout_s=timeout_s
+        if type(max_attempts) is not int or max_attempts not in (1,2):raise ValueError('Invalid model attempt limit')
+        self.max_attempts=max_attempts
         self.url = url
 
     def __call__(self, prompt: str) -> ModelOutput:
@@ -178,7 +181,7 @@ class ModelClient:
                     _write_record(path, saved)
                     return ModelOutput(saved["text"], saved["model"],
                                        saved.get("usage") or {}, str(path), key)
-        for attempt in (1, 2):
+        for attempt in range(1,self.max_attempts+1):
             request_started=time.monotonic()
             response_timing={}
             raw: dict[str, Any] | None = None
@@ -266,6 +269,7 @@ class ModelClient:
                                               if row['id']==capture.receipt['id']),None)
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
                       "client_wall_deadline_s": self.timeout_s,
+                      "client_max_attempts": self.max_attempts,
                       "status": "failed" if error else "ok", "model": self.model,
                       "url": self.url, "protocol": protocol, "attempt": attempt,
                       "request": request_body, "response": raw,
@@ -313,7 +317,7 @@ class ModelClient:
                     if not cached.exists():
                         _write_record(cached, record)
                 return ModelOutput(content, self.model, record["usage"], str(path), key)
-            if not transient or attempt == 2:
+            if not transient or attempt == self.max_attempts:
                 raise RuntimeError(f"model call failed; audit record {path}: {error}")
             while path.exists():
                 path = self.record_dir / f"{key}-{suffix}.json"

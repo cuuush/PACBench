@@ -156,6 +156,9 @@ def audit_prepared(root: Path) -> dict:
                         type(deadline) is not int or not 0<deadline<=900 or
                         execution.get('wall_deadline_s')!=deadline):
                     errors.append('Corpus review client deadline differs from its actual model receipt')
+                if 'max_attempts' in execution and (execution['max_attempts']!=call.get('client_max_attempts') or
+                        execution['max_attempts'] not in (1,2) or deadline==900 and execution['max_attempts']!=1):
+                    errors.append('Corpus review attempt limit differs from its actual model receipt')
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
                 errors.append('Corpus realism review differs from its actual model receipt')
             from .corpus_review import SUPPORTED_VERSIONS, review_prompt

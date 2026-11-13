@@ -27,6 +27,15 @@ def test_auth_failure_is_terminal_without_retry_and_keeps_audit(tmp_path,status,
     assert len(records)==1 and json.loads(records[0].read_text())['status']=='failed'
 
 
+def test_single_attempt_limit_prevents_a_second_network_request_on_transient_error(tmp_path):
+    client=ModelClient(key='test',model='model',record_dir=tmp_path,max_attempts=1)
+    error=urllib.error.HTTPError(client.url,429,'Rate limited',{},io.BytesIO(b'{}'))
+    with mock.patch('pacbench.model_calls.urllib.request.urlopen',side_effect=error) as request, mock.patch('pacbench.model_calls.time.sleep') as sleep:
+        with pytest.raises(RuntimeError,match='HTTP 429'):client('Full corpus review')
+    assert request.call_count==1
+    sleep.assert_not_called()
+
+
 def test_same_request_retry_preserves_each_failed_call(tmp_path):
     client = ModelClient(key="test", model="model", record_dir=tmp_path)
     with mock.patch("pacbench.model_calls.urllib.request.urlopen",

@@ -388,8 +388,13 @@ import adapter uses its documented global wait followed by a healthy idle
 queue observer (including Semantic-Nodes), under the same external deadline.
 It also reads native summary artifacts for unresolved failure placeholders: a
 model error can be swallowed by OpenViking while queue error counters stay zero.
-These are read-only readiness checks; no flush, fact repair or inference-setting
-change is applied. Failed attempts and full uncertain charge bounds are retained.
+Reviewed OpenRouter imports additionally reject native leaf/partial/merge
+failure log events and require request-bound evidence of complete, nonempty
+assistant text with a stop finish reason. This evidence stores lengths and
+fingerprints, never assistant or reasoning text. The strict model-response
+witness currently requires the reviewed OpenRouter transport; another transport
+cannot silently claim the same qualification. These are read-only readiness
+checks; no flush, fact repair or inference-setting change is applied. Failed attempts and full uncertain charge bounds are retained.
 
 Direct accounting also retains exact failed-response bodies under the private
 task state's `response-errors/`, with a SHA-256, byte count and explicit

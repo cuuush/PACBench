@@ -57,7 +57,7 @@ def observations(component, calls):
                'model': c.get('served_model', c.get('model')), 'provider': c.get('served_provider'),
                'generation_id': c.get('upstream_request_id'), 'finish_reason': c.get('finish_reason'),
                'input_tokens': c.get('input_tokens'), 'output_tokens': c.get('output_tokens'),
-               'usage_detail': c.get('usage_detail'),
+               'usage_detail': c.get('usage_detail'), 'response_validation': c.get('response_validation'),
                'native_request_parameters': c.get('native_request_parameters'),
                'reported_cost_usd': c['accounted'] if c['state'] == 'settled' else None,
                'unresolved_bound_usd': c['accounted'] if c['state'] != 'settled' else None,

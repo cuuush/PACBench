@@ -69,6 +69,29 @@ def observed_generation_id(row):
     raise ValueError('No observed generation identifier')
 
 
+def response_validation(events, body_complete):
+    """Semantic envelope evidence without storing assistant or reasoning text."""
+    pieces=[];reasons=[];errors=[];tools=0
+    for event in events:
+        error=event.get('error')
+        if error is not None:
+            errors.append({'code':error.get('code'),'message':str(error.get('message',''))[:512]}
+                if isinstance(error,dict) else {'message':str(error)[:512]})
+        for choice in event.get('choices') or []:
+            if choice.get('finish_reason') is not None:reasons.append(choice['finish_reason'])
+            message=choice.get('message') or choice.get('delta') or {}
+            content=message.get('content')
+            if isinstance(content,str):pieces.append(content)
+            tools+=len(message.get('tool_calls') or [])
+    content=''.join(pieces)
+    return {'body_complete':bool(body_complete),'events_observed':len(events),
+        'envelope_errors':errors,'assistant_text_characters':len(content),
+        'assistant_nonwhitespace_characters':len(content.strip()),
+        'assistant_text_sha256':hashlib.sha256(content.encode()).hexdigest(),
+        'tool_call_fragments':tools,'finish_reasons':reasons,
+        'scope':'Content lengths and fingerprint only; reasoning text is not captured.'}
+
+
 def preserve_unusable_response(ledger, identifier, data, complete):
     folder=Path(ledger).parent/'response-errors';folder.mkdir(mode=0o700,exist_ok=True)
     path=folder/(identifier+'.response-body.bin')
@@ -318,10 +341,11 @@ class DirectBudget:
                 else:
                     events=[json.loads(line[5:].strip()) for line in text.splitlines()
                             if line.startswith('data:') and line[5:].strip()!='[DONE]']
+                row['response_validation']=response_validation(events,body_complete)
                 for event in events:
                     for k,v in (('id','upstream_request_id'),('model','served_model'),('provider','served_provider')):
                         if isinstance(event.get(k),str):row[v]=event[k][:256]
-                    for choice in event.get('choices',[]):
+                    for choice in event.get('choices') or []:
                         if isinstance(choice.get('finish_reason'),str):row['finish_reason']=choice['finish_reason'][:64]
                 if any(e.get('model') is not None and e['model']!=MODEL for e in events):
                     row['error_label']='model_mismatch';return

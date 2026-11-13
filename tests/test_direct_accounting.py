@@ -405,3 +405,18 @@ def test_native_request_parameters_are_observed_without_injecting_cap_or_thinkin
     b=budget.reserve('configured',{'model':MODEL,'reasoning_effort':'low','max_completion_tokens':20})
     assert budget.snapshot()[1]['native_request_parameters']=={'reasoning_effort':'low','max_completion_tokens':20}
     assert b['request']['reasoning_effort']=='low' and b['request']['max_completion_tokens']==20
+
+
+@pytest.mark.parametrize('finish,content,error',[('stop','complete',None),('length','',None),(None,'',{'code':504,'message':'A Timeout Occurred'})])
+def test_response_completion_evidence_keeps_lengths_without_text_or_reasoning(budget,finish,content,error):
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    payload={'id':'gen-evidence','choices':[{'finish_reason':finish,'message':{'content':content,'reasoning':'PRIVATE-REASONING'}}]}
+    if error:payload['error']=error;payload['choices']=None
+    else:payload['usage']={'cost':'0.00001','prompt_tokens':3,'completion_tokens':2}
+    budget.settle(row['id'],200,json.dumps(payload).encode(),body_complete=True)
+    result=budget.snapshot()[0];proof=result['response_validation']
+    assert proof['assistant_text_characters']==len(content)
+    assert proof['envelope_errors']==([error] if error else [])
+    assert proof['finish_reasons']==([finish] if finish else [])
+    assert 'PRIVATE-REASONING' not in json.dumps(result)
+    assert result['state']==('uncertain' if error else 'settled')

@@ -356,16 +356,25 @@ def openviking(source,root,at,processing_at):
                 state=openviking_observer_state(global_observation)
                 if state=='busy':continue
                 ready=state=='ready';break
-        artifacts=None
+        artifacts=None;failure_log=None;model_responses=None
         if ready:
             from pacbench.document_audit import openviking_generated_artifacts
             artifacts=openviking_generated_artifacts(cfg['storage']['workspace'])
-            ready=artifacts['state']=='complete'
+            from pacbench.document_audit import openviking_failure_log,openviking_response_evidence
+            failure_log=openviking_failure_log(root/'openviking-server.log')
+            if os.environ.get('PACBENCH_TRANSPORT')=='openrouter':
+                from pacbench.direct_accounting import live_budget,project_from_authorization
+                project=project_from_authorization('Bearer '+cfg['vlm']['api_key'])
+                if not project:raise RuntimeError('OpenViking request accounting binding is unavailable')
+                model_responses=openviking_response_evidence([r for r in live_budget().snapshot() if r.get('project')==project])
+            ready=(artifacts['state']=='complete' and failure_log['state']=='complete'
+                and (model_responses or {}).get('state')=='complete')
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
-                'result':result,'completion_protocol':'openviking-global-import-readiness-v3',
+                'result':result,'completion_protocol':'openviking-global-import-readiness-v4',
                 'native_global_queue_completion':global_completion,
                 'native_global_queue_observation':global_observation,'native_global_wait_count':global_waits,
                 'native_generated_artifact_check':artifacts,
+                'native_failure_log_check':failure_log,'native_model_response_check':model_responses,
                 'readiness':'All scheduled native resource and global queue processing completed, including ancestor summaries; no errors or pending work'}
     finally:p.shutdown()
 

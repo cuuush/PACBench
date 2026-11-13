@@ -115,6 +115,12 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
     workspace=root/'workspace';generated=workspace/'viking/default/resources/.overview.md'
     generated.parent.mkdir(parents=True);generated.write_text('[Directory overview is not generated]' if artifact_failure else 'Native overview')
     (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'},'storage':{'workspace':str(workspace)}}))
+    (root/'openviking-server.log').write_text('Native startup complete')
+    monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
+    monkeypatch.setattr('pacbench.direct_accounting.project_from_authorization',lambda _: 'unit')
+    good={'id':'call','project':'unit','http_status':200,'response_validation':{'body_complete':True,'envelope_errors':[],
+        'assistant_nonwhitespace_characters':10,'finish_reasons':['stop']}}
+    monkeypatch.setattr('pacbench.direct_accounting.live_budget',lambda:SimpleNamespace(snapshot=lambda:[good]))
     stages=[]
     class Client:
         def upload_temp_file(self,path):return 'native-upload'
@@ -144,7 +150,7 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
         expected+=['observer']
         if snapshot_race:expected+=['/api/v1/system/wait','background-completed','observer']
     assert stages==expected+['shutdown']
-    assert value['completion_protocol']=='openviking-global-import-readiness-v3'
+    assert value['completion_protocol']=='openviking-global-import-readiness-v4'
     from pacbench.document_audit import audit_openviking_receipt
     assert bool(audit_openviking_receipt(value)) is (global_error or artifact_failure)
 
@@ -153,7 +159,7 @@ def test_openviking_global_protocol_requires_its_native_witness():
     from pacbench.document_audit import audit_openviking_receipt
     value={'result':{'result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
         'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}},
-        'completion_protocol':'openviking-global-import-readiness-v3'}
+        'completion_protocol':'openviking-global-import-readiness-v4'}
     assert audit_openviking_receipt(value)==['OpenViking global processing completion is unproven']
 
 
@@ -518,3 +524,28 @@ def test_openviking_placeholder_check_is_read_only_and_rejects_absent_artifacts(
     before=p.read_bytes();result=openviking_generated_artifacts(tmp_path)
     assert result['state']=='incomplete' and result['files'][0]['failed_placeholder'] is True
     assert p.read_bytes()==before
+
+
+@pytest.mark.parametrize('damage',['none','empty','length','incomplete','error','unobserved'])
+def test_openviking_response_completion_does_not_follow_billing_or_queue_health(damage):
+    from pacbench.document_audit import openviking_response_evidence
+    row={'id':'native','state':'settled','http_status':200,'response_validation':{'body_complete':True,
+        'envelope_errors':[],'assistant_nonwhitespace_characters':15,'finish_reasons':['stop']}}
+    v=row['response_validation']
+    if damage=='empty':v['assistant_nonwhitespace_characters']=0
+    if damage=='length':v['finish_reasons']=['length']
+    if damage=='incomplete':v['body_complete']=False
+    if damage=='error':v['envelope_errors']=[{'code':504}]
+    if damage=='unobserved':row.pop('response_validation')
+    assert (openviking_response_evidence([row])['state']=='complete') is (damage=='none')
+
+
+@pytest.mark.parametrize('marker',[
+    'Failed to generate summary for','VLM not available, using empty summary',
+    'Failed to generate partial overview batch','Failed to merge partial overviews',
+    'Failed to generate overview for','Failed to dispatch directory'])
+def test_openviking_native_silent_leaf_partial_and_merge_failures_are_not_ready(tmp_path,marker):
+    from pacbench.document_audit import openviking_failure_log
+    p=tmp_path/'server.log';p.write_text('Native queue healthy\nERROR '+marker+' native resource\n')
+    check=openviking_failure_log(p)
+    assert check['state']=='incomplete' and check['failures']==[{'line':2,'marker':marker}]

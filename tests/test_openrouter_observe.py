@@ -15,9 +15,13 @@ def test_generation_observation_is_read_only_free_and_identity_bound(tmp_path,mo
         else:payload={'data':{'id':'gen-one','model':'canonical','provider_name':'DeepInfra','native_tokens_reasoning':9}}
         yield StringIO(json.dumps(payload))
     monkeypatch.setattr(observe,'urlopen',opened)
-    r=observe.collect([{'id':'row','upstream_request_id':'gen-one'},{'id':'unknown'}],tmp_path,interval=0)
+    r=observe.collect([{'id':'row','upstream_request_id':'gen-one'},{'id':'header','response_diagnostic_headers':{'x-generation-id':'gen-one'}},{'id':'conflict','upstream_request_id':'gen-wrong','response_diagnostic_headers':{'x-generation-id':'gen-one'}},{'id':'unknown'}],tmp_path,interval=0)
     assert r['paid_model_calls']==r['ledger_mutations']==0
     assert r['items']['row']['state']=='observed' and r['items']['unknown']['state']=='missing-generation-id'
+    assert r['items']['header']['state']=='observed'
+    assert r['items']['header']['identifier_source']=='response-header:x-generation-id'
+    assert r['items']['conflict']['state']=='conflicting-generation-ids'
+    assert not any('gen-wrong' in url for url in calls)
     assert all(urlsplit(u).path in ['/api/v1/models','/api/v1/generation'] for u in calls)
     assert 'private-unit-secret' not in (tmp_path/'index.json').read_text()
     assert (tmp_path/'index.json').stat().st_mode & 0o777==0o600

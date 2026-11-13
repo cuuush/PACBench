@@ -6,6 +6,7 @@ from urllib.request import Request,urlopen
 from urllib.parse import urlencode
 from urllib.error import HTTPError
 from .openrouter_route import MODEL
+from .direct_accounting import observed_generation_id
 
 
 def collect(rows,folder,*,concurrency=4,interval=.25):
@@ -15,8 +16,10 @@ def collect(rows,folder,*,concurrency=4,interval=.25):
     key=os.environ['OPENROUTER_API_KEY'];lock=threading.Lock();next_at=0.;halt=threading.Event()
     def observe(row):
         nonlocal next_at
-        identifier=row.get('upstream_request_id')
-        if not identifier:return row['id'],{'state':'missing-generation-id'}
+        try:identifier,identifier_source=observed_generation_id(row)
+        except ValueError:
+            state='conflicting-generation-ids' if row.get('upstream_request_id') and row.get('response_diagnostic_headers',{}).get('x-generation-id') else 'missing-generation-id'
+            return row['id'],{'state':state}
         path=folder/(row['id']+'.json')
         if path.exists():data=json.loads(path.read_text())
         else:
@@ -31,10 +34,10 @@ def collect(rows,folder,*,concurrency=4,interval=.25):
             except Exception as exc:
                 status=exc.code if isinstance(exc,HTTPError) else None
                 if status in (401,403,429):halt.set()
-                return row['id'],{'state':'unavailable','error_class':type(exc).__name__,'http_status':status}
+                return row['id'],{'state':'unavailable','error_class':type(exc).__name__,'http_status':status,'identifier_source':identifier_source}
         if data.get('id')!=identifier or data.get('model') not in {MODEL,model.get('canonical_slug')} or data.get('provider_name')!='DeepInfra':
             return row['id'],{'state':'identity-mismatch'}
-        return row['id'],{'state':'observed','generation':{k:v for k,v in data.items() if k in ('id','model','provider_name','created_at','latency','generation_time','moderation_latency','native_tokens_prompt','native_tokens_completion','native_tokens_reasoning','native_tokens_cached','tokens_prompt','tokens_completion','finish_reason','cancelled','total_cost','usage')}}
+        return row['id'],{'state':'observed','identifier_source':identifier_source,'generation':{k:v for k,v in data.items() if k in ('id','model','provider_name','created_at','latency','generation_time','moderation_latency','native_tokens_prompt','native_tokens_completion','native_tokens_reasoning','native_tokens_cached','tokens_prompt','tokens_completion','finish_reason','cancelled','total_cost','usage')}}
     results={}
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         pending=[pool.submit(observe,row) for row in rows]

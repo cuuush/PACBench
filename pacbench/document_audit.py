@@ -105,11 +105,38 @@ def openviking_generated_artifacts(workspace):
         for path in sorted((Path(workspace)/'viking').rglob(name)):
             body=path.read_bytes()
             failed=any(marker in body for marker in (
-                b'[Directory overview is not generated]',b'[Directory overview is not ready]'))
+                b'[Directory overview is not generated]',b'[Directory overview is not ready]',b'[Directory abstract is not ready]'))
             files.append({'path':str(path.relative_to(workspace)),
                 'sha256':hashlib.sha256(body).hexdigest(),'failed_placeholder':failed})
     return {'state':'complete' if files and not any(f['failed_placeholder'] for f in files) else 'incomplete',
         'files':files,'scope':'Native generated summary artifacts read without alteration; queue health alone can conceal model failures.'}
+
+
+OPENVIKING_FAILURE_MARKERS=(
+    'Failed to generate summary for','VLM not available, using empty summary',
+    'Failed to generate partial overview batch','Failed to merge partial overviews',
+    'Failed to generate overview for','Failed to dispatch directory')
+
+
+def openviking_failure_log(path):
+    path=Path(path)
+    if not path.is_file():return {'state':'unproven','failures':[]}
+    failures=[{'line':i+1,'marker':marker} for i,line in enumerate(path.read_text(errors='replace').splitlines())
+              for marker in OPENVIKING_FAILURE_MARKERS if marker in line]
+    return {'state':'incomplete' if failures else 'complete','failures':failures,
+        'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
+
+
+def openviking_response_evidence(rows):
+    results=[]
+    for row in rows:
+        v=row.get('response_validation') or {}
+        valid=(row.get('http_status')==200 and v.get('body_complete') is True
+            and v.get('envelope_errors')==[] and v.get('assistant_nonwhitespace_characters',0)>0
+            and v.get('finish_reasons')==['stop'])
+        results.append({'id':row['id'],'complete':valid,'response_validation':v})
+    return {'state':'complete' if results and all(r['complete'] for r in results) else 'incomplete',
+        'requests':results,'scope':'Every request in the isolated import; native recovery would need separately reviewed evidence.'}
 
 
 def audit_openviking_receipt(result):
@@ -123,7 +150,7 @@ def audit_openviking_receipt(result):
     if result.get('completion_protocol') is not None:
         global_value=result.get('native_global_queue_completion') or {}
         global_queues=global_value.get('result')
-        if (result['completion_protocol']!='openviking-global-import-readiness-v3'
+        if (result['completion_protocol']!='openviking-global-import-readiness-v4'
                 or global_value.get('status')!='ok' or not isinstance(global_queues,dict)
                 or not global_queues or any(not isinstance(q,dict) or q.get('error_count')!=0
                     or q.get('errors')!=[] for q in global_queues.values())
@@ -135,6 +162,12 @@ def audit_openviking_receipt(result):
                 or any(not isinstance(f,dict) or f.get('failed_placeholder') is not False
                     or not f.get('sha256') or not f.get('path') for f in files)):
             return ['OpenViking generated summaries contain unresolved processing failures']
+        log=result.get('native_failure_log_check') or {}
+        responses=result.get('native_model_response_check') or {}
+        if (log.get('state')!='complete' or log.get('failures')!=[]
+                or responses.get('state')!='complete' or not responses.get('requests')
+                or any(r.get('complete') is not True for r in responses['requests'])):
+            return ['OpenViking model/subtask completion is unproven']
     return []
 
 

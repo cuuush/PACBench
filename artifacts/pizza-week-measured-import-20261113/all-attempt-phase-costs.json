@@ -2736,6 +2736,82 @@
         "requests_missing_generation_reasoning_counts": 3,
         "requests_missing_generation_cached_counts": 3
       }
+    },
+    {
+      "attempt": "pizza-week-measured-openviking-verified-20261113/openviking@2df429b7b697",
+      "provider": "openviking",
+      "mode": "native-import-validation",
+      "recorded_state": "incomplete",
+      "attempt_kind": "import_qualification",
+      "retry": false,
+      "processing_completeness": "See import qualification evidence; stale running summaries do not prove live work",
+      "phases": {
+        "import_processing": {
+          "requests": 3,
+          "settled_requests": 0,
+          "actual_reported_usd": "0",
+          "unresolved_requests": 3,
+          "unresolved_bound_usd": "0.5240782848",
+          "observed_input_tokens": 0,
+          "observed_output_tokens": 0,
+          "requests_missing_token_counts": 3,
+          "observed_generation_reasoning_tokens": 0,
+          "observed_generation_cached_tokens": 0,
+          "requests_missing_generation_reasoning_counts": 3,
+          "requests_missing_generation_cached_counts": 3
+        },
+        "answering_retrieval": {
+          "requests": 0,
+          "settled_requests": 0,
+          "actual_reported_usd": "0",
+          "unresolved_requests": 0,
+          "unresolved_bound_usd": "0",
+          "observed_input_tokens": 0,
+          "observed_output_tokens": 0,
+          "requests_missing_token_counts": 0,
+          "observed_generation_reasoning_tokens": 0,
+          "observed_generation_cached_tokens": 0,
+          "requests_missing_generation_reasoning_counts": 0,
+          "requests_missing_generation_cached_counts": 0
+        },
+        "provider_background_or_ambiguous": {
+          "requests": 0,
+          "settled_requests": 0,
+          "actual_reported_usd": "0",
+          "unresolved_requests": 0,
+          "unresolved_bound_usd": "0",
+          "observed_input_tokens": 0,
+          "observed_output_tokens": 0,
+          "requests_missing_token_counts": 0,
+          "observed_generation_reasoning_tokens": 0,
+          "observed_generation_cached_tokens": 0,
+          "requests_missing_generation_reasoning_counts": 0,
+          "requests_missing_generation_cached_counts": 0
+        }
+      },
+      "score": {
+        "graded_questions": 0,
+        "total_questions": 37,
+        "initial_correct_criteria": 0,
+        "graded_criteria": 0,
+        "total_criteria": 155,
+        "retention_points": 0,
+        "complete": false
+      },
+      "total": {
+        "requests": 3,
+        "settled_requests": 0,
+        "actual_reported_usd": "0",
+        "unresolved_requests": 3,
+        "unresolved_bound_usd": "0.5240782848",
+        "observed_input_tokens": 0,
+        "observed_output_tokens": 0,
+        "requests_missing_token_counts": 3,
+        "observed_generation_reasoning_tokens": 0,
+        "observed_generation_cached_tokens": 0,
+        "requests_missing_generation_reasoning_counts": 3,
+        "requests_missing_generation_cached_counts": 3
+      }
     }
   ],
   "shared_judging": {
@@ -2767,18 +2843,18 @@
     "requests_missing_generation_cached_counts": 0
   },
   "all_in_scope": {
-    "requests": 1548,
+    "requests": 1551,
     "settled_requests": 1483,
     "actual_reported_usd": "0.858926312520",
-    "unresolved_requests": 65,
-    "unresolved_bound_usd": "9.4757137664",
+    "unresolved_requests": 68,
+    "unresolved_bound_usd": "9.9997920512",
     "observed_input_tokens": 10782835,
     "observed_output_tokens": 2339887,
-    "requests_missing_token_counts": 65,
+    "requests_missing_token_counts": 68,
     "observed_generation_reasoning_tokens": 1822177,
     "observed_generation_cached_tokens": 6994944,
-    "requests_missing_generation_reasoning_counts": 101,
-    "requests_missing_generation_cached_counts": 101
+    "requests_missing_generation_reasoning_counts": 104,
+    "requests_missing_generation_cached_counts": 104
   },
   "attribution": "Memory call phases use IDs observed at request start in import/turn receipts. Background calls without a unique observation remain separate. Driver projects identify answering. Shared judge calls are counted once and are not assigned to providers because concurrent receipt windows overlap.",
   "excludes": [
@@ -2801,6 +2877,6 @@
     "requests_missing_generation_reasoning_counts": 1601,
     "requests_missing_generation_cached_counts": 1601
   },
-  "shared_cap_accounted_usd": "18.812025007432",
+  "shared_cap_accounted_usd": "19.336103292232",
   "token_detail_scope": "Generation reasoning counts are subsets of completion counts. Missing details remain unknown. Imported fact counts are not comparable across architectures."
 }

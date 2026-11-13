@@ -27,5 +27,67 @@
   ],
   "action": "Stopped entire isolated retest, preserved store and all outstanding bounds; queues alone cannot qualify import. Added read-only generated-summary placeholder check before a new affected-provider-only attempt.",
   "model_settings_changed": false,
-  "cleanup": "verified-inventory-stopped; zero surviving owned processes or containers"
+  "cleanup": "verified-inventory-stopped; zero surviving owned processes or containers",
+  "fresh_retry": {
+    "attempt": "pizza-week-measured-openviking-verified-20261113",
+    "state": "incomplete-upstream-timeouts",
+    "calls": [
+      {
+        "id": "acdacdc0-0057-4658-851f-8ea0e6a8e57b",
+        "generation_id": "gen-1794608629-bnlVxfpXJRRGuv4ZyFYR",
+        "duration_s": 301.971115,
+        "http_status": 200,
+        "error": {
+          "message": "A Timeout Occurred",
+          "code": 504,
+          "metadata": {
+            "error_type": "timeout"
+          }
+        },
+        "body_complete": true,
+        "body_sha256": "844caeea4c5e5a92748118b14a3ea72e3635a49afb023919b4212714dad835c7",
+        "unresolved_bound_usd": "0.1746927616",
+        "generation_lookup_status": 404
+      },
+      {
+        "id": "adffb045-2547-4811-80f4-897673a002b2",
+        "generation_id": "gen-1794608629-f6dgLY5W2f3B1xG30rzF",
+        "duration_s": 301.321936,
+        "http_status": 200,
+        "error": {
+          "message": "A Timeout Occurred",
+          "code": 504,
+          "metadata": {
+            "error_type": "timeout"
+          }
+        },
+        "body_complete": true,
+        "body_sha256": "0803072c5b2b5fbe94a133a67e49d7a6c35c1c362990b30662d07a2588720c6e",
+        "unresolved_bound_usd": "0.1746927616",
+        "generation_lookup_status": 404
+      },
+      {
+        "id": "f6269442-065f-4138-882d-f7745c8b0415",
+        "generation_id": "gen-1794608629-pIrrJTdWJTFn21j6lSWj",
+        "duration_s": 300.766107,
+        "http_status": 200,
+        "error": {
+          "message": "A Timeout Occurred",
+          "code": 504,
+          "metadata": {
+            "error_type": "timeout"
+          }
+        },
+        "body_complete": true,
+        "body_sha256": "6928415141ae1876aa6f5dbebafbf32cdfc656169eeef45343b0b2ddfaec65b7",
+        "unresolved_bound_usd": "0.1746927616",
+        "generation_lookup_status": 404
+      }
+    ],
+    "cleanup": "verified-inventory-stopped; zero remaining processes/containers",
+    "benchmark_questions_sent": 0,
+    "termination": "Native import failed and lifecycle verified cleanup; STOP also requested. No subsequent calls were launched."
+  },
+  "v4_guard": "Read-only native failure-log and artifact checks plus request-bound response-completion evidence; reject silent leaf/partial/merge fallbacks, empty content, truncation and error envelopes. Offline validated; no live successful V4 qualification yet.",
+  "no_more_paid_retries": "The selected route has repeatedly timed out; preserving $20 cap and all unknown holds. Free catalog succeeds but proves no live capacity; generation lookups404 leave cost unknown."
 }

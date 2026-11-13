@@ -26,7 +26,7 @@ def report(calls,components):
         for arm in sorted((component/'repeat-1').iterdir()):
             if not arm.is_dir():continue
             provider=arm.name;run=hashlib.sha256(str(arm).encode()).hexdigest()[:12]
-            record={'attempt':component.parent.name+'/'+provider,'provider':provider,
+            record={'attempt':component.parent.name+'/'+provider+'@'+run,'provider':provider,
                 'mode':summary.get('mode'),'recorded_state':summary['state'],
                 'attempt_kind':('import_qualification' if summary.get('mode')=='native-import-validation' else 'benchmark_attempt'),
                 'retry':('retry' in component.parent.name or 'fixed' in component.parent.name),

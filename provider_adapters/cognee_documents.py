@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import sys
+import time
+from .cognee_completion import pipeline_rows, completed, require_idle
 
 from provider_adapters.cognee_local import qualify_incremental_document
 from provider_adapters.reme_memos_documents import document
@@ -30,8 +32,18 @@ def ingest(source, root):
         from uuid import UUID
         identifier=str(UUID(dataset_id))
         return backend._request('GET',f'/api/v1/datasets/{identifier}/processing-status?pipeline=cognify_pipeline',timeout=timeout)
+    before=pipeline_rows(root)
+    require_idle(before)
+    prior_ids={r['id'] for r in before}
+    deadline=time.monotonic()+1800
     result = qualify_incremental_document(backend, service_url=config['service_url'],
-        dataset=config['dataset'], text=text, prior=prior, processing_status=processing_status, timeout=600)
+        dataset=config['dataset'], text=text, prior=prior, processing_status=processing_status, timeout=1800)
+    while True:
+        rows=pipeline_rows(root)
+        if completed(rows,prior_ids):break
+        if time.monotonic()>=deadline:raise RuntimeError('Native automatic improve did not finish; import remains incomplete')
+        time.sleep(1)
+    result['native_operation_completion']={'state':'pass','rows':[r for r in rows if r['id'] not in prior_ids]}
     return {**result, 'ready': result['processing_complete'],
             'interface': 'Native Cognee remember_permanent /api/v1/remember',
             'ingestion_condition': 'native-document-extraction-v1',

@@ -198,6 +198,8 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
     if timeout_s is None:
         timeout_s=PROCESSING_TIMEOUT_S  # One nightly batch may contain several real conversations.
+        if provider=='cognee':
+            timeout_s=1830  # Cognify and native automatic improve must both finish.
         if provider=='hindsight':
             # Retain plus native consolidation can outlast the generic batch
             # watchdog during upstream retries. Completion remains mandatory;

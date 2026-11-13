@@ -290,6 +290,9 @@ session during this handoff.
 
 Failed-arm retries use a new output directory and `--providers`, for example
 `python scripts/run_reviewed_week_cohort.py --providers mem0 hindsight honcho --output runs/week-retry --concurrency 3`.
+The launcher supports 1–9 concurrent arms (`--concurrency 8` for eight remaining
+providers); each keeps isolated native stores and shares the same atomic spending
+ledger. Concurrent trials do not support latency rankings.
 Preserve successful original arms and select replacements explicitly when
 publishing; do not copy failed stores into a fresh attempt.
 The reviewed retry launcher gives the benchmark judge a 600-second HTTP wall

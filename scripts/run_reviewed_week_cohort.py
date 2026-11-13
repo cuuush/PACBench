@@ -15,7 +15,7 @@ from pacbench.followups import digest
 import argparse
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
-parser.add_argument('--concurrency',type=int,choices=(1,2,3),default=3)
+parser.add_argument('--concurrency',type=int,choices=range(1,10),default=3)
 ALL_PROVIDERS=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
 parser.add_argument('--providers',nargs='+',choices=ALL_PROVIDERS,default=ALL_PROVIDERS,
     help='Run only these arms in fresh stores; retain completed arms from earlier cohorts')

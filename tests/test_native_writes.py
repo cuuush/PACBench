@@ -159,12 +159,13 @@ def test_supermemory_all_required_instructions_must_be_captured():
 
 
 def test_supermemory_v2_audit_rejects_status_only_capture_proof():
-    from pacbench.native_writes import VERSION,write_inputs,ready_proof
+    from pacbench.native_writes import write_inputs,ready_proof
     from pacbench.followups import digest
     turn={'session_id':'required','prompt':'Move it to Sunday','tool_results':[]}
-    bound={'dependencies':['edit'],'inputs':write_inputs([turn],'supermemory'),'turn_hashes':[digest(turn)]}
+    version='accepted-native-writes-v2'
+    bound={'dependencies':['edit'],'inputs':write_inputs([turn],'supermemory',version),'turn_hashes':[digest(turn)]}
     state={'id':'native-doc','status':'done','dreaming_status':'done'}
-    record={'version':VERSION,'binding':digest(bound),**bound,'state':'ready',
+    record={'version':version,'binding':digest(bound),**bound,'state':'ready',
             'observed':{'ready':True,'processing_overrides':False,'snapshots':[[state]]}}
     assert not ready_proof(record,bound)
     state['verified_inputs']=[digest(bound['inputs']['captures'][0])]
@@ -236,3 +237,135 @@ def test_honcho_requires_actual_captured_user_input_enrollment_and_success(monke
     assert all(r.get_method() in {'GET','POST'} for r in calls)
     assert all(r.get_method()=='GET' or '/messages/list?' in r.full_url for r in calls)
     assert result[0]['hermes_session']=='hermes-id'
+
+
+@pytest.mark.parametrize('mode',['done','stale-assistant','duplicate-pair','wrong-document'])
+def test_v3_supermemory_explicit_write_never_suppresses_final_capture(mode):
+    def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
+    metadata={'type':'conversation','session_id':'required'}
+    listing=Mock(return_value=model({'documents':[{'id':'conversation','metadata':metadata}],
+        'pagination':{'current_page':1,'total_pages':1}}))
+    content='[role: user]\nMove it\n[user:end]\n[role: assistant]\n'+('Old answer' if mode=='stale-assistant' else 'Moved.')+'\n[assistant:end]'
+    def get(namespace,id):
+        return model({'id':id,'metadata':metadata if id=='conversation' else {},'content':content,
+            'system':{'status':'done','dreamingStatus':'done'}})
+    client=SimpleNamespace(list=listing,documents=SimpleNamespace(get=get))
+    capture={'session':'required','user':'Move it','assistant':'Moved.','binding':'actual-turn',
+             'document_id':'other' if mode=='wrong-document' else 'conversation'}
+    captures=[capture,capture] if mode=='duplicate-pair' else [capture]
+    states=supermemory_status(client,'native-tag',['explicit'],['required'],captures)
+    listing.assert_called_once()
+    assert any(s['id']=='explicit' for s in states)
+    assert complete('supermemory',states)==(mode=='done',False)
+
+
+@pytest.mark.parametrize('mode',['done','assistant-pending','not-enrolled','user-only','explicit-missing','duplicate-turn'])
+def test_v3_honcho_binds_both_sides_and_causal_processing_without_requiring_new_facts(monkeypatch,mode):
+    import io
+    from pacbench.native_writes import honcho_status
+    messages=[{'id':'u','peer_id':'user','content':'Move it'}, {'id':'a','peer_id':'hermes','content':'Moved.'}]
+    if mode=='user-only':messages.pop()
+    conclusion={'id':'explicit','content':'Moved','session_id':'native','observer_id':'hermes','observed_id':'user'}
+    def read(request,**kwargs):
+        value={'items':([] if mode=='explicit-missing' else [conclusion]) if '/conclusions/list?' in request.full_url else messages,'page':1,'pages':1}
+        return io.BytesIO(json.dumps(value).encode())
+    monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',read)
+    chunks=[{'peer':'user','content':'Move it'},{'peer':'hermes','content':'Moved.'}]
+    captures=[{'binding':'input','chunks':chunks}]
+    bindings=['input']
+    if mode=='duplicate-turn':captures.append(captures[0]);bindings.append('input')
+    expected={'hermes_session':'real','hashes':[],'input_bindings':bindings,'capture_chunks':captures,
+        'conclusions':[{'content':'Moved','observer_id':'hermes','observed_id':'user','input_binding':'input'}]}
+    work=[{'id':i,'task_type':'representation','session_name':'native','message_id':mid,
+        'processed':not(mode=='assistant-pending' and mid=='a'),'native_error':False} for i,mid in enumerate(['u','a'])]
+    if mode=='not-enrolled':work=[]
+    processing={'messages':[{'public_id':mid,'session_name':'native','peer_name':peer,'seq_in_session':i}
+        for i,(mid,peer) in enumerate([('u','user'),('a','hermes')])], 'queue':work}
+    states=honcho_status('http://127.0.0.1:1234','workspace','user',{'native':expected},lambda:[],
+        read_processing=lambda:processing,witnesses={})
+    assert complete('honcho',states)==(mode=='done',False)
+    if mode=='done':
+        assert states[0]['captured_ids']==['u','a'] and states[0]['conclusion_ids']==['explicit']
+        assert states[0]['explicit_writes_verified']
+
+
+def test_v3_honcho_retains_observed_success_when_native_cleanup_removes_queue_row(monkeypatch):
+    import io
+    from pacbench.native_writes import honcho_status
+    messages=[{'id':'u','content':'Update','peer_id':'user'}]
+    monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',lambda *a,**k:io.BytesIO(json.dumps({'items':messages,'page':1,'pages':1}).encode()))
+    expected={'hermes_session':'real','input_bindings':['input'],'conclusions':[],
+        'capture_chunks':[{'binding':'input','chunks':[{'peer':'user','content':'Update'}]}]}
+    processing={'messages':[{'public_id':'u','session_name':'native','peer_name':'user','seq_in_session':0}],
+        'queue':[{'id':7,'task_type':'representation','session_name':'native','message_id':'u','processed':True,'native_error':False}]}
+    retained={}
+    first=honcho_status('http://127.0.0.1:1234','workspace','user',{'native':expected},lambda:[],read_processing=lambda:processing,witnesses=retained)
+    assert complete('honcho',first)==(True,False)
+    processing['queue']=[]
+    later=honcho_status('http://127.0.0.1:1234','workspace','user',{'native':expected},lambda:[],read_processing=lambda:processing,witnesses=retained)
+    assert complete('honcho',later)==(True,False)
+
+
+def test_v3_supermemory_audit_replays_exact_final_pair_and_rejects_deleted_assistant():
+    from copy import deepcopy
+    from pacbench.native_writes import VERSION,write_inputs,ready_proof
+    from pacbench.followups import digest
+    turn={'session_id':'session','prompt':'Move it','answer':'Moved.'}
+    inputs=write_inputs([turn],'supermemory')
+    capture=inputs['captures'][0]
+    inputs['capture_description']={'provider':'supermemory','captures':[{'binding':digest(capture),'session':'session',
+        'document_id':'conversation','user':'Move it','assistant':'Moved.'}]}
+    bound={'dependencies':['edit'],'inputs':inputs,'turn_hashes':[digest(turn)]}
+    state={'id':'conversation','status':'done','dreaming_status':'done','verified_inputs':[digest(capture)],
+        'capture_document':{'id':'conversation','metadata':{'session_id':'session','type':'conversation'},
+            'content':'[role: user]\nMove it\n[user:end]\n[role: assistant]\nMoved.\n[assistant:end]'}}
+    record={'version':VERSION,'binding':digest(bound),**bound,'state':'ready',
+        'observed':{'ready':True,'processing_overrides':False,'snapshots':[[state]]}}
+    assert ready_proof(record,bound)
+    state['capture_document']['content']='[role: user]\nMove it\n[user:end]'
+    assert not ready_proof(record,bound)
+
+
+def test_v3_honcho_cannot_pair_user_with_later_turn_assistant(monkeypatch):
+    import io
+    from pacbench.native_writes import honcho_status
+    messages=[{'id':mid,'peer_id':peer,'content':text} for mid,peer,text in [
+        ('u1','user','First'),('u2','user','Second'),('a2','hermes','Done')]]
+    monkeypatch.setattr('pacbench.native_writes.urllib.request.urlopen',lambda *a,**k:io.BytesIO(json.dumps({'items':messages,'page':1,'pages':1}).encode()))
+    expected={'hermes_session':'real','input_bindings':['first'],'conclusions':[],
+        'capture_chunks':[{'binding':'first','chunks':[{'peer':'user','content':'First'},{'peer':'hermes','content':'Done'}]}]}
+    processing={'messages':[{'public_id':m['id'],'peer_name':m['peer_id'],'session_name':'native','seq_in_session':i} for i,m in enumerate(messages)],
+        'queue':[{'id':i,'task_type':'representation','session_name':'native','message_id':m['id'],'processed':True,'native_error':False} for i,m in enumerate(messages)]}
+    states=honcho_status('http://127.0.0.1:1234','workspace','user',{'native':expected},lambda:[],read_processing=lambda:processing)
+    assert not states[0]['captures_verified'] and complete('honcho',states)==(False,False)
+
+
+@pytest.mark.parametrize('mode',['done','drop-assistant','wrong-queue-session','reordered-turn'])
+def test_v3_honcho_audit_checks_every_chunk_and_cross_turn_sequence(mode):
+    import hashlib
+    from pacbench.native_writes import VERSION,write_inputs,ready_proof
+    from pacbench.followups import digest
+    turns=[{'session_id':'real','prompt':f'Update {i}','answer':f'Done {i}'} for i in range(2)]
+    inputs=write_inputs(turns,'honcho');descriptions=[];witnesses=[];work=[];ids=[]
+    for i,capture in enumerate(inputs['captures']):
+        chunks=[{'peer':peer,'content':capture[key]} for peer,key in [('user','prompt'),('hermes','answer')]]
+        descriptions.append({'binding':digest(capture),'session':'native','chunks':chunks})
+        observed=[]
+        for j,chunk in enumerate(chunks):
+            mid=f'm{i}-{j}';ids.append(mid)
+            observed.append({'id':mid,'peer':chunk['peer'],'sequence':i*2+j,
+                'text_sha256':hashlib.sha256(chunk['content'].encode()).hexdigest()})
+            work.append({'id':i*2+j,'session_name':'native','task_type':'representation','message_id':mid,'processed':True,'native_error':False})
+        witnesses.append({'binding':digest(capture),'session':'native','chunks':observed})
+    inputs['capture_description']={'provider':'honcho','owner':'user','assistant':'hermes','captures':descriptions}
+    state={'id':'native','hermes_session':'real','status':'completed','native_error':False,
+        'verified_inputs':[digest(c) for c in inputs['captures']],'captures_verified':True,'captured_ids':ids,
+        'capture_witnesses':witnesses,'processing_witnesses':work,'explicit_writes_verified':True,'conclusion_ids':[]}
+    if mode=='drop-assistant':state['captured_ids'].pop()
+    if mode=='wrong-queue-session':work[-1]['session_name']='other'
+    if mode=='reordered-turn':
+        for j,chunk in enumerate(witnesses[1]['chunks']):chunk['sequence']=j
+    bound={'dependencies':['first','second'],'inputs':inputs,'turn_hashes':[digest(t) for t in turns]}
+    record={'version':VERSION,'binding':digest(bound),**bound,'state':'ready',
+        'observed':{'ready':True,'processing_overrides':False,'snapshots':[[state]]}}
+    assert ready_proof(record,bound) is (mode=='done')

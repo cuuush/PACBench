@@ -50,6 +50,41 @@ def check_operator_condition(root):
     raise OperatorConditionHold('Honcho held by run-owned operator condition; native setup withheld')
 
 
+def processing_snapshot(root,workspace,sessions):
+    """Read causal message/queue telemetry from this run's native database."""
+    settings=json.loads((root/'native-processing-settings.json').read_text())
+    if settings.get('multi_tenant') is not False:
+        raise ValueError('Native single-tenant processing condition is unverified')
+    identity=hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
+    def literal(value):return "'"+str(value).replace("'","''")+"'"
+    names=','.join(literal(s) for s in sessions)
+    if not names:raise ValueError('No native sessions for processing observation')
+    workspace=literal(workspace)
+    sql=f"""SELECT json_build_object(
+        'messages',(SELECT COALESCE(json_agg(m),'[]'::json) FROM (
+            SELECT public_id,session_name,peer_name,seq_in_session
+            FROM messages WHERE workspace_name={workspace} AND session_name IN ({names})
+            AND deleted_at IS NULL ORDER BY session_name,seq_in_session) m),
+        'queue',(SELECT COALESCE(json_agg(t),'[]'::json) FROM (
+            SELECT q.id,q.task_type,q.processed,(q.error IS NOT NULL) AS native_error,
+                   s.name AS session_name,m.public_id AS message_id
+            FROM queue q LEFT JOIN sessions s ON s.id=q.session_id
+                AND s.workspace_name=q.workspace_name
+                AND (q.tenant_id IS NULL OR q.tenant_id=s.tenant_id)
+            LEFT JOIN messages m ON m.id=q.message_id AND m.tenant_id=s.tenant_id
+                AND m.workspace_name=s.workspace_name AND m.session_name=s.name
+            WHERE q.workspace_name={workspace} AND
+                ((s.name IN ({names}) AND q.task_type IN ('representation','summary'))
+                 OR q.task_type='dream') ORDER BY q.id) t))"""
+    env={k:v for k,v in os.environ.items() if k not in {
+        'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+    p=subprocess.run(['docker','--host=unix:///var/run/docker.sock','exec',
+        'pacbench-honcho-db-'+identity,'psql','-U','postgres','-d','postgres',
+        '-X','-t','-A','-c',sql],env=env,capture_output=True,text=True,timeout=15)
+    if p.returncode:raise RuntimeError('Native Honcho processing telemetry unavailable')
+    return json.loads(p.stdout)
+
+
 def queue_errors(root, *, include_all=False):
     """Observe failed native work without changing the provider or its queue.
 
@@ -212,6 +247,7 @@ assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT
 deriver_limit=settings.DERIVER.MODEL_CONFIG.max_output_tokens
 deriver_thinking=settings.DERIVER.MODEL_CONFIG.thinking_effort
 print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_thinking is None,
+                 'multi_tenant':settings.MULTI_TENANT,
                  'native_batching_defaults_verified':True,
                  'deriver_max_output_tokens':deriver_limit,'deriver_thinking_effort':deriver_thinking,
                  'deriver':processing,

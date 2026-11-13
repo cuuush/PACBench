@@ -221,3 +221,69 @@ Each new cohort needs fresh native processing, context injection and tool checks
 Fresh homes disable lazy installs after verified plugin installation. Service
 readiness and dependent-write processing receipts remain required; version
 updates never imply successful ingestion or recall.
+
+## Rebuild this cohort in another session
+
+Runtime directories above are ignored installations and are not carried by a Git
+clone. Rebuild them from the recorded releases; do not copy private provider
+homes, model credentials or old trial stores. Code and the frozen Week are on
+`upgrade/stable-providers-20261113`; use a reviewed full commit, then follow the
+existing Hermes lock/patch commands above. The source inventory is
+`artifacts/provider-stable-upgrade-20261113/installed-components.json`.
+
+The qualified Linux x86-64 interpreters were Python 3.14.9 for Hermes, 3.13.5 for
+Honcho, and 3.12.14 for Hindsight/OpenViking/Cognee/ReMe. Preserve separate venvs.
+Install the following without starting model work:
+
+- Clone Hermes at `vendor/HERMES_PIN`, apply `patches/hermes-isolated.diff`, sync
+  its locked `all` extra into `vendor/venv-hermes-isolated`, then install the
+  extra client requirements and clean Memcal 0.8.11 checkout described above.
+- Provision `vendor/venv-hindsight` with official CPU PyTorch and
+  `hindsight-all==1.2.1`; `vendor/venv-openviking` with `openviking==0.5.4.1`;
+  and `vendor/venv-cognee` with `cognee==1.6.8`. The installed ReMe runtime used
+  `agentscope==2.0.11` as well as the stable ReMe core extra.
+- Clone `plastic-labs/honcho` at
+  `70c67624169683b9e265517aec95a51b8077cabc` into `vendor/honcho-local` and
+  `uv sync --frozen --no-dev` with Python 3.13.5. PostgreSQL used
+  `pgvector/pgvector@sha256:88164492558c9773a1e17a8305abaca7863e05b3d8bbcdb792774890a2047e06`.
+- Clone `agentscope-ai/ReMe` at
+  `36c23674ad8c599dae20b0687af40acd8ecb990e` into `vendor/reme`, and install
+  its `core` extra into `vendor/venv-reme`. Clone `topoteretes/cognee-integrations`
+  at `a176248914fdb32a78354854b300174203b15a5c` into `vendor/cognee-integrations`.
+  Native plugin setup is performed by the existing adapters in fresh run homes.
+- Download the official Supermemory `server-v0.0.9` release asset
+  `supermemory-server-linux-x64` into `vendor/supermemory-local`, verify SHA-256
+  `d7987ecbf2b024c6de9d167becbcfcaabce447169b41d6f56db86f87d5187984`, mark it
+  executable, and retain an `installation.json` matching the inventory record.
+  Install MemOS's verified npm archive and dependencies as described above.
+- The original machine used Node 24.22.1, uv 0.13.5 and Ollama 0.40.16. Provision
+  local `nomic-embed-text` at `127.0.0.1:11435`; its observed model digest was
+  `0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f`.
+  Check an actual 768-dimensional embedding before initializing providers.
+- Build `vendor/libfaketime/install-runtime-v4.sh` using its pinned container and
+  verify the library digest in `BUILD.md`. Install the hash-pinned Python clock
+  wheels with `vendor/python-clock/install-runtime.py` into the selected existing
+  Python venvs. Keep TLS and monotonic deadlines on real time.
+
+These are recorded working pins and a reconstruction recipe, not proof that a
+fresh installation succeeded. Verify actual dependencies, plugin imports,
+clock instrumentation, TLS and local embeddings in the destination. Configure
+`OPENROUTER_API_KEY` through the managed environment settings; never put its value
+in Git, handoff text or the accounting archive. No service credentials are needed
+from the old native stores.
+
+Transfer original accounting separately with `python -m
+pacbench.accounting_transfer export ... --destination-thread <thread-id>`.
+It freezes source paid admission and exports only private JSON accounting data.
+Restore the verified archive in the destination with its expected SHA-256 and
+matching thread ID. `restore ... --activate` changes only ownership metadata;
+all calls, uncertain bounds, outstanding reservations and allocations are kept.
+Never overwrite existing accounting or run both copies. The source stays frozen.
+The archive belongs in private storage, never this public Git repository.
+
+The frozen Week imports and audits without model calls. After destination setup,
+original accounting restoration, applicable approval and integrity checks pass,
+`scripts/run_reviewed_week_cohort.py --output runs/<new-name>` launches the nine
+isolated local arms. It uses the original $20 task cap, exact DeepInfra Flex
+route, native questions and shared frozen source. Do not run Week in the source
+session during this handoff.

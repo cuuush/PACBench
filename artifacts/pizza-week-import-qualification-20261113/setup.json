@@ -1,0 +1,9 @@
+{
+  "runtime_revision": "83eaff1e6c260317c35914075874b1abb86ecf77",
+  "single_entry_command": "python3 -m pacbench.bootstrap --install --start-services",
+  "cloud_setup_snippet": "set -eu\ncd /workspace/PACBench\ngit fetch origin run/pizza-week-20261113\ngit switch --detach 83eaff1e6c260317c35914075874b1abb86ecf77\npython3 -m pacbench.bootstrap --install --start-services\npython3 -m pacbench.bootstrap --check\n",
+  "preconditions": "PACBench checkout already present; Linux x86-64, Python3.11+, uv, Node22.21+, npm, tar+zstd, local Docker; inherited proxy/CA trust and writable normal user home. Configure credentials privately. Existing source edits are preserved/refused. Original private spending ledger must be separately restored before paid work.",
+  "credential_values_embedded": false,
+  "private_ledger_embedded": false,
+  "validation": "Exact single-entry command returned0 and all identity/local embedding checks passed."
+}

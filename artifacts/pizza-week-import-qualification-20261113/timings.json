@@ -1,0 +1,824 @@
+{
+  "version": "native-import-timings-v1",
+  "attempts": [
+    {
+      "provider": "cognee",
+      "attempt": "pizza-week-import-validation-20261113/cognee",
+      "launch_at": "2026-11-13T17:30:31.570958+00:00",
+      "native_last_batch_ready_at": "2026-11-13T18:42:54.786172+00:00",
+      "end_to_end_to_native_readiness_seconds": 4343.215214014053,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:44:33.545526+00:00",
+      "elapsed_to_verification_observation_seconds": 4441.974568128586,
+      "adapter_seconds_sum_available_batches": 2523.31,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 1,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 147.43,
+          "observation_window_start": "2026-11-13T17:31:17.540614+00:00",
+          "observation_window_end": "2026-11-13T17:33:46.506716+00:00",
+          "observation_window_seconds": 148.9661021232605,
+          "finished_api_span_union_seconds": 108.93605399131775,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 40.03004813194275,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 65.12,
+          "observation_window_start": "2026-11-13T17:33:48.360805+00:00",
+          "observation_window_end": "2026-11-13T17:34:53.811882+00:00",
+          "observation_window_seconds": 65.45107698440552,
+          "finished_api_span_union_seconds": 49.306978940963745,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 16.144098043441772,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 212.83,
+          "observation_window_start": "2026-11-13T17:34:54.942325+00:00",
+          "observation_window_end": "2026-11-13T17:38:28.047710+00:00",
+          "observation_window_seconds": 213.10538482666016,
+          "finished_api_span_union_seconds": 191.8544409275055,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 21.250943899154663,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": false,
+          "adapter_wall_seconds": 600.45,
+          "observation_window_start": "2026-11-13T17:38:29.246345+00:00",
+          "observation_window_end": "2026-11-13T17:48:29.946615+00:00",
+          "observation_window_seconds": 600.7002699375153,
+          "finished_api_span_union_seconds": 372.1563949584961,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "ac2ebea8-0350-4dd2-89c8-df6f75ea89fe"
+          ],
+          "non_api_or_unresolved_window_seconds": 228.54387497901917,
+          "recovery_overlay_present": true
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 419.52,
+          "observation_window_start": "2026-11-13T18:17:56.262210+00:00",
+          "observation_window_end": "2026-11-13T18:24:55.992637+00:00",
+          "observation_window_seconds": 419.73042702674866,
+          "finished_api_span_union_seconds": 409.172887802124,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "ac2ebea8-0350-4dd2-89c8-df6f75ea89fe"
+          ],
+          "non_api_or_unresolved_window_seconds": 10.557539224624634,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 528.48,
+          "observation_window_start": "2026-11-13T18:24:56.201307+00:00",
+          "observation_window_end": "2026-11-13T18:33:44.890221+00:00",
+          "observation_window_seconds": 528.6889140605927,
+          "finished_api_span_union_seconds": 517.3449440002441,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "ac2ebea8-0350-4dd2-89c8-df6f75ea89fe"
+          ],
+          "non_api_or_unresolved_window_seconds": 11.34397006034851,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 549.48,
+          "observation_window_start": "2026-11-13T18:33:45.091167+00:00",
+          "observation_window_end": "2026-11-13T18:42:54.786172+00:00",
+          "observation_window_seconds": 549.695004940033,
+          "finished_api_span_union_seconds": 534.6824970245361,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "ac2ebea8-0350-4dd2-89c8-df6f75ea89fe"
+          ],
+          "non_api_or_unresolved_window_seconds": 15.012507915496826,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "hindsight",
+      "attempt": "pizza-week-import-validation-20261113/hindsight",
+      "launch_at": "2026-11-13T17:30:31.565858+00:00",
+      "native_last_batch_ready_at": "2026-11-13T17:59:55.537964+00:00",
+      "end_to_end_to_native_readiness_seconds": 1763.972106218338,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T17:59:55.547451+00:00",
+      "elapsed_to_verification_observation_seconds": 1763.981593132019,
+      "adapter_seconds_sum_available_batches": 1039.28,
+      "available_receipt_count": 6,
+      "missing_or_recovered_batches": 1,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 76.07,
+          "observation_window_start": "2026-11-13T17:31:52.728886+00:00",
+          "observation_window_end": "2026-11-13T17:33:09.424052+00:00",
+          "observation_window_seconds": 76.69516611099243,
+          "finished_api_span_union_seconds": 68.2881269454956,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 8.407039165496826,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 211.49,
+          "observation_window_start": "2026-11-13T17:33:11.101117+00:00",
+          "observation_window_end": "2026-11-13T17:36:42.978280+00:00",
+          "observation_window_seconds": 211.8771631717682,
+          "finished_api_span_union_seconds": 205.08289170265198,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 6.794271469116211,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 377.36,
+          "observation_window_start": "2026-11-13T17:36:43.984692+00:00",
+          "observation_window_end": "2026-11-13T17:43:01.584166+00:00",
+          "observation_window_seconds": 377.59947395324707,
+          "finished_api_span_union_seconds": 369.380206823349,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 8.219267129898071,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 225.98,
+          "observation_window_start": "2026-11-13T17:43:02.663839+00:00",
+          "observation_window_end": "2026-11-13T17:46:48.888774+00:00",
+          "observation_window_seconds": 226.22493481636047,
+          "finished_api_span_union_seconds": 220.2551829814911,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 5.969751834869385,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 89.29,
+          "observation_window_start": "2026-11-13T17:46:50.352461+00:00",
+          "observation_window_end": "2026-11-13T17:48:20.014135+00:00",
+          "observation_window_seconds": 89.66167378425598,
+          "finished_api_span_union_seconds": 84.81970691680908,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 4.841966867446899,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 59.09,
+          "observation_window_start": "2026-11-13T17:58:56.034838+00:00",
+          "observation_window_end": "2026-11-13T17:59:55.537964+00:00",
+          "observation_window_seconds": 59.50312614440918,
+          "finished_api_span_union_seconds": 53.907569885253906,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 5.595556259155273,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "honcho",
+      "attempt": "pizza-week-import-validation-20261113/honcho",
+      "launch_at": "2026-11-13T17:30:31.565858+00:00",
+      "native_last_batch_ready_at": "2026-11-13T18:12:00.320463+00:00",
+      "end_to_end_to_native_readiness_seconds": 2488.7546050548553,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:12:00.325524+00:00",
+      "elapsed_to_verification_observation_seconds": 2488.7596662044525,
+      "adapter_seconds_sum_available_batches": 674.65,
+      "available_receipt_count": 6,
+      "missing_or_recovered_batches": 1,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 173.18,
+          "observation_window_start": "2026-11-13T17:31:43.226798+00:00",
+          "observation_window_end": "2026-11-13T17:34:36.684285+00:00",
+          "observation_window_seconds": 173.45748686790466,
+          "finished_api_span_union_seconds": 90.68702602386475,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 82.77046084403992,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 119.99,
+          "observation_window_start": "2026-11-13T17:34:37.403664+00:00",
+          "observation_window_end": "2026-11-13T17:36:37.596692+00:00",
+          "observation_window_seconds": 120.19302797317505,
+          "finished_api_span_union_seconds": 62.44676995277405,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 57.746258020401,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 160.47,
+          "observation_window_start": "2026-11-13T17:36:38.169262+00:00",
+          "observation_window_end": "2026-11-13T17:39:18.841383+00:00",
+          "observation_window_seconds": 160.67212104797363,
+          "finished_api_span_union_seconds": 72.7748761177063,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 87.89724493026733,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 122.73,
+          "observation_window_start": "2026-11-13T17:39:19.437525+00:00",
+          "observation_window_end": "2026-11-13T17:41:22.401796+00:00",
+          "observation_window_seconds": 122.964271068573,
+          "finished_api_span_union_seconds": 59.62817096710205,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 63.33610010147095,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 60.82,
+          "observation_window_start": "2026-11-13T18:10:21.321314+00:00",
+          "observation_window_end": "2026-11-13T18:11:22.434848+00:00",
+          "observation_window_seconds": 61.11353397369385,
+          "finished_api_span_union_seconds": 25.189576864242554,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 35.923957109451294,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 37.46,
+          "observation_window_start": "2026-11-13T18:11:22.657297+00:00",
+          "observation_window_end": "2026-11-13T18:12:00.320463+00:00",
+          "observation_window_seconds": 37.66316604614258,
+          "finished_api_span_union_seconds": 16.90761423110962,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 20.75555181503296,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "mem0",
+      "attempt": "pizza-week-import-validation-20261113/mem0",
+      "launch_at": "2026-11-13T17:30:31.569078+00:00",
+      "native_last_batch_ready_at": null,
+      "end_to_end_to_native_readiness_seconds": null,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": null,
+      "elapsed_to_verification_observation_seconds": null,
+      "adapter_seconds_sum_available_batches": 9.51,
+      "available_receipt_count": 1,
+      "missing_or_recovered_batches": 7,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": false,
+          "adapter_wall_seconds": 9.51,
+          "observation_window_start": "2026-11-13T17:31:07.312353+00:00",
+          "observation_window_end": "2026-11-13T17:31:17.761513+00:00",
+          "observation_window_seconds": 10.449160099029541,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 10.449160099029541,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "memcal",
+      "attempt": "pizza-week-import-validation-20261113/memcal",
+      "launch_at": "2026-11-13T17:30:31.565858+00:00",
+      "native_last_batch_ready_at": "2026-11-13T18:03:30.205946+00:00",
+      "end_to_end_to_native_readiness_seconds": 1978.6400880813599,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:03:30.208080+00:00",
+      "elapsed_to_verification_observation_seconds": 1978.6422221660614,
+      "adapter_seconds_sum_available_batches": 1363.79,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 1,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 102.63,
+          "observation_window_start": "2026-11-13T17:30:42.570071+00:00",
+          "observation_window_end": "2026-11-13T17:32:25.813053+00:00",
+          "observation_window_seconds": 103.24298191070557,
+          "finished_api_span_union_seconds": 98.27170419692993,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 4.971277713775635,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 619.14,
+          "observation_window_start": "2026-11-13T17:32:27.238950+00:00",
+          "observation_window_end": "2026-11-13T17:42:46.748118+00:00",
+          "observation_window_seconds": 619.5091679096222,
+          "finished_api_span_union_seconds": 612.15087890625,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 7.358289003372192,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 220.07,
+          "observation_window_start": "2026-11-13T17:42:48.594514+00:00",
+          "observation_window_end": "2026-11-13T17:46:29.000396+00:00",
+          "observation_window_seconds": 220.40588212013245,
+          "finished_api_span_union_seconds": 216.3266260623932,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 4.079256057739258,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 227.24,
+          "observation_window_start": "2026-11-13T17:46:30.068807+00:00",
+          "observation_window_end": "2026-11-13T17:50:17.976664+00:00",
+          "observation_window_seconds": 227.90785717964172,
+          "finished_api_span_union_seconds": 224.5019268989563,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 3.405930280685425,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": false,
+          "adapter_wall_seconds": 0.3,
+          "observation_window_start": "2026-11-13T17:57:49.153105+00:00",
+          "observation_window_end": "2026-11-13T17:57:49.662059+00:00",
+          "observation_window_seconds": 0.5089540481567383,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "a0e29de7-bbe2-4a85-90e3-24fa82c61e5d"
+          ],
+          "non_api_or_unresolved_window_seconds": 0.5089540481567383,
+          "recovery_overlay_present": true
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 91.38,
+          "observation_window_start": "2026-11-13T18:00:14.708283+00:00",
+          "observation_window_end": "2026-11-13T18:01:46.427160+00:00",
+          "observation_window_seconds": 91.71887707710266,
+          "finished_api_span_union_seconds": 89.7487781047821,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "a0e29de7-bbe2-4a85-90e3-24fa82c61e5d"
+          ],
+          "non_api_or_unresolved_window_seconds": 1.9700989723205566,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 103.03,
+          "observation_window_start": "2026-11-13T18:01:46.858077+00:00",
+          "observation_window_end": "2026-11-13T18:03:30.205946+00:00",
+          "observation_window_seconds": 103.34786891937256,
+          "finished_api_span_union_seconds": 101.57040095329285,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "a0e29de7-bbe2-4a85-90e3-24fa82c61e5d"
+          ],
+          "non_api_or_unresolved_window_seconds": 1.777467966079712,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "memos",
+      "attempt": "pizza-week-import-validation-20261113/memos",
+      "launch_at": "2026-11-13T17:30:31.572612+00:00",
+      "native_last_batch_ready_at": "2026-11-13T17:30:56.354742+00:00",
+      "end_to_end_to_native_readiness_seconds": 24.782130002975464,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T17:36:39.951690+00:00",
+      "elapsed_to_verification_observation_seconds": 368.37907791137695,
+      "adapter_seconds_sum_available_batches": 3.48,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 0,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.52,
+          "observation_window_start": "2026-11-13T17:30:40.344816+00:00",
+          "observation_window_end": "2026-11-13T17:30:41.329503+00:00",
+          "observation_window_seconds": 0.984687089920044,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.984687089920044,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.38,
+          "observation_window_start": "2026-11-13T17:30:42.235264+00:00",
+          "observation_window_end": "2026-11-13T17:30:42.888618+00:00",
+          "observation_window_seconds": 0.6533539295196533,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.6533539295196533,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.38,
+          "observation_window_start": "2026-11-13T17:30:44.032557+00:00",
+          "observation_window_end": "2026-11-13T17:30:44.846717+00:00",
+          "observation_window_seconds": 0.8141598701477051,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.8141598701477051,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.98,
+          "observation_window_start": "2026-11-13T17:30:46.943590+00:00",
+          "observation_window_end": "2026-11-13T17:30:49.695462+00:00",
+          "observation_window_seconds": 2.7518720626831055,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 2.7518720626831055,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.48,
+          "observation_window_start": "2026-11-13T17:30:51.072011+00:00",
+          "observation_window_end": "2026-11-13T17:30:51.974143+00:00",
+          "observation_window_seconds": 0.9021320343017578,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.9021320343017578,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.34,
+          "observation_window_start": "2026-11-13T17:30:53.709176+00:00",
+          "observation_window_end": "2026-11-13T17:30:54.420523+00:00",
+          "observation_window_seconds": 0.7113468647003174,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.7113468647003174,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 0.4,
+          "observation_window_start": "2026-11-13T17:30:55.557946+00:00",
+          "observation_window_end": "2026-11-13T17:30:56.354742+00:00",
+          "observation_window_seconds": 0.7967960834503174,
+          "finished_api_span_union_seconds": 0.0,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 0.7967960834503174,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "openviking",
+      "attempt": "pizza-week-import-validation-20261113/openviking",
+      "launch_at": "2026-11-13T17:30:31.569934+00:00",
+      "native_last_batch_ready_at": "2026-11-13T17:42:40.906096+00:00",
+      "end_to_end_to_native_readiness_seconds": 729.3361620903015,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:54:27.946842+00:00",
+      "elapsed_to_verification_observation_seconds": 5036.376908063889,
+      "adapter_seconds_sum_available_batches": 665.14,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 0,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 84.46,
+          "observation_window_start": "2026-11-13T17:31:23.235530+00:00",
+          "observation_window_end": "2026-11-13T17:32:48.043660+00:00",
+          "observation_window_seconds": 84.80813002586365,
+          "finished_api_span_union_seconds": 80.6558005809784,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 4.152329444885254,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 133.29,
+          "observation_window_start": "2026-11-13T17:32:49.052859+00:00",
+          "observation_window_end": "2026-11-13T17:35:02.541419+00:00",
+          "observation_window_seconds": 133.48855996131897,
+          "finished_api_span_union_seconds": 129.84706473350525,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 3.6414952278137207,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 103.37,
+          "observation_window_start": "2026-11-13T17:35:03.531196+00:00",
+          "observation_window_end": "2026-11-13T17:36:47.116689+00:00",
+          "observation_window_seconds": 103.58549284934998,
+          "finished_api_span_union_seconds": 99.8520679473877,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 3.7334249019622803,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 93.94,
+          "observation_window_start": "2026-11-13T17:36:48.361273+00:00",
+          "observation_window_end": "2026-11-13T17:38:23.433091+00:00",
+          "observation_window_seconds": 95.07181787490845,
+          "finished_api_span_union_seconds": 91.61366486549377,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 3.458153009414673,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 103.33,
+          "observation_window_start": "2026-11-13T17:38:26.824585+00:00",
+          "observation_window_end": "2026-11-13T17:40:10.546042+00:00",
+          "observation_window_seconds": 103.72145700454712,
+          "finished_api_span_union_seconds": 102.11910915374756,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 1.6023478507995605,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 63.36,
+          "observation_window_start": "2026-11-13T17:40:11.838537+00:00",
+          "observation_window_end": "2026-11-13T17:41:15.707108+00:00",
+          "observation_window_seconds": 63.868571043014526,
+          "finished_api_span_union_seconds": 61.481565952301025,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 2.387005090713501,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 83.39,
+          "observation_window_start": "2026-11-13T17:41:17.167539+00:00",
+          "observation_window_end": "2026-11-13T17:42:40.906096+00:00",
+          "observation_window_seconds": 83.73855710029602,
+          "finished_api_span_union_seconds": 62.340686321258545,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [
+            "b2fa6e7f-f236-446c-b790-d4d88394edbe"
+          ],
+          "non_api_or_unresolved_window_seconds": 21.397870779037476,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "reme",
+      "attempt": "pizza-week-import-validation-20261113/reme",
+      "launch_at": "2026-11-13T17:30:31.570504+00:00",
+      "native_last_batch_ready_at": "2026-11-13T17:35:34.035147+00:00",
+      "end_to_end_to_native_readiness_seconds": 302.4646430015564,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:54:27.956641+00:00",
+      "elapsed_to_verification_observation_seconds": 5036.386137008667,
+      "adapter_seconds_sum_available_batches": 269.55,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 0,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 39.1,
+          "observation_window_start": "2026-11-13T17:30:49.326730+00:00",
+          "observation_window_end": "2026-11-13T17:31:29.106405+00:00",
+          "observation_window_seconds": 39.779675006866455,
+          "finished_api_span_union_seconds": 30.11699390411377,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 9.662681102752686,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 47.77,
+          "observation_window_start": "2026-11-13T17:31:30.753176+00:00",
+          "observation_window_end": "2026-11-13T17:32:18.970120+00:00",
+          "observation_window_seconds": 48.216943979263306,
+          "finished_api_span_union_seconds": 37.765153884887695,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 10.45179009437561,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 48.38,
+          "observation_window_start": "2026-11-13T17:32:20.185353+00:00",
+          "observation_window_end": "2026-11-13T17:33:08.994031+00:00",
+          "observation_window_seconds": 48.80867791175842,
+          "finished_api_span_union_seconds": 38.54664492607117,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 10.262032985687256,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 32.56,
+          "observation_window_start": "2026-11-13T17:33:10.835660+00:00",
+          "observation_window_end": "2026-11-13T17:33:44.162330+00:00",
+          "observation_window_seconds": 33.32666993141174,
+          "finished_api_span_union_seconds": 21.71484398841858,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 11.611825942993164,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 30.89,
+          "observation_window_start": "2026-11-13T17:33:47.568040+00:00",
+          "observation_window_end": "2026-11-13T17:34:19.126358+00:00",
+          "observation_window_seconds": 31.55831813812256,
+          "finished_api_span_union_seconds": 17.99775195121765,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 13.560566186904907,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 42.33,
+          "observation_window_start": "2026-11-13T17:34:21.246880+00:00",
+          "observation_window_end": "2026-11-13T17:35:03.986364+00:00",
+          "observation_window_seconds": 42.73948383331299,
+          "finished_api_span_union_seconds": 29.784390211105347,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 12.955093622207642,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 28.52,
+          "observation_window_start": "2026-11-13T17:35:05.054127+00:00",
+          "observation_window_end": "2026-11-13T17:35:34.035147+00:00",
+          "observation_window_seconds": 28.981019973754883,
+          "finished_api_span_union_seconds": 22.08473801612854,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 6.896281957626343,
+          "recovery_overlay_present": false
+        }
+      ]
+    },
+    {
+      "provider": "mem0",
+      "attempt": "pizza-week-import-mem0-fixed-20261113/mem0",
+      "launch_at": "2026-11-13T17:37:12.967591+00:00",
+      "native_last_batch_ready_at": "2026-11-13T17:43:41.224867+00:00",
+      "end_to_end_to_native_readiness_seconds": 388.257276058197,
+      "launch_scope": "provider launch when persisted; otherwise shared concurrent cohort launch",
+      "completion_evidence_file_written_at": "2026-11-13T18:54:59.133467+00:00",
+      "elapsed_to_verification_observation_seconds": 4666.165875911713,
+      "adapter_seconds_sum_available_batches": 349.29,
+      "available_receipt_count": 7,
+      "missing_or_recovered_batches": 0,
+      "batches": [
+        {
+          "day": "2026-10-05",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 61.76,
+          "observation_window_start": "2026-11-13T17:37:40.491525+00:00",
+          "observation_window_end": "2026-11-13T17:38:42.875443+00:00",
+          "observation_window_seconds": 62.383918046951294,
+          "finished_api_span_union_seconds": 52.018168926239014,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 10.36574912071228,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-06",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 48.49,
+          "observation_window_start": "2026-11-13T17:38:43.788817+00:00",
+          "observation_window_end": "2026-11-13T17:39:32.623781+00:00",
+          "observation_window_seconds": 48.83496403694153,
+          "finished_api_span_union_seconds": 40.23727297782898,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 8.597691059112549,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-07",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 43.33,
+          "observation_window_start": "2026-11-13T17:39:33.625413+00:00",
+          "observation_window_end": "2026-11-13T17:40:17.197178+00:00",
+          "observation_window_seconds": 43.57176494598389,
+          "finished_api_span_union_seconds": 35.74243903160095,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 7.829325914382935,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-08",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 83.04,
+          "observation_window_start": "2026-11-13T17:40:19.809445+00:00",
+          "observation_window_end": "2026-11-13T17:41:43.574432+00:00",
+          "observation_window_seconds": 83.76498699188232,
+          "finished_api_span_union_seconds": 75.47333598136902,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 8.291651010513306,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-09",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 30.37,
+          "observation_window_start": "2026-11-13T17:41:45.319097+00:00",
+          "observation_window_end": "2026-11-13T17:42:15.903744+00:00",
+          "observation_window_seconds": 30.584646940231323,
+          "finished_api_span_union_seconds": 25.683802127838135,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 4.9008448123931885,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-10",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 31.59,
+          "observation_window_start": "2026-11-13T17:42:17.067088+00:00",
+          "observation_window_end": "2026-11-13T17:42:49.003381+00:00",
+          "observation_window_seconds": 31.936293125152588,
+          "finished_api_span_union_seconds": 26.776026010513306,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 5.160267114639282,
+          "recovery_overlay_present": false
+        },
+        {
+          "day": "2026-10-11",
+          "recorded_ready": true,
+          "adapter_wall_seconds": 50.71,
+          "observation_window_start": "2026-11-13T17:42:50.170479+00:00",
+          "observation_window_end": "2026-11-13T17:43:41.224867+00:00",
+          "observation_window_seconds": 51.05438804626465,
+          "finished_api_span_union_seconds": 45.29286789894104,
+          "unfinished_or_abandoned_api_requests_overlapping_window": [],
+          "non_api_or_unresolved_window_seconds": 5.761520147323608,
+          "recovery_overlay_present": false
+        }
+      ]
+    }
+  ],
+  "interpretation": [
+    "Elapsed to verification includes provisioning, operator pauses and recovery. It is not an intrinsic provider latency ranking.",
+    "Adapter wall includes native ingestion, model/API requests, embedding, native queues and readiness polling.",
+    "API span is the union of observed admission-to-response intervals clipped to each receipt window; overlapping calls are not double-counted.",
+    "Residual time cannot be separated into queueing, local provider work and harness overhead from these receipts alone. Unknown API intervals remain explicit.",
+    "Original Cognee early receipts observed cognify only; full-operation timing additionally requires native improve completion records.",
+    "Supermemory retained its completed interleaved benchmark; it has no comparable fresh import-only wall time."
+  ]
+}

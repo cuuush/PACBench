@@ -1,0 +1,41 @@
+{
+  "version": "openrouter-request-telemetry-audit-v1",
+  "at": "2026-11-13T18:56:32.616889+00:00",
+  "request_count": 1219,
+  "http_status_counts": {
+    "200": 1200,
+    "None": 19
+  },
+  "repeated_fingerprint_groups": 7,
+  "scope": "New session ledger entries after inherited index1601. Body fingerprints omit prompt text. API spans include transport and upstream execution; generation-vs-queue latency is not observable without an authoritative generation receipt. Unfinished/dead-worker holds are not proof of active upstream execution.",
+  "full_private_request_telemetry_sha256": "e387e61e6478a5bfb6040f7db030cde765a4b2bea800286973f51cb8efa3d60c",
+  "findings": [
+    "All import operations are now terminal; no current model request is in flight. Full request telemetry is retained privately.",
+    "Completed Cognee improvement generated 42375 completion tokens including 41319 reasoning tokens; normal stop, actual cost $0.010450406.",
+    "Seven repeated same-project fingerprint groups exist across this session; most belong to historical benchmark/setup work. They are not by themselves proof of an import loop.",
+    "The Cognee document retry explicitly links an abandoned local request to a separately reserved settled retry; the old financial hold remains.",
+    "No new-session paid HTTP429/400/422 was observed; 19 rows without an HTTP response are uncertain/unfinished, not established throttling.",
+    "Native ReMe driver and Honcho memory calls repeated identical inputs in earlier interrupted benchmark work; those jobs are stopped and their native traces remain preserved."
+  ],
+  "current_model_requests_in_flight": 0,
+  "native_processing_complete": true,
+  "generation_receipts_observed": 1205,
+  "tokens": {
+    "native_tokens_prompt": {
+      "observed": 9534024,
+      "missing_requests": 19
+    },
+    "native_tokens_completion": {
+      "observed": 1805283,
+      "missing_requests": 19
+    },
+    "native_tokens_reasoning": {
+      "observed": 1413872,
+      "missing_requests": 19
+    },
+    "native_tokens_cached": {
+      "observed": 6275712,
+      "missing_requests": 19
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "state": "anomalies-found",
+  "stored_memories": 55,
+  "all_source_batches_complete": true,
+  "native_outputs_modified": false,
+  "snapshot_sha256": "cf94502edf10f217c3f5f74c43c064a0e539ad1f971f22b4ff36308a84e5e374",
+  "issues": [
+    {
+      "kind": "stale_time_carried_into_new_current_fact",
+      "native_memory_id": "4bc1e031-7839-489b-9bc6-9975bb1d5925",
+      "stored_assertion": "Tess dropped out of the Friday, October 9, 2026 lunch because childcare fell through, and Nora cancelled with Maya too, so the lunch is now just User and Maya at noon at Mario's on Pine Street, confirmed October 8, 2026.",
+      "source_ids": [
+        "message-4a691ac7f752b563f08659b0",
+        "message-8f1923071fabc0205e774d82",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb"
+      ],
+      "finding": "October 7 changed lunch to 12:30. October 8 changed attendees only; it did not revert the time to noon."
+    }
+  ],
+  "review_scope": "All 55 stored memory texts inspected; a detected semantic error blocks an anomaly-free claim."
+}

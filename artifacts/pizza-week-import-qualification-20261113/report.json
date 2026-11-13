@@ -1,0 +1,282 @@
+{
+  "version": "native-import-qualification-v1",
+  "at": "2026-11-13T18:56:32.616889+00:00",
+  "state": "all-native-processing-complete-quality-blocked",
+  "strict_qualification": "Eight providers have concrete native factual errors; MemOS retains verified raw traces without fact extraction. Memcal also removes quoted history from three email archive bodies. Do not claim anomaly-free import qualification.",
+  "benchmark_questions_sent_during_qualification": 0,
+  "large_final_benchmark_started": false,
+  "provider_outputs_manually_corrected": false,
+  "provider_prompts_modified": false,
+  "full_week_qualification_stores_benchmark_eligible": false,
+  "successful_prior_benchmark_preserved": "Supermemory completed37 questions; source-assisted results and native-memory quality are separate",
+  "corpus": "pizza-week-hybrid-stream-v7-20261113",
+  "source_messages": 125,
+  "providers": {
+    "memcal": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "fail",
+        "processing_state": "complete",
+        "native_archive_records": 125,
+        "completed_batches": 7,
+        "native_email_body_trims": [
+          {
+            "archive_id": 75,
+            "external_id": "2d0c1c68-33dd-562b-ba0e-1bb0e5889b53@mail.example.test",
+            "body_chars": 124,
+            "kept_chars": 65,
+            "subject": "Re: Dinner this week"
+          },
+          {
+            "archive_id": 81,
+            "external_id": "5c148831-52c9-5ae8-97c9-a278d29c17c1@mail.example.test",
+            "body_chars": 88,
+            "kept_chars": 82,
+            "subject": "Parcel and support call"
+          },
+          {
+            "archive_id": 103,
+            "external_id": "90f5ec1a-995f-50d6-8146-fb3146d5f1d7@mail.example.test",
+            "body_chars": 87,
+            "kept_chars": 81,
+            "subject": "Re: Parcel and support call"
+          }
+        ],
+        "pending_spool": 0,
+        "semantic_review_state": "anomalies-found",
+        "benchmark_questions_sent": 0,
+        "original_summary_preserved": true,
+        "reason": "Native quote cleaning shortened stored email bodies; strict no-truncation qualification cannot pass."
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "c6f7200dc5b224884b071a30136e0d4490482a1cbc2b760645a7567ac6e4c41c",
+        "stored-fact-review.json": "df1128c1f78e75037423ba5469148ee8480fcec6041d2fd902f8a82edd69d27e"
+      }
+    },
+    "mem0": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "completed_batches": 7,
+        "verified_source_messages": 125,
+        "benchmark_questions_sent": 0,
+        "native_memories": 55,
+        "native_memories_per_document": {
+          "2026-10-05": 14,
+          "2026-10-06": 10,
+          "2026-10-10": 3,
+          "2026-10-07": 12,
+          "2026-10-08": 9,
+          "2026-10-11": 5,
+          "2026-10-09": 2
+        },
+        "native_store_kind": "Native Mem0 extracted-fact store; no raw-document readback API",
+        "raw_source_readback_available": false,
+        "scope": "Full source delivery and native processing receipts plus inspection of all55 stored memories; not a claim that every original utterance is persisted verbatim",
+        "semantic_review_state": "anomalies-found"
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "45c360a839aa3890c13daaf2293156735cf171401075c9158cf384b29100b49d",
+        "stored-fact-review.json": "6fc15f0f4f7f9c454509a8bb92c166b6457542d1ceb9c07f60dba14aff02f046"
+      }
+    },
+    "hindsight": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "verified_source_messages": 125,
+        "completed_batches": 7,
+        "native_stored_facts": 116,
+        "readback_exact": true,
+        "all_consolidations_completed": true,
+        "semantic_review_state": "pending",
+        "benchmark_questions_sent": 0,
+        "original_summary_preserved": true
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "353e848186e2a0668d3253c87418a19b2db6063ddba3ef111398463f00e3b789",
+        "stored-fact-review.json": "2208620e28f8f27d075bb37a393107c725cb0d6b4ba74a1882b9392c8dc0d046"
+      }
+    },
+    "openviking": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "errors": [],
+        "verified_source_messages": 125,
+        "completed_batches": 7,
+        "benchmark_questions_sent": 0,
+        "semantic_review_state": "anomalies-found",
+        "original_summary_preserved": true,
+        "native_source_format": "All125 message bodies exact; only inter-chunk whitespace differs in reconstructed daily transcripts"
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "56108280fc27c79962f75b465eaf114d04da9dc0aeba2d5edbd912e0cee8c5ca",
+        "stored-fact-review.json": "e3728dc199f5daf1fb2bdb2f83ad64251514471142e7121c765be1fb9cfdcd3d"
+      }
+    },
+    "honcho": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "verified_source_messages": 125,
+        "completed_batches": 7,
+        "all_source_ids_text_metadata_authors_timestamps_verified": true,
+        "native_facts": 377,
+        "pending_work": 0,
+        "native_errors": 0,
+        "benchmark_questions_sent": 0,
+        "semantic_review_state": "anomalies-found",
+        "original_summary_preserved": true,
+        "recovery_batch_5": "native conclusion-source citations for every message; queue rows already cleaned"
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "322601bbd783c3f2d0608f57e2ceb9784cdb665d1f9d0f27ce8b4ae23c0a5aa3",
+        "stored-fact-review.json": "689d7b5f9f2e51cd828971b04aed619eb06d5f3e59fbaa8bbbb6df0ac57ff695"
+      }
+    },
+    "reme": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "version": "import-only-audit-v1",
+        "state": "pass",
+        "errors": [],
+        "source_messages_verified": 125,
+        "batches_verified": 7,
+        "benchmark_questions_sent": 0,
+        "semantic_review_state": "anomalies-found",
+        "scope": "Ingestion integrity only; native summary errors are recorded separately in stored-fact-review.json."
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "b2e63020494c82de29f6931fc266fd836ea556237a20c84c52388f01422b9046",
+        "stored-fact-review.json": "c4b2962b020e996873f22d10eddcb63c0213a8066633827a1553f3817447fe04"
+      }
+    },
+    "cognee": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "completed_batches": 7,
+        "verified_source_messages": 125,
+        "stored_source_documents": 7,
+        "benchmark_questions_sent": 0,
+        "semantic_review_state": "anomalies-found",
+        "original_failed_summary_preserved": true,
+        "recovery": "native-abandoned-run-recovery-and-incremental-cognify",
+        "final_graph_nodes": 167,
+        "final_graph_relationships": 553
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "58b6402392c4e9943080db72fc31afecdc1c5ecc21372ce70e6730b7f4b29049",
+        "stored-fact-review.json": "7052b1ceddb3c7223c58cf557c26ad31a10446f3b616e04c6668d73bb4be5a73"
+      }
+    },
+    "memos": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "version": "import-only-audit-v1",
+        "state": "pass",
+        "errors": [],
+        "source_messages_verified": 125,
+        "batches_verified": 7,
+        "benchmark_questions_sent": 0,
+        "semantic_review_state": "pending",
+        "scope": "Source identity, exact native readback, processing receipts and absence of benchmark conversations; separate from semantic fact review."
+      },
+      "semantic_review_state": "pass",
+      "strict_quality_gate": "raw source traces verified; fact extraction not performed",
+      "evidence_hashes": {
+        "import-verification.json": "f0833ce9d398492604b786a06c751abe0f05c1c9c52e6d81aec0e2b79abb6e57",
+        "stored-fact-review.json": "123f0a87c4f1b0f0dd277509de9d85858228d9d187b1155af051dd92ab82f45b"
+      }
+    },
+    "supermemory": {
+      "source_messages_delivered": 125,
+      "native_processing_batches_complete": 7,
+      "source_storage_verification": {
+        "state": "pass",
+        "completed_batches": 7,
+        "verified_source_messages": 125,
+        "all_source_documents_preserved_except_terminal_newline": true,
+        "native_format_normalization": "Native store removes terminal newline; all other source characters match",
+        "all_native_dreaming_done": true,
+        "inspection": "Read-only document API on a byte-identical copy of completed native store; original data file hash unchanged",
+        "model_requests_during_inspection": 0,
+        "semantic_review_state": "anomalies-found",
+        "original_store_sha256": "0170410c553df4bf7d290fd3051d2051b6aab2b95323de3605f75befd29343a4"
+      },
+      "semantic_review_state": "anomalies-found",
+      "strict_quality_gate": "blocked by native factual error",
+      "evidence_hashes": {
+        "import-verification.json": "24ba8b9f6db73b397f4f7808eda23089eeb4fdf472b632e084ca839ae9934a6e",
+        "stored-fact-review.json": "00e67a00726a06b5a73b5ae1afaef5da21702d7e995a88c6b401734401e58996"
+      }
+    }
+  },
+  "actual_new_session_settled_usd": "0.693594965640",
+  "new_session_unresolved_bound_usd": "3.1399024384",
+  "shared_cap_accounted_usd": "12.310882332552",
+  "observable_generation_tokens": {
+    "native_tokens_prompt": {
+      "observed": 9534024,
+      "missing_requests": 19
+    },
+    "native_tokens_completion": {
+      "observed": 1805283,
+      "missing_requests": 19
+    },
+    "native_tokens_reasoning": {
+      "observed": 1413872,
+      "missing_requests": 19
+    },
+    "native_tokens_cached": {
+      "observed": 6275712,
+      "missing_requests": 19
+    }
+  },
+  "generation_receipts_observed": 1205,
+  "generation_receipts_missing_id": 19,
+  "generation_metadata_cost_precision": {
+    "max_absolute_difference_from_usage_cost_usd": "9.92E-10",
+    "above_one_nanodollar_count": 0,
+    "chosen_source": "Retain original higher-precision usage.cost; generation total_cost differs only below1e-9 in this data."
+  },
+  "validation": {
+    "full_suite": "1391 passed, 7 skipped, 22 subtests",
+    "full_suite_environment": "Pinned runtime reinstalled by exact bootstrap command; test dependencies from requirements-dev.txt; native temporary workspaces outside Git",
+    "exact_runtime_entry_command": "python3 -m pacbench.bootstrap --install --start-services",
+    "entry_command_result": "pass; all10 component identities verified; pinned Ollama cold-started with correct model and healthy768-dimensional embedding; paid inference0"
+  },
+  "limitations": [
+    "Semantic reviews stop on concrete native errors; they are not exhaustive correctness claims.",
+    "Mem0 stores extracted facts and does not retain a raw-document readback interface.",
+    "Whitespace-only native normalization is disclosed for OpenViking and Supermemory.",
+    "End-to-end recovery times include interruptions and operator work; clean attempts and per-batch/API spans are reported separately.",
+    "Shared judging is counted once and excluded from per-provider totals rather than guessed across overlapping receipt windows.",
+    "Local compute and local embedding token totals are not priced or centrally measured.",
+    "The19 unidentified failed, interrupted or abandoned request outcomes retain their full financial bounds; none is assumed free."
+  ],
+  "runtime_revision": "83eaff1e6c260317c35914075874b1abb86ecf77"
+}

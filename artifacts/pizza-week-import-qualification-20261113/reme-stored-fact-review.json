@@ -1,0 +1,32 @@
+{
+  "state": "anomalies-found",
+  "source_messages": 125,
+  "batch_receipts_ready": 7,
+  "native_outputs_modified": false,
+  "issues": [
+    {
+      "kind": "stale_quote_used_as_current_fact",
+      "day": "2026-10-07",
+      "stored_assertion": "Friday pizza lunch moved from 1:00 to 12:30 at Rosa's on Oak Street",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "finding": "Current agreement is Mario’s, carried forward from October 6; Rosa’s appears in quoted October 5 history.",
+      "native_card_sha256": "b7fc5da01e22f5a756b4b9d00d5317f6ee7c35ab92bd7f211549db7c4e52fb9a"
+    },
+    {
+      "kind": "quoted_note_misattributed_as_current_preference",
+      "day": "2026-10-09",
+      "stored_assertion": "Keep mushroom-free pizza in mind for Maya.",
+      "source_ids": [
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "finding": "The message explicitly quotes Monday’s notes. It does not establish a new current preference for Maya; the owner changed their own preference October 7.",
+      "native_card_sha256": "206e2ecae59038ff9bc617ec28682f0613bdcbb2197d1ea0df6e8c6b69d89d35"
+    }
+  ],
+  "review_scope": "Detected semantic anomalies; not a claim that every remaining assertion was exhaustively verified."
+}

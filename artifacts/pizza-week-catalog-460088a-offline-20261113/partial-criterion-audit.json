@@ -1,0 +1,1408 @@
+{
+  "audit_type": "independent_partial_criterion_review",
+  "input_filename": "partial-criterion-review-input.json",
+  "input_sha256": "79ad251544e921a24403f0b6613c3902f1892b91f2f25f1efe3ccd35b1a4b6d8",
+  "source_only_audit_completed_before_reading_this_input": true,
+  "status": "partial; freeze not approved",
+  "method": {
+    "actual_sources": 102,
+    "questions": 37,
+    "criteria_reviewed": 63,
+    "missing_generated_scenes": 8,
+    "availability": "Written local day imports at next-day 03:00 America/New_York. Only lunch-continuity resumes.",
+    "evidence_rule": "Draft criteria, missing scene descriptors, bounds and identifiers are not source evidence.",
+    "offline_only": true,
+    "no_old_reviews_specs_receipts": true
+  },
+  "overall_blockers": [
+    "Eight writer scenes not generated; no freeze approval possible.",
+    "Unsupported criterion payloads: Room 204, owner/Devon Friday-evening pizza, Ben drill return, Devon concert condition, Reed coffee, AC/Chen/Reed identity context and diet, complete Jen task closure.",
+    "Absence-based status claims are supported only as recorded states in actual supplied sources; missing relevant scenes may change them.",
+    "Dates fact-2 attributes workshop date to certificate dating; next-week-pizza fact-3 broadens a specifically undecided dairy requirement to all food requirements.",
+    "Several original criteria combine independent event fields or task states. Any splitting, weights, required extras, or other new scoring choices require author approval.",
+    "Preserve complete rosters and adversarial quote/role/time/status traps. Do not require unasked explanations, density reduction or realism changes."
+  ],
+  "criteria": [
+    {
+      "questionID": "rsvp-before",
+      "criterionID": "fact-1",
+      "question": "Where are we with everyone’s replies for Friday lunch?",
+      "at": "2026-10-06T09:00:00-04:00",
+      "session": "rsvp-before-fresh",
+      "original_statement": "The complete confirmed roster is the user and Maya.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Roster is complete on supplied Monday record. Treat confirmed as recorded acceptance, not actual attendance."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete roster is a deliberate semantic target; preserve owner and Maya.",
+      "natural_question_fairness": "Fits everyone’s replies; no explanation of why proposer counts is required.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "rsvp-before",
+      "criterionID": "fact-2",
+      "question": "Where are we with everyone’s replies for Friday lunch?",
+      "at": "2026-10-06T09:00:00-04:00",
+      "session": "rsvp-before-fresh",
+      "original_statement": "Leo has not replied and Tess is conditional; neither is confirmed.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-2f565c7d433aeb41b28c804c"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Leo has no supplied reply at this cutoff; Tess states a shift condition. Tuesday replies are unavailable."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Bundles two independent people’s RSVP states.",
+      "natural_question_fairness": "Fits question; do not require unasked reasoning about conditionality.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "cancellation-before",
+      "criterionID": "fact-1",
+      "question": "Which studio booking was cancelled?",
+      "at": "2026-10-06T09:10:00-04:00",
+      "session": "cancellation-before-fresh",
+      "original_statement": "The message does not identify whether pottery or framing was cancelled; neither cancellation can be assigned with confidence.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-975e9eb939dfb5e0c9d1baa5",
+        "message-b8b90b336f738d2bec589e8f",
+        "message-9be0e1f29627307476fb5142"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Referent is ambiguous between two bookings; Tuesday clarification cannot be used."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One ambiguity judgment; naming both candidates is context.",
+      "natural_question_fairness": "Fair; a concise cannot tell which booking answer should satisfy.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-before",
+      "criterionID": "fact-1",
+      "question": "What are Jen and I waiting on from each other?",
+      "at": "2026-10-06T09:20:00-04:00",
+      "session": "obligations-before-fresh",
+      "original_statement": "Jen has promised the revised checklist; the user is also waiting for Jen to answer the interview-room question, without an established promise to answer it.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-51c6bb9dc56658ef9c170d5a",
+        "message-f12f2c3542555f3326d0313f"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Checklist promise and room request are distinct; source does not promise a room answer."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Bundles checklist commitment, room request, and promise-status distinction.",
+      "natural_question_fairness": "The two pending items fit; explicit words that no promise exists are an unasked explanation and should not be mandatory.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-before",
+      "criterionID": "fact-2",
+      "question": "What are Jen and I waiting on from each other?",
+      "at": "2026-10-06T09:20:00-04:00",
+      "session": "obligations-before-fresh",
+      "original_statement": "The user owes Jen proofreading of her cover letter by Thursday evening.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner accepts cover-letter proofreading deadline."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Task and its deadline are independently missable details.",
+      "natural_question_fairness": "Fair pending obligation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "lunch-snapshot",
+      "criterionID": "fact-1",
+      "question": "Where and when is Friday lunch with Maya?",
+      "at": "2026-10-06T09:30:00-04:00",
+      "session": "lunch-continuity",
+      "original_statement": "Friday October 9 at 1 pm at Rosa's on Oak Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Original Friday lunch agreed; no later imports yet."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date, time, venue and street form one event tuple but independently missable fields.",
+      "natural_question_fairness": "All fields responsive; equivalent clear date/place references should be accepted.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "short-reply",
+      "criterionID": "fact-1",
+      "question": "What did I agree with the watercolor tutor for today?",
+      "at": "2026-10-06T09:40:00-04:00",
+      "session": "short-reply-fresh",
+      "original_statement": "Tuesday October 6 watercolor workshop at 10 am at MR Hall.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-5b73005caac446f7b8584b60",
+        "message-0aaa23c5480806e026f5ccf1",
+        "message-ce6113f6fdc5c8c2281da901"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Thumbs-up plus tutor’s acknowledgment supports agreement; source also has 11 am end time."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Activity, day, time and place are independent fields.",
+      "natural_question_fairness": "Fair; criterion omits the 11 am end time, so it must not silently be required.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "draft-before",
+      "criterionID": "fact-1",
+      "question": "What’s the status of the PizzaLab tasting?",
+      "at": "2026-10-06T09:50:00-04:00",
+      "session": "draft-before-fresh",
+      "original_statement": "The user has requested a draft plan but has not committed to attending.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-6d29bd53b234a0452dd3ac7c"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Explicitly still deciding; draft is not commitment."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single draft-versus-commitment distinction.",
+      "natural_question_fairness": "Fair; no speculative attendance claim.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "rsvp-after",
+      "criterionID": "fact-1",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "at": "2026-10-07T09:00:00-04:00",
+      "session": "rsvp-after-fresh",
+      "original_statement": "Complete confirmed roster: user, Maya, Leo, Tess and Nora.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-c13136a5d8ba4234c59b80ba",
+        "message-2f91488a4fd51df0b19f1e03",
+        "message-d45d8204b56690f9320fa1c4",
+        "message-78bcfb4acbb752f82b9cff9a",
+        "message-200bcc9902c4bb1cdb60b468",
+        "message-6b345e2574bb89fbb254ecc7"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "All five are accepted in supplied record, including Nora via Maya."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete roster is intentional; preserve every member rather than dropping Nora.",
+      "natural_question_fairness": "Fair who target; no need to explain indirect report.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "rsvp-after",
+      "criterionID": "fact-2",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "at": "2026-10-07T09:00:00-04:00",
+      "session": "rsvp-after-fresh",
+      "original_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-de0eec8a34b8da0b89866445",
+        "message-00b0dfcd82762e1f519466b6"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Tuesday time and venue changes are available."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date, time, venue and street are independently missable fields.",
+      "natural_question_fairness": "Fair event coordinates.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "lunch-refreshed",
+      "criterionID": "fact-1",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "at": "2026-10-07T09:10:00-04:00",
+      "session": "lunch-continuity",
+      "original_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Tuesday updates supersede prior snapshot in sole resumed session."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/place tuple has independent fields.",
+      "natural_question_fairness": "Fair; a correct current answer need not narrate refresh machinery.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "lunch-fresh",
+      "criterionID": "fact-1",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "at": "2026-10-07T09:20:00-04:00",
+      "session": "lunch-fresh-fresh",
+      "original_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Fresh session has same available imported sources."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/place tuple has independent fields.",
+      "natural_question_fairness": "Fair; same substantive standard as resumed version.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "cancellation-after",
+      "criterionID": "fact-1",
+      "question": "What’s the status of my studio bookings?",
+      "at": "2026-10-07T09:30:00-04:00",
+      "session": "cancellation-after-fresh",
+      "original_statement": "Wednesday October 7 pottery is cancelled.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-c7ee1ef37e69d04fdd22a1a3"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Clarification explicitly identifies pottery."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One booking cancellation state with date.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "cancellation-after",
+      "criterionID": "fact-2",
+      "question": "What’s the status of my studio bookings?",
+      "at": "2026-10-07T09:30:00-04:00",
+      "session": "cancellation-after-fresh",
+      "original_statement": "Thursday October 8 framing at 10 am at the Oak studio remains booked.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-975e9eb939dfb5e0c9d1baa5",
+        "message-c7ee1ef37e69d04fdd22a1a3"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Thursday framing remains booked; original source supplies time/location."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Booking state, time and location are independent details.",
+      "natural_question_fairness": "Fair to status of bookings; do not require an explanation of ambiguity resolution.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "attendance-unknown",
+      "criterionID": "fact-1",
+      "question": "Did I attend Tuesday’s watercolor workshop?",
+      "at": "2026-10-07T09:40:00-04:00",
+      "session": "attendance-unknown-fresh",
+      "original_statement": "The available messages do not establish whether the user attended.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-5b73005caac446f7b8584b60",
+        "message-0aaa23c5480806e026f5ccf1",
+        "message-ce6113f6fdc5c8c2281da901"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "No actual attendance evidence at checkpoint; later explicit miss is not available."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One epistemic attendance status.",
+      "natural_question_fairness": "Fair; unknown is sufficient without teaching booking-versus-attendance distinction.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-middle",
+      "criterionID": "fact-1",
+      "question": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "at": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh",
+      "original_statement": "Jen has supplied the interview room, Room 204.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [
+        "message-f12f2c3542555f3326d0313f"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "No supplied record gives Room 204 or says the room was answered."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Room receipt/status and exact room value are independently missable.",
+      "natural_question_fairness": "Room topic fits; Room 204 cannot be validated until missing dialogue exists.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-middle",
+      "criterionID": "fact-2",
+      "question": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "at": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh",
+      "original_statement": "Jen still owes the revised checklist.",
+      "support_status": "supported_recorded_status_partial_dataset",
+      "evidence_ids": [
+        "message-51c6bb9dc56658ef9c170d5a"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "Checklist remains unsupplied in actual available record; missing Tuesday Jen scene prevents certification against complete corpus."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single checklist outstanding status.",
+      "natural_question_fairness": "Fair status question; require recorded-status interpretation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-middle",
+      "criterionID": "fact-3",
+      "question": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "at": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh",
+      "original_statement": "The user still owes cover-letter proofreading.",
+      "support_status": "supported_recorded_status_partial_dataset",
+      "evidence_ids": [
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "No completion supplied; outstanding task follows accepted promise, subject to absent Tuesday Jen scene."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single proofreading status.",
+      "natural_question_fairness": "Fair; missing scenes cannot be presumed non-updating.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "recurrence-exception",
+      "criterionID": "fact-1",
+      "question": "When is our game this week and the following week?",
+      "at": "2026-10-07T10:00:00-04:00",
+      "session": "recurrence-exception-fresh",
+      "original_statement": "Thursday October 8 at 8 pm this week; Wednesday October 14 at 8 pm the next, at Devon's.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-26e98c26fd8a5a2f03402137",
+        "message-cb0e3b295838fc58727f580e",
+        "message-c78c02b0d68efb3378706e91"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Thursday exception and next Wednesday recurrence both explicit, before later series ending is available."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Bundles this-week time, following-week time and venue; independently missable.",
+      "natural_question_fairness": "Both weeks asked; venue is useful but unasked when-only question should not require it without author approval.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "invitation-placeholder",
+      "criterionID": "fact-1",
+      "question": "What’s the status of Rae’s concert invitation, and where is it?",
+      "at": "2026-10-07T10:10:00-04:00",
+      "session": "invitation-placeholder-fresh",
+      "original_statement": "No acceptance or decline by the user is recorded in the available messages.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "No supplied owner RSVP; invitation not acceptance."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single recorded RSVP state.",
+      "natural_question_fairness": "Fair invitation status; no real-world categorical claim.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "invitation-placeholder",
+      "criterionID": "fact-2",
+      "question": "What’s the status of Rae’s concert invitation, and where is it?",
+      "at": "2026-10-07T10:10:00-04:00",
+      "session": "invitation-placeholder-fresh",
+      "original_statement": "The venue has not been supplied; the invitation withholds it until RSVP.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Venue withheld until RSVP; future announcement not yet imported."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single venue-unknown judgment.",
+      "natural_question_fairness": "Fair; unknown venue suffices without quoting withholding mechanism.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "withdrawal",
+      "criterionID": "fact-1",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh",
+      "original_statement": "The lunch remains agreed for Friday October 9 at 12:30 pm at Mario’s on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "12:30 update retains yesterday’s Mario’s despite quoted original Rosa’s text."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/venue/street independent fields.",
+      "natural_question_fairness": "Fair; no mandatory quote-analysis explanation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "withdrawal",
+      "criterionID": "fact-2",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh",
+      "original_statement": "The complete confirmed roster is the user, Maya, Tess and Nora; Leo is no longer attending.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-200bcc9902c4bb1cdb60b468",
+        "message-6b345e2574bb89fbb254ecc7",
+        "message-b97026279ac4bacefef91474",
+        "message-9f805bc71c86e808a0107f55",
+        "message-586319d7c8401825142f0acd",
+        "message-349cb8cd7cfcdc38511dbfa3",
+        "message-45212ff37f3957d6b8c7f2b7",
+        "message-2c5cd7144a84462df00bee1d"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner, Maya, Tess and Nora confirmed; Leo withdrawn; Thursday Tess/Nora exits not imported."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete current roster target plus Leo withdrawal; related but independently missable.",
+      "natural_question_fairness": "Preserve full roster; natural answer may list current roster without separately explaining Leo’s withdrawal.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "link-before",
+      "criterionID": "fact-1",
+      "question": "What’s the link for my Friday parcel-support call?",
+      "at": "2026-10-08T09:10:00-04:00",
+      "session": "link-before-fresh",
+      "original_statement": "No support-call link has been supplied.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-a2d3b18ff81e83d47253bbd5",
+        "message-8f4c3fc45d6e613737b4341b",
+        "message-eacd5bdfb6285c49bbdb8647"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Explicit support-call link unavailable; driver webinar URL is a different event."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single link availability state.",
+      "natural_question_fairness": "Fair; do not require explicit unrelated-URL explanation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-after",
+      "criterionID": "fact-1",
+      "question": "Has Jen sent the checklist, and what do I still owe her?",
+      "at": "2026-10-08T09:20:00-04:00",
+      "session": "obligations-after-fresh",
+      "original_statement": "Jen has delivered the revised checklist.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-b8d5b944e10b5e0d8a00410a",
+        "message-8a452182ac9f637a734896d9"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Revised checklist delivered and acknowledged."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single delivery status.",
+      "natural_question_fairness": "Fair; list contents not asked or required by this criterion.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "obligations-after",
+      "criterionID": "fact-2",
+      "question": "Has Jen sent the checklist, and what do I still owe her?",
+      "at": "2026-10-08T09:20:00-04:00",
+      "session": "obligations-after-fresh",
+      "original_statement": "The user still owes cover-letter proofreading by Thursday evening.",
+      "support_status": "supported_recorded_status_partial_dataset",
+      "evidence_ids": [
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "Accepted deadline and no supplied completion before cutoff; Tuesday Jen scene absent."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Task status and deadline independently missable.",
+      "natural_question_fairness": "Fair on supplied status, but not a complete-corpus conclusion until missing scene checked.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "draft-after",
+      "criterionID": "fact-1",
+      "question": "What’s the plan for the PizzaLab tasting—who and when?",
+      "at": "2026-10-08T09:30:00-04:00",
+      "session": "draft-after-fresh",
+      "original_statement": "The user has decided to attend Sunday October 11, 2–2:30 pm.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-68b5661b37e938a53848cb51"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Explicit decision to attend, with date and time range."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Commitment status and time/date independently missable.",
+      "natural_question_fairness": "Fair who/when target; planned attendance must not become actual attendance.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "draft-after",
+      "criterionID": "fact-2",
+      "question": "What’s the plan for the PizzaLab tasting—who and when?",
+      "at": "2026-10-08T09:30:00-04:00",
+      "session": "draft-after-fresh",
+      "original_statement": "Devon declined and is not joining.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-c428b5e21dc299d89109c9e5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Devon explicitly declines."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single companion response.",
+      "natural_question_fairness": "Fair; owner plus Devon decline answers supplied who roster.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "game-reference",
+      "criterionID": "fact-1",
+      "question": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "game-reference-fresh",
+      "original_statement": "One Thursday October 8 game was arranged at 8 pm at Devon’s, with Devon, Maya and the user.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-26e98c26fd8a5a2f03402137",
+        "message-cb0e3b295838fc58727f580e",
+        "message-c78c02b0d68efb3378706e91",
+        "message-d2e5a6bf7a9f72a8f35b3d8e",
+        "message-9216dea0fd015eb8164dc86f"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Same Thursday game, 8 pm at Devon’s, owner/Devon/Maya. No second event is implied."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Event time/place and complete participant roster independently missable.",
+      "natural_question_fairness": "Fair game plan; do not require explicit statement that there was exactly one event.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "game-reference",
+      "criterionID": "fact-2",
+      "question": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "game-reference-fresh",
+      "original_statement": "Alex Reed had not confirmed attendance.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-d2e5a6bf7a9f72a8f35b3d8e",
+        "message-9216dea0fd015eb8164dc86f",
+        "message-8892acae59a49de739d4971e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner will ask Reed and says do not count him pending answer; no supplied confirmation."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single recorded confirmation state.",
+      "natural_question_fairness": "Fair; does not establish real-world nonattendance.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "visit-mid",
+      "criterionID": "fact-1",
+      "question": "When does Morgan’s visit end, and where are they staying?",
+      "at": "2026-10-10T09:00:00-04:00",
+      "session": "visit-mid-fresh",
+      "original_statement": "Morgan is staying at the user’s home.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-63e3fa173717810b89fec85a",
+        "message-a4d955df1ad138c02376713f",
+        "message-9fdb74624d7c56aaee2a1975"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Guest-room stay is explicit, with bag and room retained during outing."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single lodging status.",
+      "natural_question_fairness": "Fair; home is sufficient under criterion though guest room more precise.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "visit-mid",
+      "criterionID": "fact-2",
+      "question": "When does Morgan’s visit end, and where are they staying?",
+      "at": "2026-10-10T09:00:00-04:00",
+      "session": "visit-mid-fresh",
+      "original_statement": "The agreed end of the stay is Monday October 12 at 9 am.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-76ab758dd3e8e326b4c8a6b0",
+        "message-63e3fa173717810b89fec85a",
+        "message-a4d955df1ad138c02376713f",
+        "message-9fdb74624d7c56aaee2a1975"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Monday 9 am is then-current agreed stay end; Saturday outing is not departure."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time of stay end independently missable.",
+      "natural_question_fairness": "Fair; no unasked explanation of museum distinction.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "pizza-final",
+      "criterionID": "fact-1",
+      "question": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "at": "2026-10-12T09:00:00-04:00",
+      "session": "pizza-final-fresh",
+      "original_statement": "Lunch: exactly user and Maya, 12:30 pm at Mario's on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-4a691ac7f752b563f08659b0",
+        "message-8f1923071fabc0205e774d82",
+        "message-ffcfcb52861e6f4b96a7d396"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Final lunch roster is explicitly exactly two."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete roster, time and venue/street are independent details.",
+      "natural_question_fairness": "Fair; preserve exact two-person roster.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "pizza-final",
+      "criterionID": "fact-2",
+      "question": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "at": "2026-10-12T09:00:00-04:00",
+      "session": "pizza-final-fresh",
+      "original_statement": "Separate evening pizza: exactly user and Devon, 6 pm at Luigi's on 5th Street.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-evening-control"
+      ],
+      "findings": [
+        "No supplied record establishes owner/Devon evening pizza, its time or venue. Nora’s independent booking cannot supply owner’s event."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete evening roster, time and venue/street independently missable.",
+      "natural_question_fairness": "Within broad all-pizza-plans question, but impossible to validate without missing source.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "lunch-history",
+      "criterionID": "fact-1",
+      "question": "How did the time and place of the October 9 lunch change?",
+      "at": "2026-10-12T09:10:00-04:00",
+      "session": "lunch-history-fresh",
+      "original_statement": "The time changed from 1 pm to noon, then 12:30 pm.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "1 pm to noon to 12:30 pm sequence explicit; embedded quote is historical."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Ordered time-change sequence is one history target.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "lunch-history",
+      "criterionID": "fact-2",
+      "question": "How did the time and place of the October 9 lunch change?",
+      "at": "2026-10-12T09:10:00-04:00",
+      "session": "lunch-history-fresh",
+      "original_statement": "The venue changed from Rosa’s on Oak Street to Mario’s on Pine Street.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Rosa’s Oak to Mario’s Pine explicit."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Ordered venue-change sequence, including streets.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "ben-final",
+      "criterionID": "fact-1",
+      "question": "When and where did Ben and I agree to have dinner?",
+      "at": "2026-10-12T09:20:00-04:00",
+      "session": "ben-final-fresh",
+      "original_statement": "The final agreed dinner with Ben was Saturday October 10 at 7 pm at Juniper Cafe.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-fb55b3c9893558521fb20cdd",
+        "message-8002dd308259933cffaf62ee",
+        "message-d5a81755778377239c1524f1",
+        "message-bd8a33628b8a6187d375119c",
+        "message-cf35fa9b7b70bc1f9f8ec5d4",
+        "message-695038eb7ba5603d8dd57b28",
+        "message-12b29bd1acd088d0b6d28d62",
+        "message-37c42eedde2fc5c2da5d5972"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Saturday retained after rejected Friday; Juniper retained after someday North Cafe mention."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/place independently missable.",
+      "natural_question_fairness": "Fair; no required narration of rejected alternatives.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "ben-mail-separate",
+      "criterionID": "fact-1",
+      "question": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "at": "2026-10-12T09:30:00-04:00",
+      "session": "ben-mail-separate-fresh",
+      "original_statement": "Dinner was agreed for Saturday October 10 at 7 pm at Juniper Cafe.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-fb55b3c9893558521fb20cdd",
+        "message-8002dd308259933cffaf62ee",
+        "message-d5a81755778377239c1524f1",
+        "message-bd8a33628b8a6187d375119c",
+        "message-cf35fa9b7b70bc1f9f8ec5d4",
+        "message-695038eb7ba5603d8dd57b28",
+        "message-12b29bd1acd088d0b6d28d62",
+        "message-37c42eedde2fc5c2da5d5972"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Same settled dinner thread supports Saturday 7 Juniper."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/place independently missable.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "ben-mail-separate",
+      "criterionID": "fact-2",
+      "question": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "at": "2026-10-12T09:30:00-04:00",
+      "session": "ben-mail-separate-fresh",
+      "original_statement": "Ben would return the drill Sunday October 11 at 3 pm at the user’s door.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-ben-distinct-mail"
+      ],
+      "findings": [
+        "No supplied source mentions drill return, Sunday 3 pm or owner’s door."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Action/date/time/place independent details.",
+      "natural_question_fairness": "Within broad arrangements question, but absent dialogue blocks validation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "roles",
+      "criterionID": "fact-1",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "original_statement": "The concert is Sunday October 11 at 8 pm at Foundry Theatre.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e",
+        "message-a877b806e56e71e09c4a8fa5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Performer invitation and venue announcement establish event coordinates, not owner attendance."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time/place independent fields.",
+      "natural_question_fairness": "Fair; performer-role explanation need not be mandatory.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "roles",
+      "criterionID": "fact-2",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "original_statement": "The user has not confirmed attendance.",
+      "support_status": "supported_recorded_status_partial_dataset",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e"
+      ],
+      "missing_scene_dependencies": [
+        "w1-concert-companion"
+      ],
+      "findings": [
+        "No supplied owner confirmation; absent companion scene may establish or clarify RSVP."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single recorded owner RSVP status.",
+      "natural_question_fairness": "Fair but use no confirmation recorded, not categorical knowledge of owner behavior.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "roles",
+      "criterionID": "fact-3",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "original_statement": "Devon is conditional on his shift, not a confirmed companion.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-concert-companion"
+      ],
+      "findings": [
+        "No supplied source gives Devon’s shift condition or companion response."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Condition and companion status are linked but distinguishable.",
+      "natural_question_fairness": "Fits who target; cannot validate from scene descriptor.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "roles",
+      "criterionID": "fact-4",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "original_statement": "No one is confirmed to accompany the user.",
+      "support_status": "supported_recorded_status_partial_dataset",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e",
+        "message-a877b806e56e71e09c4a8fa5"
+      ],
+      "missing_scene_dependencies": [
+        "w1-concert-companion"
+      ],
+      "findings": [
+        "No supplied confirmed companion, but missing companion dialogue blocks complete roster certification."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single absence-of-confirmation judgment, overlaps conditional-Devon criterion.",
+      "natural_question_fairness": "Who target fits; avoid requiring redundant negative explanation if uncertainty is clear.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "series-final",
+      "criterionID": "fact-1",
+      "question": "Do we have a game this coming Wednesday?",
+      "at": "2026-10-12T09:50:00-04:00",
+      "session": "series-final-fresh",
+      "original_statement": "No; the recurring game series ended, so there is no agreed October 14 game.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-0147fe1eb5b53c7f0ae23254",
+        "message-f80f13cd94c54176ff17803b",
+        "message-d12102881e68885e9c1f2519"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Series ending explicitly includes October 14, superseding recurrence."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One current occurrence cancellation derived from series ending.",
+      "natural_question_fairness": "Fair; no unasked recurrence explanation mandatory.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "attendance-final",
+      "criterionID": "fact-1",
+      "question": "Did I attend the October 6 watercolor workshop?",
+      "at": "2026-10-12T10:00:00-04:00",
+      "session": "attendance-final-fresh",
+      "original_statement": "No; the user explicitly reported missing it.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-611be7be72efdec82ac3526c",
+        "message-9fe135ba521b61fdeae21292"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner explicitly reports missing workshop."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One attendance answer; evidence phrase explains support.",
+      "natural_question_fairness": "Fair; No, I missed it should suffice without explicit source discussion.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "visit-final",
+      "criterionID": "fact-1",
+      "question": "What arrival and departure times did Morgan and I settle on?",
+      "at": "2026-10-12T10:10:00-04:00",
+      "session": "visit-final-fresh",
+      "original_statement": "Arrival was planned for Friday October 9 around 4 pm.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-76ab758dd3e8e326b4c8a6b0",
+        "message-63e3fa173717810b89fec85a"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Friday about 4 is an accepted planned arrival; actual Friday 5 pm settled-in message does not alter plan."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Arrival date/time fields independently missable.",
+      "natural_question_fairness": "Fair; planned wording preserves correct status.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "visit-final",
+      "criterionID": "fact-2",
+      "question": "What arrival and departure times did Morgan and I settle on?",
+      "at": "2026-10-12T10:10:00-04:00",
+      "session": "visit-final-fresh",
+      "original_statement": "The final agreed departure was Sunday October 11 at 10 am.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-4ed0443e7b794bc3e37495ba",
+        "message-a5bccc9f777561d7dc1ff927"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Sunday 10 agreed after train change, superseding Monday."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Departure date/time fields independently missable.",
+      "natural_question_fairness": "Fair; do not require train rationale.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "dates",
+      "criterionID": "fact-1",
+      "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "at": "2026-10-12T10:20:00-04:00",
+      "session": "dates-fresh",
+      "original_statement": "The call is Thursday October 15 at 10 am.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-a014bdc0dd6bdc6f7dd4999a",
+        "message-0f44e010453de3a7bc979c07"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Explicit October 15 at 10 am agreement."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Date/time fields independently missable.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "dates",
+      "criterionID": "fact-2",
+      "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "at": "2026-10-12T10:20:00-04:00",
+      "session": "dates-fresh",
+      "original_statement": "The certificate is dated January 2, 2024.",
+      "support_status": "partially_supported_wording",
+      "evidence_ids": [
+        "message-2c109b7e56ce10091102fdd5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Source dates the workshop January 2, 2024, not necessarily certificate issue/print date."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Single historical date with potentially wrong attribution.",
+      "natural_question_fairness": "Natural question asks when certificate was from; accept workshop-date answer and revise dated wording before freeze.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "upcoming-small",
+      "criterionID": "fact-1",
+      "question": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "at": "2026-10-12T10:30:00-04:00",
+      "session": "upcoming-small-fresh",
+      "original_statement": "Coffee with Alex Reed is agreed for Tuesday October 13 at 8 am at Birch.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-small-future-plan"
+      ],
+      "findings": [
+        "No supplied coffee/Reed/Tuesday 8 am/Birch agreement."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Person, activity, agreement, date/time and location independent details.",
+      "natural_question_fairness": "Fits plans question; cannot validate without absent dialogue.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "upcoming-small",
+      "criterionID": "fact-2",
+      "question": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "at": "2026-10-12T10:30:00-04:00",
+      "session": "upcoming-small-fresh",
+      "original_statement": "Alex Chen’s Wednesday October 14 at 6 pm climbing invitation remains unanswered.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-e49a3330d0e056e7187c001c"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Chen invitation explicit, no owner reply in actual record after it."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Invitation event date/time and response status independently missable.",
+      "natural_question_fairness": "Fair; unanswered means recorded state only.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "namesakes",
+      "criterionID": "fact-1",
+      "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "at": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh",
+      "original_statement": "AC is Alex Chen from the office; Alex Chen avoids dairy and accepts mushrooms.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-namesake-chen"
+      ],
+      "findings": [
+        "No actual source supplies AC alias, office relation or Chen food preferences."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Alias, workplace association, dairy and mushrooms are independent facts.",
+      "natural_question_fairness": "Alias/diet requested; office relation is extra identity context and should not be independently mandatory without author approval.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "namesakes",
+      "criterionID": "fact-2",
+      "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "at": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh",
+      "original_statement": "Alex Reed from ceramics avoids mushrooms and eats dairy.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [],
+      "missing_scene_dependencies": [
+        "w1-namesake-reed"
+      ],
+      "findings": [
+        "No actual source supplies Reed ceramics relation or food preferences."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Ceramics association and two preferences are independent facts.",
+      "natural_question_fairness": "Diet requested; ceramics relation is extra identity context and should not be independently mandatory without author approval.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "namesakes",
+      "criterionID": "fact-3",
+      "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "at": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh",
+      "original_statement": "The user now avoids dairy and accepts mushrooms.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-6d3348d05e242abfe9ddf451",
+        "message-f3f28936c4986e45e888298a"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner explicitly reverses Monday preferences; later quoted old note does not reassert them."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Dairy and mushroom preferences are independently missable.",
+      "natural_question_fairness": "Fair; no mandatory explanation of correction/quotation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "tasks-final",
+      "criterionID": "fact-1",
+      "question": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "at": "2026-10-12T10:50:00-04:00",
+      "session": "tasks-final-fresh",
+      "original_statement": "None of those three items remains outstanding.",
+      "support_status": "partially_supported_missing_generated_evidence",
+      "evidence_ids": [
+        "message-b8d5b944e10b5e0d8a00410a",
+        "message-8a452182ac9f637a734896d9",
+        "message-f12f2c3542555f3326d0313f",
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer",
+        "w1-proofreading-done"
+      ],
+      "findings": [
+        "Only checklist receipt is supported. Supplied sources have no room answer or cover-letter completion, so none outstanding is not established."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Bundles all three independent task states in one categorical criterion.",
+      "natural_question_fairness": "All three asked; full resolution unsupported pending missing sources.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "hall-alias",
+      "criterionID": "fact-1",
+      "question": "What do MR Hall and ZX Annex stand for?",
+      "at": "2026-10-12T11:00:00-04:00",
+      "session": "hall-alias-fresh",
+      "original_statement": "MR Hall means Maple Ridge Hall.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-8f021495084ef8cbc63eeee8"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "MR expansion explicit."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One alias expansion.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "hall-alias",
+      "criterionID": "fact-2",
+      "question": "What do MR Hall and ZX Annex stand for?",
+      "at": "2026-10-12T11:00:00-04:00",
+      "session": "hall-alias-fresh",
+      "original_statement": "ZX Annex has no established full expansion.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-8f021495084ef8cbc63eeee8"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "ZX is mentioned but never expanded in supplied sources."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One unknown expansion.",
+      "natural_question_fairness": "Fair as no supplied expansion; not a universal claim that none exists.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "link-final",
+      "criterionID": "fact-1",
+      "question": "What’s the link for my parcel-support call?",
+      "at": "2026-10-12T11:10:00-04:00",
+      "session": "link-final-fresh",
+      "original_statement": "The support-call link is https://example.org/parcel381 .",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-c8f4781f2ce82c78dd02a322"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Courier supplies exact support-call link; unrelated drivers URL remains irrelevant."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One link.",
+      "natural_question_fairness": "Fair; no URL comparison explanation required.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "next-week-pizza",
+      "criterionID": "fact-1",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "at": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh",
+      "original_statement": "Lunch at 1 pm at Mario’s on Pine Street, with exactly the user and Maya.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-ea16c92d68b9050153d0fee8",
+        "message-1a6ed83dae54bef129427454"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Oct 16 owner/Maya only at 1 Mario’s Pine, distinct from previous Friday."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete roster, time, venue/street independent fields.",
+      "natural_question_fairness": "Fair; preserve exact two-person roster.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "next-week-pizza",
+      "criterionID": "fact-2",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "at": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh",
+      "original_statement": "The user avoids dairy; mushrooms are fine.",
+      "support_status": "supported",
+      "evidence_ids": [
+        "message-6d3348d05e242abfe9ddf451",
+        "message-f3f28936c4986e45e888298a"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Owner dairy avoidance/open mushrooms explicitly ongoing."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Two independently missable preferences.",
+      "natural_question_fairness": "Fair.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "next-week-pizza",
+      "criterionID": "fact-3",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "at": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh",
+      "original_statement": "Maya’s food requirements for that date remain undecided.",
+      "support_status": "partially_supported_overbroad_wording",
+      "evidence_ids": [
+        "message-2307007e4a00111ea2a44c6e",
+        "message-33c7950d8188a5ff02cb766a",
+        "message-9f01bcf4d946e1b1611153c5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Specifically Maya’s post-Oct-11 dairy avoidance is undecided; sources do not state every food requirement is undecided."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One time-scoped dairy-status judgment as supported; broad food wording may imply more.",
+      "natural_question_fairness": "Narrow to Maya’s dairy requirement for Oct 16 remains undecided; do not infer dairy-free or unrestricted.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "refund",
+      "criterionID": "fact-1",
+      "question": "What’s the latest on my cancelled pottery booking?",
+      "at": "2026-10-12T11:30:00-04:00",
+      "session": "refund-fresh",
+      "original_statement": "The refund for the cancelled October 7 pottery booking had been issued.",
+      "support_status": "supported_recorded_status",
+      "evidence_ids": [
+        "message-c7ee1ef37e69d04fdd22a1a3",
+        "message-f569eea0a3973f0177c31fe0"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Latest record reports refund issued for cancelled pottery; sender is Arts Bulletin. Does not prove bank settlement."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "One latest refund state.",
+      "natural_question_fairness": "Fair as issued/reported issued; no unasked sender-authentication explanation.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    },
+    {
+      "questionID": "third-party-collision",
+      "criterionID": "fact-1",
+      "question": "Who was I supposed to meet for pizza on Friday evening?",
+      "at": "2026-10-12T11:40:00-04:00",
+      "session": "third-party-collision-fresh",
+      "original_statement": "The complete companion list for the user’s Friday October 9 evening pizza is Devon only.",
+      "support_status": "missing_generated_evidence",
+      "evidence_ids": [
+        "message-33a89c88746221151110e1a3"
+      ],
+      "missing_scene_dependencies": [
+        "w1-evening-control"
+      ],
+      "findings": [
+        "Nora’s separate booking excludes owner; no supplied owner evening companion record establishes Devon."
+      ],
+      "chronology": "All cited actual sources available by next-day 03:00 local import; missing-scene schedule does not make absent dialogue available.",
+      "compound_independent_details": "Complete companion roster is intentional single target.",
+      "natural_question_fairness": "Fair who question only once owner event is sourced; no demand for venue/time or explanation of Nora exclusion.",
+      "decision": "Review finding only; no criterion rewrite, score split, weight, or scoring choice applied."
+    }
+  ]
+}

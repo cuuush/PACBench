@@ -1,0 +1,2179 @@
+{
+  "id": "pizza-week-catalog-review-v1",
+  "test_scene_id": "w1-pending-invite",
+  "timezone": "America/New_York",
+  "question_at": "2026-10-06T09:00:00-04:00",
+  "scenes": [
+    {
+      "id": "w1-draft-only",
+      "channel": "email",
+      "thread": "draft-service",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user asks for a draft tasting itinerary while still deciding whether to attend."
+      ],
+      "at": "2026-10-05T09:00:00-04:00",
+      "window_start": "2026-10-05T09:00:00-04:00",
+      "window_end": "2026-10-05T09:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Planning Assistant"
+      ],
+      "chat_name": "",
+      "email_subject": "Draft only: tasting option",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.",
+          "at": "2026-10-05T09:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-preference-old",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user initially reports avoiding mushrooms and being fine with dairy."
+      ],
+      "at": "2026-10-05T10:00:00-04:00",
+      "window_start": "2026-10-05T10:00:00-04:00",
+      "window_end": "2026-10-05T10:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "For pizza, I avoid mushrooms; I’m fine with dairy.",
+          "at": "2026-10-05T10:00:00-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Good to know.",
+          "at": "2026-10-05T10:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-namesake-reed",
+      "channel": "imessage",
+      "thread": "alex-reed",
+      "scene": "Alex Reed, the user’s ceramics friend, mentions their food preference while discussing a pizza topping. Establish that this Alex is from ceramics, without comparing them to Alex Chen or the user. No invitation, new plan or preference change.",
+      "test_intent": "",
+      "facts": [
+        "Alex Reed avoids mushrooms and eats dairy."
+      ],
+      "at": "2026-10-05T11:00:00-04:00",
+      "window_start": "2026-10-05T11:00:00-04:00",
+      "window_end": "2026-10-05T11:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        4
+      ],
+      "participants": [
+        "Me",
+        "Alex Reed"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-visit-plan",
+      "channel": "imessage",
+      "thread": "visit",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Morgan plans to visit the user at the user's home October 9 around 4 pm through October 12 at 9 am."
+      ],
+      "at": "2026-10-05T12:00:00-04:00",
+      "window_start": "2026-10-05T12:00:00-04:00",
+      "window_end": "2026-10-05T12:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Morgan"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Morgan",
+          "text": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 Friday, leave 9 Monday.",
+          "at": "2026-10-05T12:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, guest room is yours. I have meals out but you can let yourself in.",
+          "at": "2026-10-05T12:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-games-standing",
+      "channel": "imessage",
+      "thread": "games",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The weekly Wednesday game moves only its October 7 occurrence to Thursday October 8 at 8 pm.",
+        "The following ordinary occurrence is Wednesday October 14 at 8 pm at Devon's."
+      ],
+      "at": "2026-10-05T13:00:00-04:00",
+      "window_start": "2026-10-05T13:00:00-04:00",
+      "window_end": "2026-10-05T13:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Devon",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Devon",
+          "text": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.",
+          "at": "2026-10-05T13:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Thursday this week works.",
+          "at": "2026-10-05T13:00:10-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Same here.",
+          "at": "2026-10-05T13:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-workshop-plan",
+      "channel": "imessage",
+      "thread": "workshop",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user agrees to the Tuesday October 6 watercolor workshop at 10 am at MR Hall."
+      ],
+      "at": "2026-10-05T14:00:00-04:00",
+      "window_start": "2026-10-05T14:00:00-04:00",
+      "window_end": "2026-10-05T14:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Tutor"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Tutor",
+          "text": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.",
+          "at": "2026-10-05T14:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "👍",
+          "at": "2026-10-05T14:00:10-04:00"
+        },
+        {
+          "sender": "Tutor",
+          "text": "Great, see you Tuesday.",
+          "at": "2026-10-05T14:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-jen-open",
+      "channel": "imessage",
+      "thread": "jen",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Jen promises to send the revised checklist; the user’s interview-room question to Jen remains unanswered.",
+        "The user agrees to proofread Jen's cover letter by Thursday evening."
+      ],
+      "at": "2026-10-05T15:00:00-04:00",
+      "window_start": "2026-10-05T15:00:00-04:00",
+      "window_end": "2026-10-05T15:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Jen",
+          "text": "The old application checklist was useful last month.",
+          "at": "2026-10-05T15:00:00-04:00"
+        },
+        {
+          "sender": "Jen",
+          "text": "I’ll send you the revised checklist tomorrow.",
+          "at": "2026-10-05T15:00:10-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Thanks. Could you also tell me the interview room?",
+          "at": "2026-10-05T15:00:20-04:00"
+        },
+        {
+          "sender": "Jen",
+          "text": "Can you proofread my cover letter by Thursday evening?",
+          "at": "2026-10-05T15:00:30-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "I can do that.",
+          "at": "2026-10-05T15:00:40-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-appointments",
+      "channel": "imessage",
+      "thread": "studio",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Pottery and framing are distinct booked appointments.",
+        "The cancellation does not identify which booking it concerns."
+      ],
+      "at": "2026-10-05T16:00:00-04:00",
+      "window_start": "2026-10-05T16:00:00-04:00",
+      "window_end": "2026-10-05T16:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Studio"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Studio",
+          "text": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.",
+          "at": "2026-10-05T16:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Thanks, those are the two I booked.",
+          "at": "2026-10-05T16:00:10-04:00"
+        },
+        {
+          "sender": "Studio",
+          "text": "Sorry, that appointment is cancelled.",
+          "at": "2026-10-05T16:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-lunch-invite",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Maya and the user agree to Friday October 9 lunch at 1 pm at Rosa's on Oak Street.",
+        "Leo has not replied.",
+        "Tess is conditional, not confirmed."
+      ],
+      "at": "2026-10-05T18:00:00-04:00",
+      "window_start": "2026-10-05T18:00:00-04:00",
+      "window_end": "2026-10-05T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Office party balloons have their own lighting budget apparently.",
+          "at": "2026-10-05T18:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "The snacks deserve representation.",
+          "at": "2026-10-05T18:00:10-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?",
+          "at": "2026-10-05T18:00:20-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, Friday works for me.",
+          "at": "2026-10-05T18:00:30-04:00"
+        },
+        {
+          "sender": "Tess",
+          "text": "I can make it if my shift finishes early.",
+          "at": "2026-10-05T18:00:40-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Also that trailer gave away the entire ending.",
+          "at": "2026-10-05T18:00:50-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-evening-control",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi’s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.",
+      "test_intent": "",
+      "facts": [
+        "The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street."
+      ],
+      "at": "2026-10-05T19:00:00-04:00",
+      "window_start": "2026-10-05T19:00:00-04:00",
+      "window_end": "2026-10-05T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        4
+      ],
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-ben-original",
+      "channel": "email",
+      "thread": "ben-mail",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Ben and the user agree to Thursday October 8 dinner at 7 pm at Juniper Cafe."
+      ],
+      "at": "2026-10-05T20:00:00-04:00",
+      "window_start": "2026-10-05T20:00:00-04:00",
+      "window_end": "2026-10-05T20:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "chat_name": "",
+      "email_subject": "Dinner this week",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Ben",
+          "text": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?",
+          "at": "2026-10-05T20:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Thursday at 7 at Juniper works.",
+          "at": "2026-10-05T20:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-leo-delayed",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Leo accepts Monday's Friday October 9 lunch invitation on Tuesday morning."
+      ],
+      "at": "2026-10-06T10:00:00-04:00",
+      "window_start": "2026-10-06T10:00:00-04:00",
+      "window_end": "2026-10-06T10:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Leo",
+          "text": "Friday works.",
+          "at": "2026-10-06T10:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Great, see you then.",
+          "at": "2026-10-06T10:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-studio-clarifies",
+      "channel": "imessage",
+      "thread": "studio",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Only Wednesday pottery is cancelled; Thursday framing remains booked."
+      ],
+      "at": "2026-10-06T11:00:00-04:00",
+      "window_start": "2026-10-06T11:00:00-04:00",
+      "window_end": "2026-10-06T11:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Studio"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Studio",
+          "text": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.",
+          "at": "2026-10-06T11:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Thanks for clearing that up.",
+          "at": "2026-10-06T11:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-lunch-time",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Friday lunch changes to noon; venue is unchanged."
+      ],
+      "at": "2026-10-06T12:00:00-04:00",
+      "window_start": "2026-10-06T12:00:00-04:00",
+      "window_end": "2026-10-06T12:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Could Friday lunch be noon instead?",
+          "at": "2026-10-06T12:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Noon works. I’ll tell the others.",
+          "at": "2026-10-06T12:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-lunch-relay",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Leo accepts the relayed noon change.",
+        "Tess is now confirmed for the lunch."
+      ],
+      "at": "2026-10-06T12:30:00-04:00",
+      "window_start": "2026-10-06T12:30:00-04:00",
+      "window_end": "2026-10-06T12:50:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "Maya and I just agreed noon instead for Friday.",
+          "at": "2026-10-06T12:30:00-04:00"
+        },
+        {
+          "sender": "Leo",
+          "text": "Noon is good for me.",
+          "at": "2026-10-06T12:30:10-04:00"
+        },
+        {
+          "sender": "Tess",
+          "text": "Shift got covered. I can come at noon too.",
+          "at": "2026-10-06T12:30:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-lunch-venue",
+      "channel": "email",
+      "thread": "lunch-mail",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The lunch moves to Mario's on Pine Street; noon remains its time."
+      ],
+      "at": "2026-10-06T14:00:00-04:00",
+      "window_start": "2026-10-06T14:00:00-04:00",
+      "window_end": "2026-10-06T14:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "email_subject": "Friday lunch",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?",
+          "at": "2026-10-06T14:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, Mario's.",
+          "at": "2026-10-06T14:00:10-04:00"
+        },
+        {
+          "sender": "Leo",
+          "text": "Works for me.",
+          "at": "2026-10-06T14:00:20-04:00"
+        },
+        {
+          "sender": "Tess",
+          "text": "Works for me too.",
+          "at": "2026-10-06T14:00:30-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-jen-answer",
+      "channel": "imessage",
+      "thread": "jen",
+      "scene": "Jen answers the user’s interview-room question with Room 204. The revised checklist is still being polished. The user briefly acknowledges. Do not deliver the checklist, complete the cover-letter task, or add interview timing.",
+      "test_intent": "",
+      "facts": [
+        "Jen answers the room question with Room 204.",
+        "The revised checklist is still outstanding."
+      ],
+      "at": "2026-10-06T15:00:00-04:00",
+      "window_start": "2026-10-06T15:00:00-04:00",
+      "window_end": "2026-10-06T15:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        3
+      ],
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-hall-expansion",
+      "channel": "imessage",
+      "thread": "workshop",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "MR Hall means Maple Ridge Hall.",
+        "ZX Annex is mentioned without a full expansion."
+      ],
+      "at": "2026-10-06T16:00:00-04:00",
+      "window_start": "2026-10-06T16:00:00-04:00",
+      "window_end": "2026-10-06T16:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Tutor"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Tutor",
+          "text": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.",
+          "at": "2026-10-06T16:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-tickets-invite",
+      "channel": "email",
+      "thread": "tickets",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user is invited to Rae's concert but has not accepted; venue is withheld."
+      ],
+      "at": "2026-10-06T17:00:00-04:00",
+      "window_start": "2026-10-06T17:00:00-04:00",
+      "window_end": "2026-10-06T17:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Box Office"
+      ],
+      "chat_name": "",
+      "email_subject": "Rae concert invitation",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Box Office",
+          "text": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.",
+          "at": "2026-10-06T17:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-namesake-chen",
+      "channel": "imessage",
+      "thread": "alex-chen",
+      "scene": "Alex Chen, the user’s office friend, mentions their food preference in a brief lunch-related chat and says friends call them AC. Do not discuss Alex Reed or create an outing. This is the first message in this DM, so establish the office connection naturally.",
+      "test_intent": "",
+      "facts": [
+        "Alex Chen, also called AC, avoids dairy and accepts mushrooms; Alex Chen is distinct from Alex Reed."
+      ],
+      "at": "2026-10-06T18:00:00-04:00",
+      "window_start": "2026-10-06T18:00:00-04:00",
+      "window_end": "2026-10-06T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        4
+      ],
+      "participants": [
+        "Me",
+        "Alex Chen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-roster-addition",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Nora joins the existing confirmed roster; no previous attendee is removed."
+      ],
+      "at": "2026-10-06T18:30:00-04:00",
+      "window_start": "2026-10-06T18:30:00-04:00",
+      "window_end": "2026-10-06T18:50:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s.",
+          "at": "2026-10-06T18:30:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Great, add Nora to the table.",
+          "at": "2026-10-06T18:30:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-leo-withdraws",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Leo withdraws without cancelling the outing; remaining roster is user, Maya, Tess and Nora."
+      ],
+      "at": "2026-10-07T11:00:00-04:00",
+      "window_start": "2026-10-07T11:00:00-04:00",
+      "window_end": "2026-10-07T11:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Leo",
+          "text": "New shift landed. I can’t make Friday lunch after all.",
+          "at": "2026-10-07T11:00:00-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "We’ll miss you. Lunch is still on.",
+          "at": "2026-10-07T11:00:10-04:00"
+        },
+        {
+          "sender": "Tess",
+          "text": "I’m still coming.",
+          "at": "2026-10-07T11:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-ben-replaces",
+      "channel": "email",
+      "thread": "ben-mail",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Saturday October 10 replaces Thursday dinner with Ben; 7 pm and Juniper Cafe remain unchanged."
+      ],
+      "at": "2026-10-07T12:00:00-04:00",
+      "window_start": "2026-10-07T12:00:00-04:00",
+      "window_end": "2026-10-07T12:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "chat_name": "",
+      "email_subject": "Dinner this week",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Ben",
+          "text": "Could we move dinner to Saturday October 10? Same time and place.\n\nOn Monday you wrote:\n> Thursday at 7 at Juniper works.",
+          "at": "2026-10-07T12:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, Saturday instead.",
+          "at": "2026-10-07T12:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-fresh-time-old-quote",
+      "channel": "email",
+      "thread": "lunch-mail",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Lunch time becomes 12:30 pm; Mario's remains the venue.",
+        "The quoted Monday address does not restore Rosa's or Leo's attendance.",
+        "Nora accepts the 12:30 change through Maya."
+      ],
+      "at": "2026-10-07T13:00:00-04:00",
+      "window_start": "2026-10-07T13:00:00-04:00",
+      "window_end": "2026-10-07T13:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "email_subject": "Friday lunch",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?",
+          "at": "2026-10-07T13:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "12:30 works.",
+          "at": "2026-10-07T13:00:10-04:00"
+        },
+        {
+          "sender": "Tess",
+          "text": "Me too.",
+          "at": "2026-10-07T13:00:20-04:00"
+        },
+        {
+          "sender": "Leo",
+          "text": "I’m still out, sorry.",
+          "at": "2026-10-07T13:00:30-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Nora says 12:30 works too; I just texted her.",
+          "at": "2026-10-07T13:00:40-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-jen-delivery",
+      "channel": "imessage",
+      "thread": "jen",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Jen delivers the revised checklist; this does not complete the user's cover-letter proofreading."
+      ],
+      "at": "2026-10-07T14:00:00-04:00",
+      "window_start": "2026-10-07T14:00:00-04:00",
+      "window_end": "2026-10-07T14:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Jen",
+          "text": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version.",
+          "at": "2026-10-07T14:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Received, thanks.",
+          "at": "2026-10-07T14:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-preference-correction",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user's corrected preference is dairy-free; mushrooms are now fine.",
+        "Maya requests dairy-free food through October 11 inclusive, with no decision on later dates."
+      ],
+      "at": "2026-10-07T15:00:00-04:00",
+      "window_start": "2026-10-07T15:00:00-04:00",
+      "window_end": "2026-10-07T15:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on.",
+          "at": "2026-10-07T15:00:00-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Got it, no dairy for you.",
+          "at": "2026-10-07T15:00:10-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "For me, dairy-free just through Sunday October 11 inclusive. I haven’t decided about after that.",
+          "at": "2026-10-07T15:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-concert-revealed",
+      "channel": "email",
+      "thread": "tickets",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The announced concert venue is Foundry Theatre; the announcement makes no attendance statement about the user."
+      ],
+      "at": "2026-10-07T16:00:00-04:00",
+      "window_start": "2026-10-07T16:00:00-04:00",
+      "window_end": "2026-10-07T16:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Box Office"
+      ],
+      "chat_name": "",
+      "email_subject": "Rae concert invitation",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Box Office",
+          "text": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm.",
+          "at": "2026-10-07T16:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-concert-companion",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.",
+      "test_intent": "",
+      "facts": [
+        "Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed."
+      ],
+      "at": "2026-10-07T17:00:00-04:00",
+      "window_start": "2026-10-07T17:00:00-04:00",
+      "window_end": "2026-10-07T17:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        3,
+        4
+      ],
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-link-neighbor",
+      "channel": "email",
+      "thread": "delivery",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The drivers URL is unrelated to the user's Friday 9 am parcel-support call; its link is not yet provided."
+      ],
+      "at": "2026-10-07T18:00:00-04:00",
+      "window_start": "2026-10-07T18:00:00-04:00",
+      "window_end": "2026-10-07T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Courier"
+      ],
+      "chat_name": "",
+      "email_subject": "Parcel and support call",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Courier",
+          "text": "Parcel 381 will arrive Friday. Driver recruitment webinar: https://example.org/drivers .",
+          "at": "2026-10-07T18:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "I also booked a parcel-support video call Friday at 9. What is its link?",
+          "at": "2026-10-07T18:00:10-04:00"
+        },
+        {
+          "sender": "Courier",
+          "text": "I don’t have your support-call link yet.",
+          "at": "2026-10-07T18:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-unrelated-pizza",
+      "channel": "imessage",
+      "thread": "newsletter",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "A public pizza social at North Hall is not the user's agreed lunch with Maya."
+      ],
+      "at": "2026-10-07T19:00:00-04:00",
+      "window_start": "2026-10-07T19:00:00-04:00",
+      "window_end": "2026-10-07T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Arts Bulletin"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Arts Bulletin",
+          "text": "This week’s listings: Pizza social, North Hall, Friday at 12:30. Tickets available at the door.",
+          "at": "2026-10-07T19:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-personal-commitment",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The owner now states a personal commitment to attend the PizzaLab tasting; Devon declines."
+      ],
+      "at": "2026-10-07T20:00:00-04:00",
+      "window_start": "2026-10-07T20:00:00-04:00",
+      "window_end": "2026-10-07T20:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?",
+          "at": "2026-10-07T20:00:00-04:00"
+        },
+        {
+          "sender": "Devon",
+          "text": "Not for me, thanks.",
+          "at": "2026-10-07T20:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-complete-roster",
+      "channel": "imessage",
+      "thread": "crew",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The complete final Friday lunch roster is user and Maya."
+      ],
+      "at": "2026-10-08T10:00:00-04:00",
+      "window_start": "2026-10-08T10:00:00-04:00",
+      "window_end": "2026-10-08T10:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya",
+        "Leo",
+        "Tess"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Tess",
+          "text": "Sorry, childcare fell through. I’m out for Friday.",
+          "at": "2026-10-08T10:00:00-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Nora just cancelled with me too. Then it’s just you and me for lunch now.",
+          "at": "2026-10-08T10:00:10-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, just the two of us.",
+          "at": "2026-10-08T10:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-ben-declined",
+      "channel": "imessage",
+      "thread": "ben",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Friday is declined; Saturday October 10 at 7 pm at Juniper remains the only agreed dinner with Ben."
+      ],
+      "at": "2026-10-08T11:00:00-04:00",
+      "window_start": "2026-10-08T11:00:00-04:00",
+      "window_end": "2026-10-08T11:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Ben",
+          "text": "Could we do tomorrow instead of Saturday?",
+          "at": "2026-10-08T11:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Not Friday. Saturday is still good.",
+          "at": "2026-10-08T11:00:10-04:00"
+        },
+        {
+          "sender": "Ben",
+          "text": "Saturday it is. What about trying North Cafe someday?",
+          "at": "2026-10-08T11:00:20-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Maybe someday, not this dinner.",
+          "at": "2026-10-08T11:00:30-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-ben-distinct-mail",
+      "channel": "email",
+      "thread": "ben-other",
+      "scene": "In this email with subject Sunday tool return, Ben asks to return the user’s drill Sunday October 11 at 3 pm at the user’s door and the user agrees. Do not mention dinner or explain that these are separate events. Keep it short.",
+      "test_intent": "",
+      "facts": [
+        "Ben's Sunday 3 pm drill return at the user's door is separate from Saturday dinner."
+      ],
+      "at": "2026-10-08T12:00:00-04:00",
+      "window_start": "2026-10-08T12:00:00-04:00",
+      "window_end": "2026-10-08T12:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        3
+      ],
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "chat_name": "",
+      "email_subject": "Sunday tool return",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-attendance-evidence",
+      "channel": "imessage",
+      "thread": "workshop",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The user explicitly reports not attending the Tuesday watercolor workshop."
+      ],
+      "at": "2026-10-08T13:00:00-04:00",
+      "window_start": "2026-10-08T13:00:00-04:00",
+      "window_end": "2026-10-08T13:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Tutor"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "I missed Tuesday’s watercolor workshop after all. Please send the notes.",
+          "at": "2026-10-08T13:00:00-04:00"
+        },
+        {
+          "sender": "Tutor",
+          "text": "Will do.",
+          "at": "2026-10-08T13:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-game-context",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The DM refers to the existing Thursday game; Alex Reed is only a proposed invitee, not confirmed."
+      ],
+      "at": "2026-10-08T14:00:00-04:00",
+      "window_start": "2026-10-08T14:00:00-04:00",
+      "window_end": "2026-10-08T14:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "Could Alex Reed join our game tonight?",
+          "at": "2026-10-08T14:00:00-04:00"
+        },
+        {
+          "sender": "Devon",
+          "text": "Yes, the Thursday game with Maya at my place, 8. Tell him.",
+          "at": "2026-10-08T14:00:10-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "I’ll ask him; don’t count him until he answers.",
+          "at": "2026-10-08T14:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-link-arrives",
+      "channel": "email",
+      "thread": "delivery",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The support-call URL is https://example.org/parcel381 ."
+      ],
+      "at": "2026-10-08T15:00:00-04:00",
+      "window_start": "2026-10-08T15:00:00-04:00",
+      "window_end": "2026-10-08T15:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Courier"
+      ],
+      "chat_name": "",
+      "email_subject": "Parcel and support call",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Courier",
+          "text": "Here’s your parcel-support call link for tomorrow at 9: https://example.org/parcel381 .",
+          "at": "2026-10-08T15:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-date-history",
+      "channel": "imessage",
+      "thread": "jen",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The certificate concerns January 2, 2024, not an upcoming date.",
+        "Jen and the user agree to October 15 at 10 am for interview prep."
+      ],
+      "at": "2026-10-08T16:00:00-04:00",
+      "window_start": "2026-10-08T16:00:00-04:00",
+      "window_end": "2026-10-08T16:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Jen",
+          "text": "Found my certificate from the workshop on January 2, 2024.",
+          "at": "2026-10-08T16:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Nice, that’ll be useful for the interview.",
+          "at": "2026-10-08T16:00:10-04:00"
+        },
+        {
+          "sender": "Jen",
+          "text": "For interview prep, can we call next Thursday—October 15—at 10 am?",
+          "at": "2026-10-08T16:00:20-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, October 15 at 10 works.",
+          "at": "2026-10-08T16:00:30-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-proofreading-done",
+      "channel": "imessage",
+      "thread": "jen",
+      "scene": "The user sends Jen feedback after completing the cover-letter proofreading, identifying the company name in paragraph two as the needed fix. Jen acknowledges receipt. Do not invent another task, deadline, checklist delivery or appointment.",
+      "test_intent": "",
+      "facts": [
+        "The user completes the cover-letter proofreading obligation."
+      ],
+      "at": "2026-10-08T18:00:00-04:00",
+      "window_start": "2026-10-08T18:00:00-04:00",
+      "window_end": "2026-10-08T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        3
+      ],
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-visit-excursion",
+      "channel": "imessage",
+      "thread": "visit",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Morgan has arrived at the user's home; Saturday's excursion does not end the planned stay."
+      ],
+      "at": "2026-10-09T17:00:00-04:00",
+      "window_start": "2026-10-09T17:00:00-04:00",
+      "window_end": "2026-10-09T17:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Morgan"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Morgan",
+          "text": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here.",
+          "at": "2026-10-09T17:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Enjoy. The room is yours for the rest of the stay.",
+          "at": "2026-10-09T17:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-low-priority-real-update",
+      "channel": "imessage",
+      "thread": "newsletter",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The bulletin provides a real refund update for the cancelled pottery booking, without creating an outing."
+      ],
+      "at": "2026-10-09T18:00:00-04:00",
+      "window_start": "2026-10-09T18:00:00-04:00",
+      "window_end": "2026-10-09T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Arts Bulletin"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Arts Bulletin",
+          "text": "Your refund for the pottery class cancelled Wednesday October 7 has been issued.",
+          "at": "2026-10-09T18:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-old-preference-quote",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Maya quotes the user’s Monday food preference; no new preference change is stated."
+      ],
+      "at": "2026-10-09T19:00:00-04:00",
+      "window_start": "2026-10-09T19:00:00-04:00",
+      "window_end": "2026-10-09T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Clearing out Monday’s notes:\n> For pizza, I avoid mushrooms; I’m fine with dairy.",
+          "at": "2026-10-09T19:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-visit-end-change",
+      "channel": "imessage",
+      "thread": "visit",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Morgan's final departure changes to Sunday October 11 at 10 am."
+      ],
+      "at": "2026-10-10T18:00:00-04:00",
+      "window_start": "2026-10-10T18:00:00-04:00",
+      "window_end": "2026-10-10T18:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Morgan"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Morgan",
+          "text": "Back from the museum. Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday.",
+          "at": "2026-10-10T18:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Okay, Sunday at 10 then.",
+          "at": "2026-10-10T18:00:10-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-series-ends",
+      "channel": "imessage",
+      "thread": "games",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "The game series ends; October 14 and later recurring games are no longer agreed."
+      ],
+      "at": "2026-10-10T19:00:00-04:00",
+      "window_start": "2026-10-10T19:00:00-04:00",
+      "window_end": "2026-10-10T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Devon",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Devon",
+          "text": "I can’t host the weekly games anymore. Let’s end the series now, including October 14.",
+          "at": "2026-10-10T19:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Understood, no more weekly game bookings.",
+          "at": "2026-10-10T19:00:10-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Understood too.",
+          "at": "2026-10-10T19:00:20-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-small-future-plan",
+      "channel": "imessage",
+      "thread": "alex-reed",
+      "scene": "Alex Reed and the user arrange a quick coffee Tuesday October 13 at 8 am at Birch. A brief ceramics aside is fine. Keep the agreement small and natural; no recap of other plans, change to food preferences, or extra outing.",
+      "test_intent": "",
+      "facts": [
+        "Alex Reed and the user agree to October 13 coffee at 8 am at Birch."
+      ],
+      "at": "2026-10-10T20:00:00-04:00",
+      "window_start": "2026-10-10T20:00:00-04:00",
+      "window_end": "2026-10-10T20:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": [
+        2,
+        4
+      ],
+      "participants": [
+        "Me",
+        "Alex Reed"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "prompt_version": "scene-authored-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-future-pizza",
+      "channel": "imessage",
+      "thread": "maya",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "A distinct October 16 lunch is agreed at 1 pm at Mario's on Pine Street, with exactly user and Maya.",
+        "No food restriction for Maya has been agreed for October 16.",
+        "Nora’s October 9 6 pm Luigi’s booking has the complete guest list Nora, Eli and Jo, distinct from the user and Devon."
+      ],
+      "at": "2026-10-11T11:00:00-04:00",
+      "window_start": "2026-10-11T11:00:00-04:00",
+      "window_end": "2026-10-11T11:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Maya"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Maya",
+          "text": "Pizza Friday October 16 at 1 at Mario's on Pine Street, just us?",
+          "at": "2026-10-11T11:00:00-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Yes, next Friday at 1, just us.",
+          "at": "2026-10-11T11:00:10-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Still not sure whether I’ll keep avoiding dairy after tonight.",
+          "at": "2026-10-11T11:00:20-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Let me know when you decide.",
+          "at": "2026-10-11T11:00:30-04:00"
+        },
+        {
+          "sender": "Maya",
+          "text": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo.",
+          "at": "2026-10-11T11:00:40-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-pending-invite",
+      "channel": "imessage",
+      "thread": "alex-chen",
+      "scene": "",
+      "test_intent": "",
+      "facts": [
+        "Alex Chen proposes October 14 climbing at 6 pm; the user has not accepted or declined."
+      ],
+      "at": "2026-10-11T12:00:00-04:00",
+      "window_start": "2026-10-11T12:00:00-04:00",
+      "window_end": "2026-10-11T12:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Alex Chen"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Alex Chen",
+          "text": "Want to try the climbing wall Wednesday October 14 at 6? No rush to answer.",
+          "at": "2026-10-11T12:00:00-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    },
+    {
+      "id": "w1-quiet-chatter",
+      "channel": "imessage",
+      "thread": "devon",
+      "scene": "",
+      "test_intent": "",
+      "facts": [],
+      "at": "2026-10-11T19:00:00-04:00",
+      "window_start": "2026-10-11T19:00:00-04:00",
+      "window_end": "2026-10-11T19:20:00-04:00",
+      "timezone": "America/New_York",
+      "message_range": null,
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "chat_name": "",
+      "noise": "authored",
+      "messages_per_person": null,
+      "messages": [
+        {
+          "sender": "Me",
+          "text": "😂",
+          "at": "2026-10-11T19:00:00-04:00"
+        },
+        {
+          "sender": "Devon",
+          "text": "That spaceship model looked better than the digital version.",
+          "at": "2026-10-11T19:00:10-04:00"
+        },
+        {
+          "sender": "Me",
+          "text": "Still couldn’t forgive the ending.",
+          "at": "2026-10-11T19:00:20-04:00"
+        },
+        {
+          "sender": "Devon",
+          "text": "Fair. Practical effects deserved a better script.",
+          "at": "2026-10-11T19:00:30-04:00"
+        }
+      ],
+      "prompt_version": "scene-supplied-v1",
+      "judge_prompt_version": "scene-judge-v10"
+    }
+  ],
+  "noise": "authored",
+  "week": true,
+  "week_start": "2026-10-05",
+  "evaluation_context": "shared",
+  "checks": [
+    {
+      "id": "rsvp-before",
+      "prompt": "Where are we with everyone’s replies for Friday lunch?",
+      "facts": [
+        "The complete confirmed roster is the user and Maya.",
+        "Leo has not replied and Tess is conditional; neither is confirmed."
+      ],
+      "at": "2026-10-06T09:00:00-04:00",
+      "session": "rsvp-before-fresh"
+    },
+    {
+      "id": "cancellation-before",
+      "prompt": "Which studio booking was cancelled?",
+      "facts": [
+        "The message does not identify whether pottery or framing was cancelled; neither cancellation can be assigned with confidence."
+      ],
+      "at": "2026-10-06T09:10:00-04:00",
+      "session": "cancellation-before-fresh"
+    },
+    {
+      "id": "obligations-before",
+      "prompt": "What are Jen and I waiting on from each other?",
+      "facts": [
+        "Jen has promised the revised checklist; the user is also waiting for Jen to answer the interview-room question, without an established promise to answer it.",
+        "The user owes Jen proofreading of her cover letter by Thursday evening."
+      ],
+      "at": "2026-10-06T09:20:00-04:00",
+      "session": "obligations-before-fresh"
+    },
+    {
+      "id": "lunch-snapshot",
+      "prompt": "Where and when is Friday lunch with Maya?",
+      "facts": [
+        "Friday October 9 at 1 pm at Rosa's on Oak Street."
+      ],
+      "at": "2026-10-06T09:30:00-04:00",
+      "session": "lunch-continuity"
+    },
+    {
+      "id": "short-reply",
+      "prompt": "What did I agree with the watercolor tutor for today?",
+      "facts": [
+        "Tuesday October 6 watercolor workshop at 10 am at MR Hall."
+      ],
+      "at": "2026-10-06T09:40:00-04:00",
+      "session": "short-reply-fresh"
+    },
+    {
+      "id": "draft-before",
+      "prompt": "What’s the status of the PizzaLab tasting?",
+      "facts": [
+        "The user has requested a draft plan but has not committed to attending."
+      ],
+      "at": "2026-10-06T09:50:00-04:00",
+      "session": "draft-before-fresh"
+    },
+    {
+      "id": "rsvp-after",
+      "prompt": "What’s the Friday lunch plan—who, when and where?",
+      "facts": [
+        "Complete confirmed roster: user, Maya, Leo, Tess and Nora.",
+        "Friday October 9 at noon at Mario's on Pine Street."
+      ],
+      "at": "2026-10-07T09:00:00-04:00",
+      "session": "rsvp-after-fresh"
+    },
+    {
+      "id": "lunch-refreshed",
+      "prompt": "Where and when is Friday lunch with Maya now?",
+      "facts": [
+        "Friday October 9 at noon at Mario's on Pine Street."
+      ],
+      "at": "2026-10-07T09:10:00-04:00",
+      "session": "lunch-continuity"
+    },
+    {
+      "id": "lunch-fresh",
+      "prompt": "Where and when is Friday lunch with Maya now?",
+      "facts": [
+        "Friday October 9 at noon at Mario's on Pine Street."
+      ],
+      "at": "2026-10-07T09:20:00-04:00",
+      "session": "lunch-fresh-fresh"
+    },
+    {
+      "id": "cancellation-after",
+      "prompt": "What’s the status of my studio bookings?",
+      "facts": [
+        "Wednesday October 7 pottery is cancelled.",
+        "Thursday October 8 framing at 10 am at the Oak studio remains booked."
+      ],
+      "at": "2026-10-07T09:30:00-04:00",
+      "session": "cancellation-after-fresh"
+    },
+    {
+      "id": "attendance-unknown",
+      "prompt": "Did I attend Tuesday’s watercolor workshop?",
+      "facts": [
+        "The available messages do not establish whether the user attended."
+      ],
+      "at": "2026-10-07T09:40:00-04:00",
+      "session": "attendance-unknown-fresh"
+    },
+    {
+      "id": "obligations-middle",
+      "prompt": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "facts": [
+        "Jen has supplied the interview room, Room 204.",
+        "Jen still owes the revised checklist.",
+        "The user still owes cover-letter proofreading."
+      ],
+      "at": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh"
+    },
+    {
+      "id": "recurrence-exception",
+      "prompt": "When is our game this week and the following week?",
+      "facts": [
+        "Thursday October 8 at 8 pm this week; Wednesday October 14 at 8 pm the next, at Devon's."
+      ],
+      "at": "2026-10-07T10:00:00-04:00",
+      "session": "recurrence-exception-fresh"
+    },
+    {
+      "id": "invitation-placeholder",
+      "prompt": "What’s the status of Rae’s concert invitation, and where is it?",
+      "facts": [
+        "No acceptance or decline by the user is recorded in the available messages.",
+        "The venue has not been supplied; the invitation withholds it until RSVP."
+      ],
+      "at": "2026-10-07T10:10:00-04:00",
+      "session": "invitation-placeholder-fresh"
+    },
+    {
+      "id": "withdrawal",
+      "prompt": "What’s the Friday lunch plan—who, when and where?",
+      "facts": [
+        "The lunch remains agreed for Friday October 9 at 12:30 pm at Mario’s on Pine Street.",
+        "The complete confirmed roster is the user, Maya, Tess and Nora; Leo is no longer attending."
+      ],
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh"
+    },
+    {
+      "id": "link-before",
+      "prompt": "What’s the link for my Friday parcel-support call?",
+      "facts": [
+        "No support-call link has been supplied."
+      ],
+      "at": "2026-10-08T09:10:00-04:00",
+      "session": "link-before-fresh"
+    },
+    {
+      "id": "obligations-after",
+      "prompt": "Has Jen sent the checklist, and what do I still owe her?",
+      "facts": [
+        "Jen has delivered the revised checklist.",
+        "The user still owes cover-letter proofreading by Thursday evening."
+      ],
+      "at": "2026-10-08T09:20:00-04:00",
+      "session": "obligations-after-fresh"
+    },
+    {
+      "id": "draft-after",
+      "prompt": "What’s the plan for the PizzaLab tasting—who and when?",
+      "facts": [
+        "The user has decided to attend Sunday October 11, 2–2:30 pm.",
+        "Devon declined and is not joining."
+      ],
+      "at": "2026-10-08T09:30:00-04:00",
+      "session": "draft-after-fresh"
+    },
+    {
+      "id": "game-reference",
+      "prompt": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "facts": [
+        "One Thursday October 8 game was arranged at 8 pm at Devon’s, with Devon, Maya and the user.",
+        "Alex Reed had not confirmed attendance."
+      ],
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "game-reference-fresh"
+    },
+    {
+      "id": "visit-mid",
+      "prompt": "When does Morgan’s visit end, and where are they staying?",
+      "facts": [
+        "Morgan is staying at the user’s home.",
+        "The agreed end of the stay is Monday October 12 at 9 am."
+      ],
+      "at": "2026-10-10T09:00:00-04:00",
+      "session": "visit-mid-fresh"
+    },
+    {
+      "id": "pizza-final",
+      "prompt": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "facts": [
+        "Lunch: exactly user and Maya, 12:30 pm at Mario's on Pine Street.",
+        "Separate evening pizza: exactly user and Devon, 6 pm at Luigi's on 5th Street."
+      ],
+      "at": "2026-10-12T09:00:00-04:00",
+      "session": "pizza-final-fresh"
+    },
+    {
+      "id": "lunch-history",
+      "prompt": "How did the time and place of the October 9 lunch change?",
+      "facts": [
+        "The time changed from 1 pm to noon, then 12:30 pm.",
+        "The venue changed from Rosa’s on Oak Street to Mario’s on Pine Street."
+      ],
+      "at": "2026-10-12T09:10:00-04:00",
+      "session": "lunch-history-fresh"
+    },
+    {
+      "id": "ben-final",
+      "prompt": "When and where did Ben and I agree to have dinner?",
+      "facts": [
+        "The final agreed dinner with Ben was Saturday October 10 at 7 pm at Juniper Cafe."
+      ],
+      "at": "2026-10-12T09:20:00-04:00",
+      "session": "ben-final-fresh"
+    },
+    {
+      "id": "ben-mail-separate",
+      "prompt": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "facts": [
+        "Dinner was agreed for Saturday October 10 at 7 pm at Juniper Cafe.",
+        "Ben would return the drill Sunday October 11 at 3 pm at the user’s door."
+      ],
+      "at": "2026-10-12T09:30:00-04:00",
+      "session": "ben-mail-separate-fresh"
+    },
+    {
+      "id": "roles",
+      "prompt": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "facts": [
+        "The concert is Sunday October 11 at 8 pm at Foundry Theatre.",
+        "The user has not confirmed attendance.",
+        "Devon is conditional on his shift, not a confirmed companion.",
+        "No one is confirmed to accompany the user."
+      ],
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh"
+    },
+    {
+      "id": "series-final",
+      "prompt": "Do we have a game this coming Wednesday?",
+      "facts": [
+        "No; the recurring game series ended, so there is no agreed October 14 game."
+      ],
+      "at": "2026-10-12T09:50:00-04:00",
+      "session": "series-final-fresh"
+    },
+    {
+      "id": "attendance-final",
+      "prompt": "Did I attend the October 6 watercolor workshop?",
+      "facts": [
+        "No; the user explicitly reported missing it."
+      ],
+      "at": "2026-10-12T10:00:00-04:00",
+      "session": "attendance-final-fresh"
+    },
+    {
+      "id": "visit-final",
+      "prompt": "What arrival and departure times did Morgan and I settle on?",
+      "facts": [
+        "Arrival was planned for Friday October 9 around 4 pm.",
+        "The final agreed departure was Sunday October 11 at 10 am."
+      ],
+      "at": "2026-10-12T10:10:00-04:00",
+      "session": "visit-final-fresh"
+    },
+    {
+      "id": "dates",
+      "prompt": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "facts": [
+        "The call is Thursday October 15 at 10 am.",
+        "The certificate is dated January 2, 2024."
+      ],
+      "at": "2026-10-12T10:20:00-04:00",
+      "session": "dates-fresh"
+    },
+    {
+      "id": "upcoming-small",
+      "prompt": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "facts": [
+        "Coffee with Alex Reed is agreed for Tuesday October 13 at 8 am at Birch.",
+        "Alex Chen’s Wednesday October 14 at 6 pm climbing invitation remains unanswered."
+      ],
+      "at": "2026-10-12T10:30:00-04:00",
+      "session": "upcoming-small-fresh"
+    },
+    {
+      "id": "namesakes",
+      "prompt": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "facts": [
+        "AC is Alex Chen from the office; Alex Chen avoids dairy and accepts mushrooms.",
+        "Alex Reed from ceramics avoids mushrooms and eats dairy.",
+        "The user now avoids dairy and accepts mushrooms."
+      ],
+      "at": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh"
+    },
+    {
+      "id": "tasks-final",
+      "prompt": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "facts": [
+        "None of those three items remains outstanding."
+      ],
+      "at": "2026-10-12T10:50:00-04:00",
+      "session": "tasks-final-fresh"
+    },
+    {
+      "id": "hall-alias",
+      "prompt": "What do MR Hall and ZX Annex stand for?",
+      "facts": [
+        "MR Hall means Maple Ridge Hall.",
+        "ZX Annex has no established full expansion."
+      ],
+      "at": "2026-10-12T11:00:00-04:00",
+      "session": "hall-alias-fresh"
+    },
+    {
+      "id": "link-final",
+      "prompt": "What’s the link for my parcel-support call?",
+      "facts": [
+        "The support-call link is https://example.org/parcel381 ."
+      ],
+      "at": "2026-10-12T11:10:00-04:00",
+      "session": "link-final-fresh"
+    },
+    {
+      "id": "next-week-pizza",
+      "prompt": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "facts": [
+        "Lunch at 1 pm at Mario’s on Pine Street, with exactly the user and Maya.",
+        "The user avoids dairy; mushrooms are fine.",
+        "Maya’s food requirements for that date remain undecided."
+      ],
+      "at": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh"
+    },
+    {
+      "id": "refund",
+      "prompt": "What’s the latest on my cancelled pottery booking?",
+      "facts": [
+        "The refund for the cancelled October 7 pottery booking had been issued."
+      ],
+      "at": "2026-10-12T11:30:00-04:00",
+      "session": "refund-fresh"
+    },
+    {
+      "id": "third-party-collision",
+      "prompt": "Who was I supposed to meet for pizza on Friday evening?",
+      "facts": [
+        "The complete companion list for the user’s Friday October 9 evening pizza is Devon only."
+      ],
+      "at": "2026-10-12T11:40:00-04:00",
+      "session": "third-party-collision-fresh"
+    }
+  ]
+}

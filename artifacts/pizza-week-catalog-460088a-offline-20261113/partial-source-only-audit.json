@@ -1,0 +1,738 @@
+{
+  "audit_type": "independent_partial_source_only",
+  "input_filename": "partial-source-only-review-input.json",
+  "input_sha256": "2e65578c377088deaad01783aa6f6be7897c4e6f2d7196d1fb0e8d3a4e03a3b5",
+  "review_sequence": "Completed and written before opening partial-criterion-review-input.json",
+  "status": "partial; no freeze approval",
+  "method": {
+    "sources_inspected": "Only this staged source-only input; no old reviews/specs/receipts",
+    "actual_records": 102,
+    "public_questions": 37,
+    "missing_generated_scenes": 8,
+    "availability": "Each written local day imports at 03:00 America/New_York next day; arrived_at/collected_at are not independent immediate availability.",
+    "session_rule": "Only lunch-continuity resumes; all other question sessions are fresh.",
+    "no_missing_scene_facts": true,
+    "offline_only": true
+  },
+  "overall_blockers": [
+    "Eight writer scenes are not generated; their descriptors and message bounds establish no dialogue or private facts.",
+    "Full roster/aliases/dietary facts for Alexes, separate Ben arrangements, concert companions and Jen resolution/completion cannot be certified.",
+    "No freeze approval or scoring changes authorized."
+  ],
+  "questions": [
+    {
+      "id": "rsvp-before",
+      "at": "2026-10-06T09:00:00-04:00",
+      "session": "rsvp-before-fresh",
+      "question": "Where are we with everyone’s replies for Friday lunch?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "Maya proposes/hosts and the owner accepts Friday lunch; Tess is conditional on her shift; Leo has no available reply.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-2f565c7d433aeb41b28c804c"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "cancellation-before",
+      "at": "2026-10-06T09:10:00-04:00",
+      "session": "cancellation-before-fresh",
+      "question": "Which studio booking was cancelled?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "One of Wednesday pottery and Thursday framing is cancelled, but “that appointment” does not identify which. Ask/retain ambiguity.",
+      "evidence_ids": [
+        "message-975e9eb939dfb5e0c9d1baa5",
+        "message-b8b90b336f738d2bec589e8f",
+        "message-9be0e1f29627307476fb5142"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Tuesday clarification is not imported yet."
+      ]
+    },
+    {
+      "id": "obligations-before",
+      "at": "2026-10-06T09:20:00-04:00",
+      "session": "obligations-before-fresh",
+      "question": "What are Jen and I waiting on from each other?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "Jen owes the revised checklist promised for Tuesday and an interview-room answer; owner agreed to proofread Jen’s cover letter by Thursday evening.",
+      "evidence_ids": [
+        "message-1be5594c18bcd5cca7b7770e",
+        "message-51c6bb9dc56658ef9c170d5a",
+        "message-f12f2c3542555f3326d0313f",
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "lunch-snapshot",
+      "at": "2026-10-06T09:30:00-04:00",
+      "session": "lunch-continuity",
+      "question": "Where and when is Friday lunch with Maya?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "Friday October 9 at 1 pm, Rosa’s on Oak Street, with Maya.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "short-reply",
+      "at": "2026-10-06T09:40:00-04:00",
+      "session": "short-reply-fresh",
+      "question": "What did I agree with the watercolor tutor for today?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "Agreed to Tuesday October 6 watercolor workshop, 10–11 am at MR Hall. The thumbs-up is acknowledged as acceptance by the tutor.",
+      "evidence_ids": [
+        "message-5b73005caac446f7b8584b60",
+        "message-0aaa23c5480806e026f5ccf1",
+        "message-ce6113f6fdc5c8c2281da901"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Do not infer attendance."
+      ]
+    },
+    {
+      "id": "draft-before",
+      "at": "2026-10-06T09:50:00-04:00",
+      "session": "draft-before-fresh",
+      "question": "What’s the status of the PizzaLab tasting?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 27,
+      "source_supported_answer": "PizzaLab Sunday October 11, 2–2:30 pm is an itinerary draft/option; the owner is still deciding.",
+      "evidence_ids": [
+        "message-6d29bd53b234a0452dd3ac7c"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Draft request is not attendance commitment."
+      ]
+    },
+    {
+      "id": "rsvp-after",
+      "at": "2026-10-07T09:00:00-04:00",
+      "session": "rsvp-after-fresh",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Friday October 9 at noon, Mario’s on Pine Street. Owner, Maya, Leo, Tess, and Nora are in; Nora accepted through Maya’s report.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-c13136a5d8ba4234c59b80ba",
+        "message-2f91488a4fd51df0b19f1e03",
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-477d28107aba6b15a3a4da38",
+        "message-d45d8204b56690f9320fa1c4",
+        "message-78bcfb4acbb752f82b9cff9a",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-de0eec8a34b8da0b89866445",
+        "message-00b0dfcd82762e1f519466b6",
+        "message-200bcc9902c4bb1cdb60b468",
+        "message-6b345e2574bb89fbb254ecc7"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "lunch-refreshed",
+      "at": "2026-10-07T09:10:00-04:00",
+      "session": "lunch-continuity",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Friday October 9 at noon, Mario’s on Pine Street; update prior lunch snapshot in the resumed lunch-continuity session.",
+      "evidence_ids": [
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "lunch-fresh",
+      "at": "2026-10-07T09:20:00-04:00",
+      "session": "lunch-fresh-fresh",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Friday October 9 at noon, Mario’s on Pine Street, identical current result in this fresh session.",
+      "evidence_ids": [
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "cancellation-after",
+      "at": "2026-10-07T09:30:00-04:00",
+      "session": "cancellation-after-fresh",
+      "question": "What’s the status of my studio bookings?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Wednesday October 7 pottery at 10 am is cancelled; Thursday October 8 framing at 10 am at Oak studio remains booked.",
+      "evidence_ids": [
+        "message-975e9eb939dfb5e0c9d1baa5",
+        "message-c7ee1ef37e69d04fdd22a1a3",
+        "message-4264265b0d868c03c6515c84"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "attendance-unknown",
+      "at": "2026-10-07T09:40:00-04:00",
+      "session": "attendance-unknown-fresh",
+      "question": "Did I attend Tuesday’s watercolor workshop?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Attendance is unknown: booking acceptance does not prove attendance.",
+      "evidence_ids": [
+        "message-5b73005caac446f7b8584b60",
+        "message-0aaa23c5480806e026f5ccf1",
+        "message-ce6113f6fdc5c8c2281da901"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Later missed-workshop report is unavailable at this checkpoint."
+      ]
+    },
+    {
+      "id": "obligations-middle",
+      "at": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh",
+      "question": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Revised checklist is still not supplied in actual available sources; room answer absent; owner’s cover-letter proofreading promise remains outstanding in supplied record.",
+      "evidence_ids": [
+        "message-51c6bb9dc56658ef9c170d5a",
+        "message-f12f2c3542555f3326d0313f",
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "Tuesday Jen scene is missing; its contents and effect on obligations cannot be assumed."
+      ]
+    },
+    {
+      "id": "recurrence-exception",
+      "at": "2026-10-07T10:00:00-04:00",
+      "session": "recurrence-exception-fresh",
+      "question": "When is our game this week and the following week?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "This week Thursday October 8 at 8 pm at Devon’s; following week Wednesday October 14 at 8 pm at Devon’s, under the then-current recurrence.",
+      "evidence_ids": [
+        "message-26e98c26fd8a5a2f03402137",
+        "message-cb0e3b295838fc58727f580e",
+        "message-c78c02b0d68efb3378706e91"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Later series cancellation is not yet available."
+      ]
+    },
+    {
+      "id": "invitation-placeholder",
+      "at": "2026-10-07T10:10:00-04:00",
+      "session": "invitation-placeholder-fresh",
+      "question": "What’s the status of Rae’s concert invitation, and where is it?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 44,
+      "source_supported_answer": "Owner is invited to Rae’s concert Sunday October 11 at 8 pm; no RSVP acceptance or venue is available. “Location shown after RSVP” is a placeholder.",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "withdrawal",
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 66,
+      "source_supported_answer": "Friday October 9 at 12:30 pm at Mario’s on Pine Street; owner, Maya, Tess and Nora are in; Leo withdrew.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-78bcfb4acbb752f82b9cff9a",
+        "message-200bcc9902c4bb1cdb60b468",
+        "message-6b345e2574bb89fbb254ecc7",
+        "message-b97026279ac4bacefef91474",
+        "message-9f805bc71c86e808a0107f55",
+        "message-586319d7c8401825142f0acd",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-349cb8cd7cfcdc38511dbfa3",
+        "message-45212ff37f3957d6b8c7f2b7",
+        "message-2c5cd7144a84462df00bee1d",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Thursday withdrawals have not imported yet."
+      ]
+    },
+    {
+      "id": "link-before",
+      "at": "2026-10-08T09:10:00-04:00",
+      "session": "link-before-fresh",
+      "question": "What’s the link for my Friday parcel-support call?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 66,
+      "source_supported_answer": "Friday parcel-support video call at 9 am is booked, but its link is unknown. The driver recruitment webinar URL is unrelated.",
+      "evidence_ids": [
+        "message-a2d3b18ff81e83d47253bbd5",
+        "message-8f4c3fc45d6e613737b4341b",
+        "message-eacd5bdfb6285c49bbdb8647"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "obligations-after",
+      "at": "2026-10-08T09:20:00-04:00",
+      "session": "obligations-after-fresh",
+      "question": "Has Jen sent the checklist, and what do I still owe her?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 66,
+      "source_supported_answer": "Checklist was received, with ID, printed portfolio, two references as complete new version. Interview-room answer still absent from supplied sources; cover-letter proofreading has no supplied completion.",
+      "evidence_ids": [
+        "message-f12f2c3542555f3326d0313f",
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33",
+        "message-b8d5b944e10b5e0d8a00410a",
+        "message-8a452182ac9f637a734896d9"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer"
+      ],
+      "findings": [
+        "Missing Tuesday scene may alter room or task status."
+      ]
+    },
+    {
+      "id": "draft-after",
+      "at": "2026-10-08T09:30:00-04:00",
+      "session": "draft-after-fresh",
+      "question": "What’s the plan for the PizzaLab tasting—who and when?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 66,
+      "source_supported_answer": "Owner has decided to attend PizzaLab Sunday October 11, 2–2:30 pm; Devon declined. No other companion is established.",
+      "evidence_ids": [
+        "message-68b5661b37e938a53848cb51",
+        "message-c428b5e21dc299d89109c9e5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "game-reference",
+      "at": "2026-10-09T09:00:00-04:00",
+      "session": "game-reference-fresh",
+      "question": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 83,
+      "source_supported_answer": "Thursday October 8 at 8 pm at Devon’s, with owner, Devon and Maya. Alex Reed was permitted/invited to be asked, but not confirmed; do not count him.",
+      "evidence_ids": [
+        "message-26e98c26fd8a5a2f03402137",
+        "message-cb0e3b295838fc58727f580e",
+        "message-c78c02b0d68efb3378706e91",
+        "message-d2e5a6bf7a9f72a8f35b3d8e",
+        "message-9216dea0fd015eb8164dc86f",
+        "message-8892acae59a49de739d4971e"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Do not assert attendance from a plan."
+      ]
+    },
+    {
+      "id": "visit-mid",
+      "at": "2026-10-10T09:00:00-04:00",
+      "session": "visit-mid-fresh",
+      "question": "When does Morgan’s visit end, and where are they staying?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 87,
+      "source_supported_answer": "Morgan is staying in owner’s guest room, planned visit ends Monday October 12 at 9 am. Saturday 8 am–about 5 pm museum outing is temporary, with bag/room retained.",
+      "evidence_ids": [
+        "message-76ab758dd3e8e326b4c8a6b0",
+        "message-63e3fa173717810b89fec85a",
+        "message-a4d955df1ad138c02376713f",
+        "message-9fdb74624d7c56aaee2a1975"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Sunday train-change update not yet available."
+      ]
+    },
+    {
+      "id": "pizza-final",
+      "at": "2026-10-12T09:00:00-04:00",
+      "session": "pizza-final-fresh",
+      "question": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Supported owner plan: October 9 lunch at 12:30 pm at Mario’s on Pine Street with Maya only. Nora’s separate 6 pm Luigi’s on 5th booking was for Nora, Eli and Jo; owner is not included. No owner Friday-evening pizza plan is established in supplied sources.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-4a691ac7f752b563f08659b0",
+        "message-8f1923071fabc0205e774d82",
+        "message-ffcfcb52861e6f4b96a7d396",
+        "message-33a89c88746221151110e1a3"
+      ],
+      "missing_scene_dependencies": [
+        "w1-namesake-reed",
+        "w1-namesake-chen"
+      ],
+      "findings": [
+        "Missing Alex scenes preclude certifying complete owner pizza-plan roster; no private facts inferred from scene bounds."
+      ]
+    },
+    {
+      "id": "lunch-history",
+      "at": "2026-10-12T09:10:00-04:00",
+      "session": "lunch-history-fresh",
+      "question": "How did the time and place of the October 9 lunch change?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "October 9 lunch: initially 1 pm at Rosa’s on Oak Street; changed to noon; venue changed to Mario’s on Pine Street; then time changed to 12:30 pm with Mario’s retained.",
+      "evidence_ids": [
+        "message-43b085a7cfa896d423ca2df8",
+        "message-469586b43b4cd28d9ba9ee3e",
+        "message-bd14622d07b81629d9be835c",
+        "message-38d863d1f8fdeda9845a6abd",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Quoted original Rosa’s/1 pm text is historical, not a new update."
+      ]
+    },
+    {
+      "id": "ben-final",
+      "at": "2026-10-12T09:20:00-04:00",
+      "session": "ben-final-fresh",
+      "question": "When and where did Ben and I agree to have dinner?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Dinner agreed for Saturday October 10 at 7 pm at Juniper Cafe. Friday was rejected; North Cafe was only a someday suggestion and not this dinner.",
+      "evidence_ids": [
+        "message-fb55b3c9893558521fb20cdd",
+        "message-8002dd308259933cffaf62ee",
+        "message-d5a81755778377239c1524f1",
+        "message-bd8a33628b8a6187d375119c",
+        "message-cf35fa9b7b70bc1f9f8ec5d4",
+        "message-695038eb7ba5603d8dd57b28",
+        "message-12b29bd1acd088d0b6d28d62",
+        "message-37c42eedde2fc5c2da5d5972"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "The provided dinner thread supports this result; any separate missing mail must not be invented."
+      ]
+    },
+    {
+      "id": "ben-mail-separate",
+      "at": "2026-10-12T09:30:00-04:00",
+      "session": "ben-mail-separate-fresh",
+      "question": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Actual sources establish Saturday October 10 dinner at 7 pm at Juniper Cafe. No supplied separate October 11 arrangement is available.",
+      "evidence_ids": [
+        "message-fb55b3c9893558521fb20cdd",
+        "message-8002dd308259933cffaf62ee",
+        "message-d5a81755778377239c1524f1",
+        "message-bd8a33628b8a6187d375119c",
+        "message-cf35fa9b7b70bc1f9f8ec5d4",
+        "message-695038eb7ba5603d8dd57b28",
+        "message-12b29bd1acd088d0b6d28d62",
+        "message-37c42eedde2fc5c2da5d5972"
+      ],
+      "missing_scene_dependencies": [
+        "w1-ben-distinct-mail"
+      ],
+      "findings": [
+        "Missing distinct Ben mail prevents a complete October 10–11 arrangements answer."
+      ]
+    },
+    {
+      "id": "roles",
+      "at": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Rae performs Sunday October 11 at 8 pm at Foundry Theatre. Owner was invited; no supplied acceptance or attendee/companion agreement.",
+      "evidence_ids": [
+        "message-19897f046286323c7903952e",
+        "message-a877b806e56e71e09c4a8fa5"
+      ],
+      "missing_scene_dependencies": [
+        "w1-concert-companion"
+      ],
+      "findings": [
+        "Rae’s performer role is not companion status; missing companion scene prevents roster conclusion."
+      ]
+    },
+    {
+      "id": "series-final",
+      "at": "2026-10-12T09:50:00-04:00",
+      "session": "series-final-fresh",
+      "question": "Do we have a game this coming Wednesday?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "No game this coming Wednesday October 14: weekly series ended, explicitly including that occurrence.",
+      "evidence_ids": [
+        "message-0147fe1eb5b53c7f0ae23254",
+        "message-f80f13cd94c54176ff17803b",
+        "message-d12102881e68885e9c1f2519"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "attendance-final",
+      "at": "2026-10-12T10:00:00-04:00",
+      "session": "attendance-final-fresh",
+      "question": "Did I attend the October 6 watercolor workshop?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "No: owner explicitly reported missing October 6 workshop.",
+      "evidence_ids": [
+        "message-611be7be72efdec82ac3526c",
+        "message-9fe135ba521b61fdeae21292"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "visit-final",
+      "at": "2026-10-12T10:10:00-04:00",
+      "session": "visit-final-fresh",
+      "question": "What arrival and departure times did Morgan and I settle on?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Settled arrival plan: Friday October 9 about 4 pm; departure changed to Sunday October 11 at 10 am. Actual guest-room occupancy is confirmed Friday by 5 pm; no precise actual arrival time is established.",
+      "evidence_ids": [
+        "message-76ab758dd3e8e326b4c8a6b0",
+        "message-63e3fa173717810b89fec85a",
+        "message-a4d955df1ad138c02376713f",
+        "message-9fdb74624d7c56aaee2a1975",
+        "message-4ed0443e7b794bc3e37495ba",
+        "message-a5bccc9f777561d7dc1ff927"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Museum outing did not end the stay."
+      ]
+    },
+    {
+      "id": "dates",
+      "at": "2026-10-12T10:20:00-04:00",
+      "session": "dates-fresh",
+      "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Next interview-prep call Thursday October 15, 2026 at 10 am; certificate refers to workshop on January 2, 2024.",
+      "evidence_ids": [
+        "message-2c109b7e56ce10091102fdd5",
+        "message-f189a220b20ce687f1c25405",
+        "message-a014bdc0dd6bdc6f7dd4999a",
+        "message-0f44e010453de3a7bc979c07"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "upcoming-small",
+      "at": "2026-10-12T10:30:00-04:00",
+      "session": "upcoming-small-fresh",
+      "question": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Alex Chen invited owner to climbing wall Wednesday October 14 at 6 pm; no owner response is supplied. No Alex Reed plan this week is supplied.",
+      "evidence_ids": [
+        "message-e49a3330d0e056e7187c001c"
+      ],
+      "missing_scene_dependencies": [
+        "w1-small-future-plan"
+      ],
+      "findings": [
+        "Missing Alex Reed scene prevents complete answer; do not invent plan, acceptance or venue."
+      ]
+    },
+    {
+      "id": "namesakes",
+      "at": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh",
+      "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Owner now avoids dairy and mushrooms are fine, superseding Monday. No supplied evidence identifies AC or either Alex’s food requirements.",
+      "evidence_ids": [
+        "message-e84db33ee141baeb2b02524e",
+        "message-72f1a916d2fe08062e35c0a2",
+        "message-6d3348d05e242abfe9ddf451",
+        "message-f3f28936c4986e45e888298a"
+      ],
+      "missing_scene_dependencies": [
+        "w1-namesake-reed",
+        "w1-namesake-chen"
+      ],
+      "findings": [
+        "Scene participants/window are not evidence for alias or dietary facts."
+      ]
+    },
+    {
+      "id": "tasks-final",
+      "at": "2026-10-12T10:50:00-04:00",
+      "session": "tasks-final-fresh",
+      "question": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Checklist received. Room answer not supplied. Proofreading agreement supplied but no completion; complete outstanding-status answer is blocked.",
+      "evidence_ids": [
+        "message-51c6bb9dc56658ef9c170d5a",
+        "message-f12f2c3542555f3326d0313f",
+        "message-7cc2f1b18157e80a7e033360",
+        "message-7c4ad1bd22605f0cd8d89b33",
+        "message-b8d5b944e10b5e0d8a00410a",
+        "message-8a452182ac9f637a734896d9"
+      ],
+      "missing_scene_dependencies": [
+        "w1-jen-answer",
+        "w1-proofreading-done"
+      ],
+      "findings": [
+        "Do not assume completion or room resolution from scene identifiers."
+      ]
+    },
+    {
+      "id": "hall-alias",
+      "at": "2026-10-12T11:00:00-04:00",
+      "session": "hall-alias-fresh",
+      "question": "What do MR Hall and ZX Annex stand for?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "MR Hall means Maple Ridge Hall. No expansion for ZX Annex is supplied.",
+      "evidence_ids": [
+        "message-5b73005caac446f7b8584b60",
+        "message-8f021495084ef8cbc63eeee8"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": []
+    },
+    {
+      "id": "link-final",
+      "at": "2026-10-12T11:10:00-04:00",
+      "session": "link-final-fresh",
+      "question": "What’s the link for my parcel-support call?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Parcel-support call link is https://example.org/parcel381 (Friday October 9 at 9 am).",
+      "evidence_ids": [
+        "message-8f4c3fc45d6e613737b4341b",
+        "message-c8f4781f2ce82c78dd02a322"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Unrelated driver webinar URL is not the call link."
+      ]
+    },
+    {
+      "id": "next-week-pizza",
+      "at": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "October 16 at 1 pm at Mario’s on Pine Street, owner and Maya only. Owner avoids dairy; mushrooms are fine. Maya’s dairy avoidance applied through October 11; her October 16 dairy requirement remains undecided, so check.",
+      "evidence_ids": [
+        "message-6d3348d05e242abfe9ddf451",
+        "message-f3f28936c4986e45e888298a",
+        "message-2307007e4a00111ea2a44c6e",
+        "message-ea16c92d68b9050153d0fee8",
+        "message-1a6ed83dae54bef129427454",
+        "message-33c7950d8188a5ff02cb766a",
+        "message-9f01bcf4d946e1b1611153c5"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Do not extend Maya’s expired interval or infer dairy is fine after it."
+      ]
+    },
+    {
+      "id": "refund",
+      "at": "2026-10-12T11:30:00-04:00",
+      "session": "refund-fresh",
+      "question": "What’s the latest on my cancelled pottery booking?",
+      "status": "reviewable_on_supplied_sources",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Pottery booking was cancelled; latest supplied update says refund issued. This is a recorded status, not independent bank confirmation.",
+      "evidence_ids": [
+        "message-c7ee1ef37e69d04fdd22a1a3",
+        "message-f569eea0a3973f0177c31fe0"
+      ],
+      "missing_scene_dependencies": [],
+      "findings": [
+        "Refund message sender is Arts Bulletin, an attribution oddity; retain as reported/issued rather than proving funds settled."
+      ]
+    },
+    {
+      "id": "third-party-collision",
+      "at": "2026-10-12T11:40:00-04:00",
+      "session": "third-party-collision-fresh",
+      "question": "Who was I supposed to meet for pizza on Friday evening?",
+      "status": "partial_missing_generated_evidence",
+      "available_actual_record_count": 102,
+      "source_supported_answer": "Supplied source does not establish whom owner was supposed to meet Friday evening. Nora’s 6 pm Luigi’s booking lists Nora, Eli and Jo only and cannot be attributed to owner.",
+      "evidence_ids": [
+        "message-33a89c88746221151110e1a3"
+      ],
+      "missing_scene_dependencies": [
+        "w1-namesake-reed",
+        "w1-namesake-chen"
+      ],
+      "findings": [
+        "Missing Alex scenes may contain relevant owner plans; do not infer them."
+      ]
+    }
+  ]
+}

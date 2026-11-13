@@ -254,8 +254,11 @@ claims. Automated bulk review is advisory, not proof of source quality.
 
 ## Validate changes
 
-Install `pytest` in your development environment to run the Python suite; Node.js
-is needed for the JavaScript syntax checks. Run checks appropriate to your change:
+The runtime bootstrap excludes development dependencies. After bootstrap, install
+the pinned test dependencies with
+`uv pip install --python vendor/venv-hermes-isolated/bin/python -r requirements-dev.txt`
+and activate that environment to run the suite. Node.js is needed for the
+JavaScript syntax checks. Run checks appropriate to your change:
 
 ```sh
 python3 -m pytest -q

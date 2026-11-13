@@ -89,12 +89,29 @@ def observations(component, calls):
             'timing_scope': 'Real-clock phases; API duration includes network, provider queue and model time. Residual includes local compute, polling, unresolved API intervals and harness overhead; not individually identifiable. Identical bodies are reported without assuming retries or loops. Local compute and local embeddings are unpriced.'}
 
 
+def native_concurrency_environment(provider):
+    condition=os.environ.get('PACBENCH_LUNA_CONCURRENCY_CONDITION')
+    if not condition:return {}
+    from .openrouter_route import PROFILE_NAME
+    if condition!='luna-budget-serial-v1' or PROFILE_NAME!='luna-bedrock-global':
+        raise ValueError('Unknown or unauthorized native concurrency condition')
+    fields={'hindsight':{'HINDSIGHT_API_LLM_MAX_CONCURRENT':'1'},
+            'memcal':{'MEMCAL_MAX_PARALLEL':'1'}}
+    if provider not in fields:raise ValueError('Serial condition is defined only for Hindsight and Memcal')
+    return fields[provider]
+
+
 def supervise(command, component, *, stop, stop_file, timeout_s, grace_s=5, container_cleanup=True, cancel_file=None):
     component = Path(component).resolve(); owner = uuid.uuid4().hex
     env = {**os.environ, OWNER: owner, 'PACBENCH_IMPORT_ROOT': str(component),
            'PACBENCH_STOP_FILE': str(stop_file), 'TMPDIR': '/var/tmp',
            'PACBENCH_MEMORY_API_INPUT_TRACE_ROOT':str(component/'repeat-1'/component.name/'memory-api-inputs'),
            'DERIVER_MODEL_CONFIG__THINKING_EFFORT': 'none'}
+    native_limits=native_concurrency_environment(component.name)
+    env.update(native_limits)
+    if native_limits:write(component.with_name(component.name+'.condition.json'),{
+        'condition':'luna-budget-serial-v1','native_environment':native_limits,
+        'scope':'Explicit budget-limited native concurrency; inference settings and workload unchanged otherwise. Compare separately from native defaults.'})
     if cancel_file is not None:env['PACBENCH_DIRECT_STOP_ON_429']=str(cancel_file)
     started_utc = now(); started = time.monotonic(); known = []; reason = None
     ownership_path=component.with_name(component.name+'.ownership.private.json')
@@ -178,7 +195,7 @@ def main():
     def request_stop(*unused): stop.set();stop_file.touch(exist_ok=True)
     for sig in (signal.SIGINT,signal.SIGTERM): signal.signal(sig,request_stop)
     from .openrouter_route import MODEL,ENDPOINT,PROFILE_NAME
-    report={'model':MODEL,'endpoint':ENDPOINT,'route_profile':PROFILE_NAME,'version':'measured-native-import-v1','state':'running','started':now(),
+    report={'model':MODEL,'endpoint':ENDPOINT,'route_profile':PROFILE_NAME,'native_concurrency_condition':os.environ.get('PACBENCH_LUNA_CONCURRENCY_CONDITION'),'version':'measured-native-import-v1','state':'running','started':now(),
             'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
             'concurrency':args.concurrency,'provider_timeout_s':args.timeout_s,
             'benchmark_questions_sent':0,'judge_calls':0,'probe_source_ids':args.probe_source_ids,'results':[]}

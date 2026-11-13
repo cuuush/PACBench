@@ -38,11 +38,16 @@ else:raise AssertionError('Concurrent reservations exceeded shared cap')
 try:b.reserve('pacbench-judge',{'model':MODEL,'messages':[]})
 except RuntimeError as e:assert 'import-only' in str(e)
 else:raise AssertionError('Benchmark scope was broadened')
-print(json.dumps({'params':params,'bound':b.snapshot()[1]['reserved'],'old_preserved':json.loads((p/'ledger.json').read_text())['calls'][0]==old}))
+b.settle(r['id'],200,json.dumps({'model':MODEL,'usage':{'cost':'0.1','prompt_tokens':1,'completion_tokens':2},'choices':[]}).encode())
+try:b.reserve('full-memory',{'model':MODEL,'messages':[]})
+except RuntimeError:pass
+else:raise AssertionError('Full request cannot fit remaining headroom')
+capped=b.reserve('capped-memory',{'model':MODEL,'messages':[],'max_tokens':12000})
+print(json.dumps({'params':params,'bound':b.snapshot()[1]['reserved'],'capped_bound':b.snapshot()[-1]['reserved'],'old_preserved':json.loads((p/'ledger.json').read_text())['calls'][0]==old}))
 '''.replace('ROOT',repr(str(tmp_path/'state')))
     d=run(script)
     assert d['params']['prompt_per_million']=='0.45000000' and d['params']['completion_per_million']=='0.75000000'
-    assert d['bound']=='0.56850000' and d['old_preserved']
+    assert d['bound']=='0.56850000' and d['capped_bound']=='0.48150000' and d['old_preserved']
 
 
 def test_budget_serial_openviking_condition_is_explicit_and_changes_only_concurrency():
@@ -58,3 +63,19 @@ assert after['vlm'].pop('max_concurrent')==1
 print(json.dumps({'otherwise_identical':before==after}))
 """)
     assert d['otherwise_identical']
+
+
+def test_serial_native_limits_are_explicit_and_reject_other_providers():
+    result=run("""
+import os,json
+from pacbench.measured_import import native_concurrency_environment as limits
+assert limits('hindsight')=={}
+os.environ['PACBENCH_LUNA_CONCURRENCY_CONDITION']='luna-budget-serial-v1'
+assert limits('hindsight')=={'HINDSIGHT_API_LLM_MAX_CONCURRENT':'1'}
+assert limits('memcal')=={'MEMCAL_MAX_PARALLEL':'1'}
+try:limits('supermemory')
+except ValueError:pass
+else:raise AssertionError('Unsupported native condition was accepted')
+print(json.dumps({'pass':True}))
+""")
+    assert result['pass']

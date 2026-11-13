@@ -425,9 +425,11 @@ historical rows, their original pricing and holds, the original route, and the
 shared $20 cap. It does not release allocations. Bounds cover every catalog price
 tier and additive cache writes. The Luna grant rejects driver/judge requests.
 
-The measured launcher checks that one maximum native request can fit, rather
-than imposing the earlier arbitrary $1 minimum. Every actual admission still
-atomically checks all historical liabilities and concurrent reservations. Native
+The measured launcher checks positive remaining headroom instead of imposing
+an arbitrary dollar or maximum-output minimum. Native requests have different
+output caps; only their actual admission can determine the correct reservation.
+Every admission atomically checks all historical liabilities and concurrent
+reservations, and refuses an unaffordable request before sending it. Native
 output limits and reasoning settings are not changed by accounting bounds.
 
 `pacbench.measured_import --providers cognee --probe-source-ids <four IDs>`
@@ -445,3 +447,10 @@ is a separately labeled budget-limited condition, distinct from the native
 32-slot default. It does not alter prompts, reasoning, output caps or readiness.
 Use it only for the approved Luna route. Performance comparisons must disclose
 this concurrency difference and the simultaneous model/route change.
+
+`PACBENCH_LUNA_CONCURRENCY_CONDITION=luna-budget-serial-v1` similarly sets
+Hindsight's documented `HINDSIGHT_API_LLM_MAX_CONCURRENT=1` or Memcal's
+`MEMCAL_MAX_PARALLEL=1`, only for a selected Hindsight/Memcal Luna arm. The
+condition sidecar records the exact native environment. These are separately
+labeled budget-limited conditions; other providers and native defaults are
+unchanged. No reasoning effort or output cap is injected.

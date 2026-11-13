@@ -1,0 +1,100 @@
+{
+  "version": "cognee-luna-full-import-review-v1",
+  "state": "source-and-processing-complete-native-quality-errors-recorded",
+  "model": "openai/gpt-6-luna",
+  "endpoint": "amazon-bedrock/global",
+  "source_messages": 125,
+  "native_uploaded_documents": 7,
+  "native_add_calls": 7,
+  "native_cognify_calls": 7,
+  "native_automatic_improve_operations_completed": 7,
+  "document_grouping": "Unchanged daily bulk documents, each containing all newly collected messages for that day across conversations. Not125 calls and not one add per message. The four-message probe separately validates one conversation as one document.",
+  "source_readbacks": [
+    {
+      "day": "2026-10-05",
+      "sha256": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e",
+      "source_messages": 33,
+      "native_data_id": "84c62f3d026b4c51a2e1fc2e96124bd8",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-06",
+      "sha256": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41",
+      "source_messages": 23,
+      "native_data_id": "9e390088e5b747288af914a9a8c79eb1",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-07",
+      "sha256": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32",
+      "source_messages": 26,
+      "native_data_id": "0a533c8c7e6c4873b0520d759235535a",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-08",
+      "sha256": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9",
+      "source_messages": 21,
+      "native_data_id": "acba53b3e2e44addb4e8764d7dd19a93",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-09",
+      "sha256": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f",
+      "source_messages": 4,
+      "native_data_id": "43f5f9df2c4148c6b2a34582c86d3e80",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-10",
+      "sha256": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9",
+      "source_messages": 8,
+      "native_data_id": "8134bccbd85145d99a7d40941a5b8c8f",
+      "matches_deepseek_baseline_source_exactly": true
+    },
+    {
+      "day": "2026-10-11",
+      "sha256": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c",
+      "source_messages": 10,
+      "native_data_id": "6e86e896052143e9b8526fb45bedce10",
+      "matches_deepseek_baseline_source_exactly": true
+    }
+  ],
+  "graph_nodes": 173,
+  "graph_relations": 524,
+  "model_call_roles": {
+    "KnowledgeGraph": 7,
+    "ReviewResponse": 6,
+    "native-connection-check": 1
+  },
+  "native_inference_parameters_observed": {},
+  "native_parameters_scope": "All captured memory request bodies omit explicit effort, output cap and temperature. Accounting bounds are not injected output caps. The separate connectivity probe used its own effort/cap.",
+  "model_calls": 14,
+  "reasoning_tokens": 27271,
+  "input_tokens": 35986,
+  "output_tokens": 45531,
+  "known_charge_usd": "0.027262550",
+  "unresolved_bound_usd": "0",
+  "wall_to_native_ready_s": 298.51355724899986,
+  "cleanup": "verified-inventory-stopped",
+  "native_quality_cases": [
+    {
+      "node_id": "8d7baeb0-42dc-527a-8bf9-a1990c276403",
+      "type": "TextSummary",
+      "excerpts": [
+        "Friday lunch was discussed for Friday at 12:30, normalized to 2026-10-02.",
+        "The listing said Friday at 12:30, normalized to 2026-10-02."
+      ]
+    },
+    {
+      "node_id": "718d43a5-db81-5d95-abdf-0b3c90671743",
+      "type": "TextSummary",
+      "excerpts": [
+        "Maya avoids mushrooms on pizza.",
+        "Maya is fine with dairy."
+      ]
+    }
+  ],
+  "quality_classification": "Stale quoted owner dietary history is attributed as current Maya preferences; at least two Friday references are normalized to the prior Friday October2 although source visibility dates are October7/8. The actual captured input retains the correct dates and speakers and uses the stock native extraction prompt. These are native extraction/normalization errors, not repaired memories.",
+  "benchmark_questions_sent": 0
+}

@@ -1,0 +1,42 @@
+{
+  "version": "cognee-four-message-native-probe-v1",
+  "state": "pass",
+  "source_messages": 4,
+  "source_sha256": "5fb0cdbd71bcc54fef606d0c11336e0d1f6fc7e14c30251ccdea265593262bc5",
+  "native_uploaded_documents": 1,
+  "native_data_rows": 1,
+  "native_add_calls": 1,
+  "native_cognify_calls": 1,
+  "native_automatic_improve_completed": true,
+  "model_calls": 2,
+  "call_roles": [
+    "one native connection check",
+    "one native graph extraction"
+  ],
+  "api_payload_keys": [
+    [
+      "messages",
+      "model",
+      "provider"
+    ],
+    [
+      "messages",
+      "model",
+      "provider",
+      "response_format"
+    ]
+  ],
+  "graph_nodes": 21,
+  "graph_relations": 35,
+  "stored_summary": [
+    "Timestamp: 2026-10-06 14:00:00, 2026-10-06 14:00:10, 2026-10-06 14:00:20, 2026-10-06 14:00:30\nperson: maya, me, leo, tess\nevent: friday lunch\norganization: rosas, marios\nplace: pine street\nMaya sent her message at 2026-10-06 14:00:00.\nMe sent a message confirming Mario's at 2026-10-06 14:00:10.\nLeo sent his message at 2026-10-06 14:00:20.\nTess sent her message at 2026-10-06 14:00:30.\nMaya proposed switching Friday lunch from Rosa's to Mario's because Rosa's is closed Friday.\nMe confirmed Mario's as the venue for Friday lunch.\nLeo said the lunch plan worked for him.\nTess said the lunch plan worked for her.\nFriday lunch was switched to Mario's.\nRosa's was the prior venue before Maya proposed switching the lunch to Mario's.\nMario's is on Pine Street."
+  ],
+  "source_readback_exact": true,
+  "stored_fact_review": "Venue switch from Rosa\u2019s to Mario\u2019s on Pine Street, owner confirmation and Leo/Tess acceptance agree with all four submitted messages. This scoped check is not a full Week accuracy score.",
+  "wall_to_native_ready_s": 36.090403309000976,
+  "known_charge_usd": "0.001122025",
+  "unresolved_bound_usd": "0",
+  "reasoning_tokens": 1000,
+  "cleanup": "verified-inventory-stopped",
+  "benchmark_questions_sent": 0
+}

@@ -1,0 +1,90 @@
+{
+  "scene_id": "w1-namesake-reed",
+  "attempt": 1,
+  "passed": true,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "created_utc": "2026-11-13T01:37:59+00:00",
+  "spec": {
+    "id": "w1-namesake-reed",
+    "channel": "imessage",
+    "thread": "alex-reed",
+    "scene": "Alex Reed, the user\u2019s ceramics friend, mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at a past ceramics break. Establish the ceramics connection naturally. The user only acknowledges Alex\u2019s preference; do not assign the user any food preference, place an order, invite anyone, or create a new plan. Do not compare Alex with Alex Chen.",
+    "test_intent": "",
+    "facts": [
+      "Alex Reed avoids mushrooms and eats dairy."
+    ],
+    "at": "2026-10-05T11:00:00-04:00",
+    "window_start": "2026-10-05T11:00:00-04:00",
+    "window_end": "2026-10-05T11:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      4
+    ],
+    "participants": [
+      "Me",
+      "Alex Reed"
+    ],
+    "chat_name": "",
+    "noise": "authored",
+    "messages_per_person": null,
+    "prompt_version": "scene-authored-v1",
+    "judge_prompt_version": "scene-judge-v10"
+  },
+  "dialogue": [
+    "Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.",
+    "Me: Ha, yes\u2014cheese in, mushrooms out for you. Pottery-break pizza memories are strong.",
+    "Alex Reed: Very strong. I\u2019ll defend that topping stance anytime."
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 11:00 and 11:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Alex Reed, the user\u2019s ceramics friend, mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at a past ceramics break. Establish the ceramics connection naturally. The user only acknowledges Alex\u2019s preference; do not assign the user any food preference, place an order, invite anyone, or create a new plan. Do not compare Alex with Alex Chen.\n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Alex Reed avoids mushrooms and eats dairy.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2\u20132:30 pm PizzaLab tasting. I\u2019m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I\u2019m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n\nNew messages:\n1. Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\n2. Me: Ha, yes\u2014cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\n3. Alex Reed: Very strong. I\u2019ll defend that topping stance anytime.",
+  "judge_response": "{\"supported\":true,\"evidence\":[1,2,3],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      3
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1,
+          2
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 2824,
+  "response_chars": 119,
+  "model_call": "/workspace/PACBench-hermes-upgrade-integration-20261112/artifacts/pizza-week-hybrid-v2-20261113/model-calls/e049c97d0ee0e88b65ae94a29a32fbd5be6077ee2466ea8006333d12ccc36382.json",
+  "usage": {
+    "prompt_tokens": 684,
+    "completion_tokens": 354,
+    "total_tokens": 1038,
+    "cost": 0.000117418112,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 256,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000117418112,
+      "upstream_inference_prompt_cost": 3.4157312e-05,
+      "upstream_inference_completions_cost": 8.32608e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 314,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000117418112
+  },
+  "cost_usd": 0.000117418112,
+  "cost_note": "reported by API"
+}

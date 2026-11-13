@@ -1,0 +1,1344 @@
+{
+  "schema_version": "independent-source-answer-audit-v1",
+  "phase": "one_source_only",
+  "independence": {
+    "agent_role": "independent fresh source-only auditor",
+    "read_inputs": [
+      "AGENTS.md",
+      "complete-candidate-source-only-review-input.json"
+    ],
+    "not_consulted": [
+      "author spec",
+      "frozen criteria",
+      "model reviews",
+      "other agents answers",
+      "evaluations/",
+      "claims external to source-only input"
+    ],
+    "no_paid_calls": true,
+    "no_provider_runs": true,
+    "source_rewritten": false,
+    "assistant_answers_inferred": false
+  },
+  "input": {
+    "path": "artifacts/pizza-week-hybrid-stream-v4-20261113/complete-candidate-source-only-review-input.json",
+    "sha256": "5feb7490acae26ebd218a6c46098ee02c658bdc6c66d4ca63f72bcfeb8f4c2bc",
+    "message_count": 125,
+    "question_count": 37,
+    "timezone": "America/New_York"
+  },
+  "method": {
+    "cutoff": "Use only messages whose written_at, arrived_at and collected_at are all no later than the question checkpoint. In this input all three times match.",
+    "public_session_context": "Only supplied questions in the same public session before the checkpoint are known; no prior assistant answer text is supplied.",
+    "criterion_scope": "Answers were authored without reading scoring criteria. These answers are not a freeze approval or provider result.",
+    "status_definitions": {
+      "confirmed": "Explicitly agreed, stated or established by source; an agreed plan is not evidence of actual attendance.",
+      "confirmed_reported": "Explicit source report about a third party or external outcome, not independent observation.",
+      "tentative": "Conditional, undecided or proposed without the relevant acceptance.",
+      "pending": "Requested or promised action with no completion evidence by the checkpoint.",
+      "unknown": "Source does not establish the requested fact. Citations anchor the context; absence claims consider all checkpoint-available messages.",
+      "cancelled": "Explicitly cancelled event or booking.",
+      "withdrawn": "Person explicitly withdrew from an otherwise continuing plan.",
+      "declined": "Invitation explicitly refused.",
+      "invited": "Invitation present with no recipient acceptance.",
+      "completed": "Relevant delivery or task completion explicitly established.",
+      "superseded": "Earlier arrangement replaced by a later accepted change.",
+      "rejected_alternative": "Proposed alternative explicitly not accepted.",
+      "historical_quote": "Quoted earlier text is not a fresh factual update."
+    }
+  },
+  "global_ambiguity_or_unsupported_question_concerns": [
+    {
+      "question_ids": [
+        "cancellation-before"
+      ],
+      "severity": "essential_abstention",
+      "concern": "Source intentionally leaves the cancelled booking ambiguous until a later clarification."
+    },
+    {
+      "question_ids": [
+        "attendance-unknown"
+      ],
+      "severity": "essential_abstention",
+      "concern": "Acknowledged booking does not establish attendance at the checkpoint."
+    },
+    {
+      "question_ids": [
+        "invitation-placeholder",
+        "link-before",
+        "hall-alias"
+      ],
+      "severity": "essential_abstention",
+      "concern": "A withheld venue, unavailable support URL, and unexplained ZX expansion must remain unknown rather than being guessed or borrowed from unrelated text."
+    },
+    {
+      "question_ids": [
+        "lunch-refreshed"
+      ],
+      "severity": "session_context_limit",
+      "concern": "Prior public user prompt is supplied, but no prior assistant answer is present. Cannot audit assistant self-correction or remembered earlier answer from this source-only input."
+    },
+    {
+      "question_ids": [
+        "roles",
+        "game-reference",
+        "upcoming-small",
+        "next-week-pizza"
+      ],
+      "severity": "status_boundary",
+      "concern": "Distinguish invitation, host permission, temporary food requirements and conditionally contemplated attendance from confirmed acceptance/current requirements."
+    }
+  ],
+  "answers": [
+    {
+      "question_id": "rsvp-before",
+      "prompt": "Where are we with everyone’s replies for Friday lunch?",
+      "checkpoint": "2026-10-06T09:00:00-04:00",
+      "session": "rsvp-before-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Maya proposed Friday October 9 lunch at 1 pm at Rosa's on Oak Street, and I accepted. Tess can come only if her shift finishes early. Leo has not replied yet.",
+      "claims": [
+        {
+          "text": "Maya is organizing/proposing the lunch and I accepted Friday October 9 at 1 pm, Rosa's on Oak Street.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-43b085a7cfa896d423ca2df8",
+            "message-469586b43b4cd28d9ba9ee3e"
+          ]
+        },
+        {
+          "text": "Tess is conditional on finishing her shift early.",
+          "status": "tentative",
+          "source_ids": [
+            "message-2f565c7d433aeb41b28c804c"
+          ]
+        },
+        {
+          "text": "No Leo response is available at this checkpoint.",
+          "status": "unknown",
+          "source_ids": [
+            "message-43b085a7cfa896d423ca2df8"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "cancellation-before",
+      "prompt": "Which studio booking was cancelled?",
+      "checkpoint": "2026-10-06T09:10:00-04:00",
+      "session": "cancellation-before-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "One of my two Oak studio bookings was cancelled, but the message does not identify which: pottery Wednesday October 7 at 10 am or framing Thursday October 8 at 10 am.",
+      "claims": [
+        {
+          "text": "Both pottery Wednesday October 7 at 10 am and framing Thursday October 8 at 10 am were booked at the Oak studio.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-975e9eb939dfb5e0c9d1baa5",
+            "message-b8b90b336f738d2bec589e8f"
+          ]
+        },
+        {
+          "text": "The studio said that appointment is cancelled, without specifying one of the two.",
+          "status": "unknown",
+          "source_ids": [
+            "message-9be0e1f29627307476fb5142"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The question asks which booking, but the singular cancellation reference is ambiguous at this checkpoint. Choosing pottery or framing would use unavailable later evidence or guess."
+      ]
+    },
+    {
+      "question_id": "obligations-before",
+      "prompt": "What are Jen and I waiting on from each other?",
+      "checkpoint": "2026-10-06T09:20:00-04:00",
+      "session": "obligations-before-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Jen still owes me the revised checklist she promised for today, and I am waiting for her answer about the interview room. I agreed to proofread her cover letter by Thursday evening, October 8.",
+      "claims": [
+        {
+          "text": "Jen promised the revised checklist for October 6; it has not yet been sent.",
+          "status": "pending",
+          "source_ids": [
+            "message-51c6bb9dc56658ef9c170d5a"
+          ]
+        },
+        {
+          "text": "I requested the interview room; no answer has arrived yet.",
+          "status": "pending",
+          "source_ids": [
+            "message-f12f2c3542555f3326d0313f"
+          ]
+        },
+        {
+          "text": "I agreed to proofread Jen's cover letter by Thursday evening October 8.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-7cc2f1b18157e80a7e033360",
+            "message-7c4ad1bd22605f0cd8d89b33"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "lunch-snapshot",
+      "prompt": "Where and when is Friday lunch with Maya?",
+      "checkpoint": "2026-10-06T09:30:00-04:00",
+      "session": "lunch-continuity",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 9 at 1 pm at Rosa's on Oak Street.",
+      "claims": [
+        {
+          "text": "Original lunch time and venue are Friday October 9 at 1 pm, Rosa's on Oak Street.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-43b085a7cfa896d423ca2df8",
+            "message-469586b43b4cd28d9ba9ee3e"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "short-reply",
+      "prompt": "What did I agree with the watercolor tutor for today?",
+      "checkpoint": "2026-10-06T09:40:00-04:00",
+      "session": "short-reply-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Today, Tuesday October 6, 10–11 am at MR Hall for the watercolor workshop. My thumbs-up acknowledged the arrangement and the tutor replied that they would see me Tuesday.",
+      "claims": [
+        {
+          "text": "Watercolor workshop Tuesday October 6, 10–11 am at MR Hall.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-5b73005caac446f7b8584b60",
+            "message-0aaa23c5480806e026f5ccf1",
+            "message-ce6113f6fdc5c8c2281da901"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "draft-before",
+      "prompt": "What’s the status of the PizzaLab tasting?",
+      "checkpoint": "2026-10-06T09:50:00-04:00",
+      "session": "draft-before-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The PizzaLab tasting is an option for Sunday October 11, 2–2:30 pm. I only requested a draft itinerary and said I was still deciding whether to go; attendance is not committed.",
+      "claims": [
+        {
+          "text": "The tasting option is Sunday October 11, 2–2:30 pm.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6d29bd53b234a0452dd3ac7c"
+          ]
+        },
+        {
+          "text": "I requested planning only and had not decided to attend.",
+          "status": "tentative",
+          "source_ids": [
+            "message-6d29bd53b234a0452dd3ac7c"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "rsvp-after",
+      "prompt": "What’s the Friday lunch plan—who, when and where?",
+      "checkpoint": "2026-10-07T09:00:00-04:00",
+      "session": "rsvp-after-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 9 lunch is now noon at Mario's on Pine Street. The agreed group is me, Maya, Leo, Tess and Nora; Maya reported Nora's acceptance, and I said to add her.",
+      "claims": [
+        {
+          "text": "Noon supersedes 1 pm and Mario's on Pine Street supersedes Rosa's.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-bd14622d07b81629d9be835c",
+            "message-38d863d1f8fdeda9845a6abd",
+            "message-477d28107aba6b15a3a4da38",
+            "message-d45d8204b56690f9320fa1c4",
+            "message-78bcfb4acbb752f82b9cff9a",
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20",
+            "message-de0eec8a34b8da0b89866445",
+            "message-00b0dfcd82762e1f519466b6"
+          ]
+        },
+        {
+          "text": "Me, Maya, Leo and Tess have agreed to the current plan.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-bd14622d07b81629d9be835c",
+            "message-38d863d1f8fdeda9845a6abd",
+            "message-d45d8204b56690f9320fa1c4",
+            "message-78bcfb4acbb752f82b9cff9a",
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20",
+            "message-de0eec8a34b8da0b89866445",
+            "message-00b0dfcd82762e1f519466b6"
+          ]
+        },
+        {
+          "text": "Nora also accepted noon at Mario's, reported by Maya and acknowledged by me.",
+          "status": "confirmed_reported",
+          "source_ids": [
+            "message-200bcc9902c4bb1cdb60b468",
+            "message-6b345e2574bb89fbb254ecc7"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "lunch-refreshed",
+      "prompt": "Where and when is Friday lunch with Maya now?",
+      "checkpoint": "2026-10-07T09:10:00-04:00",
+      "session": "lunch-continuity",
+      "relevant_prior_public_session_prompts": [
+        {
+          "id": "lunch-snapshot",
+          "prompt": "Where and when is Friday lunch with Maya?",
+          "at": "2026-10-06T09:30:00-04:00"
+        }
+      ],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 9 lunch with Maya is now noon at Mario's on Pine Street.",
+      "claims": [
+        {
+          "text": "Friday lunch moved to noon by agreement.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-bd14622d07b81629d9be835c",
+            "message-38d863d1f8fdeda9845a6abd"
+          ]
+        },
+        {
+          "text": "The same lunch moved to Mario's on Pine Street because Rosa's is closed Friday.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The earlier public prompt lunch-snapshot is available, but no earlier assistant answer is supplied. No claim about what an assistant previously answered can be made."
+      ]
+    },
+    {
+      "question_id": "lunch-fresh",
+      "prompt": "Where and when is Friday lunch with Maya now?",
+      "checkpoint": "2026-10-07T09:20:00-04:00",
+      "session": "lunch-fresh-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 9 lunch with Maya is now noon at Mario's on Pine Street.",
+      "claims": [
+        {
+          "text": "Friday lunch moved to noon by agreement.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-bd14622d07b81629d9be835c",
+            "message-38d863d1f8fdeda9845a6abd"
+          ]
+        },
+        {
+          "text": "The same lunch moved to Mario's on Pine Street because Rosa's is closed Friday.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "cancellation-after",
+      "prompt": "What’s the status of my studio bookings?",
+      "checkpoint": "2026-10-07T09:30:00-04:00",
+      "session": "cancellation-after-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The Wednesday October 7 pottery booking at 10 am was cancelled. Thursday October 8 framing at 10 am at the Oak studio remains booked.",
+      "claims": [
+        {
+          "text": "The studio clarified that the cancelled appointment is Wednesday pottery.",
+          "status": "cancelled",
+          "source_ids": [
+            "message-975e9eb939dfb5e0c9d1baa5",
+            "message-c7ee1ef37e69d04fdd22a1a3"
+          ]
+        },
+        {
+          "text": "Thursday framing, 10 am at the Oak studio, remains booked.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-975e9eb939dfb5e0c9d1baa5",
+            "message-c7ee1ef37e69d04fdd22a1a3"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "attendance-unknown",
+      "prompt": "Did I attend Tuesday’s watercolor workshop?",
+      "checkpoint": "2026-10-07T09:40:00-04:00",
+      "session": "attendance-unknown-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Attendance is unknown. I acknowledged the Tuesday October 6 workshop, scheduled for 10–11 am at MR Hall, but there is no report yet that I attended or missed it.",
+      "claims": [
+        {
+          "text": "There was an acknowledged workshop arrangement.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-5b73005caac446f7b8584b60",
+            "message-0aaa23c5480806e026f5ccf1",
+            "message-ce6113f6fdc5c8c2281da901"
+          ]
+        },
+        {
+          "text": "The available workshop messages do not establish actual attendance.",
+          "status": "unknown",
+          "source_ids": [
+            "message-5b73005caac446f7b8584b60",
+            "message-0aaa23c5480806e026f5ccf1",
+            "message-ce6113f6fdc5c8c2281da901",
+            "message-8f021495084ef8cbc63eeee8"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "A scheduled and acknowledged event does not prove attendance. The later missed-workshop report is not yet available."
+      ]
+    },
+    {
+      "question_id": "obligations-middle",
+      "prompt": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "checkpoint": "2026-10-07T09:50:00-04:00",
+      "session": "obligations-middle-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Jen has supplied Room 204 and I acknowledged it. The revised checklist is still pending—she said she was polishing it. I still owe her cover-letter proofreading by Thursday evening October 8.",
+      "claims": [
+        {
+          "text": "Interview room is Room 204 and my receipt is acknowledged.",
+          "status": "completed",
+          "source_ids": [
+            "message-a8612da3d2eccf4db155c23e",
+            "message-439013827a15a531c9ec6cdd"
+          ]
+        },
+        {
+          "text": "The revised checklist has not been supplied and is still being polished.",
+          "status": "pending",
+          "source_ids": [
+            "message-001ff7c5b90dc76b6f75d1ec"
+          ]
+        },
+        {
+          "text": "My cover-letter proofreading commitment remains due Thursday evening October 8.",
+          "status": "pending",
+          "source_ids": [
+            "message-7cc2f1b18157e80a7e033360",
+            "message-7c4ad1bd22605f0cd8d89b33"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "recurrence-exception",
+      "prompt": "When is our game this week and the following week?",
+      "checkpoint": "2026-10-07T10:00:00-04:00",
+      "session": "recurrence-exception-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "This week the game is Thursday October 8 at 8 pm at Devon's place, a one-week exception. The following week it returns to Wednesday October 14 at 8 pm at Devon's.",
+      "claims": [
+        {
+          "text": "Thursday October 8 at 8 pm at Devon's replaces this week's regular Wednesday game, with me and Maya accepting.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-26e98c26fd8a5a2f03402137",
+            "message-cb0e3b295838fc58727f580e",
+            "message-c78c02b0d68efb3378706e91"
+          ]
+        },
+        {
+          "text": "The normal Wednesday 8 pm recurrence resumes the following week, October 14.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-26e98c26fd8a5a2f03402137"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "invitation-placeholder",
+      "prompt": "What’s the status of Rae’s concert invitation, and where is it?",
+      "checkpoint": "2026-10-07T10:10:00-04:00",
+      "session": "invitation-placeholder-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "I have an invitation to Rae's performance Sunday October 11 at 8 pm. I have not accepted in the available source. The actual venue is unknown: the invitation says the location is shown after RSVP.",
+      "claims": [
+        {
+          "text": "Invitation is for Rae performing Sunday October 11 at 8 pm.",
+          "status": "invited",
+          "source_ids": [
+            "message-19897f046286323c7903952e"
+          ]
+        },
+        {
+          "text": "No acceptance or actual venue is available at this checkpoint; location shown after RSVP is a placeholder/condition, not a venue.",
+          "status": "unknown",
+          "source_ids": [
+            "message-19897f046286323c7903952e"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "withdrawal",
+      "prompt": "What’s the Friday lunch plan—who, when and where?",
+      "checkpoint": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 9 lunch is 12:30 pm at Mario's on Pine Street, with me, Maya, Tess and Nora. Leo withdrew and reconfirmed that he is out. Maya reported Nora's acceptance of 12:30.",
+      "claims": [
+        {
+          "text": "12:30 pm supersedes noon; same venue agreed yesterday means Mario's on Pine Street.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20",
+            "message-e7d38b0e1efefd1f09f84755",
+            "message-96cc61b4451281d78c880fcb",
+            "message-349cb8cd7cfcdc38511dbfa3"
+          ]
+        },
+        {
+          "text": "Me, Maya and Tess are coming.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-9f805bc71c86e808a0107f55",
+            "message-586319d7c8401825142f0acd",
+            "message-e7d38b0e1efefd1f09f84755",
+            "message-96cc61b4451281d78c880fcb",
+            "message-349cb8cd7cfcdc38511dbfa3"
+          ]
+        },
+        {
+          "text": "Nora agreed to 12:30, reported by Maya.",
+          "status": "confirmed_reported",
+          "source_ids": [
+            "message-2c5cd7144a84462df00bee1d"
+          ]
+        },
+        {
+          "text": "Leo withdrew from Friday lunch and remains out.",
+          "status": "withdrawn",
+          "source_ids": [
+            "message-b97026279ac4bacefef91474",
+            "message-45212ff37f3957d6b8c7f2b7"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "Tess and Nora have not yet withdrawn at this checkpoint; their October 8 10 am withdrawals cannot be used. The quoted Monday 1 pm/Rosa's text is historical, not a reversion."
+      ]
+    },
+    {
+      "question_id": "link-before",
+      "prompt": "What’s the link for my Friday parcel-support call?",
+      "checkpoint": "2026-10-08T09:10:00-04:00",
+      "session": "link-before-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The support-call link is not yet known. The Friday October 9 parcel-support video call is booked for 9 am; the courier says they do not have its link yet. The drivers URL is for a recruitment webinar.",
+      "claims": [
+        {
+          "text": "Parcel-support call is Friday at 9 am.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-8f4c3fc45d6e613737b4341b"
+          ]
+        },
+        {
+          "text": "Support-call URL has not been supplied.",
+          "status": "unknown",
+          "source_ids": [
+            "message-eacd5bdfb6285c49bbdb8647"
+          ]
+        },
+        {
+          "text": "https://example.org/drivers belongs to a driver recruitment webinar, not this support call.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a2d3b18ff81e83d47253bbd5"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "obligations-after",
+      "prompt": "Has Jen sent the checklist, and what do I still owe her?",
+      "checkpoint": "2026-10-08T09:20:00-04:00",
+      "session": "obligations-after-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Yes. Jen sent the complete revised checklist—ID, printed portfolio and two references—and I acknowledged receipt. She also supplied Room 204. I still owe her cover-letter proofreading by this evening, Thursday October 8.",
+      "claims": [
+        {
+          "text": "The complete revised checklist was sent and acknowledged.",
+          "status": "completed",
+          "source_ids": [
+            "message-b8d5b944e10b5e0d8a00410a",
+            "message-8a452182ac9f637a734896d9"
+          ]
+        },
+        {
+          "text": "The interview room was supplied as Room 204.",
+          "status": "completed",
+          "source_ids": [
+            "message-a8612da3d2eccf4db155c23e",
+            "message-439013827a15a531c9ec6cdd"
+          ]
+        },
+        {
+          "text": "I still owe proofreading by Thursday evening October 8; no completion report is yet available.",
+          "status": "pending",
+          "source_ids": [
+            "message-7cc2f1b18157e80a7e033360",
+            "message-7c4ad1bd22605f0cd8d89b33"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "draft-after",
+      "prompt": "What’s the plan for the PizzaLab tasting—who and when?",
+      "checkpoint": "2026-10-08T09:30:00-04:00",
+      "session": "draft-after-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "I decided to attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. I invited Devon, but Devon declined. No other attendee is confirmed in the source.",
+      "claims": [
+        {
+          "text": "I explicitly decided to attend Sunday October 11, 2–2:30 pm.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-68b5661b37e938a53848cb51"
+          ]
+        },
+        {
+          "text": "Devon declined my invitation.",
+          "status": "declined",
+          "source_ids": [
+            "message-c428b5e21dc299d89109c9e5"
+          ]
+        },
+        {
+          "text": "No other attendee or venue is established for my tasting plan.",
+          "status": "unknown",
+          "source_ids": [
+            "message-68b5661b37e938a53848cb51",
+            "message-c428b5e21dc299d89109c9e5"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "game-reference",
+      "prompt": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "checkpoint": "2026-10-09T09:00:00-04:00",
+      "session": "game-reference-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The Thursday October 8 game was at Devon's place at 8 pm with Devon, Maya and me. Devon permitted Alex Reed to join, but I said I would ask him and not to count him until he answered. There is no Alex acceptance in the available source.",
+      "claims": [
+        {
+          "text": "The Thursday game was 8 pm at Devon's place with Devon, Maya and me.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-26e98c26fd8a5a2f03402137",
+            "message-cb0e3b295838fc58727f580e",
+            "message-c78c02b0d68efb3378706e91",
+            "message-d2e5a6bf7a9f72a8f35b3d8e",
+            "message-9216dea0fd015eb8164dc86f"
+          ]
+        },
+        {
+          "text": "Alex Reed was permitted as a possible guest, but inviting him and receiving his answer were still pending.",
+          "status": "tentative",
+          "source_ids": [
+            "message-d2e5a6bf7a9f72a8f35b3d8e",
+            "message-9216dea0fd015eb8164dc86f",
+            "message-8892acae59a49de739d4971e"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "Host permission is not Alex Reed's RSVP. There is no evidence that I actually passed on the invitation or that Alex attended."
+      ]
+    },
+    {
+      "question_id": "visit-mid",
+      "prompt": "When does Morgan’s visit end, and where are they staying?",
+      "checkpoint": "2026-10-10T09:00:00-04:00",
+      "session": "visit-mid-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Morgan's stay is still scheduled to end Monday October 12 at 9 am, and they are staying in my guest room. Today's museum trip, leaving at 8 am and returning about 5 pm with their bag staying here, is a temporary outing.",
+      "claims": [
+        {
+          "text": "Original agreed visit ends Monday October 12 at 9 am.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-76ab758dd3e8e326b4c8a6b0",
+            "message-63e3fa173717810b89fec85a"
+          ]
+        },
+        {
+          "text": "Morgan is settled in my guest room and it remains theirs for the rest of the stay.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a4d955df1ad138c02376713f",
+            "message-9fdb74624d7c56aaee2a1975"
+          ]
+        },
+        {
+          "text": "Saturday departure at 8 and return about 5 describe a museum outing, not checkout.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a4d955df1ad138c02376713f"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "pizza-final",
+      "prompt": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "checkpoint": "2026-10-12T09:00:00-04:00",
+      "session": "pizza-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "For Friday October 9 I had two pizza plans: lunch at 12:30 pm at Mario's on Pine Street with Maya, just the two of us after Leo, Tess and Nora withdrew; and dinner at 6 pm at Luigi's on 5th with Devon, just us. Nora's separate Luigi's booking with Eli and Jo was not my dinner group.",
+      "claims": [
+        {
+          "text": "Final lunch plan is Friday October 9, 12:30 pm at Mario's on Pine Street, me and Maya only.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20",
+            "message-e7d38b0e1efefd1f09f84755",
+            "message-96cc61b4451281d78c880fcb",
+            "message-b97026279ac4bacefef91474",
+            "message-4a691ac7f752b563f08659b0",
+            "message-8f1923071fabc0205e774d82",
+            "message-ffcfcb52861e6f4b96a7d396"
+          ]
+        },
+        {
+          "text": "Friday evening pizza was agreed for 6 pm at Luigi's on 5th, only me and Devon.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-2b52c94cb3d770c23f3c5a1d",
+            "message-25d510fd8b0a21b1804266b5"
+          ]
+        },
+        {
+          "text": "Nora's matching-time Luigi's booking was a separate group consisting of Nora, Eli and Jo.",
+          "status": "confirmed_reported",
+          "source_ids": [
+            "message-33a89c88746221151110e1a3"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "These are agreed plans; actual pizza attendance is not reported."
+      ]
+    },
+    {
+      "question_id": "lunch-history",
+      "prompt": "How did the time and place of the October 9 lunch change?",
+      "checkpoint": "2026-10-12T09:10:00-04:00",
+      "session": "lunch-history-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The October 9 lunch began as 1 pm at Rosa's on Oak Street. On October 6 Maya and I agreed to noon, then the group agreed to Mario's on Pine Street because Rosa's was closed Friday. On October 7 we agreed to 12:30 at the same Mario's. The later quotation of the original invitation did not undo those changes.",
+      "claims": [
+        {
+          "text": "Initial plan was 1 pm at Rosa's on Oak Street.",
+          "status": "superseded",
+          "source_ids": [
+            "message-43b085a7cfa896d423ca2df8",
+            "message-469586b43b4cd28d9ba9ee3e"
+          ]
+        },
+        {
+          "text": "October 6 noon change was agreed privately and relayed to the group.",
+          "status": "superseded",
+          "source_ids": [
+            "message-bd14622d07b81629d9be835c",
+            "message-38d863d1f8fdeda9845a6abd",
+            "message-477d28107aba6b15a3a4da38",
+            "message-d45d8204b56690f9320fa1c4",
+            "message-78bcfb4acbb752f82b9cff9a"
+          ]
+        },
+        {
+          "text": "October 6 venue change to Mario's on Pine Street was agreed because Rosa's is closed Friday.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6a60e2c84341718ab64ecaf6",
+            "message-12292df8a4113436fee10c20",
+            "message-de0eec8a34b8da0b89866445",
+            "message-00b0dfcd82762e1f519466b6"
+          ]
+        },
+        {
+          "text": "October 7 final time change was to 12:30; venue remained Mario's.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-e7d38b0e1efefd1f09f84755",
+            "message-96cc61b4451281d78c880fcb",
+            "message-349cb8cd7cfcdc38511dbfa3",
+            "message-2c5cd7144a84462df00bee1d"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "ben-final",
+      "prompt": "When and where did Ben and I agree to have dinner?",
+      "checkpoint": "2026-10-12T09:20:00-04:00",
+      "session": "ben-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Ben and I agreed to dinner Saturday October 10 at 7 pm at Juniper Cafe. Friday was proposed later and rejected; North Cafe was only a someday suggestion, explicitly not this dinner.",
+      "claims": [
+        {
+          "text": "Original dinner was Thursday October 8, 7 pm at Juniper Cafe.",
+          "status": "superseded",
+          "source_ids": [
+            "message-fb55b3c9893558521fb20cdd",
+            "message-8002dd308259933cffaf62ee"
+          ]
+        },
+        {
+          "text": "Dinner moved to Saturday October 10 at the same 7 pm and Juniper Cafe.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-d5a81755778377239c1524f1",
+            "message-bd8a33628b8a6187d375119c"
+          ]
+        },
+        {
+          "text": "A Friday move was rejected and Saturday reconfirmed.",
+          "status": "rejected_alternative",
+          "source_ids": [
+            "message-cf35fa9b7b70bc1f9f8ec5d4",
+            "message-695038eb7ba5603d8dd57b28",
+            "message-12b29bd1acd088d0b6d28d62"
+          ]
+        },
+        {
+          "text": "North Cafe was suggested for someday, not agreed for this dinner.",
+          "status": "tentative",
+          "source_ids": [
+            "message-12b29bd1acd088d0b6d28d62",
+            "message-37c42eedde2fc5c2da5d5972"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "ben-mail-separate",
+      "prompt": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "checkpoint": "2026-10-12T09:30:00-04:00",
+      "session": "ben-mail-separate-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "We agreed to dinner Saturday October 10 at 7 pm at Juniper Cafe, and separately Ben would return my drill Sunday October 11 at 3 pm at my door.",
+      "claims": [
+        {
+          "text": "Dinner Saturday October 10 at 7 pm at Juniper Cafe was agreed and preserved after rejecting Friday/North Cafe alternatives.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-fb55b3c9893558521fb20cdd",
+            "message-8002dd308259933cffaf62ee",
+            "message-d5a81755778377239c1524f1",
+            "message-bd8a33628b8a6187d375119c",
+            "message-cf35fa9b7b70bc1f9f8ec5d4",
+            "message-695038eb7ba5603d8dd57b28",
+            "message-12b29bd1acd088d0b6d28d62",
+            "message-37c42eedde2fc5c2da5d5972"
+          ]
+        },
+        {
+          "text": "Drill return Sunday October 11, 3 pm at my door was separately agreed.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-0c5c989292927a229f78ef16",
+            "message-6b24f78d0a38470d7c8fb6df"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "roles",
+      "prompt": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "checkpoint": "2026-10-12T09:40:00-04:00",
+      "session": "roles-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Rae is performing Sunday October 11 at 8 pm at Foundry Theatre. My attendance is undecided. Devon might come with me if I go and Devon's shift ends early, so neither of us is confirmed as going.",
+      "claims": [
+        {
+          "text": "Rae is the performer; concert is Sunday October 11, 8 pm, Foundry Theatre.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-19897f046286323c7903952e",
+            "message-a877b806e56e71e09c4a8fa5"
+          ]
+        },
+        {
+          "text": "I am still on the fence and have not confirmed attendance.",
+          "status": "tentative",
+          "source_ids": [
+            "message-6676c6a13806538634b5001b",
+            "message-655ee9d709b4578a1a4e9e8c"
+          ]
+        },
+        {
+          "text": "Devon is conditional both on my going and on an early shift finish.",
+          "status": "tentative",
+          "source_ids": [
+            "message-6676c6a13806538634b5001b",
+            "message-4b9c79c7f851369755e34240",
+            "message-655ee9d709b4578a1a4e9e8c",
+            "message-f74d37fd2adefff44d48a056"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "No subsequent concert RSVP is present. The later spaceship/practical-effects conversation does not establish that either person attended the concert."
+      ]
+    },
+    {
+      "question_id": "series-final",
+      "prompt": "Do we have a game this coming Wednesday?",
+      "checkpoint": "2026-10-12T09:50:00-04:00",
+      "session": "series-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "No. The coming Wednesday is October 14, and Devon ended the weekly game series, explicitly including October 14. Maya and I acknowledged that cancellation.",
+      "claims": [
+        {
+          "text": "The weekly game series ended, including Wednesday October 14.",
+          "status": "cancelled",
+          "source_ids": [
+            "message-0147fe1eb5b53c7f0ae23254",
+            "message-f80f13cd94c54176ff17803b",
+            "message-d12102881e68885e9c1f2519"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "attendance-final",
+      "prompt": "Did I attend the October 6 watercolor workshop?",
+      "checkpoint": "2026-10-12T10:00:00-04:00",
+      "session": "attendance-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "No. I later told the tutor that I missed the October 6 watercolor workshop and asked for the notes.",
+      "claims": [
+        {
+          "text": "I explicitly reported missing Tuesday's workshop.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-611be7be72efdec82ac3526c"
+          ]
+        },
+        {
+          "text": "Tutor agreed to send notes, which does not itself establish that notes were delivered.",
+          "status": "pending",
+          "source_ids": [
+            "message-611be7be72efdec82ac3526c",
+            "message-9fe135ba521b61fdeae21292"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "visit-final",
+      "prompt": "What arrival and departure times did Morgan and I settle on?",
+      "checkpoint": "2026-10-12T10:10:00-04:00",
+      "session": "visit-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "We originally agreed on Morgan arriving about 4 pm Friday October 9 and leaving Monday October 12 at 9 am. We later changed the end of the stay to Sunday October 11 at 10 am. Morgan stayed in my guest room; Saturday's 8 am museum departure was only an outing.",
+      "claims": [
+        {
+          "text": "Agreed arrival was approximately 4 pm Friday October 9; original end was Monday October 12 at 9 am.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-76ab758dd3e8e326b4c8a6b0",
+            "message-63e3fa173717810b89fec85a"
+          ]
+        },
+        {
+          "text": "Final agreed departure/end of stay changed to Sunday October 11 at 10 am.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-4ed0443e7b794bc3e37495ba",
+            "message-a5bccc9f777561d7dc1ff927"
+          ]
+        },
+        {
+          "text": "Guest room stay continued through a temporary museum outing.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a4d955df1ad138c02376713f",
+            "message-9fdb74624d7c56aaee2a1975"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The source confirms Morgan was settled by Friday 5 pm, not the precise actual arrival time; final departure is an agreed time, without a separate observed checkout report."
+      ]
+    },
+    {
+      "question_id": "dates",
+      "prompt": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "checkpoint": "2026-10-12T10:20:00-04:00",
+      "session": "dates-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Our next interview-prep call is Thursday October 15 at 10 am. Jen's certificate was from the workshop on January 2, 2024.",
+      "claims": [
+        {
+          "text": "Interview-prep call agreed for Thursday October 15 at 10 am.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a014bdc0dd6bdc6f7dd4999a",
+            "message-0f44e010453de3a7bc979c07"
+          ]
+        },
+        {
+          "text": "Jen found the certificate from the workshop on January 2, 2024.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-2c109b7e56ce10091102fdd5"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The January 2, 2024 date is attached to the workshop; no separate certificate issuance date is provided."
+      ]
+    },
+    {
+      "question_id": "upcoming-small",
+      "prompt": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "checkpoint": "2026-10-12T10:30:00-04:00",
+      "session": "upcoming-small-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "With Alex Reed I agreed to coffee Tuesday October 13 at 8 am at Birch. Alex Chen invited me to try the climbing wall Wednesday October 14 at 6 pm, but I have not answered in the available source.",
+      "claims": [
+        {
+          "text": "Coffee with Alex Reed is agreed for Tuesday October 13, 8 am at Birch.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-ddaf942faa90c53175960e03",
+            "message-304e2ac355d5b3ecdbf8b1a7",
+            "message-e2f1bc23cf496ebb227f053a"
+          ]
+        },
+        {
+          "text": "Alex Chen invited me to the climbing wall Wednesday October 14 at 6 pm; no acceptance is shown.",
+          "status": "invited",
+          "source_ids": [
+            "message-e49a3330d0e056e7187c001c"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "namesakes",
+      "prompt": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "checkpoint": "2026-10-12T10:40:00-04:00",
+      "session": "namesakes-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "AC is Alex Chen. Alex Chen avoids dairy and is fine with mushrooms. Alex Reed is fine with cheese/dairy and avoids mushrooms. My latest instruction is to avoid dairy and allow mushrooms; Maya's later quotation of my old Monday preferences does not reverse my correction.",
+      "claims": [
+        {
+          "text": "AC is Alex Chen, their stated nickname.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-127675525b5536ed43ed134f"
+          ]
+        },
+        {
+          "text": "Alex Chen avoids dairy and enjoyed mushrooms.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-4e61f5f3aea9f8fff602d98e"
+          ]
+        },
+        {
+          "text": "Alex Reed likes cheese and avoids mushrooms.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-b17dd2847d0985b30a42af7d",
+            "message-60bf6e8545b109f472956a5c",
+            "message-f1a44ca7f2d4cd14159f2238"
+          ]
+        },
+        {
+          "text": "My current preference is no dairy; mushrooms are fine, correcting Monday.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6d3348d05e242abfe9ddf451",
+            "message-f3f28936c4986e45e888298a"
+          ]
+        },
+        {
+          "text": "Friday's quotation of Monday's text is historical, not a new instruction.",
+          "status": "historical_quote",
+          "source_ids": [
+            "message-1ffd93226f0713a7a98b402b"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "tasks-final",
+      "prompt": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "checkpoint": "2026-10-12T10:50:00-04:00",
+      "session": "tasks-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Nothing remains owed between Jen and me on those three items: she sent the complete revised checklist, supplied Room 204, and I completed the cover-letter proofreading. Jen acknowledged my feedback and said she would fix the company name in paragraph two; her own correction is not confirmed complete.",
+      "claims": [
+        {
+          "text": "Revised checklist ID, printed portfolio, two references was sent and acknowledged.",
+          "status": "completed",
+          "source_ids": [
+            "message-b8d5b944e10b5e0d8a00410a",
+            "message-8a452182ac9f637a734896d9"
+          ]
+        },
+        {
+          "text": "Room 204 was supplied and acknowledged.",
+          "status": "completed",
+          "source_ids": [
+            "message-a8612da3d2eccf4db155c23e",
+            "message-439013827a15a531c9ec6cdd"
+          ]
+        },
+        {
+          "text": "I finished proofreading and sent my company-name correction in paragraph two; Jen acknowledged.",
+          "status": "completed",
+          "source_ids": [
+            "message-2f2a655ea8d5c8d09f40caed",
+            "message-ee0242381ca04fb3328051f9"
+          ]
+        },
+        {
+          "text": "Jen said she would correct the company name; no completion message is available.",
+          "status": "pending",
+          "source_ids": [
+            "message-ee0242381ca04fb3328051f9"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The proofreading commitment was completed even though Jen's subsequent edit remains unconfirmed; do not relabel her correction as proofreading still owed by me."
+      ]
+    },
+    {
+      "question_id": "hall-alias",
+      "prompt": "What do MR Hall and ZX Annex stand for?",
+      "checkpoint": "2026-10-12T11:00:00-04:00",
+      "session": "hall-alias-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "MR Hall stands for Maple Ridge Hall. ZX Annex is mentioned on an old handout, but its expansion is unknown.",
+      "claims": [
+        {
+          "text": "MR Hall expands to Maple Ridge Hall.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-8f021495084ef8cbc63eeee8"
+          ]
+        },
+        {
+          "text": "ZX Annex is mentioned but not expanded in the source.",
+          "status": "unknown",
+          "source_ids": [
+            "message-8f021495084ef8cbc63eeee8"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "link-final",
+      "prompt": "What’s the link for my parcel-support call?",
+      "checkpoint": "2026-10-12T11:10:00-04:00",
+      "session": "link-final-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The parcel-support call link is https://example.org/parcel381, for the Friday October 9 call at 9 am.",
+      "claims": [
+        {
+          "text": "Courier supplied https://example.org/parcel381 for the next day's 9 am parcel-support call.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-c8f4781f2ce82c78dd02a322"
+          ]
+        },
+        {
+          "text": "The earlier drivers URL belongs to recruitment, not the support call.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-a2d3b18ff81e83d47253bbd5"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": []
+    },
+    {
+      "question_id": "next-week-pizza",
+      "prompt": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "checkpoint": "2026-10-12T11:20:00-04:00",
+      "session": "next-week-pizza-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "Friday October 16 at 1 pm at Mario's on Pine Street, just Maya and me. I need dairy avoided and mushrooms are fine. Maya's dairy-free period ran through October 11 inclusive, and she has not decided whether to continue, so her requirements for October 16 need confirmation.",
+      "claims": [
+        {
+          "text": "October 16 pizza is agreed for 1 pm at Mario's on Pine Street, just Maya and me.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-ea16c92d68b9050153d0fee8",
+            "message-1a6ed83dae54bef129427454"
+          ]
+        },
+        {
+          "text": "My current instruction is to avoid dairy and allow mushrooms.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-6d3348d05e242abfe9ddf451",
+            "message-f3f28936c4986e45e888298a"
+          ]
+        },
+        {
+          "text": "Maya specified dairy-free only through October 11 inclusive and remained undecided about afterward.",
+          "status": "unknown",
+          "source_ids": [
+            "message-2307007e4a00111ea2a44c6e",
+            "message-33c7950d8188a5ff02cb766a",
+            "message-9f01bcf4d946e1b1611153c5"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "Do not extend Maya's temporary dairy-free requirement to October 16 or assert that dairy is now acceptable. No Maya mushroom requirement is supplied."
+      ]
+    },
+    {
+      "question_id": "refund",
+      "prompt": "What’s the latest on my cancelled pottery booking?",
+      "checkpoint": "2026-10-12T11:30:00-04:00",
+      "session": "refund-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "The Wednesday October 7 pottery booking was cancelled, and a message received Friday October 9 says my refund has been issued. The framing booking was retained; no refund amount or actual bank receipt is given.",
+      "claims": [
+        {
+          "text": "Studio clarified that Wednesday pottery was cancelled and Thursday framing remained booked.",
+          "status": "cancelled",
+          "source_ids": [
+            "message-975e9eb939dfb5e0c9d1baa5",
+            "message-c7ee1ef37e69d04fdd22a1a3"
+          ]
+        },
+        {
+          "text": "Arts Bulletin reports that my refund for the cancelled Wednesday October 7 pottery class has been issued.",
+          "status": "confirmed_reported",
+          "source_ids": [
+            "message-f569eea0a3973f0177c31fe0"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "The refund notification sender is Arts Bulletin, not the Studio thread. It explicitly refers to my cancelled pottery class, but is a report of issuance, not independent confirmation of funds received."
+      ]
+    },
+    {
+      "question_id": "third-party-collision",
+      "prompt": "Who was I supposed to meet for pizza on Friday evening?",
+      "checkpoint": "2026-10-12T11:40:00-04:00",
+      "session": "third-party-collision-fresh",
+      "relevant_prior_public_session_prompts": [],
+      "prior_assistant_answer_available": false,
+      "answer": "For Friday October 9 evening I was supposed to meet Devon at 6 pm at Luigi's on 5th, just the two of us. Nora had a separate booking there at the same time with Eli and Jo.",
+      "claims": [
+        {
+          "text": "My Friday 6 pm Luigi's on 5th pizza arrangement was with Devon only.",
+          "status": "confirmed",
+          "source_ids": [
+            "message-2b52c94cb3d770c23f3c5a1d",
+            "message-25d510fd8b0a21b1804266b5"
+          ]
+        },
+        {
+          "text": "Nora's separate matching-time booking was for herself and flatmates Eli and Jo.",
+          "status": "confirmed_reported",
+          "source_ids": [
+            "message-33a89c88746221151110e1a3"
+          ]
+        }
+      ],
+      "ambiguity_or_unsupported_question_concerns": [
+        "Friday evening is implicit rather than dated in the question. October 9 is the supported referent: the source's October 16 plan is lunch, and no other Friday evening owner pizza plan is given."
+      ]
+    }
+  ]
+}

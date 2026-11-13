@@ -1,0 +1,4268 @@
+{
+  "created_at": "2026-11-13T04:53:39.997924+00:00",
+  "client_wall_deadline_s": 180,
+  "client_max_attempts": 1,
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Independently audit this complete raw personal-message corpus and EVERY public check/input ID. Some inputs are declarative reports or instructions rather than grammatical questions. Assess every supplied ID, including behavior/report turns; do not omit them. Identifiers are labels, never answer hints or evidence; derive classifications from eligible text. No authored answer keys or expectations are provided. Read actual source identities, bodies, written and collection times, quoted history, and ordered public inputs. Source after a question’s collection cutoff cannot support that answer. Resolve each relative date from its own written context. Both written and collection times must be no later than the checkpoint. Public questions’ presuppositions do not independently establish facts, including in earlier questions. Conditional replies and their dependent inputs are not established history. Never assume the assistant saved an update or completed an external action.\nFor intended answerability, assume prior delivered information is retained across fresh sessions, while resolving conversational references in their actual session. A definite public user report/correction updates intended knowledge without another person’s confirmation. Actual provider persistence is tested later and is not a source-answerability requirement.\nCoherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown. Explicit corrections, rejected proposals, clearly attributed disagreements, and explicitly obsolete quotations are not unresolved contradictions.\nAssess the source-supported response boundary, not whether the underlying world state is fully known. Use answerability determinate, bounded_unknown, clarification_warranted, or invalid. Determinate means the requested attribute has an ordinary supported answer. Bounded unknown means a grounded event/entity and requested attribute exist, but its value is not established in the complete eligible history. Clarification warranted means a grounded reference has multiple material interpretations; identify alternatives and the missing discriminator. Invalid means there is no grounded objectively assessable response boundary, inaccessible information is required as a definite fact, or unresolved source conflict prevents a valid test. Saying unknown is not a universal escape: an entirely absent event or unresolvable target is invalid. Do not overlook or erase information the source DOES establish.\nHandle mixed questions by attribute: keep known details in known_fields and identify each unresolved attribute in unresolved_fields. Classify requested attributes: an explicitly recorded invitation status can be determinate; attendance without an outcome report is bounded unknown. If any requested attribute is unresolved, classify the mixed question as bounded_unknown or clarification_warranted while preserving its other known attributes. A booking/acknowledgement is not attendance; an invitation is not acceptance; a promise is not completed work; an unexplained name expansion is not known. Inspect the complete eligible history before concluding a requested value is absent, and identify that unresolved attribute explicitly.\nReturn exactly one assessment per supplied public check/input ID in canonical order, including declarative behavior/report turns. Each has check_id, event_date, answerability, assessable (boolean), ambiguous (descriptive boolean), current_state_conflict (boolean), known_fields (strings; nonempty for assessable questions), unresolved_fields (array of {attribute, missing, alternatives:[strings]}), reason (nonempty), full_eligible_history_reviewed:true, grounding_kind (source_record, explicit_public_report, presupposition_only or absent), alternatives (nonempty strings or [\"none\"]), and source_evidence:[{source_id,written_at,quote}]. Use exact nonempty contiguous source quotes. Cite raw source_id or public-input:<question-id>; a question alone does not establish its own event. Only a source_record or explicit_public_report can ground an assessable response; an interrogative presupposition is not a report. The harness binds eligible-evidence hashes to the request and receipt; do not copy opaque hashes into your output. For unresolved fields, citations must ground the referent, and the reason must explain the missing information after examining ALL eligible history. Known fields must remain responsive and source-supported; do not substitute blanket uncertainty for resolvable facts.\nSet questions_answerable true only when every public check/input has an assessable source-derived boundary (determinate, bounded_unknown or clarification_warranted), consistent true only for coherent source, and natural_enough true only for plausible source. Report genuine defects in issues; do not list properly bounded unknowns, resolved corrections or old quotations as defects by themselves. Any invalid assessment or current-state conflict prevents approval. Return one JSON object conforming to the schema below. Schema fields describe output types, not desired verdicts or defaults. This review does not replace independent criterion verification.\nRequired assessment IDs in order:\n[\"q-1\"]\nResponse schema:\n{\"type\": \"object\", \"required\": [\"consistent\", \"questions_answerable\", \"natural_enough\", \"issues\", \"notes\", \"assessments\"], \"properties\": {\"consistent\": {\"type\": \"boolean\"}, \"questions_answerable\": {\"type\": \"boolean\"}, \"natural_enough\": {\"type\": \"boolean\"}, \"issues\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"notes\": {\"type\": \"string\", \"minLength\": 1}, \"assessments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"check_id\", \"event_date\", \"answerability\", \"grounding_kind\", \"assessable\", \"ambiguous\", \"current_state_conflict\", \"full_eligible_history_reviewed\", \"known_fields\", \"unresolved_fields\", \"reason\", \"alternatives\", \"source_evidence\"], \"properties\": {\"check_id\": {\"type\": \"string\", \"minLength\": 1}, \"event_date\": {\"type\": \"string\", \"minLength\": 1}, \"answerability\": {\"enum\": [\"bounded_unknown\", \"clarification_warranted\", \"determinate\", \"invalid\"]}, \"grounding_kind\": {\"enum\": [\"source_record\", \"explicit_public_report\", \"presupposition_only\", \"absent\"]}, \"assessable\": {\"type\": \"boolean\"}, \"ambiguous\": {\"type\": \"boolean\"}, \"current_state_conflict\": {\"type\": \"boolean\"}, \"full_eligible_history_reviewed\": {\"type\": \"boolean\"}, \"known_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"unresolved_fields\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"attribute\", \"missing\", \"alternatives\"], \"properties\": {\"attribute\": {\"type\": \"string\", \"minLength\": 1}, \"missing\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}}}}, \"reason\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}, \"source_evidence\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"written_at\", \"quote\"], \"properties\": {\"source_id\": {\"type\": \"string\", \"minLength\": 1}, \"written_at\": {\"type\": \"string\", \"minLength\": 1}, \"quote\": {\"type\": \"string\", \"minLength\": 1}}}}}}, \"minItems\": 1, \"maxItems\": 1}}}\nComplete raw source records:\n[{\"arrived_at\": \"2026-10-05T09:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:00:00-04:00\", \"from_owner\": false, \"sender\": \"Studio\", \"source_id\": \"m-1\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Current final booking P7: Friday October 9 at 7 pm.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:00:00-04:00\"}, {\"arrived_at\": \"2026-10-05T09:01:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:01:00-04:00\", \"from_owner\": false, \"sender\": \"Studio\", \"source_id\": \"m-2\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Current final booking P7: Friday October 9 at 8 pm.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:01:00-04:00\"}, {\"arrived_at\": \"2026-10-05T09:02:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:02:00-04:00\", \"from_owner\": false, \"sender\": \"Studio\", \"source_id\": \"m-3\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:02:00-04:00\"}]\nOrdered timestamped public inputs and scope bindings:\n[{\"at\": \"2026-10-07T09:00:00-04:00\", \"eligible_evidence_hash\": \"f6aa0d0e530f1897144bd25ca6aecec02cf3fd04e4be5a1826a68a29ffe0fecf\", \"id\": \"q-1\", \"prompt\": \"What single time is definitively confirmed for booking P7?\"}]"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"consistent\":false,\"questions_answerable\":false,\"natural_enough\":false,\"issues\":[\"Unresolved current-source contradiction: m-1 and m-2 give different times for booking P7, and m-3 explicitly says both remain current without correction or supersession.\",\"The source is not natural/plausible as a personal-message thread because it contains a meta-message asserting two contradictory booking receipts are both still current.\"],\"notes\":\"q-1 is invalid because the complete eligible history contains an unresolved contradiction about the single confirmed time for booking P7. The date is consistently reported, but the time is not resolvable to one definitive value.\",\"assessments\":[{\"check_id\":\"q-1\",\"event_date\":\"2026-10-07\",\"answerability\":\"invalid\",\"grounding_kind\":\"source_record\",\"assessable\":false,\"ambiguous\":true,\"current_state_conflict\":true,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"Booking P7 is referenced as a single booking on Friday October 9.\",\"Two current receipts assert different times for booking P7.\"],\"unresolved_fields\":[{\"attribute\":\"confirmed time for booking P7\",\"missing\":\"No single time is established because 7 pm and 8 pm are both asserted as current and neither is corrected or superseded.\",\"alternatives\":[\"7 pm\",\"8 pm\"]}],\"reason\":\"The complete eligible history contains m-1 and m-2 asserting different times for the same booking P7, and m-3 explicitly states both are still current and neither corrects or supersedes the other. This is an unresolved current-source contradiction, so no single definitively confirmed time can be assessed.\",\"alternatives\":[\"7 pm\",\"8 pm\"],\"source_evidence\":[{\"source_id\":\"m-1\",\"written_at\":\"2026-10-05T09:00:00-04:00\",\"quote\":\"Current final booking P7: Friday October 9 at 7 pm.\"},{\"source_id\":\"m-2\",\"written_at\":\"2026-10-05T09:01:00-04:00\",\"quote\":\"Current final booking P7: Friday October 9 at 8 pm.\"},{\"source_id\":\"m-3\",\"written_at\":\"2026-10-05T09:02:00-04:00\",\"quote\":\"Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.\"}]}]}",
+          "reasoning": "We need answer JSON only. Need audit. Need parse. We have source records m-1, m-2, m-3. q-1 at 2026-10-07 asks \"What single time is definitively confirmed for booking P7?\" Need assess answerability. There are contradictory current source assertions: m-1 says Friday Oct 9 at 7 pm; m-2 says same booking at 8 pm; m-3 explicitly says both receipts describe same one booking and both still current; neither corrects or supersedes other. This is unresolved contradiction current source assertions. Thus invalid? Need classify. The instructions: \"Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown. Explicit corrections, rejected proposals, clearly attributed disagreements, and explicitly obsolete quotations are not unresolved contradictions.\" Here m-3 explicitly says both current and neither corrects/supersedes. That is unresolved contradiction. So answerability invalid, assessable false? Need current_state_conflict true. grounding_kind source_record? There is source record grounding event/entity but conflict. For invalid, assessable false. known_fields? For assessable questions nonempty; invalid maybe can include known fields? Schema known_fields strings; not necessarily nonempty? It says known_fields (strings; nonempty for assessable questions). For invalid can be empty. But maybe include known booking P7 exists and date Friday Oct 9? But time unresolved contradictory. Need known_fields maybe [\"Booking P7 is referenced as a single booking on Friday October 9.\"] But if invalid due conflict, known_fields can include grounded details. Need unresolved_fields include attribute \"confirmed time\" missing \"No single time is established because 7 pm and 8 pm are both asserted current without correction/supersession\" alternatives [\"7 pm\",\"8 pm\"]. reason explain. alternatives nonempty [\"7 pm\",\"8 pm\"]. source_evidence cite m-1, m-2, m-3 exact quotes. event_date? q-1 event date? The public input at 2026-10-07. event_date likely \"2026-10-07\" or maybe booking date? Schema event_date string. For check q-1, event_date likely public input date? In prior tasks, event_date is date of question/event? Need decide. It asks \"event_date\" for assessment. Since q-1 at 2026-10-07T09:00:00-04:00. Use \"2026-10-07\". Could also be \"2026-10-09\" booking date. But check event date likely timestamp of public input. We'll use \"2026-10-07\". Need consistent? Source has explicit contradiction. \"consistent\" boolean: coherent source? The source itself says both current contradictory. That is inconsistent? The instructions: \"consistent true only for coherent source\" and \"Any invalid assessment or current-state conflict prevents approval.\" Here current_state_conflict true, invalid. So consistent false. questions_answerable true only when every public check/input has assessable source-derived boundary. q-1 invalid not assessable, so false. natural_enough? Source plausible? It is weird: m-3 says both receipts same booking both current neither corrects. Is that natural? It is an explicit contradiction, but naturalness gate separate. Is source plausible? It could be a test corpus with contradictory messages. \"natural_enough true only for plausible source.\" The messages are somewhat unnatural because m-3 explicitly meta about receipts and current. But maybe plausible? Need decide. Since invalid due conflict, natural_enough maybe true? The source is coherent? Actually m-3 is unnatural but could be a system-like message. The instruction says \"Coherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source\". Naturalness: \"plausible source\" not necessarily answer. m-3 \"Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.\" This is not natural personal message from Studio? It is meta and contradictory. Could be implausible. But we need report genuine defects. Since current_state_conflict true, issues include unresolved contradiction. Natural_enough maybe false due implausible source? Need be careful: The source is intentionally contradictory; naturalness gate might fail because a studio wouldn't send \"both receipts ... neither corrects\". But the task says \"Some inputs are declarative reports or instructions rather than grammatical questions.\" It may be synthetic. We should assess naturalness of source. The messages are short and plausible? m-3 is unnatural as a personal message, but could be a correction? It explicitly says both current. I'd set natural_enough false? But if natural_enough false, issues include implausible source. However the main defect is contradiction. The schema requires natural_enough boolean. \"natural_enough true only for plausible source.\" Is this source plausible? A studio sending two conflicting final booking times one minute apart, then a third saying both are current and neither supersedes, is implausible. So natural_enough false. But maybe the audit expects natural_enough true because text is grammatical? Hmm.\n\nNeed output exactly one assessment. Need include full_eligible_history_reviewed true. grounding_kind: source_record (m-1 etc). ambiguous? For invalid due conflict, ambiguous? \"ambiguous (descriptive boolean)\" Could be true? Ambiguous means multiple material interpretations? Here not ambiguous reference; it's contradictory. But alternatives 7/8. I'd set ambiguous true? The question asks single time; there are two conflicting times. That is ambiguity/conflict. But current_state_conflict true. Ambiguous maybe true because two possible times. However \"ambiguous\" descriptive boolean likely for clarification_warranted. For invalid conflict, maybe false? Need decide. It says \"ambiguous (descriptive boolean)\" not defined. For unresolved fields alternatives. I'd set ambiguous true because two material alternatives. But current_state_conflict true. Could be okay.\n\nNeed known_fields nonempty? For invalid, can include \"Booking P7 is a grounded booking reference.\" But if assessable false, known_fields can be nonempty. The schema says known_fields strings; nonempty for assessable questions. It doesn't forbid nonempty for invalid. We can include known details. But if invalid, maybe known_fields should be []? The instructions: \"Handle mixed questions by attribute: keep known details in known_fields and identify each unresolved attribute in unresolved_fields.\" So even invalid due conflict, keep known details. Known: booking P7 exists; date Friday October 9? Both m-1 and m-2 say Friday October 9. m-3 says same one booking. So date is known. Time unresolved. Known_fields: [\"Booking P7 is a single booking on Friday October 9.\"] But is date \"Friday October 9\" supported? m-1 and m-2 both say Friday October 9. Yes. But if both current contradictory only time. So known_fields include date. Also \"Two current receipts assert different times for P7.\" That's a known fact about source, but not attribute. Could include. Need source_evidence for known fields? Source_evidence array can include all. Good.\n\nUnresolved_fields: attribute \"confirmed time for booking P7\"; missing \"No single time is established because 7 pm and 8 pm are both asserted as current and neither is corrected or superseded.\" alternatives [\"7 pm\",\"8 pm\"]. Good.\n\nReason: \"The complete eligible history contains m-1 and m-2 asserting different times for the same booking P7, and m-3 explicitly states both are still current and neither corrects or supersedes the other. This is an unresolved current-source contradiction, so no single definitively confirmed time can be assessed.\" Good.\n\nSource_evidence: m-1 quote exact \"Current final booking P7: Friday October 9 at 7 pm.\" written_at \"2026-10-05T09:00:00-04:00\"; m-2 quote \"Current final booking P7: Friday October 9 at 8 pm.\"; m-3 quote \"Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.\" Need exact contiguous. Good.\n\nNeed issues array. Include \"Unresolved current-source contradiction: m-1 and m-2 give different times for booking P7, and m-3 says both remain current without correction or supersession.\" Maybe also \"Source is implausible/naturalness fails due meta contradictory receipts.\" But if natural_enough false, issue. Need not overdo. Notes nonempty. \"q-1 is invalid due unresolved contradiction; no single confirmed time.\" Good.\n\nNeed consistent false, questions_answerable false, natural_enough? Let's decide. The source is not coherent due contradiction. Naturalness separate. Is it plausible? The third message is unnatural. I'd set natural_enough false. But if natural_enough false, issues include \"The source includes an implausible meta-message asserting both contradictory receipts remain current.\" However the task says \"do not list properly bounded unknowns, resolved corrections or old quotations as defects by themselves.\" This is not properly bounded. So okay.\n\nBut maybe \"natural_enough\" should be true because the messages are grammatical and plausible enough? Hmm. The source is a test of contradiction; m-3 is explicitly a declarative report that both are current. It is not natural for a studio to say \"receipts\" in iMessage. But could be a system message? Sender Studio. It is weird. The naturalness gate is mandatory. I think false is defensible. But if the expected answer wants natural_enough true? The prompt: \"Coherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown.\" It says reject unresolved contradictory current source assertions OR implausible source. So naturalness can be false due implausible. The source is implausible because contradictory final bookings one minute apart and meta message. So false.\n\nNeed \"assessable\": false for invalid. \"current_state_conflict\": true. \"full_eligible_history_reviewed\": true. \"grounding_kind\": \"source_record\". \"alternatives\": [\"7 pm\",\"8 pm\"]. \"event_date\": \"2026-10-07\". \"check_id\": \"q-1\". \"answerability\": \"invalid\". \"ambiguous\": true? If naturalness false, ambiguous maybe true. I think true.\n\nNeed ensure JSON conforms exactly. No markdown. Final only JSON. Need include all required top-level fields. assessments minItems 1 maxItems 1. Good.\n\nLet's craft final.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need audit. Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " have source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " records m-1, m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2, m-3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". q-1 at 2026-10-07 asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"What single time is definitively",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " confirmed for booking P7?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" Need assess answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability. There",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are contradictory current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source assertions: m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1 says Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Oct 9",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at 7 pm;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-2 says same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking at 8 pm;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-3 explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says both receipts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " describe same one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking and both still",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current; neither correct",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s or supersedes other",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". This is unresolved contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source assertions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Thus",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid? Need classify. The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " instructions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Reject unresolved contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current source assertions or impl",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ausible source, even if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " an answer could say",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unknown.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Explicit corrections, rejected",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " proposals, clearly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " attributed disagreements, and explicitly obsolete",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotations are not unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictions.\" Here m-3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly says both current and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " neither corrects/supers",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "edes. That is unresolved contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability invalid, assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able false?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_conflict true. grounding",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_kind source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_record? There",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is source record",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " grounding",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/entity",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " but conflict",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". For invalid,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able false",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields? For",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able questions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " nonempty;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid maybe can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include known fields? Schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known_fields strings",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ";",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " necessarily nonempty?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It says known_fields (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "strings; nonempty for assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able questions). For invalid can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be empty",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " maybe include known booking P",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "7 exists and date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday Oct 9?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But time unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need known_fields maybe [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"Booking P7 is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " referenced",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " as",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a single",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking on",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday October 9.\"]",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But if invalid due conflict, known_fields can include grounded",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " details",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unresolved_fields include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " attribute \"confirmed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" missing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"No",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " single time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is established",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 7 pm",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and 8 pm are both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asserted",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current without",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction/s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "upersession",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" alternatives [\"7 pm\",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"8 pm\"]. reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explain",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". alternatives",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty [\"7 pm\",\"8",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pm\"]. source_evidence cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1, m-2,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-3 exact quotes.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " q-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 event date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "07.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date likely \"2026-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "10-07\" or maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking date? Schema event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date string. For check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1, event_date likely public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input date? In",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " prior",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " tasks,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event_date is date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of question/",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "event? Need decide",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"event_date\" for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessment. Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " q-1 at 202",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "6-10-07T",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "09:00:00-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "04:00. Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"2026-10-07",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\". Could also",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "09\" booking date.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " date likely",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " timestamp",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input. We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'ll use \"2026-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "10-07\". Need consistent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " has",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradiction.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"consistent\" boolean",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " coherent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source? The source itself",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". That",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is inconsistent?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " The instructions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \"consistent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only for coherent source\" and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Any",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessment or current-state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conflict prevents approval",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" Here",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current_state_conflict true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", invalid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So consistent false.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " questions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only when",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " every public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " check/input",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " has assessable source-derived",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " boundary. q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 invalid not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessable, so false.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural_en",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ough? Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " plausible? It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is weird:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 says both receipts same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current neither correct",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s. Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " that natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? It is an",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " but natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ness gate",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " separate. Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source plausible?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be a test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " corpus",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " with contradictory messages",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only for plausible source.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages are somewhat",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unnatural because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-3 explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meta",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " about",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " receipts and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current. But maybe plausible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need decide. Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conflict",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", natural_enough maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The source is coherent?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Actually m-3 is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unnatural but could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be a system-like",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The instruction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Co",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "herence and naturalness are mandatory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " separate gates. Reject unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source assertions or implausible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ness:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"pl",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ausible source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " necessarily answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Both receipts describe the same one booking and both are still current; neither correct",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s or supersedes the other",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" This is not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Studio?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meta and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Could be implausible. But we need report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " genuine defects. Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current_state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_conflict true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", issues",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unresolved contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " false due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " implausible source? Need be",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " careful: The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is intentionally",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " naturalness gate might fail",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " studio",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " wouldn't send",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " receipts ...",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " neither",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " corrects\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " task says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Some inputs",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are declarative reports",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or instructions rather than grammatical",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " questions.\" It may be synthetic",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". We should",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assess naturalness",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source. The messages",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are short",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " plausible?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 is unnatural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " as",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " but could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be a correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says both current. I'd",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " set natural_enough false?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " if natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough false,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " issues include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " impl",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ausible source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". However the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " main defect",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The schema requires",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough boolean",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough true only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for plausible source.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" Is this",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source plausible? A",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " studio",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " sending two conflicting",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking times one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " minute apart, then a third",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " saying both are current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and neither supers",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "edes, is impl",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ausible. So natural_en",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ough false. But maybe the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " audit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " expects",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " because text",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is grammatical",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Hmm.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " output",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " one assessment",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need include full",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_eligible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_history_reviewed true.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " grounding_k",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ind: source_record",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 etc). ambiguous?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " For invalid due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conflict",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", ambiguous?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ambiguous (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "descriptive boolean)\" Could be",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Amb",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "iguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " means multiple material",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " interpretations?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Here not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " ambiguous reference",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; it's contradictory. But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " alternatives",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 7/",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "8. I'd set ambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The question asks single",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time; there are two conflicting",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " times",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". That",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " ambiguity",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/conflict. But current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_state_conflict true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Amb",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "iguous maybe true because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " two",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " possible times",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". However \"ambiguous\" descriptive boolean likely for clarification",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_w",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "arranted. For invalid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conflict, maybe false? Need decide. It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says \"ambiguous (des",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "criptive boolean)\" not defined",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". For unresolved fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " alternatives",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'d set ambiguous true because two",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " material alternatives. But current_state_conflict true. Could be okay.\n\nNeed known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields nonempty? For invalid, can include \"Booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " P7 is a grounded",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking reference",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" But if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able false, known_fields can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " The schema says known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields strings;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " nonempty for assessable questions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " doesn't forbid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid. We can include known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " details",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid, maybe known_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " should be []",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The instructions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \"Handle",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mixed questions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " by attribute",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": keep",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known details in known_fields and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " identify each",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unresolved attribute in unresolved_fields.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " even invalid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conflict, keep",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known details. Known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " P7 exists",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; date Friday October",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 9? Both m-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 and m-2 say",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday October",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 9. m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-3 says same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " one booking. So date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is known. Time unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields: [\"Booking P7",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is a single booking on",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday October 9.\"]",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " date \"Friday October",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 9\" supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? m-1 and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-2 both say Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " October 9. Yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Also",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Two",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " receipts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assert different",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " times for P7.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" That",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s a",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known fact about",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " but not attribute",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Could include.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_evidence for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known fields? Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "evidence array can include all.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nUnresolved_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": attribute \"confirmed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time for booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " P7\"; missing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"No single time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is established because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 7 pm and 8 pm",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are both asserted",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " as",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current and neither is corrected",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or superseded.\" alternatives",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [\"7 pm\",\"8 pm",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"]. Good.\n\nReason: \"The complete eligible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " history contains m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1 and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-2 asserting",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " different",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " times for the same booking P",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "7, and m-3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly states",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " both are",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " still",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current and neither correct",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s or supersedes the other. This is an unresolved current-source contradiction, so no",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " single definitively confirmed time can be assessed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" Good.\n\nSource",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_evidence: m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1 quote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Current final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking P7: Friday October",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 9 at 7 pm.\" written_at \"2026-10-05T09:00:00-04:00\"; m-2 quote \"Current final booking P7: Friday October",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 9 at 8 pm.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"; m-3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote \"Both receipts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " describe the same one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking and both are still",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current; neither corrects or",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " supersedes the other.\" Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contiguous. Good.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " issues",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Un",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "resolved current-source contradiction:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m-1 and m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2 give",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " different times for booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " P7, and m-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 says both remain",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current without correction or supersession.\" Maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " also \"Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is implausible/n",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "aturalness",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fails",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meta",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " receipts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" But if natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough false, issue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " overdo. Notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1 is invalid due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unresolved contradiction; no single",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " confirmed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time.\" Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed consistent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " false,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " questions_answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able false, natural_enough",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Let's decide.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source is not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " coherent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradiction. Naturalness separate",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " it plausible? The third",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message is unnatural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". I'd set natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough false. But if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough false, issues include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes an",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " implausible meta",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "essage asserting",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " both contradictory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " receipts remain current.\" However the task says \"do not list properly bounded",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unknowns,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " resolved corrections",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or old quotations",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " as defects by",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " themselves.\" This is not properly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " bounded. So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " okay.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nBut maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"natural_enough\" should be",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true because the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages are grammatical and plausible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " enough",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? H",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "mm. The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of contradiction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 is explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a declar",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ative report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " that both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are current. It is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a studio",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " say \"rece",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ipts\" in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " i",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "Message. But could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be a system",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " S",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ender Studio. It is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " weird",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ness gate is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mandatory. I think false",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is defensible. But if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " the expected answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " wants natural_enough true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " prompt",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \"Co",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "herence and naturalness are mandatory",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " separate gates. Reject unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source assertions or implausible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " even if an",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answer could say unknown",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" It says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " reject unresolved contradictory current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source assertions OR implausible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source. So natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ness can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be false due",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " implausible. The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source is impl",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ausible because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " contradictory final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " bookings",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " minute apart and meta",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So false.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ass",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "essable\": false",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invalid. \"current_state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_conflict\": true.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"full_eligible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_history_reviewed\": true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"grounding_k",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ind\": \"source_record\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"alternatives\": [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"7 pm",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\",\"8 pm\"]. \"event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date\": \"2026-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "10-07\". \"check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id\": \"q-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1\". \"answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability\": \"invalid\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ambiguous\": true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? If",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ness",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " false, ambiguous maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true. I think",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true.\n\nNeed ensure JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conform",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". No mark",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "down.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only JSON. Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include all required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level fields. assessments",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " min",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "Items 1 maxItems",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 1. Good.\n\nLet",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s craft final.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794545591-Ll1Xih81nVyB5MQv6A7L",
+    "provider": "DeepInfra",
+    "created": 1794545591,
+    "usage": {
+      "prompt_tokens": 2133,
+      "completion_tokens": 2752,
+      "total_tokens": 4885,
+      "cost": 0.000687953728,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1664,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000687953728,
+        "upstream_inference_prompt_cost": 4.0683328e-05,
+        "upstream_inference_completions_cost": 0.0006472704
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 2240,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000687953728
+    }
+  },
+  "text": "{\"consistent\":false,\"questions_answerable\":false,\"natural_enough\":false,\"issues\":[\"Unresolved current-source contradiction: m-1 and m-2 give different times for booking P7, and m-3 explicitly says both remain current without correction or supersession.\",\"The source is not natural/plausible as a personal-message thread because it contains a meta-message asserting two contradictory booking receipts are both still current.\"],\"notes\":\"q-1 is invalid because the complete eligible history contains an unresolved contradiction about the single confirmed time for booking P7. The date is consistently reported, but the time is not resolvable to one definitive value.\",\"assessments\":[{\"check_id\":\"q-1\",\"event_date\":\"2026-10-07\",\"answerability\":\"invalid\",\"grounding_kind\":\"source_record\",\"assessable\":false,\"ambiguous\":true,\"current_state_conflict\":true,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"Booking P7 is referenced as a single booking on Friday October 9.\",\"Two current receipts assert different times for booking P7.\"],\"unresolved_fields\":[{\"attribute\":\"confirmed time for booking P7\",\"missing\":\"No single time is established because 7 pm and 8 pm are both asserted as current and neither is corrected or superseded.\",\"alternatives\":[\"7 pm\",\"8 pm\"]}],\"reason\":\"The complete eligible history contains m-1 and m-2 asserting different times for the same booking P7, and m-3 explicitly states both are still current and neither corrects or supersedes the other. This is an unresolved current-source contradiction, so no single definitively confirmed time can be assessed.\",\"alternatives\":[\"7 pm\",\"8 pm\"],\"source_evidence\":[{\"source_id\":\"m-1\",\"written_at\":\"2026-10-05T09:00:00-04:00\",\"quote\":\"Current final booking P7: Friday October 9 at 7 pm.\"},{\"source_id\":\"m-2\",\"written_at\":\"2026-10-05T09:01:00-04:00\",\"quote\":\"Current final booking P7: Friday October 9 at 8 pm.\"},{\"source_id\":\"m-3\",\"written_at\":\"2026-10-05T09:02:00-04:00\",\"quote\":\"Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.\"}]}]}",
+  "usage": {
+    "prompt_tokens": 2133,
+    "completion_tokens": 2752,
+    "total_tokens": 4885,
+    "cost": 0.000687953728,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1664,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000687953728,
+      "upstream_inference_prompt_cost": 4.0683328e-05,
+      "upstream_inference_completions_cost": 0.0006472704
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 2240,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000687953728
+  },
+  "cost_usd": 0.000687953728,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 2.880473,
+    "first_body_after_s": 3.085441,
+    "last_body_after_s": 28.474255,
+    "body_bytes": 320973,
+    "wall_duration_s": 28.612774,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 04:53:14 GMT",
+      "x-generation-id": "gen-1794545591-Ll1Xih81nVyB5MQv6A7L"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 320973,
+    "body_sha256": "2fc7195ec7010cd122f95201623cfd6015bbe581aa60fb289c11fcf849e453a7"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 320973,
+    "body_sha256": "2fc7195ec7010cd122f95201623cfd6015bbe581aa60fb289c11fcf849e453a7",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 789
+  },
+  "accounting_receipt": {
+    "id": "2bee71a7-68bd-4861-92cb-2c4436a5b29d",
+    "state": "settled",
+    "accounted": "0.000687953728",
+    "reserved": "0.1746927616",
+    "input_tokens": 2133,
+    "output_tokens": 2752,
+    "upstream_request_id": "gen-1794545591-Ll1Xih81nVyB5MQv6A7L"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/1a4208a168a42d8dba9b6317d5c31b06377225938762250da706ca4e409a2e32.json.response-body.bin",
+    "bytes": 320973,
+    "sha256": "2fc7195ec7010cd122f95201623cfd6015bbe581aa60fb289c11fcf849e453a7",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

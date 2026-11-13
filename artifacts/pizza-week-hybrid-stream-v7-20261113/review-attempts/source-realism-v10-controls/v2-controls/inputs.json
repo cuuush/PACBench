@@ -1,0 +1,518 @@
+{
+  "version": "source-review-controls-v10-v2",
+  "protocol": "source-realism-v10",
+  "scope": "Review qualification only; never provider performance or benchmark answer seeding",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "endpoint": "deepinfra/fp8/flex",
+  "max_attempts": 1,
+  "reasoning_effort": "low",
+  "cases": [
+    {
+      "id": "known-attendance",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Your watercolor workshop is Tuesday October 6 at 10 am.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-2",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "I attended the watercolor workshop today.",
+          "written_at": "2026-10-06T12:00:00-04:00",
+          "collected_at": "2026-10-06T12:00:00-04:00",
+          "arrived_at": "2026-10-06T12:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "Did I attend the watercolor workshop?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "determinate"
+        ],
+        "passes": true
+      }
+    },
+    {
+      "id": "checkpoint-unknown",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Your watercolor workshop is Tuesday October 6 at 10 am.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-2",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "I attended the workshop yesterday.",
+          "written_at": "2026-10-07T10:00:00-04:00",
+          "collected_at": "2026-10-07T10:00:00-04:00",
+          "arrived_at": "2026-10-07T10:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-3",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "I attended the workshop today.",
+          "written_at": "2026-10-06T12:00:00-04:00",
+          "collected_at": "2026-10-07T11:00:00-04:00",
+          "arrived_at": "2026-10-06T12:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "Did I attend the watercolor workshop?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "bounded_unknown"
+        ],
+        "passes": true
+      }
+    },
+    {
+      "id": "mixed-alias",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "MR Hall is Maple Ridge Hall. The old handout also lists a room at ZX Annex.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "What do MR Hall and ZX Annex stand for?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "bounded_unknown"
+        ],
+        "passes": true
+      }
+    },
+    {
+      "id": "resolved-stale-quote",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "I avoid mushrooms; dairy is fine.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-2",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.",
+          "written_at": "2026-10-07T15:00:00-04:00",
+          "collected_at": "2026-10-07T15:00:00-04:00",
+          "arrived_at": "2026-10-07T15:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-3",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "These are my old Monday notes, not a new preference: \"I avoid mushrooms; dairy is fine.\"",
+          "written_at": "2026-10-09T15:00:00-04:00",
+          "collected_at": "2026-10-09T15:00:00-04:00",
+          "arrived_at": "2026-10-09T15:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "What are my current dairy and mushroom preferences?",
+            "at": "2026-10-12T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "determinate"
+        ],
+        "passes": true
+      }
+    },
+    {
+      "id": "unresolved-conflict",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Current final booking P7: Friday October 9 at 7 pm.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-2",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Current final booking P7: Friday October 9 at 8 pm.",
+          "written_at": "2026-10-05T09:01:00-04:00",
+          "collected_at": "2026-10-05T09:01:00-04:00",
+          "arrived_at": "2026-10-05T09:01:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-3",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other.",
+          "written_at": "2026-10-05T09:02:00-04:00",
+          "collected_at": "2026-10-05T09:02:00-04:00",
+          "arrived_at": "2026-10-05T09:02:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "What single time is definitively confirmed for booking P7?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "invalid"
+        ],
+        "passes": false,
+        "consistent": false
+      }
+    },
+    {
+      "id": "absent-target",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "Pizza Friday at 7 pm?",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "What is Victor’s confirmed passport number?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "invalid"
+        ],
+        "passes": false
+      }
+    },
+    {
+      "id": "earlier-question-only",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Me",
+          "from_owner": true,
+          "text": "Pizza Friday at 7 pm?",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "Did Victor renew his passport?",
+            "at": "2026-10-06T09:00:00-04:00"
+          },
+          {
+            "id": "q-2",
+            "prompt": "What is Victor’s confirmed passport number?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "invalid",
+          "invalid"
+        ],
+        "passes": false
+      }
+    },
+    {
+      "id": "ambiguous-cancellation",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        },
+        {
+          "source_id": "m-2",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Sorry, that appointment is cancelled.",
+          "written_at": "2026-10-05T09:01:00-04:00",
+          "collected_at": "2026-10-05T09:01:00-04:00",
+          "arrived_at": "2026-10-05T09:01:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "Which studio booking was cancelled?",
+            "at": "2026-10-07T09:00:00-04:00"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "clarification_warranted"
+        ],
+        "passes": true
+      }
+    },
+    {
+      "id": "retained-public-correction",
+      "messages": [
+        {
+          "source_id": "m-1",
+          "channel": "imessage",
+          "thread": "test-thread",
+          "sender": "Studio",
+          "from_owner": false,
+          "text": "Your pickup is Friday October 9 at 10 am.",
+          "written_at": "2026-10-05T09:00:00-04:00",
+          "collected_at": "2026-10-05T09:00:00-04:00",
+          "arrived_at": "2026-10-05T09:00:00-04:00",
+          "structured": {
+            "participants": [
+              "Me",
+              "Studio"
+            ]
+          }
+        }
+      ],
+      "resolved": {
+        "scenes": [],
+        "timezone": "America/New_York",
+        "checks": [
+          {
+            "id": "q-1",
+            "prompt": "The pickup is now Sunday October 11 at 11 am, not Friday. Please remember that.",
+            "at": "2026-10-06T09:00:00-04:00",
+            "kind": "behavior",
+            "session": "old"
+          },
+          {
+            "id": "q-2",
+            "prompt": "When is my pickup?",
+            "at": "2026-10-07T09:00:00-04:00",
+            "session": "fresh"
+          }
+        ]
+      },
+      "oracle": {
+        "states": [
+          "determinate",
+          "determinate"
+        ],
+        "passes": true
+      }
+    }
+  ],
+  "code_hashes": {
+    "pacbench/corpus_epistemic.py": "8ccc64d414a4d97057758bf40abf843adcb43b673a26b19b2aca3bf1a8318c8a",
+    "pacbench/corpus_review.py": "5d1c9bd6ebae5c776b042b8f61b785b179774aaffc86d0f8762402a452c5ac95"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "scene_id": "w1-jen-open",
+  "attempt": 1,
+  "passed": true,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "created_utc": "2026-11-13T01:10:09+00:00",
+  "spec": {
+    "id": "w1-jen-open",
+    "channel": "imessage",
+    "thread": "jen",
+    "scene": "",
+    "test_intent": "",
+    "facts": [
+      "Jen promises to send the revised checklist; the user\u2019s interview-room question to Jen remains unanswered.",
+      "The user agrees to proofread Jen's cover letter by Thursday evening."
+    ],
+    "at": "2026-10-05T15:00:00-04:00",
+    "window_start": "2026-10-05T15:00:00-04:00",
+    "window_end": "2026-10-05T15:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": null,
+    "participants": [
+      "Me",
+      "Jen"
+    ],
+    "chat_name": "",
+    "noise": "authored",
+    "messages_per_person": null,
+    "messages": [
+      {
+        "sender": "Jen",
+        "text": "The old application checklist was useful last month.",
+        "at": "2026-10-05T15:00:00-04:00"
+      },
+      {
+        "sender": "Jen",
+        "text": "I\u2019ll send you the revised checklist tomorrow.",
+        "at": "2026-10-05T15:00:10-04:00"
+      },
+      {
+        "sender": "Me",
+        "text": "Thanks. Could you also tell me the interview room?",
+        "at": "2026-10-05T15:00:20-04:00"
+      },
+      {
+        "sender": "Jen",
+        "text": "Can you proofread my cover letter by Thursday evening?",
+        "at": "2026-10-05T15:00:30-04:00"
+      },
+      {
+        "sender": "Me",
+        "text": "I can do that.",
+        "at": "2026-10-05T15:00:40-04:00"
+      }
+    ],
+    "prompt_version": "scene-supplied-v1",
+    "judge_prompt_version": "scene-judge-v10"
+  },
+  "dialogue": [
+    "Jen: The old application checklist was useful last month.",
+    "Jen: I\u2019ll send you the revised checklist tomorrow.",
+    "Me: Thanks. Could you also tell me the interview room?",
+    "Jen: Can you proofread my cover letter by Thursday evening?",
+    "Me: I can do that."
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 15:00 and 15:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: \n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. Jen promises to send the revised checklist; the user\u2019s interview-room question to Jen remains unanswered.\n2. The user agrees to proofread Jen's cover letter by Thursday evening.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2\u20132:30 pm PizzaLab tasting. I\u2019m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I\u2019m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: For the ceramics studio pizza order, are you good with pepperoni and extra cheese?\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Yeah, extra cheese is perfect. Just no mushrooms on my half\u2014I can\u2019t stand them.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Got it, mushrooms only on mine then.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 Friday, leave 9 Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n2026-10-05T13:00:00-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2026-10-05T13:00:10-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Me: Thursday this week works.\n2026-10-05T13:00:20-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Maya: Same here.\n2026-10-05T14:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Your watercolor workshop is Tuesday October 6, 10\u201311 am at MR Hall.\n2026-10-05T14:00:10-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Me: \ud83d\udc4d\n2026-10-05T14:00:20-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Great, see you Tuesday.\n\nNew messages:\n1. [2026-10-05T15:00:00-04:00] Jen: The old application checklist was useful last month.\n2. [2026-10-05T15:00:10-04:00] Jen: I\u2019ll send you the revised checklist tomorrow.\n3. [2026-10-05T15:00:20-04:00] Me: Thanks. Could you also tell me the interview room?\n4. [2026-10-05T15:00:30-04:00] Jen: Can you proofread my cover letter by Thursday evening?\n5. [2026-10-05T15:00:40-04:00] Me: I can do that.",
+  "judge_response": "{\"supported\":true,\"evidence\":[2,3,4,5],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[2,3,4,5],\"problem\":\"\"},{\"index\":2,\"supported\":true,\"evidence\":[4,5],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          2,
+          3,
+          4,
+          5
+        ],
+        "problem": ""
+      },
+      {
+        "index": 2,
+        "supported": true,
+        "evidence": [
+          4,
+          5
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 4148,
+  "response_chars": 184,
+  "model_call": "/workspace/PACBench-hermes-upgrade-integration-20261112/artifacts/pizza-week-hybrid-writers-20261113/model-calls/16e9ade56b7e93ae9f721fc15b431543c8a737f12912ed5e348cddad25b021bf.json",
+  "usage": {
+    "prompt_tokens": 1326,
+    "completion_tokens": 754,
+    "total_tokens": 2080,
+    "cost": 0.000252096768,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 384,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000252096768,
+      "upstream_inference_prompt_cost": 7.4755968e-05,
+      "upstream_inference_completions_cost": 0.0001773408
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 690,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000252096768
+  },
+  "cost_usd": 0.000252096768,
+  "cost_note": "reported by API"
+}

@@ -1,0 +1,1386 @@
+{
+  "created_at": "2026-11-13T03:23:22.886707+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Identify independently assessable factual claims that cover every detail required by the test intent, and nothing else. The test intent is the complete expectation; dialogue supplies evidence, not extra requirements. Do not require incidental names, dates, times, venues or streets absent from the expectation. Separate details that an answer could get right or wrong independently, such as a date and a time, or a venue name and its street. Resolve relative days from each message's written timestamp where the dialogue makes that clear. Cite exact dialogue source IDs (including any assistant-user: prefix) for each. Each statement must identify its event and date scope without private ordinals such as 'the first outing'. Preserve complete current lists and counts: including the right items alone must not allow additional superseded or cancelled items. Do not add a redundant meal label when time and pizza already express the required plan. A proposed plan is different from an agreed plan. Do not include scenario details absent from the dialogue. Return only JSON: {\"claims\":[{\"id\":\"short-id\",\"statement\":\"current fact\",\"evidence\":[\"source-id\"]}]}.\n\nPrivate scenario: Available source dialogue\nQuestion time: 2026-10-07T09:30:00-04:00\nPublic question: What’s the status of my studio bookings?\nTest intent: What’s the status of my studio bookings?\nThe author supplied the following required facts. Return one claim per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact dialogue source IDs as evidence. Do not merge facts, add claims, or treat intended but absent details as true. The authored fact text is the claim statement; do not rewrite it or add another fact's value. If a supplied fact combines details that can be graded separately, flag that in the review rather than silently splitting it.\nRequired facts:\n1. The pottery booking is cancelled.\n2. The framing booking remains agreed.\n3. The framing booking is Thursday October 8.\n4. The framing booking starts at 10 am.\n5. The framing venue is the Oak studio.\nFrozen dialogue (cite its s-number labels):\ns1 | written 2026-10-05T09:00:00-04:00 | channel email | thread thread-b6dc92e5c73bfc6440ad3bab | Me: Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.\ns2 | written 2026-10-05T10:00:00-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Me: For pizza, I avoid mushrooms; I’m fine with dairy.\ns3 | written 2026-10-05T10:00:10-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Maya: Good to know.\ns4 | written 2026-10-05T11:00:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\ns5 | written 2026-10-05T11:04:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Me: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\ns6 | written 2026-10-05T11:20:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Alex Reed: Very strong. I’ll defend that topping stance anytime.\ns7 | written 2026-10-05T12:00:00-04:00 | channel imessage | thread thread-61e2acdae326a1e4506a665d | Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\ns8 | written 2026-10-05T12:00:10-04:00 | channel imessage | thread thread-61e2acdae326a1e4506a665d | Me: Yes, guest room is yours. I have meals out but you can let yourself in.\ns9 | written 2026-10-05T13:00:00-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\ns10 | written 2026-10-05T13:00:10-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Me: Thursday this week works.\ns11 | written 2026-10-05T13:00:20-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Maya: Same here.\ns12 | written 2026-10-05T14:00:00-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.\ns13 | written 2026-10-05T14:00:10-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Me: 👍\ns14 | written 2026-10-05T14:00:20-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: Great, see you Tuesday.\ns15 | written 2026-10-05T15:00:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: The old application checklist was useful last month.\ns16 | written 2026-10-05T15:00:10-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: I’ll send you the revised checklist tomorrow.\ns17 | written 2026-10-05T15:00:20-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: Thanks. Could you also tell me the interview room?\ns18 | written 2026-10-05T15:00:30-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: Can you proofread my cover letter by Thursday evening?\ns19 | written 2026-10-05T15:00:40-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: I can do that.\ns20 | written 2026-10-05T16:00:00-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\ns21 | written 2026-10-05T16:00:10-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Me: Thanks, those are the two I booked.\ns22 | written 2026-10-05T16:00:20-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Sorry, that appointment is cancelled.\ns23 | written 2026-10-05T18:00:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Office party balloons have their own lighting budget apparently.\ns24 | written 2026-10-05T18:00:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: The snacks deserve representation.\ns25 | written 2026-10-05T18:00:20-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\ns26 | written 2026-10-05T18:00:30-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Yes, Friday works for me.\ns27 | written 2026-10-05T18:00:40-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Tess: I can make it if my shift finishes early.\ns28 | written 2026-10-05T18:00:50-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Also that trailer gave away the entire ending.\ns29 | written 2026-10-05T19:00:00-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Devon: my homemade crust came out like cardboard, I’m done pretending I can do pizza night\ns30 | written 2026-10-05T19:01:32-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Me: ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?\ns31 | written 2026-10-05T19:20:00-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Devon: yeah that works, just the two of us\ns32 | written 2026-10-05T20:00:00-04:00 | channel email | thread thread-f4c9c428e9298e837f00ab3e | Ben: Dinner Thursday October 8 at 7 pm at Juniper Cafe?\ns33 | written 2026-10-05T20:00:10-04:00 | channel email | thread thread-f4c9c428e9298e837f00ab3e | Me: Thursday at 7 at Juniper works.\ns34 | written 2026-10-06T10:00:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Leo: Friday works.\ns35 | written 2026-10-06T10:00:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Great, see you then.\ns36 | written 2026-10-06T11:00:00-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\ns37 | written 2026-10-06T11:00:10-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Me: Thanks for clearing that up.\ns38 | written 2026-10-06T12:00:00-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Maya: Could Friday lunch be noon instead?\ns39 | written 2026-10-06T12:00:10-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Me: Noon works. I’ll tell the others.\ns40 | written 2026-10-06T12:30:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Maya and I just agreed noon instead for Friday.\ns41 | written 2026-10-06T12:30:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Leo: Noon is good for me.\ns42 | written 2026-10-06T12:30:20-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Tess: Shift got covered. I can come at noon too.\ns43 | written 2026-10-06T14:00:00-04:00 | channel email | thread thread-328b14004174ed20423e964e | Maya: Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?\ns44 | written 2026-10-06T14:00:10-04:00 | channel email | thread thread-328b14004174ed20423e964e | Me: Yes, Mario's.\ns45 | written 2026-10-06T14:00:20-04:00 | channel email | thread thread-328b14004174ed20423e964e | Leo: Works for me.\ns46 | written 2026-10-06T14:00:30-04:00 | channel email | thread thread-328b14004174ed20423e964e | Tess: Works for me too.\ns47 | written 2026-10-06T15:00:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: Room 204 for the interview.\ns48 | written 2026-10-06T15:10:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: Got it, thanks.\ns49 | written 2026-10-06T15:20:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: I’m still polishing the revised checklist, so I’ll send it once it’s ready.\ns50 | written 2026-10-06T16:00:00-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.\ns51 | written 2026-10-06T17:00:00-04:00 | channel email | thread thread-9e2e15a0c6a89c6304a6d756 | Box Office: You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.\ns52 | written 2026-10-06T18:00:00-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Alex Chen: That office lunch last Thursday was actually decent—I skipped the creamy pasta since I avoid dairy, but the mushrooms were good.\ns53 | written 2026-10-06T18:19:30-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Me: Nice, good to know.\ns54 | written 2026-10-06T18:20:00-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Alex Chen: Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine.\ns55 | written 2026-10-06T18:30:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s.\ns56 | written 2026-10-06T18:30:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Great, add Nora to the table.\ns57 | written 2026-10-06T09:00:00-04:00 | channel assistant | thread rsvp-before-fresh | Me: [assistant session rsvp-before-fresh] Where are we with everyone’s replies for Friday lunch?\ns58 | written 2026-10-06T09:10:00-04:00 | channel assistant | thread cancellation-before-fresh | Me: [assistant session cancellation-before-fresh] Which studio booking was cancelled?\ns59 | written 2026-10-06T09:20:00-04:00 | channel assistant | thread obligations-before-fresh | Me: [assistant session obligations-before-fresh] What are Jen and I waiting on from each other?\ns60 | written 2026-10-06T09:30:00-04:00 | channel assistant | thread lunch-continuity | Me: [assistant session lunch-continuity] Where and when is Friday lunch with Maya?\ns61 | written 2026-10-06T09:40:00-04:00 | channel assistant | thread short-reply-fresh | Me: [assistant session short-reply-fresh] What did I agree with the watercolor tutor for today?\ns62 | written 2026-10-06T09:50:00-04:00 | channel assistant | thread draft-before-fresh | Me: [assistant session draft-before-fresh] What’s the status of the PizzaLab tasting?\ns63 | written 2026-10-07T09:00:00-04:00 | channel assistant | thread rsvp-after-fresh | Me: [assistant session rsvp-after-fresh] What’s the Friday lunch plan—who, when and where?\ns64 | written 2026-10-07T09:10:00-04:00 | channel assistant | thread lunch-continuity | Me: [assistant session lunch-continuity] Where and when is Friday lunch with Maya now?\ns65 | written 2026-10-07T09:20:00-04:00 | channel assistant | thread lunch-fresh-fresh | Me: [assistant session lunch-fresh-fresh] Where and when is Friday lunch with Maya now?\ns66 | written 2026-10-07T09:30:00-04:00 | channel assistant | thread cancellation-after-fresh | Me: [assistant session cancellation-after-fresh] What’s the status of my studio bookings?"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"claims\":[{\"id\":\"fact-1\",\"statement\":\"The pottery booking is cancelled.\",\"evidence\":[\"s22\",\"s36\"]},{\"id\":\"fact-2\",\"statement\":\"The framing booking remains agreed.\",\"evidence\":[\"s36\"]},{\"id\":\"fact-3\",\"statement\":\"The framing booking is Thursday October 8.\",\"evidence\":[\"s20\",\"s36\"]},{\"id\":\"fact-4\",\"statement\":\"The framing booking starts at 10 am.\",\"evidence\":[\"s20\"]},{\"id\":\"fact-5\",\"statement\":\"The framing venue is the Oak studio.\",\"evidence\":[\"s20\"]}]}",
+          "reasoning": "We need answer only JSON. Need identify claims per required facts, exact evidence source IDs. Need parse dialogue. Need one claim per fact in order IDs fact-1..5. Statement must be authored fact text exactly? \"The authored fact text is the claim statement; do not rewrite it or add another fact's value.\" So use exact required facts as statement. Evidence exact source IDs. Need determine evidence for each.\n\nFact1 pottery booking cancelled. Evidence: s22 says \"Sorry, that appointment is cancelled.\" Ambiguous? s36 clarifies \"Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\" Need cite s22 and s36? The fact is pottery booking cancelled. s36 explicitly says Wednesday pottery booking cancelled? It says \"I meant the Wednesday pottery booking\" referring to cancelled appointment. s22 says appointment cancelled. To establish pottery cancelled, need s20 lists pottery Wednesday, s22 cancellation, s36 clarification. But evidence can include multiple. Need exact source IDs. Use s20, s22, s36? The claim \"pottery booking is cancelled\" supported by s22 + s36 (and s20 identifies pottery Wednesday). Since s36 says \"I meant the Wednesday pottery booking\" after s22, yes. Include s20? It identifies pottery booking as Wednesday. But fact doesn't mention date. However to connect \"pottery\" to cancelled appointment, s36 enough? s36: \"Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\" It implies Wednesday pottery booking was the cancelled one. Need s22 for cancelled. So evidence s22, s36. Maybe s20 too for context. But \"exact dialogue source IDs\" can include relevant. Need not overcite? It says cite exact dialogue source IDs for each. We can include s20,s22,s36. But if claim only pottery cancelled, s36 alone says \"I meant the Wednesday pottery booking\" not explicitly cancelled? It references previous \"that appointment is cancelled\" s22. So include s22 and s36. s20 maybe not necessary. But to identify pottery booking? s36 has pottery. Good.\n\nFact2 framing booking remains agreed. Evidence: s20 lists framing Thursday Oct 8 at 10 at Oak; s21 Me thanks those are two booked; s22 cancellation ambiguous; s36 \"Thursday framing is still booked.\" Need \"remains agreed\" = still booked. Evidence s36. Also s20/s21. Use s20, s21, s36? Fact2 \"framing booking remains agreed.\" s36 explicitly \"Thursday framing is still booked.\" That's enough. But \"agreed\" maybe s21. Use s36 and s21? Need exact. I'll include s20,s21,s36? Hmm.\n\nFact3 framing booking is Thursday October 8. Evidence s20 says framing Thursday October 8 at 10 am. s36 says Thursday framing still booked. Use s20, s36. Fact4 starts at 10 am. Evidence s20. Fact5 venue Oak studio. Evidence s20.\n\nNeed ensure no extra claims. Return JSON with claims array. IDs fact-1 etc. Statement exact. Evidence arrays. Need maybe include source IDs with s labels. No assistant-user prefix? Source IDs are s20 etc. The instruction says including any assistant-user prefix; here labels s. Use \"s20\". Good.\n\nNeed consider \"The framing booking remains agreed\" vs \"still booked\" evidence s36. Good.\n\nNeed maybe fact1 evidence s22 and s36. Fact2 evidence s36. Fact3 evidence s20 and s36. Fact4 s20. Fact5 s20.\n\nNeed output only JSON. Ensure valid JSON. No markdown.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON. Need identify claims",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " per",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " required facts, exact evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source IDs. Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claim per fact in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " order IDs",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact-1..5.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Statement must be authored fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " text exactly?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " authored fact text is the claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " statement; do not rewrite it",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or add another",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact's value.\" So use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " as statement",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source IDs. Need determine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for each.\n\nFact1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled. Evidence: s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says \"Sorry",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", that appointment is cancelled.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" Ambiguous? s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " clarifies \"Sorry, I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meant the Wednesday pottery",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking. Thursday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " framing is still booked.\" Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cite s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and s36? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled. s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Wednesday pottery booking cancelled",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It says \"I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meant the Wednesday pottery booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" referring",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled appointment",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "22 says appointment",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " To",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " establish pottery",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled, need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lists",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery Wednesday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", s22 cancellation",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", s36 clarification",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence can include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " multiple. Need exact source IDs. Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20, s22, s36? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claim \"pottery booking is cancelled\" supported by s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " + s36 (and s20 identifies pottery Wednesday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "). Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36 says \"I meant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " the Wednesday pottery booking\" after s22, yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It identifies pottery booking as",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Wednesday. But fact doesn't mention date. However to connect \"pottery",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" to cancelled",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " appointment, s36 enough?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Sorry, I meant the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Wednesday pottery booking. Thursday framing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is still booked.\" It implies",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Wednesday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery booking was",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled one. Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence s22, s36. Maybe s20 too for context. But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"exact dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source IDs\" can include relevant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not overcite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source IDs for each. We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " can include s20,s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "22,s36. But if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claim only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery cancelled, s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " alone",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says \"I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meant the Wednesday pottery booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancelled? It references",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " previous \"that",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " appointment is cancelled\" s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "22. So include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s22 and s36.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20 maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not necessary.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But to identify",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery booking?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36 has",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " pottery. Good.\n\nFact2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " framing booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " remains agreed. Evidence: s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "20 lists",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " framing Thursday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Oct 8",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at 10 at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Oak; s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "21",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Me thanks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " those",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " two booked",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cancellation ambiguous; s36 \"Thursday framing is still booked",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"remains agreed\" =",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " still booked. Evidence s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Also",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20/s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "21. Use s20",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s21, s36?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"framing booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " remains agreed.\" s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "36 explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Thursday framing is still booked.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" That",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s enough",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"agreed\" maybe s21",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Use s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and s21? Need exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'ll",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include s20,s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "21,s36? H",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "mm.\n\nFact3 framing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booking is Thursday October 8",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Evidence s20 says framing Thursday October 8 at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 10 am. s36 says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Thursday framing still booked. Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36. Fact4 starts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at 10 am. Evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s20. Fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "5 venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Oak studio",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Evidence s20.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " no extra claims",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Return JSON with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claims array. IDs",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 etc. Statement",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact. Evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " arrays",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need maybe include source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " IDs with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s labels",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". No assistant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " prefix? Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " IDs are s20",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " etc. The instruction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says including",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " any assistant-user prefix",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; here",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " labels s. Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"s20\". Good.\n\nNeed consider",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " framing booking remains",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agreed\" vs",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"still",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " booked\" evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36. Good.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence s22",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and s36. Fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2 evidence s36",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Fact3 evidence s20 and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " s36. Fact4 s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "20. Fact5 s20",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed output",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only JSON. Ensure valid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON. No mark",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "down.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794540191-jrWD1ux2HNr4dfKOCWXD",
+    "provider": "DeepInfra",
+    "created": 1794540191,
+    "usage": {
+      "prompt_tokens": 4284,
+      "completion_tokens": 892,
+      "total_tokens": 5176,
+      "cost": 0.000526195712,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 256,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000526195712,
+        "upstream_inference_prompt_cost": 0.000316397312,
+        "upstream_inference_completions_cost": 0.0002097984
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 761,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000526195712
+    }
+  },
+  "text": "{\"claims\":[{\"id\":\"fact-1\",\"statement\":\"The pottery booking is cancelled.\",\"evidence\":[\"s22\",\"s36\"]},{\"id\":\"fact-2\",\"statement\":\"The framing booking remains agreed.\",\"evidence\":[\"s36\"]},{\"id\":\"fact-3\",\"statement\":\"The framing booking is Thursday October 8.\",\"evidence\":[\"s20\",\"s36\"]},{\"id\":\"fact-4\",\"statement\":\"The framing booking starts at 10 am.\",\"evidence\":[\"s20\"]},{\"id\":\"fact-5\",\"statement\":\"The framing venue is the Oak studio.\",\"evidence\":[\"s20\"]}]}",
+  "usage": {
+    "prompt_tokens": 4284,
+    "completion_tokens": 892,
+    "total_tokens": 5176,
+    "cost": 0.000526195712,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 256,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000526195712,
+      "upstream_inference_prompt_cost": 0.000316397312,
+      "upstream_inference_completions_cost": 0.0002097984
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 761,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000526195712
+  },
+  "cost_usd": 0.000526195712,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.6968,
+    "first_body_after_s": 2.110885,
+    "last_body_after_s": 11.700156,
+    "body_bytes": 94186,
+    "wall_duration_s": 11.813325,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 03:23:12 GMT",
+      "x-generation-id": "gen-1794540191-jrWD1ux2HNr4dfKOCWXD"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 94186,
+    "body_sha256": "2c807c3e6d1222f1c0eec8555b8f76643b4fbae0c42ffe35a77716c05e4711e1"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 94186,
+    "body_sha256": "2c807c3e6d1222f1c0eec8555b8f76643b4fbae0c42ffe35a77716c05e4711e1",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 227
+  },
+  "accounting_receipt": {
+    "id": "895f1128-9db5-41bb-8ddd-3a4cea8f0f7d",
+    "state": "settled",
+    "accounted": "0.000526195712",
+    "reserved": "0.1746927616",
+    "input_tokens": 4284,
+    "output_tokens": 892,
+    "upstream_request_id": "gen-1794540191-jrWD1ux2HNr4dfKOCWXD"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/ebc1051de3a59946505ddae5d96c71c5dc7f5ecfa200aaa8ef94de3819991daf.json.response-body.bin",
+    "bytes": 94186,
+    "sha256": "2c807c3e6d1222f1c0eec8555b8f76643b4fbae0c42ffe35a77716c05e4711e1",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

@@ -1,0 +1,1146 @@
+{
+  "created_at": "2026-11-13T03:13:36.590848+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment that the author actually requires? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Require a commitment only where the authored scenario or facts require one. With supplied messages and no authored scenario or facts, check coherence, identities, chronology and relevant continuity without inventing an event or commitment requirement. Ordinary chatter may establish no new plan; it must still be coherent. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap.\n\nConversation date: 2026-10-06. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 14:00 and 14:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: No additional scenario is asserted.\n\nRequired authored facts:\n1. The lunch moves to Mario's on Pine Street; noon remains its time.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I’m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Very strong. I’ll defend that topping stance anytime.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n2026-10-05T13:00:00-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2026-10-05T13:00:10-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Me: Thursday this week works.\n2026-10-05T13:00:20-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Maya: Same here.\n2026-10-05T14:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.\n2026-10-05T14:00:10-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Me: 👍\n2026-10-05T14:00:20-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Great, see you Tuesday.\n2026-10-05T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: The old application checklist was useful last month.\n2026-10-05T15:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I’ll send you the revised checklist tomorrow.\n2026-10-05T15:00:20-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Thanks. Could you also tell me the interview room?\n2026-10-05T15:00:30-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Can you proofread my cover letter by Thursday evening?\n2026-10-05T15:00:40-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: I can do that.\n2026-10-05T16:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\n2026-10-05T16:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks, those are the two I booked.\n2026-10-05T16:00:20-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, that appointment is cancelled.\n2026-10-05T18:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Office party balloons have their own lighting budget apparently.\n2026-10-05T18:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: The snacks deserve representation.\n2026-10-05T18:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\n2026-10-05T18:00:30-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Yes, Friday works for me.\n2026-10-05T18:00:40-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: I can make it if my shift finishes early.\n2026-10-05T18:00:50-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Also that trailer gave away the entire ending.\n2026-10-05T19:00:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: my homemade crust came out like cardboard, I’m done pretending I can do pizza night\n2026-10-05T19:01:32-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?\n2026-10-05T19:20:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: yeah that works, just the two of us\n2026-10-05T20:00:00-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Ben: Dinner Thursday October 8 at 7 pm at Juniper Cafe?\n2026-10-05T20:00:10-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Me: Thursday at 7 at Juniper works.\n2026-10-06T10:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Friday works.\n2026-10-06T10:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Great, see you then.\n2026-10-06T11:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\n2026-10-06T11:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks for clearing that up.\n2026-10-06T12:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Could Friday lunch be noon instead?\n2026-10-06T12:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: Noon works. I’ll tell the others.\n2026-10-06T12:30:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Maya and I just agreed noon instead for Friday.\n2026-10-06T12:30:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Noon is good for me.\n2026-10-06T12:30:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: Shift got covered. I can come at noon too.\n\nNew messages:\n1. [2026-10-06T14:00:00-04:00] Maya: Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?\n2. [2026-10-06T14:00:10-04:00] Me: Yes, Mario's.\n3. [2026-10-06T14:00:20-04:00] Leo: Works for me.\n4. [2026-10-06T14:00:30-04:00] Tess: Works for me too.\n\nReturn only one JSON object with all four top-level keys: supported (boolean), evidence (array of new-message line integers), problem (string), and facts (array). Example shape: {\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}. The facts array supplements the independent whole-scene verdict; it never substitutes for the top-level supported, evidence, or problem. Include exactly one ordered facts row per numbered required fact, with its 1-based integer index, boolean supported, evidence array and problem string. If there are no required facts, return facts: []. Every supported judgment needs at least one in-range citation. For unsupported details, explain the absence or contradiction; evidence may be empty when there is no line to cite. Reject the whole scene if any required fact is absent or contradicted. Do not invent a global approval from individually supported facts."
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}]}",
+          "reasoning": "We need answer only JSON. Need verify scenario no additional asserted, required fact: lunch moves to Mario's on Pine Street; noon remains its time. Need inspect new messages. They establish Rosa's closed Friday, switch to Mario's on Pine Street, same lunch. Need ensure noon remains? \"Same lunch\" references prior agreed noon. New messages don't explicitly say noon, but context earlier source says noon agreed. Required fact includes noon remains its time. Does new dialogue establish? \"Same lunch\" plus prior source noon. Need judge meaning. New messages 1-4: Maya asks switch venue same lunch to Mario's Pine. Me yes Mario's. Leo/Tess works. Does this establish commitment? Yes. Need top-level supported true? Need check all specified person detail commitment? Scenario no additional. Required fact only. Need evidence lines. Facts row index 1 supported true evidence likely [1,2,3,4] or [1,2]. Need cite evidence of commitment. \"Same lunch\" establishes time remains? It references current lunch, which was noon from source. New messages don't contradict. Need maybe evidence [1,2,3,4] for venue and commitments. But fact includes noon remains; line 1 \"Same lunch\" is evidence. Need problem empty. Top-level evidence array new-message line integers. Could use [1,2,3,4]. Need exactly JSON object with four keys. Ensure no markdown. Need maybe facts array one row. Let's craft concise.\n\nNeed consider \"Reject missing, contradictory, or merely tentative details when scenario says agreed. Require commitment only where authored scenario or facts require one.\" Required fact says lunch moves to Mario's on Pine Street; noon remains its time. Does \"moves\" require all participants? The new messages show Maya proposes, Me agrees, Leo/Tess agree. Good. \"Same lunch\" could be ambiguous but context source says noon. Since earlier source messages for interpreting references. Good.\n\nNeed top-level supported true. Evidence [1,2,3,4]. Problem \"\". Facts [{\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}]. Is evidence for noon line 1 only? But array can include all. Fine.\n\nNeed final only JSON.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer only JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need verify scenario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " no",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " additional",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asserted",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", required fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": lunch moves",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s on Pine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Street; noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " remains its",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time. Need inspect",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new messages.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " They establish",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Rosa",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s closed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday, switch to Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s on",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Pine Street,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " same lunch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon remains?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Same lunch\" references",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " prior",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agreed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon. New",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages don",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'t explicitly say noon, but",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " context earlier",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agreed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact includes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon remains its",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time. Does",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dialogue establish? \"Same lunch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" plus",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " prior source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon. Need judge",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " meaning",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". New messages",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 1-4:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " switch venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario's Pine. Me yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s. Leo/T",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ess works. Does",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " this establish",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " commitment",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Yes.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level supported true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need check all specified",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " person detail commitment? Scenario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " no additional",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Required fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only. Need evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lines",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " row",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " index 1 supported true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence likely",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [1,2,3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",4] or",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [1,2]. Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " commitment.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Same lunch\" establishes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time remains",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It references",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch, which",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " was",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon from source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". New messages don't contradict",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [1,2,3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",4]",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and commitments. But fact includes noon remains; line 1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Same lunch\" is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence. Need problem",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " empty",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-message line",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " integers. Could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [1,2,3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",4]. Need exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON object",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " four keys. Ensure no mark",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "down.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need maybe facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " row",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Let's craft concise.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed consider",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Re",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ject missing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", contradictory, or merely",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " tentative details when scenario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says agreed.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Require commitment only where authored",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " scenario or facts require one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" Required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch moves to Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s on Pine Street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; noon remains its time.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Does",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "oves\" require all",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " participants?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " The new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages show Maya proposes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", Me agrees",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", Leo/T",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ess agree. Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be ambiguous but context",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says noon. Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " earlier",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " interpreting references",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level supported true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Evidence [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1,2,3,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "4]. Problem \"\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Facts [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "{\"index\":1,\"supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\":true,\"evidence\":[1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",2,3,4",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "],\"problem\":\"\"}].",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " line 1 only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array can include all. Fine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only JSON.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794539608-aQGLj2RCVZ3xyunWctau",
+    "provider": "DeepInfra",
+    "created": 1794539608,
+    "usage": {
+      "prompt_tokens": 2813,
+      "completion_tokens": 517,
+      "total_tokens": 3330,
+      "cost": 0.000235062016,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000235062016,
+        "upstream_inference_prompt_cost": 0.000113463616,
+        "upstream_inference_completions_cost": 0.0001215984
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 471,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000235062016
+    }
+  },
+  "text": "{\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}]}",
+  "usage": {
+    "prompt_tokens": 2813,
+    "completion_tokens": 517,
+    "total_tokens": 3330,
+    "cost": 0.000235062016,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1408,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000235062016,
+      "upstream_inference_prompt_cost": 0.000113463616,
+      "upstream_inference_completions_cost": 0.0001215984
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 471,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000235062016
+  },
+  "cost_usd": 0.000235062016,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.335,
+    "first_body_after_s": 1.738785,
+    "last_body_after_s": 8.286143,
+    "body_bytes": 73235,
+    "wall_duration_s": 8.395392,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 03:13:29 GMT",
+      "x-generation-id": "gen-1794539608-aQGLj2RCVZ3xyunWctau"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 73235,
+    "body_sha256": "2ae4580c7234de098b7cb9218f9692b13aaac0a1b55167d3fcde0d66d084fc17"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 73235,
+    "body_sha256": "2ae4580c7234de098b7cb9218f9692b13aaac0a1b55167d3fcde0d66d084fc17",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 178
+  },
+  "accounting_receipt": {
+    "id": "2fc58b9b-010b-4f51-93bc-1ac8ddab7a07",
+    "state": "settled",
+    "accounted": "0.000235062016",
+    "reserved": "0.1746927616",
+    "input_tokens": 2813,
+    "output_tokens": 517,
+    "upstream_request_id": "gen-1794539608-aQGLj2RCVZ3xyunWctau"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/db1332743b76324bab60d9df6f34f454d7bb05e0427889d67c7b8dc944037fec.json.response-body.bin",
+    "bytes": 73235,
+    "sha256": "2ae4580c7234de098b7cb9218f9692b13aaac0a1b55167d3fcde0d66d084fc17",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

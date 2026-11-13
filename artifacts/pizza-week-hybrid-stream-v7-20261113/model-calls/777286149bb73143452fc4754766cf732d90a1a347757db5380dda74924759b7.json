@@ -1,0 +1,124 @@
+{
+  "created_at": "2026-11-13T01:05:13.619902+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-07. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 17:00 and 17:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-05 Devon: my homemade crust came out like cardboard, I’m done pretending I can do pizza night\n2026-10-05 Me: ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?\n2026-10-05 Devon: yeah that works, just the two of us\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 3 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+      }
+    ],
+    "reasoning_effort": "low"
+  },
+  "response": {
+    "id": "gen-1794531908-zfohLTgLCNZalTRj0vo2",
+    "object": "chat.completion",
+    "created": 1794531908,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "provider": "DeepInfra",
+    "system_fingerprint": null,
+    "service_tier": "flex",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\"dialogue\":\"Me: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\\nDevon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\\nMe: fair. I’ll let you know if I decide to go.\\nDevon: sounds good. Hope her set’s good either way.\",\"writer_note\":\"The exchange keeps both decisions tentative: the user hasn’t committed to attending, and Devon’s possible company hinges on an early shift end. Rae is clearly framed as the performer, with casual wording that avoids recapping the settled Friday pizza plan.\"}",
+          "refusal": null,
+          "reasoning": "We need answer only JSON object with dialogue string and writer_note. Need craft 3-4 messages, speakers Me and Devon only. Scenario: user considering Rae's Sunday concert and asks Devon to come if user decides to go. Devon can only come if shift ends early. Leave both attendance decisions unresolved; no RSVP purchase booking. Ordinary tentative wording. Need establish: Devon conditional potential companion; Rae performer not companion; user remains unconfirmed. Continue voices from earlier. Date 2026-10-07 Wednesday? Need Sunday upcoming Oct 11. Use \"Sunday\" enough. Need 3-4 messages. User must speak at least once. Start with what they want to say. Could be:\n\nMe: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\nDevon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\nMe: fair. I’ll let you know if I decide to go.\nDevon: sounds good. Hope her set’s good either way.\n\nNeed ensure Devon conditional potential companion. Rae performer. User unconfirmed. 4 messages. Natural. \"Rae’s show\" indicates performer. \"if I end up going\" user unconfirmed. Devon \"maybe, depends...\" conditional. No new time/venue. Good. But \"I’ll let you know if I decide\" okay. Need no recital. Use exact labels. JSON. writer_note one/two sentences. Ensure dialogue one string with \\n. Return only JSON.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We need answer only JSON object with dialogue string and writer_note. Need craft 3-4 messages, speakers Me and Devon only. Scenario: user considering Rae's Sunday concert and asks Devon to come if user decides to go. Devon can only come if shift ends early. Leave both attendance decisions unresolved; no RSVP purchase booking. Ordinary tentative wording. Need establish: Devon conditional potential companion; Rae performer not companion; user remains unconfirmed. Continue voices from earlier. Date 2026-10-07 Wednesday? Need Sunday upcoming Oct 11. Use \"Sunday\" enough. Need 3-4 messages. User must speak at least once. Start with what they want to say. Could be:\n\nMe: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\nDevon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\nMe: fair. I’ll let you know if I decide to go.\nDevon: sounds good. Hope her set’s good either way.\n\nNeed ensure Devon conditional potential companion. Rae performer. User unconfirmed. 4 messages. Natural. \"Rae’s show\" indicates performer. \"if I end up going\" user unconfirmed. Devon \"maybe, depends...\" conditional. No new time/venue. Good. But \"I’ll let you know if I decide\" okay. Need no recital. Use exact labels. JSON. writer_note one/two sentences. Ensure dialogue one string with \\n. Return only JSON.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 703,
+      "completion_tokens": 472,
+      "total_tokens": 1175,
+      "cost": 0.0001661296,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0001661296,
+        "upstream_inference_prompt_cost": 5.51152e-05,
+        "upstream_inference_completions_cost": 0.0001110144
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 326,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.0001661296
+    }
+  },
+  "text": "{\"dialogue\":\"Me: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\\nDevon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\\nMe: fair. I’ll let you know if I decide to go.\\nDevon: sounds good. Hope her set’s good either way.\",\"writer_note\":\"The exchange keeps both decisions tentative: the user hasn’t committed to attending, and Devon’s possible company hinges on an early shift end. Rae is clearly framed as the performer, with casual wording that avoids recapping the settled Friday pizza plan.\"}",
+  "usage": {
+    "prompt_tokens": 703,
+    "completion_tokens": 472,
+    "total_tokens": 1175,
+    "cost": 0.0001661296,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0001661296,
+      "upstream_inference_prompt_cost": 5.51152e-05,
+      "upstream_inference_completions_cost": 0.0001110144
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 326,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.0001661296
+  },
+  "cost_usd": 0.0001661296,
+  "cost_status": "reported",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 0.740328,
+    "first_body_after_s": 0.740411,
+    "last_body_after_s": 5.690322,
+    "body_bytes": 4301,
+    "wall_duration_s": 5.733949,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "application/json",
+      "date": "Fri, 13 Nov 2026 01:05:08 GMT",
+      "x-generation-id": "gen-1794531908-zfohLTgLCNZalTRj0vo2"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 4301,
+    "body_sha256": "6ddaa322b22e4ac9a9ec09bd1cd8b33b8a7d8498e387a1e5b00aa366d7036ce4"
+  }
+}

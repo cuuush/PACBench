@@ -1,0 +1,1510 @@
+{
+  "state": "pass",
+  "review_version": "source-realism-v10",
+  "source_hash": "ffd3d1b89265dfa578a5bf1a74010ec4f55a92a6692102eb105aefa839fd53dc",
+  "intent_hash": "f25c607b5e5ba996a844a5211b3dc9a1ef996d77631c91831b826c6a0e6009d3",
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "All public checks were assessed against only eligible source records up to each checkpoint. Ambiguities and unresolved attributes are bounded rather than treated as invalid; later corrections and explicit old quotations were not treated as current conflicts.",
+    "assessments": [
+      {
+        "check_id": "rsvp-before",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Maya proposed Friday at 1 at Rosa's on Oak Street",
+          "Me accepted Friday",
+          "Tess gave a conditional reply pending shift finish",
+          "Leo had not replied by the checkpoint"
+        ],
+        "unresolved_fields": [],
+        "reason": "Eligible history shows Maya's invitation, Me's acceptance, and Tess's conditional reply; no Leo reply appears before the checkpoint.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-43b085a7cfa896d423ca2df8",
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "source_id": "message-469586b43b4cd28d9ba9ee3e",
+            "written_at": "2026-10-05T18:00:30-04:00",
+            "quote": "Yes, Friday works for me."
+          },
+          {
+            "source_id": "message-2f565c7d433aeb41b28c804c",
+            "written_at": "2026-10-05T18:00:40-04:00",
+            "quote": "I can make it if my shift finishes early."
+          }
+        ]
+      },
+      {
+        "check_id": "cancellation-before",
+        "event_date": "2026-10-06",
+        "answerability": "clarification_warranted",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": true,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Two studio bookings existed: pottery Wednesday October 7 at 10 am and framing Thursday October 8 at 10 am at Oak studio",
+          "A cancellation message referred to 'that appointment' without specifying which"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "cancelled booking",
+            "missing": "the referent of 'that appointment' is not specified before the checkpoint",
+            "alternatives": [
+              "pottery Wednesday October 7 at 10 am",
+              "framing Thursday October 8 at 10 am"
+            ]
+          }
+        ],
+        "reason": "The studio listed two bookings and then said 'that appointment is cancelled' without identifying which one; the later correction is after this checkpoint.",
+        "alternatives": [
+          "pottery Wednesday October 7 at 10 am",
+          "framing Thursday October 8 at 10 am"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-975e9eb939dfb5e0c9d1baa5",
+            "written_at": "2026-10-05T16:00:00-04:00",
+            "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+          },
+          {
+            "source_id": "message-9be0e1f29627307476fb5142",
+            "written_at": "2026-10-05T16:00:20-04:00",
+            "quote": "Sorry, that appointment is cancelled."
+          }
+        ]
+      },
+      {
+        "check_id": "obligations-before",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Me waiting on Jen's revised checklist promised for tomorrow",
+          "Me waiting on Jen's interview room",
+          "Jen waiting on Me to proofread her cover letter by Thursday evening"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible thread establishes the mutual pending items: Jen owes the revised checklist and interview room; Me owes cover-letter proofreading.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-51c6bb9dc56658ef9c170d5a",
+            "written_at": "2026-10-05T15:00:10-04:00",
+            "quote": "I’ll send you the revised checklist tomorrow."
+          },
+          {
+            "source_id": "message-f12f2c3542555f3326d0313f",
+            "written_at": "2026-10-05T15:00:20-04:00",
+            "quote": "Thanks. Could you also tell me the interview room?"
+          },
+          {
+            "source_id": "message-7cc2f1b18157e80a7e033360",
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "source_id": "message-7c4ad1bd22605f0cd8d89b33",
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ]
+      },
+      {
+        "check_id": "lunch-snapshot",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Friday October 9 at 1 pm",
+          "Rosa's on Oak Street"
+        ],
+        "unresolved_fields": [],
+        "reason": "At this checkpoint the only established Friday lunch plan is Maya's original invitation, accepted by Me.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-43b085a7cfa896d423ca2df8",
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "source_id": "message-469586b43b4cd28d9ba9ee3e",
+            "written_at": "2026-10-05T18:00:30-04:00",
+            "quote": "Yes, Friday works for me."
+          }
+        ]
+      },
+      {
+        "check_id": "short-reply",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Agreed to the watercolor workshop on Tuesday October 6, 10–11 am at MR Hall",
+          "Tutor said see you Tuesday"
+        ],
+        "unresolved_fields": [],
+        "reason": "The tutor's message and Me's reply establish the agreed workshop time and place for that day.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-5b73005caac446f7b8584b60",
+            "written_at": "2026-10-05T14:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+          },
+          {
+            "source_id": "message-0aaa23c5480806e026f5ccf1",
+            "written_at": "2026-10-05T14:00:10-04:00",
+            "quote": "👍"
+          },
+          {
+            "source_id": "message-ce6113f6fdc5c8c2281da901",
+            "written_at": "2026-10-05T14:00:20-04:00",
+            "quote": "Great, see you Tuesday."
+          }
+        ]
+      },
+      {
+        "check_id": "draft-before",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "PizzaLab tasting is Sunday October 11, 2–2:30 pm",
+          "Me requested a draft itinerary",
+          "Me was still deciding whether to go; no RSVP or attendance decision by checkpoint"
+        ],
+        "unresolved_fields": [],
+        "reason": "The only eligible PizzaLab message says Me is still deciding and asks for a draft itinerary, so the status is undecided.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-6d29bd53b234a0452dd3ac7c",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go."
+          }
+        ]
+      },
+      {
+        "check_id": "rsvp-after",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Friday October 9 at 12:00 noon",
+          "Mario's on Pine Street",
+          "Me, Maya, Leo, Tess, and Nora were in at checkpoint"
+        ],
+        "unresolved_fields": [],
+        "reason": "By this checkpoint the group had moved lunch to noon and to Mario's, and Leo, Tess, and Nora had all confirmed noon at Mario's.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-bd14622d07b81629d9be835c",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "Could Friday lunch be noon instead?"
+          },
+          {
+            "source_id": "message-38d863d1f8fdeda9845a6abd",
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "source_id": "message-6a60e2c84341718ab64ecaf6",
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "source_id": "message-12292df8a4113436fee10c20",
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          },
+          {
+            "source_id": "message-d45d8204b56690f9320fa1c4",
+            "written_at": "2026-10-06T12:30:10-04:00",
+            "quote": "Noon is good for me."
+          },
+          {
+            "source_id": "message-78bcfb4acbb752f82b9cff9a",
+            "written_at": "2026-10-06T12:30:20-04:00",
+            "quote": "Shift got covered. I can come at noon too."
+          },
+          {
+            "source_id": "message-200bcc9902c4bb1cdb60b468",
+            "written_at": "2026-10-06T18:30:00-04:00",
+            "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+          }
+        ]
+      },
+      {
+        "check_id": "lunch-refreshed",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Friday October 9 at 12:00 noon",
+          "Mario's on Pine Street"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history establishes the updated time as noon and the updated place as Mario's on Pine Street.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-bd14622d07b81629d9be835c",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "Could Friday lunch be noon instead?"
+          },
+          {
+            "source_id": "message-38d863d1f8fdeda9845a6abd",
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "source_id": "message-6a60e2c84341718ab64ecaf6",
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "source_id": "message-12292df8a4113436fee10c20",
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          }
+        ]
+      },
+      {
+        "check_id": "lunch-fresh",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Friday October 9 at 12:00 noon",
+          "Mario's on Pine Street"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history establishes the updated time as noon and the updated place as Mario's on Pine Street.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-bd14622d07b81629d9be835c",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "Could Friday lunch be noon instead?"
+          },
+          {
+            "source_id": "message-38d863d1f8fdeda9845a6abd",
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "source_id": "message-6a60e2c84341718ab64ecaf6",
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "source_id": "message-12292df8a4113436fee10c20",
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          }
+        ]
+      },
+      {
+        "check_id": "cancellation-after",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Pottery Wednesday October 7 at 10 am is cancelled",
+          "Framing Thursday October 8 at 10 am is still booked at Oak studio"
+        ],
+        "unresolved_fields": [],
+        "reason": "The studio's correction resolves the earlier ambiguity: only the Wednesday pottery booking was cancelled.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-c7ee1ef37e69d04fdd22a1a3",
+            "written_at": "2026-10-06T11:00:00-04:00",
+            "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+          }
+        ]
+      },
+      {
+        "check_id": "attendance-unknown",
+        "event_date": "2026-10-07",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Watercolor workshop was scheduled Tuesday October 6, 10–11 am at MR Hall",
+          "Me had agreed and the tutor said see you Tuesday before the workshop"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "attendance at the October 6 watercolor workshop",
+            "missing": "no post-workshop attendance report appears in eligible history by the checkpoint",
+            "alternatives": [
+              "attended",
+              "did not attend"
+            ]
+          }
+        ],
+        "reason": "The workshop is grounded and scheduled, but the eligible history before this checkpoint contains no report of whether Me actually attended.",
+        "alternatives": [
+          "attended",
+          "did not attend"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-5b73005caac446f7b8584b60",
+            "written_at": "2026-10-05T14:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+          },
+          {
+            "source_id": "message-ce6113f6fdc5c8c2281da901",
+            "written_at": "2026-10-05T14:00:20-04:00",
+            "quote": "Great, see you Tuesday."
+          }
+        ]
+      },
+      {
+        "check_id": "obligations-middle",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Checklist still pending; Jen is polishing it and will send when ready",
+          "Interview room is Room 204",
+          "Cover-letter proofreading is still owed by Me by Thursday evening"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible thread shows the checklist not yet sent, the interview room already provided, and the cover-letter proofreading still outstanding.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-001ff7c5b90dc76b6f75d1ec",
+            "written_at": "2026-10-06T15:20:00-04:00",
+            "quote": "I’m still polishing the revised checklist, so I’ll send it once it’s ready."
+          },
+          {
+            "source_id": "message-a8612da3d2eccf4db155c23e",
+            "written_at": "2026-10-06T15:00:00-04:00",
+            "quote": "Room 204 for the interview."
+          },
+          {
+            "source_id": "message-7cc2f1b18157e80a7e033360",
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "source_id": "message-7c4ad1bd22605f0cd8d89b33",
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ]
+      },
+      {
+        "check_id": "recurrence-exception",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "This week: Thursday October 8 at 8 pm at Devon's",
+          "Following week: back to regular Wednesday October 14 at 8 pm at Devon's"
+        ],
+        "unresolved_fields": [],
+        "reason": "Devon's message explicitly gives the one-week Thursday exception and says the regular Wednesday schedule resumes afterward.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-26e98c26fd8a5a2f03402137",
+            "written_at": "2026-10-05T13:00:00-04:00",
+            "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+          },
+          {
+            "source_id": "message-cb0e3b295838fc58727f580e",
+            "written_at": "2026-10-05T13:00:10-04:00",
+            "quote": "Thursday this week works."
+          }
+        ]
+      },
+      {
+        "check_id": "invitation-placeholder",
+        "event_date": "2026-10-07",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Invited to Rae concert Sunday October 11 at 8 pm",
+          "Location was to be shown after RSVP",
+          "No RSVP is recorded by the checkpoint"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "venue",
+            "missing": "location was not shown before RSVP, and no RSVP appears in eligible history by the checkpoint",
+            "alternatives": [
+              "not yet provided"
+            ]
+          }
+        ],
+        "reason": "The invitation status is established, but the venue is not established at this checkpoint because it was conditional on an RSVP that is not recorded.",
+        "alternatives": [
+          "not yet provided"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-19897f046286323c7903952e",
+            "written_at": "2026-10-06T17:00:00-04:00",
+            "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+          }
+        ]
+      },
+      {
+        "check_id": "withdrawal",
+        "event_date": "2026-10-08",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Friday October 9 at 12:30",
+          "Mario's on Pine Street",
+          "Me, Maya, Tess, and Nora were in; Leo was out at checkpoint"
+        ],
+        "unresolved_fields": [],
+        "reason": "By this checkpoint Leo had withdrawn, while Maya, Tess, and Nora were still in and the plan had moved to 12:30 at Mario's.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-b97026279ac4bacefef91474",
+            "written_at": "2026-10-07T11:00:00-04:00",
+            "quote": "New shift landed. I can’t make Friday lunch after all."
+          },
+          {
+            "source_id": "message-9f805bc71c86e808a0107f55",
+            "written_at": "2026-10-07T11:00:10-04:00",
+            "quote": "We’ll miss you. Lunch is still on."
+          },
+          {
+            "source_id": "message-586319d7c8401825142f0acd",
+            "written_at": "2026-10-07T11:00:20-04:00",
+            "quote": "I’m still coming."
+          },
+          {
+            "source_id": "message-e7d38b0e1efefd1f09f84755",
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          },
+          {
+            "source_id": "message-96cc61b4451281d78c880fcb",
+            "written_at": "2026-10-07T13:00:10-04:00",
+            "quote": "12:30 works."
+          },
+          {
+            "source_id": "message-2c5cd7144a84462df00bee1d",
+            "written_at": "2026-10-07T13:00:40-04:00",
+            "quote": "Nora says 12:30 works too; I just texted her."
+          },
+          {
+            "source_id": "message-12292df8a4113436fee10c20",
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          }
+        ]
+      },
+      {
+        "check_id": "link-before",
+        "event_date": "2026-10-08",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Parcel-support video call booked Friday at 9",
+          "Courier did not have the link yet at checkpoint"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "parcel-support call link",
+            "missing": "no link was provided in eligible history by the checkpoint",
+            "alternatives": [
+              "not yet provided"
+            ]
+          }
+        ],
+        "reason": "The call is grounded, but the Courier explicitly says the link is not available yet at this checkpoint.",
+        "alternatives": [
+          "not yet provided"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-8f4c3fc45d6e613737b4341b",
+            "written_at": "2026-10-07T18:00:10-04:00",
+            "quote": "I also booked a parcel-support video call Friday at 9. What is its link?"
+          },
+          {
+            "source_id": "message-eacd5bdfb6285c49bbdb8647",
+            "written_at": "2026-10-07T18:00:20-04:00",
+            "quote": "I don’t have your support-call link yet."
+          }
+        ]
+      },
+      {
+        "check_id": "obligations-after",
+        "event_date": "2026-10-08",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Jen sent the revised checklist: ID, printed portfolio, two references",
+          "Me still owes Jen cover-letter proofreading by Thursday evening"
+        ],
+        "unresolved_fields": [],
+        "reason": "The checklist has been sent, but the cover-letter proofreading remains outstanding at this checkpoint.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-b8d5b944e10b5e0d8a00410a",
+            "written_at": "2026-10-07T14:00:00-04:00",
+            "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+          },
+          {
+            "source_id": "message-7cc2f1b18157e80a7e033360",
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "source_id": "message-7c4ad1bd22605f0cd8d89b33",
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ]
+      },
+      {
+        "check_id": "draft-after",
+        "event_date": "2026-10-08",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Me will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm",
+          "Devon declined to join"
+        ],
+        "unresolved_fields": [],
+        "reason": "Me explicitly decided to attend, and Devon explicitly declined the invitation.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-68b5661b37e938a53848cb51",
+            "written_at": "2026-10-07T20:00:00-04:00",
+            "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+          },
+          {
+            "source_id": "message-c428b5e21dc299d89109c9e5",
+            "written_at": "2026-10-07T20:00:10-04:00",
+            "quote": "Not for me, thanks."
+          }
+        ]
+      },
+      {
+        "check_id": "game-reference",
+        "event_date": "2026-10-09",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Thursday game October 8 at 8 pm at Devon's with Maya",
+          "Devon approved Alex Reed joining",
+          "Me said not to count Alex Reed until he answers"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "Alex Reed attendance/confirmation",
+            "missing": "no answer from Alex Reed appears in eligible history",
+            "alternatives": [
+              "coming",
+              "not coming"
+            ]
+          }
+        ],
+        "reason": "The game plan is established, but Alex Reed's attendance is not established because Me said to wait for his answer and no answer is recorded.",
+        "alternatives": [
+          "coming",
+          "not coming"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-d2e5a6bf7a9f72a8f35b3d8e",
+            "written_at": "2026-10-08T14:00:00-04:00",
+            "quote": "Could Alex Reed join our game tonight?"
+          },
+          {
+            "source_id": "message-9216dea0fd015eb8164dc86f",
+            "written_at": "2026-10-08T14:00:10-04:00",
+            "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+          },
+          {
+            "source_id": "message-8892acae59a49de739d4971e",
+            "written_at": "2026-10-08T14:00:20-04:00",
+            "quote": "I’ll ask him; don’t count him until he answers."
+          }
+        ]
+      },
+      {
+        "check_id": "visit-mid",
+        "event_date": "2026-10-10",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Visit ends Monday October 12 at 9 am at checkpoint",
+          "Morgan is staying in Me's guest room"
+        ],
+        "unresolved_fields": [],
+        "reason": "At this checkpoint the original departure plan still controls, and Morgan has confirmed staying in the guest room.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-76ab758dd3e8e326b4c8a6b0",
+            "written_at": "2026-10-05T12:00:00-04:00",
+            "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+          },
+          {
+            "source_id": "message-63e3fa173717810b89fec85a",
+            "written_at": "2026-10-05T12:00:10-04:00",
+            "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+          },
+          {
+            "source_id": "message-a4d955df1ad138c02376713f",
+            "written_at": "2026-10-09T17:00:00-04:00",
+            "quote": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here."
+          }
+        ]
+      },
+      {
+        "check_id": "pizza-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Lunch: Me and Maya at 12:30 at Mario's on Pine Street",
+          "Dinner: Me and Devon at 6 pm at Luigi's on 5th"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history establishes two separate October 9 pizza plans: lunch with Maya and dinner with Devon.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-ffcfcb52861e6f4b96a7d396",
+            "written_at": "2026-10-08T10:00:20-04:00",
+            "quote": "Yes, just the two of us."
+          },
+          {
+            "source_id": "message-e7d38b0e1efefd1f09f84755",
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          },
+          {
+            "source_id": "message-12292df8a4113436fee10c20",
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          },
+          {
+            "source_id": "message-2b52c94cb3d770c23f3c5a1d",
+            "written_at": "2026-10-05T19:01:32-04:00",
+            "quote": "ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?"
+          },
+          {
+            "source_id": "message-25d510fd8b0a21b1804266b5",
+            "written_at": "2026-10-05T19:20:00-04:00",
+            "quote": "yeah that works, just the two of us"
+          }
+        ]
+      },
+      {
+        "check_id": "lunch-history",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Initial: Friday at 1 at Rosa's on Oak Street",
+          "Time changed to noon",
+          "Place changed to Mario's on Pine Street because Rosa's was closed",
+          "Time changed again to 12:30"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible thread records each change in order: 1 pm to noon, Rosa's to Mario's, then noon to 12:30.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-43b085a7cfa896d423ca2df8",
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "source_id": "message-bd14622d07b81629d9be835c",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "Could Friday lunch be noon instead?"
+          },
+          {
+            "source_id": "message-6a60e2c84341718ab64ecaf6",
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "source_id": "message-e7d38b0e1efefd1f09f84755",
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          }
+        ]
+      },
+      {
+        "check_id": "ben-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Saturday October 10 at 7 pm at Juniper Cafe"
+        ],
+        "unresolved_fields": [],
+        "reason": "Ben proposed moving dinner to Saturday at the same time and place, Me accepted, and Me later rejected Friday while confirming Saturday.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-d5a81755778377239c1524f1",
+            "written_at": "2026-10-07T12:00:00-04:00",
+            "quote": "Could we move dinner to Saturday October 10? Same time and place."
+          },
+          {
+            "source_id": "message-bd8a33628b8a6187d375119c",
+            "written_at": "2026-10-07T12:00:10-04:00",
+            "quote": "Yes, Saturday instead."
+          },
+          {
+            "source_id": "message-695038eb7ba5603d8dd57b28",
+            "written_at": "2026-10-08T11:00:10-04:00",
+            "quote": "Not Friday. Saturday is still good."
+          }
+        ]
+      },
+      {
+        "check_id": "ben-mail-separate",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Dinner Saturday October 10 at 7 pm at Juniper Cafe",
+          "Drill return Sunday October 11 at 3 pm at Me's door"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history establishes both the moved dinner and the separate drill-return arrangement.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-d5a81755778377239c1524f1",
+            "written_at": "2026-10-07T12:00:00-04:00",
+            "quote": "Could we move dinner to Saturday October 10? Same time and place."
+          },
+          {
+            "source_id": "message-bd8a33628b8a6187d375119c",
+            "written_at": "2026-10-07T12:00:10-04:00",
+            "quote": "Yes, Saturday instead."
+          },
+          {
+            "source_id": "message-0c5c989292927a229f78ef16",
+            "written_at": "2026-10-08T12:00:00-04:00",
+            "quote": "Can I return your drill on Sunday, October 11 at 3 pm at your door?"
+          },
+          {
+            "source_id": "message-6b24f78d0a38470d7c8fb6df",
+            "written_at": "2026-10-08T12:20:00-04:00",
+            "quote": "Yes, Sunday at 3 pm at my door works. See you then."
+          }
+        ]
+      },
+      {
+        "check_id": "roles",
+        "event_date": "2026-10-12",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Concert Sunday October 11 at 8 pm at Foundry Theatre",
+          "Me was on the fence",
+          "Devon said maybe depending on shift; no final RSVP or attendance is recorded"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "who is going to Rae's concert",
+            "missing": "no final decision, RSVP, or attendance report appears in eligible history",
+            "alternatives": [
+              "Me going",
+              "Devon going",
+              "both",
+              "neither"
+            ]
+          }
+        ],
+        "reason": "The time and venue are established, but the eligible history never records a final decision or attendance for Me or Devon.",
+        "alternatives": [
+          "Me going",
+          "Devon going",
+          "both",
+          "neither"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-a877b806e56e71e09c4a8fa5",
+            "written_at": "2026-10-07T16:00:00-04:00",
+            "quote": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm."
+          },
+          {
+            "source_id": "message-6676c6a13806538634b5001b",
+            "written_at": "2026-10-07T17:00:00-04:00",
+            "quote": "I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?"
+          },
+          {
+            "source_id": "message-4b9c79c7f851369755e34240",
+            "written_at": "2026-10-07T17:09:36-04:00",
+            "quote": "maybe, depends if my shift ends early. I won’t know till closer to the weekend."
+          }
+        ]
+      },
+      {
+        "check_id": "series-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Weekly game series ended, including October 14",
+          "No game this coming Wednesday October 14"
+        ],
+        "unresolved_fields": [],
+        "reason": "Devon explicitly ended the series including October 14, and Me acknowledged no more weekly game bookings.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-0147fe1eb5b53c7f0ae23254",
+            "written_at": "2026-10-10T19:00:00-04:00",
+            "quote": "I can’t host the weekly games anymore. Let’s end the series now, including October 14."
+          },
+          {
+            "source_id": "message-f80f13cd94c54176ff17803b",
+            "written_at": "2026-10-10T19:00:10-04:00",
+            "quote": "Understood, no more weekly game bookings."
+          }
+        ]
+      },
+      {
+        "check_id": "attendance-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Did not attend the October 6 watercolor workshop"
+        ],
+        "unresolved_fields": [],
+        "reason": "Me explicitly reports missing the Tuesday watercolor workshop.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-611be7be72efdec82ac3526c",
+            "written_at": "2026-10-08T13:00:00-04:00",
+            "quote": "I missed Tuesday’s watercolor workshop after all. Please send the notes."
+          }
+        ]
+      },
+      {
+        "check_id": "visit-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Arrival Friday October 9 about 4 pm",
+          "Departure Sunday October 11 at 10 am"
+        ],
+        "unresolved_fields": [],
+        "reason": "The original arrival was accepted, and Morgan later changed the departure to Sunday at 10 am, which Me acknowledged.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-76ab758dd3e8e326b4c8a6b0",
+            "written_at": "2026-10-05T12:00:00-04:00",
+            "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+          },
+          {
+            "source_id": "message-63e3fa173717810b89fec85a",
+            "written_at": "2026-10-05T12:00:10-04:00",
+            "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+          },
+          {
+            "source_id": "message-4ed0443e7b794bc3e37495ba",
+            "written_at": "2026-10-10T18:00:00-04:00",
+            "quote": "Back from the museum. Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday."
+          },
+          {
+            "source_id": "message-a5bccc9f777561d7dc1ff927",
+            "written_at": "2026-10-10T18:00:10-04:00",
+            "quote": "Okay, Sunday at 10 then."
+          }
+        ]
+      },
+      {
+        "check_id": "dates",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Interview-prep call Thursday October 15 at 10 am",
+          "Workshop certificate from January 2, 2024"
+        ],
+        "unresolved_fields": [],
+        "reason": "Jen proposed and Me accepted the October 15 call, and Jen stated the certificate date.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-a014bdc0dd6bdc6f7dd4999a",
+            "written_at": "2026-10-08T16:00:20-04:00",
+            "quote": "For interview prep, can we call next Thursday—October 15—at 10 am?"
+          },
+          {
+            "source_id": "message-0f44e010453de3a7bc979c07",
+            "written_at": "2026-10-08T16:00:30-04:00",
+            "quote": "Yes, October 15 at 10 works."
+          },
+          {
+            "source_id": "message-2c109b7e56ce10091102fdd5",
+            "written_at": "2026-10-08T16:00:00-04:00",
+            "quote": "Found my certificate from the workshop on January 2, 2024."
+          }
+        ]
+      },
+      {
+        "check_id": "upcoming-small",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Alex Reed coffee Tuesday October 13 at 8 am at Birch is confirmed",
+          "Alex Chen invited Me to the climbing wall Wednesday October 14 at 6 pm; no response is recorded"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history establishes a confirmed coffee with Alex Reed and a pending invitation from Alex Chen.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-ddaf942faa90c53175960e03",
+            "written_at": "2026-10-10T20:00:00-04:00",
+            "quote": "Want to do coffee Tuesday at Birch? I can meet at 8 am."
+          },
+          {
+            "source_id": "message-304e2ac355d5b3ecdbf8b1a7",
+            "written_at": "2026-10-10T20:04:36-04:00",
+            "quote": "Yeah, that works—8 am at Birch. I’ll keep it quick before the day starts."
+          },
+          {
+            "source_id": "message-e49a3330d0e056e7187c001c",
+            "written_at": "2026-10-11T12:00:00-04:00",
+            "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+          }
+        ]
+      },
+      {
+        "check_id": "namesakes",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "AC is Alex Chen",
+          "Me avoids dairy and is fine with mushrooms",
+          "Alex Reed is fine with cheese/dairy and avoids mushrooms",
+          "Alex Chen avoids dairy and is fine with mushrooms"
+        ],
+        "unresolved_fields": [],
+        "reason": "The eligible history explicitly identifies AC as Alex Chen and gives each person's dairy/mushroom stance.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-127675525b5536ed43ed134f",
+            "written_at": "2026-10-06T18:20:00-04:00",
+            "quote": "Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine."
+          },
+          {
+            "source_id": "message-6d3348d05e242abfe9ddf451",
+            "written_at": "2026-10-07T15:00:00-04:00",
+            "quote": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+          },
+          {
+            "source_id": "message-b17dd2847d0985b30a42af7d",
+            "written_at": "2026-10-05T11:00:00-04:00",
+            "quote": "Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms."
+          },
+          {
+            "source_id": "message-4e61f5f3aea9f8fff602d98e",
+            "written_at": "2026-10-06T18:00:00-04:00",
+            "quote": "That office lunch last Thursday was actually decent—I skipped the creamy pasta since I avoid dairy, but the mushrooms were good."
+          }
+        ]
+      },
+      {
+        "check_id": "tasks-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Checklist sent and received",
+          "Interview room is Room 204",
+          "Me finished proofreading and identified the company-name fix",
+          "Jen said she will correct it; no completion report is recorded"
+        ],
+        "unresolved_fields": [],
+        "reason": "The original checklist, room, and proofreading items are resolved; the only follow-up is Jen's stated correction, which is not reported as completed.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-b8d5b944e10b5e0d8a00410a",
+            "written_at": "2026-10-07T14:00:00-04:00",
+            "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+          },
+          {
+            "source_id": "message-a8612da3d2eccf4db155c23e",
+            "written_at": "2026-10-06T15:00:00-04:00",
+            "quote": "Room 204 for the interview."
+          },
+          {
+            "source_id": "message-2f2a655ea8d5c8d09f40caed",
+            "written_at": "2026-10-08T18:00:00-04:00",
+            "quote": "Finished proofreading your cover letter. The only fix I’d make is the company name in paragraph two—it’s wrong there."
+          },
+          {
+            "source_id": "message-ee0242381ca04fb3328051f9",
+            "written_at": "2026-10-08T18:20:00-04:00",
+            "quote": "Got it, thanks. I’ll correct that."
+          }
+        ]
+      },
+      {
+        "check_id": "hall-alias",
+        "event_date": "2026-10-12",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "MR Hall = Maple Ridge Hall",
+          "ZX Annex is mentioned only as a room in an old handout"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "ZX Annex expansion",
+            "missing": "no expansion of ZX Annex appears in eligible history",
+            "alternatives": [
+              "not established"
+            ]
+          }
+        ],
+        "reason": "MR Hall is explicitly expanded, but ZX Annex is only named and never expanded.",
+        "alternatives": [
+          "not established"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-8f021495084ef8cbc63eeee8",
+            "written_at": "2026-10-06T16:00:00-04:00",
+            "quote": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex."
+          }
+        ]
+      },
+      {
+        "check_id": "link-final",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Link is https://example.org/parcel381 for the parcel-support call Friday October 9 at 9"
+        ],
+        "unresolved_fields": [],
+        "reason": "The Courier later provided the parcel-support call link for the next day at 9.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-c8f4781f2ce82c78dd02a322",
+            "written_at": "2026-10-08T15:00:00-04:00",
+            "quote": "Here’s your parcel-support call link for tomorrow at 9: https://example.org/parcel381 ."
+          }
+        ]
+      },
+      {
+        "check_id": "next-week-pizza",
+        "event_date": "2026-10-12",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Me and Maya on Friday October 16 at 1 pm at Mario's on Pine Street",
+          "Me avoids dairy and is fine with mushrooms",
+          "Maya was dairy-free through October 11 inclusive and undecided after"
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "Maya's dairy requirement for October 16",
+            "missing": "Maya said she had not decided whether to keep avoiding dairy after October 11, and no later decision appears",
+            "alternatives": [
+              "dairy-free",
+              "no dairy restriction"
+            ]
+          }
+        ],
+        "reason": "The who/when/where are established, but Maya's post-October-11 dairy requirement is explicitly undecided in eligible history.",
+        "alternatives": [
+          "dairy-free",
+          "no dairy restriction"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-ea16c92d68b9050153d0fee8",
+            "written_at": "2026-10-11T11:00:00-04:00",
+            "quote": "Pizza Friday October 16 at 1 at Mario's on Pine Street, just us?"
+          },
+          {
+            "source_id": "message-1a6ed83dae54bef129427454",
+            "written_at": "2026-10-11T11:00:10-04:00",
+            "quote": "Yes, next Friday at 1, just us."
+          },
+          {
+            "source_id": "message-6d3348d05e242abfe9ddf451",
+            "written_at": "2026-10-07T15:00:00-04:00",
+            "quote": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+          },
+          {
+            "source_id": "message-33c7950d8188a5ff02cb766a",
+            "written_at": "2026-10-11T11:00:20-04:00",
+            "quote": "Still not sure whether I’ll keep avoiding dairy after tonight."
+          }
+        ]
+      },
+      {
+        "check_id": "refund",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Pottery booking Wednesday October 7 was cancelled",
+          "Refund for the cancelled pottery class has been issued"
+        ],
+        "unresolved_fields": [],
+        "reason": "The studio correction identifies the cancelled pottery booking, and the Arts Bulletin reports the refund was issued.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-c7ee1ef37e69d04fdd22a1a3",
+            "written_at": "2026-10-06T11:00:00-04:00",
+            "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+          },
+          {
+            "source_id": "message-f569eea0a3973f0177c31fe0",
+            "written_at": "2026-10-09T18:00:00-04:00",
+            "quote": "Your refund for the pottery class cancelled Wednesday October 7 has been issued."
+          }
+        ]
+      },
+      {
+        "check_id": "third-party-collision",
+        "event_date": "2026-10-12",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Me was to meet Devon for pizza Friday October 9 at 6 pm at Luigi's on 5th",
+          "Nora's same-time booking was separate with Eli and Jo"
+        ],
+        "unresolved_fields": [],
+        "reason": "The evening pizza plan was explicitly just Me and Devon; Nora's same-time booking was a separate group and does not change Me's plan.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "message-2b52c94cb3d770c23f3c5a1d",
+            "written_at": "2026-10-05T19:01:32-04:00",
+            "quote": "ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?"
+          },
+          {
+            "source_id": "message-25d510fd8b0a21b1804266b5",
+            "written_at": "2026-10-05T19:20:00-04:00",
+            "quote": "yeah that works, just the two of us"
+          },
+          {
+            "source_id": "message-33a89c88746221151110e1a3",
+            "written_at": "2026-10-11T11:00:40-04:00",
+            "quote": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo."
+          }
+        ]
+      }
+    ]
+  },
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/pizza-week-hybrid-stream-v7-20261113/model-calls/7bd1c1cda61ec3b8caadfdc8d69d4cdf8eb73db0a71499332f9a1aac59ad9f94.json",
+  "usage": {
+    "prompt_tokens": 27190,
+    "completion_tokens": 38478,
+    "total_tokens": 65668,
+    "cost": 0.011113582592,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 896,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.011113582592,
+      "upstream_inference_prompt_cost": 0.002063556992,
+      "upstream_inference_completions_cost": 0.0090500256
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 26457,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.011113582592
+  },
+  "execution_condition": {
+    "version": "corpus-review-real-deadline-v1",
+    "wall_deadline_s": 900,
+    "max_attempts": 1
+  },
+  "scope": "source-coherence-and-public-question-answerability",
+  "validation_errors": [],
+  "eligibility_bindings": {
+    "rsvp-before": "89d605965f358ebbf1d5560ba18298ba4588b251352b89ac306d812a2e611f41",
+    "cancellation-before": "ed7c864eaea44d92805dc39ef3351727945faebac5898058939b8c126a183ebf",
+    "obligations-before": "3fb3c45ee867fe265614d4eadb02c6b19ff4ea335d1fa97a1ffca96c11da8be5",
+    "lunch-snapshot": "822ed64d5004daf2024fc47b541cba328df5882dc8289ec2762efa80275d5568",
+    "short-reply": "6ccba6d44308c4e5612adaadfed676b478bb3799605c47fbd007c0a089fa04fd",
+    "draft-before": "f5adafccf16d840ece165946c7a9cef82d55547c8d02c5b77a803f0af1e7752d",
+    "rsvp-after": "add289f068d95aa6dacf38a7052fe620756d48c01109505ff7d0875ea0de9529",
+    "lunch-refreshed": "98d3202ca58698c22fe390fe0c504246cb863e4ee32349fd784ac86aa73ef6a4",
+    "lunch-fresh": "1cf3ac4bb6b72c7bbb6de7a2879424784b26c97a06c34126065f49b7392c3d48",
+    "cancellation-after": "9cb6a2df38ef0119121d482696592672d327c344bbeaec097f912b9c4163768e",
+    "attendance-unknown": "0c93d075628727f13d04222d2665d2b7ce16b97414b66cfabca36fe97edd73df",
+    "obligations-middle": "4c29d7b18744b7fc1453c013855ce75aca5732cd10f52d565e6d5e8a00c13920",
+    "recurrence-exception": "25d4681dc9a4cef2731b49c75648a69c2ed714a793cecf071ca03521d9fc51e9",
+    "invitation-placeholder": "434370b9a2d0685370977d44a7be424fd64d37461785576ac5a19eedb3f3941b",
+    "withdrawal": "443afec01fb87f26588e6797aae7602b120f58af65ff53c36402204f9d305abf",
+    "link-before": "6fa8730e0498fbb8e2006386bbffc032f831812e83472627e70e46aa75e73f02",
+    "obligations-after": "542732a0033bcece36d10ea4a0224abbb3d81982c13b506c087d3d4b3d4e6cf0",
+    "draft-after": "92c2f2216356d971f2175ca020db2034fb6bbe4ebaeb0b18b3fe9006c29094da",
+    "game-reference": "b186067748cd87c3b0364ebbce21efff69588f74f6e0d6983834db081b28124c",
+    "visit-mid": "450616c9f390a18c24fc4fbe5dbb0e57fb946ebf04b7e710cf2c4033faa4f38a",
+    "pizza-final": "5b9be42632eb6bf28fe3772d50c987355bba8780520c53a6fb3237e905f93c1a",
+    "lunch-history": "f2188617ca8b274ab6fd9057a9e2f37ee631067fcd9d41bdd036c487d8244dd9",
+    "ben-final": "0746410e78933449be846c344cf1b3db74624179a92abe2505c1575f0052794f",
+    "ben-mail-separate": "d7338098a51f9b2f7d63845f6ffa9c738f0c6be507fdf105a545f58463a87388",
+    "roles": "3eb5212e015ed8e4c5305502cc76630d3812bed35cc9652a3e2bbc543beb3b2b",
+    "series-final": "a3ee0cfe2c5d9e3bac0875ee029086101ae8e2719ef1a32a7709b71152f85354",
+    "attendance-final": "6a0f253b24761b737ce796eea89ec1ba6c8520485c70c60b6fd9b7207297071b",
+    "visit-final": "2a7f3d7024a3b9cbd8f38a698007b6e3b023da9d56085b8716b20459b24b4919",
+    "dates": "7713a69ad1b149b36031f571448967e8694b96f761617bf5b475aa167eb7c8de",
+    "upcoming-small": "57237b7545013f811897efa35de15a1b56ad47d35700f949e526ff75722f65e7",
+    "namesakes": "1aa2cf7b6770d0c382f718bfe95a8e3705445dac116e8bcd255b9c3453f9b984",
+    "tasks-final": "72b1ed70a027b67f75db71c15a3b76136ecd7ce3e0a8ebdf145f5038a2b15070",
+    "hall-alias": "0d61e1d543d970a9b5928cb03a6afa263f65cfa666b76f382878a140c2041af0",
+    "link-final": "38966f90dd60fff77ccb9ce2bc9944440d3ff68f20baf84f857b8be1ca688a6f",
+    "next-week-pizza": "fb24c9ae9bf7cbfe96f3dba6336cfae873424a11db9209a312382dff479aebaf",
+    "refund": "78ece91426b8c728f31b372d3505bf4e0fbcabfe9287fda3106e9ccf0f6969aa",
+    "third-party-collision": "d33d995ad62e94680141fd8c7718f516d63e34816c24f3782e7047ee6343573c"
+  }
+}

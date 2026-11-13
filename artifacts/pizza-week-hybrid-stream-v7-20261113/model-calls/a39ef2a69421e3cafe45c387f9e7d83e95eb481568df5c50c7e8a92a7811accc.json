@@ -1,0 +1,2790 @@
+{
+  "created_at": "2026-11-13T03:23:11.064186+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Independently perform both reviews using the shared context below. Return one JSON object with exactly two objects, claim_review and question_review; preserve each review's requested fields and decide both independently.\n\nCLAIM REVIEW:\nReview each proposed claim against the dialogue and test intent. Reject claims not required by the test intent even when supported by the dialogue. Do not require the same outing detail again for each participant. Reject redundant wording requirements and private ordinal event labels. Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. A later rejected suggestion does not reinstate an earlier plan. Preserve complete current-list and count requirements from the test intent. When required facts are supplied, verify that each matching claim faithfully covers exactly that one fact. Try answering one detail correctly while omitting another detail in the same claim: if this is possible, reject that compound authored fact and ask for it to be split. Check that no current-state detail was invented from an old or tentative mention. Reject a compound fact that should be split by its author. Also decide whether the set covers every intent-required detail that the dialogue actually establishes, with independent claims where one detail could be omitted or wrong while another is right. A calendar date can be established by a relative day paired with a message's written timestamp; do not ignore those timestamps. Reject unsupported, irrelevant, or ambiguous claims, including a commitment inferred from a mere suggestion. Use this JSON schema: {\"complete\":true,\"coverage_reason\":\"brief explanation\",\"reviews\":[{\"id\":\"claim-id\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"brief explanation\"}]}. One review per claim in order.\n\nQUESTION REVIEW:\nCheck this evaluation prompt against the dialogue and expected facts. Does it reasonably invite every expected fact, without supplying their answers or presupposing unsupported details? Respect current versus historical meaning. Use question time to resolve ordinary relative days: upcoming-plan questions about Friday mean the upcoming Friday unless another week is specified; old occurrences alone do not make that scope ambiguous. A casual plan recap naturally invites its current outings, people, time and place without explicitly enumerating those fields. Do not require a checklist, but reject incidental background facts the question would not reasonably invite. Resolve references using earlier public questions in the same tagged assistant session; questions in other sessions do not supply conversational scope. Explicit earlier user instructions remain source facts across sessions: a fresh question can test their persistence without assuming the assistant stored them. For assistant-channel rows, thread identifies the session; source IDs identify turns. Event membership needs source evidence, not private authored intent. Use this JSON schema {\"safe\":true,\"faithful\":true,\"elicits_all\":true,\"reason\":\"explanation\"}.\n\nSHARED CONTEXT:\nQuestion time: 2026-10-07T09:20:00-04:00\nPublic question: Where and when is Friday lunch with Maya now?\nTest intent: Where and when is Friday lunch with Maya now?\nThe author supplied the following required facts. Return one claim per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact dialogue source IDs as evidence. Do not merge facts, add claims, or treat intended but absent details as true. The authored fact text is the claim statement; do not rewrite it or add another fact's value. If a supplied fact combines details that can be graded separately, flag that in the review rather than silently splitting it.\nRequired facts:\n1. The Friday lunch time is noon.\n2. The Friday lunch venue is Mario’s.\n3. The Friday lunch venue is on Pine Street.\nFrozen dialogue:\nmessage-6d29bd53b234a0452dd3ac7c | written 2026-10-05T09:00:00-04:00 | channel email | thread thread-b6dc92e5c73bfc6440ad3bab | Me: Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.\nmessage-e84db33ee141baeb2b02524e | written 2026-10-05T10:00:00-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Me: For pizza, I avoid mushrooms; I’m fine with dairy.\nmessage-72f1a916d2fe08062e35c0a2 | written 2026-10-05T10:00:10-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Maya: Good to know.\nmessage-b17dd2847d0985b30a42af7d | written 2026-10-05T11:00:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\nmessage-60bf6e8545b109f472956a5c | written 2026-10-05T11:04:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Me: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\nmessage-f1a44ca7f2d4cd14159f2238 | written 2026-10-05T11:20:00-04:00 | channel imessage | thread thread-ac6a02250a75b121a9d74757 | Alex Reed: Very strong. I’ll defend that topping stance anytime.\nmessage-76ab758dd3e8e326b4c8a6b0 | written 2026-10-05T12:00:00-04:00 | channel imessage | thread thread-61e2acdae326a1e4506a665d | Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\nmessage-63e3fa173717810b89fec85a | written 2026-10-05T12:00:10-04:00 | channel imessage | thread thread-61e2acdae326a1e4506a665d | Me: Yes, guest room is yours. I have meals out but you can let yourself in.\nmessage-26e98c26fd8a5a2f03402137 | written 2026-10-05T13:00:00-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\nmessage-cb0e3b295838fc58727f580e | written 2026-10-05T13:00:10-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Me: Thursday this week works.\nmessage-c78c02b0d68efb3378706e91 | written 2026-10-05T13:00:20-04:00 | channel imessage | thread thread-20159b5fff87f01d55dce9b2 | Maya: Same here.\nmessage-5b73005caac446f7b8584b60 | written 2026-10-05T14:00:00-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.\nmessage-0aaa23c5480806e026f5ccf1 | written 2026-10-05T14:00:10-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Me: 👍\nmessage-ce6113f6fdc5c8c2281da901 | written 2026-10-05T14:00:20-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: Great, see you Tuesday.\nmessage-1be5594c18bcd5cca7b7770e | written 2026-10-05T15:00:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: The old application checklist was useful last month.\nmessage-51c6bb9dc56658ef9c170d5a | written 2026-10-05T15:00:10-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: I’ll send you the revised checklist tomorrow.\nmessage-f12f2c3542555f3326d0313f | written 2026-10-05T15:00:20-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: Thanks. Could you also tell me the interview room?\nmessage-7cc2f1b18157e80a7e033360 | written 2026-10-05T15:00:30-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: Can you proofread my cover letter by Thursday evening?\nmessage-7c4ad1bd22605f0cd8d89b33 | written 2026-10-05T15:00:40-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: I can do that.\nmessage-975e9eb939dfb5e0c9d1baa5 | written 2026-10-05T16:00:00-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\nmessage-b8b90b336f738d2bec589e8f | written 2026-10-05T16:00:10-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Me: Thanks, those are the two I booked.\nmessage-9be0e1f29627307476fb5142 | written 2026-10-05T16:00:20-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Sorry, that appointment is cancelled.\nmessage-5b95b8dd0d2744da5d7d5a6a | written 2026-10-05T18:00:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Office party balloons have their own lighting budget apparently.\nmessage-bdfd0e4e859a6335e30441e5 | written 2026-10-05T18:00:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: The snacks deserve representation.\nmessage-43b085a7cfa896d423ca2df8 | written 2026-10-05T18:00:20-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\nmessage-469586b43b4cd28d9ba9ee3e | written 2026-10-05T18:00:30-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Yes, Friday works for me.\nmessage-2f565c7d433aeb41b28c804c | written 2026-10-05T18:00:40-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Tess: I can make it if my shift finishes early.\nmessage-ac30e78ceda9dcd1bff95998 | written 2026-10-05T18:00:50-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Also that trailer gave away the entire ending.\nmessage-be065cd009e48c6b69196ee3 | written 2026-10-05T19:00:00-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Devon: my homemade crust came out like cardboard, I’m done pretending I can do pizza night\nmessage-2b52c94cb3d770c23f3c5a1d | written 2026-10-05T19:01:32-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Me: ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?\nmessage-25d510fd8b0a21b1804266b5 | written 2026-10-05T19:20:00-04:00 | channel imessage | thread thread-c6cc8dbe2e38036bac59cefd | Devon: yeah that works, just the two of us\nmessage-fb55b3c9893558521fb20cdd | written 2026-10-05T20:00:00-04:00 | channel email | thread thread-f4c9c428e9298e837f00ab3e | Ben: Dinner Thursday October 8 at 7 pm at Juniper Cafe?\nmessage-8002dd308259933cffaf62ee | written 2026-10-05T20:00:10-04:00 | channel email | thread thread-f4c9c428e9298e837f00ab3e | Me: Thursday at 7 at Juniper works.\nmessage-c13136a5d8ba4234c59b80ba | written 2026-10-06T10:00:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Leo: Friday works.\nmessage-2f91488a4fd51df0b19f1e03 | written 2026-10-06T10:00:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Great, see you then.\nmessage-c7ee1ef37e69d04fdd22a1a3 | written 2026-10-06T11:00:00-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Studio: Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\nmessage-4264265b0d868c03c6515c84 | written 2026-10-06T11:00:10-04:00 | channel imessage | thread thread-1f81861d391148f77fc1d334 | Me: Thanks for clearing that up.\nmessage-bd14622d07b81629d9be835c | written 2026-10-06T12:00:00-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Maya: Could Friday lunch be noon instead?\nmessage-38d863d1f8fdeda9845a6abd | written 2026-10-06T12:00:10-04:00 | channel imessage | thread thread-6956a8ddb6f1be6162de33e9 | Me: Noon works. I’ll tell the others.\nmessage-477d28107aba6b15a3a4da38 | written 2026-10-06T12:30:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Maya and I just agreed noon instead for Friday.\nmessage-d45d8204b56690f9320fa1c4 | written 2026-10-06T12:30:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Leo: Noon is good for me.\nmessage-78bcfb4acbb752f82b9cff9a | written 2026-10-06T12:30:20-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Tess: Shift got covered. I can come at noon too.\nmessage-6a60e2c84341718ab64ecaf6 | written 2026-10-06T14:00:00-04:00 | channel email | thread thread-328b14004174ed20423e964e | Maya: Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?\nmessage-12292df8a4113436fee10c20 | written 2026-10-06T14:00:10-04:00 | channel email | thread thread-328b14004174ed20423e964e | Me: Yes, Mario's.\nmessage-de0eec8a34b8da0b89866445 | written 2026-10-06T14:00:20-04:00 | channel email | thread thread-328b14004174ed20423e964e | Leo: Works for me.\nmessage-00b0dfcd82762e1f519466b6 | written 2026-10-06T14:00:30-04:00 | channel email | thread thread-328b14004174ed20423e964e | Tess: Works for me too.\nmessage-a8612da3d2eccf4db155c23e | written 2026-10-06T15:00:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: Room 204 for the interview.\nmessage-439013827a15a531c9ec6cdd | written 2026-10-06T15:10:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Me: Got it, thanks.\nmessage-001ff7c5b90dc76b6f75d1ec | written 2026-10-06T15:20:00-04:00 | channel imessage | thread thread-b03a149a909536c1a85613e8 | Jen: I’m still polishing the revised checklist, so I’ll send it once it’s ready.\nmessage-8f021495084ef8cbc63eeee8 | written 2026-10-06T16:00:00-04:00 | channel imessage | thread thread-409b3c5636b2d4c3d585cc0b | Tutor: MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.\nmessage-19897f046286323c7903952e | written 2026-10-06T17:00:00-04:00 | channel email | thread thread-9e2e15a0c6a89c6304a6d756 | Box Office: You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.\nmessage-4e61f5f3aea9f8fff602d98e | written 2026-10-06T18:00:00-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Alex Chen: That office lunch last Thursday was actually decent—I skipped the creamy pasta since I avoid dairy, but the mushrooms were good.\nmessage-5f083edcb1abea8c934cf48b | written 2026-10-06T18:19:30-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Me: Nice, good to know.\nmessage-127675525b5536ed43ed134f | written 2026-10-06T18:20:00-04:00 | channel imessage | thread thread-dd19abfb244e952fcdb97e5c | Alex Chen: Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine.\nmessage-200bcc9902c4bb1cdb60b468 | written 2026-10-06T18:30:00-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Maya: Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s.\nmessage-6b345e2574bb89fbb254ecc7 | written 2026-10-06T18:30:10-04:00 | channel imessage | thread thread-67cd3ce375f23b9636ea1357 | Me: Great, add Nora to the table.\nassistant-user:rsvp-before | written 2026-10-06T09:00:00-04:00 | channel assistant | thread rsvp-before-fresh | Me: [assistant session rsvp-before-fresh] Where are we with everyone’s replies for Friday lunch?\nassistant-user:cancellation-before | written 2026-10-06T09:10:00-04:00 | channel assistant | thread cancellation-before-fresh | Me: [assistant session cancellation-before-fresh] Which studio booking was cancelled?\nassistant-user:obligations-before | written 2026-10-06T09:20:00-04:00 | channel assistant | thread obligations-before-fresh | Me: [assistant session obligations-before-fresh] What are Jen and I waiting on from each other?\nassistant-user:lunch-snapshot | written 2026-10-06T09:30:00-04:00 | channel assistant | thread lunch-continuity | Me: [assistant session lunch-continuity] Where and when is Friday lunch with Maya?\nassistant-user:short-reply | written 2026-10-06T09:40:00-04:00 | channel assistant | thread short-reply-fresh | Me: [assistant session short-reply-fresh] What did I agree with the watercolor tutor for today?\nassistant-user:draft-before | written 2026-10-06T09:50:00-04:00 | channel assistant | thread draft-before-fresh | Me: [assistant session draft-before-fresh] What’s the status of the PizzaLab tasting?\nassistant-user:rsvp-after | written 2026-10-07T09:00:00-04:00 | channel assistant | thread rsvp-after-fresh | Me: [assistant session rsvp-after-fresh] What’s the Friday lunch plan—who, when and where?\nassistant-user:lunch-refreshed | written 2026-10-07T09:10:00-04:00 | channel assistant | thread lunch-continuity | Me: [assistant session lunch-continuity] Where and when is Friday lunch with Maya now?\nassistant-user:lunch-fresh | written 2026-10-07T09:20:00-04:00 | channel assistant | thread lunch-fresh-fresh | Me: [assistant session lunch-fresh-fresh] Where and when is Friday lunch with Maya now?\nProposed claims / expected facts: [{\"id\": \"fact-1\", \"statement\": \"The Friday lunch time is noon.\", \"evidence\": [\"message-bd14622d07b81629d9be835c\", \"message-38d863d1f8fdeda9845a6abd\", \"message-477d28107aba6b15a3a4da38\"]}, {\"id\": \"fact-2\", \"statement\": \"The Friday lunch venue is Mario\\u2019s.\", \"evidence\": [\"message-6a60e2c84341718ab64ecaf6\", \"message-12292df8a4113436fee10c20\"]}, {\"id\": \"fact-3\", \"statement\": \"The Friday lunch venue is on Pine Street.\", \"evidence\": [\"message-6a60e2c84341718ab64ecaf6\"]}]"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"claim_review\":{\"complete\":true,\"coverage_reason\":\"The three required current details—noon, Mario's, and Pine Street—are each covered by a separate claim, with no missing required detail.\",\"reviews\":[{\"id\":\"fact-1\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya proposes noon for Friday lunch and the user agrees; a later message confirms they agreed on noon.\"},{\"id\":\"fact-2\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya switches the Friday lunch to Mario's and the user agrees to Mario's.\"},{\"id\":\"fact-3\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya identifies Mario's as being on Pine Street as part of the accepted Friday lunch switch.\"}]},\"question_review\":{\"safe\":true,\"faithful\":true,\"elicits_all\":true,\"reason\":\"The question asks for the current Friday lunch with Maya's where and when, which naturally invites the established time and venue details—noon at Mario's on Pine Street—without supplying the answers or presupposing unsupported facts.\"}}",
+          "reasoning": "We need answer JSON exactly two objects claim_review and question_review. Need independently review claims and question. Need parse instructions. Need produce claim_review schema with complete, coverage_reason, reviews array one per claim. Question review schema safe faithful elicits_all reason.\n\nWe need evaluate proposed claims against dialogue/test intent. Test intent: \"Where and when is Friday lunch with Maya now?\" Required facts:\n1 time noon\n2 venue Mario's\n3 venue on Pine Street.\nClaims exactly those. Need review each supported relevant unambiguous. Need check evidence. Need complete coverage every intent-required detail dialogue establishes. Need consider \"with Maya\" maybe participants? Test intent only where and when, not who. Required facts only time venue street. Claims match. Need ensure no compound? Each single fact. fact-2 and fact-3 both venue details separate. Good.\n\nNeed check current state: Friday lunch with Maya now. Dialogue: Initially Maya proposed Pizza Friday at 1 Rosa's Oak Street in thread with Leo/Tess. Me yes. Then Maya asks Friday lunch noon instead, Me noon works. Then Maya says Rosa's closed Friday, same lunch switch to Mario's on Pine Street? Me yes Mario's. Leo/Tess works. Later Maya says Nora joining too, invited to our Friday lunch and she said yes to noon at Mario's. So current time noon, venue Mario's on Pine Street. Good.\n\nNeed claim review: complete true? It covers all required facts. coverage_reason brief. Reviews:\nfact-1 supported true relevant true unambiguous true reason evidence Maya proposes noon, user agrees, later confirms. Need maybe \"Friday lunch time is noon\" supported by message-bd... and 38... and 477... yes.\nfact-2 supported true relevant true unambiguous true reason Maya switches to Mario's, user agrees. Evidence message-6a60... and 122... yes.\nfact-3 supported true relevant true unambiguous true reason Maya says Mario's on Pine Street; user agrees to Mario's. Evidence message-6a60... yes. Is \"venue is on Pine Street\" supported by Maya's suggestion? User agreed to Mario's, not explicitly Pine Street? But same lunch switch to Mario's on Pine Street; yes accepted. Need maybe evidence only message-6a60. Good.\n\nNeed question review. Check evaluation prompt against dialogue and expected facts. Public question: \"Where and when is Friday lunch with Maya now?\" Test intent same. Does it reasonably invite every expected fact, without supplying answers or presupposing unsupported details? It asks where and when. Expected facts time noon, venue Mario's, street Pine. \"Where\" invites venue and street? Usually where could invite location including street. It doesn't supply answers. It says with Maya now. Current vs historical: \"now\" resolves current. Question time 2026-10-07 Wednesday. Friday upcoming Oct 9. Dialogue establishes. It asks where and when, not who. Expected facts only where/when. Safe? Need safe true? Faithful true? elicits_all true? Need reason. Need consider \"with Maya\" maybe lunch includes Maya and others; question asks with Maya, not who. It invites current plan. It doesn't presuppose unsupported details? \"with Maya\" is supported: Maya involved. \"now\" supported current. It asks where and when. It invites time and venue/street. Does \"where\" reasonably invite both venue name and street? Yes. It doesn't require checklist. It doesn't supply answers. So safe true faithful true elicits_all true. Reason: asks current Friday lunch with Maya for where and when; dialogue establishes noon at Mario's on Pine Street; no answer leakage; where naturally covers venue and street. Need maybe mention \"with Maya\" not unsupported. Good.\n\nNeed output one JSON object with exactly two objects claim_review and question_review. Ensure valid JSON. No markdown. Need include all fields. Claim_review reviews array exactly 3. Need \"complete\": true. coverage_reason. Each review id claim-id? Use fact-1 etc. supported relevant unambiguous. Reason brief.\n\nNeed be careful \"preserve each review's requested fields\" claim_review schema includes complete coverage_reason reviews. question_review schema safe faithful elicits_all reason. Good.\n\nNeed maybe \"complete\": true because set covers every intent-required detail. But check \"with Maya\" maybe required? Test intent says where and when is Friday lunch with Maya now. Required facts only time venue street. The claim set doesn't include \"with Maya\" but not required fact. Complete true. Good.\n\nNeed maybe \"coverage_reason\": \"All three required current details (noon, Mario's, Pine Street) are covered by separate claims; no extra required detail.\" Good.\n\nNeed maybe \"fact-3\" evidence only message-6a60; supported? The claim \"venue is on Pine Street\" is in Maya's message. User agreed to Mario's, not street. But accepted switch to Mario's on Pine Street. Good.\n\nNeed maybe \"fact-2\" evidence includes message-6a60 and 122. Good.\n\nNeed maybe \"fact-1\" evidence includes message-bd (Maya asks could Friday lunch be noon instead?), message-38 (Me: Noon works), message-477 (Me: Maya and I just agreed noon instead for Friday). Good.\n\nNeed question review \"safe\": true? In these tasks safe means no answer leakage? It asks where and when, not supplying. \"with Maya\" maybe not answer. Faithful true. elicits_all true. Reason.\n\nNeed final only JSON. Ensure no trailing. Use curly quotes? JSON can include apostrophe. Mario’s curly apostrophe okay. Need escape? UTF-8 okay. Use \"Mario’s\" in reason maybe okay. JSON valid. Could use ASCII \"Mario's\" to avoid. But claim statement has Mario’s. In reason can use Mario's. Fine.\n\nNeed exactly two objects. Let's craft.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer JSON exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " two objects claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_review and question_review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need independently",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " review claims and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " question. Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " instructions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need produce claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_review schema with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " complete,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " coverage_reason, reviews",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " per claim.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Question review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " schema safe faithful",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " elicits_all",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " reason.\n\nWe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need evaluate proposed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claims against dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent. Test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent: \"Where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and when is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday lunch with Maya now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?\" Required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n1 time noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n2 venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario's\n3 venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " on Pine Street.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\nClaims",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " those",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " each supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " relevant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unambiguous. Need check evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " complete",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " coverage every",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-required detail dialogue establishes. Need consider",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya\" maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " participants",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent only where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " when, not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " who",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Required facts only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Claims match",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need ensure no compound",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Each",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " single",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact. fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact-3 both",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " venue details",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " separate",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Good.\n\nNeed check current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch with Maya now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": Initially",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " proposed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Pizza",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday at 1 Rosa",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s Oak",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Street in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " thread",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " with Leo",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/Tess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Me",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Then Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch noon instead",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Me noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " works. Then Maya says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Rosa's closed Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch switch to Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s on Pine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Street? Me yes Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s. Leo",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/Tess works",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Later",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says Nora joining",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " too, invited",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to our",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday lunch and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " she",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " said yes to noon at Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s. So current time noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", venue Mario's on",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Pine Street. Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claim review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": complete",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " covers all required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts. coverage",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_reason brief",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Reviews",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\nfact-1 supported true relevant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true unambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " proposes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon, user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agrees,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " later confirms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is noon\" supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " by message-b",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "d... and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 38...",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and 477...",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\nfact-2 supported true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " relevant true unambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true reason Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " switches",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to Mario's,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agrees",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "6a60",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "... and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 122... yes.\nfact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-3 supported true relevant true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unambiguous true reason Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s on Pine Street;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user agrees",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario's. Evidence message-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "6a60... yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is on Pine Street\" supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " by",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya's suggestion",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? User",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agreed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to Mario's, not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly Pine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? But same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " switch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to Mario's on Pine Street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; yes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " accepted",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need maybe evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message-6a60.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Good.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " question review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evaluation prompt",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " against dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and expected facts. Public question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \"Where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and when is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday lunch with Maya now?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" Test",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent same",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Does",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " it reasonably",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invite every",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " expected fact,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " without supplying answers or presupposing unsupported details? It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and when. Expected",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", venue Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s, street Pine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Where\" invites",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " venue and street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Usually",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " could invite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " location",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " including",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " street.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It doesn't supply",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answers. It says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya now.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Current vs",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " historical: \"now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" resolves current.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-07",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Wednesday. Friday upcoming Oct 9",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " establishes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where and when,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not who",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Expected",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/when. Safe?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need safe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true? Faith",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ful true? elic",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "its_all true? Need reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need consider",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" maybe lunch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " others; question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya, not who",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It invites",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " plan. It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " doesn't presuppose uns",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "upported details?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with Maya\" is supported:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya involved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where and when. It invites",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time and venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "street. Does",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"where\" reasonably",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " invite both venue name",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and street? Yes. It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " doesn't require",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " checklist. It doesn't supply",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answers",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " safe true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " faithful",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true elicits_all true.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Reason: asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " current Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where and when",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; dialogue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " establishes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario's on",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Pine Street; no answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " leakage;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " naturally",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " covers venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and street. Need maybe mention \"with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya\" not uns",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "upported. Good.\n\nNeed output",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON object with exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " two objects claim_re",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "view and question_review.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Ensure valid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON. No markdown.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need include all",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fields. Claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_re",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "view reviews",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 3. Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"complete\": true. coverage",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_reason. Each",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " review id claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-id?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact-1 etc. supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " relevant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " brief.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed be careful",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"pres",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "erve each review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s requested fields\" claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_review schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes complete coverage",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_reason reviews. question_re",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "view schema safe faithful",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " elicits_all",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " reason. Good.\n\nNeed maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"complete\":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " set",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " covers every",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intent-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "required detail. But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" maybe required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Test intent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " when is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Friday lunch with Maya now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Required facts only time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " street. The claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " set doesn't include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with Maya\" but not required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Complete true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Good.\n\nNeed maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"coverage_re",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ason\": \"All",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " three required current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " details (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "noon, Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", Pine Street) are covered",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " by separate claims; no extra",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " required detail",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" Good.\n\nNeed maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3\" evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message-6",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "a60;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " claim",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"venue",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is on Pine Street\" is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s message",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". User",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " agreed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to Mario's,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " street",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But accepted",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " switch",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Mario's on Pine Street.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Good.\n\nNeed maybe \"fact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2\" evidence includes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message-6a60",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and 122. Good.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"fact-1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" evidence includes message-b",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "d (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "Maya asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " could Friday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " lunch be noon instead",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?), message-38 (Me",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": Noon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " works), message-477 (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "Me: Maya",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and I just agreed noon instead",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for Friday). Good.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " review",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"safe\": true?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " In",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " these tasks safe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " means no answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " leakage? It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " asks where",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " when,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " supplying.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maya\" maybe not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answer. Faith",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ful true. elic",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "its_all true. Reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only JSON. Ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " no trailing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Use curly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include apostrophe. Mario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "’s curly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " apost",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "rophe okay. Need escape?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " UTF",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-8 okay",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Mario’s\" in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " reason maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " okay. JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " valid. Could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " use ASCII",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Mario's\" to avoid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But claim statement",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " has Mario’s. In",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " can use Mario's.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Fine.\n\nNeed exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " two",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " objects. Let's craft.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794540175-PdVPoYwC7wlCcTNPpHdD",
+    "provider": "DeepInfra",
+    "created": 1794540175,
+    "usage": {
+      "prompt_tokens": 5596,
+      "completion_tokens": 1476,
+      "total_tokens": 7072,
+      "cost": 0.000746945024,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 512,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000746945024,
+        "upstream_inference_prompt_cost": 0.000399789824,
+        "upstream_inference_completions_cost": 0.0003471552
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1235,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000746945024
+    }
+  },
+  "text": "{\"claim_review\":{\"complete\":true,\"coverage_reason\":\"The three required current details—noon, Mario's, and Pine Street—are each covered by a separate claim, with no missing required detail.\",\"reviews\":[{\"id\":\"fact-1\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya proposes noon for Friday lunch and the user agrees; a later message confirms they agreed on noon.\"},{\"id\":\"fact-2\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya switches the Friday lunch to Mario's and the user agrees to Mario's.\"},{\"id\":\"fact-3\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Maya identifies Mario's as being on Pine Street as part of the accepted Friday lunch switch.\"}]},\"question_review\":{\"safe\":true,\"faithful\":true,\"elicits_all\":true,\"reason\":\"The question asks for the current Friday lunch with Maya's where and when, which naturally invites the established time and venue details—noon at Mario's on Pine Street—without supplying the answers or presupposing unsupported facts.\"}}",
+  "usage": {
+    "prompt_tokens": 5596,
+    "completion_tokens": 1476,
+    "total_tokens": 7072,
+    "cost": 0.000746945024,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 512,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000746945024,
+      "upstream_inference_prompt_cost": 0.000399789824,
+      "upstream_inference_completions_cost": 0.0003471552
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1235,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000746945024
+  },
+  "cost_usd": 0.000746945024,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.078373,
+    "first_body_after_s": 1.27511,
+    "last_body_after_s": 15.35402,
+    "body_bytes": 201142,
+    "wall_duration_s": 15.526587,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 03:22:56 GMT",
+      "x-generation-id": "gen-1794540175-PdVPoYwC7wlCcTNPpHdD"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 201142,
+    "body_sha256": "acd001cfb8ced3d449e6849122e6a598337244171d8235c0fca4edaa996432a0"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 201142,
+    "body_sha256": "acd001cfb8ced3d449e6849122e6a598337244171d8235c0fca4edaa996432a0",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 497
+  },
+  "accounting_receipt": {
+    "id": "753cfa41-8d67-40a7-a1c9-c9781927baca",
+    "state": "settled",
+    "accounted": "0.000746945024",
+    "reserved": "0.1746927616",
+    "input_tokens": 5596,
+    "output_tokens": 1476,
+    "upstream_request_id": "gen-1794540175-PdVPoYwC7wlCcTNPpHdD"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/a39ef2a69421e3cafe45c387f9e7d83e95eb481568df5c50c7e8a92a7811accc.json.response-body.bin",
+    "bytes": 201142,
+    "sha256": "acd001cfb8ced3d449e6849122e6a598337244171d8235c0fca4edaa996432a0",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

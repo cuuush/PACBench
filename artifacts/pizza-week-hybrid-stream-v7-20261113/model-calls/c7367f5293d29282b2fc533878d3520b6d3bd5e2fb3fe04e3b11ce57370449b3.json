@@ -1,0 +1,858 @@
+{
+  "created_at": "2026-11-13T03:15:08.582525+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment that the author actually requires? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Require a commitment only where the authored scenario or facts require one. With supplied messages and no authored scenario or facts, check coherence, identities, chronology and relevant continuity without inventing an event or commitment requirement. Ordinary chatter may establish no new plan; it must still be coherent. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap.\n\nConversation date: 2026-10-07. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 17:00 and 17:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.\n\nRequired authored facts:\n1. Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I’m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Very strong. I’ll defend that topping stance anytime.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n2026-10-05T13:00:00-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2026-10-05T13:00:10-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Me: Thursday this week works.\n2026-10-05T13:00:20-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Maya: Same here.\n2026-10-05T14:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.\n2026-10-05T14:00:10-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Me: 👍\n2026-10-05T14:00:20-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Great, see you Tuesday.\n2026-10-05T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: The old application checklist was useful last month.\n2026-10-05T15:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I’ll send you the revised checklist tomorrow.\n2026-10-05T15:00:20-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Thanks. Could you also tell me the interview room?\n2026-10-05T15:00:30-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Can you proofread my cover letter by Thursday evening?\n2026-10-05T15:00:40-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: I can do that.\n2026-10-05T16:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\n2026-10-05T16:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks, those are the two I booked.\n2026-10-05T16:00:20-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, that appointment is cancelled.\n2026-10-05T18:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Office party balloons have their own lighting budget apparently.\n2026-10-05T18:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: The snacks deserve representation.\n2026-10-05T18:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\n2026-10-05T18:00:30-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Yes, Friday works for me.\n2026-10-05T18:00:40-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: I can make it if my shift finishes early.\n2026-10-05T18:00:50-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Also that trailer gave away the entire ending.\n2026-10-05T19:00:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: my homemade crust came out like cardboard, I’m done pretending I can do pizza night\n2026-10-05T19:01:32-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?\n2026-10-05T19:20:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: yeah that works, just the two of us\n2026-10-05T20:00:00-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Ben: Dinner Thursday October 8 at 7 pm at Juniper Cafe?\n2026-10-05T20:00:10-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Me: Thursday at 7 at Juniper works.\n2026-10-06T10:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Friday works.\n2026-10-06T10:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Great, see you then.\n2026-10-06T11:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\n2026-10-06T11:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks for clearing that up.\n2026-10-06T12:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Could Friday lunch be noon instead?\n2026-10-06T12:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: Noon works. I’ll tell the others.\n2026-10-06T12:30:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Maya and I just agreed noon instead for Friday.\n2026-10-06T12:30:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Noon is good for me.\n2026-10-06T12:30:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: Shift got covered. I can come at noon too.\n2026-10-06T14:00:00-04:00 [email:thread-328b14004174ed20423e964e] Maya: Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?\n2026-10-06T14:00:10-04:00 [email:thread-328b14004174ed20423e964e] Me: Yes, Mario's.\n2026-10-06T14:00:20-04:00 [email:thread-328b14004174ed20423e964e] Leo: Works for me.\n2026-10-06T14:00:30-04:00 [email:thread-328b14004174ed20423e964e] Tess: Works for me too.\n2026-10-06T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Room 204 for the interview.\n2026-10-06T15:10:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Got it, thanks.\n2026-10-06T15:20:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I’m still polishing the revised checklist, so I’ll send it once it’s ready.\n2026-10-06T16:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.\n2026-10-06T17:00:00-04:00 [email:thread-9e2e15a0c6a89c6304a6d756] Box Office: You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.\n2026-10-06T18:00:00-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Alex Chen: That office lunch last Thursday was actually decent—I skipped the creamy pasta since I avoid dairy, but the mushrooms were good.\n2026-10-06T18:19:30-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Me: Nice, good to know.\n2026-10-06T18:20:00-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Alex Chen: Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine.\n2026-10-06T18:30:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s.\n2026-10-06T18:30:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Great, add Nora to the table.\n2026-10-07T11:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: New shift landed. I can’t make Friday lunch after all.\n2026-10-07T11:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: We’ll miss you. Lunch is still on.\n2026-10-07T11:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: I’m still coming.\n2026-10-07T12:00:00-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Ben: Could we move dinner to Saturday October 10? Same time and place.\n\nOn Monday you wrote:\n> Thursday at 7 at Juniper works.\n2026-10-07T12:00:10-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Me: Yes, Saturday instead.\n2026-10-07T13:00:00-04:00 [email:thread-328b14004174ed20423e964e] Maya: Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\n2026-10-07T13:00:10-04:00 [email:thread-328b14004174ed20423e964e] Me: 12:30 works.\n2026-10-07T13:00:20-04:00 [email:thread-328b14004174ed20423e964e] Tess: Me too.\n2026-10-07T13:00:30-04:00 [email:thread-328b14004174ed20423e964e] Leo: I’m still out, sorry.\n2026-10-07T13:00:40-04:00 [email:thread-328b14004174ed20423e964e] Maya: Nora says 12:30 works too; I just texted her.\n2026-10-07T14:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version.\n2026-10-07T14:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Received, thanks.\n2026-10-07T15:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on.\n2026-10-07T15:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Got it, no dairy for you.\n2026-10-07T15:00:20-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: For me, dairy-free just through Sunday October 11 inclusive. I haven’t decided about after that.\n2026-10-07T16:00:00-04:00 [email:thread-9e2e15a0c6a89c6304a6d756] Box Office: Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm.\n\nNew messages:\n1. Me: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\n2. Devon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\n3. Me: fair. I’ll let you know if I decide to go.\n4. Devon: sounds good. Hope her set’s good either way.\n\nReturn only one JSON object with all four top-level keys: supported (boolean), evidence (array of new-message line integers), problem (string), and facts (array). Example shape: {\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}. The facts array supplements the independent whole-scene verdict; it never substitutes for the top-level supported, evidence, or problem. Include exactly one ordered facts row per numbered required fact, with its 1-based integer index, boolean supported, evidence array and problem string. If there are no required facts, return facts: []. Every supported judgment needs at least one in-range citation. For unsupported details, explain the absence or contradiction; evidence may be empty when there is no line to cite. Reject the whole scene if any required fact is absent or contradicted. Do not invent a global approval from individually supported facts."
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}]}",
+          "reasoning": "We need answer JSON only. Need verify fictional conversation against scenario and required facts. Need parse. We have new messages 1-4. Scenario: user considering Rae’s Sunday concert and asks Devon to come if user decides to go. Devon can only come if shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.\n\nRequired authored facts:\n1. Devon is a conditional potential companion; Rae is performer, not companion; user remains unconfirmed.\n\nNeed judge new messages. Lines:\n1 Me: I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?\n2 Devon: maybe, depends if my shift ends early. I won’t know till closer to the weekend.\n3 Me: fair. I’ll let you know if I decide to go.\n4 Devon: sounds good. Hope her set’s good either way.\n\nThis establishes user unconfirmed (\"still on fence\", \"if I end up going\", \"if I decide\"). Devon conditional potential companion (\"maybe, depends if shift ends early\", \"won't know\"). Rae performer (\"Rae's show\", \"her set\"). No RSVP/purchase/booking. No new time/venue. Ordinary tentative wording. Current exchange time? Timestamped 17:00-17:20 local, no time-of-day conflict. Good.\n\nNeed output JSON with top-level supported true, evidence array of new-message line integers. Need include exactly one facts row per required fact index 1. facts array with index 1 supported true evidence [1,2,3,4?]. Need cite evidence. Problem empty. Top-level evidence maybe [1,2,3,4] or [1,2,3]. Need ensure every supported judgment at least one in-range citation. For fact 1, evidence can cite 1,2,3,4. Top-level supported true. Problem \"\". facts row: {\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}. Need no extra. Ensure JSON valid.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer JSON only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need verify fictional",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conversation",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " against",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " scenario and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " required facts. Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " have",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new messages 1-4",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Scenario",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": user considering",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Rae’s Sunday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " concert and asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Devon to come if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user decides to go. Devon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " can only come",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " if shift",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " ends early",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Leave both attendance",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " decisions unresolved; no RS",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "VP, purchase or booking",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Use ordinary tentative",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " wording, not explanations",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " of what counts as",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " confirmation. No new time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or venue.\n\nRequired authored",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " facts:\n1. Devon is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a conditional potential companion",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; Rae is performer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", not companion",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; user remains un",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "confirmed.\n\nNeed judge",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new messages. Lines",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":\n1 Me: I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "’m still on the fence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " about Rae’s show",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Sunday. Want",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to come with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " me if I end",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " up going?\n2 Devon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": maybe,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " depends if my shift ends early",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". I won’t know till closer to the weekend.\n3 Me: fair. I’ll",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " let you know if I decide",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " to go.\n4 Devon:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " sounds good. Hope her",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " set’s good either way",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nThis establishes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " un",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "confirmed (",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"still on fence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\", \"if I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " end up going\",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"if I decide\"). Devon",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " conditional potential companion",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " (\"maybe,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " depends if",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " shift ends early\", \"won",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'t know\").",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Rae performer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " (\"R",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ae's show\", \"her",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " set\"). No RS",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "VP/p",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "urchase/booking. No",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new time/",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "venue.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Ordinary",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " tentative",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " wording. Current exchange",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Timestamp",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ed 17:00-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "17:20 local",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", no time-of-day conflict",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Good.\n\nNeed output",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON with top-level supported true, evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array of new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-message line",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " integers. Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include exactly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " one facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " row per required fact index",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 1. facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " array with",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " index 1 supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true evidence [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1,2,3,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "4?].",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need cite evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Problem empty",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level evidence maybe [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1,2,3,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "4]",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or [1,2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ",3]. Need ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " every supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " judgment at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " least one in-range citation",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". For fact 1,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence can",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 1,2,3,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "4. Top",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-level supported true. Problem",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"\". facts",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " row",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " {\"index\":1,\"supported",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\":true,\"evidence\":[",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1,2,3,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "4],\"problem\":\"\"}.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need no",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " extra. Ensure JSON valid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794539703-0ecbRrdW3zntOBsbD4hu",
+    "provider": "DeepInfra",
+    "created": 1794539703,
+    "usage": {
+      "prompt_tokens": 4425,
+      "completion_tokens": 495,
+      "total_tokens": 4920,
+      "cost": 0.000346534272,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1536,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000346534272,
+        "upstream_inference_prompt_cost": 0.000230110272,
+        "upstream_inference_completions_cost": 0.000116424
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 449,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000346534272
+    }
+  },
+  "text": "{\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2,3,4],\"problem\":\"\"}]}",
+  "usage": {
+    "prompt_tokens": 4425,
+    "completion_tokens": 495,
+    "total_tokens": 4920,
+    "cost": 0.000346534272,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1536,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000346534272,
+      "upstream_inference_prompt_cost": 0.000230110272,
+      "upstream_inference_completions_cost": 0.000116424
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 449,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000346534272
+  },
+  "cost_usd": 0.000346534272,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.305195,
+    "first_body_after_s": 1.610757,
+    "last_body_after_s": 5.59622,
+    "body_bytes": 54014,
+    "wall_duration_s": 5.756133,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 03:15:04 GMT",
+      "x-generation-id": "gen-1794539703-0ecbRrdW3zntOBsbD4hu"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 54014,
+    "body_sha256": "31fa654a2742553e80de853e552eccced34838826654cd0f2a1c06a3b0c917a1"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 54014,
+    "body_sha256": "31fa654a2742553e80de853e552eccced34838826654cd0f2a1c06a3b0c917a1",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 130
+  },
+  "accounting_receipt": {
+    "id": "f42c3336-acbb-4b7d-a536-53b04fc7191d",
+    "state": "settled",
+    "accounted": "0.000346534272",
+    "reserved": "0.1746927616",
+    "input_tokens": 4425,
+    "output_tokens": 495,
+    "upstream_request_id": "gen-1794539703-0ecbRrdW3zntOBsbD4hu"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/c7367f5293d29282b2fc533878d3520b6d3bd5e2fb3fe04e3b11ce57370449b3.json.response-body.bin",
+    "bytes": 54014,
+    "sha256": "31fa654a2742553e80de853e552eccced34838826654cd0f2a1c06a3b0c917a1",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

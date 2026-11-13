@@ -1,0 +1,95 @@
+{
+  "scene_id": "w1-attendance-evidence",
+  "attempt": 2,
+  "passed": true,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "created_utc": "2026-11-13T03:16:00+00:00",
+  "spec": {
+    "id": "w1-attendance-evidence",
+    "channel": "imessage",
+    "thread": "workshop",
+    "scene": "",
+    "test_intent": "",
+    "facts": [
+      "The user explicitly reports not attending the Tuesday watercolor workshop."
+    ],
+    "at": "2026-10-08T13:00:00-04:00",
+    "window_start": "2026-10-08T13:00:00-04:00",
+    "window_end": "2026-10-08T13:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": null,
+    "participants": [
+      "Me",
+      "Tutor"
+    ],
+    "chat_name": "",
+    "noise": "authored",
+    "messages_per_person": null,
+    "messages": [
+      {
+        "sender": "Me",
+        "text": "I missed Tuesday\u2019s watercolor workshop after all. Please send the notes.",
+        "at": "2026-10-08T13:00:00-04:00"
+      },
+      {
+        "sender": "Tutor",
+        "text": "Will do.",
+        "at": "2026-10-08T13:00:10-04:00"
+      }
+    ],
+    "prompt_version": "scene-supplied-v1",
+    "judge_prompt_version": "scene-judge-v11"
+  },
+  "dialogue": [
+    "Me: I missed Tuesday\u2019s watercolor workshop after all. Please send the notes.",
+    "Tutor: Will do."
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment that the author actually requires? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Require a commitment only where the authored scenario or facts require one. With supplied messages and no authored scenario or facts, check coherence, identities, chronology and relevant continuity without inventing an event or commitment requirement. Ordinary chatter may establish no new plan; it must still be coherent. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap.\n\nConversation date: 2026-10-08. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 13:00 and 13:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: No additional scenario is asserted.\n\nRequired authored facts:\n1. The user explicitly reports not attending the Tuesday watercolor workshop.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2\u20132:30 pm PizzaLab tasting. I\u2019m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I\u2019m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Ha, yes\u2014cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Very strong. I\u2019ll defend that topping stance anytime.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n2026-10-05T13:00:00-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2026-10-05T13:00:10-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Me: Thursday this week works.\n2026-10-05T13:00:20-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Maya: Same here.\n2026-10-05T14:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Your watercolor workshop is Tuesday October 6, 10\u201311 am at MR Hall.\n2026-10-05T14:00:10-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Me: \ud83d\udc4d\n2026-10-05T14:00:20-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Great, see you Tuesday.\n2026-10-05T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: The old application checklist was useful last month.\n2026-10-05T15:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I\u2019ll send you the revised checklist tomorrow.\n2026-10-05T15:00:20-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Thanks. Could you also tell me the interview room?\n2026-10-05T15:00:30-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Can you proofread my cover letter by Thursday evening?\n2026-10-05T15:00:40-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: I can do that.\n2026-10-05T16:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\n2026-10-05T16:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks, those are the two I booked.\n2026-10-05T16:00:20-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, that appointment is cancelled.\n2026-10-05T18:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Office party balloons have their own lighting budget apparently.\n2026-10-05T18:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: The snacks deserve representation.\n2026-10-05T18:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\n2026-10-05T18:00:30-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Yes, Friday works for me.\n2026-10-05T18:00:40-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: I can make it if my shift finishes early.\n2026-10-05T18:00:50-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Also that trailer gave away the entire ending.\n2026-10-05T19:00:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: my homemade crust came out like cardboard, I\u2019m done pretending I can do pizza night\n2026-10-05T19:01:32-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: ha, let\u2019s just do pizza at Luigi\u2019s on 5th Friday at 6. Just us?\n2026-10-05T19:20:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: yeah that works, just the two of us\n2026-10-05T20:00:00-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Ben: Dinner Thursday October 8 at 7 pm at Juniper Cafe?\n2026-10-05T20:00:10-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Me: Thursday at 7 at Juniper works.\n2026-10-06T10:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Friday works.\n2026-10-06T10:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Great, see you then.\n2026-10-06T11:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.\n2026-10-06T11:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks for clearing that up.\n2026-10-06T12:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Could Friday lunch be noon instead?\n2026-10-06T12:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: Noon works. I\u2019ll tell the others.\n2026-10-06T12:30:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Maya and I just agreed noon instead for Friday.\n2026-10-06T12:30:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: Noon is good for me.\n2026-10-06T12:30:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: Shift got covered. I can come at noon too.\n2026-10-06T14:00:00-04:00 [email:thread-328b14004174ed20423e964e] Maya: Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?\n2026-10-06T14:00:10-04:00 [email:thread-328b14004174ed20423e964e] Me: Yes, Mario's.\n2026-10-06T14:00:20-04:00 [email:thread-328b14004174ed20423e964e] Leo: Works for me.\n2026-10-06T14:00:30-04:00 [email:thread-328b14004174ed20423e964e] Tess: Works for me too.\n2026-10-06T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Room 204 for the interview.\n2026-10-06T15:10:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Got it, thanks.\n2026-10-06T15:20:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I\u2019m still polishing the revised checklist, so I\u2019ll send it once it\u2019s ready.\n2026-10-06T16:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.\n2026-10-06T17:00:00-04:00 [email:thread-9e2e15a0c6a89c6304a6d756] Box Office: You\u2019re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.\n2026-10-06T18:00:00-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Alex Chen: That office lunch last Thursday was actually decent\u2014I skipped the creamy pasta since I avoid dairy, but the mushrooms were good.\n2026-10-06T18:19:30-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Me: Nice, good to know.\n2026-10-06T18:20:00-04:00 [imessage:thread-dd19abfb244e952fcdb97e5c] Alex Chen: Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine.\n2026-10-06T18:30:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario\u2019s.\n2026-10-06T18:30:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Great, add Nora to the table.\n2026-10-07T11:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Leo: New shift landed. I can\u2019t make Friday lunch after all.\n2026-10-07T11:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: We\u2019ll miss you. Lunch is still on.\n2026-10-07T11:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: I\u2019m still coming.\n2026-10-07T12:00:00-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Ben: Could we move dinner to Saturday October 10? Same time and place.\n\nOn Monday you wrote:\n> Thursday at 7 at Juniper works.\n2026-10-07T12:00:10-04:00 [email:thread-f4c9c428e9298e837f00ab3e] Me: Yes, Saturday instead.\n2026-10-07T13:00:00-04:00 [email:thread-328b14004174ed20423e964e] Maya: Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?\n2026-10-07T13:00:10-04:00 [email:thread-328b14004174ed20423e964e] Me: 12:30 works.\n2026-10-07T13:00:20-04:00 [email:thread-328b14004174ed20423e964e] Tess: Me too.\n2026-10-07T13:00:30-04:00 [email:thread-328b14004174ed20423e964e] Leo: I\u2019m still out, sorry.\n2026-10-07T13:00:40-04:00 [email:thread-328b14004174ed20423e964e] Maya: Nora says 12:30 works too; I just texted her.\n2026-10-07T14:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Here\u2019s the revised checklist: ID, printed portfolio, two references. That\u2019s the complete new version.\n2026-10-07T14:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Received, thanks.\n2026-10-07T15:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on.\n2026-10-07T15:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Got it, no dairy for you.\n2026-10-07T15:00:20-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: For me, dairy-free just through Sunday October 11 inclusive. I haven\u2019t decided about after that.\n2026-10-07T16:00:00-04:00 [email:thread-9e2e15a0c6a89c6304a6d756] Box Office: Venue announcement: Rae\u2019s Sunday October 11 concert will be at Foundry Theatre, 8 pm.\n2026-10-07T17:00:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: I\u2019m still on the fence about Rae\u2019s show Sunday. Want to come with me if I end up going?\n2026-10-07T17:09:36-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: maybe, depends if my shift ends early. I won\u2019t know till closer to the weekend.\n2026-10-07T17:10:24-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: fair. I\u2019ll let you know if I decide to go.\n2026-10-07T17:20:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: sounds good. Hope her set\u2019s good either way.\n2026-10-07T18:00:00-04:00 [email:thread-c680748f7737c68a8e40d0c9] Courier: Parcel 381 will arrive Friday. Driver recruitment webinar: https://example.org/drivers .\n2026-10-07T18:00:10-04:00 [email:thread-c680748f7737c68a8e40d0c9] Me: I also booked a parcel-support video call Friday at 9. What is its link?\n2026-10-07T18:00:20-04:00 [email:thread-c680748f7737c68a8e40d0c9] Courier: I don\u2019t have your support-call link yet.\n2026-10-07T19:00:00-04:00 [imessage:thread-8de6bc636601f7787bbe904c] Arts Bulletin: This week\u2019s listings: Pizza social, North Hall, Friday at 12:30. Tickets available at the door.\n2026-10-07T20:00:00-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Me: I\u2019ve decided: I will attend the PizzaLab tasting Sunday October 11, 2\u20132:30 pm. Want to join?\n2026-10-07T20:00:10-04:00 [imessage:thread-c6cc8dbe2e38036bac59cefd] Devon: Not for me, thanks.\n2026-10-08T10:00:00-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Tess: Sorry, childcare fell through. I\u2019m out for Friday.\n2026-10-08T10:00:10-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Maya: Nora just cancelled with me too. Then it\u2019s just you and me for lunch now.\n2026-10-08T10:00:20-04:00 [imessage:thread-67cd3ce375f23b9636ea1357] Me: Yes, just the two of us.\n2026-10-08T11:00:00-04:00 [imessage:thread-adf64eec4a3e262dfdfb614a] Ben: Could we do tomorrow instead of Saturday?\n2026-10-08T11:00:10-04:00 [imessage:thread-adf64eec4a3e262dfdfb614a] Me: Not Friday. Saturday is still good.\n2026-10-08T11:00:20-04:00 [imessage:thread-adf64eec4a3e262dfdfb614a] Ben: Saturday it is. What about trying North Cafe someday?\n2026-10-08T11:00:30-04:00 [imessage:thread-adf64eec4a3e262dfdfb614a] Me: Maybe someday, not this dinner.\n2026-10-08T12:00:00-04:00 [email:thread-21d0a574b1d0b3fba536c58e] Ben: Hi,\n\nCan I return your drill on Sunday, October 11 at 3 pm at your door?\n\nThanks,\nBen\n2026-10-08T12:20:00-04:00 [email:thread-21d0a574b1d0b3fba536c58e] Me: Hi Ben,\n\nYes, Sunday at 3 pm at my door works. See you then.\n\nThanks\n\nNew messages:\n1. [2026-10-08T13:00:00-04:00] Me: I missed Tuesday\u2019s watercolor workshop after all. Please send the notes.\n2. [2026-10-08T13:00:10-04:00] Tutor: Will do.\n\nReturn only one JSON object with all four top-level keys: supported (boolean), evidence (array of new-message line integers), problem (string), and facts (array). Example shape: {\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}. The facts array supplements the independent whole-scene verdict; it never substitutes for the top-level supported, evidence, or problem. Include exactly one ordered facts row per numbered required fact, with its 1-based integer index, boolean supported, evidence array and problem string. If there are no required facts, return facts: []. Every supported judgment needs at least one in-range citation. For unsupported details, explain the absence or contradiction; evidence may be empty when there is no line to cite. Reject the whole scene if any required fact is absent or contradicted. Do not invent a global approval from individually supported facts.",
+  "judge_response": "{\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 14495,
+  "response_chars": 113,
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/pizza-week-hybrid-stream-v4-20261113/model-calls/312bd3eb10cdc98faa9c242479828bc0e0394779a407664efe15737dc3883707.json",
+  "usage": {
+    "prompt_tokens": 5364,
+    "completion_tokens": 253,
+    "total_tokens": 5617,
+    "cost": 0.000372967616,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1408,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000372967616,
+      "upstream_inference_prompt_cost": 0.000313462016,
+      "upstream_inference_completions_cost": 5.95056e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 219,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000372967616
+  },
+  "cost_usd": 0.000372967616,
+  "cost_note": "reported by API"
+}

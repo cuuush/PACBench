@@ -1,0 +1,908 @@
+{
+  "state": "fail",
+  "review_version": "source-realism-v9",
+  "source_hash": "ffd3d1b89265dfa578a5bf1a74010ec4f55a92a6692102eb105aefa839fd53dc",
+  "intent_hash": "f25c607b5e5ba996a844a5211b3dc9a1ef996d77631c91831b826c6a0e6009d3",
+  "review": {
+    "consistent": true,
+    "questions_answerable": false,
+    "natural_enough": true,
+    "issues": [
+      "cancellation-before is materially ambiguous at its question time because 'that appointment' could refer to either studio booking until the next-day clarification.",
+      "attendance-unknown has no attendance report by 2026-10-07T09:40; the later missed-workshop report is not available then.",
+      "game-reference leaves Alex Reed's attendance unconfirmed: he was invited, but the source says not to count him until he answers.",
+      "roles has no confirmed Rae concert attendee; the user was on the fence and Devon was only a maybe.",
+      "hall-alias only expands MR Hall; ZX Annex is not expanded in the source.",
+      "Maya's 2026-10-09 quote is explicitly old Monday notes, not the current dairy/mushroom preference."
+    ],
+    "assessments": [
+      {
+        "check_id": "rsvp-before",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "written_at": "2026-10-05T18:00:30-04:00",
+            "quote": "Yes, Friday works for me."
+          },
+          {
+            "written_at": "2026-10-05T18:00:40-04:00",
+            "quote": "I can make it if my shift finishes early."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "cancellation-before",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T16:00:00-04:00",
+            "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+          },
+          {
+            "written_at": "2026-10-05T16:00:20-04:00",
+            "quote": "Sorry, that appointment is cancelled."
+          }
+        ],
+        "alternatives": [
+          "pottery Wednesday October 7 at 10 am",
+          "framing Thursday October 8 at 10 am"
+        ],
+        "ambiguous": true
+      },
+      {
+        "check_id": "obligations-before",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T15:00:10-04:00",
+            "quote": "I’ll send you the revised checklist tomorrow."
+          },
+          {
+            "written_at": "2026-10-05T15:00:20-04:00",
+            "quote": "Thanks. Could you also tell me the interview room?"
+          },
+          {
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "lunch-snapshot",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "written_at": "2026-10-05T18:00:30-04:00",
+            "quote": "Yes, Friday works for me."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "short-reply",
+        "event_date": "2026-10-06",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T14:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+          },
+          {
+            "written_at": "2026-10-05T14:00:10-04:00",
+            "quote": "👍"
+          },
+          {
+            "written_at": "2026-10-05T14:00:20-04:00",
+            "quote": "Great, see you Tuesday."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "draft-before",
+        "event_date": "2026-10-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "rsvp-after",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "written_at": "2026-10-06T12:30:10-04:00",
+            "quote": "Noon is good for me."
+          },
+          {
+            "written_at": "2026-10-06T12:30:20-04:00",
+            "quote": "Shift got covered. I can come at noon too."
+          },
+          {
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "written_at": "2026-10-06T18:30:00-04:00",
+            "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "lunch-refreshed",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "lunch-fresh",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "written_at": "2026-10-06T14:00:10-04:00",
+            "quote": "Yes, Mario's."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "cancellation-after",
+        "event_date": "2026-10-07",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T16:00:00-04:00",
+            "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio."
+          },
+          {
+            "written_at": "2026-10-06T11:00:00-04:00",
+            "quote": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "attendance-unknown",
+        "event_date": "2026-10-06",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T14:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall."
+          },
+          {
+            "written_at": "2026-10-05T14:00:10-04:00",
+            "quote": "👍"
+          }
+        ],
+        "alternatives": [
+          "attended",
+          "did not attend",
+          "not yet reported"
+        ],
+        "ambiguous": true
+      },
+      {
+        "check_id": "obligations-middle",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T15:00:00-04:00",
+            "quote": "Room 204 for the interview."
+          },
+          {
+            "written_at": "2026-10-06T15:20:00-04:00",
+            "quote": "I’m still polishing the revised checklist, so I’ll send it once it’s ready."
+          },
+          {
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "recurrence-exception",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T13:00:00-04:00",
+            "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+          },
+          {
+            "written_at": "2026-10-05T13:00:10-04:00",
+            "quote": "Thursday this week works."
+          },
+          {
+            "written_at": "2026-10-05T13:00:20-04:00",
+            "quote": "Same here."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "invitation-placeholder",
+        "event_date": "2026-10-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T17:00:00-04:00",
+            "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "withdrawal",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          },
+          {
+            "written_at": "2026-10-07T13:00:10-04:00",
+            "quote": "12:30 works."
+          },
+          {
+            "written_at": "2026-10-07T13:00:20-04:00",
+            "quote": "Me too."
+          },
+          {
+            "written_at": "2026-10-07T13:00:30-04:00",
+            "quote": "I’m still out, sorry."
+          },
+          {
+            "written_at": "2026-10-07T13:00:40-04:00",
+            "quote": "Nora says 12:30 works too; I just texted her."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "link-before",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T18:00:10-04:00",
+            "quote": "I also booked a parcel-support video call Friday at 9. What is its link?"
+          },
+          {
+            "written_at": "2026-10-07T18:00:20-04:00",
+            "quote": "I don’t have your support-call link yet."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "obligations-after",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T14:00:00-04:00",
+            "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+          },
+          {
+            "written_at": "2026-10-05T15:00:30-04:00",
+            "quote": "Can you proofread my cover letter by Thursday evening?"
+          },
+          {
+            "written_at": "2026-10-05T15:00:40-04:00",
+            "quote": "I can do that."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "draft-after",
+        "event_date": "2026-10-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T20:00:00-04:00",
+            "quote": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?"
+          },
+          {
+            "written_at": "2026-10-07T20:00:10-04:00",
+            "quote": "Not for me, thanks."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "game-reference",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T13:00:00-04:00",
+            "quote": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that."
+          },
+          {
+            "written_at": "2026-10-08T14:00:10-04:00",
+            "quote": "Yes, the Thursday game with Maya at my place, 8. Tell him."
+          },
+          {
+            "written_at": "2026-10-08T14:00:20-04:00",
+            "quote": "I’ll ask him; don’t count him until he answers."
+          }
+        ],
+        "alternatives": [
+          "Alex Reed was not confirmed; he may or may not have attended"
+        ],
+        "ambiguous": true
+      },
+      {
+        "check_id": "visit-mid",
+        "event_date": "2026-10-12",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T12:00:00-04:00",
+            "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+          },
+          {
+            "written_at": "2026-10-05T12:00:10-04:00",
+            "quote": "Yes, guest room is yours. I have meals out but you can let yourself in."
+          },
+          {
+            "written_at": "2026-10-09T17:00:00-04:00",
+            "quote": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "pizza-final",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-08T10:00:10-04:00",
+            "quote": "Nora just cancelled with me too. Then it’s just you and me for lunch now."
+          },
+          {
+            "written_at": "2026-10-08T10:00:20-04:00",
+            "quote": "Yes, just the two of us."
+          },
+          {
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          },
+          {
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "written_at": "2026-10-05T19:01:32-04:00",
+            "quote": "ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?"
+          },
+          {
+            "written_at": "2026-10-05T19:20:00-04:00",
+            "quote": "yeah that works, just the two of us"
+          },
+          {
+            "written_at": "2026-10-11T11:00:40-04:00",
+            "quote": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "lunch-history",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T18:00:20-04:00",
+            "quote": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+          },
+          {
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "Could Friday lunch be noon instead?"
+          },
+          {
+            "written_at": "2026-10-06T12:00:10-04:00",
+            "quote": "Noon works. I’ll tell the others."
+          },
+          {
+            "written_at": "2026-10-06T14:00:00-04:00",
+            "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+          },
+          {
+            "written_at": "2026-10-07T13:00:00-04:00",
+            "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "ben-final",
+        "event_date": "2026-10-10",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T20:00:00-04:00",
+            "quote": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?"
+          },
+          {
+            "written_at": "2026-10-05T20:00:10-04:00",
+            "quote": "Thursday at 7 at Juniper works."
+          },
+          {
+            "written_at": "2026-10-07T12:00:00-04:00",
+            "quote": "Could we move dinner to Saturday October 10? Same time and place."
+          },
+          {
+            "written_at": "2026-10-07T12:00:10-04:00",
+            "quote": "Yes, Saturday instead."
+          },
+          {
+            "written_at": "2026-10-08T11:00:10-04:00",
+            "quote": "Not Friday. Saturday is still good."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "ben-mail-separate",
+        "event_date": "2026-10-10",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T12:00:00-04:00",
+            "quote": "Could we move dinner to Saturday October 10? Same time and place."
+          },
+          {
+            "written_at": "2026-10-07T12:00:10-04:00",
+            "quote": "Yes, Saturday instead."
+          },
+          {
+            "written_at": "2026-10-08T12:00:00-04:00",
+            "quote": "Can I return your drill on Sunday, October 11 at 3 pm at your door?"
+          },
+          {
+            "written_at": "2026-10-08T12:20:00-04:00",
+            "quote": "Yes, Sunday at 3 pm at my door works. See you then."
+          },
+          {
+            "written_at": "2026-10-08T11:00:20-04:00",
+            "quote": "What about trying North Cafe someday?"
+          },
+          {
+            "written_at": "2026-10-08T11:00:30-04:00",
+            "quote": "Maybe someday, not this dinner."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "roles",
+        "event_date": "2026-10-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T17:00:00-04:00",
+            "quote": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP."
+          },
+          {
+            "written_at": "2026-10-07T16:00:00-04:00",
+            "quote": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm."
+          },
+          {
+            "written_at": "2026-10-07T17:00:00-04:00",
+            "quote": "I’m still on the fence about Rae’s show Sunday. Want to come with me if I end up going?"
+          },
+          {
+            "written_at": "2026-10-07T17:09:36-04:00",
+            "quote": "maybe, depends if my shift ends early. I won’t know till closer to the weekend."
+          },
+          {
+            "written_at": "2026-10-07T17:10:24-04:00",
+            "quote": "fair. I’ll let you know if I decide to go."
+          }
+        ],
+        "alternatives": [
+          "Me may attend or not; Devon may attend if shift ends early; no confirmed attendee"
+        ],
+        "ambiguous": true
+      },
+      {
+        "check_id": "series-final",
+        "event_date": "2026-10-14",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-10T19:00:00-04:00",
+            "quote": "I can’t host the weekly games anymore. Let’s end the series now, including October 14."
+          },
+          {
+            "written_at": "2026-10-10T19:00:10-04:00",
+            "quote": "Understood, no more weekly game bookings."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "attendance-final",
+        "event_date": "2026-10-06",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-08T13:00:00-04:00",
+            "quote": "I missed Tuesday’s watercolor workshop after all. Please send the notes."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "visit-final",
+        "event_date": "2026-10-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T12:00:00-04:00",
+            "quote": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday."
+          },
+          {
+            "written_at": "2026-10-10T18:00:00-04:00",
+            "quote": "Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday."
+          },
+          {
+            "written_at": "2026-10-10T18:00:10-04:00",
+            "quote": "Okay, Sunday at 10 then."
+          },
+          {
+            "written_at": "2026-10-09T17:00:00-04:00",
+            "quote": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "dates",
+        "event_date": "2026-10-15",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-08T16:00:20-04:00",
+            "quote": "For interview prep, can we call next Thursday—October 15—at 10 am?"
+          },
+          {
+            "written_at": "2026-10-08T16:00:30-04:00",
+            "quote": "Yes, October 15 at 10 works."
+          },
+          {
+            "written_at": "2026-10-08T16:00:00-04:00",
+            "quote": "Found my certificate from the workshop on January 2, 2024."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "upcoming-small",
+        "event_date": "2026-10-13",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-10T20:00:00-04:00",
+            "quote": "Want to do coffee Tuesday at Birch? I can meet at 8 am."
+          },
+          {
+            "written_at": "2026-10-10T20:04:36-04:00",
+            "quote": "Yeah, that works—8 am at Birch. I’ll keep it quick before the day starts."
+          },
+          {
+            "written_at": "2026-10-11T12:00:00-04:00",
+            "quote": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "namesakes",
+        "event_date": "2026-10-07",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T18:20:00-04:00",
+            "quote": "Yeah, and for the record, friends call me AC. Work email says Alex Chen, but AC is fine."
+          },
+          {
+            "written_at": "2026-10-06T18:00:00-04:00",
+            "quote": "I skipped the creamy pasta since I avoid dairy, but the mushrooms were good."
+          },
+          {
+            "written_at": "2026-10-05T11:00:00-04:00",
+            "quote": "I was all about the cheese and happily avoided the mushrooms."
+          },
+          {
+            "written_at": "2026-10-07T15:00:00-04:00",
+            "quote": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "tasks-final",
+        "event_date": "2026-10-08",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-07T14:00:00-04:00",
+            "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+          },
+          {
+            "written_at": "2026-10-06T15:00:00-04:00",
+            "quote": "Room 204 for the interview."
+          },
+          {
+            "written_at": "2026-10-08T18:00:00-04:00",
+            "quote": "Finished proofreading your cover letter. The only fix I’d make is the company name in paragraph two—it’s wrong there."
+          },
+          {
+            "written_at": "2026-10-08T18:20:00-04:00",
+            "quote": "Got it, thanks. I’ll correct that."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "hall-alias",
+        "event_date": "not applicable",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-06T16:00:00-04:00",
+            "quote": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex."
+          }
+        ],
+        "alternatives": [
+          "MR Hall = Maple Ridge Hall; ZX Annex expansion not provided"
+        ],
+        "ambiguous": true
+      },
+      {
+        "check_id": "link-final",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-08T15:00:00-04:00",
+            "quote": "Here’s your parcel-support call link for tomorrow at 9: https://example.org/parcel381 ."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "next-week-pizza",
+        "event_date": "2026-10-16",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-11T11:00:00-04:00",
+            "quote": "Pizza Friday October 16 at 1 at Mario's on Pine Street, just us?"
+          },
+          {
+            "written_at": "2026-10-11T11:00:10-04:00",
+            "quote": "Yes, next Friday at 1, just us."
+          },
+          {
+            "written_at": "2026-10-11T11:00:20-04:00",
+            "quote": "Still not sure whether I’ll keep avoiding dairy after tonight."
+          },
+          {
+            "written_at": "2026-10-07T15:00:00-04:00",
+            "quote": "Please avoid dairy for me from now on."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "refund",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-09T18:00:00-04:00",
+            "quote": "Your refund for the pottery class cancelled Wednesday October 7 has been issued."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      },
+      {
+        "check_id": "third-party-collision",
+        "event_date": "2026-10-09",
+        "source_evidence": [
+          {
+            "written_at": "2026-10-05T19:01:32-04:00",
+            "quote": "ha, let’s just do pizza at Luigi’s on 5th Friday at 6. Just us?"
+          },
+          {
+            "written_at": "2026-10-05T19:20:00-04:00",
+            "quote": "yeah that works, just the two of us"
+          },
+          {
+            "written_at": "2026-10-11T11:00:40-04:00",
+            "quote": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo."
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      }
+    ],
+    "notes": "The corpus is internally consistent when explicit corrections and later updates are treated as state changes. Several questions are not fully answerable at their question times because the source leaves a booking ambiguous, an attendance unstated, an invitee unconfirmed, a concert attendance undetermined, or an abbreviation unexpanded. Maya's 2026-10-09 quoted note is stale Monday history, not the current preference."
+  },
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/pizza-week-hybrid-stream-v6-20261113/model-calls/f0155867aa83489d6d48328a33707d9aad6198a211139510c9defa24ca741fb1-2.json",
+  "usage": {
+    "prompt_tokens": 8702,
+    "completion_tokens": 25288,
+    "total_tokens": 33990,
+    "cost": 0.005977786752,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 8576,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.005977786752,
+      "upstream_inference_prompt_cost": 3.0049152e-05,
+      "upstream_inference_completions_cost": 0.0059477376
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 19242,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.005977786752
+  },
+  "execution_condition": {
+    "version": "corpus-review-real-deadline-v1",
+    "wall_deadline_s": 900,
+    "max_attempts": 1
+  },
+  "scope": "source-coherence-and-public-question-answerability",
+  "validation_errors": [
+    {
+      "path": "assessments[cancellation-before].ambiguous",
+      "code": "not_false"
+    },
+    {
+      "path": "assessments[attendance-unknown].ambiguous",
+      "code": "not_false"
+    },
+    {
+      "path": "assessments[game-reference].ambiguous",
+      "code": "not_false"
+    },
+    {
+      "path": "assessments[roles].ambiguous",
+      "code": "not_false"
+    },
+    {
+      "path": "assessments[hall-alias].ambiguous",
+      "code": "not_false"
+    }
+  ]
+}

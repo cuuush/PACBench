@@ -1,0 +1,124 @@
+{
+  "created_at": "2026-11-13T01:04:35.713016+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Jen. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-06. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 15:00 and 15:20 local time. Keep references to the current time of day consistent with that window.\nEarlier messages in this same thread, with their dates (context, not text to repeat):\n2026-10-05 Jen: The old application checklist was useful last month.\n2026-10-05 Jen: I’ll send you the revised checklist tomorrow.\n2026-10-05 Me: Thanks. Could you also tell me the interview room?\n2026-10-05 Jen: Can you proofread my cover letter by Thursday evening?\n2026-10-05 Me: I can do that.\nContinue naturally. People remember the prior exchange and do not recap settled details unless conversation calls for it. Respect any gap between those dates and today's date; don't reply as if an old message just arrived.\n\nScenario: Jen answers the user’s interview-room question with Room 204. The revised checklist is still being polished. The user briefly acknowledges. Do not deliver the checklist, complete the cover-letter task, or add interview timing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Jen answers the room question with Room 204.\n2. The revised checklist is still outstanding.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 3 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+      }
+    ],
+    "reasoning_effort": "low"
+  },
+  "response": {
+    "id": "gen-1794531869-NGdbySP71nZcfYHeCVyM",
+    "object": "chat.completion",
+    "created": 1794531869,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "provider": "DeepInfra",
+    "system_fingerprint": null,
+    "service_tier": "flex",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\"dialogue\":\"Jen: Room 204 for the interview.\\nMe: Got it, thanks.\\nJen: I’m still polishing the revised checklist, so I’ll send it once it’s ready.\",\"writer_note\":\"Jen directly answers the room question and clarifies that the checklist remains outstanding, while the user gives a brief acknowledgment. The exchange stays within the existing thread and avoids adding interview timing or completing the cover-letter task.\"}",
+          "refusal": null,
+          "reasoning": "We need answer only JSON object with dialogue string containing 2-3 messages, speaker labels Me/Jen. Need satisfy scenario. Need natural continuation from prior exchange. Date 2026-10-06, time 15:00-15:20. Jen answers room question with Room 204. Revised checklist still being polished/outstanding. User briefly acknowledges. Do not deliver checklist, complete cover letter, add interview timing. Need at least one user message. 2-3 messages total. Need establish facts unambiguously. Could be:\n\nJen: Room 204 for the interview.\nMe: Got it, thanks.\nJen: The revised checklist is still being polished, so I’ll send it once it’s ready.\n\nThat's 3 messages. Does it answer room question? Yes. Checklist outstanding. User briefly acknowledges. No interview timing. No cover letter completion. Natural. But \"Room 204 for the interview\" okay. \"still being polished\" means outstanding. Need maybe \"I’m still polishing the revised checklist\" from Jen. Good. Need only JSON. writer_note one or two sentences. Ensure dialogue one string with newline. Use exact labels. No timestamps. Good.\n\nNeed consider earlier messages: Jen said send revised checklist tomorrow (Oct 5 -> today Oct 6). Now still being polished. Fine. User asked interview room. Jen answers. User acknowledges. Good.\n\nNeed no \"I\" alias? Speaker label Me. Message body can use \"I’ll\" from Jen. Fine. User message \"Got it, thanks.\" no I. Good.\n\nNeed JSON valid. Use escaped newline. final only JSON.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We need answer only JSON object with dialogue string containing 2-3 messages, speaker labels Me/Jen. Need satisfy scenario. Need natural continuation from prior exchange. Date 2026-10-06, time 15:00-15:20. Jen answers room question with Room 204. Revised checklist still being polished/outstanding. User briefly acknowledges. Do not deliver checklist, complete cover letter, add interview timing. Need at least one user message. 2-3 messages total. Need establish facts unambiguously. Could be:\n\nJen: Room 204 for the interview.\nMe: Got it, thanks.\nJen: The revised checklist is still being polished, so I’ll send it once it’s ready.\n\nThat's 3 messages. Does it answer room question? Yes. Checklist outstanding. User briefly acknowledges. No interview timing. No cover letter completion. Natural. But \"Room 204 for the interview\" okay. \"still being polished\" means outstanding. Need maybe \"I’m still polishing the revised checklist\" from Jen. Good. Need only JSON. writer_note one or two sentences. Ensure dialogue one string with newline. Use exact labels. No timestamps. Good.\n\nNeed consider earlier messages: Jen said send revised checklist tomorrow (Oct 5 -> today Oct 6). Now still being polished. Fine. User asked interview room. Jen answers. User acknowledges. Good.\n\nNeed no \"I\" alias? Speaker label Me. Message body can use \"I’ll\" from Jen. Fine. User message \"Got it, thanks.\" no I. Good.\n\nNeed JSON valid. Use escaped newline. final only JSON.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 688,
+      "completion_tokens": 433,
+      "total_tokens": 1121,
+      "cost": 0.0001557808,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0001557808,
+        "upstream_inference_prompt_cost": 5.39392e-05,
+        "upstream_inference_completions_cost": 0.0001018416
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 339,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.0001557808
+    }
+  },
+  "text": "{\"dialogue\":\"Jen: Room 204 for the interview.\\nMe: Got it, thanks.\\nJen: I’m still polishing the revised checklist, so I’ll send it once it’s ready.\",\"writer_note\":\"Jen directly answers the room question and clarifies that the checklist remains outstanding, while the user gives a brief acknowledgment. The exchange stays within the existing thread and avoids adding interview timing or completing the cover-letter task.\"}",
+  "usage": {
+    "prompt_tokens": 688,
+    "completion_tokens": 433,
+    "total_tokens": 1121,
+    "cost": 0.0001557808,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0001557808,
+      "upstream_inference_prompt_cost": 5.39392e-05,
+      "upstream_inference_completions_cost": 0.0001018416
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 339,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.0001557808
+  },
+  "cost_usd": 0.0001557808,
+  "cost_status": "reported",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.860126,
+    "first_body_after_s": 1.860217,
+    "last_body_after_s": 6.519675,
+    "body_bytes": 4344,
+    "wall_duration_s": 6.563983,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "application/json",
+      "date": "Fri, 13 Nov 2026 01:04:31 GMT",
+      "x-generation-id": "gen-1794531869-NGdbySP71nZcfYHeCVyM"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 4344,
+    "body_sha256": "84bbf262ddc1990382be75bd41e609482d69de63f48fb082ce568a68c1a01e31"
+  }
+}

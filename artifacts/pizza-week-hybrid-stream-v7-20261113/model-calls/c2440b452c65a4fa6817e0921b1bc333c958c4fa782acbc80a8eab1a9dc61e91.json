@@ -1,0 +1,124 @@
+{
+  "created_at": "2026-11-13T01:37:54.475175+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex Reed. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-05. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 11:00 and 11:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex Reed, the user’s ceramics friend, mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at a past ceramics break. Establish the ceramics connection naturally. The user only acknowledges Alex’s preference; do not assign the user any food preference, place an order, invite anyone, or create a new plan. Do not compare Alex with Alex Chen.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex Reed avoids mushrooms and eats dairy.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+      }
+    ],
+    "reasoning_effort": "low"
+  },
+  "response": {
+    "id": "gen-1794533862-tqCKK5AbfM11lRcOEZXm",
+    "object": "chat.completion",
+    "created": 1794533862,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "provider": "DeepInfra",
+    "system_fingerprint": null,
+    "service_tier": "flex",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\"dialogue\":\"Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\\nMe: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\\nAlex Reed: Very strong. I’ll defend that topping stance anytime.\",\"writer_note\":\"The exchange anchors the memory in a shared ceramics break and lets Me simply acknowledge Alex’s topping preference without adding a plan or food preference. Short, casual bursts keep it iMessage-like.\"}",
+          "refusal": null,
+          "reasoning": "We need answer only JSON object with dialogue string and writer_note. Need craft believable iMessage conversation 2-4 messages, speakers Me, Alex Reed only. Scenario: Alex Reed ceramics friend mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at past ceramics break. Establish ceramics connection naturally. User only acknowledges Alex’s preference; do not assign user food preference, place order, invite, new plan. Must establish Alex avoids mushrooms and eats dairy. Conversation date 2026-10-05, timestamps 11:00-11:20 local. Need natural date language if any. 2-4 messages. One message per line in dialogue string. Need Me speaks at least once. Use Me exactly label. No User/I alias. Need not compare Alex with Alex Chen. Need no timestamps headers narration. Need JSON only. Need ensure \"Me\" speaker label, not in message bodies. Need distinct names. Only Alex Reed and Me. Need maybe 3 messages. Alex: \"Still thinking about that ceramics break last week—someone had a cheese pizza and I was so happy to skip the mushrooms.\" Me: \"Ha, yeah, I remember. You’re solidly anti-mushroom and pro-dairy.\" Alex: \"Exactly. Cheese yes, mushrooms no. Pottery and pizza opinions are both firm.\" Need establish past ceramics break. But \"last week\" relative to Oct 5 2026 is fine. Need user only acknowledges Alex's preference; no own food preference. The Me message acknowledges. Alex's first mentions enjoying cheese and avoiding mushrooms. Need \"eats dairy\" maybe \"cheese yes\" enough. \"pro-dairy\" maybe. Need natural. 3 messages. But \"someone had a cheese pizza\" maybe Alex enjoying cheese? \"I was so happy to skip mushrooms\" and \"cheese pizza\" implies eats dairy. Better: \"Remember that ceramics break when we got pizza? I was all about the cheese and happily avoided the mushrooms.\" Me: \"Ha, yes—cheese in, mushrooms out for you. Pottery break pizza memories are strong.\" Alex: \"Very strong. I’ll defend that topping stance anytime.\" This is 3 messages. Does Me only acknowledge? Yes. No new plan. No invite. No order. No user food preference. Establishes ceramics connection. \"we got pizza\" maybe group. Good. Need \"Alex Reed\" speaker label exactly? Chat members: Me, Alex Reed. Use only these speaker labels. So lines: \"Alex Reed: ...\" and \"Me: ...\". Good. Need JSON object with dialogue one string containing message lines. writer_note 1-2 sentences. Ensure no markdown? Return only JSON. Need escape newlines in JSON string. Could use \\n. Need valid JSON. Let's craft. Need maybe 2-4 messages. 3 messages. Timestamps not included. Date not needed. \"last week\" okay. \"that ceramics break\" natural. \"cheese in, mushrooms out\" establishes. \"eats dairy\" maybe \"cheese\" yes. Good.\n\nNeed writer_note about creative choices. \"The exchange anchors the memory in a shared ceramics break and lets Me simply acknowledge Alex’s topping preference without adding a plan or food preference. Short, casual bursts keep it iMessage-like.\" Good.\n\nNeed final only JSON. Ensure dialogue string includes newline escapes. Use double quotes. No extra.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We need answer only JSON object with dialogue string and writer_note. Need craft believable iMessage conversation 2-4 messages, speakers Me, Alex Reed only. Scenario: Alex Reed ceramics friend mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at past ceramics break. Establish ceramics connection naturally. User only acknowledges Alex’s preference; do not assign user food preference, place order, invite, new plan. Must establish Alex avoids mushrooms and eats dairy. Conversation date 2026-10-05, timestamps 11:00-11:20 local. Need natural date language if any. 2-4 messages. One message per line in dialogue string. Need Me speaks at least once. Use Me exactly label. No User/I alias. Need not compare Alex with Alex Chen. Need no timestamps headers narration. Need JSON only. Need ensure \"Me\" speaker label, not in message bodies. Need distinct names. Only Alex Reed and Me. Need maybe 3 messages. Alex: \"Still thinking about that ceramics break last week—someone had a cheese pizza and I was so happy to skip the mushrooms.\" Me: \"Ha, yeah, I remember. You’re solidly anti-mushroom and pro-dairy.\" Alex: \"Exactly. Cheese yes, mushrooms no. Pottery and pizza opinions are both firm.\" Need establish past ceramics break. But \"last week\" relative to Oct 5 2026 is fine. Need user only acknowledges Alex's preference; no own food preference. The Me message acknowledges. Alex's first mentions enjoying cheese and avoiding mushrooms. Need \"eats dairy\" maybe \"cheese yes\" enough. \"pro-dairy\" maybe. Need natural. 3 messages. But \"someone had a cheese pizza\" maybe Alex enjoying cheese? \"I was so happy to skip mushrooms\" and \"cheese pizza\" implies eats dairy. Better: \"Remember that ceramics break when we got pizza? I was all about the cheese and happily avoided the mushrooms.\" Me: \"Ha, yes—cheese in, mushrooms out for you. Pottery break pizza memories are strong.\" Alex: \"Very strong. I’ll defend that topping stance anytime.\" This is 3 messages. Does Me only acknowledge? Yes. No new plan. No invite. No order. No user food preference. Establishes ceramics connection. \"we got pizza\" maybe group. Good. Need \"Alex Reed\" speaker label exactly? Chat members: Me, Alex Reed. Use only these speaker labels. So lines: \"Alex Reed: ...\" and \"Me: ...\". Good. Need JSON object with dialogue one string containing message lines. writer_note 1-2 sentences. Ensure no markdown? Return only JSON. Need escape newlines in JSON string. Could use \\n. Need valid JSON. Let's craft. Need maybe 2-4 messages. 3 messages. Timestamps not included. Date not needed. \"last week\" okay. \"that ceramics break\" natural. \"cheese in, mushrooms out\" establishes. \"eats dairy\" maybe \"cheese\" yes. Good.\n\nNeed writer_note about creative choices. \"The exchange anchors the memory in a shared ceramics break and lets Me simply acknowledge Alex’s topping preference without adding a plan or food preference. Short, casual bursts keep it iMessage-like.\" Good.\n\nNeed final only JSON. Ensure dialogue string includes newline escapes. Use double quotes. No extra.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 561,
+      "completion_tokens": 823,
+      "total_tokens": 1384,
+      "cost": 0.000237552,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000237552,
+        "upstream_inference_prompt_cost": 4.39824e-05,
+        "upstream_inference_completions_cost": 0.0001935696
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 706,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000237552
+    }
+  },
+  "text": "{\"dialogue\":\"Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\\nMe: Ha, yes—cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\\nAlex Reed: Very strong. I’ll defend that topping stance anytime.\",\"writer_note\":\"The exchange anchors the memory in a shared ceramics break and lets Me simply acknowledge Alex’s topping preference without adding a plan or food preference. Short, casual bursts keep it iMessage-like.\"}",
+  "usage": {
+    "prompt_tokens": 561,
+    "completion_tokens": 823,
+    "total_tokens": 1384,
+    "cost": 0.000237552,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000237552,
+      "upstream_inference_prompt_cost": 4.39824e-05,
+      "upstream_inference_completions_cost": 0.0001935696
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 706,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000237552
+  },
+  "cost_usd": 0.000237552,
+  "cost_status": "reported",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.452015,
+    "first_body_after_s": 1.452042,
+    "last_body_after_s": 12.59064,
+    "body_bytes": 7747,
+    "wall_duration_s": 12.674018,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "application/json",
+      "date": "Fri, 13 Nov 2026 01:37:43 GMT",
+      "x-generation-id": "gen-1794533862-tqCKK5AbfM11lRcOEZXm"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 7747,
+    "body_sha256": "b6fe42b9ac5af22e0bcd994bd876517501ef6168bdc8df4c44c94a8ce2812948"
+  }
+}

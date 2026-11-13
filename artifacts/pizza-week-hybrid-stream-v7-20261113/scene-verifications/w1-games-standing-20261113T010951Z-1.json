@@ -1,0 +1,115 @@
+{
+  "scene_id": "w1-games-standing",
+  "attempt": 1,
+  "passed": true,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "created_utc": "2026-11-13T01:09:51+00:00",
+  "spec": {
+    "id": "w1-games-standing",
+    "channel": "imessage",
+    "thread": "games",
+    "scene": "",
+    "test_intent": "",
+    "facts": [
+      "The weekly Wednesday game moves only its October 7 occurrence to Thursday October 8 at 8 pm.",
+      "The following ordinary occurrence is Wednesday October 14 at 8 pm at Devon's."
+    ],
+    "at": "2026-10-05T13:00:00-04:00",
+    "window_start": "2026-10-05T13:00:00-04:00",
+    "window_end": "2026-10-05T13:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": null,
+    "participants": [
+      "Me",
+      "Devon",
+      "Maya"
+    ],
+    "chat_name": "",
+    "noise": "authored",
+    "messages_per_person": null,
+    "messages": [
+      {
+        "sender": "Devon",
+        "text": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.",
+        "at": "2026-10-05T13:00:00-04:00"
+      },
+      {
+        "sender": "Me",
+        "text": "Thursday this week works.",
+        "at": "2026-10-05T13:00:10-04:00"
+      },
+      {
+        "sender": "Maya",
+        "text": "Same here.",
+        "at": "2026-10-05T13:00:20-04:00"
+      }
+    ],
+    "prompt_version": "scene-supplied-v1",
+    "judge_prompt_version": "scene-judge-v10"
+  },
+  "dialogue": [
+    "Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.",
+    "Me: Thursday this week works.",
+    "Maya: Same here."
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap. Return only JSON with keys supported (boolean), evidence (array of numbered dialogue line integers), and problem (short explanation, empty when supported).\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 13:00 and 13:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: \n\nFor each numbered required fact, report whether the dialogue actually establishes it, with line citations. Distinguish a suggestion from a commitment and an old option from the current plan. Include `facts`, an array with one object per numbered fact: index (1-based integer), supported (boolean), evidence (array of line integers), problem (short string). Reject the scene if any fact is absent or contradicted.\n1. The weekly Wednesday game moves only its October 7 occurrence to Thursday October 8 at 8 pm.\n2. The following ordinary occurrence is Wednesday October 14 at 8 pm at Devon's.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2\u20132:30 pm PizzaLab tasting. I\u2019m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I\u2019m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: For the ceramics studio pizza order, are you good with pepperoni and extra cheese?\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Yeah, extra cheese is perfect. Just no mushrooms on my half\u2014I can\u2019t stand them.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Got it, mushrooms only on mine then.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 Friday, leave 9 Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n\nNew messages:\n1. [2026-10-05T13:00:00-04:00] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2. [2026-10-05T13:00:10-04:00] Me: Thursday this week works.\n3. [2026-10-05T13:00:20-04:00] Maya: Same here.",
+  "judge_response": "{\"supported\":true,\"evidence\":[1,2,3],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1,2,3],\"problem\":\"\"},{\"index\":2,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      1,
+      2,
+      3
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          1,
+          2,
+          3
+        ],
+        "problem": ""
+      },
+      {
+        "index": 2,
+        "supported": true,
+        "evidence": [
+          1
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 3313,
+  "response_chars": 178,
+  "model_call": "/workspace/PACBench-hermes-upgrade-integration-20261112/artifacts/pizza-week-hybrid-writers-20261113/model-calls/7cf99328e4419f75791b04fff7e11c98f79e0a684054a55f973e19deff3acddd.json",
+  "usage": {
+    "prompt_tokens": 967,
+    "completion_tokens": 1225,
+    "total_tokens": 2192,
+    "cost": 0.000334730368,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 384,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000334730368,
+      "upstream_inference_prompt_cost": 4.6610368e-05,
+      "upstream_inference_completions_cost": 0.00028812
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1167,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000334730368
+  },
+  "cost_usd": 0.000334730368,
+  "cost_note": "reported by API"
+}

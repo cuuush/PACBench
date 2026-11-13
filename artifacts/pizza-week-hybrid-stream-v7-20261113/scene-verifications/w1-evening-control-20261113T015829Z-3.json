@@ -1,0 +1,89 @@
+{
+  "scene_id": "w1-evening-control",
+  "attempt": 3,
+  "passed": true,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "created_utc": "2026-11-13T01:58:29+00:00",
+  "spec": {
+    "id": "w1-evening-control",
+    "channel": "imessage",
+    "thread": "devon",
+    "scene": "Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi\u2019s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.",
+    "test_intent": "",
+    "facts": [
+      "The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street."
+    ],
+    "at": "2026-10-05T19:00:00-04:00",
+    "window_start": "2026-10-05T19:00:00-04:00",
+    "window_end": "2026-10-05T19:20:00-04:00",
+    "timezone": "America/New_York",
+    "message_range": [
+      2,
+      4
+    ],
+    "participants": [
+      "Me",
+      "Devon"
+    ],
+    "chat_name": "",
+    "noise": "authored",
+    "messages_per_person": null,
+    "prompt_version": "scene-authored-v1",
+    "judge_prompt_version": "scene-judge-v11"
+  },
+  "dialogue": [
+    "Devon: my homemade crust came out like cardboard, I\u2019m done pretending I can do pizza night",
+    "Me: ha, let\u2019s just do pizza at Luigi\u2019s on 5th Friday at 6. Just us?",
+    "Devon: yeah that works, just the two of us"
+  ],
+  "judge_prompt": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment that the author actually requires? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Require a commitment only where the authored scenario or facts require one. With supplied messages and no authored scenario or facts, check coherence, identities, chronology and relevant continuity without inventing an event or commitment requirement. Ordinary chatter may establish no new plan; it must still be coherent. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap.\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 19:00 and 19:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi\u2019s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.\n\nRequired authored facts:\n1. The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2\u20132:30 pm PizzaLab tasting. I\u2019m still deciding whether to go.\n2026-10-05T10:00:00-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Me: For pizza, I avoid mushrooms; I\u2019m fine with dairy.\n2026-10-05T10:00:10-04:00 [imessage:thread-6956a8ddb6f1be6162de33e9] Maya: Good to know.\n2026-10-05T11:00:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Remember that ceramics break last week when we got pizza? I was all about the cheese and happily avoided the mushrooms.\n2026-10-05T11:04:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Me: Ha, yes\u2014cheese in, mushrooms out for you. Pottery-break pizza memories are strong.\n2026-10-05T11:20:00-04:00 [imessage:thread-ac6a02250a75b121a9d74757] Alex Reed: Very strong. I\u2019ll defend that topping stance anytime.\n2026-10-05T12:00:00-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Morgan: Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.\n2026-10-05T12:00:10-04:00 [imessage:thread-61e2acdae326a1e4506a665d] Me: Yes, guest room is yours. I have meals out but you can let yourself in.\n2026-10-05T13:00:00-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Devon: Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.\n2026-10-05T13:00:10-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Me: Thursday this week works.\n2026-10-05T13:00:20-04:00 [imessage:thread-20159b5fff87f01d55dce9b2] Maya: Same here.\n2026-10-05T14:00:00-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Your watercolor workshop is Tuesday October 6, 10\u201311 am at MR Hall.\n2026-10-05T14:00:10-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Me: \ud83d\udc4d\n2026-10-05T14:00:20-04:00 [imessage:thread-409b3c5636b2d4c3d585cc0b] Tutor: Great, see you Tuesday.\n2026-10-05T15:00:00-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: The old application checklist was useful last month.\n2026-10-05T15:00:10-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: I\u2019ll send you the revised checklist tomorrow.\n2026-10-05T15:00:20-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: Thanks. Could you also tell me the interview room?\n2026-10-05T15:00:30-04:00 [imessage:thread-b03a149a909536c1a85613e8] Jen: Can you proofread my cover letter by Thursday evening?\n2026-10-05T15:00:40-04:00 [imessage:thread-b03a149a909536c1a85613e8] Me: I can do that.\n2026-10-05T16:00:00-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.\n2026-10-05T16:00:10-04:00 [imessage:thread-1f81861d391148f77fc1d334] Me: Thanks, those are the two I booked.\n2026-10-05T16:00:20-04:00 [imessage:thread-1f81861d391148f77fc1d334] Studio: Sorry, that appointment is cancelled.\n\nNew messages:\n1. Devon: my homemade crust came out like cardboard, I\u2019m done pretending I can do pizza night\n2. Me: ha, let\u2019s just do pizza at Luigi\u2019s on 5th Friday at 6. Just us?\n3. Devon: yeah that works, just the two of us\n\nReturn only one JSON object with all four top-level keys: supported (boolean), evidence (array of new-message line integers), problem (string), and facts (array). Example shape: {\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}. The facts array supplements the independent whole-scene verdict; it never substitutes for the top-level supported, evidence, or problem. Include exactly one ordered facts row per numbered required fact, with its 1-based integer index, boolean supported, evidence array and problem string. If there are no required facts, return facts: []. Every supported judgment needs at least one in-range citation. For unsupported details, explain the absence or contradiction; evidence may be empty when there is no line to cite. Reject the whole scene if any required fact is absent or contradicted. Do not invent a global approval from individually supported facts.",
+  "judge_response": "{\"supported\":true,\"evidence\":[2,3],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[2,3],\"problem\":\"\"}]}",
+  "verdict": {
+    "supported": true,
+    "evidence": [
+      2,
+      3
+    ],
+    "problem": "",
+    "facts": [
+      {
+        "index": 1,
+        "supported": true,
+        "evidence": [
+          2,
+          3
+        ],
+        "problem": ""
+      }
+    ]
+  },
+  "prompt_chars": 5943,
+  "response_chars": 117,
+  "model_call": "/workspace/PACBench-hermes-upgrade-integration-20261112/artifacts/pizza-week-hybrid-v3-scene11-20261113/model-calls/52b7e5455555ac88c22d6da8dad73ccaff12905b5951ae1174944f0f76285c1f.json",
+  "usage": {
+    "prompt_tokens": 1834,
+    "completion_tokens": 260,
+    "total_tokens": 2094,
+    "cost": 0.000185469312,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 256,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000185469312,
+      "upstream_inference_prompt_cost": 0.000124317312,
+      "upstream_inference_completions_cost": 6.1152e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 222,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000185469312
+  },
+  "cost_usd": 0.000185469312,
+  "cost_note": "reported by API"
+}

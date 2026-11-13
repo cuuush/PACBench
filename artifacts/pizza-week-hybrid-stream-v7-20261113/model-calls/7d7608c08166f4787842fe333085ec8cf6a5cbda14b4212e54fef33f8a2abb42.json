@@ -1,0 +1,124 @@
+{
+  "created_at": "2026-11-13T01:57:36.474081+00:00",
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "You are verifying a fictional conversation, not writing it. Does the dialogue establish the scenario, including each specified person, detail, and commitment that the author actually requires? Reject missing, contradictory, or merely tentative details when the scenario says agreed. Require a commitment only where the authored scenario or facts require one. With supplied messages and no authored scenario or facts, check coherence, identities, chronology and relevant continuity without inventing an event or commitment requirement. Ordinary chatter may establish no new plan; it must still be coherent. Check that each asserted participant's commitment is clear in context; do not count mere interest, uncertainty or silence as agreement. Cite evidence of commitment without requiring a scripted confirmation order. Check that continuations agree with the current plan across DMs, group chats and email; an old week's venue is not the current venue unless someone changes it. Quoted email history is historical context, not a new confirmation. `Me` consistently represents the user. Judge meaning, not token overlap.\n\nConversation date: 2026-10-05. Resolve relative dates from this fictional date.\nThe new messages will be timestamped between 10:00 and 10:20 local time. Reject dialogue that clearly places the current exchange at a different time of day.\nScenario: No additional scenario is asserted.\n\nRequired authored facts:\n1. The user initially reports avoiding mushrooms and being fine with dairy.\n\nEarlier source messages across channels, for interpreting references (cite only the numbered new messages below):\n2026-10-05T09:00:00-04:00 [email:thread-b6dc92e5c73bfc6440ad3bab] Me: Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.\n\nNew messages:\n1. [2026-10-05T10:00:00-04:00] Me: For pizza, I avoid mushrooms; I’m fine with dairy.\n2. [2026-10-05T10:00:10-04:00] Maya: Good to know.\n\nReturn only one JSON object with all four top-level keys: supported (boolean), evidence (array of new-message line integers), problem (string), and facts (array). Example shape: {\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}. The facts array supplements the independent whole-scene verdict; it never substitutes for the top-level supported, evidence, or problem. Include exactly one ordered facts row per numbered required fact, with its 1-based integer index, boolean supported, evidence array and problem string. If there are no required facts, return facts: []. Every supported judgment needs at least one in-range citation. For unsupported details, explain the absence or contradiction; evidence may be empty when there is no line to cite. Reject the whole scene if any required fact is absent or contradicted. Do not invent a global approval from individually supported facts."
+      }
+    ],
+    "reasoning_effort": "low"
+  },
+  "response": {
+    "id": "gen-1794535052-FD8GHqTi92VbIJZrtmhk",
+    "object": "chat.completion",
+    "created": 1794535052,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "provider": "DeepInfra",
+    "system_fingerprint": null,
+    "service_tier": "flex",
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "{\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}",
+          "refusal": null,
+          "reasoning": "We need answer JSON only. Need verify required authored fact: user initially reports avoiding mushrooms and being fine with dairy. New messages line1 exactly. Line2 Maya good to know. No scenario. Need top-level supported true? Need check coherence identities chronology relevant continuity. Conversation date 2026-10-05, new messages 10:00-10:20. Line1 at 10:00, line2 10:00:10. Coherent. Required fact supported by line1. Need facts array exactly one row index1 supported true evidence [1], problem \"\". Top-level evidence [1]. problem \"\". Need ensure \"initially reports\" yes line1 first new message. Return JSON.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We need answer JSON only. Need verify required authored fact: user initially reports avoiding mushrooms and being fine with dairy. New messages line1 exactly. Line2 Maya good to know. No scenario. Need top-level supported true? Need check coherence identities chronology relevant continuity. Conversation date 2026-10-05, new messages 10:00-10:20. Line1 at 10:00, line2 10:00:10. Coherent. Required fact supported by line1. Need facts array exactly one row index1 supported true evidence [1], problem \"\". Top-level evidence [1]. problem \"\". Need ensure \"initially reports\" yes line1 first new message. Return JSON.",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 662,
+      "completion_tokens": 178,
+      "total_tokens": 840,
+      "cost": 7.4298112e-05,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 256,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 7.4298112e-05,
+        "upstream_inference_prompt_cost": 3.2432512e-05,
+        "upstream_inference_completions_cost": 4.18656e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 144,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 7.4298112e-05
+    }
+  },
+  "text": "{\"supported\":true,\"evidence\":[1],\"problem\":\"\",\"facts\":[{\"index\":1,\"supported\":true,\"evidence\":[1],\"problem\":\"\"}]}",
+  "usage": {
+    "prompt_tokens": 662,
+    "completion_tokens": 178,
+    "total_tokens": 840,
+    "cost": 7.4298112e-05,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 256,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 7.4298112e-05,
+      "upstream_inference_prompt_cost": 3.2432512e-05,
+      "upstream_inference_completions_cost": 4.18656e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 144,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 7.4298112e-05
+  },
+  "cost_usd": 7.4298112e-05,
+  "cost_status": "reported",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 0.607759,
+    "first_body_after_s": 0.607784,
+    "last_body_after_s": 3.619285,
+    "body_bytes": 2314,
+    "wall_duration_s": 3.679167,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "application/json",
+      "date": "Fri, 13 Nov 2026 01:57:33 GMT",
+      "x-generation-id": "gen-1794535052-FD8GHqTi92VbIJZrtmhk"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 2314,
+    "body_sha256": "923971a19580b23137d2b04feef731e9ae6768976d162d19f58b5e9872df151d"
+  }
+}

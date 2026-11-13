@@ -1,0 +1,400 @@
+{
+  "audit_stage": "targeted_independent_pre_contract_author_criteria_reaudit",
+  "audit_verdict": "pass_for_affected_12_author_criteria_and_unchanged_two_question_scopes",
+  "commit": "73fe91f5044af7ea01fe6f8ddaf9e19922cafa90",
+  "spec_sha256": "cd5c7269a5358ebde124d0aa718bba83caab6ff8c83fb83d56152a088c082c99",
+  "source_packet_sha256": "5feb7490acae26ebd218a6c46098ee02c658bdc6c66d4ca63f72bcfeb8f4c2bc",
+  "frozen_source_only_answers_sha256": "e18635756ec888fe56c96b67362505fafbf769c6101787d814af5c90f0881f69",
+  "preserved_original_155_audit_sha256": "be6f649c324535c25c7a527dae0ddd9a06b2ab3b61ea662e5b570b3af5df28f6",
+  "scope": {
+    "questions_rechecked": [
+      "withdrawal",
+      "tasks-final"
+    ],
+    "criteria_rechecked": 12,
+    "withdrawal": 8,
+    "tasks_final": 4,
+    "current_total_author_criteria": 155,
+    "unaffected_criteria": "Reused unchanged independent review; no broader re-audit performed."
+  },
+  "unchanged_inputs_verification": {
+    "all_37_public_prompts_match_original_source_packet": true,
+    "spec_diff_only_expected_two_fact_list_changes": true,
+    "source_packet_bytes_unchanged": true,
+    "independent_source_answer_freeze_unchanged": true,
+    "original_155_audit_unchanged": true
+  },
+  "findings_resolved": [
+    {
+      "original_finding": "withdrawal-redundant-event-status",
+      "verdict": "resolved",
+      "evidence": "Old criterion1 removed; remaining eight criteria are distinct current time/venue/member inclusions and pure exclusion-only closure."
+    },
+    {
+      "original_finding": "tasks-final-global-closure-caveat",
+      "verdict": "resolved_for_author_criteria_coverage",
+      "evidence": "New criterion4 captures Jen’s own promised company-name correction with completion unconfirmed; owner proofreading remains closed."
+    }
+  ],
+  "native_contract_freeze_status": "Still pre-contract author-criteria review. No native contracts or final freeze are certified. The earlier whitespace-only native lunch-invite HTTP200, uncertain charge and five skipped dependent checks remain separate unresolved receipt evidence.",
+  "paid_calls_performed": 0,
+  "source_or_spec_changes_performed": false,
+  "question_reviews": [
+    {
+      "id": "withdrawal",
+      "prompt": "What’s the Friday lunch plan—who, when and where?",
+      "at": "2026-10-08T09:00:00-04:00",
+      "session": "withdrawal-fresh",
+      "unchanged_question_scope_verdict": "confirmed; same prompt and original checkpoint",
+      "agreement_with_frozen_independent_answer": "Friday October 9 lunch is 12:30 pm at Mario’s on Pine Street with me, Maya, Tess and Nora. Leo has withdrawn.",
+      "criteria": [
+        {
+          "criterion_index": 1,
+          "criterion": "The Friday lunch time is 12:30 pm.",
+          "support_verdict": "supported_contextual_inference",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Source says “12:30”; established Friday lunch context reasonably supplies pm.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-e7d38b0e1efefd1f09f84755",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-96cc61b4451281d78c880fcb",
+              "quote": "12:30 works."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 2,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 2,
+          "criterion": "The Friday lunch venue is Mario’s.",
+          "support_verdict": "supported_contextual_inference",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "“Same place we agreed yesterday” resolves to Mario’s, not the embedded Monday Rosa’s quote.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-6a60e2c84341718ab64ecaf6",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-12292df8a4113436fee10c20",
+              "quote": "Yes, Mario's."
+            },
+            {
+              "source_id": "message-e7d38b0e1efefd1f09f84755",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 3,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 3,
+          "criterion": "The Friday lunch venue is on Pine Street.",
+          "support_verdict": "supported_contextual_inference",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Current venue link resolves to Mario’s on Pine Street from October 6.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-6a60e2c84341718ab64ecaf6",
+              "quote": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?"
+            },
+            {
+              "source_id": "message-e7d38b0e1efefd1f09f84755",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 4,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 4,
+          "criterion": "the user is confirmed for the Friday October 9 lunch.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-96cc61b4451281d78c880fcb",
+              "quote": "12:30 works."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 5,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 5,
+          "criterion": "Maya is confirmed for the Friday October 9 lunch.",
+          "support_verdict": "supported_contextual_inference",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Maya proposes the agreed 12:30 lunch; proposer participation is an ordinary conversational inference.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-e7d38b0e1efefd1f09f84755",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 6,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 6,
+          "criterion": "Tess is confirmed for the Friday October 9 lunch.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-349cb8cd7cfcdc38511dbfa3",
+              "quote": "Me too."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 7,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 7,
+          "criterion": "Nora is confirmed for the Friday October 9 lunch.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-2c5cd7144a84462df00bee1d",
+              "quote": "Nora says 12:30 works too; I just texted her."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 8,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 8,
+          "criterion": "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch.",
+          "support_verdict": "supported_checkpoint_absence_or_closure",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Requires scan of the entire admissible prefix for absence/closure, not only the witness quotes.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": true,
+            "verdict": "pure_exclusion_only; does not assert positive membership or unseen refusals"
+          },
+          "evidence": [
+            {
+              "source_id": "message-200bcc9902c4bb1cdb60b468",
+              "quote": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s."
+            },
+            {
+              "source_id": "message-b97026279ac4bacefef91474",
+              "quote": "New shift landed. I can’t make Friday lunch after all."
+            },
+            {
+              "source_id": "message-586319d7c8401825142f0acd",
+              "quote": "I’m still coming."
+            },
+            {
+              "source_id": "message-e7d38b0e1efefd1f09f84755",
+              "quote": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?"
+            },
+            {
+              "source_id": "message-96cc61b4451281d78c880fcb",
+              "quote": "12:30 works."
+            },
+            {
+              "source_id": "message-349cb8cd7cfcdc38511dbfa3",
+              "quote": "Me too."
+            },
+            {
+              "source_id": "message-45212ff37f3957d6b8c7f2b7",
+              "quote": "I’m still out, sorry."
+            },
+            {
+              "source_id": "message-2c5cd7144a84462df00bee1d",
+              "quote": "Nora says 12:30 works too; I just texted her."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 9,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        }
+      ],
+      "completeness_verdict": "Current participant, time and venue scope covered; no redundant general event-existence criterion remains."
+    },
+    {
+      "id": "tasks-final",
+      "prompt": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "at": "2026-10-12T10:50:00-04:00",
+      "session": "tasks-final-fresh",
+      "unchanged_question_scope_verdict": "confirmed; same prompt and original checkpoint",
+      "agreement_with_frozen_independent_answer": "The checklist has been sent and acknowledged; the room (204) has been supplied and acknowledged; I finished the cover-letter proofreading and told Jen the company name in paragraph two was wrong. My requested proofreading is complete. Jen said she would correct that name, but there is no later confirmation she actually did.",
+      "criteria": [
+        {
+          "criterion_index": 1,
+          "criterion": "The revised-checklist obligation is closed.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-b8d5b944e10b5e0d8a00410a",
+              "quote": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version."
+            },
+            {
+              "source_id": "message-8a452182ac9f637a734896d9",
+              "quote": "Received, thanks."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 1,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 2,
+          "criterion": "The interview-room question is answered.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-a8612da3d2eccf4db155c23e",
+              "quote": "Room 204 for the interview."
+            },
+            {
+              "source_id": "message-439013827a15a531c9ec6cdd",
+              "quote": "Got it, thanks."
+            }
+          ],
+          "notes": "",
+          "prior_audit_criterion_index": 2,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 3,
+          "criterion": "The cover-letter proofreading obligation is closed.",
+          "support_verdict": "supported_explicit",
+          "scope_verdict": "reasonably_invited_by_public_question",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint",
+          "inference_vs_explicit": "Direct textual support, including ordinary pronoun/reference resolution and accepted plan persistence.",
+          "atomicity_verdict": "atomic_single_semantic_claim",
+          "nonredundancy_verdict": "distinct_within_question",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-2f2a655ea8d5c8d09f40caed",
+              "quote": "Finished proofreading your cover letter. The only fix I’d make is the company name in paragraph two—it’s wrong there."
+            },
+            {
+              "source_id": "message-ee0242381ca04fb3328051f9",
+              "quote": "Got it, thanks. I’ll correct that."
+            }
+          ],
+          "notes": "User explicitly finished proofreading. Jen’s “I’ll correct that” is her own later action, not an unfinished owner proofreading task. This criterion does not claim all cover-letter follow-through is complete.",
+          "prior_audit_criterion_index": 3,
+          "recheck_verdict": "supported_and_in_scope_against_original_source_at_unchanged_cutoff"
+        },
+        {
+          "criterion_index": 4,
+          "criterion": "Jen promised to correct the cover letter’s company name; completion of that correction is not established.",
+          "support_verdict": "supported_explicit_promise_and_checkpoint_absence_of_completion",
+          "scope_verdict": "invited_by_anything_outstanding_between_Jen_and_me_on_cover_letter",
+          "atomicity_verdict": "one_task_status_claim; promise identifies the task whose completion remains unconfirmed",
+          "nonredundancy_verdict": "distinct_actor_and_action_from_user_completed_proofreading",
+          "pure_no_extra_members_closure": {
+            "applicable": false,
+            "verdict": "not_a_membership_closure"
+          },
+          "evidence": [
+            {
+              "source_id": "message-2f2a655ea8d5c8d09f40caed",
+              "quote": "Finished proofreading your cover letter. The only fix I’d make is the company name in paragraph two—it’s wrong there."
+            },
+            {
+              "source_id": "message-ee0242381ca04fb3328051f9",
+              "quote": "Got it, thanks. I’ll correct that."
+            }
+          ],
+          "inference_vs_explicit": "Jen explicitly promises “I’ll correct that”; that resolves to the company-name error identified by the user. No completion message appears before the question cutoff. This is Jen’s task, not a new owner obligation.",
+          "notes": "Matches the independently frozen source-only answer and closes the previously identified invited-issue omission.",
+          "cutoff_verdict": "all_evidence_before_unchanged_checkpoint"
+        }
+      ],
+      "completeness_verdict": "All invited checklist/room/proofreading statuses and Jen’s unconfirmed company-name correction are now represented; actor distinction preserved."
+    }
+  ]
+}

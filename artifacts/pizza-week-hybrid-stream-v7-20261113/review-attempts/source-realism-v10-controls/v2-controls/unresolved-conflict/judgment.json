@@ -1,0 +1,82 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/1a4208a168a42d8dba9b6317d5c31b06377225938762250da706ca4e409a2e32.json",
+  "prompt_sha256": "96a6559b95a32e067e6d46ebd4b550263d3a6698e08b51f489aa9ebb2ab776c9",
+  "oracle": {
+    "states": [
+      "invalid"
+    ],
+    "passes": false,
+    "consistent": false
+  },
+  "review": {
+    "consistent": false,
+    "questions_answerable": false,
+    "natural_enough": false,
+    "issues": [
+      "Unresolved current-source contradiction: m-1 and m-2 give different times for booking P7, and m-3 explicitly says both remain current without correction or supersession.",
+      "The source is not natural/plausible as a personal-message thread because it contains a meta-message asserting two contradictory booking receipts are both still current."
+    ],
+    "notes": "q-1 is invalid because the complete eligible history contains an unresolved contradiction about the single confirmed time for booking P7. The date is consistently reported, but the time is not resolvable to one definitive value.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-07",
+        "answerability": "invalid",
+        "grounding_kind": "source_record",
+        "assessable": false,
+        "ambiguous": true,
+        "current_state_conflict": true,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Booking P7 is referenced as a single booking on Friday October 9.",
+          "Two current receipts assert different times for booking P7."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "confirmed time for booking P7",
+            "missing": "No single time is established because 7 pm and 8 pm are both asserted as current and neither is corrected or superseded.",
+            "alternatives": [
+              "7 pm",
+              "8 pm"
+            ]
+          }
+        ],
+        "reason": "The complete eligible history contains m-1 and m-2 asserting different times for the same booking P7, and m-3 explicitly states both are still current and neither corrects or supersedes the other. This is an unresolved current-source contradiction, so no single definitively confirmed time can be assessed.",
+        "alternatives": [
+          "7 pm",
+          "8 pm"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "m-1",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Current final booking P7: Friday October 9 at 7 pm."
+          },
+          {
+            "source_id": "m-2",
+            "written_at": "2026-10-05T09:01:00-04:00",
+            "quote": "Current final booking P7: Friday October 9 at 8 pm."
+          },
+          {
+            "source_id": "m-3",
+            "written_at": "2026-10-05T09:02:00-04:00",
+            "quote": "Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments[q-1]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[q-1]",
+      "code": "unresolved_source_conflict"
+    }
+  ]
+}

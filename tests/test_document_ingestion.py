@@ -25,7 +25,8 @@ def test_memcal_native_collection_records_transport_and_original_times(tmp_path,
     prepare_sources(tmp_path,[chat,mail],'America/New_York')
     root=tmp_path/'arm'; root.mkdir()
     home=tmp_path/'home'; home.mkdir()
-    src=os.environ.get('MEMCAL_TEST_SRC',str(__import__('pathlib').Path(__file__).resolve().parents[2]/'memcal'))
+    from pacbench.provider_versions import memcal_source
+    src=os.environ.get('MEMCAL_TEST_SRC',str(memcal_source(__import__('pathlib').Path(__file__).resolve().parents[1])))
     program='''
 import json, os, sqlite3, sys
 from pathlib import Path

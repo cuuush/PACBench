@@ -186,7 +186,10 @@ def enroll_source(source, root):
     plans = source_plans(messages, host)
     path = receipt_path(root, source)
     if path.exists():
-        raise EnrollmentError('Existing Honcho enrollment receipt; no blind retry')
+        # Reusing completed membership is read-only. Revalidate source bytes,
+        # roster and actual native windows before any later message submission.
+        current=verify_before_submission(root,source,messages,host)
+        return {**json.loads(path.read_text()),'reuse_verified_native_snapshot':current}
     rosters_path = root/'honcho-enrollment-rosters.json'
     rosters = json.loads(rosters_path.read_text()) if rosters_path.exists() else {}
     validate_roster_continuity(plans, rosters)

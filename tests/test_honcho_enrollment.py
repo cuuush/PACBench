@@ -282,3 +282,15 @@ def test_encoded_source_acknowledgments_still_require_original_sender_metadata()
     assert audit_honcho_receipt([source],result)==[]
     result['result'][0]['messages'][0]['metadata']['sender']='Alex-Reed'
     assert 'Honcho acknowledged changed source text, speaker, time or metadata' in audit_honcho_receipt([source],result)
+
+
+def test_completed_enrollment_can_be_reused_only_after_native_revalidation(tmp_path,monkeypatch):
+    source,root,state,calls=native_fixture(tmp_path,monkeypatch)
+    enrollment.enroll_source(source,root)
+    saved=enrollment.receipt_path(root,source).read_bytes()
+    result=enrollment.enroll_source(source,root)
+    assert result['ready'] and 'reuse_verified_native_snapshot' in result
+    assert len(calls)==1 and enrollment.receipt_path(root,source).read_bytes()==saved
+    state['memberships'][0]['left_at']=AFTER
+    with pytest.raises(enrollment.EnrollmentError):enrollment.enroll_source(source,root)
+    assert len(calls)==1

@@ -50,7 +50,7 @@ def test_email_checker_can_verify_cross_channel_reference_without_writer_recap()
         return 'Ben: Can we move dinner to Saturday?\nMe: Saturday works.'
     def checker(prompt):
         assert '[imessage:ben] Ben: Dinner Thursday at Juniper?' in prompt
-        return json.dumps({'supported':True,'evidence':[1,2],'problem':''})
+        return json.dumps({'facts': [], 'supported':True,'evidence':[1,2],'problem':''})
     result=realize_scene(plan,writer,checker,verification_lines=prior)
     messages=build_scene_observations('email-week',plan,list(result.lines))
     assert messages[0].structured['email_subject']=='Dinner'
@@ -66,7 +66,7 @@ def test_email_reply_quotes_survive_as_one_body_with_the_actual_sender(tmp_path)
     body='Saturday works at seven.\n\nOn Monday Ben wrote:\n> Thursday at seven?\n> Me: sounds good'
     def writer(_):return json.dumps({'dialogue':[{'sender':'Ben','body':'Can we do Saturday instead?'},
         {'sender':'Me','body':body}],'writer_note':'A reply retains the quoted old arrangement.'})
-    def checker(_):return json.dumps({'supported':True,'evidence':[1,2],'problem':''})
+    def checker(_):return json.dumps({'facts': [], 'supported':True,'evidence':[1,2],'problem':''})
     result=realize_scene(plan,writer,checker)
     messages=[m.public() for m in build_scene_observations('email-quotes',plan,list(result.lines))]
     mailbox=tmp_path/'mailbox.json';append_emails(mailbox,messages)
@@ -93,7 +93,7 @@ def test_group_noise_allows_a_speaker_to_exceed_their_target_share():
                    message_range=(6,9),messages_per_person=(2,3))
     lines=[(name,f'Message {i} from {name}') for name,n in [('Me',4),('Sam',2),('Jordan',2)] for i in range(n)]
     writer=lambda _: '\n'.join(f'{s}: {t}' for s,t in lines)
-    checker=lambda _: json.dumps({'supported':True,'evidence':[1,8],'problem':''})
+    checker=lambda _: json.dumps({'facts': [], 'supported':True,'evidence':[1,8],'problem':''})
     result=realize_scene(plan,writer,checker)
     assert result.lines==tuple(lines) and result.record.attempts==1
 
@@ -415,3 +415,35 @@ def test_resume_policy_accepts_unchanged_authored_and_explicit_legacy_or_migrati
     if new_mode is not None:spec['noise']=new_mode
     prepare(spec,root,resume=True)
     assert seen==[spec]
+
+
+@pytest.mark.parametrize('verdict', [
+    {'facts': [{'index': 1, 'supported': True, 'evidence': [1], 'problem': ''}]},
+    {'supported': True, 'evidence': [True], 'problem': '', 'facts': []},
+    {'supported': True, 'evidence': [1], 'problem': ''},
+])
+def test_scene_v11_never_infers_approval_from_incomplete_or_invalid_shape(tmp_path, verdict):
+    from pacbench.authoring import judge_scene, SceneJudgeError
+    plan=ScenePlan(id='shape-check',scene='A casual greeting.',facts=())
+    calls=[]
+    def checker(prompt):
+        calls.append(prompt)
+        return json.dumps(verdict)
+    with pytest.raises(SceneJudgeError,match='malformed verdict shape'):
+        judge_scene(plan,[('Sam','Hello')],checker,record_dir=tmp_path)
+    assert len(calls)==1
+    record=json.loads(next(tmp_path.glob('*.json')).read_text())
+    assert record['passed'] is False and record['verdict']==verdict
+
+
+def test_scene_v11_empty_chatter_keeps_an_independent_whole_scene_judgment(tmp_path):
+    from pacbench.authoring import judge_scene, SceneJudgeError, JUDGE_PROMPT_VERSION
+    plan=ScenePlan(id='chatter',participants=('Me','Sam'),messages=({'sender':'Sam','text':'Nice film','at':'2026-10-05T12:00:00-04:00'},),facts=())
+    prompt=judge_prompt(plan,[('Sam','Nice film')])
+    assert JUDGE_PROMPT_VERSION=='scene-judge-v11'
+    assert 'without inventing an event or commitment requirement' in prompt
+    assert 'facts: []' in prompt
+    negative={'supported':False,'evidence':[],'problem':'Contradicts earlier source.','facts':[]}
+    with pytest.raises(SceneJudgeError,match='Contradicts earlier source'):
+        judge_scene(plan,[('Sam','Nice film')],lambda _:json.dumps(negative),record_dir=tmp_path)
+    assert json.loads(next(tmp_path.glob('*.json')).read_text())['verdict']==negative

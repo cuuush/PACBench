@@ -404,7 +404,7 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
 # ------------------------------------------------------------------ judging --
 
 #: Approved narrow-judge prompter (verdicts only, never ground truth).
-JUDGE_PROMPT_VERSION = "scene-judge-v10"
+JUDGE_PROMPT_VERSION = "scene-judge-v11"
 
 def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
@@ -424,20 +424,34 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                         f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
                         else f"{row[0]}: {row[1]}") for row in prior_lines) +
              "\n\n" if prior_lines else "")
-    required = ("\n\nFor each numbered required fact, report whether the dialogue "
-                "actually establishes it, with line citations. Distinguish "
-                "a suggestion from a commitment and an old option from the "
-                "current plan. Include `facts`, an array with one object per "
-                "numbered fact: index (1-based integer), supported (boolean), "
-                "evidence (array of line integers), problem (short string). "
-                "Reject the scene if any fact is absent or contradicted.\n"+
+    required = ("\n\nRequired authored facts:\n" +
                 "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
-                if plan.facts else "")
+                if plan.facts else "\n\nThere are no required authored facts.")
+    response_contract = (
+        "\n\nReturn only one JSON object with all four top-level keys: "
+        'supported (boolean), evidence (array of new-message line integers), '
+        'problem (string), and facts (array). Example shape: '
+        '{"supported":true,"evidence":[1],"problem":"","facts":'
+        '[{"index":1,"supported":true,"evidence":[1],"problem":""}]}. '
+        "The facts array supplements the independent whole-scene verdict; "
+        "it never substitutes for the top-level supported, evidence, or problem. "
+        "Include exactly one ordered facts row per numbered required fact, "
+        "with its 1-based integer index, boolean supported, evidence array and "
+        "problem string. If there are no required facts, return facts: []. "
+        "Every supported judgment needs at least one in-range citation. "
+        "For unsupported details, explain the absence or contradiction; "
+        "evidence may be empty when there is no line to cite. Reject the whole "
+        "scene if any required fact is absent or contradicted. Do not invent "
+        "a global approval from individually supported facts.")
     return (
         cast + "You are verifying a fictional conversation, not writing it. "
         "Does the dialogue establish the scenario, including each specified "
-        "person, detail, and commitment? Reject missing, contradictory, or "
-        "merely tentative details when the scenario says agreed. Check that "
+        "person, detail, and commitment that the author actually requires? Reject missing, contradictory, or "
+        "merely tentative details when the scenario says agreed. Require a commitment only "
+        "where the authored scenario or facts require one. With supplied messages "
+        "and no authored scenario or facts, check coherence, identities, chronology "
+        "and relevant continuity without inventing an event or commitment requirement. "
+        "Ordinary chatter may establish no new plan; it must still be coherent. Check that "
         "each asserted participant's commitment is clear in context; "
         "do not count mere interest, uncertainty or silence as agreement. "
         "Cite evidence of commitment without requiring a scripted confirmation order. Check that "
@@ -445,15 +459,13 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
         "an old week's venue is not the current venue unless someone changes it. "
         "Quoted email history is historical context, not a new confirmation. "
         "`Me` consistently represents the user. Judge meaning, not token "
-        "overlap. Return only JSON with keys supported (boolean), evidence "
-        "(array of numbered dialogue line integers), and problem (short "
-        "explanation, empty when supported).\n\n"
+        "overlap.\n\n"
         f"Conversation date: {plan.window_start[:10]}. Resolve relative "
         "dates from this fictional date.\n"
         f"The new messages will be timestamped between {plan.window_start[11:16]} "
         f"and {plan.window_end[11:16]} local time. Reject dialogue that "
         "clearly places the current exchange at a different time of day.\n"
-        f"Scenario: {plan.scene}{required}\n\n{prior}New messages:\n{transcript}"
+        f"Scenario: {plan.scene or 'No additional scenario is asserted.'}{required}\n\n{prior}New messages:\n{transcript}{response_contract}"
     )
 
 
@@ -558,26 +570,23 @@ def judge_scene(plan: ScenePlan, lines: list[tuple[str, str]],
         raise SceneJudgeError(plan.id, problem,
                               judgment_path=path) from exc
     try:
-        if not isinstance(verdict, dict):
-            raise TypeError("judge verdict must be a JSON object")
-        evidence = verdict["evidence"]
-        ok = (isinstance(verdict["supported"], bool)
-              and verdict["supported"] is True
-              and isinstance(evidence, list) and bool(evidence)
-              and all(type(i) is int and 1 <= i <= len(lines) for i in evidence)
-              and isinstance(verdict["problem"], str))
-        if plan.facts:
-            facts = verdict.get("facts")
-            ok = ok and isinstance(facts, list) and len(facts) == len(plan.facts)
-            if ok:
-                ok = all(
-                    isinstance(row, dict) and row.get("index") == i and
-                    row.get("supported") is True and
-                    isinstance(row.get("evidence"), list) and row["evidence"] and
-                    all(type(n) is int and 1 <= n <= len(lines)
-                        for n in row["evidence"]) and
-                    isinstance(row.get("problem"), str)
-                    for i, row in enumerate(facts, 1))
+        if not isinstance(verdict, dict) or set(verdict) != {'supported', 'evidence', 'problem', 'facts'}:
+            raise TypeError("judge must return the complete scene verdict schema")
+        def valid_assessment(row):
+            evidence = row.get('evidence')
+            return (type(row.get('supported')) is bool and isinstance(row.get('problem'), str)
+                    and isinstance(evidence, list)
+                    and (bool(evidence) or row['supported'] is False)
+                    and all(type(i) is int and 1 <= i <= len(lines) for i in evidence))
+        facts = verdict['facts']
+        if (not valid_assessment(verdict) or not isinstance(facts, list)
+                or len(facts) != len(plan.facts)
+                or any(not isinstance(row, dict)
+                    or set(row) != {'index', 'supported', 'evidence', 'problem'}
+                    or type(row.get('index')) is not int or row['index'] != i
+                    or not valid_assessment(row) for i, row in enumerate(facts, 1))):
+            raise TypeError("judge returned malformed assessments or citations")
+        ok = verdict['supported'] is True and all(row['supported'] is True for row in facts)
     except (AttributeError, TypeError, KeyError) as exc:
         problem = f"malformed verdict shape: {out[:120]!r}"
         path = _record(plan, lines, prompt, out, verdict, False, model,

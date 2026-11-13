@@ -45,9 +45,9 @@ def checker(root, calls, *, reject=False, model='offline-stub'):
             verdict = {'consistent': True, 'questions_answerable': True,
                        'natural_enough': True, 'issues': [], 'assessments': []}
         else:
-            verdict = {'supported': not reject, 'evidence': [1],
+            verdict = {'facts': [], 'supported': not reject, 'evidence': [1],
                        'problem': 'Missing author requirement' if reject else ''}
-            if 'numbered required fact' in prompt:
+            if 'Required authored facts:\n' in prompt:
                 verdict['facts'] = [{'index': 1, 'supported': not reject, 'evidence': [1],
                                      'problem': verdict['problem']}]
         text = json.dumps(verdict)

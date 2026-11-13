@@ -72,7 +72,7 @@ def test_description_alone_generates_and_judges_a_scene():
         return "Devon: Pizza Friday night?\nMe: Yes, let's do it!"
     def judge(prompt):
         assert "Pizza Friday night?" in prompt
-        return json.dumps({"supported": True, "evidence": [1, 2], "problem": ""})
+        return json.dumps({'facts': [], "supported": True, "evidence": [1, 2], "problem": ""})
     result = realize_scene(scene, render, judge)
     obs = build_scene_observations("pizza", scene, list(result.lines))
     assert [o.sender for o in obs] == ["Devon", "Me"]
@@ -102,7 +102,7 @@ def test_scene_retry_continues_writers_draft_after_verifier_rejection():
     def verifier(_):
         nonlocal calls
         calls += 1
-        return json.dumps({"supported": calls == 2, "evidence": [1, 2],
+        return json.dumps({'facts': [], "supported": calls == 2, "evidence": [1, 2],
                            "problem": "" if calls == 2 else "not agreed"})
     result = realize_scene(plan, Writer(), verifier)
     assert result.record.attempts == 2
@@ -115,7 +115,7 @@ def test_rendered_json_keeps_writer_note_out_of_frozen_messages():
         plan,
         lambda _: json.dumps({"dialogue": "Sam: Ice cream?\nMe: Yes!",
                               "writer_note": "The brief greeting makes the invitation feel casual."}),
-        lambda _: json.dumps({"supported": True, "evidence": [1, 2], "problem": ""}))
+        lambda _: json.dumps({'facts': [], "supported": True, "evidence": [1, 2], "problem": ""}))
     assert result.lines == (("Sam", "Ice cream?"), ("Me", "Yes!"))
     assert result.record.writer_notes == ["The brief greeting makes the invitation feel casual."]
     assert "writer_note" not in [o.text for o in build_scene_observations("chat", plan, list(result.lines))]

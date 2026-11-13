@@ -109,7 +109,7 @@ def test_rejected_pizza_draft_replays_encrypted_reasoning(tmp_path):
 
     def verify(_prompt):
         supported = next(verdicts)
-        return json.dumps({"supported": supported, "evidence": [1, 2],
+        return json.dumps({'facts': [], "supported": supported, "evidence": [1, 2],
                            "problem": "" if supported else "not agreed"})
 
     plan = ScenePlan(scene="Devon and I agree on pizza Friday",
@@ -166,7 +166,7 @@ def test_two_rejected_drafts_stop_without_a_third_model_call(tmp_path):
         return "Devon: Pizza Friday?\nMe: Maybe."
 
     def verifier(_):
-        return json.dumps({"supported": False, "evidence": [1, 2],
+        return json.dumps({'facts': [], "supported": False, "evidence": [1, 2],
                            "problem": "not agreed"})
 
     with pytest.raises(AuthoringError, match="failed after re-render"):

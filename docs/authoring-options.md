@@ -185,3 +185,20 @@ python -m pacbench.native_pilot --prepared artifacts/corpora/pizza-week/week.jso
 Preparation writes a small plain-JSON `week.json` manifest with hashes of the generated messages, verification receipts, questions and evidence-cited judging contracts beside it. Keep the prepared directory together to reuse it across providers and runs; the manifest references these files rather than embedding a second copy. Provider execution checks every referenced file before importing it, without authoring or verifying messages again. Older self-contained JSON bundles remain readable. `--resume` reuses unchanged verified scenes and accepted contracts when fixing an interrupted preparation. Changed sources, questions, expectations or clocks require fresh contract review; a changed scene requires fresh source verification. Failed scenes are recorded, dependent source continuations skip, and independent scenes continue. Incomplete preparation cannot become a runnable frozen corpus.
 
 The minimal [Pizza Day](../specs/pizza_day.json) uses the same format for a one-day source smoke test. Preparation always runs separately from Hermes and native provider ingestion. All paid work goes through the shared gateway.
+
+### Scene review output
+
+`scene-judge-v11` uses one complete response schema: independent whole-scene
+`supported`, `evidence`, and `problem`, plus an ordered `facts` array (empty when
+no facts are authored). Individual fact approvals never imply global approval.
+All Boolean, index, citation and required-field types are validated before the
+semantic verdict. Missing fields remain ungraded; explicit negative judgments
+remain rejected, including negatives inside malformed responses.
+
+The checker requires commitments only where the authored scenario or facts do.
+Supplied chatter without either is checked for coherence, identities, chronology
+and relevant continuity; an empty facts array does not automatically approve it.
+This version replaces v10's split output instructions, which sometimes elicited
+only per-fact judgments. It does not permit automatic format retries or rerolls.
+Changed checker prompts require new bound checks, reusing the exact source text;
+prior failed and ungraded receipts remain separate evidence.

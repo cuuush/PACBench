@@ -1,0 +1,139 @@
+{
+  "state": "blocked",
+  "provider": "memcal",
+  "inference_calls": 0,
+  "checks": [
+    {
+      "check": "frozen_preparation",
+      "state": "pass",
+      "detail": {
+        "path": "artifacts/pizza-week-hybrid-stream-v7-20261113",
+        "scope": "frozen preparation integrity; no provider quality claim"
+      }
+    },
+    {
+      "check": "pinned_hermes",
+      "state": "blocked",
+      "detail": "Hermes checkout does not match vendor/HERMES_PIN"
+    },
+    {
+      "check": "client_dependencies",
+      "state": "pass",
+      "detail": {
+        "hermes-agent": "0.21.3",
+        "memcal": "0.8.12",
+        "pytypedstream": "0.1.0",
+        "openai": "2.24.0",
+        "pyyaml": "6.0.3"
+      }
+    },
+    {
+      "check": "memcal_checkout",
+      "state": "blocked",
+      "detail": "CalledProcessError"
+    },
+    {
+      "check": "isolated_scratch",
+      "state": "blocked",
+      "detail": "Temporary directory is inside Git; select a writable TMPDIR outside every project"
+    },
+    {
+      "check": "driver_configuration",
+      "state": "blocked",
+      "detail": "Driver configuration is missing MODEL or META; restore the authorized configuration securely"
+    },
+    {
+      "check": "existing_gateway_state",
+      "state": "blocked",
+      "detail": "Restore the original gateway private state; missing: ledger.sqlite3, client-token, address.json. Do not initialize a replacement ledger."
+    }
+  ],
+  "scope": "Setup only. Verify the recovered ledger and free model inventory before paid controls; then run a native canary. This does not prove provider accuracy or authorize spending.",
+  "provider_inventory": {
+    "providers": [
+      {
+        "provider": "memcal",
+        "missing_paths": [
+          "/workspace/memcal-stable-20261113/integrations/hermes/memcal/__init__.py"
+        ],
+        "other_requirements": "Native Messages and TLS IMAP fixtures; installed Memcal and Hermes client dependencies.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "mem0",
+        "missing_paths": [],
+        "other_requirements": "Hermes Mem0 SDK, local Qdrant and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": true
+      },
+      {
+        "provider": "hindsight",
+        "missing_paths": [
+          "vendor/venv-hindsight/bin/python"
+        ],
+        "other_requirements": "Hindsight 1.2.1 server and client in separate environments.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "openviking",
+        "missing_paths": [
+          "vendor/venv-openviking/bin/openviking-server"
+        ],
+        "other_requirements": "OpenViking server and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "reme",
+        "missing_paths": [
+          "vendor/venv-reme/bin/python"
+        ],
+        "other_requirements": "Pinned ReMe runtime, Hermes resource plugin and local embeddings.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "cognee",
+        "missing_paths": [
+          "vendor/venv-cognee/bin/python"
+        ],
+        "other_requirements": "Pinned Cognee server, native HTTP Hermes plugin and local Ollama embeddings.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "memos",
+        "missing_paths": [
+          "vendor/memos-local-plugin/package/dist/bridge.cjs"
+        ],
+        "other_requirements": "Pinned local MemOS bridge, Hermes memtensor plugin and offline MiniLM assets.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "supermemory",
+        "missing_paths": [
+          "vendor/supermemory-local/supermemory-server-linux-x64",
+          "vendor/supermemory-local/installation.json"
+        ],
+        "other_requirements": "Verified local server, SDK and Ollama nomic-embed-text.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      },
+      {
+        "provider": "honcho",
+        "missing_paths": [
+          "vendor/honcho-local/.venv/bin/python"
+        ],
+        "other_requirements": "Honcho 3.6.1 checkout, SDK 2.9.0, Docker/pgvector and Ollama; simulated clock additionally needs pinned libfaketime.",
+        "openrouter_pilot": "native route implemented; installation and live readiness must be verified",
+        "installed_paths_present": false
+      }
+    ],
+    "docker_executable_present": true,
+    "inference_calls": 0,
+    "scope": "File presence only; versions, service readiness, model compatibility, route enforcement and recall are not verified."
+  }
+}

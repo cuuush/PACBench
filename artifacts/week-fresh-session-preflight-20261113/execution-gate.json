@@ -1,0 +1,43 @@
+{
+  "version": "fresh-session-week-preflight-v1",
+  "observed_at": "2026-11-13T15:12:03.644800+00:00",
+  "state": "blocked-missing-private-task-state",
+  "base_revision": "2a67c67",
+  "authorization": "User explicitly approved revised Week across all nine providers in a fresh session on 2026-11-13; no renewed approval required.",
+  "preparation": "artifacts/pizza-week-hybrid-stream-v7-20261113/week.json",
+  "preparation_audit": {
+    "state": "pass",
+    "errors": []
+  },
+  "paid_inference_calls": 0,
+  "new_inference_cost_usd": "0",
+  "missing_task_files": [
+    "/workspace/shared/pacbench-openrouter-pizza-day-20261112/ledger.json",
+    "/workspace/shared/pacbench-openrouter-pizza-day-20261112/authorization.json"
+  ],
+  "historical_checkpoint_accounted_usd": "8.477384928512",
+  "historical_checkpoint_currently_verified": false,
+  "historical_uncertain_control_bound_usd": "0.1746927616",
+  "historical_external_allocations_usd": "3",
+  "account_observation": {
+    "total_credits_usd": "140",
+    "total_usage_usd": "117.596239855",
+    "remaining_credits_usd": "22.403760145",
+    "key_limit_usd": "50",
+    "key_remaining_usd": "49.17423283",
+    "key_usage_usd": "0.82576717",
+    "scope": "Free API reads; account balance is not a substitute for the shared task ledger."
+  },
+  "catalog": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "endpoint": "deepinfra/fp8/flex",
+    "state": "available",
+    "response_sha256": "1225a10169bb4c372fed7ff644826ee5321ebbc3c8364e806b79b90ebd5018cb",
+    "prompt_per_million_usd": "0.0784",
+    "completion_per_million_usd": "0.2352"
+  },
+  "installed_hermes_revision": "0348a190d9a317d80853618ea018927287c6b1d7",
+  "required_hermes_revision": "3b421578588243f920886e6fe79a6faa87ea026e",
+  "recovery_required": "Restore original private OpenRouter task directory from prior task 6af537dd-0d10-8191-aab1-8de60db030fe, preferably its upgraded runtime snapshot, into this fresh session. Do not reconstruct or replace the ledger from published summaries.",
+  "preflight_scope": "Generic preflight also reports legacy Muse configuration gaps; these do not block the authorized OpenRouter route. Missing OpenRouter accounting and native runtime mismatch independently block it."
+}

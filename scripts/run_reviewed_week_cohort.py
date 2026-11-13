@@ -16,12 +16,17 @@ import argparse
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--concurrency',type=int,choices=range(1,10),default=3)
+parser.add_argument('--detach',action='store_true',help='Keep the cohort running while the terminal or chat turn ends; save private PID/log receipt')
 parser.add_argument('--import-only',action='store_true',help='Run native import qualification without benchmark questions')
 ALL_PROVIDERS=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
 parser.add_argument('--providers',nargs='+',choices=ALL_PROVIDERS,default=ALL_PROVIDERS,
     help='Run only these arms in fresh stores; retain completed arms from earlier cohorts')
 args=parser.parse_args()
 if len(args.providers)!=len(set(args.providers)):parser.error('Duplicate providers')
+if args.detach:
+ from pacbench.durable_job import launch
+ print(json.dumps(launch([sys.executable,str(Path(__file__).resolve()),*[a for a in sys.argv[1:] if a!='--detach']],args.output)))
+ raise SystemExit(0)
 repo=Path(__file__).resolve().parents[1]
 prepared=repo/'artifacts/pizza-week-hybrid-stream-v7-20261113/week.json';root=args.output.resolve()
 assert prepared.is_file(),'Full source review and freeze must complete first'

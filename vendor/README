@@ -315,3 +315,17 @@ For an ended OpenRouter request with a recorded generation ID but missing usage,
 and model-catalog receipts, stores them in the private accounting directory,
 and settles only validated actual usage. Requests without a generation ID remain
 held. No inference call, budget reset, or automatic replay is performed.
+
+Use `--detach` when a reviewed cohort must keep running while a terminal or chat
+turn ends, for example:
+
+```bash
+python scripts/run_reviewed_week_cohort.py --import-only --detach \
+  --providers memcal mem0 hindsight openviking honcho reme cognee memos \
+  --concurrency 8 --output runs/week-import-new
+```
+
+This creates a private PID receipt and controller log beside the output directory.
+`launched` confirms process creation only; inspect the log and provider receipts
+for preflight, processing and verification results. A second launch with the same
+output name is refused. Continue to preserve previously completed providers.

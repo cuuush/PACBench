@@ -414,3 +414,34 @@ The constraint files do not install development or unselected optional packages.
 `bootstrap --check` compares installed constrained dependencies and npm packages
 with this manifest; a reviewed cohort now checks this before any paid work.
 This prevents a fresh session from silently selecting newer transitive SDKs.
+
+Reviewed import-only route comparisons use an explicit profile; the default
+remains `deepseek-flex`. `PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global`
+selects exactly `openai/gpt-6-luna` on `amazon-bedrock/global`, with fallback
+disabled. Register an explicitly approved additional route against the original
+private accounting using `python -m pacbench.openrouter_authorize_route
+--authorization '<actual user approval>'` under that profile. Registration keeps
+historical rows, their original pricing and holds, the original route, and the
+shared $20 cap. It does not release allocations. Bounds cover every catalog price
+tier and additive cache writes. The Luna grant rejects driver/judge requests.
+
+The measured launcher checks that one maximum native request can fit, rather
+than imposing the earlier arbitrary $1 minimum. Every actual admission still
+atomically checks all historical liabilities and concurrent reservations. Native
+output limits and reasoning settings are not changed by accounting bounds.
+
+`pacbench.measured_import --providers cognee --probe-source-ids <four IDs>`
+selects one existing conversation from one daily visibility checkpoint, using a
+fresh store. It is explicitly a four-message probe, never a full Week result.
+Default runs retain all 125 frozen messages. Cognee writes record the actual
+unchanged multipart body privately, document/message counts and source hashes;
+provider model requests are captured privately under each arm's
+`memory-api-inputs/`, without authorization headers. These traces are excluded
+from Git. The frozen source itself is not rewritten.
+
+OpenViking's optional `PACBENCH_OPENVIKING_IMPORT_CONDITION=luna-budget-serial-v1`
+sets its documented `vlm.max_concurrent=1` and records a condition sidecar. This
+is a separately labeled budget-limited condition, distinct from the native
+32-slot default. It does not alter prompts, reasoning, output caps or readiness.
+Use it only for the approved Luna route. Performance comparisons must disclose
+this concurrency difference and the simultaneous model/route change.

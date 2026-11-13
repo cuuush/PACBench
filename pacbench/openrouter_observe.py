@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.request import Request,urlopen
 from urllib.parse import urlencode
 from urllib.error import HTTPError
-from .openrouter_route import MODEL
+from .openrouter_route import MODEL, PROFILE
 from .direct_accounting import observed_generation_id
 
 
@@ -35,7 +35,7 @@ def collect(rows,folder,*,concurrency=4,interval=.25):
                 status=exc.code if isinstance(exc,HTTPError) else None
                 if status in (401,403,429):halt.set()
                 return row['id'],{'state':'unavailable','error_class':type(exc).__name__,'http_status':status,'identifier_source':identifier_source}
-        if data.get('id')!=identifier or data.get('model') not in {MODEL,model.get('canonical_slug')} or data.get('provider_name')!='DeepInfra':
+        if data.get('id')!=identifier or data.get('model') not in {MODEL,model.get('canonical_slug')} or data.get('provider_name')!=PROFILE['provider_name']:
             return row['id'],{'state':'identity-mismatch'}
         return row['id'],{'state':'observed','identifier_source':identifier_source,'generation':{k:v for k,v in data.items() if k in ('id','model','provider_name','created_at','latency','generation_time','moderation_latency','native_tokens_prompt','native_tokens_completion','native_tokens_reasoning','native_tokens_cached','tokens_prompt','tokens_completion','finish_reason','cancelled','total_cost','usage')}}
     results={}

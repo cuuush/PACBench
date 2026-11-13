@@ -145,9 +145,11 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
             state = json.loads(path.read_text())
             if state.get('version') != 1 or not isinstance(state.get('calls'), list):
                 raise RuntimeError('Invalid private task ledger')
-            if state['config'].get('model') != MODEL or state['config'].get('endpoint') != ENDPOINT:
+            from .openrouter_route import PROFILE_NAME
+            config=state['config'] if PROFILE_NAME=='deepseek-flex' else state.get('route_configs',{}).get(PROFILE_NAME,{})
+            if config.get('model')!=MODEL or config.get('endpoint')!=ENDPOINT:
                 raise RuntimeError('Task ledger route differs from the authorized route')
-            require_authorization(SimpleNamespace(path=path, config=state['config']))
+            require_authorization(SimpleNamespace(path=path,config=config))
             amounts = [Decimal(str(row['accounted'])) for row in state['calls']]
             if any(not value.is_finite() or value < 0 for value in amounts):
                 raise RuntimeError('Invalid accounted cost')

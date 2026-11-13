@@ -41,6 +41,8 @@ def admitted(url,headers,body):
     budget=live_budget();receipt=budget.reserve(project,json.loads(body))
     from .api_input_trace import record as record_api_input
     record_api_input(project,receipt)
+    from .api_input_trace import record_memory
+    record_memory(project,receipt)
     head={k:v for k,v in dict(headers).items() if k.lower() not in {'authorization','content-length'}}
     head['Authorization']=auth
     data=json.dumps(receipt['request'],ensure_ascii=False).encode()

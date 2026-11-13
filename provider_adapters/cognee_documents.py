@@ -20,6 +20,8 @@ def ingest(source, root):
     from cognee_integration_hermes.http_backend import HttpBackend
     backend = HttpBackend()
     backend.connect(url=config['service_url'], api_key='', timeout=30)
+    from .cognee_wire_audit import observe
+    observe(backend,root,source,text,manifest)
     prior=[]
     for path in sorted((root/'ingestion').glob('*.json')):
         record=json.loads(path.read_text())

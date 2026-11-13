@@ -48,7 +48,9 @@ for binding in audit['file_bindings']:
  assert hashlib.sha256(p.read_bytes()).hexdigest()==binding['sha256'],name
 assert not subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=repo,text=True).strip()
 verify_memcal_source(repo);verify_memos_package(repo);fetch_catalog();budget=live_budget()
-assert sum(money(r['accounted']) for r in budget.snapshot())+Decimal('1')<=Decimal('20')
+maximum_request=(Decimal(budget.config['context_tokens'])*money(budget.config['prompt_per_million'])
+    +Decimal(budget.config['max_completion_tokens'])*money(budget.config['completion_per_million']))/Decimal(1000000)
+assert sum(money(r['accounted']) for r in budget.snapshot())+maximum_request<=Decimal('20'),'Insufficient headroom for one maximum native request; original holds remain intact'
 with budget.locked() as state:
  if state.get('handoff',{}).get('frozen') is True:raise RuntimeError('Transferred task accounting must be verified and activated in its destination session first')
 from pacbench.context_isolation import validate_recall_environment

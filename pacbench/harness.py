@@ -122,7 +122,8 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
         if model_base_url is not None:
             raise ValueError('Codex uses its native provider endpoint, not a custom URL')
     if model_provider == 'openrouter':
-        if model != 'deepseek/deepseek-v4.1-flash-1017':
+        from .openrouter_route import MODEL
+        if model != MODEL:
             raise ValueError('OpenRouter requires the exact authorized model')
         if not model_base_url:
             raise ValueError('OpenRouter requires the guarded loopback transport')
@@ -174,7 +175,8 @@ def provision_home(home: Path, *, provider_plugin_src: Path | None,
     }
     if model_provider == 'openrouter':
         # Full variant and tier slug; `only` excludes fallback providers.
-        config['provider_routing'] = {'only': ['deepinfra/fp8/flex']}
+        from .openrouter_route import ENDPOINT
+        config['provider_routing'] = {'only': [ENDPOINT]}
     _write_yaml(home / "config.yaml", config)
     record["config_written"] = True
     return record

@@ -93,6 +93,7 @@ def supervise(command, component, *, stop, stop_file, timeout_s, grace_s=5, cont
     component = Path(component).resolve(); owner = uuid.uuid4().hex
     env = {**os.environ, OWNER: owner, 'PACBENCH_IMPORT_ROOT': str(component),
            'PACBENCH_STOP_FILE': str(stop_file), 'TMPDIR': '/var/tmp',
+           'PACBENCH_MEMORY_API_INPUT_TRACE_ROOT':str(component/'repeat-1'/component.name/'memory-api-inputs'),
            'DERIVER_MODEL_CONFIG__THINKING_EFFORT': 'none'}
     if cancel_file is not None:env['PACBENCH_DIRECT_STOP_ON_429']=str(cancel_file)
     started_utc = now(); started = time.monotonic(); known = []; reason = None
@@ -158,11 +159,13 @@ def supervise(command, component, *, stop, stop_file, timeout_s, grace_s=5, cont
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--probe-source-ids',nargs=4,help='Isolated four-message conversation probe from the frozen fixture')
     parser.add_argument('--providers',nargs='+',choices=PROVIDERS,default=PROVIDERS)
     parser.add_argument('--concurrency',type=int,choices=range(1,10),default=9)
     parser.add_argument('--timeout-s',type=float,default=3600)
     parser.add_argument('--detach',action='store_true')
     args=parser.parse_args()
+    if args.probe_source_ids and len(args.providers)!=1:parser.error('Conversation probe requires one provider')
     if args.timeout_s<=0 or len(args.providers)!=len(set(args.providers)): parser.error('Positive timeout and unique providers required')
     if args.detach:
         from .durable_job import launch
@@ -174,10 +177,11 @@ def main():
     root.mkdir(); stop=threading.Event(); stop_file=root/'STOP'
     def request_stop(*unused): stop.set();stop_file.touch(exist_ok=True)
     for sig in (signal.SIGINT,signal.SIGTERM): signal.signal(sig,request_stop)
-    report={'version':'measured-native-import-v1','state':'running','started':now(),
+    from .openrouter_route import MODEL,ENDPOINT,PROFILE_NAME
+    report={'model':MODEL,'endpoint':ENDPOINT,'route_profile':PROFILE_NAME,'version':'measured-native-import-v1','state':'running','started':now(),
             'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
             'concurrency':args.concurrency,'provider_timeout_s':args.timeout_s,
-            'benchmark_questions_sent':0,'judge_calls':0,'results':[]}
+            'benchmark_questions_sent':0,'judge_calls':0,'probe_source_ids':args.probe_source_ids,'results':[]}
     write(root/'measured-cohort.json',report)
     def worker(provider):
         if stop.is_set() or stop_file.exists(): return {'provider':provider,'state':'not-started-cancelled'}
@@ -185,6 +189,7 @@ def main():
         command=[sys.executable,'-m','pacbench.openrouter_run','--import-only','--prepared',
                  str(REPO/'artifacts/pizza-week-hybrid-stream-v7-20261113/week.json'),
                  '--providers',provider,'--output',str(component),'--spend-limit-usd','20','--max-messages','150']
+        if args.probe_source_ids:command+=['--probe-source-ids',*args.probe_source_ids]
         if provider=='honcho': command+=['--honcho-clock','simulated']
         result=supervise(command,component,stop=stop,stop_file=root/(provider+'.STOP'),timeout_s=args.timeout_s,cancel_file=stop_file)
         write(root/(provider+'.lifecycle.json'),result)

@@ -15,7 +15,20 @@ from .usage import snapshot, provider_model_health
 from .openrouter_route import MODEL
 
 
-def run(source, output, *, providers, honcho_clock='real', max_messages=150):
+def select_conversation_probe(messages,source_ids,timezone):
+    """One existing four-message conversation at one visibility checkpoint."""
+    from zoneinfo import ZoneInfo
+    if len(source_ids)!=4 or len(set(source_ids))!=4:raise ValueError('Probe requires four distinct source IDs')
+    wanted=set(source_ids);selected=[m for m in messages if m['source_id'] in wanted]
+    if len(selected)!=4:raise ValueError('Probe contains unknown source IDs')
+    if len({(m['channel'],m['thread']) for m in selected})!=1:
+        raise ValueError('Probe must remain one conversation')
+    days={datetime.fromisoformat(m['collected_at']).astimezone(ZoneInfo(timezone)).date() for m in selected}
+    if len(days)!=1:raise ValueError('Probe cannot combine different daily visibility checkpoints')
+    return selected
+
+
+def run(source, output, *, providers, honcho_clock='real', max_messages=150, probe_source_ids=None):
     from .import_metrics import ImportMetrics
     from .context_isolation import validate_recall_environment
     from .prepare import import_week
@@ -30,6 +43,7 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
         messages,_,resolved=read_prepared(source,max_messages)
         copy_prepared_files(source,output)
         zone=resolved.get('timezone') or 'America/New_York'
+        if probe_source_ids is not None:messages=select_conversation_probe(messages,probe_source_ids,zone)
         schedule=prepare_sources(output,messages,zone)
     report={'version':'native-import-validation-v1','mode':'native-import-validation',
         'state':'running','benchmark_questions_sent':0,'judge_calls':0,
@@ -37,7 +51,8 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
         'input_hash':hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest(),
         'ingestion_schedule':schedule,'ingestion_version':VERSION,'process_timezone':zone,
         'gateway_before':require_live_cost_boundary(),'results':[],
-        'scope':'Full-week import qualification only. These stores cannot be used for chronological benchmark questions.'}
+        'probe_source_ids':probe_source_ids,
+        'scope':('Isolated four-message conversation import probe from the unchanged frozen Week; not a full Week import or score.' if probe_source_ids else 'Full-week import qualification only. These stores cannot be used for chronological benchmark questions.')}
     save(output/'summary.json',report)
     for provider in providers:
         root=output/'repeat-1'/provider

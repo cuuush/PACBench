@@ -35,3 +35,17 @@ def record(project, receipt):
 
 def rows(path):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+
+def record_memory(project,receipt):
+    configured=os.environ.get('PACBENCH_MEMORY_API_INPUT_TRACE_ROOT')
+    if not configured or not project.endswith('-memory'):return
+    folder=Path(configured).resolve();owner=Path(os.environ['PACBENCH_IMPORT_ROOT']).resolve()
+    if not folder.is_relative_to(owner) or Path(configured).is_symlink():
+        raise ValueError('Native request trace must remain in its run-owned root')
+    folder.mkdir(mode=0o700,parents=True,exist_ok=True)
+    row={'version':'native-memory-api-input-v1','request_id':receipt['id'],
+         'project':project,'request':receipt['request'],
+         'scope':'Private actual routed native payload; no authorization headers or reasoning output.'}
+    with (folder/(receipt['id']+'.json')).open('x') as stream:
+        os.chmod(stream.name,0o600);json.dump(row,stream,ensure_ascii=False)

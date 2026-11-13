@@ -11,7 +11,7 @@ import sys
 import time
 from pathlib import Path
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER
+from .openrouter_route import MODEL, ENDPOINT, PROVIDER, PROFILE_NAME
 
 BASE_URL = 'https://openrouter.ai/api/v1'
 
@@ -24,6 +24,7 @@ def runtime_environment(env):
     """Install accounting in child clients without editing native provider files."""
     if not active():return env
     repo=Path(__file__).resolve().parents[1]
+    env['PACBENCH_OPENROUTER_PROFILE']=PROFILE_NAME
     bootstrap=repo/'pacbench/direct_runtime'
     existing=env.get('PYTHONPATH','')
     env['PYTHONPATH']=os.pathsep.join([str(bootstrap),str(repo),*filter(None,existing.split(os.pathsep))])

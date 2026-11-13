@@ -6,10 +6,23 @@ A caller must independently enforce authorization and a hard spending limit.
 from __future__ import annotations
 
 from copy import deepcopy
+import os
 from typing import Any, Mapping
 
-MODEL = 'deepseek/deepseek-v4.1-flash-1017'
-ENDPOINT = 'deepinfra/fp8/flex'
+PROFILES = {
+    'deepseek-flex': {'model':'deepseek/deepseek-v4.1-flash-1017',
+        'endpoint':'deepinfra/fp8/flex','provider_name':'DeepInfra',
+        'quantization':'fp8','service_tier':'flex'},
+    'luna-bedrock-global': {'model':'openai/gpt-6-luna',
+        'canonical_slug':'openai/gpt-6-luna-20260922',
+        'endpoint':'amazon-bedrock/global','provider_name':'Amazon Bedrock',
+        'quantization':'unknown','service_tier':None},
+}
+PROFILE_NAME = os.environ.get('PACBENCH_OPENROUTER_PROFILE','deepseek-flex')
+if PROFILE_NAME not in PROFILES:raise ValueError('Unknown explicitly selected OpenRouter profile')
+PROFILE = PROFILES[PROFILE_NAME]
+MODEL = PROFILE['model']
+ENDPOINT = PROFILE['endpoint']
 CHAT_COMPLETIONS_URL = 'https://openrouter.ai/api/v1/chat/completions'
 CATALOG_URL = f'https://openrouter.ai/api/v1/models/{MODEL}/endpoints'
 PROVIDER = {'only': [ENDPOINT], 'order': [ENDPOINT],

@@ -16,13 +16,20 @@ from pacbench.gateway_client import validate_route
 
 def plan_config(root, model, base, key, *, port):
     """Build native config without starting a server or accessing the network."""
-    return {'storage':{'workspace':str((root/'openviking-data').resolve())},
+    config={'storage':{'workspace':str((root/'openviking-data').resolve())},
          'embedding':{'dense':{'provider':'ollama','model':'nomic-embed-text',
              'api_base':'http://127.0.0.1:11435/v1','dimension':768,'input':'text'}},
          'vlm':{'provider':'openai','model':model,'api_base':base,'api_key':key},
          'server':{'host':'127.0.0.1','port':port,'observability':{
              'traces':{'enabled':True,'protocol':'local','local_path':str((root/'provider-api-calls.jsonl').resolve())},
              'dump_body':{'enabled':True,'max_bytes':8_000_000}}}}
+    condition=os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','native-defaults')
+    if condition=='luna-budget-serial-v1':
+        from pacbench.openrouter_route import PROFILE_NAME
+        if PROFILE_NAME!='luna-bedrock-global':raise ValueError('Luna budget condition requires its exact approved route')
+        config['vlm']['max_concurrent']=1
+    elif condition!='native-defaults':raise ValueError('Unknown explicit OpenViking import condition')
+    return config
 
 
 def start(root,env,model,base,key):
@@ -34,6 +41,9 @@ def start(root,env,model,base,key):
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     cfg=plan_config(root,model,base,key,port=port)
+    save(root/'import-condition.json',{'condition':os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','native-defaults'),
+        'vlm_max_concurrent':cfg['vlm'].get('max_concurrent',32),
+        'comparison_caveat':'Explicit budget-limited serial API condition; compare separately from native default concurrency' if 'max_concurrent' in cfg['vlm'] else 'Native default concurrency'})
     path=root/'ov.conf';save(path,cfg);os.chmod(path,0o600)
     endpoint=f'http://127.0.0.1:{port}'
     env.update(OPENVIKING_ENDPOINT=endpoint,OPENVIKING_CONFIG_FILE=str(path.resolve()),

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER, with_route
+from .openrouter_route import MODEL, ENDPOINT, PROVIDER, PROFILE, PROFILE_NAME, with_route
 from .openrouter_task import STATE, require_authorization
 
 VERSION = 'direct-client-reservations-v1'
@@ -110,10 +110,17 @@ class DirectBudget:
         self.path=Path(path)
         self.nonblocking=nonblocking
         with self.locked() as state:
-            self.config=state['config']
+            self.config=self.selected_config(state)
         if (self.config.get('model')!=MODEL or self.config.get('endpoint')!=ENDPOINT or
                 money(self.config.get('cap'))!=Decimal('20')):
             raise RuntimeError('Task accounting configuration differs')
+
+    def selected_config(self,state):
+        if PROFILE_NAME=='deepseek-flex':return state['config']
+        config=state.get('route_configs',{}).get(PROFILE_NAME)
+        if not config or money(state['config']['cap'])!=Decimal('20'):
+            raise RuntimeError('Explicit route accounting configuration is unavailable')
+        return config
 
     @contextmanager
     def locked(self):
@@ -123,7 +130,7 @@ class DirectBudget:
             state=json.load(f)
             if state.get('version')!=1 or not isinstance(state.get('calls'),list):
                 raise RuntimeError('Invalid task ledger')
-            if hasattr(self,'config') and state['config']!=self.config:
+            if hasattr(self,'config') and self.selected_config(state)!=self.config:
                 raise RuntimeError('Task configuration changed')
             yield state
             f.seek(0);json.dump(state,f,separators=(',',':'));f.truncate();f.flush();os.fsync(f.fileno())
@@ -194,8 +201,8 @@ class DirectBudget:
         g=generation
         if (model_record.get('id')!=MODEL or
                 g.get('model') not in {MODEL,model_record.get('canonical_slug')} or
-                not g.get('model') or g.get('provider_name')!='DeepInfra' or
-                g.get('service_tier')!='flex' or g.get('is_byok') is not False or
+                not g.get('model') or g.get('provider_name')!=PROFILE['provider_name'] or
+                g.get('service_tier')!=PROFILE['service_tier'] or g.get('is_byok') is not False or
                 not (g.get('cancelled') is True or g.get('finish_reason')) or
                 not re.fullmatch(r'[0-9a-f]{64}',receipt_sha256)):
             raise ValueError('Unverified generation identity or terminal state')
@@ -230,6 +237,8 @@ class DirectBudget:
     def reserve(self,project,body):
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
             raise ValueError('Invalid accounting project')
+        if self.config.get('request_scope')=='import-and-connectivity-probes' and not (project.endswith('-memory') or project.startswith('pacbench-route-probe-')):
+            raise RuntimeError('Authorized route is import-only; benchmark and judge calls remain paused')
         if not isinstance(body,dict) or body.get('model')!=MODEL:
             raise ValueError('Exact model required')
         if body.get('n',1) not in (None,1) or body.get('modalities') not in (None,['text']):
@@ -302,6 +311,7 @@ class DirectBudget:
                 'provider_request':request['provider'],'completion_bound_tokens':maximum,
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
                 'http_status':None,'error_label':None,
+                'route_profile':PROFILE_NAME,'endpoint':ENDPOINT,'pricing_snapshot':dict(self.config),
                 'native_request_parameter_keys':sorted(body),
                 'native_request_parameters':{k:body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in body},
                 'parameter_observation_scope':'Native input before route/price enforcement; absence is not a provider default. completion_bound_tokens is an accounting bound, not an injected output limit.'}
@@ -347,7 +357,7 @@ class DirectBudget:
                         if isinstance(event.get(k),str):row[v]=event[k][:256]
                     for choice in event.get('choices') or []:
                         if isinstance(choice.get('finish_reason'),str):row['finish_reason']=choice['finish_reason'][:64]
-                if any(e.get('model') is not None and e['model']!=MODEL for e in events):
+                if any(e.get('model') is not None and e['model'] not in {MODEL,PROFILE.get('canonical_slug',MODEL)} for e in events):
                     row['error_label']='model_mismatch';return
                 payload=next(e for e in reversed(events) if isinstance(e.get('usage'),dict))
                 usage=payload['usage']

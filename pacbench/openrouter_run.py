@@ -15,7 +15,7 @@ import os
 from pathlib import Path
 import urllib.request
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL
+from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL, PROFILE
 from .provider_lineup import ACTIVE_PROVIDERS
 
 
@@ -26,29 +26,31 @@ def catalog_parameters(data):
     if len(rows) != 1:
         raise ValueError('exact endpoint unavailable or ambiguous')
     row = rows[0]
-    if row.get('model_id') != MODEL or row.get('quantization') != 'fp8' or row.get('service_tier') != 'flex':
+    if row.get('model_id') != MODEL or row.get('quantization') != PROFILE['quantization'] or row.get('service_tier') != PROFILE['service_tier']:
         raise ValueError('endpoint metadata mismatch')
     if not {'tools', 'tool_choice', 'response_format'} <= set(row.get('supported_parameters', [])):
         raise ValueError('endpoint lacks required request parameters')
     prices = row['pricing']
-    allowed = {'prompt', 'completion', 'input_cache_read', 'input_cache_write', 'discount'}
-    if set(prices) - allowed:
-        raise ValueError('unaccounted endpoint pricing dimension')
-    def price(name):
-        value = Decimal(str(prices[name]))
-        if not value.is_finite() or value < 0:
-            raise ValueError('invalid catalog price')
-        return value * 1000000
-    # Cache writes can be an additional charge. Summing bounds avoids relying
-    # on a provider's cache billing interpretation; reads cannot cost more here.
-    prompt = max(price('prompt'), price('input_cache_read') if 'input_cache_read' in prices else Decimal(0))
-    if 'input_cache_write' in prices:
-        prompt += price('input_cache_write')
+    allowed = {'prompt','completion','input_cache_read','input_cache_write','discount','overrides','web_search'}
+    tiers=[prices,*prices.get('overrides',[])]
+    bounds=[]
+    for tier in tiers:
+        if set(tier)-allowed-{'min_prompt_tokens'}:
+            raise ValueError('unaccounted endpoint pricing dimension')
+        def price(name):
+            value=Decimal(str(tier.get(name,prices.get(name,0))))
+            if not value.is_finite() or value<0:raise ValueError('invalid catalog price')
+            return value*1000000
+        # Cover all context tiers and additive cache writes. Paid built-in
+        # tools/search remain forbidden by direct request admission.
+        prompt=max(price('prompt'),price('input_cache_read'))+price('input_cache_write')
+        bounds.append((prompt,price('completion')))
+    prompt=max(p for p,c in bounds);completion=max(c for p,c in bounds)
     for key in ('context_length', 'max_completion_tokens'):
         if type(row.get(key)) is not int or row[key] <= 0:
             raise ValueError('missing endpoint token bounds')
     return dict(context_tokens=row['context_length'], max_completion_tokens=row['max_completion_tokens'],
-                prompt_per_million=str(prompt), completion_per_million=str(price('completion')))
+                prompt_per_million=str(prompt), completion_per_million=str(completion))
 
 
 def fetch_catalog():
@@ -88,6 +90,7 @@ def main(argv=None):
                         choices=ACTIVE_PROVIDERS, default=list(ACTIVE_PROVIDERS),
                         help='Memory providers to inspect; defaults to all active local providers')
     parser.add_argument('--prepared', type=Path)
+    parser.add_argument('--probe-source-ids',nargs=4,help='Explicit isolated four-message conversation probe; import-only and one provider required')
     parser.add_argument('--import-only',action='store_true',help='Validate native ingestion only; send no benchmark questions or judgments')
     parser.add_argument('--spec',type=Path,help='Prepare and freeze a scenario through the same authorized direct route')
     parser.add_argument('--prepare-from-archive', type=Path,
@@ -104,6 +107,7 @@ def main(argv=None):
     parser.add_argument('--recall-timeout-s',type=int,default=180,
                         help='Native-trial Hermes wall deadline, 1–900 real seconds')
     args = parser.parse_args(argv)
+    if args.probe_source_ids and (not args.import_only or len(args.providers)!=1):parser.error('Conversation probe requires import-only and exactly one provider')
     if args.import_only and not args.prepared:parser.error('--import-only requires --prepared')
     if not 0<args.judge_timeout_s<=900:parser.error('Judge deadline must be 1–900 seconds')
     if not 0<args.recall_timeout_s<=900:parser.error('Recall deadline must be 1–900 seconds')
@@ -169,7 +173,7 @@ def main(argv=None):
             if args.import_only:
                 from .import_trial import run as import_run
                 result=import_run(args.prepared,args.output,providers=args.providers,
-                    honcho_clock=args.honcho_clock,max_messages=args.max_messages)
+                    honcho_clock=args.honcho_clock,max_messages=args.max_messages,probe_source_ids=args.probe_source_ids)
                 print(json.dumps(result,indent=2))
                 return int(result['state']!='processing-complete')
             from .native_pilot import run

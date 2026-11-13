@@ -1,0 +1,67 @@
+{
+  "version": "luna-route-connectivity-probe-v1",
+  "state": "pass",
+  "observed_at": "2026-11-13T22:56:33.821874+00:00",
+  "model": "openai/gpt-6-luna",
+  "endpoint": "amazon-bedrock/global",
+  "served_model": "openai/gpt-6-luna",
+  "served_provider": "Amazon Bedrock",
+  "route_request": {
+    "only": [
+      "amazon-bedrock/global"
+    ],
+    "order": [
+      "amazon-bedrock/global"
+    ],
+    "allow_fallbacks": false,
+    "require_parameters": true,
+    "max_price": {
+      "prompt": 0.45,
+      "completion": 0.75,
+      "request": 0
+    }
+  },
+  "request_id": "2b1d0149-1a31-46b1-8d34-ea14cb7603b3",
+  "generation_id": "gen-1794610592-1FsmocKH0c5abkkw9jh6",
+  "wall_s": 1.079199421001249,
+  "reported_cost_usd": "0.0000099",
+  "unresolved_bound_usd": null,
+  "input_tokens": 34,
+  "output_tokens": 13,
+  "token_details": {
+    "prompt_tokens": 34,
+    "completion_tokens": 13,
+    "total_tokens": 47,
+    "prompt_tokens_details.cached_tokens": 0,
+    "prompt_tokens_details.cache_write_tokens": 0,
+    "prompt_tokens_details.audio_tokens": 0,
+    "completion_tokens_details.reasoning_tokens": 0,
+    "completion_tokens_details.image_tokens": 0,
+    "completion_tokens_details.audio_tokens": 0
+  },
+  "response_validation": {
+    "body_complete": true,
+    "events_observed": 1,
+    "envelope_errors": [],
+    "assistant_text_characters": 11,
+    "assistant_nonwhitespace_characters": 11,
+    "assistant_text_sha256": "4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93",
+    "tool_call_fragments": 0,
+    "finish_reasons": [
+      "stop"
+    ],
+    "scope": "Content lengths and fingerprint only; reasoning text is not captured."
+  },
+  "generation_observation": {
+    "state": "unavailable",
+    "error_class": "HTTPError",
+    "http_status": 404,
+    "identifier_source": "response-body:id"
+  },
+  "probe_condition": {
+    "reasoning_effort": "none",
+    "max_tokens": 128,
+    "structured_output": true
+  },
+  "scope": "One connectivity/structured-output probe. Probe-specific effort/cap do not configure native provider baselines. Catalog account access verified separately. Exact endpoint is pinned in the request; generation metadata verifies provider identity, not region independently."
+}

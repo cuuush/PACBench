@@ -1,0 +1,31 @@
+{
+  "version": "fresh-session-runtime-rebuild-v1",
+  "recorded_at": "2026-11-13T15:26:03.699779+00:00",
+  "state": "runtime-rebuilt-accounting-handoff-pending",
+  "install_command": "python3 -m pacbench.bootstrap --install",
+  "install_exit_code": 0,
+  "offline_verify_command": "python3 -m pacbench.bootstrap --check",
+  "offline_verify_state": "pass",
+  "tests": {
+    "passed": 1341,
+    "skipped": 7,
+    "subtests_passed": 22,
+    "elapsed_seconds": 54.66,
+    "targeted_final_preflight_bootstrap_patch_tests_passed": 24
+  },
+  "local_embeddings": {
+    "nomic_dimensions": 768,
+    "memos_dimensions": 384,
+    "memos_remote_loading": false
+  },
+  "paid_inference_calls": 0,
+  "new_inference_cost_usd": "0",
+  "original_ledger_restored": false,
+  "remaining_execution_blocker": "Original shared OpenRouter ledger.json and authorization.json are absent; private handoff pending. No spending history recreated.",
+  "runtime_recovery": "Pinned upstream sources/releases and documented package installation; old Hermes directories preserved in /workspace/runtime-backups/20261113. No old workspace snapshot required.",
+  "limitations": [
+    "Provider versions and source identity plus offline tests do not prove Week recall or processing.",
+    "Some transitive provider dependencies follow upstream constraints rather than a fully frozen lock.",
+    "Ollama0.12.11 CPU runtime newly pinned for fresh-session reproducibility; earlier runtime version not recovered."
+  ]
+}

@@ -49,7 +49,7 @@ def setup(tmp_path, monkeypatch):
     monkeypatch.setattr(preflight, '_scratch_check', lambda: '/isolated-temp')
     def git(root, *args):
         if args == ('rev-parse', 'HEAD'): return 'known-pin\n'
-        if args == ('diff', 'HEAD'): return 'exact patch\n'
+        if args == ('diff', '--abbrev=8', 'HEAD'): return 'exact patch\n'
         return ''
     monkeypatch.setattr(preflight, '_git', git)
     monkeypatch.setattr('pacbench.provider_versions.verify_memcal_source',
@@ -70,6 +70,37 @@ def test_missing_state_blocks_without_network_or_replacement(setup, monkeypatch)
     assert states(result)['existing_gateway_state']['state'] == 'blocked'
     assert 'Do not initialize a replacement ledger' in json.dumps(result)
     assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
+
+
+def test_openrouter_missing_ledger_is_independent_of_muse(setup, monkeypatch):
+    repo, prepared, state = setup
+    monkeypatch.setattr('pacbench.openrouter_task.STATE', state)
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'SECRET_DO_NOT_PRINT')
+    result = preflight.inspect(prepared, repo=repo, inference_route='openrouter')
+    assert result['state'] == 'blocked'
+    assert states(result)['existing_openrouter_accounting']['state'] == 'blocked'
+    assert 'existing_gateway_state' not in states(result)
+    assert 'driver_configuration' not in states(result)
+    assert not state.exists()
+    assert 'SECRET_DO_NOT_PRINT' not in json.dumps(result)
+
+
+def test_openrouter_accounting_check_preserves_every_byte(setup, monkeypatch):
+    from pacbench.openrouter_route import MODEL, ENDPOINT
+    repo, prepared, state = setup
+    state.mkdir()
+    monkeypatch.setattr('pacbench.openrouter_task.STATE', state)
+    monkeypatch.setenv('OPENROUTER_API_KEY', 'secret')
+    ledger = state / 'ledger.json'
+    ledger.write_text(json.dumps({'version': 1, 'config': {'cap':'20', 'model':MODEL, 'endpoint':ENDPOINT},
+        'calls': [{'state':'uncertain','accounted':'0.175'}, {'state':'allocated','accounted':'3'}]}, indent=4))
+    (state / 'authorization.json').write_text(json.dumps({'task':'pacbench-pizza-day-20261112',
+        'model':MODEL,'endpoint':ENDPOINT,'approved_total_usd':'20'}))
+    before = ledger.read_bytes()
+    result = preflight.inspect(prepared, repo=repo, inference_route='openrouter')
+    assert result['state'] == 'prerequisites-pass'
+    assert states(result)['existing_openrouter_accounting']['detail']['accounted_upper_bound_usd'] == '3.175'
+    assert ledger.read_bytes() == before
 
 
 def test_present_files_are_not_claimed_as_recovered_history(setup, monkeypatch):

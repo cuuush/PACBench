@@ -64,6 +64,13 @@ Work on small, inspectable changes before expanding the benchmark:
 
 ## Run a new experiment
 
+For a fresh environment, run `python3 -m pacbench.bootstrap --install` from
+the repository root, then `python3 -m pacbench.bootstrap --check`. See the
+[runtime setup](vendor/README) for prerequisites and a copyable cloud setup
+snippet. This provisions pinned local components without paid inference.
+Private spending history must be restored separately before any paid run;
+installation does not recover the ledger or establish native recall readiness.
+
 Live experiments require substantial setup. Read the
 [provider map](docs/document-ingestion-provider-map.md) and [runtime instructions](vendor/README)
 before provisioning services. Native servers use separate environments from

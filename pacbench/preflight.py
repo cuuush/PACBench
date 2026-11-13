@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from decimal import InvalidOperation
 import json
 import os
 import subprocess
@@ -64,7 +65,7 @@ def _runtime_metadata(python: Path) -> dict:
     program = (
         'import importlib.metadata as m,json; '
         'print(json.dumps({n:m.version(n) for n in '
-        '["hermes-agent","memcal","pytypedstream","openai","pyyaml"]}))')
+        '["hermes-agent","memcal","pytypedstream","openai","ruamel.yaml"]}))')
     return json.loads(subprocess.check_output(
         [str(python), '-c', program], text=True, stderr=subprocess.DEVNULL, timeout=30))
 
@@ -80,14 +81,15 @@ def _scratch_check() -> str:
 
 
 def inspect(prepared: Path, *, repo: Path = harness.REPO,
-            gateway_state: Path = STATE, check_gateway: bool = False) -> dict:
+            gateway_state: Path = STATE, check_gateway: bool = False,
+            inference_route: str = 'muse') -> dict:
     """A passing setup check is not model access, corpus quality or recall proof."""
     checks = []
 
     def check(name, action):
         try:
             detail = action()
-        except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as exc:
+        except (OSError, ValueError, KeyError, InvalidOperation, RuntimeError, subprocess.SubprocessError) as exc:
             # Subprocess output and exception text can contain private values.
             detail = str(exc) if type(exc) is RuntimeError else type(exc).__name__
             checks.append({'check': name, 'state': 'blocked', 'detail': detail})
@@ -115,7 +117,7 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
             raise RuntimeError('vendor/HERMES_PIN has no pinned revision')
         if _git(tree, 'rev-parse', 'HEAD').strip() != pin:
             raise RuntimeError('Hermes checkout does not match vendor/HERMES_PIN')
-        if _git(tree, 'diff', 'HEAD') != (repo / 'patches/hermes-isolated.diff').read_text():
+        if _git(tree, 'diff', '--abbrev=8', 'HEAD') != (repo / 'patches/hermes-isolated.diff').read_text():
             raise RuntimeError('Hermes tree differs from the exact tracked isolation patch')
         if _git(tree, 'ls-files', '--others', '--exclude-standard').strip():
             raise RuntimeError('Hermes tree contains untracked files; inspect before native execution')
@@ -130,6 +132,41 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
 
     check('memcal_checkout', memcal)
     check('isolated_scratch', _scratch_check)
+
+    if inference_route == 'openrouter':
+        def accounting():
+            from types import SimpleNamespace
+            from decimal import Decimal
+            from .openrouter_task import STATE as task_state, require_authorization
+            from .openrouter_route import MODEL, ENDPOINT
+            path = task_state / 'ledger.json'
+            if not path.is_file() or not (task_state / 'authorization.json').is_file():
+                raise RuntimeError('Restore the original OpenRouter task ledger.json and authorization.json; do not initialize a replacement.')
+            state = json.loads(path.read_text())
+            if state.get('version') != 1 or not isinstance(state.get('calls'), list):
+                raise RuntimeError('Invalid private task ledger')
+            if state['config'].get('model') != MODEL or state['config'].get('endpoint') != ENDPOINT:
+                raise RuntimeError('Task ledger route differs from the authorized route')
+            require_authorization(SimpleNamespace(path=path, config=state['config']))
+            amounts = [Decimal(str(row['accounted'])) for row in state['calls']]
+            if any(not value.is_finite() or value < 0 for value in amounts):
+                raise RuntimeError('Invalid accounted cost')
+            total = sum(amounts, Decimal(0))
+            if total >= Decimal('20'):
+                raise RuntimeError('Shared task cap exhausted')
+            return {'accounted_upper_bound_usd': str(total), 'cap_usd': '20',
+                    'scope': 'Read-only snapshot; request admission still rechecks the live ledger.'}
+        check('existing_openrouter_accounting', accounting)
+        def credential():
+            if not os.environ.get('OPENROUTER_API_KEY'):
+                raise RuntimeError('OPENROUTER_API_KEY missing; configure securely in environment settings')
+            return {'present': True, 'access_verified': False}
+        check('openrouter_credential', credential)
+        return {'state': 'blocked' if any(row['state'] == 'blocked' for row in checks) else 'prerequisites-pass',
+                'provider': 'memcal', 'inference_route': inference_route, 'inference_calls': 0, 'checks': checks,
+                'scope': 'Offline setup only; free endpoint access, provider readiness and per-request budget admission remain required.'}
+    if inference_route != 'muse':
+        raise ValueError('Unknown inference route')
 
     def driver():
         from .generation import GenerationError, load_config
@@ -172,9 +209,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--prepared', required=True, type=Path)
     parser.add_argument('--check-gateway', action='store_true', help='Also perform free GET /health against existing state')
-    parser.add_argument('--all-providers', action='store_true', help='Include a read-only inventory of seven provider installation paths')
+    parser.add_argument('--all-providers', action='store_true', help='Include a read-only inventory of all nine provider installation paths')
+    parser.add_argument('--inference-route', choices=('muse', 'openrouter'), default='muse')
     args = parser.parse_args()
-    result = inspect(args.prepared, check_gateway=args.check_gateway)
+    if args.check_gateway and args.inference_route != 'muse':
+        parser.error('--check-gateway applies only to the Muse gateway')
+    result = inspect(args.prepared, check_gateway=args.check_gateway, inference_route=args.inference_route)
     if args.all_providers:
         result['provider_inventory'] = provider_inventory()
     print(json.dumps(result, indent=2))

@@ -1,5 +1,84 @@
 # vendor/ — PACBench-owned isolated Hermes (W1)
 
+## Reproduce the current runtime
+
+From a checkout of this branch on Linux x86-64, run:
+
+```sh
+python3 -m pacbench.bootstrap --install
+```
+
+Requirements: Python 3.11+, `uv`, Git, Node 22.21+ with npm, and a working
+local Docker daemon. Keep the inherited HTTPS proxy and CA trust. Run as the
+normal user with writable workspace and home directories. Stock Ollama creates
+its native identity in `~/.ollama`; a sandbox that makes the home read-only
+needs a normal outside-sandbox setup invocation. The installer never reads,
+creates or replaces the task's private ledger or needs an inference API key.
+
+The default invocation without `--install` prints a plan. `--components hermes
+honcho` selects a subset; `--check` verifies installed identities offline.
+Pinned Hermes includes the Mem0 and other provider clients and the clean Memcal
+0.8.11 checkout. Separate environments install Hindsight, OpenViking, ReMe,
+Cognee and Honcho. MemOS and Supermemory assets are hash-verified. The clock
+uses the existing reproducible Docker build. Embeddings install a pinned
+CPU Ollama runtime, native Nomic model and offline MiniLM files. A temporary
+loopback Ollama server downloads the model and checks a 768-dimensional local
+embedding, then stops. No paid model requests or source ingestion occur.
+
+Existing source trees at a different revision, untracked files, or changes
+other than Hermes's reviewed isolation patch fail closed. Preserve and move
+those directories aside explicitly before retrying; the installer never resets
+them. Downloads can require several GB. Top-level provider releases, source
+commits and asset hashes are pinned; provider dependency trees outside Hermes
+and Honcho still use the releases' declared constraints, not a universal lock.
+Installation identity is not native processing or recall qualification.
+
+Example saved cloud-environment setup, with this repository already selected
+at the desired review commit:
+
+```sh
+set -eu
+cd /workspace/PACBench
+python3 -m pacbench.bootstrap --install
+python3 -m pacbench.bootstrap --check
+```
+
+Before paid execution, restore the **original** private directory
+`/workspace/shared/pacbench-openrouter-pizza-day-20261112` using the environment's
+private persistence/handoff mechanism. It must contain `ledger.json` and
+`authorization.json`, including all historical unknowns, reservations and
+external allocations. Never put it in Git, a setup script, or rebuild it from a
+checkpoint total. A fresh code checkout alone does not carry spending history.
+Keep model credentials in environment settings. Missing accounting blocks paid
+execution independently of a successful bootstrap.
+
+Use the route-specific free preflight to avoid confusing missing historical
+Muse configuration with the authorized OpenRouter route:
+
+```sh
+TMPDIR=/var/tmp python3 -m pacbench.preflight --inference-route openrouter \
+  --prepared artifacts/pizza-week-hybrid-stream-v7-20261113/week.json --all-providers
+```
+
+Start the installed embedding server in the execution environment before a run:
+
+```sh
+OLLAMA_MODELS="$PWD/vendor/ollama/models" OLLAMA_HOST=127.0.0.1:11435 \
+  vendor/ollama/bin/ollama serve
+```
+
+This process stays in the foreground; keep it in a separate terminal or managed
+process. Native adapters own their other services. Select `TMPDIR=/var/tmp`
+for recall and tests because Hermes must run outside Git. To run the offline
+suite, install the test-only dependencies, then execute:
+
+```sh
+uv pip install --python vendor/venv-hermes-isolated/bin/python pytest PyYAML
+TMPDIR=/var/tmp vendor/venv-hermes-isolated/bin/python -m pytest -q
+```
+
+The source pins and ordinary backend settings below remain authoritative.
+
 **Upgraded Pizza Day validation is enabled; the new Pizza Week remains held**
 until native provider and Honcho scheduling checks pass. The isolated Hermes
 v0.23.1 integration has
@@ -133,6 +212,10 @@ support (`NODE_USE_ENV_PROXY=1`). Production installation used `--omit=dev
 --omit=optional --legacy-peer-deps` because unused DeepSeek Harness development
 peers conflict upstream. No runtime source files are rewritten. The native
 Hermes bridge, public core bootstrap and raw-document HTTP API remain unchanged.
+The bootstrap additionally installs the Linux x64 Sharp/libvips runtime packages
+required by Transformers for native text embeddings; npm marks these optional,
+but omitting them can break the import. It verifies an offline 384-dimensional
+embedding through MemOS's shipped embedder before declaring assets ready.
 
 Each new cohort needs fresh native processing, context injection and tool checks.
 Fresh homes disable lazy installs after verified plugin installation. Service

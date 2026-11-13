@@ -98,7 +98,15 @@ def main(argv=None):
     parser.add_argument('--max-messages',type=int,default=150,help='Native source ceiling; bound explicitly for larger frozen scenarios')
     parser.add_argument('--judge-reasoning-effort',choices=('none','low','medium','high'),
                         help='Explicit benchmark-judge setting; native provider models retain their configuration')
+    parser.add_argument('--judge-timeout-s',type=int,default=180,
+                        help='Native-trial judge HTTP wall deadline, 1–900 real seconds')
+    parser.add_argument('--recall-timeout-s',type=int,default=180,
+                        help='Native-trial Hermes wall deadline, 1–900 real seconds')
     args = parser.parse_args(argv)
+    if not 0<args.judge_timeout_s<=900:parser.error('Judge deadline must be 1–900 seconds')
+    if not 0<args.recall_timeout_s<=900:parser.error('Recall deadline must be 1–900 seconds')
+    if args.judge_timeout_s!=180 and not (args.prepared or args.plan):parser.error('Judge deadline override requires a prepared native trial')
+    if args.recall_timeout_s!=180 and not (args.prepared or args.plan):parser.error('Recall deadline override requires a prepared native trial')
     if len(set(args.providers)) != len(args.providers):
         parser.error('Select each provider only once')
     if not 1<=args.max_messages<=100000:
@@ -110,6 +118,8 @@ def main(argv=None):
                           'provider_plans': plans,
                           'roles': ['hermes', 'memory_provider', 'judge'],
                           'judge_reasoning_effort':args.judge_reasoning_effort,
+                          'judge_wall_deadline_s':args.judge_timeout_s,
+                          'recall_wall_deadline_s':args.recall_timeout_s,
                           'paid_calls_enabled': False,
                           'transport': 'direct OpenRouter HTTPS; no local inference proxy',
                           'plan_scope': 'native settings and direct per-request reservation hooks',
@@ -155,6 +165,8 @@ def main(argv=None):
                        if args.judge_reasoning_effort is not None else {})
         if args.prepared:
             from .native_pilot import run
+            judge_options['judge_timeout_s']=args.judge_timeout_s
+            judge_options['recall_timeout_s']=args.recall_timeout_s
             result=run(args.prepared,args.output,providers=args.providers,
                        inference_route='openrouter',honcho_clock=args.honcho_clock,max_messages=args.max_messages,**judge_options)
         else:

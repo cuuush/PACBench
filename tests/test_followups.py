@@ -324,6 +324,7 @@ def test_timeout_preserves_tool_attempts_and_errors(tmp_path, monkeypatch):
     monkeypatch.setattr(harness.subprocess, 'run', timeout)
     t = harness.run_turn('Which street?', at='2026-09-11T09:00:00-04:00', home=tmp_path, allowlist='', timeout_s=1)
     assert t.returncode == -1
+    assert t.timed_out is True and t.wall_deadline_s==1
     assert t.tool_calls[0]['name'] == 'memcal_search_archive'
     assert turn_metrics(t)['source_fallback_attempted'] is True
     assert t.session_input_tokens is None

@@ -406,7 +406,7 @@ def natural_eligibility(grade):
 
 def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
-                  source_tools=(), run_turn=None, budget_snapshot=None,
+                  source_tools=(), run_turn=None, budget_snapshot=None, turn_timeout_s=180,
                   question_model=None, question_dir: Path | None = None,
                   previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
@@ -455,7 +455,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
             if (home.parent/'provider-clock.json').exists():
                 turn_environment = {**(extra_env or {}), 'PACBENCH_CLOCK_RECOVERY':'1'}
             turn = tracked_turn(run_turn, question, usage_path=directory / "usage.json", at=initial_turn.at, home=home, allowlist=allowlist,
-                            extra_env=turn_environment, timeout_s=180, session_id=initial_turn.session_id,
+                            extra_env=turn_environment, timeout_s=turn_timeout_s, session_id=initial_turn.session_id,
                             session_started_at=initial_turn.session_started_at or initial_turn.at)
             save(directory / 'turn.json', vars(turn))
             attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools, provenance_version=provenance_version)

@@ -55,14 +55,14 @@ record={'version':'stable-native-week-cohort-v3','state':'running','providers':p
  'frozen_preparation':str(prepared.relative_to(repo)),'frozen_corpus_hash':manifest['corpus_hash'],
  'independent_source_audit_sha256':portable['sha256'],'questions':37,'atomic_claims':155,'source_messages':125,
  'source_review_protocol':'source-realism-v10','native_prompt_protocol':'native-question-v2',
- 'source_provenance':'source-provenance-v3','model':MODEL,'endpoint':ENDPOINT,'judge_reasoning_effort':'low',
+ 'source_provenance':'source-provenance-v3','model':MODEL,'endpoint':ENDPOINT,'judge_reasoning_effort':'low','judge_wall_deadline_s':600,'recall_wall_deadline_s':600,
  'honcho_condition':'simulated native clock; documented deriver thinking_effort none; native batching/output defaults',
  'cap_usd':'20','external_allocations_held_usd':'3','original_unknown_control_cost_held':True,'results':[]}
 stop=threading.Event();stopfile=root/'STOP'
 def run(provider):
  if stop.is_set():return {'provider':provider,'state':'not-started-task-hold'}
  target=root/provider;log=root/(provider+'.execution.private.log')
- cmd=[str(repo/'vendor/venv-hermes-isolated/bin/python'),'-m','pacbench.openrouter_run','--prepared',str(prepared),'--providers',provider,'--judge-reasoning-effort','low','--output',str(target),'--spend-limit-usd','20','--max-messages','150']
+ cmd=[str(repo/'vendor/venv-hermes-isolated/bin/python'),'-m','pacbench.openrouter_run','--prepared',str(prepared),'--providers',provider,'--judge-reasoning-effort','low','--judge-timeout-s','600','--recall-timeout-s','600','--output',str(target),'--spend-limit-usd','20','--max-messages','150']
  if provider=='honcho':cmd+=['--honcho-clock','simulated']
  env={**os.environ,'TMPDIR':'/var/tmp','DERIVER_MODEL_CONFIG__THINKING_EFFORT':'none','PACBENCH_STOP_FILE':str(stopfile)}
  started=datetime.now(timezone.utc).isoformat()

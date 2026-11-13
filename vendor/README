@@ -292,6 +292,14 @@ Failed-arm retries use a new output directory and `--providers`, for example
 `python scripts/run_reviewed_week_cohort.py --providers mem0 hindsight honcho --output runs/week-retry --concurrency 3`.
 Preserve successful original arms and select replacements explicitly when
 publishing; do not copy failed stores into a fresh attempt.
+The reviewed retry launcher gives the benchmark judge a 600-second HTTP wall
+deadline (`--judge-timeout-s 600`), recorded separately from its unchanged low
+reasoning setting. This avoids cancelling otherwise active streamed judgments
+at 180 seconds. Recall and recovery receive a separately recorded 600-second
+harness deadline (`--recall-timeout-s 600`). Neither changes provider or Hermes
+model parameters. A timed-out turn remains ungraded, including when incomplete
+clock evidence also fails the trace checks; it is not labeled a forbidden-tool
+attempt solely because the process was interrupted.
 
 For an ended OpenRouter request with a recorded generation ID but missing usage,
 `python -m pacbench.openrouter_reconcile LEDGER_REQUEST_ID` fetches free generation

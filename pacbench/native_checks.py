@@ -72,7 +72,7 @@ def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None, diagno
             'per_item_character_limit': limit}
 
 def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
-               run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1', diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL):
+               run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1', diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, turn_timeout_s=180):
     from .stop import OperatorStop, check_stop
     native_turn = run_turn or harness.run_turn
     def run_turn(*args, **kwargs):
@@ -102,11 +102,14 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
             try:
                 if before_check is not None:before_check(row, directory)
                 turn = tracked_turn(run_turn, contract.question, usage_path=directory / 'usage.json', at=row['at'],
-                    home=root / 'hermes-home', allowlist=allowlist, extra_env=env, timeout_s=180,
+                    home=root / 'hermes-home', allowlist=allowlist, extra_env=env, timeout_s=turn_timeout_s,
                     session_id=state['session'], session_started_at=state['session_started_at'])
                 save(directory / 'turn.json', vars(turn))
                 check_stop(env.get('PACBENCH_STOP_FILE'))
-                if turn.policy_blocks:
+                if turn.timed_out:
+                    item.update(reason='Hermes turn exceeded real-time deadline',error_type='execution_timeout')
+                    state['failed'] = row['id']
+                elif turn.policy_blocks:
                     item.update(state='failed', verdict='fail', reason='Disallowed tool attempted')
                     state['failed'] = row['id']
                 elif (turn.returncode or not turn.answer.strip() or not turn.session_id or
@@ -138,7 +141,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             output=directory / 'followups', judge=judge, home=root / 'hermes-home',
                             allowlist=allowlist, extra_env=env, question_dir=question_dir,
                             previous_turn=state['previous'], conversation=state['history'], inherited_path=state['path'],
-                            run_turn=run_turn, budget_snapshot=budget_snapshot, provenance_version=provenance_version,
+                            run_turn=run_turn, budget_snapshot=budget_snapshot, provenance_version=provenance_version, turn_timeout_s=turn_timeout_s,
                             evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
                         item.update(state='diagnostic',
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',

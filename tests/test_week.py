@@ -200,6 +200,20 @@ def test_missing_script_truth_is_ungraded_and_does_not_stop_fresh_session(tmp_pa
     assert report['checks'][1]['verdict']=='pass'
 
 
+def test_recall_deadline_failure_is_not_mislabeled_as_disallowed_tool(tmp_path):
+    checks=checkpoints(tmp_path)
+    def run(prompt,**kw):
+        assert kw['timeout_s']==600
+        turn=runner_result(prompt,kw,rc=-1,answer='')
+        turn.timed_out=True
+        turn.policy_blocks=1  # Incomplete clock adoption after interruption.
+        return turn
+    def forbidden(*a,**kw):pytest.fail('Timed-out answer must not be graded')
+    report=run_checks(checks,'isolated',tmp_path/'arm',forbidden,'',{},
+        question_dir=tmp_path/'q',run_turn=run,turn_timeout_s=600)
+    assert all(c['state']=='ungraded' and c['error_type']=='execution_timeout' for c in report['checks'])
+
+
 def test_conditional_evidence_never_counts_when_reply_was_not_delivered(tmp_path):
     a,b=checkpoints(tmp_path);a[0].update(session='story',kind='behavior');b[0].update(session='story',kind='behavior',trigger='clarification',depends_on=a[0]['id'])
     c=({'id':'later','at':b[0]['at'],'session':'fresh','requires':[b[0]['id']]},a[1],a[2])

@@ -44,6 +44,19 @@ def test_explicit_judge_reasoning_is_disclosed_without_changing_native_provider_
     assert configured['provider_plans']==normal['provider_plans']
 
 
+def test_judge_deadline_is_bounded_and_does_not_change_provider_plan(capsys):
+    r.main(['--plan','--providers','mem0'])
+    normal=json.loads(capsys.readouterr().out)
+    r.main(['--plan','--providers','mem0','--judge-timeout-s','600','--recall-timeout-s','600'])
+    configured=json.loads(capsys.readouterr().out)
+    assert configured['judge_wall_deadline_s']==600
+    assert configured['recall_wall_deadline_s']==600
+    assert configured['provider_plans']==normal['provider_plans']
+    for invalid in ['0','901']:
+        with pytest.raises(SystemExit):r.main(['--plan','--judge-timeout-s',invalid])
+        with pytest.raises(SystemExit):r.main(['--plan','--recall-timeout-s',invalid])
+
+
 def test_catalog_binds_full_endpoint_bounds():
     params = r.catalog_parameters(catalog())
     assert params['max_completion_tokens'] == 393216

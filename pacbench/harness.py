@@ -89,6 +89,8 @@ class TurnResult:
     native_result_duration_s: float | None = None
     clock_context: dict | None = None
     hermes_gateway: dict | None = None
+    timed_out: bool = False
+    wall_deadline_s: float | None = None
 
 
 def _check_paths(home: Path) -> None:
@@ -320,6 +322,8 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         part_out, part_err = decode(exc.stdout), decode(exc.stderr)
         partial = subprocess.CompletedProcess(cmd, -1, part_out, note + "\n" + part_err)
         result = _parse_turn(prompt, at, partial, latency)
+        result.timed_out = True
+        result.wall_deadline_s = timeout_s
         result.session_started_at = session_started_at
         result.provider_clock = clock_record
         result.hermes_gateway = gateway_witness
@@ -335,6 +339,7 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
         return result
     latency = time.monotonic() - started
     result = _parse_turn(prompt, at, proc, latency)
+    result.wall_deadline_s = timeout_s
     result.session_started_at = session_started_at
     result.context_isolation = actual_context(home, result.session_id, workspace, capture=True)
     result.provider_clock = clock_record

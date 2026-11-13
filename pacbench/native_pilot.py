@@ -570,13 +570,18 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
         question_dir: Path | None = None, honcho_clock: str = 'real',
-        inference_route: str = 'muse-gateway', judge_reasoning_effort: str | None = None) -> dict:
+        inference_route: str = 'muse-gateway', judge_reasoning_effort: str | None = None,
+        judge_timeout_s: int = 180, recall_timeout_s: int = 180) -> dict:
     for provider in providers or []:require_not_retired(provider)
     from .live_trials import require_live_trials_ready
     require_live_trials_ready()
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
     if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
         raise ValueError('Unknown inference route')
+    if type(judge_timeout_s) is not int or not 0<judge_timeout_s<=900:
+        raise ValueError('Judge deadline must be 1–900 real seconds')
+    if type(recall_timeout_s) is not int or not 0<recall_timeout_s<=900:
+        raise ValueError('Recall deadline must be 1–900 real seconds')
     if judge_reasoning_effort is not None and (inference_route!='openrouter' or
             judge_reasoning_effort not in {'none','low','medium','high'}):
         raise ValueError('Explicit judge reasoning requires the direct OpenRouter condition')
@@ -616,6 +621,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     if judge_reasoning_effort is not None:
         report['judge_generation_conditions']={'reasoning_effort':judge_reasoning_effort,
             'scope':'Benchmark judge only; native provider and Hermes settings unchanged'}
+    report.setdefault('judge_generation_conditions',{})['wall_deadline_s']=judge_timeout_s
+    report['recall_wall_deadline_s']=recall_timeout_s
     if 'honcho' in selected and os.environ.get('DERIVER_MODEL_CONFIG__THINKING_EFFORT'):
         report['provider_generation_conditions'] = {'honcho': {
             'deriver_thinking_effort': os.environ['DERIVER_MODEL_CONFIG__THINKING_EFFORT'],
@@ -697,7 +704,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             model_judge = ModelClient(key=judge_token, model=driver.model_id,
                                 url=judge_base + "/chat/completions",
                                 record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort,
-                                json_mode=inference_route=='openrouter')
+                                json_mode=inference_route=='openrouter',timeout_s=judge_timeout_s)
         def judge(*args, **kwargs):
             check_stop(stop_file)
             if active_clock_root is not None:
@@ -865,6 +872,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                           question_dir=question_dir, before_check=import_before_check,
                                           evidence_by_id=evidence_for_check,
+                                          turn_timeout_s=recall_timeout_s,
                                           provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
                     result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
@@ -909,7 +917,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     break
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
-                                        extra_env=env, timeout_s=180)
+                                        extra_env=env, timeout_s=recall_timeout_s)
                 save(root / "recall.json", vars(turn))
                 try:
                     check_stop(stop_file)

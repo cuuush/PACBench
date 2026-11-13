@@ -1,0 +1,83 @@
+{
+  "prompt": "Hey, can you give me a quick recap on our pizza plan?",
+  "at": "2026-09-11T09:00:00-04:00",
+  "answer": "Pizza at Luigi's, tonight (Friday) at 7pm. Devon proposed it and will meet you at Luigi's on 5th — you're confirmed.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "memcal_open",
+      "tool_call_id": "chatcmpl-tool-9715bbe7217884b1",
+      "input": {
+        "ref": "E1"
+      },
+      "timestamp": 1794535788381
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "memcal_open",
+      "success": true,
+      "policy_blocked": false,
+      "text": "E1  Pizza at Luigi's\n\nwhen: Friday 11 September 2026 at 19:00\nstate: You're going\nwhere: Luigi's on 5th\nhosted by: Devon\nnote: Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.\nsource: person:Devon\n\ncited sources (5 line(s)):\n  — Thu Sep 10, 2026 18:12 · iMessage with Devon —\n * [7] Devon · Thu 10 Sep 18:12 · Devon: wanna get pizza at Luigi's on Friday?\n * [10] Devon · Thu 10 Sep 18:19 · me: yes I'm down, what time were you thinking?\n * [11] Devon · Thu 10 Sep 18:19 · Devon: 7pm?\n * [12] Devon · Thu 10 Sep 18:19 · me: yeah that works\n * [13] Devon · Thu 10 Sep 18:19 · Devon: cool I'll meet you there\n\nchanges:\n  2026-09-11T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\n  2026-09-11T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\n  2026-09-11T03:00  title: '' -> \"Pizza at Luigi's\" (by dream:nightly:born-day)\n  2026-09-11T03:00  location: '' -> \"Luigi's on 5th\" (by dream:nightly:born-day)\n  2026-09-11T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\n  2026-09-11T03:00  hosts: '' -> '[\"Devon\"]' (by dream:nightly:born)\n  2026-09-11T03:00  note: '' -> \"Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.\" (by dream:nightly:born-day)\n  2026-09-11T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 27.42,
+  "returncode": 0,
+  "stderr_tail": "Session: local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933\n\nsession_id: local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933",
+  "raw_events": 15,
+  "session_id": "local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933",
+  "stderr_full": "Session: local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933\n\nsession_id: local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"\", \"session_id\": \"\", \"timestamp\": 1794535776532}\n{\"type\": \"tool_use\", \"name\": \"memcal_open\", \"tool_call_id\": \"chatcmpl-tool-9715bbe7217884b1\", \"input\": {\"ref\": \"E1\"}, \"timestamp\": 1794535788381}\n{\"type\": \"tool_result\", \"name\": \"memcal_open\", \"tool_call_id\": \"chatcmpl-tool-9715bbe7217884b1\", \"output\": \"E1  Pizza at Luigi's\\n\\nwhen: Friday 11 September 2026 at 19:00\\nstate: You're going\\nwhere: Luigi's on 5th\\nhosted by: Devon\\nnote: Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.\\nsource: person:Devon\\n\\ncited sources (5 line(s)):\\n  — Thu Sep 10, 2026 18:12 · iMessage with Devon —\\n * [7] Devon · Thu 10 Sep 18:12 · Devon: wanna get pizza at Luigi's on Friday?\\n * [10] Devon · Thu 10 Sep 18:19 · me: yes I'm down, what time were you thinking?\\n * [11] Devon · Thu 10 Sep 18:19 · Devon: 7pm?\\n * [12] Devon · Thu 10 Sep 18:19 · me: yeah that works\\n * [13] Devon · Thu 10 Sep 18:19 · Devon: cool I'll meet you there\\n\\nchanges:\\n  2026-09-11T03:00  kind: '' -> 'commitment' (by dream:nightly:born-day)\\n  2026-09-11T03:00  subject: '' -> 'me' (by dream:nightly:born-day)\\n  2026-09-11T03:00  title: '' -> \\\"Pizza at Luigi's\\\" (by dream:nightly:born-day)\\n  2026-09-11T03:00  location: '' -> \\\"Luigi's on 5th\\\" (by dream:nightly:born-day)\\n  2026-09-11T03:00  status: '' -> 'confirmed' (by dream:nightly:born-day)\\n  2026-09-11T03:00  hosts: '' -> '[\\\"Devon\\\"]' (by dream:nightly:born)\\n  2026-09-11T03:00  note: '' -> \\\"Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.\\\" (by dream:nightly:born-day)\\n  2026-09-11T03:00  source: '' -> 'person:Devon' (by dream:nightly:born-day)\", \"duration_ms\": 21, \"is_error\": false, \"timestamp\": 1794535788403}\n{\"type\": \"text\", \"text\": \"\\n\\nPizza at\", \"timestamp\": 1794535792735}\n{\"type\": \"text\", \"text\": \" Luigi's, tonight (\", \"timestamp\": 1794535793756}\n{\"type\": \"text\", \"text\": \"Friday)\", \"timestamp\": 1794535794325}\n{\"type\": \"text\", \"text\": \" at 7pm.\", \"timestamp\": 1794535795070}\n{\"type\": \"text\", \"text\": \" Devon proposed\", \"timestamp\": 1794535795813}\n{\"type\": \"text\", \"text\": \" it and will\", \"timestamp\": 1794535796547}\n{\"type\": \"text\", \"text\": \" meet you at Luigi\", \"timestamp\": 1794535797264}\n{\"type\": \"text\", \"text\": \"'s on 5th —\", \"timestamp\": 1794535797795}\n{\"type\": \"text\", \"text\": \" you\", \"timestamp\": 1794535798288}\n{\"type\": \"text\", \"text\": \"'re confirmed\", \"timestamp\": 1794535798787}\n{\"type\": \"text\", \"text\": \".\", \"timestamp\": 1794535799338}\n{\"type\": \"result\", \"session_id\": \"local-71912976a47dd2d5b49b4b9678c78553fcf3d61ec5259a0dcb8b8c9c1bf6c933\", \"exit_code\": 0, \"text\": \"Pizza at Luigi's, tonight (Friday) at 7pm. Devon proposed it and will meet you at Luigi's on 5th — you're confirmed.\", \"tokens\": {\"input\": 17431, \"output\": 94, \"total\": 17525, \"cache_read\": 9984, \"cache_write\": 0}, \"duration_ms\": 23447, \"timestamp\": 1794535799979}",
+  "session_input_tokens": 17431,
+  "session_output_tokens": 94,
+  "provider_traces": [],
+  "prefetch_context": "MEMCAL SNAPSHOT 2026-09-11T09:00:00-04:00 [id=8b1fdd7efbcd4d52e44186a20dcfbc17abb909ab] [context=1] [sources=25]\n\n[〔E#〕〔T#〕〔Q#〕 / pages: memcal_open for details/history before archive search.]\n\n## Upcoming  (today is Friday 11 September 2026)\n〔E1〕 Fri Sep 11  \"Pizza at Luigi's\", 7pm — confirmed · hosted by Devon · from Devon\n〔E2〕 Sat Sep 12  \"See the ducks at the pond\", 9am — could go · hosted by Maya · with Devon\n[complete for 2026-09-08 – 2026-10-11; look up anything outside that]\n[calendar: memcal_list_month(month='2026-09'); year: memcal_list_days(when='2026-01-01', days=365)]\n[COLLECTION: email (not yet checked), groupme (not yet checked), ical (not yet checked) +4 more — recent messages may be missing]",
+  "prefetch_provenance": null,
+  "context_isolation": {
+    "version": "empty-recall-workspace-v2",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-2sfkqico",
+    "source": "native Hermes saved system prompt, privately archived at turn completion",
+    "native_cwd": "/var/tmp/pacbench-chat-2sfkqico",
+    "system_prompt_sha256": "0d8115f82a56d35e59e68637f528e7fd95bc25a69bf660660fc7ac8bdded8bbd",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-09-11T09:00:00-04:00",
+  "provider_clock": null,
+  "native_result_duration_s": 23.447,
+  "clock_context": {
+    "protocol": "native-question-v2",
+    "at": "2026-09-11T09:00:00-04:00",
+    "state": "pass",
+    "query_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+    "native_query_index": 0,
+    "actor_api_input_ids": [
+      "8ef2f206-772a-4e5c-a281-d77822b40fc2",
+      "b6a415bf-15ca-44fb-a3af-fff6dd7e75a8"
+    ],
+    "auxiliary_title_api_input_ids": [],
+    "native_query_sha256": "1133d7158cd79bb1a587a19fe8a8f77e42f03a96d2fe82d262bcd66d5ce921dc",
+    "api_input_ids": [
+      "8ef2f206-772a-4e5c-a281-d77822b40fc2",
+      "b6a415bf-15ca-44fb-a3af-fff6dd7e75a8"
+    ],
+    "api_input_sha256": [
+      "64401274dedc35a28737262650786c1e9f1a8db7411795d4f7955d4a5199663b",
+      "13ee719e4c3b8ba7fbbcfee5edbda12b062248b7a8349c51274f387932d1e29c"
+    ],
+    "reason": "Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions"
+  },
+  "hermes_gateway": {
+    "version": "per-turn-owned-gateway-v1",
+    "pid": 240495,
+    "start_time": 4473267,
+    "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memcal/repeat-1/memcal/hermes-home",
+    "stopped": true,
+    "real_started_at": "2026-11-13T02:09:33.599071+00:00",
+    "real_finished_at": "2026-11-13T02:10:01.014246+00:00",
+    "returncode": 0
+  }
+}

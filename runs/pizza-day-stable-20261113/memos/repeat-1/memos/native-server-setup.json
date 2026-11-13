@@ -1,0 +1,70 @@
+{
+  "route": "Pinned native public core bootstrap and HTTP API; unchanged Hermes memtensor stdio bridge",
+  "provider_revision": "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539",
+  "source_type": "official-npm-release",
+  "native_package_release": {
+    "protocol": "native-npm-source-v1",
+    "name": "@memtensor/memos-local-plugin",
+    "version": "2.0.21",
+    "tarball": "https://registry.npmjs.org/@memtensor/memos-local-plugin/-/memos-local-plugin-2.0.21.tgz",
+    "integrity": "sha512-7DAqAdOFo6n/ptco3Cy8ixJXFcfDgT9yet3Tod2bnPgNEiF+5qZt+3kP8gG8dy/X9VvFhg0/ctblhp/T9PcsPA==",
+    "sha256": "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539"
+  },
+  "endpoint": "http://127.0.0.1:54669",
+  "pid": 245596,
+  "health": {
+    "ok": false,
+    "version": "2.0.21",
+    "uptimeMs": 222,
+    "agent": "hermes",
+    "namespace": {
+      "agentKind": "hermes",
+      "profileId": "default"
+    },
+    "paths": {
+      "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/memos-home",
+      "config": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/memos-home/config.yaml",
+      "db": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/memos-home/data/memos.db",
+      "skills": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/memos-home/skills",
+      "logs": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/memos-home/logs"
+    },
+    "llm": {
+      "available": true,
+      "provider": "openai_compatible",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "lastOkAt": null,
+      "lastFallbackAt": null,
+      "lastError": null
+    },
+    "embedder": {
+      "available": true,
+      "provider": "local",
+      "model": "Xenova/all-MiniLM-L6-v2",
+      "dim": 384,
+      "lastOkAt": null,
+      "lastFallbackAt": null,
+      "lastError": null
+    },
+    "skillEvolver": {
+      "available": true,
+      "provider": "openai_compatible",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "inherited": true,
+      "lastOkAt": null,
+      "lastFallbackAt": null,
+      "lastError": null
+    },
+    "service": "memos-local-plugin",
+    "instanceId": "81707d50-eb40-4081-b50b-a4c6939b2f6c"
+  },
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "embedding": "Native local MiniLM384; verified cached assets; offline loading",
+  "inference_overrides": "Exact selected OpenAI-compatible model; host fallback disabled; native output/reasoning/batching defaults unchanged",
+  "http_role": "Hermes viewer role: autoRecovery false; native stdio bridge owns recovery writes",
+  "ingestion_condition": "native-raw-document-import-v1",
+  "extraction_performed": false,
+  "retrieval_credit": "source-assisted",
+  "native_plugin_name": "memtensor",
+  "provider_clock": "Real native processing clock; imported trace/source timestamps preserve original scenario dates",
+  "plugin_source_sha256": "32fd1ebadf5b77fdeed5272a18b5597c80ad5d7e650681242ece488cca79c97f"
+}

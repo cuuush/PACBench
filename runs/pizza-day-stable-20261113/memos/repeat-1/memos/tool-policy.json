@@ -1,0 +1,21 @@
+{
+  "version": "provider-memory-with-source-penalty-v3",
+  "provider": "memos",
+  "allowed_tools": [
+    "memos_environment",
+    "memos_get",
+    "memos_search",
+    "memos_skill_get",
+    "memos_skill_list",
+    "memos_timeline"
+  ],
+  "blocked_source_tools": [],
+  "source_argument_rules": {},
+  "builtin_memory": false,
+  "os_sandbox": false,
+  "source_fallback_penalty": {
+    "retention_weight": 0.0,
+    "answer_correctness_unchanged": true,
+    "scope": "Source retrieval is permitted, logged and charged. A source-assisted turn earns no retention credit; actual costs are never inferred from the penalty."
+  }
+}

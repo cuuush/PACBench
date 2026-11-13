@@ -1,0 +1,151 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "The answer says Devon proposed the plan and will meet the user at Luigi's, so Devon is the companion."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "The answer names Luigi's as the restaurant."
+    },
+    {
+      "id": "fact-3",
+      "verdict": "correct",
+      "reason": "The answer says Luigi's on 5th."
+    },
+    {
+      "id": "fact-4",
+      "verdict": "correct",
+      "reason": "The answer says tonight (Friday), which matches Friday, September 11, 2026."
+    },
+    {
+      "id": "fact-5",
+      "verdict": "correct",
+      "reason": "The answer states the plan is at 7pm."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "The answer states Devon will meet the user for the plan."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "The answer states the plan is at Luigi's."
+    },
+    {
+      "id": "fact-3",
+      "kind": "provided",
+      "reason": "The answer states Luigi's is on 5th."
+    },
+    {
+      "id": "fact-4",
+      "kind": "provided",
+      "reason": "The answer states tonight (Friday), matching the target date."
+    },
+    {
+      "id": "fact-5",
+      "kind": "provided",
+      "reason": "The answer states 7pm."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "The tool result says Devon will meet the user and is the host.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Devon will meet you there."
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "The tool result names the event as Pizza at Luigi's.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Pizza at Luigi's"
+          }
+        ]
+      },
+      {
+        "id": "fact-3",
+        "status": "supported",
+        "reason": "The tool result gives the location as Luigi's on 5th.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Luigi's on 5th"
+          }
+        ]
+      },
+      {
+        "id": "fact-4",
+        "status": "supported",
+        "reason": "The tool result gives the date as Friday 11 September 2026.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Friday 11 September 2026 at 19:00"
+          }
+        ]
+      },
+      {
+        "id": "fact-5",
+        "status": "supported",
+        "reason": "The tool result says the user agreed to 7pm.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "you agreed to 7pm"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "Devon proposed the pizza plan.",
+        "answer_quote": "Devon proposed it",
+        "status": "supported",
+        "reason": "Devon's message asks about getting pizza on Friday.",
+        "citations": [
+          {
+            "id": "message-4740cc49226a8358091d88f3",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          }
+        ]
+      },
+      {
+        "assertion": "The user is confirmed for the plan.",
+        "answer_quote": "you're confirmed",
+        "status": "supported",
+        "reason": "The user agreed to the time and Devon said he would meet, supporting confirmation.",
+        "citations": [
+          {
+            "id": "message-4db19b467bca3d3a987a6685",
+            "quote": "yeah that works"
+          },
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      }
+    ]
+  }
+}

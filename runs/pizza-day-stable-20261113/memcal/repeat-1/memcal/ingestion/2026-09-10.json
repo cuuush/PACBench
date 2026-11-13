@@ -1,0 +1,328 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "memcal",
+  "at": "2026-09-10T18:50:00-04:00",
+  "processing_at": "2026-09-11T03:00:00-04:00",
+  "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+  "source_ids": [
+    "message-997c390360930d39c2a91c1c",
+    "message-bbe8f576e37a4e1dbc7eb8e0",
+    "message-9b6de64be1f77aae9e27ce29",
+    "message-aebef46e330c3978b108f386",
+    "message-3488b3de33b8c372b1e8dd7a",
+    "message-d3a5f8e6afd26a43c3dd010f",
+    "message-4740cc49226a8358091d88f3",
+    "message-649e05a8a0c04602cb5221c2",
+    "message-d8e1fc8d4399bdf4bc4b7390",
+    "message-8736d5d60f286757fa8c5bd6",
+    "message-f0f94e727ca8743b8a20eab4",
+    "message-4db19b467bca3d3a987a6685",
+    "message-c6b34b7de4a5728ebf74c983",
+    "message-e87bf407d37889068eed95df",
+    "message-e0c91b84def1df60696ee3b8",
+    "message-2c97528b96a2fe3903257770",
+    "message-0820bf70b9eb7feed8cdb267",
+    "message-67664b2503e5cd4f9d132860",
+    "message-b1fd1d7da91d0d0e0c145d52",
+    "message-ba8bf0de5a8b22c3a03e1f8e",
+    "message-3a4ac42a537f09e25aea58bf",
+    "message-4808aed0b2028d3ee49d0f68",
+    "message-cc4126b3493b60536abc421e",
+    "message-de30e54f0572f2c4305bcf17",
+    "message-d962e57a39d134a1cbe06544"
+  ],
+  "delivery": "native-sources",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native source readers + native nightly dream",
+    "collector_protocol": "native-cli-collection-v1",
+    "collection": {
+      "id": 1,
+      "started_at": "2026-09-11T03:00:00-04:00",
+      "finished_at": "2026-09-11T03:00:00-04:00",
+      "mode": "cli",
+      "read": 25,
+      "archived": 25,
+      "passed": 25,
+      "error": null,
+      "waiting": 25,
+      "skipped": 0,
+      "read_already": 0,
+      "sources": [
+        {
+          "collection_id": 1,
+          "channel": "imessage",
+          "read": 25,
+          "archived": 25,
+          "passed": 25,
+          "muted": 0,
+          "too_old": 0,
+          "error": null,
+          "note": null,
+          "finished_at": "2026-09-11T03:00:00-04:00",
+          "status": "complete"
+        }
+      ]
+    },
+    "contacts": {
+      "linked": 4,
+      "report": "linked 4 handles from 1 source(s)"
+    },
+    "ingest": {
+      "channel": "imessage",
+      "read": 25,
+      "archived": 25,
+      "passed": 25,
+      "error": null,
+      "notes": [],
+      "unknown_handles": [],
+      "more": false,
+      "muted": 0,
+      "too_old": 0,
+      "horizon_days": 30,
+      "progress": null,
+      "collection_id": 1
+    },
+    "bundles": [
+      {
+        "run_id": 1,
+        "entity": "person:Devon",
+        "bundle_id": "517eb9",
+        "label": "Devon",
+        "kind": "person",
+        "lines": 15,
+        "state": "reading",
+        "updated_at": "2026-09-11T03:00:00-04:00"
+      },
+      {
+        "run_id": 1,
+        "entity": "thread:imessage:id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+        "bundle_id": "54688a",
+        "label": "id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+        "kind": "thread",
+        "lines": 10,
+        "state": "reading",
+        "updated_at": "2026-09-11T03:00:00-04:00"
+      }
+    ],
+    "model_call_record": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memcal/repeat-1/memcal/ingestion-model-calls/2026-09-10.json",
+    "native_event_state": [
+      {
+        "key": "pizza-at-luigi-s@2026-09-11",
+        "date": "2026-09-11",
+        "time": "19:00",
+        "title": "Pizza at Luigi's",
+        "location": "Luigi's on 5th",
+        "status": "confirmed",
+        "participants": "[]",
+        "subject": "me"
+      },
+      {
+        "key": "see-the-ducks-at-the-pond@2026-09-12",
+        "date": "2026-09-12",
+        "time": "09:00",
+        "title": "See the ducks at the pond",
+        "location": "the pond",
+        "status": "tentative",
+        "participants": "[\"Devon\"]",
+        "subject": "me"
+      }
+    ],
+    "processing": {
+      "run_id": 1,
+      "errors": [],
+      "report": "dream run #1 — 2 bundles, 25 items, 2 writes\n  inserted  2026-09-11 Pizza at Luigi's [pizza-at-luigi-s@2026-09-11]\n  inserted  2026-09-12 See the ducks at the pond [see-the-ducks-at-the-pond@2026-09-12]\n  usage: 2 calls · 3929 in (0 cached) · 3893 out · $0.0012"
+    },
+    "readiness": "Native dream completion without errors"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 46.86,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-13T02:08:46.326476+00:00",
+    "finished": "2026-11-13T02:09:33.285041+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "token_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "completion_tokens": 0,
+          "image_tokens": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "total_tokens": 0
+        },
+        "actual_cost_usd": 0,
+        "actual_cost_known_usd": 0,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 3929,
+        "output_tokens": 3893,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0012236672,
+        "actual_cost_known_usd": 0.0012236672,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0012236672,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "d4eb8cd6-a977-46e7-a2a2-36c89afbeaff",
+        "project": "pacbench-95b631e758c2-memcal-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:08:46.804518+00:00",
+        "finished": "2026-11-13T02:09:29.951228+00:00",
+        "reserved": "0.0860722240",
+        "accounted": "0.0011369568",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 16428,
+        "request_sha256": "b655ed64fcc5b7da3b76212565dfacecd3e225bbd6340a9a374ad307b19285e3",
+        "input_tokens": 3246,
+        "output_tokens": 3752,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794535726-ihFi5Ys38nAv7RaQoHas",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.0011369568,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.0011369568,
+        "actual_cost_usd_decimal": "0.0011369568",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "16c14e06-f7e7-42c1-890f-e03050bcb3bd",
+        "project": "pacbench-95b631e758c2-memcal-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:09:30.085949+00:00",
+        "finished": "2026-11-13T02:09:33.083639+00:00",
+        "reserved": "0.0860381200",
+        "accounted": "0.0000867104",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 16283,
+        "request_sha256": "bb344cc76ce1e15e1035f1de5b14918c838c067831e4c1338cec1123895919d4",
+        "input_tokens": 683,
+        "output_tokens": 141,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794535770-L07ZX5uOEBXrrrhmXH2W",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 8.67104e-05,
+        "role": "memory_provider",
+        "actual_cost_usd": 8.67104e-05,
+        "actual_cost_usd_decimal": "0.0000867104",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      }
+    ],
+    "groups": [
+      {
+        "role": "memory_provider",
+        "project": "pacbench-95b631e758c2-memcal-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "model_calls": 2,
+        "input_tokens": 3929,
+        "output_tokens": 3893,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0012236672,
+        "actual_cost_known_usd": 0.0012236672,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0012236672,
+        "unsettled_calls": 0
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

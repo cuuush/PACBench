@@ -1,0 +1,227 @@
+{
+  "state": "complete",
+  "plan_hash": "3f2b0410eaddaaad6f913d6d5b166639ad957767a4e5b301a4100231f92a7a84",
+  "attempts": [],
+  "protocol_version": 5,
+  "minimum_initial_correct": 1,
+  "initial_metrics": {
+    "top_level_calls": 5,
+    "total_tool_operations": 5,
+    "provider_internal_tool_calls": null,
+    "provider_task_records": 0,
+    "provider_internal_operations": [],
+    "provider_internal_source_fallback_confirmed": true,
+    "provider_internal_path_needs_review": false,
+    "categories": {
+      "source_evidence": 4,
+      "source_messages": 1
+    },
+    "operations": [
+      {
+        "name": "memos_get",
+        "arguments": {
+          "id": "pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+          "kind": "trace"
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1794536241575,
+        "result": {
+          "tool": "memos_get",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"found\": true, \"kind\": \"trace\", \"id\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"body\": \"\", \"meta\": {\"episodeId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"ts\": 1789080600000, \"value\": 0.5, \"reflection\": \"\", \"userText\": \"Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage...\", \"toolCalls\": []}}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memos_search",
+        "arguments": {
+          "query": "pizza plan Luigi",
+          "maxResults": 20
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1794536241586,
+        "result": {
+          "tool": "memos_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"hits\": [{\"tier\": 2, \"refId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"refKind\": \"trace\", \"score\": 1.0414, \"snippet\": \"[user] Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi\\n...[truncated]\\n→ call `memos_get(id=\\\"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\\\", kind=\\\"trace\\\")` for the full turn\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memos_search",
+        "arguments": {
+          "maxResults": 30,
+          "query": "Luigi pizza Friday 7pm"
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1794536248536,
+        "result": {
+          "tool": "memos_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"hits\": [{\"tier\": 2, \"refId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"refKind\": \"trace\", \"score\": 1.0414, \"snippet\": \"[user] Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi\\n...[truncated]\\n→ call `memos_get(id=\\\"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\\\", kind=\\\"trace\\\")` for the full turn\"}]}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memos_search",
+        "arguments": {
+          "maxResults": 30,
+          "query": "dinner reservation pizza Devon"
+        },
+        "category": "source_evidence",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1794536250785,
+        "result": {
+          "tool": "memos_search",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"hits\": []}",
+          "truncated": false,
+          "capture": "hermes_session_db"
+        }
+      },
+      {
+        "name": "memos_timeline",
+        "arguments": {
+          "episodeId": "pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+          "limit": 50
+        },
+        "category": "source_messages",
+        "dispatch_parent": null,
+        "success": true,
+        "policy_blocked": false,
+        "timestamp": 1794536250793,
+        "result": {
+          "tool": "memos_timeline",
+          "success": true,
+          "policy_blocked": false,
+          "text": "{\"traces\": [{\"id\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"ownerAgentKind\": \"hermes\", \"ownerProfileId\": \"default\", \"ownerWorkspaceId\": null, \"episodeId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"sessionId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"ts\": 1789080600000, \"userText\": \"Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\nParticipants: Maya, Devon, Me\\n\\n[2026-09-10T18:30:00-04:00] Maya\\nugh traffic getting home tonight was the worst\\n\\n[2026-09-10T18:37:37-04:00] Maya\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\n\\n[2026-09-10T18:39:54-04:00] Devon\\nohh yes I haven't done that in forever\\n\\n[2026-09-10T18:40:17-04:00] Devon\\nwhat time were you thinking?\\n\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\nhmm maybe, my Saturday is kind of up in the air rn\\n\\n[2026-09-10T18:40:51-04:00] Maya\\nI was thinking like 9am before it gets too hot?\\n\\n[2026-09-10T18:41:14-04:00] Devon\\nyeah that works for me\\n\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\n9 is early lol I'll have to see, don't plan around me\\n\\n[2026-09-10T18:49:37-04:00] Maya\\nhaha no worries just lmk\\n\\n[2026-09-10T18:50:00-04:00] Devon\\ndid your guys power flicker earlier or was that just my building\\n\", \"agentText\": \"\", \"summary\": \"Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\nParticipants: Maya, Devon, Me\\n\\n[2026-09-10T18:30:00-04:00] Maya\\nugh traffic getting home tonight was the worst\\n\\n[2026-09-10T18:37:37-04:00] Maya\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\n\\n[2026-09-10T18:39:54-04:00] Devon\\nohh yes I haven't done that in forever\\n\\n[2026-09-10T18:40:17-04:00] Devon\\nwhat time were you thinking?\\n\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\nhmm maybe, my Saturday is kind of up in the air rn\\n\\n[2026-09-10T18:40:51-04:00] Maya\\nI was thinking like 9am before it gets too hot?\\n\\n[2026-09-10T18:41:14-04:00] Devon\\nyeah that works for me\\n\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\n9 is early lol I'll have to see, don't plan around me\\n\\n[2026-09-10T18:49:37-04:00] Maya\\nhaha no worries just lmk\\n\\n[2026-09-10T18:50:00-04:00] Devon\\ndid your guys power flicker earlier or was that just my building\\n\", \"tags\": [], \"share\": {\"scope\": \"private\", \"target\": null, \"sharedAt\": null}, \"toolCalls\": [], \"agentThinking\": null, \"value\": 0.5, \"alpha\": 0.5, \"priority\": 0.5, \"episodeStatus\": \"closed\", \"episodeRTask\": null, \"episodeRewardSkipped\": false, \"turnId\": 1789080600000}]}",
+          "truncated": false,
+          "capture": "hermes_session_db",
+          "stream_preview": "{\"traces\": [{\"id\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"ownerAgentKind\": \"hermes\", \"ownerProfileId\": \"default\", \"ownerWorkspaceId\": null, \"episodeId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"sessionId\": \"pacbench-document-56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98\", \"ts\": 1789080600000, \"userText\": \"Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\nParticipants: Maya, Devon, Me\\n\\n[2026-09-10T18:30:00-04:00] Maya\\nugh traffic getting home tonight was the worst\\n\\n[2026-09-10T18:37:37-04:00] Maya\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\n\\n[2026-09-10T18:39:54-04:00] Devon\\nohh yes I haven't done that in forever\\n\\n[2026-09-10T18:40:17-04:00] Devon\\nwhat time were you thinking?\\n\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\nhmm maybe, my Saturday is kind of up in the air rn\\n\\n[2026-09-10T18:40:51-04:00] Maya\\nI was thinking like 9am before it gets too hot?\\n\\n[2026-09-10T18:41:14-04:00] Devon\\nyeah that works for me\\n\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\n9 is early lol I'll have to see, don't plan around me\\n\\n[2026-09-10T18:49:37-04:00] Maya\\nhaha no worries just lmk\\n\\n[2026-09-10T18:50:00-04:00] Devon\\ndid your guys power flicker earlier or was that just my building\\n\", \"agentText\": \"\", \"summary\": \"Daily messages — collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\nParticipants: Maya, Devon, Me\\n\\n[2026-09-10T18:30:00-04:00] Maya\\nugh traffic getting home tonight was the worst\\n\\n[2026-09-10T18:37:37-04:00] Maya\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\n\\n[2026-09-10T18:39:54-04:00] Devon\\nohh yes I haven't done that in forever\\n\\n[2026-09-10T18:40:17-04:00] Devon\\nwhat time were you thinking?\\n\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\nhmm maybe, my Saturday is kind of up in the air rn\\n\\n[2026-09-10T18:40:51-04:00] Maya\\nI was thinking like 9am before it gets too hot?\\n\\n[2026-09-10T18:41:14-04:00] Devon\\nyeah that works for me\\n\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\n9 is early lol I'll have to see, don't plan around me\\n\\n[2026-09-10T18:49:37-04:00] Maya\\nhaha no worries just lmk\\n\\n[2026-09-10T18:50:00-04:00] Devon\\ndid your guys power flicker earlier or was that just my building\\n\", \"tags\": [], \"share\": {\"scope\": \"private\", \"target\": null, \"sharedAt\": null}, \"toolCalls\": [], \"agentThinking\": null, \"value\": 0.5, \"alpha\": 0.5, \"priority\": 0.5, \"episodeStatus\": \"c..."
+        }
+      }
+    ],
+    "failed_operations": 0,
+    "repeated_operations": 0,
+    "unmatched_tool_results": [],
+    "source_fallback_attempted": true,
+    "unclassified_operations": 0,
+    "prefetch_provenance": {
+      "protocol": "native-prefetch-provenance-v1",
+      "provider": "memos",
+      "state": "source",
+      "reason": "This arm natively imports original text as raw document traces; generated extraction is not claimed",
+      "prefetch_sha256": "23da09efa81d57b406b3025502614b4179ce203c2a7f09d1227bd9d5fc8b5257"
+    },
+    "latency_s": 28.61,
+    "input_tokens": 15573,
+    "output_tokens": 659,
+    "policy_blocks": 0,
+    "returncode": 0,
+    "inherited_source_fallback": false,
+    "inherited_unclassified": false
+  },
+  "policy": "one combined follow-up only for implicit omissions; explicit failures, unknowns and wrong answers are final",
+  "eligibility": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-3",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-4",
+      "kind": "provided",
+      "reason": "Correctly stated as Friday (today)."
+    },
+    {
+      "id": "fact-5",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    }
+  ],
+  "eligible_claim_ids": [],
+  "score": {
+    "initial_correct": 5,
+    "initial_missed": 0,
+    "initial_misrepresented": 0,
+    "max_points": 5,
+    "points": 0.0,
+    "recovery_weight": 0.5,
+    "claims": [
+      {
+        "claim_id": "fact-1",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "fact-2",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "fact-3",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "fact-4",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      },
+      {
+        "claim_id": "fact-5",
+        "initial_verdict": "correct",
+        "followup_verdict": null,
+        "recovered_answer": false,
+        "retention_failed": true,
+        "path_needs_review": false,
+        "points": 0.0
+      }
+    ],
+    "calibrated": false
+  }
+}

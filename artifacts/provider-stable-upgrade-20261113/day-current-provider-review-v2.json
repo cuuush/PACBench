@@ -1,0 +1,200 @@
+{
+  "version": "stable-provider-day-qualification-v2",
+  "scope": "Latest actual stable-provider trials plus explicitly separate Mem0 corrective judge; preserve original failures, transport differences and deferred background work",
+  "native_versions": "artifacts/provider-stable-upgrade-20261113/installed-components.json",
+  "providers": [
+    {
+      "provider": "memcal",
+      "run": "runs/pizza-day-stable-20261113/memcal",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 5.0,
+      "path_needs_review": false,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 717,
+      "tools": [
+        "memcal_open"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "mem0",
+      "run": "runs/pizza-day-stable-20261113/mem0",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 5.0,
+      "path_needs_review": false,
+      "original_native_audit": "fail",
+      "corrective_judgment_audit": "pass",
+      "grading_condition": "Saved-answer complete-chat-stream-v1 overlay; original remains ungraded",
+      "prefetch_chars": 655,
+      "tools": [
+        "mem0_search",
+        "mem0_search"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "hindsight",
+      "run": "runs/pizza-day-stable-20261113/hindsight",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": true,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 0,
+      "tools": [
+        "hindsight_recall",
+        "hindsight_reflect"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "supermemory",
+      "run": "runs/pizza-day-stable-native-status-v2-20261113/supermemory",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": true,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 4690,
+      "tools": [],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "openviking",
+      "run": "runs/pizza-day-openviking-terminal-v1-20261113",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": false,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 214,
+      "tools": [
+        "viking_search",
+        "viking_search",
+        "viking_read"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0,
+      "post_answer_processing": "complete"
+    },
+    {
+      "provider": "honcho",
+      "run": "runs/pizza-day-stable-native-status-v2-20261113/honcho",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": true,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 819,
+      "tools": [],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0,
+      "post_answer_processing": "Copied native store:25source representations processed;2actual recall capture messages pending native batching; not a recall failure"
+    },
+    {
+      "provider": "reme",
+      "run": "runs/pizza-day-stable-20261113/reme",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 5.0,
+      "path_needs_review": false,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 5389,
+      "tools": [],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "cognee",
+      "run": "runs/pizza-day-stable-20261113/cognee",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": false,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 0,
+      "tools": [
+        "cognee_recall"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    },
+    {
+      "provider": "memos",
+      "run": "runs/pizza-day-stable-20261113/memos",
+      "source_condition": "Same frozen25-message Pizza Day; development functional qualification, not a matched final leaderboard",
+      "semantic_correct": 5,
+      "max_points": 5,
+      "retention_points": 0.0,
+      "path_needs_review": false,
+      "original_native_audit": "pass",
+      "corrective_judgment_audit": null,
+      "grading_condition": "Original saved judgment",
+      "prefetch_chars": 1610,
+      "tools": [
+        "memos_get",
+        "memos_search",
+        "memos_search",
+        "memos_search",
+        "memos_timeline"
+      ],
+      "tool_errors": 0,
+      "exact_repeated_calls": 0
+    }
+  ],
+  "budget": {
+    "settled": {
+      "calls": 1535,
+      "accounted_usd": "0.748096798400"
+    },
+    "uncertain": {
+      "calls": 18,
+      "accounted_usd": "2.0840714496"
+    },
+    "reserved": {
+      "calls": 26,
+      "accounted_usd": "2.4478700288"
+    },
+    "allocated": {
+      "calls": 2,
+      "accounted_usd": "3"
+    }
+  },
+  "accounted_total_usd": "8.280038276800",
+  "week": "Revised37-question/155-field/125-message source preparation; no provider Week run yet",
+  "deferred_coverage": "Current catalog:18semantic drafted,11partial,1integration qualification,5deferred; no all-features claim",
+  "excluded": {
+    "byterover": "User removed archived OSS integration",
+    "holographic": "No supported raw-document processor qualified",
+    "memobase": "Inspected versions lack supported raw-document processing",
+    "hosted_mem0": "User reserves hosted comparison for final benchmark only"
+  }
+}

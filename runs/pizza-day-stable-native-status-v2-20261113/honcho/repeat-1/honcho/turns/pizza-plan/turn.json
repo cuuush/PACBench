@@ -1,0 +1,306 @@
+{
+  "prompt": "Hey, can you give me a quick recap on our pizza plan?",
+  "at": "2026-09-11T09:00:00-04:00",
+  "answer": "Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.",
+  "tool_calls": [],
+  "tool_results": [],
+  "policy_blocks": 0,
+  "latency_s": 96.29,
+  "returncode": 0,
+  "stderr_tail": "Session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a\n\nsession_id: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+  "raw_events": 9,
+  "session_id": "local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+  "stderr_full": "Session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a\n\nsession_id: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"\", \"session_id\": \"\", \"timestamp\": 1789131544063}\n{\"type\": \"text\", \"text\": \"Tonight\", \"timestamp\": 1789131605536}\n{\"type\": \"text\", \"text\": \" — Friday\", \"timestamp\": 1789131605536}\n{\"type\": \"text\", \"text\": \", Sept\", \"timestamp\": 1789131605663}\n{\"type\": \"text\", \"text\": \" 11 — 7pm\", \"timestamp\": 1789131605663}\n{\"type\": \"text\", \"text\": \" at Luigi's on 5\", \"timestamp\": 1789131605708}\n{\"type\": \"text\", \"text\": \"th. Devon's\", \"timestamp\": 1789131605708}\n{\"type\": \"text\", \"text\": \" meeting you there.\", \"timestamp\": 1789131605708}\n{\"type\": \"result\", \"session_id\": \"local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a\", \"exit_code\": 0, \"text\": \"Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.\", \"tokens\": {\"input\": 4263, \"output\": 124, \"total\": 4387, \"cache_read\": 1408, \"cache_write\": 0}, \"duration_ms\": 61857, \"timestamp\": 1789131605921}",
+  "session_input_tokens": 4263,
+  "session_output_tokens": 124,
+  "provider_traces": [
+    {
+      "provider": "honcho",
+      "attribution": "background-or-prefetch",
+      "record": {
+        "timestamp": 1789131631.3510184,
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "query": "Who is this person? What are their preferences, goals, and working style? Focus on facts that would help an AI assistant be immediately useful.",
+        "toolCalls": [
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "user preferences and communication style",
+              "top_k": 30
+            },
+            "result": "Found 8 observations for query 'user preferences and communication style':\n\nEXPLICIT:\n\n1. [2026-09-10 22:19:52] user stated they are always in the mood for pizza.\n2. [2026-09-10 22:42:00] user's Saturday plans were uncertain as of 2026-09-10.\n3. [2026-09-10 22:42:00] user said others should not plan around them for the proposed 9am Saturday meeting.\n4. [2026-09-10 22:42:00] user considers 9am early.\n5. [2026-09-10 22:19:52] user agreed to get pizza at Luigi's on 5th with Devon on Friday, September 11, 2026, at 7pm, with Devon meeting them there.\n6. [2026-09-10 22:19:52] user arrived home and walked in the door on the evening of September 10, 2026.\n7. [2026-09-10 22:19:52] user planned to spend the evening of September 10, 2026 as a couch potato.\n8. [2026-09-10 22:19:52] user referred to Luigi's as the pizza place on 5th, which Devon confirmed as the intended location.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 30,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 8
+            }
+          },
+          {
+            "toolName": "search_memory",
+            "args": {
+              "query": "user goals and projects",
+              "top_k": 30
+            },
+            "result": "Found 8 observations for query 'user goals and projects':\n\nEXPLICIT:\n\n1. [2026-09-10 22:42:00] user's Saturday plans were uncertain as of 2026-09-10.\n2. [2026-09-10 22:19:52] user stated they are always in the mood for pizza.\n3. [2026-09-10 22:19:52] user planned to spend the evening of September 10, 2026 as a couch potato.\n4. [2026-09-10 22:42:00] user said others should not plan around them for the proposed 9am Saturday meeting.\n5. [2026-09-10 22:19:52] user agreed to get pizza at Luigi's on 5th with Devon on Friday, September 11, 2026, at 7pm, with Devon meeting them there.\n6. [2026-09-10 22:42:00] user considers 9am early.\n7. [2026-09-10 22:19:52] user arrived home and walked in the door on the evening of September 10, 2026.\n8. [2026-09-10 22:19:52] user referred to Luigi's as the pizza place on 5th, which Devon confirmed as the intended location.\n\nDEDUCTIVE:\n\n\nINDUCTIVE:\n\n\nCONTRADICTION:\n\n",
+            "metadata": {
+              "top_k": 30,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 4,
+              "results_count": 8
+            }
+          },
+          {
+            "toolName": "search_messages",
+            "args": {
+              "query": "user introduction name job background",
+              "limit": 20
+            },
+            "result": "Found 20 matching messages in 3 conversation snippets for query 'user introduction name job background'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-44eee2dd7155f2af01ec5922, 10 match(es)) ---\n2026-09-10 22:00:00 user: just walked in the door ugh\n2026-09-10 22:05:11 Devon: same, my bus was late again\n2026-09-10 22:05:19 user: did you at least get lunch today?\n2026-09-10 22:10:31 Devon: yeah just a sad sandwich lol\n2026-09-10 22:12:04 Devon: hey are you still in a pizza mood?\n2026-09-10 22:12:12 user: always, why\n2026-09-10 22:12:20 Devon: wanna get pizza at Luigi's on Friday?\n2026-09-10 22:17:31 user: oh you mean the one on 5th?\n2026-09-10 22:17:47 Devon: yeah that's the one\n2026-09-10 22:19:21 user: yes I'm down, what time were you thinking?\n2026-09-10 22:19:28 Devon: 7pm?\n2026-09-10 22:19:36 user: yeah that works\n2026-09-10 22:19:44 Devon: cool I'll meet you there\n2026-09-10 22:19:52 user: perfect, I'm gonna be a couch potato tonight\n2026-09-10 22:20:00 Devon: same honestly, see you tomorrow\n\n--- Snippet 2 (session: source-0ea967d3702ae39e5ab5662f, 9 match(es)) ---\n2026-09-10 22:30:00 Maya: ugh traffic getting home tonight was the worst\n2026-09-10 22:37:37 Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n2026-09-10 22:39:54 Devon: ohh yes I haven't done that in forever\n2026-09-10 22:40:17 Devon: what time were you thinking?\n2026-09-10 22:40:28 user: hmm maybe, my Saturday is kind of up in the air rn\n2026-09-10 22:40:51 Maya: I was thinking like 9am before it gets too hot?\n2026-09-10 22:41:14 Devon: yeah that works for me\n2026-09-10 22:42:00 user: 9 is early lol I'll have to see, don't plan around me\n2026-09-10 22:49:37 Maya: haha no worries just lmk\n2026-09-10 22:50:00 Devon: did your guys power flicker earlier or was that just my building\n\n--- Snippet 3 (session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a, 1 match(es)) ---\n2026-09-11 13:00:05 user: Hey, can you give me a quick recap on our pizza plan?\n2026-09-11 13:00:05 hermes: Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 3
+            }
+          },
+          {
+            "toolName": "get_messages_by_date_range",
+            "args": {
+              "order": "asc",
+              "limit": 50
+            },
+            "result": "Found 20 messages (all time, oldest first):\n\n2026-09-10 22:00:00 user: just walked in the door ugh\n2026-09-10 22:05:11 Devon: same, my bus was late again\n2026-09-10 22:05:19 user: did you at least get lunch today?\n2026-09-10 22:10:31 Devon: yeah just a sad sandwich lol\n2026-09-10 22:12:04 Devon: hey are you still in a pizza mood?\n2026-09-10 22:12:12 user: always, why\n2026-09-10 22:12:20 Devon: wanna get pizza at Luigi's on Friday?\n2026-09-10 22:17:31 user: oh you mean the one on 5th?\n2026-09-10 22:17:47 Devon: yeah that's the one\n2026-09-10 22:19:21 user: yes I'm down, what time were you thinking?\n2026-09-10 22:19:28 Devon: 7pm?\n2026-09-10 22:19:36 user: yeah that works\n2026-09-10 22:19:44 Devon: cool I'll meet you there\n2026-09-10 22:19:52 user: perfect, I'm gonna be a couch potato tonight\n2026-09-10 22:20:00 Devon: same honestly, see you tomorrow\n2026-09-10 22:30:00 Maya: ugh traffic getting home tonight was the worst\n2026-09-10 22:37:37 Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n2026-09-10 22:39:54 Devon: ohh yes I haven't done that in forever\n2026-09-10 22:40:17 Devon: what time were you thinking?\n2026-09-10 22:40:28 user: hmm maybe, my Saturday is kind of up in the air rn",
+            "metadata": {}
+          },
+          {
+            "toolName": "get_messages_by_date_range",
+            "args": {
+              "limit": 50,
+              "order": "asc",
+              "after_date": "2026-09-11"
+            },
+            "result": "Found 2 messages (after 2026-09-11, oldest first):\n\n2026-09-11 13:00:05 user: Hey, can you give me a quick recap on our pizza plan?\n2026-09-11 13:00:05 hermes: Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.",
+            "metadata": {}
+          },
+          {
+            "toolName": "grep_messages",
+            "args": {
+              "text": "I",
+              "limit": 30
+            },
+            "result": "Found 20 messages containing 'I' in 3 conversation snippets:\n\n--- Snippet 1 (session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a, 2 match(es)) ---\n2026-09-11 13:00:05 user: Hey, can you give me a quick recap on our pizza plan?\n2026-09-11 13:00:05 hermes: Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.\n\n--- Snippet 2 (session: source-0ea967d3702ae39e5ab5662f, 9 match(es)) ---\n2026-09-10 22:30:00 Maya: ugh traffic getting home tonight was the worst\n2026-09-10 22:37:37 Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n2026-09-10 22:39:54 Devon: ohh yes I haven't done that in forever\n2026-09-10 22:40:17 Devon: what time were you thinking?\n2026-09-10 22:40:28 user: hmm maybe, my Saturday is kind of up in the air rn\n2026-09-10 22:40:51 Maya: I was thinking like 9am before it gets too hot?\n2026-09-10 22:41:14 Devon: yeah that works for me\n2026-09-10 22:42:00 user: 9 is early lol I'll have to see, don't plan around me\n2026-09-10 22:49:37 Maya: haha no worries just lmk\n2026-09-10 22:50:00 Devon: did your guys power flicker earlier or was that just my building\n\n--- Snippet 3 (session: source-44eee2dd7155f2af01ec5922, 9 match(es)) ---\n2026-09-10 22:00:00 user: just walked in the door ugh\n2026-09-10 22:05:11 Devon: same, my bus was late again\n2026-09-10 22:05:19 user: did you at least get lunch today?\n2026-09-10 22:10:31 Devon: yeah just a sad sandwich lol\n2026-09-10 22:12:04 Devon: hey are you still in a pizza mood?\n2026-09-10 22:12:12 user: always, why\n2026-09-10 22:12:20 Devon: wanna get pizza at Luigi's on Friday?\n2026-09-10 22:17:31 user: oh you mean the one on 5th?\n2026-09-10 22:17:47 Devon: yeah that's the one\n2026-09-10 22:19:21 user: yes I'm down, what time were you thinking?\n2026-09-10 22:19:28 Devon: 7pm?\n2026-09-10 22:19:36 user: yeah that works\n2026-09-10 22:19:44 Devon: cool I'll meet you there\n2026-09-10 22:19:52 user: perfect, I'm gonna be a couch potato tonight\n2026-09-10 22:20:00 Devon: same honestly, see you tomorrow",
+            "metadata": {}
+          },
+          {
+            "toolName": "search_messages",
+            "args": {
+              "query": "work meeting schedule deadline task",
+              "limit": 20
+            },
+            "result": "Found 20 matching messages in 3 conversation snippets for query 'work meeting schedule deadline task'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-44eee2dd7155f2af01ec5922, 10 match(es)) ---\n2026-09-10 22:00:00 user: just walked in the door ugh\n2026-09-10 22:05:11 Devon: same, my bus was late again\n2026-09-10 22:05:19 user: did you at least get lunch today?\n2026-09-10 22:10:31 Devon: yeah just a sad sandwich lol\n2026-09-10 22:12:04 Devon: hey are you still in a pizza mood?\n2026-09-10 22:12:12 user: always, why\n2026-09-10 22:12:20 Devon: wanna get pizza at Luigi's on Friday?\n2026-09-10 22:17:31 user: oh you mean the one on 5th?\n2026-09-10 22:17:47 Devon: yeah that's the one\n2026-09-10 22:19:21 user: yes I'm down, what time were you thinking?\n2026-09-10 22:19:28 Devon: 7pm?\n2026-09-10 22:19:36 user: yeah that works\n2026-09-10 22:19:44 Devon: cool I'll meet you there\n2026-09-10 22:19:52 user: perfect, I'm gonna be a couch potato tonight\n2026-09-10 22:20:00 Devon: same honestly, see you tomorrow\n\n--- Snippet 2 (session: source-0ea967d3702ae39e5ab5662f, 8 match(es)) ---\n2026-09-10 22:30:00 Maya: ugh traffic getting home tonight was the worst\n2026-09-10 22:37:37 Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n2026-09-10 22:39:54 Devon: ohh yes I haven't done that in forever\n2026-09-10 22:40:17 Devon: what time were you thinking?\n2026-09-10 22:40:28 user: hmm maybe, my Saturday is kind of up in the air rn\n2026-09-10 22:40:51 Maya: I was thinking like 9am before it gets too hot?\n2026-09-10 22:41:14 Devon: yeah that works for me\n2026-09-10 22:42:00 user: 9 is early lol I'll have to see, don't plan around me\n2026-09-10 22:49:37 Maya: haha no worries just lmk\n2026-09-10 22:50:00 Devon: did your guys power flicker earlier or was that just my building\n\n--- Snippet 3 (session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a, 2 match(es)) ---\n2026-09-11 13:00:05 user: Hey, can you give me a quick recap on our pizza plan?\n2026-09-11 13:00:05 hermes: Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 5,
+              "results_count": 3
+            }
+          },
+          {
+            "toolName": "search_messages",
+            "args": {
+              "query": "food drink hobbies weekend evening sleep morning",
+              "limit": 20
+            },
+            "result": "Found 20 matching messages in 3 conversation snippets for query 'food drink hobbies weekend evening sleep morning'.\nThese are raw messages with no observation ID - do not cite them in source_ids; use their text in premises/sources instead:\n\n--- Snippet 1 (session: source-0ea967d3702ae39e5ab5662f, 9 match(es)) ---\n2026-09-10 22:30:00 Maya: ugh traffic getting home tonight was the worst\n2026-09-10 22:37:37 Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n2026-09-10 22:39:54 Devon: ohh yes I haven't done that in forever\n2026-09-10 22:40:17 Devon: what time were you thinking?\n2026-09-10 22:40:28 user: hmm maybe, my Saturday is kind of up in the air rn\n2026-09-10 22:40:51 Maya: I was thinking like 9am before it gets too hot?\n2026-09-10 22:41:14 Devon: yeah that works for me\n2026-09-10 22:42:00 user: 9 is early lol I'll have to see, don't plan around me\n2026-09-10 22:49:37 Maya: haha no worries just lmk\n2026-09-10 22:50:00 Devon: did your guys power flicker earlier or was that just my building\n\n--- Snippet 2 (session: local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a, 1 match(es)) ---\n2026-09-11 13:00:05 user: Hey, can you give me a quick recap on our pizza plan?\n2026-09-11 13:00:05 hermes: Tonight — Friday, Sept 11 — 7pm at Luigi's on 5th. Devon's meeting you there.\n\n--- Snippet 3 (session: source-44eee2dd7155f2af01ec5922, 10 match(es)) ---\n2026-09-10 22:00:00 user: just walked in the door ugh\n2026-09-10 22:05:11 Devon: same, my bus was late again\n2026-09-10 22:05:19 user: did you at least get lunch today?\n2026-09-10 22:10:31 Devon: yeah just a sad sandwich lol\n2026-09-10 22:12:04 Devon: hey are you still in a pizza mood?\n2026-09-10 22:12:12 user: always, why\n2026-09-10 22:12:20 Devon: wanna get pizza at Luigi's on Friday?\n2026-09-10 22:17:31 user: oh you mean the one on 5th?\n2026-09-10 22:17:47 Devon: yeah that's the one\n2026-09-10 22:19:21 user: yes I'm down, what time were you thinking?\n2026-09-10 22:19:28 Devon: 7pm?\n2026-09-10 22:19:36 user: yeah that works\n2026-09-10 22:19:44 Devon: cool I'll meet you there\n2026-09-10 22:19:52 user: perfect, I'm gonna be a couch potato tonight\n2026-09-10 22:20:00 Devon: same honestly, see you tomorrow",
+            "metadata": {
+              "top_k": 20,
+              "used_embedding": true,
+              "embedding_query_count": 1,
+              "query_tokens": 7,
+              "results_count": 3
+            }
+          }
+        ]
+      },
+      "scope": "Native reasoning completed during the turn. Query matching identifies explicit Hermes requests; other work may be asynchronous."
+    }
+  ],
+  "prefetch_context": "## User Representation\n## Explicit Observations\n\n[2026-09-10 22:19:52] user arrived home and walked in the door on the evening of September 10, 2026.\n[2026-09-10 22:19:52] user agreed to get pizza at Luigi's on 5th with Devon on Friday, September 11, 2026, at 7pm, with Devon meeting them there.\n[2026-09-10 22:19:52] user planned to spend the evening of September 10, 2026 as a couch potato.\n[2026-09-10 22:19:52] user stated they are always in the mood for pizza.\n[2026-09-10 22:19:52] user referred to Luigi's as the pizza place on 5th, which Devon confirmed as the intended location.\n[2026-09-10 22:42:00] user's Saturday plans were uncertain as of 2026-09-10.\n[2026-09-10 22:42:00] user said others should not plan around them for the proposed 9am Saturday meeting.\n[2026-09-10 22:42:00] user considers 9am early.\n",
+  "prefetch_provenance": null,
+  "context_isolation": {
+    "version": "empty-recall-workspace-v2",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-xqebu0nj",
+    "source": "native Hermes saved system prompt, privately archived at turn completion",
+    "native_cwd": "/var/tmp/pacbench-chat-xqebu0nj",
+    "system_prompt_sha256": "61663c116ca24321740921c2f42e4b2819157a1576d1edf81dccb81c9e605d7a",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-09-11T09:00:00-04:00",
+  "provider_clock": {
+    "version": "honcho-wall-clock-v5",
+    "requested_at": "2026-09-11T09:00:00-04:00",
+    "actual_start_at": "2026-09-11T13:00:00.010385+00:00",
+    "role": "scripted",
+    "next_checkpoint": null
+  },
+  "native_result_duration_s": 61.857,
+  "clock_context": {
+    "protocol": "native-question-v2",
+    "at": "2026-09-11T09:00:00-04:00",
+    "state": "pass",
+    "query_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+    "native_query_index": 0,
+    "actor_api_input_ids": [
+      "2e423b99-f703-4103-b952-2e82e38f973c"
+    ],
+    "auxiliary_title_api_input_ids": [],
+    "native_query_sha256": "d0044ca4a1d201a62b2a622dd485686b4b1ca39c1840885a281c55cabf34c42d",
+    "api_input_ids": [
+      "2e423b99-f703-4103-b952-2e82e38f973c"
+    ],
+    "api_input_sha256": [
+      "93476131824390a3b7e6818ed6d08878ad6928d5ea3f52563af5c2948b3900a8"
+    ],
+    "reason": "Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions"
+  },
+  "hermes_gateway": {
+    "version": "per-turn-owned-gateway-v1",
+    "pid": 251371,
+    "start_time": 4569403,
+    "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+    "stopped": true,
+    "real_started_at": "2026-11-13T02:25:34.960050+00:00",
+    "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+    "clock_offset": "-5405194.121269\n",
+    "offset_sha256": "19d4425008c2750a217005e3a210b7527a925ff31df0cdc8cd409bf653bf7f48",
+    "gateway_adoption": {
+      "abi": "cpython-314",
+      "bootstrap_sha256": "c86d40451fc7cf40f344284bbc36278bd21f44a0aef19ff8515e87e9139b16c9",
+      "clock_file": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/provider-clock/offset",
+      "cwd": "/var/tmp/pacbench-chat-xqebu0nj",
+      "extension_sha256": "461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b",
+      "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+      "monotonic_ns": 45694145419672,
+      "os_clock": "real",
+      "package": "time-machine",
+      "pid": 251371,
+      "process_start_ticks": 4569403,
+      "protocol": "python-offset-clock-v2",
+      "python": "/workspace/PACBench-stable-20261113/vendor/venv-hermes-isolated/bin/python",
+      "python_epoch_ns": 1789131540949452194,
+      "python_sha256": "95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd",
+      "real_epoch_ns": 1794536735070736457,
+      "role": "hermes-gateway",
+      "tls_clock": "real",
+      "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+      "version": "3.6.0"
+    },
+    "cli_launch_at": "2026-09-11T12:59:03.648295+00:00",
+    "cli_adoption": {
+      "abi": "cpython-314",
+      "bootstrap_sha256": "c86d40451fc7cf40f344284bbc36278bd21f44a0aef19ff8515e87e9139b16c9",
+      "clock_file": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/provider-clock/offset",
+      "cwd": "/var/tmp/pacbench-chat-xqebu0nj",
+      "extension_sha256": "461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b",
+      "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+      "monotonic_ns": 45696991383509,
+      "os_clock": "real",
+      "package": "time-machine",
+      "pid": 251464,
+      "process_start_ticks": 4569684,
+      "protocol": "python-offset-clock-v2",
+      "python": "/workspace/PACBench-stable-20261113/vendor/venv-hermes-isolated/bin/python",
+      "python_epoch_ns": 1789131543795415081,
+      "python_sha256": "95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd",
+      "real_epoch_ns": 1794536737916700114,
+      "role": "hermes-cli",
+      "tls_clock": "real",
+      "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+      "version": "3.6.0"
+    },
+    "native_submission": [
+      {
+        "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+        "monotonic_ns": 45753196960063,
+        "offset_sha256": "19d4425008c2750a217005e3a210b7527a925ff31df0cdc8cd409bf653bf7f48",
+        "phase": "client-submit",
+        "pid": 251464,
+        "process_start_ticks": 4569684,
+        "provider_at": "2026-09-11T13:00:00.000976+00:00",
+        "question_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+        "real_at": "2026-11-13T02:26:34.122275+00:00",
+        "request_id": "d8da83ac4e4040c181e550baa777d567",
+        "role": "hermes-cli",
+        "session_id": "local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+        "source_sha256": "00e0191d02739c57f3b39f364cb63b7903e2be0d757f6a3146778e7f0101fb40",
+        "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+        "version": "native-clock-admission-v1"
+      },
+      {
+        "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+        "monotonic_ns": 45753202679409,
+        "offset_sha256": "19d4425008c2750a217005e3a210b7527a925ff31df0cdc8cd409bf653bf7f48",
+        "phase": "gateway-received",
+        "pid": 251371,
+        "process_start_ticks": 4569403,
+        "provider_at": "2026-09-11T13:00:00.006680+00:00",
+        "question_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+        "real_at": "2026-11-13T02:26:34.127994+00:00",
+        "request_id": "d8da83ac4e4040c181e550baa777d567",
+        "role": "hermes-gateway",
+        "session_id": "local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+        "source_sha256": "00e0191d02739c57f3b39f364cb63b7903e2be0d757f6a3146778e7f0101fb40",
+        "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+        "version": "native-clock-admission-v1"
+      },
+      {
+        "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+        "monotonic_ns": 45753205011729,
+        "offset_sha256": "19d4425008c2750a217005e3a210b7527a925ff31df0cdc8cd409bf653bf7f48",
+        "phase": "pre-commit",
+        "pid": 251371,
+        "process_start_ticks": 4569403,
+        "provider_at": "2026-09-11T13:00:00.009024+00:00",
+        "question_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+        "real_at": "2026-11-13T02:26:34.130327+00:00",
+        "request_id": "d8da83ac4e4040c181e550baa777d567",
+        "role": "hermes-gateway",
+        "session_id": "local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+        "source_sha256": "00e0191d02739c57f3b39f364cb63b7903e2be0d757f6a3146778e7f0101fb40",
+        "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+        "version": "native-clock-admission-v1"
+      },
+      {
+        "admission_id": "8cc6966be24a450a8fe8916531baaeab",
+        "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/hermes-home",
+        "in_window": true,
+        "monotonic_ns": 45753206362067,
+        "offset_sha256": "19d4425008c2750a217005e3a210b7527a925ff31df0cdc8cd409bf653bf7f48",
+        "phase": "post-commit",
+        "pid": 251371,
+        "process_start_ticks": 4569403,
+        "provider_at": "2026-09-11T13:00:00.010385+00:00",
+        "question_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+        "real_at": "2026-11-13T02:26:34.131678+00:00",
+        "request_id": "d8da83ac4e4040c181e550baa777d567",
+        "role": "hermes-gateway",
+        "session_id": "local-e4a9129b1bea85f39ffb888ee15036101d5270084b6ce517c15244343283065a",
+        "source_sha256": "00e0191d02739c57f3b39f364cb63b7903e2be0d757f6a3146778e7f0101fb40",
+        "turn_nonce": "5bef64e3e01a4112af17f252f3308565",
+        "version": "native-clock-admission-v1"
+      }
+    ],
+    "question_dispatch_at": "2026-09-11T13:00:00.000976+00:00",
+    "question_accepted_at": "2026-09-11T13:00:00.010385+00:00",
+    "real_finished_at": "2026-11-13T02:27:10.978163+00:00",
+    "returncode": 0,
+    "offset_unchanged": true
+  }
+}

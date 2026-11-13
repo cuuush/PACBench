@@ -1,0 +1,210 @@
+{
+  "state": "diagnostic",
+  "results": [
+    {
+      "provider": "supermemory",
+      "repetition": 1,
+      "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+      "capability": {
+        "available": true,
+        "reason": "",
+        "tools": [
+          "supermemory_store",
+          "supermemory_search",
+          "supermemory_forget",
+          "supermemory_profile",
+          "supermemory_read_document",
+          "supermemory-save",
+          "supermemory-search",
+          "supermemory-forget",
+          "supermemory-profile",
+          "supermemory-read-document"
+        ],
+        "loaded_native_provider": "supermemory",
+        "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/supermemory/repeat-1/supermemory/hermes-home/plugins/supermemory/__init__.py",
+        "loaded_source_sha256": "e85f1edd610511e3752b626da940e8d8ede891cfee02f0299230d555e7c05cc9",
+        "provider": "supermemory",
+        "live_verified": true,
+        "read_only_smoke": {
+          "tool": "supermemory-profile",
+          "arguments": {},
+          "output": "{\"profile\": \"# Profile\\n\\nNo profile memories yet.\"}"
+        },
+        "wiring_verified": true
+      },
+      "state": "diagnostic",
+      "write_readiness_protocol": "accepted-native-writes-v2",
+      "checks": [
+        {
+          "id": "pizza-plan",
+          "at": "2026-09-11T09:00:00-04:00",
+          "session": "shared",
+          "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+          "state": "diagnostic",
+          "verdict": "pass",
+          "reason": "",
+          "interaction": "answer",
+          "recovery": {
+            "state": "complete",
+            "score": {
+              "initial_correct": 5,
+              "initial_missed": 0,
+              "initial_misrepresented": 0,
+              "max_points": 5,
+              "points": 0.0,
+              "recovery_weight": 0.5,
+              "claims": [
+                {
+                  "claim_id": "fact-1",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": true,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "fact-2",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": true,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "fact-3",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": true,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "fact-4",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": true,
+                  "points": 0.0
+                },
+                {
+                  "claim_id": "fact-5",
+                  "initial_verdict": "correct",
+                  "followup_verdict": null,
+                  "recovered_answer": false,
+                  "retention_failed": false,
+                  "path_needs_review": true,
+                  "points": 0.0
+                }
+              ],
+              "calibrated": false
+            },
+            "attempts": []
+          }
+        }
+      ],
+      "reason": "",
+      "behavior": {
+        "evaluation_context": "shared"
+      }
+    }
+  ],
+  "mode": "native-hermes",
+  "builtin_memory": false,
+  "tool_policy": "provider-memory-with-source-penalty-v3",
+  "session_search": false,
+  "ingestion_mode": "documents",
+  "inference_route": "openrouter",
+  "judge_generation_conditions": {
+    "reasoning_effort": "low",
+    "scope": "Benchmark judge only; native provider and Hermes settings unchanged"
+  },
+  "hermes_model": "deepseek/deepseek-v4.1-flash-1017",
+  "judge_model": "deepseek/deepseek-v4.1-flash-1017",
+  "extraction_model": "deepseek/deepseek-v4.1-flash-1017",
+  "openrouter_endpoint": "deepinfra/fp8/flex",
+  "transport": "direct-client-reservations-v1",
+  "provenance_version": "source-provenance-v3",
+  "provider_loader_protocol": "native-loaded-source-v1",
+  "clock_context_protocol": "native-question-v2",
+  "question_prompt_protocol": "native-question-v2",
+  "evidence_diagnostic_protocol": "answer-visible-evidence-v2",
+  "judge_protocol": "semantic-judge-date-scope-v2",
+  "gateway_before": {
+    "service": "pacbench-openrouter-direct",
+    "limit_usd": 20,
+    "accounted_usd": 8.157323871616,
+    "external_allocations_usd": 3.0,
+    "audit_allowance_usd": 17.0,
+    "audit_spend_and_bounds_usd": 5.157323871616
+  },
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+  "bundle_hash": "176a53acda1d8502886e6b7360d0fdee943e13d2c94f5d04e7b7028cefab4717",
+  "message_count": 25,
+  "source": "preparation",
+  "process_timezone": "America/New_York",
+  "ingestion_version": "daily-source-documents-v3",
+  "document_provider_blockers": {
+    "holographic": "Unsupported: fact storage and regex extraction do not provide document ingestion.",
+    "memori": "Excluded: Hermes documents Memori Cloud only; no local document-ingestion integration verified.",
+    "retaindb": "Excluded: Hermes documents hosted storage only; the benchmark requires local memory backends."
+  },
+  "ingestion_schedule": [
+    {
+      "id": "2026-09-10",
+      "at": "2026-09-10T18:50:00-04:00",
+      "source_ids": [
+        "message-997c390360930d39c2a91c1c",
+        "message-bbe8f576e37a4e1dbc7eb8e0",
+        "message-9b6de64be1f77aae9e27ce29",
+        "message-aebef46e330c3978b108f386",
+        "message-3488b3de33b8c372b1e8dd7a",
+        "message-d3a5f8e6afd26a43c3dd010f",
+        "message-4740cc49226a8358091d88f3",
+        "message-649e05a8a0c04602cb5221c2",
+        "message-d8e1fc8d4399bdf4bc4b7390",
+        "message-8736d5d60f286757fa8c5bd6",
+        "message-f0f94e727ca8743b8a20eab4",
+        "message-4db19b467bca3d3a987a6685",
+        "message-c6b34b7de4a5728ebf74c983",
+        "message-e87bf407d37889068eed95df",
+        "message-e0c91b84def1df60696ee3b8",
+        "message-2c97528b96a2fe3903257770",
+        "message-0820bf70b9eb7feed8cdb267",
+        "message-67664b2503e5cd4f9d132860",
+        "message-b1fd1d7da91d0d0e0c145d52",
+        "message-ba8bf0de5a8b22c3a03e1f8e",
+        "message-3a4ac42a537f09e25aea58bf",
+        "message-4808aed0b2028d3ee49d0f68",
+        "message-cc4126b3493b60536abc421e",
+        "message-de30e54f0572f2c4305bcf17",
+        "message-d962e57a39d134a1cbe06544"
+      ],
+      "source_file": "sources/2026-09-10/messages.txt",
+      "file": "ingestion/2026-09-10.json",
+      "source_manifest_sha256": "f2b4b179d86975be0a1cad7062470940ab687ea3e40be2b5140d5d69e155f7bf"
+    }
+  ],
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "evaluation_plan_hash": "0b29bf2a693eeeab235ea6bcd25b25816e686ad4ad2a6faf8580bb6ac5216a0d",
+  "evaluation_context": "shared",
+  "followup_plan_hash": "3f2b0410eaddaaad6f913d6d5b166639ad957767a4e5b301a4100231f92a7a84",
+  "followup_policy": "one combined message for implicit omissions only; wrong answers, explicit misses and admitted retrieval failures are terminal; half recovery credit; source fallback is permitted but earns no retention credit",
+  "gateway_after": {
+    "service": "pacbench-openrouter-direct",
+    "limit_usd": 20,
+    "accounted_usd": 8.423428188864,
+    "external_allocations_usd": 3.0,
+    "audit_allowance_usd": 17.0,
+    "audit_spend_and_bounds_usd": 5.423428188864
+  },
+  "audit": {
+    "state": "pass",
+    "errors": [],
+    "scope": "native trace integrity, not calibrated provider quality"
+  }
+}

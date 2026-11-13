@@ -1,0 +1,81 @@
+{
+  "protocol": "installed-stable-components-v1",
+  "scope": "Installed versions and import-only plugin checks; native ingestion, processing, injection and tool qualification pending",
+  "distributions": {
+    "venv-hermes-isolated": {
+      "hermes-agent": "0.0.0",
+      "memcal": "0.8.11",
+      "honcho-ai": "2.9.0",
+      "mem0ai": "2.2.1",
+      "supermemory": "5.0.1",
+      "hindsight-client": "1.2.1",
+      "hindsight-embed": "1.2.1",
+      "ollama": "0.6.3",
+      "qdrant-client": "1.20.0",
+      "time-machine": "3.6.0"
+    },
+    "venv-hindsight": {
+      "hindsight-all": "1.2.1",
+      "hindsight-api-slim": "1.2.1"
+    },
+    "venv-cognee": {
+      "cognee": "1.6.8"
+    },
+    "venv-reme": {
+      "reme-ai": "0.4.2.2",
+      "agentscope": "2.0.11"
+    },
+    "venv-openviking": {
+      "openviking": "0.5.4.1"
+    }
+  },
+  "source_checkouts": {
+    "hermes": {
+      "revision": "3b421578588243f920886e6fe79a6faa87ea026e",
+      "changes": true
+    },
+    "honcho": {
+      "revision": "70c67624169683b9e265517aec95a51b8077cabc",
+      "changes": false
+    },
+    "reme": {
+      "revision": "36c23674ad8c599dae20b0687af40acd8ecb990e",
+      "changes": false
+    },
+    "cognee_plugin": {
+      "revision": "a176248914fdb32a78354854b300174203b15a5c",
+      "changes": false
+    },
+    "supermemory_plugin": {
+      "revision": "a8f360166419958ce77b876c69f7be3bf0716d67",
+      "changes": false
+    },
+    "memcal": {
+      "revision": "e67b8d912484b5b4317dafcff4d60fc975194d8e",
+      "changes": false
+    }
+  },
+  "memos_local_release": {
+    "protocol": "native-npm-source-v1",
+    "name": "@memtensor/memos-local-plugin",
+    "version": "2.0.21",
+    "tarball": "https://registry.npmjs.org/@memtensor/memos-local-plugin/-/memos-local-plugin-2.0.21.tgz",
+    "integrity": "sha512-7DAqAdOFo6n/ptco3Cy8ixJXFcfDgT9yet3Tod2bnPgNEiF+5qZt+3kP8gG8dy/X9VvFhg0/ctblhp/T9PcsPA==",
+    "sha256": "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539"
+  },
+  "supermemory_local_server": {
+    "version": "server-v0.0.9",
+    "sha256": "d7987ecbf2b024c6de9d167becbcfcaabce447169b41d6f56db86f87d5187984",
+    "source": "https://github.com/supermemoryai/supermemory/releases/tag/server-v0.0.9",
+    "verification": "GitHub release asset digest"
+  },
+  "release_notes": {
+    "hermes": "v0.23.1 already current",
+    "openviking": "0.5.4.1 backend already current; plugin 2.1.2 to 2.1.4",
+    "reme": "development 0.4.2.3 replaced by published stable 0.4.2.2",
+    "memos": "Native local plugin upgraded 2.0.16-beta.1 to stable 2.0.21; root Python MemoryOS2.0.36 is a different component",
+    "supermemory": "Current plugin2.0.0 uses SDK5.0.1; no plugin release tags available; exact upstream commit recorded; local server latest remains0.0.9",
+    "cognee": "Manual loopback nativeHTTP1.6.8; plugin default private auto-install1.6.6 unchanged and not invoked"
+  },
+  "readiness_observation": "Native sidecar API shape qualified separately; see native completion observer receipt; extraction/recall trials above retain their actual conditions."
+}

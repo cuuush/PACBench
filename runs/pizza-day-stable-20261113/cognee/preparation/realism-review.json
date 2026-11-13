@@ -1,0 +1,80 @@
+{
+  "state": "pass",
+  "review_version": "source-realism-v9",
+  "source_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "intent_hash": "d24f741169df4a784a5d1776e1bfd293fce7d76f42591a98a901d2ddd659e05d",
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "assessments": [
+      {
+        "check_id": "pizza-plan",
+        "event_date": "2026-09-11",
+        "source_evidence": [
+          {
+            "written_at": "2026-09-10T18:12:20-04:00",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          },
+          {
+            "written_at": "2026-09-10T18:17:31-04:00",
+            "quote": "oh you mean the one on 5th?"
+          },
+          {
+            "written_at": "2026-09-10T18:17:47-04:00",
+            "quote": "yeah that's the one"
+          },
+          {
+            "written_at": "2026-09-10T18:19:28-04:00",
+            "quote": "7pm?"
+          },
+          {
+            "written_at": "2026-09-10T18:19:36-04:00",
+            "quote": "yeah that works"
+          },
+          {
+            "written_at": "2026-09-10T18:19:44-04:00",
+            "quote": "cool I'll meet you there"
+          },
+          {
+            "written_at": "2026-09-10T18:20:00-04:00",
+            "quote": "same honestly, see you tomorrow"
+          }
+        ],
+        "alternatives": [
+          "none"
+        ],
+        "ambiguous": false
+      }
+    ],
+    "notes": "The pizza plan is confirmed for Friday, 2026-09-11, at 7pm at Luigi's on 5th with Devon. Since 2026-09-10 is a Thursday, 'Friday' resolves to the next day, and 'see you tomorrow' further confirms that date. No material ambiguity or conflicting update appears in the source."
+  },
+  "model_call": "/workspace/PACBench-openrouter/artifacts/pizza-day-openrouter-20261112/model-calls/75e40b41839c1308a1443000893bb3382babc1001ede8eaed7bc8037c6dc96b8.json",
+  "usage": {
+    "prompt_tokens": 1342,
+    "completion_tokens": 3240,
+    "total_tokens": 4582,
+    "cost": 0.0008672608,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.0008672608,
+      "upstream_inference_prompt_cost": 0.0001052128,
+      "upstream_inference_completions_cost": 0.000762048
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 2892,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.0008672608
+  },
+  "scope": "source-coherence-and-public-question-answerability",
+  "validation_errors": []
+}

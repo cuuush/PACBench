@@ -1,0 +1,106 @@
+{
+  "provider": "memos",
+  "repetition": 1,
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "memos_search",
+      "memos_get",
+      "memos_timeline",
+      "memos_skill_list",
+      "memos_environment",
+      "memos_skill_get"
+    ],
+    "loaded_native_provider": "memtensor",
+    "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/memos/repeat-1/memos/hermes-home/plugins/memtensor/__init__.py",
+    "loaded_source_sha256": "32fd1ebadf5b77fdeed5272a18b5597c80ad5d7e650681242ece488cca79c97f",
+    "provider": "memos",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": "memos_skill_list",
+      "arguments": {},
+      "output": "{\"skills\": []}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pizza-plan",
+      "at": "2026-09-11T09:00:00-04:00",
+      "session": "shared",
+      "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 5,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "fact-1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-3",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-4",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-5",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

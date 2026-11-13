@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def repo(tmp_path,monkeypatch):
     root=tmp_path/'repo';root.mkdir();(root/'artifacts').mkdir()
     subprocess.run(['git','init','-q',str(root)],check=True,capture_output=True)
-    (root/'.gitignore').write_text('/artifacts/\n/runs/**/hermes-home/\n/runs/**/model-calls/private/\n')
+    (root/'.gitignore').write_text((Path(publish_run.__file__).resolve().parents[1]/'.gitignore').read_text())
     monkeypatch.setattr(publish_run,'REPO',root)
     return root
 
@@ -49,6 +49,7 @@ def component(repo,name,provider):
     save(root/'repeat-1'/provider/'hermes-home/credentials.json',{'private':'DO-NOT-PUBLISH'})
     save(root/'model-calls/same.json',{'text':'different actual call from '+name})
     save(root/'model-calls/private/replay.json',{'private':'DO-NOT-PUBLISH'})
+    save(root/'repeat-1'/provider/'private/hindsight-native-traces/raw.json',{'reasoning':'DO-NOT-PUBLISH'})
     return root
 
 

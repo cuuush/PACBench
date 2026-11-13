@@ -1,0 +1,3437 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "honcho",
+  "at": "2026-09-10T18:50:00-04:00",
+  "processing_at": "2026-09-11T03:00:00-04:00",
+  "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+  "source_ids": [
+    "message-997c390360930d39c2a91c1c",
+    "message-bbe8f576e37a4e1dbc7eb8e0",
+    "message-9b6de64be1f77aae9e27ce29",
+    "message-aebef46e330c3978b108f386",
+    "message-3488b3de33b8c372b1e8dd7a",
+    "message-d3a5f8e6afd26a43c3dd010f",
+    "message-4740cc49226a8358091d88f3",
+    "message-649e05a8a0c04602cb5221c2",
+    "message-d8e1fc8d4399bdf4bc4b7390",
+    "message-8736d5d60f286757fa8c5bd6",
+    "message-f0f94e727ca8743b8a20eab4",
+    "message-4db19b467bca3d3a987a6685",
+    "message-c6b34b7de4a5728ebf74c983",
+    "message-e87bf407d37889068eed95df",
+    "message-e0c91b84def1df60696ee3b8",
+    "message-2c97528b96a2fe3903257770",
+    "message-0820bf70b9eb7feed8cdb267",
+    "message-67664b2503e5cd4f9d132860",
+    "message-b1fd1d7da91d0d0e0c145d52",
+    "message-ba8bf0de5a8b22c3a03e1f8e",
+    "message-3a4ac42a537f09e25aea58bf",
+    "message-4808aed0b2028d3ee49d0f68",
+    "message-cc4126b3493b60536abc421e",
+    "message-de30e54f0572f2c4305bcf17",
+    "message-d962e57a39d134a1cbe06544"
+  ],
+  "delivery": "native-messages",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "membership_protocol": "honcho-chronological-membership-v2",
+  "enrollment": {
+    "protocol": "honcho-chronological-membership-v2",
+    "state": "enrolled",
+    "ready": true,
+    "plans": [
+      {
+        "session_id": "source-44eee2dd7155f2af01ec5922",
+        "participants": [
+          "Devon",
+          "Me"
+        ],
+        "source_peers": [
+          "Devon",
+          "user"
+        ],
+        "observer": "hermes",
+        "earliest_source_at": "2026-09-10T18:00:00-04:00",
+        "peer_ids": {
+          "Devon": "Devon",
+          "Me": "user"
+        }
+      },
+      {
+        "session_id": "source-0ea967d3702ae39e5ab5662f",
+        "participants": [
+          "Devon",
+          "Maya",
+          "Me"
+        ],
+        "source_peers": [
+          "Devon",
+          "Maya",
+          "user"
+        ],
+        "observer": "hermes",
+        "earliest_source_at": "2026-09-10T18:30:00-04:00",
+        "peer_ids": {
+          "Devon": "Devon",
+          "Maya": "Maya",
+          "Me": "user"
+        }
+      }
+    ],
+    "source_sha256": "8ebd5047b2596be7a3b60d422b30e5451865fdaddc975992e9151b81db770529",
+    "observations": [
+      {
+        "db_at": "2026-09-10T21:55:36.050735+00:00",
+        "memberships": [
+          {
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "joined_at": "2026-09-10T21:55:35.968038+00:00",
+            "left_at": null
+          },
+          {
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "hermes",
+            "joined_at": "2026-09-10T21:55:35.968038+00:00",
+            "left_at": null
+          },
+          {
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "joined_at": "2026-09-10T21:55:35.968038+00:00",
+            "left_at": null
+          }
+        ]
+      },
+      {
+        "db_at": "2026-09-10T22:25:00.249796+00:00",
+        "memberships": [
+          {
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Devon",
+            "joined_at": "2026-09-10T22:25:00.164351+00:00",
+            "left_at": null
+          },
+          {
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "hermes",
+            "joined_at": "2026-09-10T22:25:00.164351+00:00",
+            "left_at": null
+          },
+          {
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Maya",
+            "joined_at": "2026-09-10T22:25:00.164351+00:00",
+            "left_at": null
+          },
+          {
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "user",
+            "joined_at": "2026-09-10T22:25:00.164351+00:00",
+            "left_at": null
+          }
+        ]
+      }
+    ],
+    "native_writes": "Session.add_peers only",
+    "source_messages_submitted": 0
+  },
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "native messages + simulated wall clock",
+    "result": [
+      {
+        "session_id": "source-44eee2dd7155f2af01ec5922",
+        "processing_baseline": {
+          "total_work_units": 0,
+          "completed_work_units": 0,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 15,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "owner": {
+          "peer_id": "user",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "just walked in the door ugh",
+            "created_at": "2026-09-10T18:00:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:00:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:00:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-997c390360930d39c2a91c1c",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:00:00-04:00"
+            }
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "same, my bus was late again",
+            "created_at": "2026-09-10T18:05:11-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:05:11-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:05:11-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-bbe8f576e37a4e1dbc7eb8e0",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:05:11-04:00"
+            }
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "did you at least get lunch today?",
+            "created_at": "2026-09-10T18:05:19-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:05:19-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:05:19-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-9b6de64be1f77aae9e27ce29",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:05:19-04:00"
+            }
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "yeah just a sad sandwich lol",
+            "created_at": "2026-09-10T18:10:31-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:10:31-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:10:31-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-aebef46e330c3978b108f386",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:10:31-04:00"
+            }
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "hey are you still in a pizza mood?",
+            "created_at": "2026-09-10T18:12:04-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:12:04-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:12:04-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-3488b3de33b8c372b1e8dd7a",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:12:04-04:00"
+            }
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "always, why",
+            "created_at": "2026-09-10T18:12:12-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:12:12-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:12:12-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-d3a5f8e6afd26a43c3dd010f",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:12:12-04:00"
+            }
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "wanna get pizza at Luigi's on Friday?",
+            "created_at": "2026-09-10T18:12:20-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:12:20-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:12:20-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-4740cc49226a8358091d88f3",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:12:20-04:00"
+            }
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "oh you mean the one on 5th?",
+            "created_at": "2026-09-10T18:17:31-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:17:31-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:17:31-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-649e05a8a0c04602cb5221c2",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:17:31-04:00"
+            }
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "yeah that's the one",
+            "created_at": "2026-09-10T18:17:47-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:17:47-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:17:47-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-d8e1fc8d4399bdf4bc4b7390",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:17:47-04:00"
+            }
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "yes I'm down, what time were you thinking?",
+            "created_at": "2026-09-10T18:19:21-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:19:21-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:19:21-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-8736d5d60f286757fa8c5bd6",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:19:21-04:00"
+            }
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "7pm?",
+            "created_at": "2026-09-10T18:19:28-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:19:28-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:19:28-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-f0f94e727ca8743b8a20eab4",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:19:28-04:00"
+            }
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "yeah that works",
+            "created_at": "2026-09-10T18:19:36-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:19:36-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:19:36-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-4db19b467bca3d3a987a6685",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:19:36-04:00"
+            }
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "cool I'll meet you there",
+            "created_at": "2026-09-10T18:19:44-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:19:44-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:19:44-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-c6b34b7de4a5728ebf74c983",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:19:44-04:00"
+            }
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "user",
+            "content": "perfect, I'm gonna be a couch potato tonight",
+            "created_at": "2026-09-10T18:19:52-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:19:52-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:19:52-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-e87bf407d37889068eed95df",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:19:52-04:00"
+            }
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "session_id": "source-44eee2dd7155f2af01ec5922",
+            "peer_id": "Devon",
+            "content": "same honestly, see you tomorrow",
+            "created_at": "2026-09-10T18:20:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:20:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:20:00-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-e0c91b84def1df60696ee3b8",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Me",
+                  "Devon"
+                ]
+              },
+              "thread": "thread-40abd5ae5387be803a2aa919",
+              "written_at": "2026-09-10T18:20:00-04:00"
+            }
+          }
+        ]
+      },
+      {
+        "session_id": "source-0ea967d3702ae39e5ab5662f",
+        "processing_baseline": {
+          "total_work_units": 0,
+          "completed_work_units": 0,
+          "in_progress_work_units": 0,
+          "pending_work_units": 0,
+          "sessions": null
+        },
+        "minimum_work_units": 10,
+        "observer": {
+          "peer_id": "hermes",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "owner": {
+          "peer_id": "user",
+          "observe_me": true,
+          "observe_others": true
+        },
+        "messages": [
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Maya",
+            "content": "ugh traffic getting home tonight was the worst",
+            "created_at": "2026-09-10T18:30:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:30:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:30:00-04:00",
+              "from_owner": false,
+              "sender": "Maya",
+              "source_id": "message-2c97528b96a2fe3903257770",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:30:00-04:00"
+            }
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Maya",
+            "content": "random thought tho, anyone want to go see the ducks at the pond Saturday morning?",
+            "created_at": "2026-09-10T18:37:37-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:37:37-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:37:37-04:00",
+              "from_owner": false,
+              "sender": "Maya",
+              "source_id": "message-0820bf70b9eb7feed8cdb267",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:37:37-04:00"
+            }
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Devon",
+            "content": "ohh yes I haven't done that in forever",
+            "created_at": "2026-09-10T18:39:54-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:39:54-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:39:54-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-67664b2503e5cd4f9d132860",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:39:54-04:00"
+            }
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Devon",
+            "content": "what time were you thinking?",
+            "created_at": "2026-09-10T18:40:17-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:40:17-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:40:17-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-b1fd1d7da91d0d0e0c145d52",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:40:17-04:00"
+            }
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "user",
+            "content": "hmm maybe, my Saturday is kind of up in the air rn",
+            "created_at": "2026-09-10T18:40:28-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:40:28-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:40:28-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-ba8bf0de5a8b22c3a03e1f8e",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:40:28-04:00"
+            }
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Maya",
+            "content": "I was thinking like 9am before it gets too hot?",
+            "created_at": "2026-09-10T18:40:51-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:40:51-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:40:51-04:00",
+              "from_owner": false,
+              "sender": "Maya",
+              "source_id": "message-3a4ac42a537f09e25aea58bf",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:40:51-04:00"
+            }
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Devon",
+            "content": "yeah that works for me",
+            "created_at": "2026-09-10T18:41:14-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:41:14-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:41:14-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-4808aed0b2028d3ee49d0f68",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:41:14-04:00"
+            }
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "user",
+            "content": "9 is early lol I'll have to see, don't plan around me",
+            "created_at": "2026-09-10T18:42:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:42:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:42:00-04:00",
+              "from_owner": true,
+              "sender": "Me",
+              "source_id": "message-cc4126b3493b60536abc421e",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:42:00-04:00"
+            }
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Maya",
+            "content": "haha no worries just lmk",
+            "created_at": "2026-09-10T18:49:37-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:49:37-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:49:37-04:00",
+              "from_owner": false,
+              "sender": "Maya",
+              "source_id": "message-de30e54f0572f2c4305bcf17",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:49:37-04:00"
+            }
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "session_id": "source-0ea967d3702ae39e5ab5662f",
+            "peer_id": "Devon",
+            "content": "did your guys power flicker earlier or was that just my building",
+            "created_at": "2026-09-10T18:50:00-04:00",
+            "metadata": {
+              "arrived_at": "2026-09-10T18:50:00-04:00",
+              "channel": "imessage",
+              "collected_at": "2026-09-10T18:50:00-04:00",
+              "from_owner": false,
+              "sender": "Devon",
+              "source_id": "message-d962e57a39d134a1cbe06544",
+              "structured": {
+                "chat_name": "",
+                "participants": [
+                  "Maya",
+                  "Devon",
+                  "Me"
+                ]
+              },
+              "thread": "thread-568cd4c46cad825d4135531b",
+              "written_at": "2026-09-10T18:50:00-04:00"
+            }
+          }
+        ]
+      }
+    ],
+    "processing_status": [
+      {
+        "db_now": "2026-09-11T07:00:01.988692+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 25,
+        "embeddings": 10,
+        "busy_connections": 1,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:00:02.533671+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 25,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:01.810443+00:00",
+        "claims": 0,
+        "eligible": 5,
+        "pending": 25,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:06.529327+00:00",
+        "claims": 1,
+        "eligible": 4,
+        "pending": 25,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:14.502247+00:00",
+        "claims": 0,
+        "eligible": 5,
+        "pending": 18,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:15.152688+00:00",
+        "claims": 1,
+        "eligible": 4,
+        "pending": 18,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.047363+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:19.573158+00:00",
+        "claims": 1,
+        "eligible": 3,
+        "pending": 12,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.419491+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:22.083047+00:00",
+        "claims": 0,
+        "eligible": 3,
+        "pending": 9,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.419491+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:22.645803+00:00",
+        "claims": 1,
+        "eligible": 2,
+        "pending": 9,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.419491+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:24.908057+00:00",
+        "claims": 0,
+        "eligible": 2,
+        "pending": 6,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.419491+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:26.188538+00:00",
+        "claims": 1,
+        "eligible": 1,
+        "pending": 6,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": "2026-09-11T07:30:01.419491+00:00",
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": false,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:28.50502+00:00",
+        "claims": 1,
+        "eligible": 0,
+        "pending": 2,
+        "embeddings": 0,
+        "busy_connections": 1,
+        "next_eligible_at": null,
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      },
+      {
+        "db_now": "2026-09-11T07:30:29.085777+00:00",
+        "claims": 0,
+        "eligible": 0,
+        "pending": 0,
+        "embeddings": 0,
+        "busy_connections": 0,
+        "next_eligible_at": null,
+        "errors": [],
+        "messages": [
+          {
+            "id": "zLul4Ho82ZarASu79dCmH",
+            "queue_id": 11,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "iWw51osvvRprla_SpQFer",
+            "queue_id": 10,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "-r3upY6KmZdz1RfIL5fPQ",
+            "queue_id": 9,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "7xpqfNE0f38iAkq0A3YqB",
+            "queue_id": 14,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "pwzrzGdobX_ouc153yiAW",
+            "queue_id": 16,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "PBdMlN6QvLTrjC4xOM_V0",
+            "queue_id": 19,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "s8INPRgzclnWJYw96SO95",
+            "queue_id": 17,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "VIQ85yhxNKaUyVB7dsRWH",
+            "queue_id": 21,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hqfbx9WA4GqUvEB2YNyY9",
+            "queue_id": 20,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "YGjMiQN-t1W3bQ_dESIyw",
+            "queue_id": 8,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kOp9XiSz_JRm3cxoaIx2A",
+            "queue_id": 7,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "kG5enoxgRZKfJJfQqU0jc",
+            "queue_id": 1,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "hoBDegtMk0gN7fkpi0iu9",
+            "queue_id": 5,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "0fIp4lM4LUQWAZeYhqFqY",
+            "queue_id": 4,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "EVdlmHBddVy-ErdXiO-pM",
+            "queue_id": 2,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "3tEjYd0OZu8E5oVBaMpBa",
+            "queue_id": 6,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "578j_u_q0awmrK12Lw2G0",
+            "queue_id": 25,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LID5MKuCxkjytfgKxcUc1",
+            "queue_id": 24,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5AV7uJxXuzynEq3iqgHR5",
+            "queue_id": 3,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "V1_IMtjtnQODSlb57zlsH",
+            "queue_id": 15,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "5jj0Jk5YabtoIyQooTUR3",
+            "queue_id": 13,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "x8REUFxcL7PFkIgo5wqhb",
+            "queue_id": 12,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "9M801xzdc0UZd6XXikR1g",
+            "queue_id": 18,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "LMAK3hpEw7IcjkFTyS6ZV",
+            "queue_id": 23,
+            "processed": true,
+            "has_error": false
+          },
+          {
+            "id": "Sly2WVtUbba31-K7YH6wy",
+            "queue_id": 22,
+            "processed": true,
+            "has_error": false
+          }
+        ]
+      }
+    ],
+    "message_witnesses": [
+      {
+        "id": "kG5enoxgRZKfJJfQqU0jc",
+        "queue_id": 1,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "EVdlmHBddVy-ErdXiO-pM",
+        "queue_id": 2,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "5AV7uJxXuzynEq3iqgHR5",
+        "queue_id": 3,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "0fIp4lM4LUQWAZeYhqFqY",
+        "queue_id": 4,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "hoBDegtMk0gN7fkpi0iu9",
+        "queue_id": 5,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "3tEjYd0OZu8E5oVBaMpBa",
+        "queue_id": 6,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "kOp9XiSz_JRm3cxoaIx2A",
+        "queue_id": 7,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "YGjMiQN-t1W3bQ_dESIyw",
+        "queue_id": 8,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "-r3upY6KmZdz1RfIL5fPQ",
+        "queue_id": 9,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "iWw51osvvRprla_SpQFer",
+        "queue_id": 10,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "zLul4Ho82ZarASu79dCmH",
+        "queue_id": 11,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "x8REUFxcL7PFkIgo5wqhb",
+        "queue_id": 12,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "5jj0Jk5YabtoIyQooTUR3",
+        "queue_id": 13,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "7xpqfNE0f38iAkq0A3YqB",
+        "queue_id": 14,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "V1_IMtjtnQODSlb57zlsH",
+        "queue_id": 15,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "pwzrzGdobX_ouc153yiAW",
+        "queue_id": 16,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "s8INPRgzclnWJYw96SO95",
+        "queue_id": 17,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "9M801xzdc0UZd6XXikR1g",
+        "queue_id": 18,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "PBdMlN6QvLTrjC4xOM_V0",
+        "queue_id": 19,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "hqfbx9WA4GqUvEB2YNyY9",
+        "queue_id": 20,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "VIQ85yhxNKaUyVB7dsRWH",
+        "queue_id": 21,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "Sly2WVtUbba31-K7YH6wy",
+        "queue_id": 22,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "LMAK3hpEw7IcjkFTyS6ZV",
+        "queue_id": 23,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "LID5MKuCxkjytfgKxcUc1",
+        "queue_id": 24,
+        "processed": true,
+        "has_error": false
+      },
+      {
+        "id": "578j_u_q0awmrK12Lw2G0",
+        "queue_id": 25,
+        "processed": true,
+        "has_error": false
+      }
+    ],
+    "clock_protocol": "honcho-wall-clock-v5",
+    "source_error_scope": "submitted-source-sessions-v1",
+    "model_health": {
+      "state": "captured",
+      "failed_requests": [],
+      "unmetered_requests": [],
+      "reason": "",
+      "scope": "Execution/cost barrier, not a semantic memory grade. Actual charges may be unknown; safety bounds remain in force."
+    },
+    "readiness": "All submitted messages observed, processed and error-free",
+    "membership_protocol": "honcho-chronological-membership-v2",
+    "membership_witness": {
+      "db_at": "2026-09-11T07:00:01.276173+00:00",
+      "memberships": [
+        {
+          "session_id": "source-44eee2dd7155f2af01ec5922",
+          "peer_id": "Devon",
+          "joined_at": "2026-09-10T21:55:35.968038+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-44eee2dd7155f2af01ec5922",
+          "peer_id": "hermes",
+          "joined_at": "2026-09-10T21:55:35.968038+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-44eee2dd7155f2af01ec5922",
+          "peer_id": "user",
+          "joined_at": "2026-09-10T21:55:35.968038+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-0ea967d3702ae39e5ab5662f",
+          "peer_id": "Devon",
+          "joined_at": "2026-09-10T22:25:00.164351+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-0ea967d3702ae39e5ab5662f",
+          "peer_id": "Maya",
+          "joined_at": "2026-09-10T22:25:00.164351+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-0ea967d3702ae39e5ab5662f",
+          "peer_id": "hermes",
+          "joined_at": "2026-09-10T22:25:00.164351+00:00",
+          "left_at": null
+        },
+        {
+          "session_id": "source-0ea967d3702ae39e5ab5662f",
+          "peer_id": "user",
+          "joined_at": "2026-09-10T22:25:00.164351+00:00",
+          "left_at": null
+        }
+      ]
+    }
+  },
+  "stdout_json_in": "result",
+  "latency_s": 33.47,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-13T02:24:59.849946+00:00",
+    "finished": "2026-11-13T02:25:33.462500+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "token_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "completion_tokens": 0,
+          "image_tokens": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "total_tokens": 0
+        },
+        "actual_cost_usd": 0,
+        "actual_cost_known_usd": 0,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 5,
+        "input_tokens": 5284,
+        "output_tokens": 561,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.00035152992,
+        "actual_cost_known_usd": 0.00035152992,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.00035152992,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "964c11c4-bf4a-49c7-9389-720a91a3f74e",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:25:11.155188+00:00",
+        "finished": "2026-11-13T02:25:17.268510+00:00",
+        "reserved": "0.0827963584",
+        "accounted": "0.000107671424",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2500,
+        "request_sha256": "0230e7a3d2a88105c0deb378e60576e57b4ab80b69dba3e33ddd8989bac9c4d6",
+        "input_tokens": 1219,
+        "output_tokens": 217,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536711-C11ML9TzDqAr2A0UNMaO",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.000107671424,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.000107671424,
+        "actual_cost_usd_decimal": "0.000107671424",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "d5d578e9-27e7-40ce-b372-6fb45eaadf9b",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:25:18.671069+00:00",
+        "finished": "2026-11-13T02:25:22.282350+00:00",
+        "reserved": "0.0827963584",
+        "accounted": "0.000100223424",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2500,
+        "request_sha256": "81de161c6496ca42e63e4b9a7bf90c47003a3b1bdf67f52a1624827daffbfc5b",
+        "input_tokens": 1178,
+        "output_tokens": 199,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536718-Vj9DbN1Sa8JBWRl9T6jd",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.000100223424,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.000100223424,
+        "actual_cost_usd_decimal": "0.000100223424",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "5241850a-dc93-4897-a024-e2a3508152d0",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:25:23.722334+00:00",
+        "finished": "2026-11-13T02:25:25.509001+00:00",
+        "reserved": "0.0827963584",
+        "accounted": "0.000047225024",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2500,
+        "request_sha256": "676f4a5afee022354f82ad895e15806b86a8c753f4ea34ab69dfaede240f43ef",
+        "input_tokens": 1024,
+        "output_tokens": 25,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536723-rF6PN96dShlPDGkjajjk",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 4.7225024e-05,
+        "role": "memory_provider",
+        "actual_cost_usd": 4.7225024e-05,
+        "actual_cost_usd_decimal": "0.000047225024",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "afc3832e-0d5f-4c8f-813e-7fe94d74b724",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:25:26.689629+00:00",
+        "finished": "2026-11-13T02:25:28.484228+00:00",
+        "reserved": "0.0827963584",
+        "accounted": "0.000046127424",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2500,
+        "request_sha256": "d9c5c381fd5d7202d384822a6af816cb6d5dcdc7c203cbf3627513a34109931a",
+        "input_tokens": 1019,
+        "output_tokens": 22,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536726-Yh8cvQI2gPFCwmGKNlgH",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 4.6127424e-05,
+        "role": "memory_provider",
+        "actual_cost_usd": 4.6127424e-05,
+        "actual_cost_usd_decimal": "0.000046127424",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "56f40944-1a9d-445a-8a1f-92ba93002815",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:25:29.878984+00:00",
+        "finished": "2026-11-13T02:25:31.708564+00:00",
+        "reserved": "0.0827963584",
+        "accounted": "0.000050282624",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2500,
+        "request_sha256": "cdf608fd3c93bb3d17302be09b44399e3b9790fc55f0b27f84563469f7c97752",
+        "input_tokens": 844,
+        "output_tokens": 98,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536729-piDZGnL8oyOeYaMWX2rL",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 5.0282624e-05,
+        "role": "memory_provider",
+        "actual_cost_usd": 5.0282624e-05,
+        "actual_cost_usd_decimal": "0.000050282624",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      }
+    ],
+    "groups": [
+      {
+        "role": "memory_provider",
+        "project": "pacbench-b14c52234d1a-honcho-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "model_calls": 5,
+        "input_tokens": 5284,
+        "output_tokens": 561,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.00035152992,
+        "actual_cost_known_usd": 0.00035152992,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.00035152992,
+        "unsettled_calls": 0
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  },
+  "delivery_journal": {
+    "path": "ingestion-delivery/2026-09-10/index.json",
+    "sha256": "8f89272d334a4f13257aa65c9bfc0f52440d224e711fc4ef4d0454caf013a20c"
+  }
+}

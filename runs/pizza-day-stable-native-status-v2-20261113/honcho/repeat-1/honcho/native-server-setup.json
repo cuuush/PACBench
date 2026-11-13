@@ -1,0 +1,27 @@
+{
+  "route": "Documented manual self-hosting, native API + deriver + local pgvector",
+  "version": "3.6.1",
+  "source_revision": "70c67624169683b9e265517aec95a51b8077cabc",
+  "endpoint": "http://127.0.0.1:47811",
+  "health": {
+    "status": "ok"
+  },
+  "models": "deepseek/deepseek-v4.1-flash-1017",
+  "embedding": "local Ollama nomic-embed-text",
+  "starter_facts": false,
+  "hermes_session_strategy": "per-session",
+  "processing": {
+    "native_defaults_verified": false,
+    "native_batching_defaults_verified": true,
+    "deriver_max_output_tokens": null,
+    "deriver_thinking_effort": "none",
+    "deriver": {
+      "FLUSH_ENABLED": false,
+      "REPRESENTATION_BATCH_WORK_UNIT_TARGET_TOKENS": 512,
+      "REPRESENTATION_BATCH_TARGET_INPUT_TOKENS": 1024,
+      "REPRESENTATION_BATCH_MAX_AGE_SECONDS": 1800
+    },
+    "llm_default_max_tokens": 2500
+  },
+  "processing_option": "Native batching defaults; explicit documented deriver model configuration"
+}

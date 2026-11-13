@@ -1,0 +1,183 @@
+{
+  "state": "captured",
+  "started": "2026-11-13T02:09:33.597077+00:00",
+  "finished": "2026-11-13T02:10:01.164917+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 2,
+      "input_tokens": 17431,
+      "output_tokens": 94,
+      "token_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": null,
+        "completion_tokens": null,
+        "image_tokens": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "prompt_tokens": null,
+        "reasoning_tokens": null,
+        "rejected_prediction_tokens": null,
+        "total_tokens": null
+      },
+      "actual_cost_usd": 0.0006294359680000001,
+      "actual_cost_known_usd": 0.0006294359680000001,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0.0006294359680000001,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "token_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cached_tokens": 0,
+        "completion_tokens": 0,
+        "image_tokens": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "prompt_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "total_tokens": 0
+      },
+      "actual_cost_usd": 0,
+      "actual_cost_known_usd": 0,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "8ef2f206-772a-4e5c-a281-d77822b40fc2",
+      "project": "pacbench-95b631e758c2-memcal-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:09:39.047566+00:00",
+      "finished": "2026-11-13T02:09:48.295459+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000557979072",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "e1a14dcd3e20358945ba9caec400785568995829cc9e2335c2395f7e96d7dbfd",
+      "input_tokens": 8433,
+      "output_tokens": 58,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794535779-lVG61MZQKPVmPapJQdjs",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "tool_calls",
+      "accounted_upper_bound_usd": 0.000557979072,
+      "role": "hermes",
+      "actual_cost_usd": 0.000557979072,
+      "actual_cost_usd_decimal": "0.000557979072",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "b6a415bf-15ca-44fb-a3af-fff6dd7e75a8",
+      "project": "pacbench-95b631e758c2-memcal-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:09:48.469680+00:00",
+      "finished": "2026-11-13T02:09:59.861087+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000071456896",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "f9415e92289a815eb6a206abd2feadebb85a36c2fba32f219db45b7c9e070f4d",
+      "input_tokens": 8998,
+      "output_tokens": 36,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794535788-rrpNWZItJ03W53SQsCjS",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 7.1456896e-05,
+      "role": "hermes",
+      "actual_cost_usd": 7.1456896e-05,
+      "actual_cost_usd_decimal": "0.000071456896",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    }
+  ],
+  "groups": [
+    {
+      "role": "hermes",
+      "project": "pacbench-95b631e758c2-memcal-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "model_calls": 2,
+      "input_tokens": 17431,
+      "output_tokens": 94,
+      "token_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": null,
+        "completion_tokens": null,
+        "image_tokens": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "prompt_tokens": null,
+        "reasoning_tokens": null,
+        "rejected_prediction_tokens": null,
+        "total_tokens": null
+      },
+      "actual_cost_usd": 0.0006294359680000001,
+      "actual_cost_known_usd": 0.0006294359680000001,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0.0006294359680000001,
+      "unsettled_calls": 0
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

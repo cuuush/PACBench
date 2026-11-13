@@ -1,0 +1,100 @@
+{
+  "prompt": "Hey, can you give me a quick recap on our pizza plan?",
+  "at": "2026-09-11T09:00:00-04:00",
+  "answer": "Pizza is tonight — Friday, September 11, 2026, at 7pm at Luigi's on 5th Street. Devon said he'll meet you there.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "tool_call_id": "call_93d882a31ff3",
+      "input": {
+        "query": "pizza plan Luigi's 5th Street Friday"
+      },
+      "timestamp": 1794535798881
+    },
+    {
+      "type": "tool_use",
+      "name": "mem0_search",
+      "tool_call_id": "call_3bf11df7ef68",
+      "input": {
+        "query": "Devon meet pizza time location"
+      },
+      "timestamp": 1794535798935
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"edd02f38-2a3e-40b8-be0d-5f15c16124f9\", \"memory\": \"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\", \"score\": 0.7063168286284913}, {\"id\": \"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\", \"memory\": \"User is always in the mood for pizza\", \"score\": 0.5200317700969932}, {\"id\": \"10cf1443-cb96-4d4c-8070-fd6609fef9c0\", \"memory\": \"User planned a low-key night at home as a self-described \\\"couch potato\\\" on the evening of September 10, 2026\", \"score\": 0.44418047305156527}, {\"id\": \"bfcafaff-85f9-4a26-a7e8-e36d91700684\", \"memory\": \"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\", \"score\": 0.4381993913937061}, {\"id\": \"0d09effb-2122-41d8-b347-83f77c8eed36\", \"memory\": \"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\", \"score\": 0.3559841516154414}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "mem0_search",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"id\": \"edd02f38-2a3e-40b8-be0d-5f15c16124f9\", \"memory\": \"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\", \"score\": 0.7391381134342337}, {\"id\": \"0d09effb-2122-41d8-b347-83f77c8eed36\", \"memory\": \"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\", \"score\": 0.6195673267407182}, {\"id\": \"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\", \"memory\": \"User is always in the mood for pizza\", \"score\": 0.5535276856184058}, {\"id\": \"bfcafaff-85f9-4a26-a7e8-e36d91700684\", \"memory\": \"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\", \"score\": 0.48689417888570863}, {\"id\": \"10cf1443-cb96-4d4c-8070-fd6609fef9c0\", \"memory\": \"User planned a low-key night at home as a self-described \\\"couch potato\\\" on the evening of September 10, 2026\", \"score\": 0.39025627053962764}], \"count\": 5}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 38.48,
+  "returncode": 0,
+  "stderr_tail": "Session: local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af\n\nsession_id: local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af",
+  "raw_events": 12,
+  "session_id": "local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af",
+  "stderr_full": "Session: local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af\n\nsession_id: local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"\", \"session_id\": \"\", \"timestamp\": 1794535771204}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"tool_call_id\": \"call_93d882a31ff3\", \"input\": {\"query\": \"pizza plan Luigi's 5th Street Friday\"}, \"timestamp\": 1794535798881}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"tool_call_id\": \"call_93d882a31ff3\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"edd02f38-2a3e-40b8-be0d-5f15c16124f9\\\", \\\"memory\\\": \\\"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\\\", \\\"score\\\": 0.7063168286284913}, {\\\"id\\\": \\\"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\\\", \\\"memory\\\": \\\"User is always in the mood for pizza\\\", \\\"score\\\": 0.5200317700969932}, {\\\"id\\\": \\\"10cf1443-cb96-4d4c-8070-fd6609fef9c0\\\", \\\"memory\\\": \\\"User planned a low-key night at home as a self-described \\\\\\\"couch potato\\\\\\\" on the evening of September 10, 2026\\\", \\\"score\\\": 0.44418047305156527}, {\\\"id\\\": \\\"bfcafaff-85f9-4a26-a7e8-e36d91700684\\\", \\\"memory\\\": \\\"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\\\", \\\"score\\\": 0.4381993913937061}, {\\\"id\\\": \\\"0d09effb-2122-41d8-b347-83f77c8eed36\\\", \\\"memory\\\": \\\"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\\\", \\\"score\\\": 0.3559841516154414}], \\\"count\\\": 5}\", \"duration_ms\": 50, \"is_error\": false, \"timestamp\": 1794535798931}\n{\"type\": \"tool_use\", \"name\": \"mem0_search\", \"tool_call_id\": \"call_3bf11df7ef68\", \"input\": {\"query\": \"Devon meet pizza time location\"}, \"timestamp\": 1794535798935}\n{\"type\": \"tool_result\", \"name\": \"mem0_search\", \"tool_call_id\": \"call_3bf11df7ef68\", \"output\": \"{\\\"results\\\": [{\\\"id\\\": \\\"edd02f38-2a3e-40b8-be0d-5f15c16124f9\\\", \\\"memory\\\": \\\"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\\\", \\\"score\\\": 0.7391381134342337}, {\\\"id\\\": \\\"0d09effb-2122-41d8-b347-83f77c8eed36\\\", \\\"memory\\\": \\\"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\\\", \\\"score\\\": 0.6195673267407182}, {\\\"id\\\": \\\"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\\\", \\\"memory\\\": \\\"User is always in the mood for pizza\\\", \\\"score\\\": 0.5535276856184058}, {\\\"id\\\": \\\"bfcafaff-85f9-4a26-a7e8-e36d91700684\\\", \\\"memory\\\": \\\"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\\\", \\\"score\\\": 0.48689417888570863}, {\\\"id\\\": \\\"10cf1443-cb96-4d4c-8070-fd6609fef9c0\\\", \\\"memory\\\": \\\"User planned a low-key night at home as a self-described \\\\\\\"couch potato\\\\\\\" on the evening of September 10, 2026\\\", \\\"score\\\": 0.39025627053962764}], \\\"count\\\": 5}\", \"duration_ms\": 43, \"is_error\": false, \"timestamp\": 1794535798978}\n{\"type\": \"text\", \"text\": \"\\n\\nPizza is tonight — Friday, September 11, 202\", \"timestamp\": 1794535800425}\n{\"type\": \"text\", \"text\": \"6, at 7pm\", \"timestamp\": 1794535800427}\n{\"type\": \"text\", \"text\": \" at Luigi's on\", \"timestamp\": 1794535800540}\n{\"type\": \"text\", \"text\": \" 5th Street. Devon said\", \"timestamp\": 1794535800541}\n{\"type\": \"text\", \"text\": \" he'll meet you\", \"timestamp\": 1794535800612}\n{\"type\": \"text\", \"text\": \" there.\", \"timestamp\": 1794535800618}\n{\"type\": \"result\", \"session_id\": \"local-34cfcf10740ff69da72798563a3eb18906e2d81389c27ac8f4677f9ba58723af\", \"exit_code\": 0, \"text\": \"Pizza is tonight — Friday, September 11, 2026, at 7pm at Luigi's on 5th Street. Devon said he'll meet you there.\", \"tokens\": {\"input\": 6914, \"output\": 183, \"total\": 7097, \"cache_read\": 1280, \"cache_write\": 0}, \"duration_ms\": 29602, \"timestamp\": 1794535800806}",
+  "session_input_tokens": 6914,
+  "session_output_tokens": 183,
+  "provider_traces": [],
+  "prefetch_context": "## Mem0 Memory\n- User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\n- User is always in the mood for pizza\n- User planned a low-key night at home as a self-described \"couch potato\" on the evening of September 10, 2026\n- Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\n- Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day",
+  "prefetch_provenance": null,
+  "context_isolation": {
+    "version": "empty-recall-workspace-v2",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-w_23pgfs",
+    "source": "native Hermes saved system prompt, privately archived at turn completion",
+    "native_cwd": "/var/tmp/pacbench-chat-w_23pgfs",
+    "system_prompt_sha256": "7087f1ab1a8f9471c3d311cc09319a5e2ea8e963b8dfca50b71e31949c785d65",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-09-11T09:00:00-04:00",
+  "provider_clock": null,
+  "native_result_duration_s": 29.602,
+  "clock_context": {
+    "protocol": "native-question-v2",
+    "at": "2026-09-11T09:00:00-04:00",
+    "state": "pass",
+    "query_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+    "native_query_index": 0,
+    "actor_api_input_ids": [
+      "aef372c1-324c-4f8b-80de-b23b359cc765",
+      "4996d768-a21c-42fb-9411-9407e0724c0c"
+    ],
+    "auxiliary_title_api_input_ids": [],
+    "native_query_sha256": "f37b829c401e8f857df0e06234940d2be8c15fbdee9b8fa2e9ee6f9c83bfb6b3",
+    "api_input_ids": [
+      "aef372c1-324c-4f8b-80de-b23b359cc765",
+      "4996d768-a21c-42fb-9411-9407e0724c0c"
+    ],
+    "api_input_sha256": [
+      "65aa3394176a4b17c8f3af73db6307c144f64cfda298d10d9b820eaf18bd3a22",
+      "e9b19068a08d19106ad1fef82026813cd0420ed68f724c832c31c7d87ae9d135"
+    ],
+    "reason": "Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions"
+  },
+  "hermes_gateway": {
+    "version": "per-turn-owned-gateway-v1",
+    "pid": 240289,
+    "start_time": 4472537,
+    "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/hermes-home",
+    "stopped": true,
+    "real_started_at": "2026-11-13T02:09:26.302246+00:00",
+    "real_finished_at": "2026-11-13T02:10:04.774727+00:00",
+    "returncode": 0
+  }
+}

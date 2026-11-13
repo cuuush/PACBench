@@ -1,0 +1,43 @@
+{
+  "version": "honcho-wall-clock-v5",
+  "initial_at": "2026-09-10T17:55:00-04:00",
+  "library_sha256": "d69f77e806fd01db81d8e26e5722704ad3951c3de2e68dfbcd9d32a2aff817fa",
+  "clock_directory": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/provider-clock",
+  "wall_speed": 1,
+  "monotonic": "real",
+  "gateway_clock": "real",
+  "suspend_during_benchmark_overhead": true,
+  "overhead_fallback": "native-clock-runs; no rewind; scripted checkpoint gates remain enforced",
+  "source_timestamps": "unchanged",
+  "native_batching": "unchanged",
+  "dispatch_condition": {
+    "version": "native-clock-admission-v1",
+    "startup": "forward-only-natural-startup-prelude-v1",
+    "lead_seconds": 60,
+    "source_sha256": "00e0191d02739c57f3b39f364cb63b7903e2be0d757f6a3146778e7f0101fb40"
+  },
+  "python_clock": {
+    "package": "time-machine",
+    "version": "3.6.0",
+    "python_sha256": "95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd",
+    "extension_sha256": "461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b",
+    "abi": "cpython-314",
+    "bootstrap_sha256": "c86d40451fc7cf40f344284bbc36278bd21f44a0aef19ff8515e87e9139b16c9",
+    "protocol": "python-offset-clock-v2",
+    "extensions_by_abi": {
+      "cpython-314": "461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b",
+      "cpython-312": "f3d64a7000cd6e114aa8de5bc9038b44860f2616313770e3aa5f87aff2f103b6",
+      "cpython-313": "17fd4db930fca0dba6081546c404eb92c1ff62ec60f665cd43ae9a61841eef8e"
+    },
+    "os_clock": "real",
+    "tls_clock": "real",
+    "shared_offset": "per-read; no polling"
+  },
+  "scope": "PostgreSQL uses libfaketime; Python API/deriver/Hermes use shared-offset time-machine; TLS/OS remain real",
+  "container": "pacbench-honcho-db-b14c52234d1a",
+  "endpoint": "http://127.0.0.1:47811",
+  "processes": {
+    "api": 249062,
+    "deriver": 249063
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "Answer says pizza with Devon, matching Devon as companion for the agreed plan."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "Answer names Luigi's as the restaurant."
+    },
+    {
+      "id": "fact-3",
+      "verdict": "correct",
+      "reason": "Answer says Luigi's on 5th."
+    },
+    {
+      "id": "fact-4",
+      "verdict": "correct",
+      "reason": "Answer says Friday and that's today; simulated date is Friday, September 11, 2026."
+    },
+    {
+      "id": "fact-5",
+      "verdict": "correct",
+      "reason": "Answer says 7pm."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Correct fact was provided in the answer."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Correct fact was provided in the answer."
+    },
+    {
+      "id": "fact-3",
+      "kind": "provided",
+      "reason": "Correct fact was provided in the answer."
+    },
+    {
+      "id": "fact-4",
+      "kind": "provided",
+      "reason": "Correct fact was provided in the answer."
+    },
+    {
+      "id": "fact-5",
+      "kind": "provided",
+      "reason": "Correct fact was provided in the answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Tool result shows Devon proposing pizza and the user agreeing.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yes I'm down, what time were you thinking?"
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "Tool result shows Devon proposing pizza at Luigi's.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          }
+        ]
+      },
+      {
+        "id": "fact-3",
+        "status": "supported",
+        "reason": "Tool result shows the user clarifying the one on 5th and Devon confirming.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "oh you mean the one on 5th?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah that's the one"
+          }
+        ]
+      },
+      {
+        "id": "fact-4",
+        "status": "supported",
+        "reason": "Tool result shows Friday proposed and 'see you tomorrow' on Sep 10, making it Sep 11.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "2026-09-10T18:20:00-04:00"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "see you tomorrow"
+          }
+        ]
+      },
+      {
+        "id": "fact-5",
+        "status": "supported",
+        "reason": "Tool result shows Devon proposing 7pm and the user agreeing.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "7pm?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah that works"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "meeting there",
+        "answer_quote": "meeting there",
+        "status": "supported",
+        "reason": "Devon says he will meet the user there.",
+        "citations": [
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "assertion": "You two confirmed it last night.",
+        "answer_quote": "You two confirmed it last night.",
+        "status": "supported",
+        "reason": "The Sep 10 evening messages show the user agreeing and Devon confirming.",
+        "citations": [
+          {
+            "id": "message-4db19b467bca3d3a987a6685",
+            "quote": "yeah that works"
+          },
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "assertion": "no reservation mentioned",
+        "answer_quote": "no reservation mentioned",
+        "status": "unverifiable",
+        "reason": "The supplied source evidence is partial and contains no reservation information; absence is not evidence.",
+        "citations": []
+      },
+      {
+        "assertion": "your Saturday duck-pond thing with Maya is separate and still up in the air",
+        "answer_quote": "your Saturday duck-pond thing with Maya is separate and still up in the air",
+        "status": "unverifiable",
+        "reason": "The supplied source evidence covers only the pizza thread and does not include the Maya duck-pond details.",
+        "citations": []
+      }
+    ]
+  }
+}

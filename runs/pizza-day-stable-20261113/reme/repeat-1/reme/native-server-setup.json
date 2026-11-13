@@ -1,0 +1,51 @@
+{
+  "route": "Unmodified native ReMe HTTP service and Hermes HTTP backend",
+  "provider_revision": "36c23674ad8c599dae20b0687af40acd8ecb990e",
+  "endpoint": "http://127.0.0.1:37375",
+  "pid": 242400,
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "health": {
+    "answer": "✅ ReMe v0.4.2.2 - healthy",
+    "success": true,
+    "metadata": {
+      "health": {
+        "version": "0.4.2.2",
+        "healthy": true,
+        "components": {
+          "embedding_store": {},
+          "file_graph": {
+            "default": {
+              "is_started": true,
+              "n_nodes": 0,
+              "n_edges": 0,
+              "n_pending": 0,
+              "memory": "0.00 MB"
+            }
+          },
+          "file_store": {
+            "default": {
+              "is_started": true,
+              "n_chunks": 0,
+              "n_chunks_with_embedding": 0,
+              "memory": "0.00 MB"
+            }
+          },
+          "keyword_index": {
+            "default": {
+              "is_started": true,
+              "n_docs": 0,
+              "vocab_size": 0,
+              "memory": "0.00 MB"
+            }
+          }
+        }
+      }
+    }
+  },
+  "memory_backend": "run-owned local files and default BM25",
+  "native_resource_watcher": true,
+  "native_defaults": true,
+  "resource_observer": "reme-native-resource-observer-v1; read-only callback; no manual job invocation",
+  "provider_clock": "real wall clock; historical raw documents retain scenario dates in resource paths and source text",
+  "plugin_source_sha256": "6044880988955a9c0522988dc5c96fca1c1c66160cd765c41c43e33b2f106800"
+}

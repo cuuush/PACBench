@@ -1,0 +1,110 @@
+{
+  "provider": "supermemory",
+  "repetition": 1,
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "supermemory_store",
+      "supermemory_search",
+      "supermemory_forget",
+      "supermemory_profile",
+      "supermemory_read_document",
+      "supermemory-save",
+      "supermemory-search",
+      "supermemory-forget",
+      "supermemory-profile",
+      "supermemory-read-document"
+    ],
+    "loaded_native_provider": "supermemory",
+    "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-native-status-v2-20261113/supermemory/repeat-1/supermemory/hermes-home/plugins/supermemory/__init__.py",
+    "loaded_source_sha256": "e85f1edd610511e3752b626da940e8d8ede891cfee02f0299230d555e7c05cc9",
+    "provider": "supermemory",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": "supermemory-profile",
+      "arguments": {},
+      "output": "{\"profile\": \"# Profile\\n\\nNo profile memories yet.\"}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pizza-plan",
+      "at": "2026-09-11T09:00:00-04:00",
+      "session": "shared",
+      "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 5,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "fact-1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-3",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-4",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": true,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-5",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": false,
+              "path_needs_review": true,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

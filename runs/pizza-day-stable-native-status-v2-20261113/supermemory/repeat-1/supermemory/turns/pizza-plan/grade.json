@@ -1,0 +1,170 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "The answer says the pizza plan is with Devon."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "The answer names Luigi's as the restaurant."
+    },
+    {
+      "id": "fact-3",
+      "verdict": "correct",
+      "reason": "The answer says Luigi's is on 5th Street."
+    },
+    {
+      "id": "fact-4",
+      "verdict": "correct",
+      "reason": "The answer says Friday, Sept 11."
+    },
+    {
+      "id": "fact-5",
+      "verdict": "correct",
+      "reason": "The answer says the agreed time is 7pm."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Correctly stated Devon is the companion."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Correctly stated Luigi's."
+    },
+    {
+      "id": "fact-3",
+      "kind": "provided",
+      "reason": "Correctly stated 5th Street."
+    },
+    {
+      "id": "fact-4",
+      "kind": "provided",
+      "reason": "Correctly stated Friday, Sept 11."
+    },
+    {
+      "id": "fact-5",
+      "kind": "provided",
+      "reason": "Correctly stated 7pm."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "Prefetch states the owner made plans with Devon to get pizza.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "made plans with Devon to get pizza"
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "Prefetch states the plan is to get pizza at Luigi's.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "get pizza at Luigi's"
+          }
+        ]
+      },
+      {
+        "id": "fact-3",
+        "status": "supported",
+        "reason": "Prefetch states Luigi's is on 5th Street.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Luigi's on 5th Street"
+          }
+        ]
+      },
+      {
+        "id": "fact-4",
+        "status": "supported",
+        "reason": "Prefetch states Friday 2026-09-11.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "Friday 2026-09-11"
+          }
+        ]
+      },
+      {
+        "id": "fact-5",
+        "status": "supported",
+        "reason": "Prefetch states the plan is at 7pm.",
+        "citations": [
+          {
+            "id": "prefetch",
+            "quote": "at 7pm"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "You're meeting him there",
+        "answer_quote": "You're meeting him there",
+        "status": "supported",
+        "reason": "Devon says he will meet the user there.",
+        "citations": [
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "assertion": "he suggested it",
+        "answer_quote": "he suggested it",
+        "status": "supported",
+        "reason": "Devon invited the user to get pizza at Luigi's on Friday.",
+        "citations": [
+          {
+            "id": "message-4740cc49226a8358091d88f3",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          }
+        ]
+      },
+      {
+        "assertion": "you confirmed the time and place",
+        "answer_quote": "you confirmed the time and place",
+        "status": "supported",
+        "reason": "The user agreed to 7pm and was down after the 5th Street clarification.",
+        "citations": [
+          {
+            "id": "message-4db19b467bca3d3a987a6685",
+            "quote": "yeah that works"
+          },
+          {
+            "id": "message-8736d5d60f286757fa8c5bd6",
+            "quote": "yes I'm down"
+          }
+        ]
+      },
+      {
+        "assertion": "You told Maya and Devon not to plan around you for the Saturday 9am duck pond thing, as a caveat from the group chat.",
+        "answer_quote": "One caveat from your group chat: you told Maya and Devon not to plan around you for the Saturday 9am duck pond thing",
+        "status": "unverifiable",
+        "reason": "The supplied source evidence covers only pizza-plan messages and does not include the duck pond exchange.",
+        "citations": []
+      }
+    ]
+  }
+}

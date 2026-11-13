@@ -1,0 +1,227 @@
+{
+  "correct": 5,
+  "missed": 0,
+  "misrepresented": 0,
+  "claims": [
+    {
+      "id": "fact-1",
+      "verdict": "correct",
+      "reason": "The answer identifies Devon as the companion and says 'You and Devon' for the plan."
+    },
+    {
+      "id": "fact-2",
+      "verdict": "correct",
+      "reason": "The answer names Luigi's as the restaurant."
+    },
+    {
+      "id": "fact-3",
+      "verdict": "correct",
+      "reason": "The answer says it is the one on 5th St."
+    },
+    {
+      "id": "fact-4",
+      "verdict": "correct",
+      "reason": "The answer says Friday (today); with simulated now at 2026-09-11, that matches Friday, September 11."
+    },
+    {
+      "id": "fact-5",
+      "verdict": "correct",
+      "reason": "The answer states the agreed time as 7:00 pm."
+    }
+  ],
+  "recovery": [
+    {
+      "id": "fact-1",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-2",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-3",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    },
+    {
+      "id": "fact-4",
+      "kind": "provided",
+      "reason": "Correctly stated as Friday (today)."
+    },
+    {
+      "id": "fact-5",
+      "kind": "provided",
+      "reason": "Correctly stated in the answer."
+    }
+  ],
+  "interaction": "answer",
+  "evidence_diagnostic": {
+    "version": "answer-visible-evidence-v2",
+    "state": "complete",
+    "claims": [
+      {
+        "id": "fact-1",
+        "status": "supported",
+        "reason": "The tool result shows Devon proposing pizza and saying they will meet there, with participants Me and Devon.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Participants: Me, Devon"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "id": "fact-2",
+        "status": "supported",
+        "reason": "The tool result contains Devon proposing pizza at Luigi's.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          }
+        ]
+      },
+      {
+        "id": "fact-3",
+        "status": "supported",
+        "reason": "The tool result contains the exchange confirming the location on 5th.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "oh you mean the one on 5th?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah that's the one"
+          }
+        ]
+      },
+      {
+        "id": "fact-4",
+        "status": "supported",
+        "reason": "The tool result shows the plan was made on Sept 10 for Friday, with 'see you tomorrow' pointing to Sept 11.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "Daily messages — collected through 2026-09-10T18:50:00-04:00"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "wanna get pizza at Luigi's on Friday?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "same honestly, see you tomorrow"
+          }
+        ]
+      },
+      {
+        "id": "fact-5",
+        "status": "supported",
+        "reason": "The tool result shows 7pm proposed and accepted.",
+        "citations": [
+          {
+            "id": "tool-result-1",
+            "quote": "7pm?"
+          },
+          {
+            "id": "tool-result-1",
+            "quote": "yeah that works"
+          }
+        ]
+      }
+    ],
+    "extra_assertions": [
+      {
+        "assertion": "The chat with Devon was last night, Sept 10.",
+        "answer_quote": "from your chat with Devon last night (Sept 10)",
+        "status": "supported",
+        "reason": "The source message from Devon is timestamped Sept 10.",
+        "citations": [
+          {
+            "id": "message-4740cc49226a8358091d88f3",
+            "quote": "Devon"
+          },
+          {
+            "id": "message-4740cc49226a8358091d88f3",
+            "quote": "2026-09-10T18:12:20-04:00"
+          }
+        ]
+      },
+      {
+        "assertion": "The user confirmed 'yeah that works'.",
+        "answer_quote": "You confirmed \"yeah that works\"",
+        "status": "supported",
+        "reason": "The source message contains the exact confirmation.",
+        "citations": [
+          {
+            "id": "message-4db19b467bca3d3a987a6685",
+            "quote": "yeah that works"
+          }
+        ]
+      },
+      {
+        "assertion": "Devon said they'd meet the user there.",
+        "answer_quote": "Devon said they'd meet you there",
+        "status": "supported",
+        "reason": "The source message contains Devon saying they will meet there.",
+        "citations": [
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "assertion": "The user and Devon are meeting at the restaurant.",
+        "answer_quote": "You and Devon, meeting there",
+        "status": "supported",
+        "reason": "The source message supports meeting there.",
+        "citations": [
+          {
+            "id": "message-c6b34b7de4a5728ebf74c983",
+            "quote": "cool I'll meet you there"
+          }
+        ]
+      },
+      {
+        "assertion": "No reservation was mentioned.",
+        "answer_quote": "No reservation was mentioned",
+        "status": "unverifiable",
+        "reason": "The supplied source evidence is partial and contains no reservation discussion; absence cannot be confirmed.",
+        "citations": []
+      },
+      {
+        "assertion": "Nothing has been changed since.",
+        "answer_quote": "nothing has been changed since",
+        "status": "unverifiable",
+        "reason": "The partial source evidence does not establish absence of changes.",
+        "citations": []
+      },
+      {
+        "assertion": "Maya floated a Saturday 9am duck-pond walk with Devon.",
+        "answer_quote": "Maya floated a Saturday 9am duck-pond walk with Devon",
+        "status": "unverifiable",
+        "reason": "This detail is not in the supplied source evidence, which is partial.",
+        "citations": []
+      },
+      {
+        "assertion": "The user said Saturday was up in the air and told them not to plan around the user.",
+        "answer_quote": "you said your Saturday was up in the air and told them not to plan around you",
+        "status": "unverifiable",
+        "reason": "This detail is not in the supplied source evidence, which is partial.",
+        "citations": []
+      }
+    ]
+  }
+}

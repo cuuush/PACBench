@@ -1,0 +1,106 @@
+{
+  "provider": "cognee",
+  "repetition": 1,
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "cognee_recall",
+      "cognee_remember",
+      "cognee_forget",
+      "cognee_switch_dataset",
+      "cognee_code_search",
+      "cognee_recap"
+    ],
+    "loaded_native_provider": "cognee",
+    "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/cognee/repeat-1/cognee/hermes-home/plugins/cognee/cognee_integration_hermes/provider.py",
+    "loaded_source_sha256": "3cf7946cbef753a34251d87322405e368744baa157c0fa822c8ae26a5d510ad8",
+    "provider": "cognee",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": null,
+      "arguments": {},
+      "output": "{\"success\": true, \"mode\": \"native read-only dataset inventory\", \"datasets\": [{\"id\": \"52458d2f-7e39-5bf0-a3eb-26ad5e147bdd\", \"name\": \"pacbench_580b56fc0732f8a86771c78d\", \"createdAt\": \"2026-11-13T02:14:56.959184\", \"updatedAt\": null, \"ownerId\": \"7f00f3b3-53c8-429c-ac2b-ebc117004879\"}]}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pizza-plan",
+      "at": "2026-09-11T09:00:00-04:00",
+      "session": "shared",
+      "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 5,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "fact-1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-3",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-4",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-5",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

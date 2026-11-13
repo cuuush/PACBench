@@ -1,0 +1,114 @@
+{
+  "provider": "openviking",
+  "repetition": 1,
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "viking_search",
+      "viking_rule_search",
+      "viking_read",
+      "viking_browse",
+      "viking_remember",
+      "viking_forget",
+      "viking_add_resource"
+    ],
+    "loaded_native_provider": "openviking",
+    "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-openviking-terminal-v1-20261113/repeat-1/openviking/hermes-home/plugins/openviking/__init__.py",
+    "loaded_source_sha256": "fb0ee2b5c1a4cc920907ea26544fdb8b083ecd6ef56f6e622d572949b971cd0b",
+    "provider": "openviking",
+    "live_verified": true,
+    "read_only_smoke": {
+      "tool": "viking_search",
+      "arguments": {
+        "query": "native read-only capability check"
+      },
+      "output": "{\"results\": [{\"uri\": \"viking://resources/.abstract.md\", \"type\": \"resource\", \"score\": 0.774, \"abstract\": \"Resources scope. Independent knowledge and resource storage, not bound to specific account or Agent.\"}, {\"uri\": \"viking://agent/skills/.abstract.md\", \"type\": \"skill\", \"score\": 0.741, \"abstract\": \"Shared skill registry. Stores callable skill definitions available across the account.\"}, {\"uri\": \"viking://agent/.abstract.md\", \"type\": \"resource\", \"score\": 0.733, \"abstract\": \"Shared agent capabilities and configuration available across the account.\"}, {\"uri\": \"viking://user/default/.abstract.md\", \"type\": \"resource\", \"score\": 0.732, \"abstract\": \"User scope. Stores user's long-term memory, persisted across sessions.\"}, {\"uri\": \"viking://agent/payments/.abstract.md\", \"type\": \"resource\", \"score\": 0.72, \"abstract\": \"Shared payment capability configuration for agents.\"}, {\"uri\": \"viking://agent/endpoints/.abstract.md\", \"type\": \"resource\", \"score\": 0.716, \"abstract\": \"Shared communication endpoint configuration for agent capabilities.\"}, {\"uri\": \"viking://agent/tools/.overview.md\", \"type\": \"resource\", \"score\": 0.672, \"abstract\": \"Shared tool configuration for agent capabilities.\"}], \"total\": 7}"
+    },
+    "wiring_verified": true
+  },
+  "state": "diagnostic",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pizza-plan",
+      "at": "2026-09-11T09:00:00-04:00",
+      "session": "shared",
+      "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+      "state": "diagnostic",
+      "verdict": "pass",
+      "reason": "",
+      "interaction": "answer",
+      "recovery": {
+        "state": "complete",
+        "score": {
+          "initial_correct": 5,
+          "initial_missed": 0,
+          "initial_misrepresented": 0,
+          "max_points": 5,
+          "points": 0.0,
+          "recovery_weight": 0.5,
+          "claims": [
+            {
+              "claim_id": "fact-1",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-2",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-3",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-4",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            },
+            {
+              "claim_id": "fact-5",
+              "initial_verdict": "correct",
+              "followup_verdict": null,
+              "recovered_answer": false,
+              "retention_failed": true,
+              "path_needs_review": false,
+              "points": 0.0
+            }
+          ],
+          "calibrated": false
+        },
+        "attempts": []
+      }
+    }
+  ],
+  "reason": "",
+  "behavior": {
+    "evaluation_context": "shared"
+  },
+  "terminal_processing": {
+    "protocol": "openviking-terminal-processing-v1",
+    "state": "complete",
+    "scope_hash": "b5ffe75016824620c83e5ee52a4af4aef6d0b13c474ea169dc0bf64cb64c1515"
+  }
+}

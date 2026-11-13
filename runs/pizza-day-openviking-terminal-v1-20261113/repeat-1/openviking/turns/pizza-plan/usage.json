@@ -1,0 +1,225 @@
+{
+  "state": "captured",
+  "started": "2026-11-13T03:18:29.553705+00:00",
+  "finished": "2026-11-13T03:18:46.794518+00:00",
+  "roles": {
+    "hermes": {
+      "model_calls": 3,
+      "input_tokens": 16966,
+      "output_tokens": 273,
+      "token_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": null,
+        "completion_tokens": null,
+        "image_tokens": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "prompt_tokens": null,
+        "reasoning_tokens": null,
+        "rejected_prediction_tokens": null,
+        "total_tokens": null
+      },
+      "actual_cost_usd": 0.000537739328,
+      "actual_cost_known_usd": 0.000537739328,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0.000537739328,
+      "unsettled_calls": 0
+    },
+    "memory_provider": {
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "token_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "cached_tokens": 0,
+        "completion_tokens": 0,
+        "image_tokens": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "prompt_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0,
+        "total_tokens": 0
+      },
+      "actual_cost_usd": 0,
+      "actual_cost_known_usd": 0,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0,
+      "unsettled_calls": 0
+    }
+  },
+  "model_calls": [
+    {
+      "id": "efdf23b8-5b19-47c6-98dd-a717e1d47253",
+      "project": "pacbench-f4d62c5d5e87-openviking-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T03:18:35.883576+00:00",
+      "finished": "2026-11-13T03:18:39.382474+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000184795072",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "5e5bb4c5229c0078012780c1a1491664d4ab88a9d136d1590d29c0ff00523c83",
+      "input_tokens": 3622,
+      "output_tokens": 75,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794539915-oZjECpJMa8qJISWYRhPx",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "tool_calls",
+      "accounted_upper_bound_usd": 0.000184795072,
+      "role": "hermes",
+      "actual_cost_usd": 0.000184795072,
+      "actual_cost_usd_decimal": "0.000184795072",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "f5c0058d-f5ca-47a7-9504-8ca51d5154e3",
+      "project": "pacbench-f4d62c5d5e87-openviking-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T03:18:39.677262+00:00",
+      "finished": "2026-11-13T03:18:41.972523+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000230850368",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "0db6a71b3dceeee5e80e70b9b36e9a3cb6cba080643064524888db6e6b0b993e",
+      "input_tokens": 6163,
+      "output_tokens": 86,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794539919-WyVUpsFw8Oux1p6CXv3k",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "tool_calls",
+      "accounted_upper_bound_usd": 0.000230850368,
+      "role": "hermes",
+      "actual_cost_usd": 0.000230850368,
+      "actual_cost_usd_decimal": "0.000230850368",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "4867f695-8fbc-409c-abf2-cdbb2a16ba6d",
+      "project": "pacbench-f4d62c5d5e87-openviking-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T03:18:42.155299+00:00",
+      "finished": "2026-11-13T03:18:45.610808+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000122093888",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "4936d3fb2b331679d51bca829a345f528996765ed82c9d22acc1e107665c15b0",
+      "input_tokens": 7181,
+      "output_tokens": 112,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794539922-Fm6zIg39B4OadM9lOeWd",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 0.000122093888,
+      "role": "hermes",
+      "actual_cost_usd": 0.000122093888,
+      "actual_cost_usd_decimal": "0.000122093888",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    }
+  ],
+  "groups": [
+    {
+      "role": "hermes",
+      "project": "pacbench-f4d62c5d5e87-openviking-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "model_calls": 3,
+      "input_tokens": 16966,
+      "output_tokens": 273,
+      "token_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "cache_read_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": null,
+        "completion_tokens": null,
+        "image_tokens": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "prompt_tokens": null,
+        "reasoning_tokens": null,
+        "rejected_prediction_tokens": null,
+        "total_tokens": null
+      },
+      "actual_cost_usd": 0.000537739328,
+      "actual_cost_known_usd": 0.000537739328,
+      "actual_cost_unknown_calls": 0,
+      "token_price_estimate_usd": 0,
+      "unconfirmed_budget_bound_usd": 0,
+      "accounted_upper_bound_usd": 0.000537739328,
+      "unsettled_calls": 0
+    }
+  ],
+  "late_settlements": [],
+  "per_tool_tokens": null,
+  "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces.",
+  "path_attribution_version": "native-completion-v1"
+}

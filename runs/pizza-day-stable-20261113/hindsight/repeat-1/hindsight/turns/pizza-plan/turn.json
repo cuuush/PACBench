@@ -1,0 +1,173 @@
+{
+  "prompt": "Hey, can you give me a quick recap on our pizza plan?",
+  "at": "2026-09-11T09:00:00-04:00",
+  "answer": "Pizza with Devon — Friday at 7pm at Luigi's on 5th. He'll meet you there rather than picking you up.\n\nSeparate, tentative thing: Maya's Saturday 9am pond/duck idea — you said your Saturday was up in the air and not to plan around you.",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "hindsight_recall",
+      "tool_call_id": "call_987cf5b49830",
+      "input": {
+        "query": "pizza plan"
+      },
+      "timestamp": 1794535937317
+    },
+    {
+      "type": "tool_use",
+      "name": "hindsight_reflect",
+      "tool_call_id": "call_9206dfa7a79e",
+      "input": {
+        "query": "What is the pizza plan we discussed?"
+      },
+      "timestamp": 1794535937478
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "hindsight_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"1. The user and Devon agreed to get pizza at Luigi's on 5th on Friday at 7pm.\\n2. The user is always in the mood for pizza.\\n3. The user's Saturday is up in the air, and they told Maya and Devon not to plan around them.\\n4. Devon agreed to the Saturday morning pond plan.\\n5. Devon will meet the user at Luigi's on 5th.\\n6. Maya suggested going to see the ducks at the pond on Saturday morning around 9am to beat the heat.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    },
+    {
+      "tool": "hindsight_reflect",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"result\": \"## The Pizza Plan\\n\\nYou and Devon agreed to get **pizza at Luigi's on 5th this Friday at 7:00 pm**. Devon will meet you there rather than picking you up.\\n\\n### How it came together\\n\\n- Devon asked if you were \\\"still in a pizza mood\\\" \\u2014 you said you're always in the mood for pizza.\\n- Devon proposed **Luigi's on Friday**; you confirmed you meant the location on **5th**, and Devon said yes, that's the one.\\n- You said you were down and asked about timing. Devon suggested **7pm**, and you agreed that works.\\n- Devon closed with \\\"cool I'll meet you there,\\\" so the plan is to **meet at the restaurant**, not travel together.\\n\\n### At a glance\\n\\n| Detail | Value |\\n| --- | --- |\\n| Who | You and Devon |\\n| What | Pizza |\\n| Where | Luigi's on 5th |\\n| Day | Friday |\\n| Time | 7:00 pm |\\n| Logistics | Devon meets you there |\\n\\n### One thing to keep separate from this plan\\n\\nIn the same conversation window there was a *different* weekend plan being floated in a group chat with Maya and Devon: seeing the **ducks at the pond on Saturday morning around 9am**, timed to beat the heat. Maya suggested it, Devon agreed, but you said your Saturday was up in the air and explicitly told them **not to plan around you**. So that one is tentative and doesn't involve you committing \\u2014 unlike the Friday pizza plan, which is confirmed on your side.\\n\\n### Practical note\\n\\nEverything above comes from messages collected the evening of Thursday, September 10, 2026, with the pizza outing set for the following day, Friday, September 11. If anything shifted afterward, it isn't recorded here \\u2014 but as of that conversation, the arrangement is firm: **Luigi's on 5th, Friday, 7pm, meeting Devon there.**\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 28.47,
+  "returncode": 0,
+  "stderr_tail": "Session: local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713\n\nsession_id: local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713",
+  "raw_events": 29,
+  "session_id": "local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713",
+  "stderr_full": "Session: local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713\n\nsession_id: local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"\", \"session_id\": \"\", \"timestamp\": 1794535931551}\n{\"type\": \"tool_use\", \"name\": \"hindsight_recall\", \"tool_call_id\": \"call_987cf5b49830\", \"input\": {\"query\": \"pizza plan\"}, \"timestamp\": 1794535937317}\n{\"type\": \"tool_result\", \"name\": \"hindsight_recall\", \"tool_call_id\": \"call_987cf5b49830\", \"output\": \"{\\\"result\\\": \\\"1. The user and Devon agreed to get pizza at Luigi's on 5th on Friday at 7pm.\\\\n2. The user is always in the mood for pizza.\\\\n3. The user's Saturday is up in the air, and they told Maya and Devon not to plan around them.\\\\n4. Devon agreed to the Saturday morning pond plan.\\\\n5. Devon will meet the user at Luigi's on 5th.\\\\n6. Maya suggested going to see the ducks at the pond on Saturday morning around 9am to beat the heat.\\\"}\", \"duration_ms\": 159, \"is_error\": false, \"timestamp\": 1794535937476}\n{\"type\": \"tool_use\", \"name\": \"hindsight_reflect\", \"tool_call_id\": \"call_9206dfa7a79e\", \"input\": {\"query\": \"What is the pizza plan we discussed?\"}, \"timestamp\": 1794535937478}\n{\"type\": \"tool_result\", \"name\": \"hindsight_reflect\", \"tool_call_id\": \"call_9206dfa7a79e\", \"output\": \"{\\\"result\\\": \\\"## The Pizza Plan\\\\n\\\\nYou and Devon agreed to get **pizza at Luigi's on 5th this Friday at 7:00 pm**. Devon will meet you there rather than picking you up.\\\\n\\\\n### How it came together\\\\n\\\\n- Devon asked if you were \\\\\\\"still in a pizza mood\\\\\\\" \\\\u2014 you said you're always in the mood for pizza.\\\\n- Devon proposed **Luigi's on Friday**; you confirmed you meant the location on **5th**, and Devon said yes, that's the one.\\\\n- You said you were down and asked about timing. Devon suggested **7pm**, and you agreed that works.\\\\n- Devon closed with \\\\\\\"cool I'll meet you there,\\\\\\\" so the plan is to **meet at the restaurant**, not travel together.\\\\n\\\\n### At a glance\\\\n\\\\n| Detail | Value |\\\\n| --- | --- |\\\\n| Who | You and Devon |\\\\n| What | Pizza |\\\\n| Where | Luigi's on 5th |\\\\n| Day | Friday |\\\\n| Time | 7:00 pm |\\\\n| Logistics | Devon meets you there |\\\\n\\\\n### One thing to keep separate from this plan\\\\n\\\\nIn the same conversation window there was a *different* weekend plan being floated in a group chat with Maya and Devon: seeing the **ducks at the pond on Saturday morning around 9am**, timed to beat the heat. Maya suggested it, Devon agreed, but you said your Saturday was up in the air and explicitly told them **not to plan around you**. So that one is tentative and doesn't involve you committing \\\\u2014 unlike the Friday pizza plan, which is confirmed on your side.\\\\n\\\\n### Practical note\\\\n\\\\nEverything above comes from messages collected the evening of Thursday, September 10, 2026, with the pizza outing set for the following day, Friday, September 11. If anything shifted afterward, it isn't recorded here \\\\u2014 but as of that conversation, the arrangement is firm: **Luigi's on 5th, Friday, 7pm, meeting Devon there.**\\\"}\", \"duration_ms\": 14076, \"is_error\": false, \"timestamp\": 1794535951554}\n{\"type\": \"text\", \"text\": \"\\n\\nPizza with\", \"timestamp\": 1794535955180}\n{\"type\": \"text\", \"text\": \" Devon —\", \"timestamp\": 1794535955180}\n{\"type\": \"text\", \"text\": \" Friday\", \"timestamp\": 1794535955293}\n{\"type\": \"text\", \"text\": \" at 7\", \"timestamp\": 1794535955293}\n{\"type\": \"text\", \"text\": \"pm at Luigi's on \", \"timestamp\": 1794535955294}\n{\"type\": \"text\", \"text\": \"5th. He'll meet\", \"timestamp\": 1794535955401}\n{\"type\": \"text\", \"text\": \" you there rather\", \"timestamp\": 1794535955402}\n{\"type\": \"text\", \"text\": \" than picking\", \"timestamp\": 1794535955470}\n{\"type\": \"text\", \"text\": \" you up.\\n\\nSeparate,\", \"timestamp\": 1794535955471}\n{\"type\": \"text\", \"text\": \" tentative\", \"timestamp\": 1794535955471}\n{\"type\": \"text\", \"text\": \" thing\", \"timestamp\": 1794535955594}\n{\"type\": \"text\", \"text\": \": Maya\", \"timestamp\": 1794535956275}\n{\"type\": \"text\", \"text\": \"'s\", \"timestamp\": 1794535956277}\n{\"type\": \"text\", \"text\": \" Saturday\", \"timestamp\": 1794535956280}\n{\"type\": \"text\", \"text\": \" 9am pond/\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \"du\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \"ck idea —\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \" you said your\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \" Saturday was\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \" up in\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \" the air and not\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \" to plan around you\", \"timestamp\": 1794535956281}\n{\"type\": \"text\", \"text\": \".\", \"timestamp\": 1794535956281}\n{\"type\": \"result\", \"session_id\": \"local-cf44ff925d46972b290fc2a093a785ed1391b9c6e43a33e99c13d753e3243713\", \"exit_code\": 0, \"text\": \"Pizza with Devon — Friday at 7pm at Luigi's on 5th. He'll meet you there rather than picking you up.\\n\\nSeparate, tentative thing: Maya's Saturday 9am pond/duck idea — you said your Saturday was up in the air and not to plan around you.\", \"tokens\": {\"input\": 5837, \"output\": 166, \"total\": 6003, \"cache_read\": 4096, \"cache_write\": 0}, \"duration_ms\": 24814, \"timestamp\": 1794535956366}",
+  "session_input_tokens": 5837,
+  "session_output_tokens": 166,
+  "provider_traces": [
+    {
+      "provider": "hindsight",
+      "attribution": "background-or-prefetch",
+      "record": {
+        "trace_id": "7d561a0d-4924-4678-97ee-8c5e08c8cc9b",
+        "query": "What is the pizza plan we discussed?\n\nCall `search_observations` now (Search consolidated observations (auto-generated knowledge)). Reply with only its arguments, as one JSON object.",
+        "timestamp": 1794535951.542548,
+        "complete": true,
+        "model_calls": [
+          {
+            "id": "97049a0e-17af-4c72-bd31-fe1274759360",
+            "scope": "reflect",
+            "started_at": "2026-11-13T02:12:24.919374+00:00",
+            "ended_at": "2026-11-13T02:12:31.542548+00:00",
+            "status": "success",
+            "input_tokens": 6131,
+            "output_tokens": 506,
+            "cached_tokens": 5760,
+            "thoughts_tokens": 4,
+            "duration_ms": 6623
+          },
+          {
+            "id": "e7e58f2a-6674-456e-82bb-bced83663dfd",
+            "scope": "reflect_tool_call",
+            "started_at": "2026-11-13T02:12:22.966277+00:00",
+            "ended_at": "2026-11-13T02:12:24.918431+00:00",
+            "status": "success",
+            "input_tokens": 5901,
+            "output_tokens": 23,
+            "cached_tokens": 4352,
+            "thoughts_tokens": 15,
+            "duration_ms": 1952
+          },
+          {
+            "id": "5d25d129-73b4-4878-b716-559dc077dc6b",
+            "scope": "reflect_tool_call",
+            "started_at": "2026-11-13T02:12:20.262469+00:00",
+            "ended_at": "2026-11-13T02:12:22.824726+00:00",
+            "status": "success",
+            "input_tokens": 4406,
+            "output_tokens": 62,
+            "cached_tokens": 3712,
+            "thoughts_tokens": 27,
+            "duration_ms": 2562
+          },
+          {
+            "id": "3d5254ad-9748-401f-b5f3-a227f35a67a0",
+            "scope": "reflect_tool_call",
+            "started_at": "2026-11-13T02:12:17.491923+00:00",
+            "ended_at": "2026-11-13T02:12:20.155830+00:00",
+            "status": "success",
+            "input_tokens": 3852,
+            "output_tokens": 33,
+            "cached_tokens": 2176,
+            "thoughts_tokens": 27,
+            "duration_ms": 2663
+          }
+        ],
+        "native_request_ids": [
+          "97049a0e-17af-4c72-bd31-fe1274759360",
+          "e7e58f2a-6674-456e-82bb-bced83663dfd",
+          "5d25d129-73b4-4878-b716-559dc077dc6b",
+          "3d5254ad-9748-401f-b5f3-a227f35a67a0"
+        ],
+        "toolCalls": []
+      },
+      "scope": "Existing native model-call traces; prompts and reasoning omitted. Tool arguments/results are retained where the native trace records them."
+    },
+    {
+      "provider": "hindsight",
+      "error": "Native reflection trace coverage incomplete"
+    }
+  ],
+  "prefetch_context": "",
+  "prefetch_provenance": null,
+  "context_isolation": {
+    "version": "empty-recall-workspace-v2",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-fq4m3nz_",
+    "source": "native Hermes saved system prompt, privately archived at turn completion",
+    "native_cwd": "/var/tmp/pacbench-chat-fq4m3nz_",
+    "system_prompt_sha256": "aefd096b943a063c3badd2c9b18434283e28fed60c66d53ef811ad31631ec30d",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-09-11T09:00:00-04:00",
+  "provider_clock": null,
+  "native_result_duration_s": 24.814,
+  "clock_context": {
+    "protocol": "native-question-v2",
+    "at": "2026-09-11T09:00:00-04:00",
+    "state": "pass",
+    "query_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+    "native_query_index": 0,
+    "actor_api_input_ids": [
+      "a880ce64-4758-4686-8efa-088a4c1a1d99",
+      "a5e2e3b8-0786-42e8-bf00-d47176fc1b42"
+    ],
+    "auxiliary_title_api_input_ids": [],
+    "native_query_sha256": "1d97e4ee8a98b75960b43fd87db3988247af120316340fae7faf69a307539b57",
+    "api_input_ids": [
+      "a880ce64-4758-4686-8efa-088a4c1a1d99",
+      "a5e2e3b8-0786-42e8-bf00-d47176fc1b42"
+    ],
+    "api_input_sha256": [
+      "6ccc113eef046465657f3c83cd68a36869c03c0ff0f9a114c0c5ab37aa5dfa3c",
+      "183a3240c4ffd541f5294b4d03b63e9d57f5d46d9b8b8506d14ed5f996006c3a"
+    ],
+    "reason": "Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions"
+  },
+  "hermes_gateway": {
+    "version": "per-turn-owned-gateway-v1",
+    "pid": 241704,
+    "start_time": 4488793,
+    "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/hindsight/repeat-1/hindsight/hermes-home",
+    "stopped": true,
+    "real_started_at": "2026-11-13T02:12:08.864737+00:00",
+    "real_finished_at": "2026-11-13T02:12:37.333798+00:00",
+    "returncode": 0
+  }
+}

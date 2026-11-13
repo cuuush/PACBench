@@ -1,0 +1,259 @@
+{
+  "state": "captured",
+  "at": "2026-11-13T02:18:02.384037+00:00",
+  "calls": [
+    {
+      "id": "37fe8747-0551-4e49-876b-746487f63aa8",
+      "project": "pacbench-580b56fc0732-cognee-memory",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:14:59.135991+00:00",
+      "finished": "2026-11-13T02:15:00.213166+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.0000072912",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "2f654d8e87a4dd88a7a0861c773fc611765f55406db6ee1fba5211ffc5060c5c",
+      "input_tokens": 42,
+      "output_tokens": 17,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536099-BGKa4WWcP6UPc36HylZV",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 7.2912e-06,
+      "role": "memory_provider",
+      "actual_cost_usd": 7.2912e-06,
+      "actual_cost_usd_decimal": "0.0000072912",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "f359778e-b6cb-44c3-b0b9-e20f2a7134c6",
+      "project": "pacbench-580b56fc0732-cognee-memory",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:15:03.646503+00:00",
+      "finished": "2026-11-13T02:16:03.929853+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.0020812064",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "143045eb6c00cbd48f145fa717cd5d64f22e939d6ae17c616f81f09d078c4a8b",
+      "input_tokens": 2348,
+      "output_tokens": 8066,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536103-bSPHodUuwGbN5c98LsYd",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 0.0020812064,
+      "role": "memory_provider",
+      "actual_cost_usd": 0.0020812064,
+      "actual_cost_usd_decimal": "0.0020812064",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "f56ac5dc-d290-42e5-8da5-40b79eeae410",
+      "project": "pacbench-580b56fc0732-cognee-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:16:15.840684+00:00",
+      "finished": "2026-11-13T02:16:19.522351+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000220467072",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "68b9190daf545e23fb0afc7db995849e3e1f50155a41f37fbdbd3fe5db0a0273",
+      "input_tokens": 4005,
+      "output_tokens": 99,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536175-pb5glr7d0ycg2PwjcIg0",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "tool_calls",
+      "accounted_upper_bound_usd": 0.000220467072,
+      "role": "hermes",
+      "actual_cost_usd": 0.000220467072,
+      "actual_cost_usd_decimal": "0.000220467072",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "3a71487d-790f-40b0-80db-4c710ef04397",
+      "project": "pacbench-580b56fc0732-cognee-driver",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:16:20.153653+00:00",
+      "finished": "2026-11-13T02:16:24.206080+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.000142129792",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "ab4b4689d3de3556bddb677b126c51c46a4478157c84edf86ad55a34aebe79a4",
+      "input_tokens": 5279,
+      "output_tokens": 169,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536180-OKYCmTNpfOvyMckLvEGi",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 0.000142129792,
+      "role": "hermes",
+      "actual_cost_usd": 0.000142129792,
+      "actual_cost_usd_decimal": "0.000142129792",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "f421e66d-fd4b-4f4a-9033-36c0d614ea07",
+      "project": "pacbench-580b56fc0732-cognee-memory",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:16:26.459542+00:00",
+      "finished": "2026-11-13T02:17:14.038108+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.001292364416",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "3feb6094f88cf6f5a6160061a6fa0169fa60f2b0102f558623f189fb2d0824cd",
+      "input_tokens": 1623,
+      "output_tokens": 5409,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536186-syRMe2qvD3cQzuJlCK10",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 0.001292364416,
+      "role": "memory_provider",
+      "actual_cost_usd": 0.001292364416,
+      "actual_cost_usd_decimal": "0.001292364416",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    },
+    {
+      "id": "62e3296e-2c04-4a85-ad7f-cecbcb221d2e",
+      "project": "pacbench-580b56fc0732-cognee-memory",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "started": "2026-11-13T02:17:17.369700+00:00",
+      "finished": "2026-11-13T02:17:50.455560+00:00",
+      "reserved": "0.1746927616",
+      "accounted": "0.0009738848",
+      "state": "settled",
+      "transport": "direct-client-reservations-v1",
+      "provider_request": {
+        "only": [
+          "deepinfra/fp8/flex"
+        ],
+        "order": [
+          "deepinfra/fp8/flex"
+        ],
+        "allow_fallbacks": false,
+        "require_parameters": true,
+        "max_price": {
+          "prompt": 0.0784,
+          "completion": 0.2352,
+          "request": 0
+        }
+      },
+      "completion_bound_tokens": 393216,
+      "request_sha256": "7736a864ae1e63eb5fbe4c9078309340ce9dfdad7f9d69c3ed1d794ea76065dc",
+      "input_tokens": 2030,
+      "output_tokens": 3464,
+      "http_status": 200,
+      "error_label": null,
+      "upstream_request_id": "gen-1794536237-R4NNF4xuFyR9ykkxtxpf",
+      "served_model": "deepseek/deepseek-v4.1-flash-1017",
+      "served_provider": "DeepInfra",
+      "finish_reason": "stop",
+      "accounted_upper_bound_usd": 0.0009738848,
+      "role": "memory_provider",
+      "actual_cost_usd": 0.0009738848,
+      "actual_cost_usd_decimal": "0.0009738848",
+      "actual_cost_source": "openrouter.usage.cost",
+      "actual_cost_guard_rounded_usd": null
+    }
+  ],
+  "transport": "direct-client-reservations-v1"
+}

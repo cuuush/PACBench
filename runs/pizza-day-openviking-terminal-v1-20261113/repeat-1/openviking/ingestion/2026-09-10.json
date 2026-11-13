@@ -1,0 +1,485 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "openviking",
+  "at": "2026-09-10T18:50:00-04:00",
+  "processing_at": "2026-09-11T03:00:00-04:00",
+  "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+  "source_ids": [
+    "message-997c390360930d39c2a91c1c",
+    "message-bbe8f576e37a4e1dbc7eb8e0",
+    "message-9b6de64be1f77aae9e27ce29",
+    "message-aebef46e330c3978b108f386",
+    "message-3488b3de33b8c372b1e8dd7a",
+    "message-d3a5f8e6afd26a43c3dd010f",
+    "message-4740cc49226a8358091d88f3",
+    "message-649e05a8a0c04602cb5221c2",
+    "message-d8e1fc8d4399bdf4bc4b7390",
+    "message-8736d5d60f286757fa8c5bd6",
+    "message-f0f94e727ca8743b8a20eab4",
+    "message-4db19b467bca3d3a987a6685",
+    "message-c6b34b7de4a5728ebf74c983",
+    "message-e87bf407d37889068eed95df",
+    "message-e0c91b84def1df60696ee3b8",
+    "message-2c97528b96a2fe3903257770",
+    "message-0820bf70b9eb7feed8cdb267",
+    "message-67664b2503e5cd4f9d132860",
+    "message-b1fd1d7da91d0d0e0c145d52",
+    "message-ba8bf0de5a8b22c3a03e1f8e",
+    "message-3a4ac42a537f09e25aea58bf",
+    "message-4808aed0b2028d3ee49d0f68",
+    "message-cc4126b3493b60536abc421e",
+    "message-de30e54f0572f2c4305bcf17",
+    "message-d962e57a39d134a1cbe06544"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "OpenViking temp_upload + resources(wait=True)",
+    "result": {
+      "status": "ok",
+      "result": {
+        "status": "success",
+        "errors": [],
+        "source_path": "2026-09-10.txt",
+        "meta": {},
+        "root_uri": "viking://resources/2026-09-10",
+        "temp_uri": "viking://temp/default/11122217_9b12ed/2026-09-10",
+        "queue_status": {
+          "Semantic": {
+            "processed": 1,
+            "requeue_count": 0,
+            "error_count": 0,
+            "errors": []
+          },
+          "Embedding": {
+            "processed": 4,
+            "requeue_count": 0,
+            "error_count": 0,
+            "errors": []
+          }
+        },
+        "context_count": 4,
+        "telemetry": {
+          "id": "tm_2cd69479c2744345b236866bbb37da9e",
+          "summary": {
+            "operation": "add_resource_job",
+            "status": "ok",
+            "duration_ms": 52835.935,
+            "tokens": {
+              "total": 9336,
+              "llm": {
+                "input": 3012,
+                "output": 4610,
+                "total": 7622,
+                "prompt_cached": 1408,
+                "completion_reasoning": 3496
+              },
+              "embedding": {
+                "total": 1714
+              },
+              "stages": {
+                "semantic_execute": {
+                  "llm": {
+                    "input": 3012,
+                    "output": 4610,
+                    "total": 7622,
+                    "prompt_cached": 1408,
+                    "completion_reasoning": 3496
+                  }
+                },
+                "embed_resource": {
+                  "embedding": {
+                    "total": 1714
+                  }
+                }
+              }
+            },
+            "queue": {
+              "semantic": {
+                "processed": 1,
+                "queue_wait": {
+                  "duration_ms": 171.851
+                },
+                "execute": {
+                  "duration_ms": 46480.397
+                }
+              },
+              "embedding": {
+                "processed": 4,
+                "queue_wait": {
+                  "duration_ms": 693.419
+                },
+                "execute": {
+                  "duration_ms": 3425.912
+                }
+              }
+            },
+            "semantic_nodes": {
+              "total": 3,
+              "done": 3
+            },
+            "resource": {
+              "total": {
+                "duration_ms": 52835.903
+              },
+              "source_execute": {
+                "duration_ms": 49.732
+              },
+              "source_prepare": {
+                "duration_ms": 2.911
+              },
+              "parse_artifact": {
+                "duration_ms": 12.418
+              },
+              "target_resolve": {
+                "duration_ms": 1.343
+              },
+              "update_plan": {
+                "duration_ms": 8.455,
+                "artifact_inventory": {
+                  "duration_ms": 1.188
+                },
+                "rnfv_snapshot": {
+                  "duration_ms": 5.145
+                },
+                "diff_and_compile": {
+                  "duration_ms": 1.854
+                }
+              },
+              "content_commit": {
+                "duration_ms": 11.359
+              },
+              "derived_enqueue": {
+                "duration_ms": 2.605
+              },
+              "semantic": {
+                "queue_wait": {
+                  "duration_ms": 171.851
+                },
+                "execute": {
+                  "duration_ms": 46480.397
+                }
+              },
+              "embedding": {
+                "queue_wait": {
+                  "duration_ms": 693.419
+                },
+                "execute": {
+                  "duration_ms": 3425.912
+                }
+              },
+              "flags": {
+                "wait": false,
+                "build_index": true,
+                "summarize": false,
+                "watch_enabled": false
+              }
+            }
+          }
+        },
+        "usage": {
+          "tokens": {
+            "total": 9336,
+            "llm": {
+              "input": 3012,
+              "output": 4610,
+              "total": 7622,
+              "prompt_cached": 1408,
+              "completion_reasoning": 3496
+            },
+            "embedding": {
+              "total": 1714
+            },
+            "stages": {
+              "semantic_execute": {
+                "llm": {
+                  "input": 3012,
+                  "output": 4610,
+                  "total": 7622,
+                  "prompt_cached": 1408,
+                  "completion_reasoning": 3496
+                }
+              },
+              "embed_resource": {
+                "embedding": {
+                  "total": 1714
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "readiness": "Native completed semantic/vector processing with queue status and no errors"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 63.27,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-13T03:17:25.818226+00:00",
+    "finished": "2026-11-13T03:18:29.219316+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "token_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "completion_tokens": 0,
+          "image_tokens": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "total_tokens": 0
+        },
+        "actual_cost_usd": 0,
+        "actual_cost_known_usd": 0,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 4,
+        "input_tokens": null,
+        "output_tokens": null,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": null,
+        "actual_cost_known_usd": 0.0012133372159999999,
+        "actual_cost_unknown_calls": 1,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0.1746927616,
+        "accounted_upper_bound_usd": 0.175906098816,
+        "unsettled_calls": 1
+      }
+    },
+    "model_calls": [
+      {
+        "id": "2bc80269-ec0e-43b8-baab-0eabef27fc50",
+        "project": "pacbench-f4d62c5d5e87-openviking-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T03:17:26.684836+00:00",
+        "finished": "2026-11-13T03:17:34.899833+00:00",
+        "reserved": "0.1746927616",
+        "accounted": "0.000179902912",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "cdd62d57f3da1fb87db7eed252f29b4da3ee5d1a8f9628956a77252367f9bb93",
+        "input_tokens": 377,
+        "output_tokens": 722,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794539846-WgixRwIW6q7Hh9DTnTxf",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.000179902912,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.000179902912,
+        "actual_cost_usd_decimal": "0.000179902912",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "783a4037-8f93-4bdc-876c-1cfd9c66a1e6",
+        "project": "pacbench-f4d62c5d5e87-openviking-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T03:17:26.812052+00:00",
+        "finished": "2026-11-13T03:17:35.620779+00:00",
+        "reserved": "0.1746927616",
+        "accounted": "0.000174327104",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "d60b5c7e78d4c6e35bfd5370947a698848cfd20d51f4a8c26699a6565856c589",
+        "input_tokens": 1157,
+        "output_tokens": 728,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794539846-KV2FfEqEyX4V3C72BBYt",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.000174327104,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.000174327104,
+        "actual_cost_usd_decimal": "0.000174327104",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "f4d3f5cb-3462-4a74-8353-6a70b2fe9797",
+        "project": "pacbench-f4d62c5d5e87-openviking-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T03:17:35.739508+00:00",
+        "finished": "2026-11-13T03:18:09.824427+00:00",
+        "reserved": "0.1746927616",
+        "accounted": "0.0008591072",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "128845e7eaa6c6481ef114a55a06548c6f25ae889a3e63459a149d2f47c6c642",
+        "input_tokens": 1478,
+        "output_tokens": 3160,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794539855-uMGMkVXiNIoaZKBBECPQ",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.0008591072,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.0008591072,
+        "actual_cost_usd_decimal": "0.0008591072",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "b7d44d31-6d30-4d1a-b2ec-94efa4dabcf0",
+        "project": "pacbench-f4d62c5d5e87-openviking-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T03:18:10.157916+00:00",
+        "finished": null,
+        "reserved": "0.1746927616",
+        "accounted": "0.1746927616",
+        "state": "reserved",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "e014acc2641a30553d764a5057a1269bfeb0c61440594256aea69abebd22dc6b",
+        "input_tokens": null,
+        "output_tokens": null,
+        "http_status": null,
+        "error_label": null,
+        "accounted_upper_bound_usd": 0.1746927616,
+        "role": "memory_provider",
+        "actual_cost_usd": null,
+        "actual_cost_usd_decimal": null,
+        "actual_cost_source": null,
+        "actual_cost_guard_rounded_usd": null
+      }
+    ],
+    "groups": [
+      {
+        "role": "memory_provider",
+        "project": "pacbench-f4d62c5d5e87-openviking-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "model_calls": 4,
+        "input_tokens": null,
+        "output_tokens": null,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": null,
+        "actual_cost_known_usd": 0.0012133372159999999,
+        "actual_cost_unknown_calls": 1,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0.1746927616,
+        "accounted_upper_bound_usd": 0.175906098816,
+        "unsettled_calls": 1
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

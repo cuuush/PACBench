@@ -1,0 +1,46 @@
+{
+  "provider": "mem0",
+  "repetition": 1,
+  "input_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "capability": {
+    "available": true,
+    "reason": "",
+    "tools": [
+      "mem0_search",
+      "mem0_add",
+      "mem0_update",
+      "mem0_delete"
+    ],
+    "loaded_native_provider": "mem0",
+    "loaded_provider_module": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/hermes-home/plugins/mem0/__init__.py",
+    "loaded_source_sha256": "af4ff6fd62b8109a92550fb34040cedbc89e8b717d43e2e28727f5193f783e26",
+    "provider": "mem0",
+    "live_verified": false,
+    "read_only_smoke": {
+      "tool": "mem0_search",
+      "arguments": {
+        "query": "native read-only capability check"
+      },
+      "output": "{\"result\": \"No relevant memories found.\"}"
+    },
+    "wiring_verified": true
+  },
+  "state": "partial",
+  "write_readiness_protocol": "accepted-native-writes-v2",
+  "checks": [
+    {
+      "id": "pizza-plan",
+      "at": "2026-09-11T09:00:00-04:00",
+      "session": "shared",
+      "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc",
+      "state": "ungraded",
+      "verdict": null,
+      "reason": "RuntimeError: model call failed; audit record /workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/model-calls/e59dd237069ceac275746d8528f0966730704544231a2d318d6d9e79d4d8d3a6.json: JSONDecodeError: Expecting value: line 17 column 1 (char 88)",
+      "error_type": "execution_or_judge"
+    }
+  ],
+  "reason": "evaluation sequence incomplete",
+  "behavior": {
+    "evaluation_context": "shared"
+  }
+}

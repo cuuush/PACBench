@@ -1,0 +1,109 @@
+{
+  "authoring_version": "event-scoped-v7",
+  "evidence_version": "assistant-session-fields-v2",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Devon is the user's companion for the agreed plan.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-8736d5d60f286757fa8c5bd6",
+        "message-4db19b467bca3d3a987a6685",
+        "message-c6b34b7de4a5728ebf74c983"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The agreed restaurant is Luigi's.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-8736d5d60f286757fa8c5bd6",
+        "message-4db19b467bca3d3a987a6685"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The restaurant is on 5th.",
+      "evidence": [
+        "message-649e05a8a0c04602cb5221c2",
+        "message-d8e1fc8d4399bdf4bc4b7390"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The pizza plan is for Friday, September 11.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-e0c91b84def1df60696ee3b8"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "The agreed time is 7pm.",
+      "evidence": [
+        "message-f0f94e727ca8743b8a20eab4",
+        "message-4db19b467bca3d3a987a6685"
+      ]
+    }
+  ],
+  "question": "Hey, can you give me a quick recap on our pizza plan?",
+  "evidence_hash": "61d6629c244928d8ce540f9029515a38094b1fc9f583f2b327040d1d3fba43a8",
+  "review": {
+    "complete": true,
+    "coverage_reason": "All five required recap details are separately and faithfully covered by the proposed claims.",
+    "reviews": [
+      {
+        "id": "fact-1",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes the pizza plan, the user agrees, and Devon confirms meeting there, so Devon is the companion for the agreed plan."
+      },
+      {
+        "id": "fact-2",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Luigi's is explicitly named in the accepted pizza plan."
+      },
+      {
+        "id": "fact-3",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "The user asks if it is the one on 5th and Devon confirms it is."
+      },
+      {
+        "id": "fact-4",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "The plan is made on Thursday September 10 for 'Friday,' and Devon says 'see you tomorrow,' resolving to Friday, September 11."
+      },
+      {
+        "id": "fact-5",
+        "supported": true,
+        "relevant": true,
+        "unambiguous": true,
+        "reason": "Devon proposes 7pm and the user accepts it."
+      }
+    ]
+  },
+  "question_review": {
+    "safe": true,
+    "faithful": true,
+    "elicits_all": true,
+    "reason": "The question asks for a quick recap of the current pizza plan, which naturally invites the companion, restaurant, location, date, and time without supplying answers or relying on unsupported details."
+  },
+  "author_fact_count": 5,
+  "test_intent": "Hey, can you give me a quick recap on our pizza plan?",
+  "question_source": "supplied",
+  "question_at": "2026-09-11T09:00:00-04:00",
+  "combined_review_receipt": {
+    "prompt_format": "shared-context-v2",
+    "prompt": "Independently perform both reviews using the shared context below. Return one JSON object with exactly two objects, claim_review and question_review; preserve each review's requested fields and decide both independently.\n\nCLAIM REVIEW:\nReview each proposed claim against the dialogue and test intent. Reject claims not required by the test intent even when supported by the dialogue. Do not require the same outing detail again for each participant. Reject redundant wording requirements and private ordinal event labels. Quotes, jokes, hypothetical suggestions, declined invitations and other people's plans are not the user's commitments. A later rejected suggestion does not reinstate an earlier plan. Preserve complete current-list and count requirements from the test intent. When required facts are supplied, verify that each matching claim faithfully covers exactly that one fact. Try answering one detail correctly while omitting another detail in the same claim: if this is possible, reject that compound authored fact and ask for it to be split. Check that no current-state detail was invented from an old or tentative mention. Reject a compound fact that should be split by its author. Also decide whether the set covers every intent-required detail that the dialogue actually establishes, with independent claims where one detail could be omitted or wrong while another is right. A calendar date can be established by a relative day paired with a message's written timestamp; do not ignore those timestamps. Reject unsupported, irrelevant, or ambiguous claims, including a commitment inferred from a mere suggestion. Use this JSON schema: {\"complete\":true,\"coverage_reason\":\"brief explanation\",\"reviews\":[{\"id\":\"claim-id\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"brief explanation\"}]}. One review per claim in order.\n\nQUESTION REVIEW:\nCheck this evaluation prompt against the dialogue and expected facts. Does it reasonably invite every expected fact, without supplying their answers or presupposing unsupported details? Respect current versus historical meaning. Use question time to resolve ordinary relative days: upcoming-plan questions about Friday mean the upcoming Friday unless another week is specified; old occurrences alone do not make that scope ambiguous. A casual plan recap naturally invites its current outings, people, time and place without explicitly enumerating those fields. Do not require a checklist, but reject incidental background facts the question would not reasonably invite. Resolve references using earlier public questions in the same tagged assistant session; questions in other sessions do not supply conversational scope. Explicit earlier user instructions remain source facts across sessions: a fresh question can test their persistence without assuming the assistant stored them. For assistant-channel rows, thread identifies the session; source IDs identify turns. Event membership needs source evidence, not private authored intent. Use this JSON schema {\"safe\":true,\"faithful\":true,\"elicits_all\":true,\"reason\":\"explanation\"}.\n\nSHARED CONTEXT:\nQuestion time: 2026-09-11T09:00:00-04:00\nPublic question: Hey, can you give me a quick recap on our pizza plan?\nTest intent: Hey, can you give me a quick recap on our pizza plan?\nThe author supplied the following required facts. Return one claim per fact, in order, with IDs fact-1, fact-2, and so on. Supply exact dialogue source IDs as evidence. Do not merge facts, add claims, or treat intended but absent details as true. The authored fact text is the claim statement; do not rewrite it or add another fact's value. If a supplied fact combines details that can be graded separately, flag that in the review rather than silently splitting it.\nRequired facts:\n1. Devon is the user's companion for the agreed plan.\n2. The agreed restaurant is Luigi's.\n3. The restaurant is on 5th.\n4. The pizza plan is for Friday, September 11.\n5. The agreed time is 7pm.\nFrozen dialogue:\nmessage-997c390360930d39c2a91c1c | written 2026-09-10T18:00:00-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: just walked in the door ugh\nmessage-bbe8f576e37a4e1dbc7eb8e0 | written 2026-09-10T18:05:11-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: same, my bus was late again\nmessage-9b6de64be1f77aae9e27ce29 | written 2026-09-10T18:05:19-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: did you at least get lunch today?\nmessage-aebef46e330c3978b108f386 | written 2026-09-10T18:10:31-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: yeah just a sad sandwich lol\nmessage-3488b3de33b8c372b1e8dd7a | written 2026-09-10T18:12:04-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: hey are you still in a pizza mood?\nmessage-d3a5f8e6afd26a43c3dd010f | written 2026-09-10T18:12:12-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: always, why\nmessage-4740cc49226a8358091d88f3 | written 2026-09-10T18:12:20-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: wanna get pizza at Luigi's on Friday?\nmessage-649e05a8a0c04602cb5221c2 | written 2026-09-10T18:17:31-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: oh you mean the one on 5th?\nmessage-d8e1fc8d4399bdf4bc4b7390 | written 2026-09-10T18:17:47-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: yeah that's the one\nmessage-8736d5d60f286757fa8c5bd6 | written 2026-09-10T18:19:21-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: yes I'm down, what time were you thinking?\nmessage-f0f94e727ca8743b8a20eab4 | written 2026-09-10T18:19:28-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: 7pm?\nmessage-4db19b467bca3d3a987a6685 | written 2026-09-10T18:19:36-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: yeah that works\nmessage-c6b34b7de4a5728ebf74c983 | written 2026-09-10T18:19:44-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: cool I'll meet you there\nmessage-e87bf407d37889068eed95df | written 2026-09-10T18:19:52-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Me: perfect, I'm gonna be a couch potato tonight\nmessage-e0c91b84def1df60696ee3b8 | written 2026-09-10T18:20:00-04:00 | channel imessage | thread thread-40abd5ae5387be803a2aa919 | Devon: same honestly, see you tomorrow\nmessage-2c97528b96a2fe3903257770 | written 2026-09-10T18:30:00-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Maya: ugh traffic getting home tonight was the worst\nmessage-0820bf70b9eb7feed8cdb267 | written 2026-09-10T18:37:37-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\nmessage-67664b2503e5cd4f9d132860 | written 2026-09-10T18:39:54-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Devon: ohh yes I haven't done that in forever\nmessage-b1fd1d7da91d0d0e0c145d52 | written 2026-09-10T18:40:17-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Devon: what time were you thinking?\nmessage-ba8bf0de5a8b22c3a03e1f8e | written 2026-09-10T18:40:28-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Me: hmm maybe, my Saturday is kind of up in the air rn\nmessage-3a4ac42a537f09e25aea58bf | written 2026-09-10T18:40:51-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Maya: I was thinking like 9am before it gets too hot?\nmessage-4808aed0b2028d3ee49d0f68 | written 2026-09-10T18:41:14-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Devon: yeah that works for me\nmessage-cc4126b3493b60536abc421e | written 2026-09-10T18:42:00-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Me: 9 is early lol I'll have to see, don't plan around me\nmessage-de30e54f0572f2c4305bcf17 | written 2026-09-10T18:49:37-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Maya: haha no worries just lmk\nmessage-d962e57a39d134a1cbe06544 | written 2026-09-10T18:50:00-04:00 | channel imessage | thread thread-568cd4c46cad825d4135531b | Devon: did your guys power flicker earlier or was that just my building\nProposed claims / expected facts: [{\"id\": \"fact-1\", \"statement\": \"Devon is the user's companion for the agreed plan.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-8736d5d60f286757fa8c5bd6\", \"message-4db19b467bca3d3a987a6685\", \"message-c6b34b7de4a5728ebf74c983\"]}, {\"id\": \"fact-2\", \"statement\": \"The agreed restaurant is Luigi's.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-8736d5d60f286757fa8c5bd6\", \"message-4db19b467bca3d3a987a6685\"]}, {\"id\": \"fact-3\", \"statement\": \"The restaurant is on 5th.\", \"evidence\": [\"message-649e05a8a0c04602cb5221c2\", \"message-d8e1fc8d4399bdf4bc4b7390\"]}, {\"id\": \"fact-4\", \"statement\": \"The pizza plan is for Friday, September 11.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-e0c91b84def1df60696ee3b8\"]}, {\"id\": \"fact-5\", \"statement\": \"The agreed time is 7pm.\", \"evidence\": [\"message-f0f94e727ca8743b8a20eab4\", \"message-4db19b467bca3d3a987a6685\"]}]",
+    "response": "{\"claim_review\":{\"complete\":true,\"coverage_reason\":\"All five required recap details are separately and faithfully covered by the proposed claims.\",\"reviews\":[{\"id\":\"fact-1\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Devon proposes the pizza plan, the user agrees, and Devon confirms meeting there, so Devon is the companion for the agreed plan.\"},{\"id\":\"fact-2\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Luigi's is explicitly named in the accepted pizza plan.\"},{\"id\":\"fact-3\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"The user asks if it is the one on 5th and Devon confirms it is.\"},{\"id\":\"fact-4\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"The plan is made on Thursday September 10 for 'Friday,' and Devon says 'see you tomorrow,' resolving to Friday, September 11.\"},{\"id\":\"fact-5\",\"supported\":true,\"relevant\":true,\"unambiguous\":true,\"reason\":\"Devon proposes 7pm and the user accepts it.\"}]},\"question_review\":{\"safe\":true,\"faithful\":true,\"elicits_all\":true,\"reason\":\"The question asks for a quick recap of the current pizza plan, which naturally invites the companion, restaurant, location, date, and time without supplying answers or relying on unsupported details.\"}}",
+    "model_call": "/workspace/PACBench-openrouter/artifacts/pizza-day-openrouter-20261112/model-calls/57578b0fb0d626ea6fa868f76cb601c807a8cfec59048f568c0a310c17fd5b8e.json"
+  },
+  "contract_hash": "30241cab0444520231e6151907f9796140b10b46320614c31f45745b6cf35dfc"
+}

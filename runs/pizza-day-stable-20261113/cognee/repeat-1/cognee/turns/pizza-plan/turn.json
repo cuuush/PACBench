@@ -1,0 +1,85 @@
+{
+  "prompt": "Hey, can you give me a quick recap on our pizza plan?",
+  "at": "2026-09-11T09:00:00-04:00",
+  "answer": "Pizza with Devon at Luigi's on 5th — Friday (that's today) at 7pm, meeting there. You two confirmed it last night.\n\nNothing else attached to it — no reservation mentioned, and your Saturday duck-pond thing with Maya is separate and still up in the air.\n\n⡏⠁⡏⡇⡏⡁⡧⣸⢸⠅⡯  Your pizza plan with Devon is Luigi's on 5th, tonight at 7pm, based on dataset pacbench_580b56fc0732f8a86771c78d.  \n⠓⠂⠓⠃⠓⠃⠃⠙⠘⠂⠓",
+  "tool_calls": [
+    {
+      "type": "tool_use",
+      "name": "cognee_recall",
+      "tool_call_id": "chatcmpl-tool-adb4077a3348f24f",
+      "input": {
+        "query": "pizza plan",
+        "search_type": "CHUNKS",
+        "top_k": 20
+      },
+      "timestamp": 1794536179601
+    }
+  ],
+  "tool_results": [
+    {
+      "tool": "cognee_recall",
+      "success": true,
+      "policy_blocked": false,
+      "text": "{\"results\": [{\"text\": \"Daily messages \\u2014 collected through 2026-09-10T18:50:00-04:00\\n\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\nParticipants: Me, Devon\\n\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\njust walked in the door ugh\\n\\n[2026-09-10T18:05:11-04:00] Devon\\nsame, my bus was late again\\n\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\ndid you at least get lunch today?\\n\\n[2026-09-10T18:10:31-04:00] Devon\\nyeah just a sad sandwich lol\\n\\n[2026-09-10T18:12:04-04:00] Devon\\nhey are you still in a pizza mood?\\n\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\nalways, why\\n\\n[2026-09-10T18:12:20-04:00] Devon\\nwanna get pizza at Luigi's on Friday?\\n\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\noh you mean the one on 5th?\\n\\n[2026-09-10T18:17:47-04:00] Devon\\nyeah that's the one\\n\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\nyes I'm down, what time were you thinking?\\n\\n[2026-09-10T18:19:28-04:00] Devon\\n7pm?\\n\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\nyeah that works\\n\\n[2026-09-10T18:19:44-04:00] Devon\\ncool I'll meet you there\\n\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\nperfect, I'm gonna be a couch potato tonight\\n\\n[2026-09-10T18:20:00-04:00] Devon\\nsame honestly, see you tomorrow\\n\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\nParticipants: Maya, Devon, Me\\n\\n[2026-09-10T18:30:00-04:00] Maya\\nugh traffic getting home tonight was the worst\\n\\n[2026-09-10T18:37:37-04:00] Maya\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\n\\n[2026-09-10T18:39:54-04:00] Devon\\nohh yes I haven't done that in forever\\n\\n[2026-09-10T18:40:17-04:00] Devon\\nwhat time were you thinking?\\n\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\nhmm maybe, my Saturday is kind of up in the air rn\\n\\n[2026-09-10T18:40:51-04:00] Maya\\nI was thinking like 9am before it gets too hot?\\n\\n[2026-09-10T18:41:14-04:00] Devon\\nyeah that works for me\\n\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\n9 is early lol I'll have to see, don't plan around me\\n\\n[2026-09-10T18:49:37-04:00] Maya\\nhaha no worries just lmk\\n\\n[2026-09-10T18:50:00-04:00] Devon\\ndid your guys power flicker earlier or was that just my building\\n\", \"source\": \"graph\", \"score\": 0.6369379758834839, \"dataset_name\": \"pacbench_580b56fc0732f8a86771c78d\", \"tag\": \"[m1 \\u00b7 Cognee recall \\u00b7 dataset pacbench_580b56fc0732f8a86771c78d]\"}], \"count\": 1, \"credit\": \"Each result is tagged [mN \\u00b7 where it came from]. If your answer uses one, end the answer with one line that starts with \\\"> \\\" and says, in your own words, what you remembered and that it is based on dataset pacbench_580b56fc0732f8a86771c78d. Write \\\"dataset pacbench_580b56fc0732f8a86771c78d\\\" exactly so. For example:\\n> you prefer the server over the CLI, based on dataset pacbench_580b56fc0732f8a86771c78d.\\nDo not copy the example, and do not write the tags or the word Cognee in that line: the Cognee logo is added under it. Credit only results your answer actually used.\"}",
+      "truncated": false,
+      "capture": "hermes_session_db"
+    }
+  ],
+  "policy_blocks": 0,
+  "latency_s": 16.5,
+  "returncode": 0,
+  "stderr_tail": "Session: local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84\n\nsession_id: local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84",
+  "raw_events": 30,
+  "session_id": "local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84",
+  "stderr_full": "Session: local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84\n\nsession_id: local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84\n",
+  "stdout_tail": "{\"type\": \"system\", \"subtype\": \"init\", \"model\": \"\", \"session_id\": \"\", \"timestamp\": 1794536172330}\n{\"type\": \"tool_use\", \"name\": \"cognee_recall\", \"tool_call_id\": \"chatcmpl-tool-adb4077a3348f24f\", \"input\": {\"query\": \"pizza plan\", \"search_type\": \"CHUNKS\", \"top_k\": 20}, \"timestamp\": 1794536179601}\n{\"type\": \"tool_result\", \"name\": \"cognee_recall\", \"tool_call_id\": \"chatcmpl-tool-adb4077a3348f24f\", \"output\": \"{\\\"results\\\": [{\\\"text\\\": \\\"Daily messages \\\\u2014 collected through 2026-09-10T18:50:00-04:00\\\\n\\\\nConversation: imessage | thread-40abd5ae5387be803a2aa919\\\\nParticipants: Me, Devon\\\\n\\\\n[2026-09-10T18:00:00-04:00] Me (sent by owner)\\\\njust walked in the door ugh\\\\n\\\\n[2026-09-10T18:05:11-04:00] Devon\\\\nsame, my bus was late again\\\\n\\\\n[2026-09-10T18:05:19-04:00] Me (sent by owner)\\\\ndid you at least get lunch today?\\\\n\\\\n[2026-09-10T18:10:31-04:00] Devon\\\\nyeah just a sad sandwich lol\\\\n\\\\n[2026-09-10T18:12:04-04:00] Devon\\\\nhey are you still in a pizza mood?\\\\n\\\\n[2026-09-10T18:12:12-04:00] Me (sent by owner)\\\\nalways, why\\\\n\\\\n[2026-09-10T18:12:20-04:00] Devon\\\\nwanna get pizza at Luigi's on Friday?\\\\n\\\\n[2026-09-10T18:17:31-04:00] Me (sent by owner)\\\\noh you mean the one on 5th?\\\\n\\\\n[2026-09-10T18:17:47-04:00] Devon\\\\nyeah that's the one\\\\n\\\\n[2026-09-10T18:19:21-04:00] Me (sent by owner)\\\\nyes I'm down, what time were you thinking?\\\\n\\\\n[2026-09-10T18:19:28-04:00] Devon\\\\n7pm?\\\\n\\\\n[2026-09-10T18:19:36-04:00] Me (sent by owner)\\\\nyeah that works\\\\n\\\\n[2026-09-10T18:19:44-04:00] Devon\\\\ncool I'll meet you there\\\\n\\\\n[2026-09-10T18:19:52-04:00] Me (sent by owner)\\\\nperfect, I'm gonna be a couch potato tonight\\\\n\\\\n[2026-09-10T18:20:00-04:00] Devon\\\\nsame honestly, see you tomorrow\\\\n\\\\nConversation: imessage | thread-568cd4c46cad825d4135531b\\\\nParticipants: Maya, Devon, Me\\\\n\\\\n[2026-09-10T18:30:00-04:00] Maya\\\\nugh traffic getting home tonight was the worst\\\\n\\\\n[2026-09-10T18:37:37-04:00] Maya\\\\nrandom thought tho, anyone want to go see the ducks at the pond Saturday morning?\\\\n\\\\n[2026-09-10T18:39:54-04:00] Devon\\\\nohh yes I haven't done that in forever\\\\n\\\\n[2026-09-10T18:40:17-04:00] Devon\\\\nwhat time were you thinking?\\\\n\\\\n[2026-09-10T18:40:28-04:00] Me (sent by owner)\\\\nhmm maybe, my Saturday is kind of up in the air rn\\\\n\\\\n[2026-09-10T18:40:51-04:00] Maya\\\\nI was thinking like 9am before it gets too hot?\\\\n\\\\n[2026-09-10T18:41:14-04:00] Devon\\\\nyeah that works for me\\\\n\\\\n[2026-09-10T18:42:00-04:00] Me (sent by owner)\\\\n9 is early lol I'll have to see, don't plan around me\\\\n\\\\n[2026-09-10T18:49:37-04:00] Maya\\\\nhaha no worries just lmk\\\\n\\\\n[2026-09-10T18:50:00-04:00] Devon\\\\ndid your guys power flicker earlier or was that just my building\\\\n\\\", \\\"source\\\": \\\"graph\\\", \\\"score\\\": 0.6369379758834839, \\\"dataset_name\\\": \\\"pacbench_580b56fc0732f8a86771c78d\\\", \\\"tag\\\": \\\"[m1 \\\\u00b7 Cognee recall \\\\u00b7 dataset pacbench_580b56fc0732f8a86771c78d]\\\"}], \\\"count\\\": 1, \\\"credit\\\": \\\"Each result is tagged [mN \\\\u00b7 where it came from]. If your answer uses one, end the answer with one line that starts with \\\\\\\"> \\\\\\\" and says, in your own words, what you remembered and that it is based on dataset pacbench_580b56fc0732f8a86771c78d. Write \\\\\\\"dataset pacbench_580b56fc0732f8a86771c78d\\\\\\\" exactly so. For example:\\\\n> you prefer the server over the CLI, based on dataset pacbench_580b56fc0732f8a86771c78d.\\\\nDo not copy the example, and do not write the tags or the word Cognee in that line: the Cognee logo is added under it. Credit only results your answer actually used.\\\"}\", \"duration_ms\": 468, \"is_error\": false, \"timestamp\": 1794536180069}\n{\"type\": \"text\", \"text\": \"\\n\\nPizza with Devon at Luigi\", \"timestamp\": 1794536182374}\n{\"type\": \"text\", \"text\": \"'s on 5th — Friday (\", \"timestamp\": 1794536182374}\n{\"type\": \"text\", \"text\": \"that's today) at 7pm, meeting there\", \"timestamp\": 1794536182508}\n{\"type\": \"text\", \"text\": \". You\", \"timestamp\": 1794536182508}\n{\"type\": \"text\", \"text\": \" two\", \"timestamp\": 1794536182578}\n{\"type\": \"text\", \"text\": \" confirmed it last\", \"timestamp\": 1794536182579}\n{\"type\": \"text\", \"text\": \" night.\\n\\nNothing else\", \"timestamp\": 1794536182579}\n{\"type\": \"text\", \"text\": \" attached\", \"timestamp\": 1794536182970}\n{\"type\": \"text\", \"text\": \" to it\", \"timestamp\": 1794536182971}\n{\"type\": \"text\", \"text\": \" — no reservation mentioned\", \"timestamp\": 1794536183158}\n{\"type\": \"text\", \"text\": \", and your\", \"timestamp\": 1794536183356}\n{\"type\": \"text\", \"text\": \" Saturday duck-pond thing with\", \"timestamp\": 1794536183372}\n{\"type\": \"text\", \"text\": \" Maya is separate and\", \"timestamp\": 1794536183460}\n{\"type\": \"text\", \"text\": \" still up in\", \"timestamp\": 1794536183461}\n{\"type\": \"text\", \"text\": \" the air.\\n\\n> Your\", \"timestamp\": 1794536183514}\n{\"type\": \"text\", \"text\": \" pizza plan\", \"timestamp\": 1794536183516}\n{\"type\": \"text\", \"text\": \" with Devon is\", \"timestamp\": 1794536183516}\n{\"type\": \"text\", \"text\": \" Luigi\", \"timestamp\": 1794536183747}\n{\"type\": \"text\", \"text\": \"'s on 5th,\", \"timestamp\": 1794536183747}\n{\"type\": \"text\", \"text\": \" tonight\", \"timestamp\": 1794536183748}\n{\"type\": \"text\", \"text\": \" at 7pm, based\", \"timestamp\": 1794536183983}\n{\"type\": \"text\", \"text\": \" on dataset\", \"timestamp\": 1794536183984}\n{\"type\": \"text\", \"text\": \" pacbench\", \"timestamp\": 1794536184031}\n{\"type\": \"text\", \"text\": \"_580b\", \"timestamp\": 1794536184033}\n{\"type\": \"text\", \"text\": \"56fc0732\", \"timestamp\": 1794536184033}\n{\"type\": \"text\", \"text\": \"f8a86771c78d.\", \"timestamp\": 1794536184171}\n{\"type\": \"result\", \"session_id\": \"local-179a738d7430a0e71800a68b87c7c55dd522bd7c5bb2ccce7132ec41ca34fd84\", \"exit_code\": 0, \"text\": \"Pizza with Devon at Luigi's on 5th — Friday (that's today) at 7pm, meeting there. You two confirmed it last night.\\n\\nNothing else attached to it — no reservation mentioned, and your Saturday duck-pond thing with Maya is separate and still up in the air.\\n\\n⡏⠁⡏⡇⡏⡁⡧⣸⢸⠅⡯  Your pizza plan with Devon is Luigi's on 5th, tonight at 7pm, based on dataset pacbench_580b56fc0732f8a86771c78d.  \\n⠓⠂⠓⠃⠓⠃⠃⠙⠘⠂⠓\", \"tokens\": {\"input\": 9284, \"output\": 268, \"total\": 9552, \"cache_read\": 5632, \"cache_write\": 0}, \"duration_ms\": 12049, \"timestamp\": 1794536184380}",
+  "session_input_tokens": 9284,
+  "session_output_tokens": 268,
+  "provider_traces": [],
+  "prefetch_context": "",
+  "prefetch_provenance": null,
+  "context_isolation": {
+    "version": "empty-recall-workspace-v2",
+    "state": "pass",
+    "workspace": "/var/tmp/pacbench-chat-w5_wsm2j",
+    "source": "native Hermes saved system prompt, privately archived at turn completion",
+    "native_cwd": "/var/tmp/pacbench-chat-w5_wsm2j",
+    "system_prompt_sha256": "b5af3582cdf90b08a427fec8b239070d1df1151a2a7cde151c3a11aa7669e9df",
+    "reason": "No project context in native saved system prompt"
+  },
+  "session_started_at": "2026-09-11T09:00:00-04:00",
+  "provider_clock": null,
+  "native_result_duration_s": 12.049,
+  "clock_context": {
+    "protocol": "native-question-v2",
+    "at": "2026-09-11T09:00:00-04:00",
+    "state": "pass",
+    "query_sha256": "b8df45a12088762388739b265f8d4aa52e1e48ab64161adb8cd98bde265d9ad8",
+    "native_query_index": 0,
+    "actor_api_input_ids": [
+      "f56ac5dc-d290-42e5-8da5-40b79eeae410",
+      "3a71487d-790f-40b0-80db-4c710ef04397"
+    ],
+    "auxiliary_title_api_input_ids": [],
+    "native_query_sha256": "379e2feb14651d320d3e557d6c1191642a9ad3499b2c783cee920f90732f2292",
+    "api_input_ids": [
+      "f56ac5dc-d290-42e5-8da5-40b79eeae410",
+      "3a71487d-790f-40b0-80db-4c710ef04397"
+    ],
+    "api_input_sha256": [
+      "79e6075bebdb6a3b82112e7e4b1c53f9bde9d5a4c75d8ba539b65afa3ab1ac60",
+      "19fc8f8cde8700411794718827ab460089e60a4f6fb816ec91e9d1a7534a2ef0"
+    ],
+    "reason": "Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions"
+  },
+  "hermes_gateway": {
+    "version": "per-turn-owned-gateway-v1",
+    "pid": 244918,
+    "start_time": 4512807,
+    "home": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/cognee/repeat-1/cognee/hermes-home",
+    "stopped": true,
+    "real_started_at": "2026-11-13T02:16:09.007924+00:00",
+    "real_finished_at": "2026-11-13T02:16:25.505946+00:00",
+    "returncode": 0
+  }
+}

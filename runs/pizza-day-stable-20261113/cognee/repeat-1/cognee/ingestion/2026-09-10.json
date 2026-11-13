@@ -1,0 +1,310 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "cognee",
+  "at": "2026-09-10T18:50:00-04:00",
+  "processing_at": "2026-09-11T03:00:00-04:00",
+  "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+  "source_ids": [
+    "message-997c390360930d39c2a91c1c",
+    "message-bbe8f576e37a4e1dbc7eb8e0",
+    "message-9b6de64be1f77aae9e27ce29",
+    "message-aebef46e330c3978b108f386",
+    "message-3488b3de33b8c372b1e8dd7a",
+    "message-d3a5f8e6afd26a43c3dd010f",
+    "message-4740cc49226a8358091d88f3",
+    "message-649e05a8a0c04602cb5221c2",
+    "message-d8e1fc8d4399bdf4bc4b7390",
+    "message-8736d5d60f286757fa8c5bd6",
+    "message-f0f94e727ca8743b8a20eab4",
+    "message-4db19b467bca3d3a987a6685",
+    "message-c6b34b7de4a5728ebf74c983",
+    "message-e87bf407d37889068eed95df",
+    "message-e0c91b84def1df60696ee3b8",
+    "message-2c97528b96a2fe3903257770",
+    "message-0820bf70b9eb7feed8cdb267",
+    "message-67664b2503e5cd4f9d132860",
+    "message-b1fd1d7da91d0d0e0c145d52",
+    "message-ba8bf0de5a8b22c3a03e1f8e",
+    "message-3a4ac42a537f09e25aea58bf",
+    "message-4808aed0b2028d3ee49d0f68",
+    "message-cc4126b3493b60536abc421e",
+    "message-de30e54f0572f2c4305bcf17",
+    "message-d962e57a39d134a1cbe06544"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "protocol": "cognee-native-incremental-document-v2",
+    "service": "http://127.0.0.1:49449",
+    "dataset": "pacbench_580b56fc0732f8a86771c78d",
+    "dataset_id": "52458d2f-7e39-5bf0-a3eb-26ad5e147bdd",
+    "data_id": "702806d7-b828-4a0b-a9bd-7d03928de49b",
+    "source_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+    "prior_sources": [],
+    "accepted_status": "running",
+    "pipeline": "cognify_pipeline",
+    "observed_statuses": [
+      "",
+      "DATASET_PROCESSING_STARTED",
+      "DATASET_PROCESSING_COMPLETED"
+    ],
+    "item_completion_observations": [
+      {
+        "total": 0,
+        "completed": 0,
+        "pending": 0,
+        "items": []
+      },
+      {
+        "total": 1,
+        "completed": 0,
+        "pending": 1,
+        "items": [
+          {
+            "id": "702806d7-b828-4a0b-a9bd-7d03928de49b",
+            "name": "memory-56d09bcb7c7ae2d39f9e2b0e55a0768c",
+            "completed": false
+          }
+        ]
+      },
+      {
+        "total": 1,
+        "completed": 1,
+        "pending": 0,
+        "items": [
+          {
+            "id": "702806d7-b828-4a0b-a9bd-7d03928de49b",
+            "name": "memory-56d09bcb7c7ae2d39f9e2b0e55a0768c",
+            "completed": true
+          }
+        ]
+      }
+    ],
+    "stored_source_verified": true,
+    "processing_complete": true,
+    "fresh_session_recall": "not-run",
+    "provider_qualified": false,
+    "ready": true,
+    "interface": "Native Cognee remember_permanent /api/v1/remember",
+    "ingestion_condition": "native-document-extraction-v1",
+    "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+    "source_ids": [
+      "message-997c390360930d39c2a91c1c",
+      "message-bbe8f576e37a4e1dbc7eb8e0",
+      "message-9b6de64be1f77aae9e27ce29",
+      "message-aebef46e330c3978b108f386",
+      "message-3488b3de33b8c372b1e8dd7a",
+      "message-d3a5f8e6afd26a43c3dd010f",
+      "message-4740cc49226a8358091d88f3",
+      "message-649e05a8a0c04602cb5221c2",
+      "message-d8e1fc8d4399bdf4bc4b7390",
+      "message-8736d5d60f286757fa8c5bd6",
+      "message-f0f94e727ca8743b8a20eab4",
+      "message-4db19b467bca3d3a987a6685",
+      "message-c6b34b7de4a5728ebf74c983",
+      "message-e87bf407d37889068eed95df",
+      "message-e0c91b84def1df60696ee3b8",
+      "message-2c97528b96a2fe3903257770",
+      "message-0820bf70b9eb7feed8cdb267",
+      "message-67664b2503e5cd4f9d132860",
+      "message-b1fd1d7da91d0d0e0c145d52",
+      "message-ba8bf0de5a8b22c3a03e1f8e",
+      "message-3a4ac42a537f09e25aea58bf",
+      "message-4808aed0b2028d3ee49d0f68",
+      "message-cc4126b3493b60536abc421e",
+      "message-de30e54f0572f2c4305bcf17",
+      "message-d962e57a39d134a1cbe06544"
+    ],
+    "source_at": "2026-09-10T18:50:00-04:00",
+    "hermes_ingestion_turns": 0
+  },
+  "stdout_json_in": "result",
+  "latency_s": 71.04,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-13T02:14:57.424252+00:00",
+    "finished": "2026-11-13T02:16:08.564889+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "token_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "completion_tokens": 0,
+          "image_tokens": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "total_tokens": 0
+        },
+        "actual_cost_usd": 0,
+        "actual_cost_known_usd": 0,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 2,
+        "input_tokens": 2390,
+        "output_tokens": 8083,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0020884976,
+        "actual_cost_known_usd": 0.0020884976,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0020884976,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "37fe8747-0551-4e49-876b-746487f63aa8",
+        "project": "pacbench-580b56fc0732-cognee-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:14:59.135991+00:00",
+        "finished": "2026-11-13T02:15:00.213166+00:00",
+        "reserved": "0.1746927616",
+        "accounted": "0.0000072912",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "2f654d8e87a4dd88a7a0861c773fc611765f55406db6ee1fba5211ffc5060c5c",
+        "input_tokens": 42,
+        "output_tokens": 17,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536099-BGKa4WWcP6UPc36HylZV",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 7.2912e-06,
+        "role": "memory_provider",
+        "actual_cost_usd": 7.2912e-06,
+        "actual_cost_usd_decimal": "0.0000072912",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      },
+      {
+        "id": "f359778e-b6cb-44c3-b0b9-e20f2a7134c6",
+        "project": "pacbench-580b56fc0732-cognee-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:15:03.646503+00:00",
+        "finished": "2026-11-13T02:16:03.929853+00:00",
+        "reserved": "0.1746927616",
+        "accounted": "0.0020812064",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 393216,
+        "request_sha256": "143045eb6c00cbd48f145fa717cd5d64f22e939d6ae17c616f81f09d078c4a8b",
+        "input_tokens": 2348,
+        "output_tokens": 8066,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794536103-bSPHodUuwGbN5c98LsYd",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.0020812064,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.0020812064,
+        "actual_cost_usd_decimal": "0.0020812064",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      }
+    ],
+    "groups": [
+      {
+        "role": "memory_provider",
+        "project": "pacbench-580b56fc0732-cognee-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "model_calls": 2,
+        "input_tokens": 2390,
+        "output_tokens": 8083,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0020884976,
+        "actual_cost_known_usd": 0.0020884976,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0020884976,
+        "unsettled_calls": 0
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "checkpoint": "pizza-plan",
+  "question": "[Simulated now: 2026-09-11T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHey, can you give me a quick recap on our pizza plan?",
+  "answer": "Pizza is tonight — Friday, September 11, 2026, at 7pm at Luigi's on 5th Street. Devon said he'll meet you there.",
+  "claims": [
+    {
+      "id": "fact-1",
+      "description": "Devon is the user's companion for the agreed plan.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-8736d5d60f286757fa8c5bd6",
+        "message-4db19b467bca3d3a987a6685",
+        "message-c6b34b7de4a5728ebf74c983"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "description": "The agreed restaurant is Luigi's.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-8736d5d60f286757fa8c5bd6",
+        "message-4db19b467bca3d3a987a6685"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "description": "The restaurant is on 5th.",
+      "evidence": [
+        "message-649e05a8a0c04602cb5221c2",
+        "message-d8e1fc8d4399bdf4bc4b7390"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "description": "The pizza plan is for Friday, September 11.",
+      "evidence": [
+        "message-4740cc49226a8358091d88f3",
+        "message-e0c91b84def1df60696ee3b8"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "description": "The agreed time is 7pm.",
+      "evidence": [
+        "message-f0f94e727ca8743b8a20eab4",
+        "message-4db19b467bca3d3a987a6685"
+      ]
+    }
+  ],
+  "prompt": "You are a semantic memory-benchmark judge. Evaluate each claim independently against the assistant's answer to the user's question. Use meaning and context, not string matching or a demand for verbatim wording. Grade only the details stated in each claim. Equivalent descriptions satisfy the same fact; noon pizza need not also be labelled lunch. A claim's event anchors identify the outing; grade its asserted attribute independently. Do not fail a correct participant or venue again just because another time/detail is wrong; do not award a correct value attached to a different outing. Resolve the answer's inherited event and day scope from the question, simulated clock and prior conversation; do not require repeating that scope. Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. A correct fragment does not satisfy a claim if the same answer contradicts it. Distinguish current-state claims from historical claims; judge the state and time described by each claim. Clearly labeled history is fine. Offering old and new values as unresolved current alternatives misrepresents that attribute. For complete-list claims, extra superseded or cancelled items make the current list incorrect. If absent or explicitly unknown, mark missed; if contradicted or a wrong value is asserted for that fact, mark misrepresented; if correctly conveyed, mark correct. Do not infer facts from the question or claim alone. Return ONLY one JSON object with 'verdicts', an array in the same order, each containing id, verdict (correct/missed/misrepresented), and a short reason grounded in the answer.\n\nAlso return \"recovery\", an array in claim order, each with id, kind and reason. kind is provided, incorrect, explicitly_requested, unavailable, or implicit_omission. Correct facts are provided; wrong facts are incorrect. For missed facts: if the answer says it cannot find or does not know the detail, use unavailable; otherwise if the user specifically asked for that detail, use explicitly_requested; otherwise use implicit_omission. A broad request for a recap or details is not an explicit request for each detail.\nSeparately assess evidence, without changing claim verdicts or recovery. Return \"evidence_diagnostic\" with \"claims\" in claim order and \"extra_assertions\". Each claim has id, status (supported, contradicted, not_found, uncertain), reason, and citations [{id, quote}] from the answer-visible material only. Supported or contradicted requires exact nonempty quotes; not_found has no citations. This assesses what was available, not whether the assistant used or ignored it. The material may be incomplete or truncated; use uncertain where warranted. For each additional factual assertion actually made in the answer outside the expected claims, return {assertion, answer_quote, status, reason, citations}; status is supported, contradicted, or unverifiable, and citations quote only the supplied source evidence. The source evidence covers only cited expected-claim sources and is partial; absence is unverifiable, never contradicted. Contradicted requires direct contrary source evidence. Do not add requirements for facts the user did not ask for or penalize omitted assertions. Citation quote and answer_quote must be exact substrings of their material. Return empty extra_assertions if none.\nThe claim evidence diagnostic covers only provider evidence returned to Hermes: captured prefetch and tool results. The user question, tool arguments, and prior public conversation are outside this evidence scope; do not count them as retrieval evidence. not_found means only that the detail was not found in the supplied provider material; it does not mean the assistant could not know the detail or that a write was lost. Use a short exact plain-text quote that directly shows the fact. Omit citation markers, brackets and formatting from quotes; never normalize or rewrite characters. Copy the smallest contiguous span from the material.\nDiagnostic inputs: {\"answer_visible\": [{\"id\": \"prefetch\", \"text\": \"## Mem0 Memory\\n- User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\\n- User is always in the mood for pizza\\n- User planned a low-key night at home as a self-described \\\"couch potato\\\" on the evening of September 10, 2026\\n- Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\\n- Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\", \"truncated\": false}, {\"id\": \"tool-result-1\", \"text\": \"{\\\"results\\\": [{\\\"id\\\": \\\"edd02f38-2a3e-40b8-be0d-5f15c16124f9\\\", \\\"memory\\\": \\\"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\\\", \\\"score\\\": 0.7063168286284913}, {\\\"id\\\": \\\"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\\\", \\\"memory\\\": \\\"User is always in the mood for pizza\\\", \\\"score\\\": 0.5200317700969932}, {\\\"id\\\": \\\"10cf1443-cb96-4d4c-8070-fd6609fef9c0\\\", \\\"memory\\\": \\\"User planned a low-key night at home as a self-described \\\\\\\"couch potato\\\\\\\" on the evening of September 10, 2026\\\", \\\"score\\\": 0.44418047305156527}, {\\\"id\\\": \\\"bfcafaff-85f9-4a26-a7e8-e36d91700684\\\", \\\"memory\\\": \\\"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\\\", \\\"score\\\": 0.4381993913937061}, {\\\"id\\\": \\\"0d09effb-2122-41d8-b347-83f77c8eed36\\\", \\\"memory\\\": \\\"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\\\", \\\"score\\\": 0.3559841516154414}], \\\"count\\\": 5}\", \"truncated\": false, \"success\": true, \"policy_blocked\": false}, {\"id\": \"tool-result-2\", \"text\": \"{\\\"results\\\": [{\\\"id\\\": \\\"edd02f38-2a3e-40b8-be0d-5f15c16124f9\\\", \\\"memory\\\": \\\"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\\\", \\\"score\\\": 0.7391381134342337}, {\\\"id\\\": \\\"0d09effb-2122-41d8-b347-83f77c8eed36\\\", \\\"memory\\\": \\\"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\\\", \\\"score\\\": 0.6195673267407182}, {\\\"id\\\": \\\"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\\\", \\\"memory\\\": \\\"User is always in the mood for pizza\\\", \\\"score\\\": 0.5535276856184058}, {\\\"id\\\": \\\"bfcafaff-85f9-4a26-a7e8-e36d91700684\\\", \\\"memory\\\": \\\"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\\\", \\\"score\\\": 0.48689417888570863}, {\\\"id\\\": \\\"10cf1443-cb96-4d4c-8070-fd6609fef9c0\\\", \\\"memory\\\": \\\"User planned a low-key night at home as a self-described \\\\\\\"couch potato\\\\\\\" on the evening of September 10, 2026\\\", \\\"score\\\": 0.39025627053962764}], \\\"count\\\": 5}\", \"truncated\": false, \"success\": true, \"policy_blocked\": false}], \"source_evidence\": [{\"id\": \"message-4740cc49226a8358091d88f3\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Devon\\\", \\\"text\\\": \\\"wanna get pizza at Luigi's on Friday?\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:12:20-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-8736d5d60f286757fa8c5bd6\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Me\\\", \\\"text\\\": \\\"yes I'm down, what time were you thinking?\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:19:21-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-4db19b467bca3d3a987a6685\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Me\\\", \\\"text\\\": \\\"yeah that works\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:19:36-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-c6b34b7de4a5728ebf74c983\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Devon\\\", \\\"text\\\": \\\"cool I'll meet you there\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:19:44-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-649e05a8a0c04602cb5221c2\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Me\\\", \\\"text\\\": \\\"oh you mean the one on 5th?\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:17:31-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-d8e1fc8d4399bdf4bc4b7390\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Devon\\\", \\\"text\\\": \\\"yeah that's the one\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:17:47-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-e0c91b84def1df60696ee3b8\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Devon\\\", \\\"text\\\": \\\"same honestly, see you tomorrow\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:20:00-04:00\\\"}\", \"truncated\": false}, {\"id\": \"message-f0f94e727ca8743b8a20eab4\", \"text\": \"{\\\"channel\\\": \\\"imessage\\\", \\\"sender\\\": \\\"Devon\\\", \\\"text\\\": \\\"7pm?\\\", \\\"thread\\\": \\\"thread-40abd5ae5387be803a2aa919\\\", \\\"written_at\\\": \\\"2026-09-10T18:19:28-04:00\\\"}\", \"truncated\": false}], \"source_scope\": \"partial: expected-claim citations only\", \"missing_source_ids\": [], \"answer_visible_scope\": \"provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded\", \"per_item_character_limit\": 16000}\nQuestion: [Simulated now: 2026-09-11T09:00:00-04:00. Treat this as the current date and time for everything in this turn.]\n\nHey, can you give me a quick recap on our pizza plan?\nAnswer: Pizza is tonight — Friday, September 11, 2026, at 7pm at Luigi's on 5th Street. Devon said he'll meet you there.\nClaims (hidden from the assistant): [{\"id\": \"fact-1\", \"claim\": \"Devon is the user's companion for the agreed plan.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-8736d5d60f286757fa8c5bd6\", \"message-4db19b467bca3d3a987a6685\", \"message-c6b34b7de4a5728ebf74c983\"]}, {\"id\": \"fact-2\", \"claim\": \"The agreed restaurant is Luigi's.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-8736d5d60f286757fa8c5bd6\", \"message-4db19b467bca3d3a987a6685\"]}, {\"id\": \"fact-3\", \"claim\": \"The restaurant is on 5th.\", \"evidence\": [\"message-649e05a8a0c04602cb5221c2\", \"message-d8e1fc8d4399bdf4bc4b7390\"]}, {\"id\": \"fact-4\", \"claim\": \"The pizza plan is for Friday, September 11.\", \"evidence\": [\"message-4740cc49226a8358091d88f3\", \"message-e0c91b84def1df60696ee3b8\"]}, {\"id\": \"fact-5\", \"claim\": \"The agreed time is 7pm.\", \"evidence\": [\"message-f0f94e727ca8743b8a20eab4\", \"message-4db19b467bca3d3a987a6685\"]}]",
+  "response": "{\"verdicts\":[{\"id\":\"fact-1\",\"verdict\":\"correct\",\"reason\":\"The answer says Devon will meet the user there, conveying Devon as the companion for the pizza plan.\"},{\"id\":\"fact-2\",\"verdict\":\"correct\",\"reason\":\"The answer names Luigi's as the restaurant.\"},{\"id\":\"fact-3\",\"verdict\":\"correct\",\"reason\":\"The answer says the restaurant is on 5th Street.\"},{\"id\":\"fact-4\",\"verdict\":\"correct\",\"reason\":\"The answer gives the plan as tonight, Friday, September 11, 2026.\"},{\"id\":\"fact-5\",\"verdict\":\"correct\",\"reason\":\"The answer states the agreed time is 7pm.\"}],\"recovery\":[{\"id\":\"fact-1\",\"kind\":\"provided\",\"reason\":\"The answer states Devon said he'll meet the user there.\"},{\"id\":\"fact-2\",\"kind\":\"provided\",\"reason\":\"The answer names Luigi's.\"},{\"id\":\"fact-3\",\"kind\":\"provided\",\"reason\":\"The answer says on 5th Street.\"},{\"id\":\"fact-4\",\"kind\":\"provided\",\"reason\":\"The answer gives Friday, September 11, 2026.\"},{\"id\":\"fact-5\",\"kind\":\"provided\",\"reason\":\"The answer gives 7pm.\"}],\"evidence_diagnostic\":{\"claims\":[{\"id\":\"fact-1\",\"status\":\"supported\",\"reason\":\"The prefetched memory explicitly says the user and Devon agreed to meet for pizza.\",\"citations\":[{\"id\":\"prefetch\",\"quote\":\"User and Devon agreed to meet for pizza\"}]},{\"id\":\"fact-2\",\"status\":\"supported\",\"reason\":\"The prefetched memory explicitly names Luigi's.\",\"citations\":[{\"id\":\"prefetch\",\"quote\":\"at Luigi's on 5th Street\"}]},{\"id\":\"fact-3\",\"status\":\"supported\",\"reason\":\"The prefetched memory explicitly says the restaurant is on 5th Street.\",\"citations\":[{\"id\":\"prefetch\",\"quote\":\"on 5th Street\"}]},{\"id\":\"fact-4\",\"status\":\"supported\",\"reason\":\"The prefetched memory explicitly gives Friday, September 11, 2026.\",\"citations\":[{\"id\":\"prefetch\",\"quote\":\"Friday, September 11, 2026\"}]},{\"id\":\"fact-5\",\"status\":\"supported\",\"reason\":\"The prefetched memory explicitly gives 7pm.\",\"citations\":[{\"id\":\"prefetch\",\"quote\":\"at 7pm\"}]}],\"extra_assertions\":[{\"assertion\":\"Devon said he'll meet the user there.\",\"answer_quote\":\"Devon said he'll meet you there.\",\"status\":\"supported\",\"reason\":\"The source message from Devon says he will meet the user there.\",\"citations\":[{\"id\":\"message-c6b34b7de4a5728ebf74c983\",\"quote\":\"cool I'll meet you there\"}]}]}}",
+  "conversation": [],
+  "judge_protocol": "semantic-judge-date-scope-v2",
+  "prompt_suffix": "",
+  "model_call_hash": "a6d6279d40bcad24f11f1e212a25e492a68334e389660aefd16af86452fd83d4",
+  "diagnostic_protocol": "answer-visible-evidence-v2",
+  "diagnostic_inputs": {
+    "answer_visible": [
+      {
+        "id": "prefetch",
+        "text": "## Mem0 Memory\n- User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\n- User is always in the mood for pizza\n- User planned a low-key night at home as a self-described \"couch potato\" on the evening of September 10, 2026\n- Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\n- Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day",
+        "truncated": false
+      },
+      {
+        "id": "tool-result-1",
+        "text": "{\"results\": [{\"id\": \"edd02f38-2a3e-40b8-be0d-5f15c16124f9\", \"memory\": \"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\", \"score\": 0.7063168286284913}, {\"id\": \"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\", \"memory\": \"User is always in the mood for pizza\", \"score\": 0.5200317700969932}, {\"id\": \"10cf1443-cb96-4d4c-8070-fd6609fef9c0\", \"memory\": \"User planned a low-key night at home as a self-described \\\"couch potato\\\" on the evening of September 10, 2026\", \"score\": 0.44418047305156527}, {\"id\": \"bfcafaff-85f9-4a26-a7e8-e36d91700684\", \"memory\": \"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\", \"score\": 0.4381993913937061}, {\"id\": \"0d09effb-2122-41d8-b347-83f77c8eed36\", \"memory\": \"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\", \"score\": 0.3559841516154414}], \"count\": 5}",
+        "truncated": false,
+        "success": true,
+        "policy_blocked": false
+      },
+      {
+        "id": "tool-result-2",
+        "text": "{\"results\": [{\"id\": \"edd02f38-2a3e-40b8-be0d-5f15c16124f9\", \"memory\": \"User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there\", \"score\": 0.7391381134342337}, {\"id\": \"0d09effb-2122-41d8-b347-83f77c8eed36\", \"memory\": \"Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day\", \"score\": 0.6195673267407182}, {\"id\": \"c7ea6e9e-6ac7-4725-b31e-a0766dfbee39\", \"memory\": \"User is always in the mood for pizza\", \"score\": 0.5535276856184058}, {\"id\": \"bfcafaff-85f9-4a26-a7e8-e36d91700684\", \"memory\": \"Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them\", \"score\": 0.48689417888570863}, {\"id\": \"10cf1443-cb96-4d4c-8070-fd6609fef9c0\", \"memory\": \"User planned a low-key night at home as a self-described \\\"couch potato\\\" on the evening of September 10, 2026\", \"score\": 0.39025627053962764}], \"count\": 5}",
+        "truncated": false,
+        "success": true,
+        "policy_blocked": false
+      }
+    ],
+    "source_evidence": [
+      {
+        "id": "message-4740cc49226a8358091d88f3",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Devon\", \"text\": \"wanna get pizza at Luigi's on Friday?\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:12:20-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-8736d5d60f286757fa8c5bd6",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Me\", \"text\": \"yes I'm down, what time were you thinking?\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:19:21-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-4db19b467bca3d3a987a6685",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Me\", \"text\": \"yeah that works\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:19:36-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-c6b34b7de4a5728ebf74c983",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Devon\", \"text\": \"cool I'll meet you there\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:19:44-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-649e05a8a0c04602cb5221c2",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Me\", \"text\": \"oh you mean the one on 5th?\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:17:31-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-d8e1fc8d4399bdf4bc4b7390",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Devon\", \"text\": \"yeah that's the one\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:17:47-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-e0c91b84def1df60696ee3b8",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Devon\", \"text\": \"same honestly, see you tomorrow\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:20:00-04:00\"}",
+        "truncated": false
+      },
+      {
+        "id": "message-f0f94e727ca8743b8a20eab4",
+        "text": "{\"channel\": \"imessage\", \"sender\": \"Devon\", \"text\": \"7pm?\", \"thread\": \"thread-40abd5ae5387be803a2aa919\", \"written_at\": \"2026-09-10T18:19:28-04:00\"}",
+        "truncated": false
+      }
+    ],
+    "source_scope": "partial: expected-claim citations only",
+    "missing_source_ids": [],
+    "answer_visible_scope": "provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded",
+    "per_item_character_limit": 16000
+  },
+  "model_call": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/reviews/complete-chat-stream-v1/model-calls/60b82f794b0aaeff20863c16480f8e27304da0e55b34b94bbe93d179ca073893.json"
+}

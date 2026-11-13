@@ -1,0 +1,142 @@
+{
+  "state": "graded",
+  "scope": "Saved answer review under a new complete-stream transport; original remains ungraded and its uncertain cost stays held.",
+  "grade": {
+    "checkpoint": "pizza-plan",
+    "slots": [
+      {
+        "id": "fact-1",
+        "verdict": "correct",
+        "reason": "The answer says Devon will meet the user there, conveying Devon as the companion for the pizza plan."
+      },
+      {
+        "id": "fact-2",
+        "verdict": "correct",
+        "reason": "The answer names Luigi's as the restaurant."
+      },
+      {
+        "id": "fact-3",
+        "verdict": "correct",
+        "reason": "The answer says the restaurant is on 5th Street."
+      },
+      {
+        "id": "fact-4",
+        "verdict": "correct",
+        "reason": "The answer gives the plan as tonight, Friday, September 11, 2026."
+      },
+      {
+        "id": "fact-5",
+        "verdict": "correct",
+        "reason": "The answer states the agreed time is 7pm."
+      }
+    ],
+    "correct": 5,
+    "missed": 0,
+    "misrepresented": 0,
+    "claim_coverage": 1.0,
+    "all_claims_correct": true,
+    "recovery": [
+      {
+        "id": "fact-1",
+        "kind": "provided",
+        "reason": "The answer states Devon said he'll meet the user there."
+      },
+      {
+        "id": "fact-2",
+        "kind": "provided",
+        "reason": "The answer names Luigi's."
+      },
+      {
+        "id": "fact-3",
+        "kind": "provided",
+        "reason": "The answer says on 5th Street."
+      },
+      {
+        "id": "fact-4",
+        "kind": "provided",
+        "reason": "The answer gives Friday, September 11, 2026."
+      },
+      {
+        "id": "fact-5",
+        "kind": "provided",
+        "reason": "The answer gives 7pm."
+      }
+    ],
+    "interaction": "answer",
+    "evidence_diagnostic": {
+      "version": "answer-visible-evidence-v2",
+      "state": "complete",
+      "claims": [
+        {
+          "id": "fact-1",
+          "status": "supported",
+          "reason": "The prefetched memory explicitly says the user and Devon agreed to meet for pizza.",
+          "citations": [
+            {
+              "id": "prefetch",
+              "quote": "User and Devon agreed to meet for pizza"
+            }
+          ]
+        },
+        {
+          "id": "fact-2",
+          "status": "supported",
+          "reason": "The prefetched memory explicitly names Luigi's.",
+          "citations": [
+            {
+              "id": "prefetch",
+              "quote": "at Luigi's on 5th Street"
+            }
+          ]
+        },
+        {
+          "id": "fact-3",
+          "status": "supported",
+          "reason": "The prefetched memory explicitly says the restaurant is on 5th Street.",
+          "citations": [
+            {
+              "id": "prefetch",
+              "quote": "on 5th Street"
+            }
+          ]
+        },
+        {
+          "id": "fact-4",
+          "status": "supported",
+          "reason": "The prefetched memory explicitly gives Friday, September 11, 2026.",
+          "citations": [
+            {
+              "id": "prefetch",
+              "quote": "Friday, September 11, 2026"
+            }
+          ]
+        },
+        {
+          "id": "fact-5",
+          "status": "supported",
+          "reason": "The prefetched memory explicitly gives 7pm.",
+          "citations": [
+            {
+              "id": "prefetch",
+              "quote": "at 7pm"
+            }
+          ]
+        }
+      ],
+      "extra_assertions": [
+        {
+          "assertion": "Devon said he'll meet the user there.",
+          "answer_quote": "Devon said he'll meet you there.",
+          "status": "supported",
+          "reason": "The source message from Devon says he will meet the user there.",
+          "citations": [
+            {
+              "id": "message-c6b34b7de4a5728ebf74c983",
+              "quote": "cool I'll meet you there"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

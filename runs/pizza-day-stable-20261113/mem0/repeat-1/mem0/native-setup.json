@@ -1,0 +1,31 @@
+{
+  "command": [
+    "/workspace/PACBench-stable-20261113/vendor/venv-hermes-isolated/bin/hermes",
+    "memory",
+    "setup",
+    "mem0",
+    "--mode",
+    "oss",
+    "--oss-llm",
+    "openai",
+    "--oss-llm-model",
+    "deepseek/deepseek-v4.1-flash-1017",
+    "--oss-llm-url",
+    "https://openrouter.ai/api/v1",
+    "--oss-embedder",
+    "ollama",
+    "--oss-embedder-model",
+    "nomic-embed-text",
+    "--oss-embedder-url",
+    "http://127.0.0.1:11435",
+    "--oss-vector",
+    "qdrant",
+    "--oss-vector-path",
+    "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/qdrant",
+    "--user-id",
+    "pacbench-8d32b877779ff619b3f7a031"
+  ],
+  "returncode": 2,
+  "stdout": "",
+  "stderr": "usage: hermes [-h] [--version] [-z PROMPT] [--usage-file PATH]\n              [--cpu-profile PATH] [-m MODEL] [--provider PROVIDER]\n              [--reasoning LEVEL] [-t TOOLSETS] [--resume SESSION]\n              [--no-restore-cwd] [--in DIR] [--continue [SESSION_NAME]]\n              [--worktree] [--accept-hooks] [--skills SKILLS] [--yolo]\n              [--pass-session-id] [--checkpoints] [--ignore-user-config]\n              [--ignore-rules] [--safe-mode] [--tui] [--native] [--cli]\n              [--dev]\n              <command> ...\nhermes: error: unrecognized arguments: --mode oss --oss-llm openai --oss-llm-model deepseek/deepseek-v4.1-flash-1017 --oss-llm-url https://openrouter.ai/api/v1 --oss-embedder ollama --oss-embedder-model nomic-embed-text --oss-embedder-url http://127.0.0.1:11435 --oss-vector qdrant --oss-vector-path /workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/qdrant --user-id pacbench-8d32b877779ff619b3f7a031\n"
+}

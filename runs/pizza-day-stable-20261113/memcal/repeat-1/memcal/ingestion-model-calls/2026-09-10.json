@@ -1,0 +1,252 @@
+{
+  "bundles": [
+    {
+      "run_id": 1,
+      "entity": "person:Devon",
+      "bundle_id": "517eb9",
+      "label": "Devon",
+      "kind": "person",
+      "lines": 15,
+      "state": "reading",
+      "updated_at": "2026-09-11T03:00:00-04:00"
+    },
+    {
+      "run_id": 1,
+      "entity": "thread:imessage:id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+      "bundle_id": "54688a",
+      "label": "id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+      "kind": "thread",
+      "lines": 10,
+      "state": "reading",
+      "updated_at": "2026-09-11T03:00:00-04:00"
+    }
+  ],
+  "calls": [
+    {
+      "generation_id": "gen-1794535726-ihFi5Ys38nAv7RaQoHas",
+      "run_id": 1,
+      "stage": "propose",
+      "label": "person:Devon, thread:imessage:id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "at": "2026-09-11T03:00:00-04:00",
+      "max_tokens": 16428,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "flex",
+      "usage": {
+        "prompt_tokens": 3246,
+        "completion_tokens": 3752,
+        "cached_tokens": 0,
+        "reasoning_tokens": 2908,
+        "cost": 0.0011369568
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [
+        {
+          "id": "517eb9",
+          "entity": "person:Devon",
+          "label": "Devon",
+          "lines": 15
+        },
+        {
+          "id": "54688a",
+          "entity": "thread:imessage:id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+          "label": "id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+          "lines": 10
+        }
+      ],
+      "prefix": "RESPONSE CONTRACT\nList every six-character BUNDLE ID in `reviewed`. Add a `diffs` entry only for a bundle\nwith changes, using that same id in `bundle`. Every diff array is required; unused arrays\nare empty. Return only the schema-shaped JSON.\n\nYou maintain a calendar, to-dos, and factual wiki pages from message bundles.\n\nFor each bundle:\n1. Read only that bundle and its supplied current state.\n2. Write a diff only when it changes an event, to-do, or named wiki field.\n3. Usually nothing changes. Marking a bundle reviewed with no diff is correct.\n4. Never use one bundle as evidence for another.\n\nEVIDENCE\nEvery message has an L tag. Put the few lines that support a write in `cites`. Use an\nempty list only when the write is the gist of the exchange rather than a specific line.\nExamples in these instructions are not evidence. If the bundle does not say it, do not\nstore it. This caution is about things nobody said.\nBeing hesitant about stated facts is not conservatism; it loses facts.\n\nTHE USER DOES NOT HAVE TO BE SPEAKING\nDo not skip a bundle because the user is not in the exchange; their plans can be settled\nby other people in a conversation they can read.\n\nEVENTS\nUse one row for anything the user may need to remember or coordinate: a date, time,\nplace, invitation, or another person expecting them. A floated plan is still a row with\nstatus `mentioned`. Do not store casual at-home chatter, banter, payments, or completed\ntransactions as events.\n\nKinds:\n- commitment: the user plans to do it\n- availability: someone else's availability\n- opportunity: the user was invited but has not committed\n- observed: it already happened\n\nStatuses:\n- mentioned: floated or unanswered\n- tentative: likely but unsettled\n- confirmed: accepted or booked\n- declined: the user is not going, or it was cancelled\n- happened: completed\n\nKeep date, time, place, people, and status out of the title; they have fields. `subject`\nis `me` or the person whose availability/state the row describes. Include only people\nwho are explicitly taking part in this occasion. A message sender or recipient is not\nautomatically an attendee. An invitation, conditional interest, or availability still\npending another obligation belongs in the note, not in participants. Preserve stated\ncompanions when inviting another person to join them; the invitation does not replace\nthe established guests with its recipient.\nThe supplied conversation roster identifies who the exchange is with, not who accepted\nthis occasion. Use it to resolve speakers and group references. A guest invited in a DM\ndoes not replace the existing group's attendees. Performers and advertised lineups go\nin hosts or notes, never in the user's companion list.\nUse attendance to state each person's role and cite their actual acceptance, invitation,\nconditional reply, or performer announcement. Code applies these role changes separately:\ninviting a new person leaves the other guests intact. Do not use membership as acceptance.\nWrite titles and notes for the user reading them later: a visit to the user is \"Visit\nyou\", with the visitor as subject. Preserve conditional interest as tentative. Expand\nabbreviations when their meaning is supported by the conversation or supplied pages;\notherwise retain the abbreviation and explain the uncertainty in the note. For an\nemail opportunity, explain what it is and who announced it in the note.\nSet visit_target to me for someone coming to the user, so code renders that visit from\nthe user's perspective. Supply expansions with cited full wording for abbreviations;\ncode validates and spells them out in stored titles, locations, and notes.\n\nUse `date` for the first day and `until` only when an end day was stated. Resolve relative\ndates from the timestamp on the message, not today. Old traffic describes its own time.\nThe message timestamp is context, never the date of a plan. \"Ready to pick up\" or \"stop\nby anytime\" with no scheduled day is an open to-do with no due date, not an event on the\nemail's date. Travel does not imply direction. Do not invent an end date.\n\nTo update a listed event, return its existing key. Omit the key only for a new event.\nIf one booking was explicitly moved, change its date rather than renaming it. A recurring\nevent uses one next-occurrence row and its `series` slug. A cancellation for one booking\nfollowed by a separate booking on another date is two lifecycle rows: decline the old\nbooking, keep the new one confirmed, and link the new row to the old with `replaces`.\n\nUse `links` to name an existing row this one relates to: `same_as` for one occasion\nwritten twice, `replaces` when this booking supersedes that one, `related` when they\nbelong together but are not the same. Only keys listed as already on the calendar.\nFor a cancellation notice that names no date and cannot safely name an existing key,\nreturn date null. Merge will compare it with timestamped, more specific notices.\n\nINFERENCE BECOMES A QUESTION, NEVER A FACT\nAsk: does the answer change what the user does next?\nIf you would not interrupt a friend to ask it, omit it. Questions must stand alone, name the relevant person or plan, and\naddress the user as `you`. Do not ask about the past, trivia, permission to remember,\ninternal bookkeeping, or facts already present in CURRENT MEMCAL. If a date is known,\nstore the row; ask only for the missing time/place/decision.\n\nA QUESTION IS NOT A ROW\nA question and a row never satisfy each other. Store the known plan and ask only about\nthe missing field. For every supplied open-question candidate, return exactly one typed\naction: `keep`, `amend`, `resolve`, or `drop`. `keep` is normal. `amend` preserves the\nplan but may improve the wording or add a temporary wake condition. `resolve` requires\nthe answer stated here. `drop` means refused, cancelled, or no longer useful. Copy the\ncandidate key and version exactly. Cite the lines for every state-changing action; a\n`keep` needs no citation or explanation. Use `ask` with null key/version only for a new\nquestion not already represented by a candidate.\n\nTO-DOS\nA to-do is an action the user owes, written as a short imperative. Open or close only on\nwhat was said, never by inference. Link it with the exact `event_key` when supplied.\nPut a condition in `wake_condition`, not in the to-do text. A receipt or explicit \"I got\nthe tickets\" may close the exact purchase to-do and update the linked event in one diff.\n\nWIKI\nUse a named slot for a durable fact about a person, place, or project. The value\nis the short answer, not prose. Reuse the same slot name when a fact changes. Put\nthe lines stating the new value in `cites` — one fact, one or two lines — so the\nfact points at what it was read from rather than the whole conversation. Use\n`alias` only when the bundle explicitly proves two names are the same\nperson. Do not create empty pages or infer relationships. Page `me` is the user: a fact\nthey state about themselves belongs on page `me`, and that slot or alias write creates\nthe page when none exists yet.\n\nFor each slot or context claim, identify `subject`, `subject_role`, `durability`,\nand `claim_kind` before choosing the page. The subject is who the words describe:\n\"this is your account\" is about the recipient even when `me` says it. Do not use\nspeaker identity as a shortcut for ownership. Cite the actual statement.\nOnly lasting claims belong in profiles. A visit or temporary stay is not a residence;\nuse `claim_kind: residence` only for explicit home/lives-in evidence. Keep visits and\ncourse plans in events or to-dos. Routine account alerts, benefits disclosures,\nstatements, legal boilerplate and tautologies are administrative noise, not wiki facts.\nWhen a short slot would hide essential meaning, use `note_key` and `note_text` for a\nfreeform context paragraph, for example what an employer or named project is and how\nit relates to this person. Include only sourced context; never guess an expansion.\nUse a stable note key and the exact existing paragraph in `note_previous` (null for a\nnew one). Replace or remove just that paragraph; preserve other notes and hand-written\nprose. Null note fields mean no context edit; empty note_text deletes that key.\n\nTHE agent STREAM IS THEM INSTRUCTING A MACHINE\n`me → assistant` is an instruction. Facts stated there are reliable; delegated work is\nwork handed off, not work the user owes. Create a to-do only when the doer is them.\nNever skip an agent line.\n\nNAMING A NAMELESS SENDER\nWhen you draw an event or to-do from a conversation whose sender has no name — the\nheader names it only by a bare number or an opaque handle — add one `threads` entry that\ngives that conversation a short, human name, taken literally from what the messages say\n(\"Tire shop scheduling\", \"Dentist office\"). A name is required in the entry; do not guess\na real person's identity, just label what the conversation plainly is. Return an empty\n`threads` list when every conversation you drew a row from already has a name — that is\nthe normal case. This only labels a conversation; it never changes an event, to-do, or\npage.\n\n\nTODAY IS Friday 2026-09-11.\n\n\nTHE DAYS BY NAME — resolve every weekday and bare date against this list, never by counting:\n  Thu 10 Sep · Fri 11 Sep (TODAY) · Sat 12 Sep · Sun 13 Sep · Mon 14 Sep · Tue 15 Sep · Wed 16 Sep · Thu 17 Sep · Fri 18 Sep · Sat 19 Sep · Sun 20 Sep · Mon 21 Sep · Tue 22 Sep · Wed 23 Sep · Thu 24 Sep · Fri 25 Sep · Sat 26 Sep · Sun 27 Sep\n  (year is 2026 unless a message says otherwise)\nCURRENT MEMCAL\n  (empty)\n\nOPEN TO-DOS\n  (none)\n\nPEOPLE KNOWN: Devon, Maya\n\nWIKI PAGES: (none yet)",
+      "suffix": "2 bundle(s) follow:\n  517eb9  Devon\n  54688a  id:chatf84f5468b4975e4da0c6bf13eafd1b13\nList all 2 of those ids in `reviewed`. Add a `diffs` entry only for the ones that change something — most requests change nothing, and an empty `diffs` with a full `reviewed` is the right answer then. Copy each `bundle` id from the header of the bundle it came from and check it against the list above before you write it; a diff under the wrong id is filed against the wrong conversation. Bundles are unrelated; do not carry a conclusion from one into another.\n\nBUNDLE ID 517eb9   (Devon)\none-to-one on imessage · 15 lines\n-- Thu 2026-09-10 --\n  L1 18:00 (imessage) me: just walked in the door ugh\n  L2 18:05 (imessage) Devon: same, my bus was late again\n  L3 18:05 (imessage) me: did you at least get lunch today?\n  L4 18:10 (imessage) Devon: yeah just a sad sandwich lol\n  L5 18:12 (imessage) Devon: hey are you still in a pizza mood?\n  L6 18:12 (imessage) me: always, why\n  L7 18:12 (imessage) Devon: wanna get pizza at Luigi's on Friday?\n  L8 18:17 (imessage) me: oh you mean the one on 5th?\n  L9 18:17 (imessage) Devon: yeah that's the one\n  L10 18:19 (imessage) me: yes I'm down, what time were you thinking?\n  L11 18:19 (imessage) Devon: 7pm?\n  L12 18:19 (imessage) me: yeah that works\n  L13 18:19 (imessage) Devon: cool I'll meet you there\n  L14 18:19 (imessage) me: perfect, I'm gonna be a couch potato tonight\n  L15 18:20 (imessage) Devon: same honestly, see you tomorrow\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/Devon: Devon\nNO PAGE YET FOR: Devon — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.\n\n----------------\n\nBUNDLE ID 54688a   (id:chatf84f5468b4975e4da0c6bf13eafd1b13)\ngroup chat on imessage · 10 lines\n-- Thu 2026-09-10 --\n  L1 18:30 (imessage) Maya: ugh traffic getting home tonight was the worst\n  L2 18:37 (imessage) Maya: random thought tho, anyone want to go see the ducks at the pond Saturday morning?\n  L3 18:39 (imessage) Devon: ohh yes I haven't done that in forever\n  L4 18:40 (imessage) Devon: what time were you thinking?\n  L5 18:40 (imessage) me: hmm maybe, my Saturday is kind of up in the air rn\n  L6 18:40 (imessage) Maya: I was thinking like 9am before it gets too hot?\n  L7 18:41 (imessage) Devon: yeah that works for me\n  L8 18:42 (imessage) me: 9 is early lol I'll have to see, don't plan around me\n  L9 18:49 (imessage) Maya: haha no worries just lmk\n  L10 18:50 (imessage) Devon: did your guys power flicker earlier or was that just my building\nCONVERSATION MEMBERS (membership is not attendance)\nimessage/id:chatf84f5468b4975e4da0c6bf13eafd1b13: Devon, Maya\nNO PAGE YET FOR: Devon, Maya — open one only if this bundle contains a durable fact about them.\nNO SELF PAGE YET: the user has no page; page 'me' is the user — a first-person fact here belongs on page 'me', and that write creates it.",
+      "completion": "{\n  \"reviewed\": [\"517eb9\", \"54688a\"],\n  \"diffs\": [\n    {\n      \"events\": [\n        {\n          \"key\": null,\n          \"date\": \"2026-09-11\",\n          \"until\": null,\n          \"time\": \"19:00\",\n          \"kind\": \"commitment\",\n          \"subject\": \"me\",\n          \"title\": \"Pizza at Luigi's\",\n          \"location\": \"Luigi's on 5th\",\n          \"status\": \"confirmed\",\n          \"participants\": [\n            \"Devon\"\n          ],\n          \"series\": null,\n          \"note\": \"Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.\",\n          \"field_cites\": {},\n          \"end_boundary\": null,\n          \"attendance\": [\n            {\n              \"name\": \"Devon\",\n              \"role\": \"host\",\n              \"cites\": [\"L7\", \"L13\"]\n            },\n            {\n              \"name\": \"me\",\n              \"role\": \"attending\",\n              \"cites\": [\"L10\", \"L12\"]\n            }\n          ],\n          \"expansions\": [],\n          \"visit_target\": null,\n          \"instead_of\": null,\n          \"cites\": [\"L7\", \"L10\", \"L11\", \"L12\", \"L13\"],\n          \"links\": []\n        }\n      ],\n      \"todos\": [],\n      \"wiki\": [],\n      \"questions\": [],\n      \"threads\": []\n    , \"series\": [], \"bundle\": \"517eb9\"},\n    {\n      \"events\": [\n        {\n          \"key\": null,\n          \"date\": \"2026-09-12\",\n          \"until\": null,\n          \"time\": \"09:00\",\n          \"kind\": \"opportunity\",\n          \"subject\": \"me\",\n          \"title\": \"See the ducks at the pond\",\n          \"location\": \"the pond\",\n          \"status\": \"tentative\",\n          \"participants\": [\n            \"Maya\",\n            \"Devon\"\n          ],\n          \"series\": null,\n          \"note\": \"Maya suggested 9am Saturday to see the ducks at the pond; Devon is in. You said you might come but your Saturday is up in the air and asked them not to plan around you, so your attendance is still open.\",\n          \"field_cites\": {},\n          \"end_boundary\": null,\n          \"attendance\": [\n            {\n              \"name\": \"Maya\",\n              \"role\": \"host\",\n              \"cites\": [\"L2\", \"L6\"]\n            },\n            {\n              \"name\": \"Devon\",\n              \"role\": \"attending\",\n              \"cites\": [\"L3\", \"L7\"]\n            },\n            {\n              \"name\": \"me\",\n              \"role\": \"invited\",\n              \"cites\": [\"L5\", \"L8\"]\n            }\n          ],\n          \"expansions\": [],\n          \"visit_target\": null,\n          \"instead_of\": null,\n          \"cites\": [\"L2\", \"L3\", \"L5\", \"L6\", \"L7\", \"L8\"],\n          \"links\": []\n        }\n      ],\n      \"todos\": [],\n      \"wiki\": [],\n      \"questions\": [],\n      \"threads\": [\n        {\n          \"channel\": \"imessage/id:chatf84f5468b4975e4da0c6bf13eafd1b13\",\n          \"thread\": \"imessage/id:chatf84f5468b4975e4da0c6bf13eafd1b13\",\n          \"name\": \"Ducks at the pond\",\n          \"why\": \"Group chat carried only an opaque id; messages are about seeing the ducks at the pond Saturday.\"\n        }\n      ],\n      \"series\": [],\n      \"bundle\": \"54688a\"\n    }\n  ]\n}",
+      "parsed": {
+        "reviewed": [
+          "517eb9",
+          "54688a"
+        ],
+        "diffs": [
+          {
+            "events": [
+              {
+                "key": null,
+                "date": "2026-09-11",
+                "until": null,
+                "time": "19:00",
+                "kind": "commitment",
+                "subject": "me",
+                "title": "Pizza at Luigi's",
+                "location": "Luigi's on 5th",
+                "status": "confirmed",
+                "participants": [
+                  "Devon"
+                ],
+                "series": null,
+                "note": "Devon proposed pizza at Luigi's on 5th; you agreed to 7pm and Devon will meet you there.",
+                "field_cites": {},
+                "end_boundary": null,
+                "attendance": [
+                  {
+                    "name": "Devon",
+                    "role": "host",
+                    "cites": [
+                      "L7",
+                      "L13"
+                    ]
+                  },
+                  {
+                    "name": "me",
+                    "role": "attending",
+                    "cites": [
+                      "L10",
+                      "L12"
+                    ]
+                  }
+                ],
+                "expansions": [],
+                "visit_target": null,
+                "instead_of": null,
+                "cites": [
+                  "L7",
+                  "L10",
+                  "L11",
+                  "L12",
+                  "L13"
+                ],
+                "links": []
+              }
+            ],
+            "todos": [],
+            "wiki": [],
+            "questions": [],
+            "threads": [],
+            "series": [],
+            "bundle": "517eb9"
+          },
+          {
+            "events": [
+              {
+                "key": null,
+                "date": "2026-09-12",
+                "until": null,
+                "time": "09:00",
+                "kind": "opportunity",
+                "subject": "me",
+                "title": "See the ducks at the pond",
+                "location": "the pond",
+                "status": "tentative",
+                "participants": [
+                  "Maya",
+                  "Devon"
+                ],
+                "series": null,
+                "note": "Maya suggested 9am Saturday to see the ducks at the pond; Devon is in. You said you might come but your Saturday is up in the air and asked them not to plan around you, so your attendance is still open.",
+                "field_cites": {},
+                "end_boundary": null,
+                "attendance": [
+                  {
+                    "name": "Maya",
+                    "role": "host",
+                    "cites": [
+                      "L2",
+                      "L6"
+                    ]
+                  },
+                  {
+                    "name": "Devon",
+                    "role": "attending",
+                    "cites": [
+                      "L3",
+                      "L7"
+                    ]
+                  },
+                  {
+                    "name": "me",
+                    "role": "invited",
+                    "cites": [
+                      "L5",
+                      "L8"
+                    ]
+                  }
+                ],
+                "expansions": [],
+                "visit_target": null,
+                "instead_of": null,
+                "cites": [
+                  "L2",
+                  "L3",
+                  "L5",
+                  "L6",
+                  "L7",
+                  "L8"
+                ],
+                "links": []
+              }
+            ],
+            "todos": [],
+            "wiki": [],
+            "questions": [],
+            "threads": [
+              {
+                "channel": "imessage/id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+                "thread": "imessage/id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+                "name": "Ducks at the pond",
+                "why": "Group chat carried only an opaque id; messages are about seeing the ducks at the pond Saturday."
+              }
+            ],
+            "series": [],
+            "bundle": "54688a"
+          }
+        ]
+      },
+      "echoed": [
+        "517eb9",
+        "54688a"
+      ],
+      "routed": [
+        {
+          "id": "517eb9",
+          "entity": "person:Devon",
+          "label": "Devon",
+          "lines": 15
+        },
+        {
+          "id": "54688a",
+          "entity": "thread:imessage:id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+          "label": "id:chatf84f5468b4975e4da0c6bf13eafd1b13",
+          "lines": 10
+        }
+      ],
+      "unrouted": []
+    },
+    {
+      "generation_id": "gen-1794535770-L07ZX5uOEBXrrrhmXH2W",
+      "run_id": 1,
+      "stage": "sweep",
+      "label": "state review",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "at": "2026-09-11T03:00:00-04:00",
+      "max_tokens": 16283,
+      "finish_reason": "stop",
+      "truncated": false,
+      "service_tier": "flex",
+      "usage": {
+        "prompt_tokens": 683,
+        "completion_tokens": 141,
+        "cached_tokens": 0,
+        "reasoning_tokens": 119,
+        "cost": 8.67104e-05
+      },
+      "requests": 1,
+      "waited": 0.0,
+      "bundles": [],
+      "prefix": "You are reviewing the state of a personal memory system right after a batch of writes.\nYou are not adding anything new. You are looking for damage:\n\n  duplicate    two rows that are plainly the same event -> name both keys so code can merge them\n  junk         a row or fact that should never have been stored (banter, affection,\n               newsletter events, facts about software, other people's opinions)\n  contradiction  two rows that cannot both be true -> raise a question\n\nA booking that was really made and then called off is a `declined` row, not a duplicate\nor junk. Both rows stay. This summary has no source evidence, so it cannot authorize a\nstatus correction. Leave corrections to Merge and Apply, which can compare source lines.\nFor a duplicate, `key` is the redundant row and `keep_key` is the other row for the\nsame occasion. Code retains booking identity, calendar links, and source evidence.\nAn arrival observation can duplicate a confirmed booking; the booking still belongs\non the real calendar. For junk, `keep_key` is null. Never guess a missing survivor.\n\nKEYS ARE OPAQUE\nA row's key is an identifier, not data. It is minted once from the title and the date\nthe row was first seen, and it never changes afterwards — so a row that moved to a new\ndate keeps its original suffix, and `beer-garden@2026-08-01` dated 2026-08-02 is a row\nthat moved, working exactly as intended. The date field is the truth; the key is a\nname. Never raise a question about a key disagreeing with a date.\n\nQUESTIONS ARE FOR THE USER\nEvery question you raise is shown to a person and costs them a reply. Ask only about\ntheir life — never about this system's bookkeeping, formatting, or internal\nconsistency. If the only person who could act on the answer is the system itself, it\nis not a question.\n\nBe conservative. Deleting a real row is worse than leaving a slightly awkward one.\nReturn empty arrays when the state looks fine, which is the common case.\n",
+      "suffix": "MEMCAL AFTER THIS RUN\n  pizza-at-luigi-s@2026-09-11 | 2026-09-11 | commitment/confirmed | Pizza at Luigi's | 19:00 | Luigi's on 5th | hosted by Devon\n  see-the-ducks-at-the-pond@2026-09-12 | 2026-09-12 | opportunity/tentative | See the ducks at the pond | 09:00 | the pond | with Devon | hosted by Maya\n\nOPEN TO-DOS\n  (none)\n\nQUESTIONS ALREADY OPEN — do not ask any of these again\n  (none)\n\nWRITES IN THIS RUN\n  inserted  2026-09-11 Pizza at Luigi's [pizza-at-luigi-s@2026-09-11]\n  inserted  2026-09-12 See the ducks at the pond [see-the-ducks-at-the-pond@2026-09-12]\n\nReview this state.",
+      "completion": "{\"drop_events\": [], \"drop_todos\": [], \"questions\": []}",
+      "parsed": {
+        "drop_events": [],
+        "drop_todos": [],
+        "questions": []
+      }
+    }
+  ]
+}

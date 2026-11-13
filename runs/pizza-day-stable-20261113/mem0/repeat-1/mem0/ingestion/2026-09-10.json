@@ -1,0 +1,220 @@
+{
+  "version": "daily-source-documents-v3",
+  "provider": "mem0",
+  "at": "2026-09-10T18:50:00-04:00",
+  "processing_at": "2026-09-11T03:00:00-04:00",
+  "document_sha256": "56d09bcb7c7ae2d39f9e2b0e55a0768c78745feddcfc02e34097a7ed879d9f98",
+  "source_ids": [
+    "message-997c390360930d39c2a91c1c",
+    "message-bbe8f576e37a4e1dbc7eb8e0",
+    "message-9b6de64be1f77aae9e27ce29",
+    "message-aebef46e330c3978b108f386",
+    "message-3488b3de33b8c372b1e8dd7a",
+    "message-d3a5f8e6afd26a43c3dd010f",
+    "message-4740cc49226a8358091d88f3",
+    "message-649e05a8a0c04602cb5221c2",
+    "message-d8e1fc8d4399bdf4bc4b7390",
+    "message-8736d5d60f286757fa8c5bd6",
+    "message-f0f94e727ca8743b8a20eab4",
+    "message-4db19b467bca3d3a987a6685",
+    "message-c6b34b7de4a5728ebf74c983",
+    "message-e87bf407d37889068eed95df",
+    "message-e0c91b84def1df60696ee3b8",
+    "message-2c97528b96a2fe3903257770",
+    "message-0820bf70b9eb7feed8cdb267",
+    "message-67664b2503e5cd4f9d132860",
+    "message-b1fd1d7da91d0d0e0c145d52",
+    "message-ba8bf0de5a8b22c3a03e1f8e",
+    "message-3a4ac42a537f09e25aea58bf",
+    "message-4808aed0b2028d3ee49d0f68",
+    "message-cc4126b3493b60536abc421e",
+    "message-de30e54f0572f2c4305bcf17",
+    "message-d962e57a39d134a1cbe06544"
+  ],
+  "delivery": "document",
+  "hermes_ingestion_turns": 0,
+  "state": "ready",
+  "ready": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "result": {
+    "ready": true,
+    "interface": "mem0.Memory.add(str,infer=True)",
+    "result": {
+      "results": [
+        {
+          "id": "edd02f38-2a3e-40b8-be0d-5f15c16124f9",
+          "memory": "User and Devon agreed to meet for pizza at Luigi's on 5th Street on Friday, September 11, 2026 at 7pm, with Devon saying he'd meet the user there",
+          "event": "ADD"
+        },
+        {
+          "id": "c7ea6e9e-6ac7-4725-b31e-a0766dfbee39",
+          "memory": "User is always in the mood for pizza",
+          "event": "ADD"
+        },
+        {
+          "id": "10cf1443-cb96-4d4c-8070-fd6609fef9c0",
+          "memory": "User planned a low-key night at home as a self-described \"couch potato\" on the evening of September 10, 2026",
+          "event": "ADD"
+        },
+        {
+          "id": "bfcafaff-85f9-4a26-a7e8-e36d91700684",
+          "memory": "Maya invited the group to see the ducks at the pond on Saturday morning, September 12, 2026 at 9am; Devon agreed, but the user's Saturday plans were up in the air and the user said 9am was early and not to plan around them",
+          "event": "ADD"
+        },
+        {
+          "id": "0d09effb-2122-41d8-b347-83f77c8eed36",
+          "memory": "Devon commutes by bus, which was late again on September 10, 2026, and Devon had only a sandwich for lunch that day",
+          "event": "ADD"
+        }
+      ]
+    },
+    "native_errors": [],
+    "model_output_truncated": false,
+    "model_call_record": "/workspace/PACBench-stable-20261113/runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/ingestion-model-calls/2026-09-10.json",
+    "readiness": "Synchronous OSS add with no native error or truncated model response"
+  },
+  "stdout_json_in": "result",
+  "latency_s": 20.59,
+  "usage": {
+    "state": "captured",
+    "started": "2026-11-13T02:09:05.271003+00:00",
+    "finished": "2026-11-13T02:09:25.967109+00:00",
+    "roles": {
+      "hermes": {
+        "model_calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "token_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "cache_read_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "completion_tokens": 0,
+          "image_tokens": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "prompt_tokens": 0,
+          "reasoning_tokens": 0,
+          "rejected_prediction_tokens": 0,
+          "total_tokens": 0
+        },
+        "actual_cost_usd": 0,
+        "actual_cost_known_usd": 0,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0,
+        "unsettled_calls": 0
+      },
+      "memory_provider": {
+        "model_calls": 1,
+        "input_tokens": 8685,
+        "output_tokens": 1353,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0009991296,
+        "actual_cost_known_usd": 0.0009991296,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0009991296,
+        "unsettled_calls": 0
+      }
+    },
+    "model_calls": [
+      {
+        "id": "25f74da8-f8a1-470e-961f-db3d307c3a4b",
+        "project": "pacbench-8d32b877779f-mem0-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "started": "2026-11-13T02:09:08.435148+00:00",
+        "finished": "2026-11-13T02:09:24.321687+00:00",
+        "reserved": "0.0826787584",
+        "accounted": "0.0009991296",
+        "state": "settled",
+        "transport": "direct-client-reservations-v1",
+        "provider_request": {
+          "only": [
+            "deepinfra/fp8/flex"
+          ],
+          "order": [
+            "deepinfra/fp8/flex"
+          ],
+          "allow_fallbacks": false,
+          "require_parameters": true,
+          "max_price": {
+            "prompt": 0.0784,
+            "completion": 0.2352,
+            "request": 0
+          }
+        },
+        "completion_bound_tokens": 2000,
+        "request_sha256": "90d0516005f09dc4e3ba29120679a13a492332efed7f1c19efb1bfc9b5ad3683",
+        "input_tokens": 8685,
+        "output_tokens": 1353,
+        "http_status": 200,
+        "error_label": null,
+        "upstream_request_id": "gen-1794535748-hN02iKssTWlwxGP0ootw",
+        "served_model": "deepseek/deepseek-v4.1-flash-1017",
+        "served_provider": "DeepInfra",
+        "finish_reason": "stop",
+        "accounted_upper_bound_usd": 0.0009991296,
+        "role": "memory_provider",
+        "actual_cost_usd": 0.0009991296,
+        "actual_cost_usd_decimal": "0.0009991296",
+        "actual_cost_source": "openrouter.usage.cost",
+        "actual_cost_guard_rounded_usd": null
+      }
+    ],
+    "groups": [
+      {
+        "role": "memory_provider",
+        "project": "pacbench-8d32b877779f-mem0-memory",
+        "model": "deepseek/deepseek-v4.1-flash-1017",
+        "model_calls": 1,
+        "input_tokens": 8685,
+        "output_tokens": 1353,
+        "token_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "cache_read_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": null,
+          "completion_tokens": null,
+          "image_tokens": null,
+          "input_tokens": null,
+          "output_tokens": null,
+          "prompt_tokens": null,
+          "reasoning_tokens": null,
+          "rejected_prediction_tokens": null,
+          "total_tokens": null
+        },
+        "actual_cost_usd": 0.0009991296,
+        "actual_cost_known_usd": 0.0009991296,
+        "actual_cost_unknown_calls": 0,
+        "token_price_estimate_usd": 0,
+        "unconfirmed_budget_bound_usd": 0,
+        "accounted_upper_bound_usd": 0.0009991296,
+        "unsettled_calls": 0
+      }
+    ],
+    "late_settlements": [],
+    "per_tool_tokens": null,
+    "scope": "Actual model requests started during this turn in isolated run projects. Background calls may outlive the turn. Late settlements belong to earlier requests. Per-tool tokens are not causally attributable from native traces."
+  }
+}

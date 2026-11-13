@@ -37,6 +37,129 @@ def forbidden_writer(*args, **kwargs):
     pytest.fail('Exact supplied source reached the writer')
 
 
+def source_only_week():
+    scene = supplied_spec()['scenes'][0]
+    for key in ('facts', 'thread', 'participants', 'at'):
+        scene.pop(key)
+    scene.update(channel='sam', time='6 pm')
+    days = {day: {} for day in ('monday', 'tuesday', 'wednesday', 'thursday',
+                                'friday', 'saturday', 'sunday')}
+    days['monday'] = {'scenes': [scene]}
+    days['sunday'] = {'conversations': [{'id': 'plans', 'time': '9 am', 'turns': [{
+        'id': 'pizza', 'prompt': 'What is the pizza plan?',
+        'expect': 'Pizza Friday at six; bring the voucher.'}]}]}
+    return {'week_start': '2026-10-05', 'channels': {
+        'sam': {'type': 'imessage', 'participants': ['Me', 'Sam']}}, 'days': days}
+
+
+@pytest.mark.parametrize('shape', ['days', 'weeks', 'flat'])
+@pytest.mark.parametrize('explicit_target', [False, True])
+def test_source_only_scenes_resolve_with_independent_checks(tmp_path, shape, explicit_target):
+    from pacbench.prepare import normalize_week
+    spec = source_only_week()
+    if shape == 'weeks':
+        spec['weeks'] = [spec.pop('days')]
+    if shape == 'flat':
+        spec = normalize_week(spec)
+        spec['scenes'][0].pop('facts')
+        spec.pop('test_scene_id')
+    expected_id = 'w1-exact' if shape == 'weeks' else 'exact'
+    if explicit_target:
+        spec['test_scene_id'] = expected_id
+    scenes, target, resolved = resolve_spec(spec, tmp_path)
+    assert target.id == expected_id and target.facts == () and target.test_intent == ''
+    assert resolved['checks'][0]['expect'] == 'Pizza Friday at six; bring the voucher.'
+    calls = []
+    result = realize_scene(scenes[0], forbidden_writer, checker(tmp_path, calls))
+    assert result.record.judge_calls == 1 and result.record.attempts == 0
+
+
+@pytest.mark.parametrize('bad_facts', [None, '', [''], [4]])
+def test_supplied_optional_facts_still_validate(tmp_path, bad_facts):
+    spec = source_only_week()
+    spec['days']['monday']['scenes'][0]['facts'] = bad_facts
+    with pytest.raises(ValueError, match='Scene facts'):
+        resolve_spec(spec, tmp_path)
+
+
+@pytest.mark.parametrize('mutation', ['missing-expect', 'empty-facts', 'generated-no-facts',
+                                      'generated-no-description', 'unknown-target', 'legacy'])
+def test_source_only_relaxation_preserves_required_constraints(tmp_path, mutation):
+    spec = source_only_week()
+    scene = spec['days']['monday']['scenes'][0]
+    turn = spec['days']['sunday']['conversations'][0]['turns'][0]
+    if mutation == 'missing-expect':
+        turn.pop('expect')
+    elif mutation == 'empty-facts':
+        turn.pop('expect'); turn['facts'] = []
+    elif mutation.startswith('generated'):
+        scene.pop('messages')
+        if mutation == 'generated-no-facts':
+            scene['scene'] = 'They discuss pizza.'
+        else:
+            scene['facts'] = []
+    elif mutation == 'unknown-target':
+        spec['test_scene_id'] = 'missing'
+    else:
+        from pacbench.prepare import normalize_week
+        spec = normalize_week(spec)
+        spec['checks'] = []
+    with pytest.raises((ValueError, AuthoringError)):
+        resolve_spec(spec, tmp_path)
+
+
+@pytest.mark.parametrize('check_mode', ['expect', 'facts'])
+def test_contract_uses_independent_check_criteria_without_scene_facts(tmp_path, monkeypatch, check_mode):
+    from pacbench import evaluation
+    from pacbench.semantic_contract import ContractClaim, EvaluationContract
+    spec = source_only_week()
+    turn = spec['days']['sunday']['conversations'][0]['turns'][0]
+    expected = turn['expect']
+    if check_mode == 'facts':
+        turn['facts'] = [turn.pop('expect')]
+    scenes, target, resolved = resolve_spec(spec, tmp_path)
+    source = [o.public() for o in build_scene_observations('life', scenes[0],
+        [(m['sender'], m['text']) for m in scenes[0].messages])]
+    calls = []
+    def contract(**kwargs):
+        calls.append(kwargs)
+        return EvaluationContract((ContractClaim('fact-1', expected,
+            (source[0]['source_id'],)),), turn['prompt'], digest(source), 'test-hash')
+    monkeypatch.setattr(evaluation, 'build_contract', contract)
+    plan = evaluation.freeze_evaluations(resolved, source, target, object(), tmp_path)
+    assert not plan.get('errors') and len(plan['checks']) == len(calls) == 1
+    assert calls[0]['observations'][:len(source)] == source
+    assert calls[0]['observations'][-1]['source_id'] == 'assistant-user:pizza'
+    assert calls[0]['author_facts'] == ((expected,) if check_mode == 'facts' else ())
+    assert calls[0]['test_intent'] == (expected if check_mode == 'expect' else turn['prompt'])
+
+
+@pytest.mark.parametrize('shape', ['days', 'flat'])
+def test_independent_checks_preserve_old_target_and_allow_explicit_factless_target(tmp_path, shape):
+    from pacbench.prepare import normalize_week
+    spec = source_only_week()
+    first = spec['days']['monday']['scenes'][0]
+    first['facts'] = ['Pizza Friday at six.']
+    second = copy.deepcopy(first)
+    second.update(id='chatter', time='7 pm', facts=[])
+    second['messages'] = [{'sender': 'Me', 'text': 'Looking forward to it.',
+                           'at': '2026-10-05T19:00:02-04:00'}]
+    spec['days']['monday']['scenes'].append(second)
+    if shape == 'flat':
+        spec = normalize_week(spec)
+        spec.pop('test_scene_id')
+    _, target, _ = resolve_spec(spec, tmp_path)
+    assert target.id == 'exact'  # Existing fact-bearing target stays stable.
+    spec['test_scene_id'] = 'chatter'
+    _, target, _ = resolve_spec(spec, tmp_path)
+    assert target.id == 'chatter' and target.facts == ()
+    if shape == 'flat':
+        spec.pop('test_scene_id')
+        spec['scenes'][1]['facts'] = ['The user looks forward to it.']
+        _, target, _ = resolve_spec(spec, tmp_path)
+        assert target.id == 'chatter'  # Multiple candidates need no answer-key target.
+
+
 def checker(root, calls, *, reject=False):
     """Write model-shaped offline receipts so the actual preparation audit runs."""
     def call(prompt):

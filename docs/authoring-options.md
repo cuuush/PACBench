@@ -2,7 +2,7 @@
 
 Keep one JSON per scenario in `specs/`; its duration can be a day, a month or longer. [Pizza Week](../specs/pizza_week.json) shows the format: `week_start`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. Empty days are `{}`. `python -m pacbench.specs` checks the whole directory for structural errors without generating text, creating artifacts or calling a model. Preparation still requires independent semantic checks.
 
-Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description (or exact `messages`, below) and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
+Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A generated scene needs `id`, `channel`, a human-readable `time`, a short `scene` description and inline English `facts` (an empty list is valid for chatter). Exact-message scenes can omit the description and facts. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
 
 Optionally define recurring people before channels in `cast`, mapping each participant name to a concise description. This private context goes to the writer and checker for scenes involving that person; it is not source evidence or provider metadata. All facts in a scene are checked together in one independent review.
 
@@ -27,8 +27,7 @@ thread. For example, this scene fragment belongs to a week pinned to
   "time": "6 pm",
   "messages": [
     {"sender": "Sam", "text": "Pizza Friday at six?", "at": "2026-10-05T18:00:02-04:00"}
-  ],
-  "facts": ["Sam proposes pizza Friday at 6 pm."]
+  ]
 }
 ```
 
@@ -48,8 +47,18 @@ owner reply or spreads supplied timestamps. The channel and membership come
 from the normal channel definition. A single incoming or outgoing message is
 valid, even when other channel members are silent. A `scene` description is
 optional for supplied source and, if provided, remains private author context.
-Keep the usual `facts` list accurate for the actual text; a proposal is not an
-accepted plan, and ungraded chatter can use `facts: []`.
+Scene `facts` are optional authoring constraints for supplied messages. Omit them
+when the exact text already expresses the intended source. If supplied, they
+must match the actual text and are independently checked; a proposal is not an
+accepted plan.
+
+Define evaluation expectations separately in each assistant turn's `expect` or
+`facts`. These remain required and are reviewed against the source available at
+that checkpoint; omitting scene facts does not remove judging criteria or source
+review. Existing weeks keep their last fact-bearing scene as `test_scene_id`;
+weeks with no scene facts use the final scene. An explicit `test_scene_id` must
+identify a compiled scene (including the `w1-` prefix for a `weeks` array).
+Legacy specs without separate checks still need target facts or `test_intent`.
 
 Timestamps must include UTC offsets matching the spec's time zone, be strictly
 increasing and lie inside the scene window (`time` through `until`, or the
@@ -63,7 +72,7 @@ changing the simulated calendar, or validation will reject the mismatch.
 Supplied source ignores global noise quotas and cannot declare `message_range`
 or `messages_per_person`. Only generated scenes share automatic chat-volume
 targets. This bypasses the writer alone: the independent scene checker still
-reviews all facts together against the exact source and preceding context,
+reviews the source and any optional facts against preceding context,
 including each supplied message's timestamp. A rejection preserves its receipt
 and blocks that thread; the writer never rewrites the source, and a failed
 cached recheck is not rerolled for approval. Edit the spec and resume when needed.

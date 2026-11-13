@@ -144,12 +144,17 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
         target = next((s for s in scenes if s.id == spec["test_scene_id"]), None)
         if target is None:
             raise ValueError("test_scene_id does not identify a scene")
+    elif spec.get('checks'):
+        # Separate evaluation turns own their expectations. Keep the historical
+        # target where unambiguous, but source-only scenes need no answer key.
+        eligible = [s for s in scenes if s.facts or s.test_intent.strip()]
+        target = eligible[0] if len(eligible) == 1 else scenes[-1]
     else:
         eligible = [s for s in scenes if s.facts or s.test_intent.strip()]
         if len(eligible) != 1:
             raise ValueError("choose one test scene when multiple scenes have facts or intent")
         target = eligible[0]
-    if not target.facts and not target.test_intent.strip():
+    if not spec.get('checks') and not target.facts and not target.test_intent.strip():
         raise ValueError("test scene needs required facts or test intent")
     life_id = spec.get("id") or root.name
     latest = max(datetime.fromisoformat(s.window_end) for s in scenes)
@@ -252,6 +257,8 @@ def normalize_week(spec, week_start=None):
             if definition.get('subject'):
                 row['email_subject']=definition['subject']
             if 'until' in row:row['window_end']=clock_on_day(date,row.pop('until'))
+            if row.get('messages') is not None:
+                row.setdefault('facts', [])
             if not isinstance(row.get('facts'),list) or any(not isinstance(f,str) or not f.strip() for f in row['facts']):
                 raise ValueError('Scene facts are inline English statements')
             scenes.append(row)
@@ -274,7 +281,10 @@ def normalize_week(spec, week_start=None):
     if not scenes or not checks:raise ValueError('Week requires sources and assistant turns')
     return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels','cast')},'week':True,
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
-        'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
+        # Preserve the old target for existing specs; independent checks allow
+        # an entirely source-only corpus without a fact-bearing scene.
+        'test_scene_id':spec.get('test_scene_id') or next(
+            (s['id'] for s in reversed(scenes) if s['facts']), scenes[-1]['id'])}
 
 
 def generation_spec(plan):

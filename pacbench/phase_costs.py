@@ -85,7 +85,7 @@ def report(calls,components):
 def main():
     p=argparse.ArgumentParser();p.add_argument('--ledger',type=Path,required=True);p.add_argument('--since-index',type=int,required=True);p.add_argument('--components',type=Path,nargs='+',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     ledger=json.loads(a.ledger.read_text());r=report(ledger['calls'][a.since_index:],a.components)
-    r['ledger_offset']=a.since_index;r['excluded_earlier_ledger']=total(ledger['calls'][:a.since_index]);r['shared_cap_accounted_usd']=str(sum(Decimal(c['accounted']) for c in ledger['calls']))
+    r['ledger_offset']=a.since_index;r['excluded_earlier_ledger']=total(ledger['calls'][:a.since_index]);r['excluded_earlier_ledger_scope']='Historical accounting entries include external allocations; their counts are accounting items, not solely model requests.';r['shared_cap_accounted_usd']=str(sum(Decimal(c['accounted']) for c in ledger['calls']))
     a.output.parent.mkdir(parents=True,exist_ok=True);a.output.write_text(json.dumps(r,indent=2)+'\n')
 
 if __name__=='__main__':main()

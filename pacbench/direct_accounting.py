@@ -108,6 +108,8 @@ class DirectBudget:
             Decimal(maximum)*money(self.config['completion_per_million']))/Decimal(1000000)
         with self.locked() as state:
             calls=state['calls']
+            if any(c.get('reported_liability_exceeds_bound') for c in calls):
+                raise RuntimeError('Reported task liability exceeded a reserved bound; paid admission stopped')
             if any(c.get('http_status') in (401,403) for c in calls):
                 raise RuntimeError('Task authentication blocked')
             own=[c for c in calls if c['project']==project]

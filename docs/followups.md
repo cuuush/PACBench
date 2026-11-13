@@ -23,4 +23,16 @@ A corrective judgment of a saved answer is a separately versioned overlay bound
 to the original turn, frozen criteria and failed request; it never replaces the
 original ungraded result or releases its uncertain charge.
 
+`cancelled-generation-charge-v1` can settle a confirmed cancelled attempt from
+authenticated official generation metadata. It binds the exact original ledger
+attempt, request fingerprint and partial SSE identity, checks the official model
+alias, and retains native usage, reported charge and prior reservation history.
+Financial settlement leaves the original reply failed and ungraded. Excess
+reported liability is recorded and blocks further paid admission. A documented
+recovery is a new attempt with its own receipt; reconciliation performs no paid
+retry. Whole-corpus reviews with more than eight questions use a 900-second
+client deadline under `corpus-review-real-deadline-v1`; per-answer judges retain
+their 180-second default. The source-review prompt and validation gates stay the
+same.
+
 Initial pass/fail/ungraded counts are disjoint. If recovery authoring or review fails, preserve the completed initial verdict and report the recovery error separately. A question asking what happened to a specific object is valid; asking about a boolean status does not assert that status. Current scope-review artifacts flag overly literal criteria and vague event references without changing the original grades. Future contracts must identify the intended event rather than rely on author-only labels such as “first outing.”

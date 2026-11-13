@@ -149,6 +149,13 @@ def audit_prepared(root: Path) -> dict:
                                                                     version=quality['review_version']):
                     errors.append('Corpus realism validation errors differ from review evidence')
             call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
+            execution=quality.get('execution_condition')
+            if execution is not None:
+                deadline=call.get('client_wall_deadline_s',call.get('direct_timing',{}).get('wall_deadline_s'))
+                if (execution.get('version')!='corpus-review-real-deadline-v1' or
+                        type(deadline) is not int or not 0<deadline<=900 or
+                        execution.get('wall_deadline_s')!=deadline):
+                    errors.append('Corpus review client deadline differs from its actual model receipt')
             if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
                 errors.append('Corpus realism review differs from its actual model receipt')
             from .corpus_review import SUPPORTED_VERSIONS, review_prompt

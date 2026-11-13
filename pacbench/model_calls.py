@@ -52,7 +52,7 @@ def save_failed_response_body(record_path, body):
             'scope': 'Private raw HTTP body; not a usable judgment or verified cost receipt.'}
 
 
-def read_direct_response(response, started, timing=None, body_sink=None, *, stop_at_done=False):
+def read_direct_response(response, started, timing=None, body_sink=None, *, stop_at_done=False, timeout_s=None):
     """Bound the whole direct response, including whitespace keepalives.
 
     HTTP socket timeouts measure inactivity. A slow non-streaming model can
@@ -61,11 +61,12 @@ def read_direct_response(response, started, timing=None, body_sink=None, *, stop
     The direct accounting wrapper captures these reads and retains the bound
     when an incomplete response is closed. No uncertain request is repeated.
     """
+    timeout_s=MODEL_TIMEOUT_S if timeout_s is None else timeout_s
     timing=timing if timing is not None else {}
     timing['headers_after_s']=round(time.monotonic()-started,6)
     chunks=[];tail=b''
     while True:
-        remaining=MODEL_TIMEOUT_S-(time.monotonic()-started)
+        remaining=timeout_s-(time.monotonic()-started)
         if remaining<=0:
             raise RuntimeError('Direct model request wall deadline exceeded; outcome uncertain, do not retry')
         sock=getattr(getattr(getattr(response,'fp',None),'raw',None),'_sock',None)
@@ -116,6 +117,7 @@ class ModelClient:
                  reasoning_effort: str | None = None,
                  json_mode: bool = False,
                  streaming: bool | None = None,
+                 timeout_s: int = MODEL_TIMEOUT_S,
                  url: str = "http://127.0.0.1:8099/p/pacbench-authoring/v1/chat/completions"):
         self.key = key
         self.model = model
@@ -125,6 +127,8 @@ class ModelClient:
         self.reasoning_effort = reasoning_effort
         self.json_mode = json_mode
         self.streaming = streaming
+        if type(timeout_s) is not int or not 0<timeout_s<=900:raise ValueError('Invalid model wall deadline')
+        self.timeout_s=timeout_s
         self.url = url
 
     def __call__(self, prompt: str) -> ModelOutput:
@@ -196,11 +200,11 @@ class ModelClient:
                     self.url, data=canonical.encode(),
                     headers={"Authorization": f"Bearer {self.key}",
                              "Content-Type": "application/json"})
-                with urllib.request.urlopen(req, timeout=MODEL_TIMEOUT_S) as response:
+                with urllib.request.urlopen(req, timeout=self.timeout_s) as response:
                     if os.environ.get('PACBENCH_DIRECT') == '1' or request_body.get('stream') is True:
                         response_metadata = direct_response_metadata(response)
                         response_body = read_direct_response(response, request_started, response_timing, received_body,
-                                                             stop_at_done=request_body.get('stream') is True)
+                                                             stop_at_done=request_body.get('stream') is True,timeout_s=self.timeout_s)
                         response_metadata.update(body_bytes=len(response_body),
                             body_sha256=hashlib.sha256(response_body).hexdigest())
                         if request_body.get('stream') is True:
@@ -261,6 +265,7 @@ class ModelClient:
                     accounting_receipt=next((row for row in capture.receipt['budget'].snapshot()
                                               if row['id']==capture.receipt['id']),None)
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
+                      "client_wall_deadline_s": self.timeout_s,
                       "status": "failed" if error else "ok", "model": self.model,
                       "url": self.url, "protocol": protocol, "attempt": attempt,
                       "request": request_body, "response": raw,
@@ -275,7 +280,7 @@ class ModelClient:
             if os.environ.get('PACBENCH_DIRECT')=='1':
                 record['direct_timing']={**response_timing,
                     'wall_duration_s':round(time.monotonic()-request_started,6),
-                    'wall_deadline_s':MODEL_TIMEOUT_S,
+                    'wall_deadline_s':self.timeout_s,
                     'scope':'Client-observed HTTP timing; does not identify upstream queue or model compute'}
                 if response_metadata is not None:
                     if response_body is not None:response_metadata.update(body_bytes=len(response_body),body_sha256=hashlib.sha256(response_body).hexdigest())

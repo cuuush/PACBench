@@ -162,3 +162,24 @@ def test_public_input_order_dependencies_and_cross_session_intended_state():
     rows.append({'id':'third','at':'2026-10-26T17:00:00-04:00','prompt':'Latest plan?',
                  'requires':['second']})
     assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved))
+
+
+def test_large_corpus_deadline_is_confined_and_does_not_change_review_request(tmp_path,monkeypatch):
+    from pacbench.model_calls import ModelClient
+    msg={'source_id':'m','written_at':'2026-10-01T09:00:00-04:00','collected_at':'2026-10-01T09:00:00-04:00',
+         'channel':'imessage','thread':'devon','sender':'Devon','from_owner':False,'text':'Friday at seven.'}
+    checks=[{'id':f'check-{i}','at':'2026-10-02T09:00:00-04:00','prompt':'When is it?'} for i in range(9)]
+    resolved={'scenes':[],'checks':checks}
+    verdict={'consistent':True,'questions_answerable':True,'natural_enough':True,'issues':[],
+        'assessments':[{'check_id':c['id'],'event_date':'2026-10-02','source_evidence':[{'written_at':msg['written_at'],'quote':'Friday at seven.'}],
+            'alternatives':['none'],'ambiguous':False} for c in checks]}
+    seen=[]
+    def completed(self,prompt):
+        seen.append((self.timeout_s,prompt))
+        path=tmp_path/'actual-call.json';path.write_text(json.dumps({'client_wall_deadline_s':self.timeout_s}))
+        return SimpleNamespace(text=json.dumps(verdict),record_path=str(path),usage={})
+    monkeypatch.setattr(ModelClient,'__call__',completed)
+    client=ModelClient(key='inert',model='offline',record_dir=tmp_path)
+    result=review_corpus([msg],resolved,client,tmp_path)
+    assert client.timeout_s==180 and seen==[(900,review_prompt([msg],resolved))]
+    assert result['execution_condition']=={'version':'corpus-review-real-deadline-v1','wall_deadline_s':900}

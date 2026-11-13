@@ -264,12 +264,24 @@ def verdict_passes(verdict, messages, resolved, *, version=VERSION):
 def review_corpus(messages, resolved, model, root: Path):
     # ModelClient reuses only an exact successful request. A changed source or
     # expectation produces a new request, including on preparation resume.
+    from .model_calls import ModelClient
+    # Full-corpus output is larger than a per-answer judgment. This changes only
+    # the client deadline, keeping the actual model request and review standard.
+    if isinstance(model,ModelClient) and len(resolved['checks'])>8:
+        import copy
+        model=copy.copy(model);model.timeout_s=900
     result = model(review_prompt(messages, resolved))
     verdict = json.loads(result.text)
     passed = verdict_passes(verdict, messages, resolved)
     receipt = {'state': 'pass' if passed else 'fail', 'review_version': VERSION,
                'source_hash': digest(messages), 'intent_hash': digest(review_intent(resolved)),
                'review': verdict, 'model_call': result.record_path, 'usage': result.usage}
+    if isinstance(model,ModelClient):
+        from .evidence_store import read_json
+        call=read_json(Path(result.record_path))
+        deadline=call.get('client_wall_deadline_s',call.get('direct_timing',{}).get('wall_deadline_s'))
+        if deadline is not None:
+            receipt['execution_condition']={'version':'corpus-review-real-deadline-v1','wall_deadline_s':deadline}
     if VERSION in SOURCE_BLIND:
         receipt['scope'] = 'source-coherence-and-public-question-answerability'
         receipt['validation_errors'] = validation_errors(verdict, messages, resolved)

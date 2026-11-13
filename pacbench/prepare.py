@@ -64,7 +64,9 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
     rows = spec.get("scenes")
     if not isinstance(rows, list) or not rows:
         raise ValueError("experiment needs at least one scene")
-    noise = spec.get('noise','low')
+    # New author specs derive chatter from scenes. Persist the resolved policy so
+    # frozen manifests remain self-contained and old explicit modes stay stable.
+    noise = spec.get('noise','authored')
     if noise not in ('low','medium','high','authored'):
         raise ValueError('noise must be low, medium, high or authored')
     if "facts" in spec and (not isinstance(spec["facts"], list) or
@@ -540,6 +542,11 @@ def prepare(spec: dict, root: Path, *, resume=False, week_start=None,
             raise ValueError('Cannot resume preparation under a different inference route')
         if old.get('judge_reasoning_effort') != judge_reasoning_effort:
             raise ValueError('Cannot resume preparation under a different judge reasoning condition')
+    if resume and 'noise' not in spec:
+        previous = json.loads((root/'resolved-spec.json').read_text())
+        if previous.get('noise', 'low') != 'authored':
+            raise ValueError("Legacy preparation requires explicit noise on resume: retain its old "
+                             "mode, or set noise='authored' to deliberately regenerate changed scenes")
     root.mkdir(parents=True, exist_ok=resume)
     save(root / "spec.json", spec)
     progress = {"state": "running", "stage": "spec validation",

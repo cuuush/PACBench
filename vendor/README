@@ -295,6 +295,12 @@ providers); each keeps isolated native stores and shares the same atomic spendin
 ledger. Concurrent trials do not support latency rankings.
 Preserve successful original arms and select replacements explicitly when
 publishing; do not copy failed stores into a fresh attempt.
+Use `--import-only` on the same launcher to qualify the entire frozen source
+without sending benchmark questions or invoking the judge. Every batch must
+finish native processing before the next is imported; a failure stops that arm.
+`processing-complete` means its ingestion audit passed, not that semantic fact
+review is finished. Keep these full-week qualification stores separate from
+chronological benchmark stores to prevent future-source exposure.
 The reviewed retry launcher gives the benchmark judge a 600-second HTTP wall
 deadline (`--judge-timeout-s 600`), recorded separately from its unchanged low
 reasoning setting. This avoids cancelling otherwise active streamed judgments

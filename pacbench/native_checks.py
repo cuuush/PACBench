@@ -77,6 +77,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     native_turn = run_turn or harness.run_turn
     def run_turn(*args, **kwargs):
         check_stop(env.get('PACBENCH_STOP_FILE'))
+        kwargs['timeout_s']=turn_timeout_s
         return native_turn(*args, **kwargs)
     sessions, outcomes = {}, {}
     report = {'state': 'running', 'context': context, 'checks': []}
@@ -141,7 +142,7 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
                             output=directory / 'followups', judge=judge, home=root / 'hermes-home',
                             allowlist=allowlist, extra_env=env, question_dir=question_dir,
                             previous_turn=state['previous'], conversation=state['history'], inherited_path=state['path'],
-                            run_turn=run_turn, budget_snapshot=budget_snapshot, provenance_version=provenance_version, turn_timeout_s=turn_timeout_s,
+                            run_turn=run_turn, budget_snapshot=budget_snapshot, provenance_version=provenance_version,
                             evidence_by_id=(evidence_by_id(row) if callable(evidence_by_id) else evidence_by_id), diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
                         item.update(state='diagnostic',
                             reason='' if recovery['state']=='complete' else 'Recovery diagnostics incomplete',

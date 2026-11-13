@@ -31,6 +31,7 @@ def test_native_model_configuration_matches_real_setup_fields(tmp_path):
     hindsight = native_pilot.openrouter_provider_plan('hindsight', tmp_path)['native_settings']
     assert hindsight['config']['mode'] == 'local_external'
     assert hindsight['config']['llm_provider'] == hindsight['environment']['HINDSIGHT_API_LLM_PROVIDER'] == 'openai'
+    assert hindsight['environment']['HINDSIGHT_API_LLM_TIMEOUT']=='300'
     spark_config, spark_env = native_pilot.hindsight_model_settings('test', 'muse-spark-1.3-contributor', BASE, 'local')
     assert spark_config['llm_provider'] == spark_env['HINDSIGHT_API_LLM_PROVIDER'] == 'meta'
     mem0 = native_pilot.openrouter_provider_plan('mem0', tmp_path)['native_settings']

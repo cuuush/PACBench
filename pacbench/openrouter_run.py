@@ -88,6 +88,7 @@ def main(argv=None):
                         choices=ACTIVE_PROVIDERS, default=list(ACTIVE_PROVIDERS),
                         help='Memory providers to inspect; defaults to all active local providers')
     parser.add_argument('--prepared', type=Path)
+    parser.add_argument('--import-only',action='store_true',help='Validate native ingestion only; send no benchmark questions or judgments')
     parser.add_argument('--spec',type=Path,help='Prepare and freeze a scenario through the same authorized direct route')
     parser.add_argument('--prepare-from-archive', type=Path,
                         help='Import original dialogue into a new preparation with fresh reviews')
@@ -103,6 +104,7 @@ def main(argv=None):
     parser.add_argument('--recall-timeout-s',type=int,default=180,
                         help='Native-trial Hermes wall deadline, 1–900 real seconds')
     args = parser.parse_args(argv)
+    if args.import_only and not args.prepared:parser.error('--import-only requires --prepared')
     if not 0<args.judge_timeout_s<=900:parser.error('Judge deadline must be 1–900 seconds')
     if not 0<args.recall_timeout_s<=900:parser.error('Recall deadline must be 1–900 seconds')
     if args.judge_timeout_s!=180 and not (args.prepared or args.plan):parser.error('Judge deadline override requires a prepared native trial')
@@ -164,6 +166,12 @@ def main(argv=None):
         judge_options=({'judge_reasoning_effort':args.judge_reasoning_effort}
                        if args.judge_reasoning_effort is not None else {})
         if args.prepared:
+            if args.import_only:
+                from .import_trial import run as import_run
+                result=import_run(args.prepared,args.output,providers=args.providers,
+                    honcho_clock=args.honcho_clock,max_messages=args.max_messages)
+                print(json.dumps(result,indent=2))
+                return int(result['state']!='processing-complete')
             from .native_pilot import run
             judge_options['judge_timeout_s']=args.judge_timeout_s
             judge_options['recall_timeout_s']=args.recall_timeout_s

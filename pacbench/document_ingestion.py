@@ -20,7 +20,7 @@ NIGHTLY_JSON_VERSION = 'daily-source-documents-v2'
 LEGACY_VERSION = 'daily-source-documents-v1'
 SUPPORTED_VERSIONS = (LEGACY_VERSION,NIGHTLY_JSON_VERSION,VERSION)
 PROCESSING_TIMEOUT_S = 900
-HINDSIGHT_PROCESSING_TIMEOUT_S = 3600
+HINDSIGHT_PROCESSING_TIMEOUT_S = 900
 PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {

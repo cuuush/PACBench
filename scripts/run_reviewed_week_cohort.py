@@ -16,6 +16,7 @@ import argparse
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--concurrency',type=int,choices=range(1,10),default=3)
+parser.add_argument('--import-only',action='store_true',help='Run native import qualification without benchmark questions')
 ALL_PROVIDERS=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
 parser.add_argument('--providers',nargs='+',choices=ALL_PROVIDERS,default=ALL_PROVIDERS,
     help='Run only these arms in fresh stores; retain completed arms from earlier cohorts')
@@ -50,6 +51,7 @@ validate_recall_environment()
 root.mkdir(exist_ok=False)
 providers=args.providers
 record={'version':'stable-native-week-cohort-v3','state':'running','providers':providers,'concurrency':args.concurrency,
+ 'execution_scope':'import-only' if args.import_only else 'benchmark',
  'started':datetime.now(timezone.utc).isoformat(),'performance_scope':'Concurrent functional trials; no latency ranking',
  'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),
  'frozen_preparation':str(prepared.relative_to(repo)),'frozen_corpus_hash':manifest['corpus_hash'],
@@ -64,6 +66,7 @@ def run(provider):
  target=root/provider;log=root/(provider+'.execution.private.log')
  cmd=[str(repo/'vendor/venv-hermes-isolated/bin/python'),'-m','pacbench.openrouter_run','--prepared',str(prepared),'--providers',provider,'--judge-reasoning-effort','low','--judge-timeout-s','600','--recall-timeout-s','600','--output',str(target),'--spend-limit-usd','20','--max-messages','150']
  if provider=='honcho':cmd+=['--honcho-clock','simulated']
+ if args.import_only:cmd+=['--import-only']
  env={**os.environ,'TMPDIR':'/var/tmp','DERIVER_MODEL_CONFIG__THINKING_EFFORT':'none','PACBENCH_STOP_FILE':str(stopfile)}
  started=datetime.now(timezone.utc).isoformat()
  with log.open('xb') as stream:

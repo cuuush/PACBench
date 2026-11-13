@@ -286,7 +286,7 @@ def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch
     assert record['state']=='failed' and record['ready'] is False
     assert record['result']==failure and record['returncode']==1
     assert record['hermes_ingestion_turns']==0
-    assert record['processing_timeout_s']==(3630 if provider=='hindsight' else 900)
+    assert record['processing_timeout_s']==(930 if provider=='hindsight' else 900)
 
 
 def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path):

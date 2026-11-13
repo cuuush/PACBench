@@ -55,6 +55,8 @@ def hindsight_model_settings(run_id: str, model: str, base: str, key: str) -> tu
     env = {'HINDSIGHT_LLM_API_KEY': key, 'HINDSIGHT_API_LLM_API_KEY': key,
            'HINDSIGHT_API_LLM_BASE_URL': base, 'HINDSIGHT_API_LLM_MODEL': model,
            'HINDSIGHT_API_LLM_PROVIDER': provider, 'HINDSIGHT_API_ENABLE_API_KEY_AUTH': 'false'}
+    if model == OPENROUTER_MODEL:
+        env['HINDSIGHT_API_LLM_TIMEOUT']='300'
     return config, env
 
 

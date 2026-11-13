@@ -1,0 +1,48 @@
+{
+  "state": "offline-draft-only",
+  "upstream_spec_commit": "460088a7c05bb2c1568764ac4bea22305a70a1d7",
+  "reconciled_spec_commit": "eda7d11ae5666472f9d52ee6c6be3e909a9a7ccb",
+  "spec_sha256": "681f5a0411b076342b0aabc8449d0c3690047f61ff193667ec825ccfcda03b12",
+  "runtime_commit": "586865369faa9156f720a761cdc50161f769499d",
+  "upstream_default_commit": "fdf90764f9945f2c6d3e9150b6b0c256efcdf38b",
+  "noise_omitted_equals_explicit_authored": true,
+  "all_48_scene_fingerprints_and_resolved_checks_equal": true,
+  "writer_prompts_have_no_noise_boilerplate": true,
+  "counts": {
+    "scenes": 48,
+    "supplied_scenes": 40,
+    "supplied_messages": 102,
+    "writer_scenes": 8,
+    "writer_message_lower_bound": 17,
+    "writer_message_upper_bound": 29,
+    "total_message_lower_bound": 119,
+    "total_message_upper_bound": 131,
+    "questions": 37,
+    "draft_scoring_statements": 63
+  },
+  "coverage_matrix_design_status": {
+    "drafted_semantic": 18,
+    "partial": 11,
+    "integration_qualification": 1,
+    "deferred": 5
+  },
+  "limits": [
+    "Writer source does not exist; no full source-only/corpus verification or frozen contracts.",
+    "Many drafted statements still combine independent scoring details; prior atomicity rule remains.",
+    "Interleaved native_resume is unsupported.",
+    "Strict10minute checkpoint bounds remain; unsupported native freezer counts judge time.",
+    "Prior120message/58criterion source and contracts/reviews are different inputs and are not reused."
+  ],
+  "paid_calls": 0,
+  "provider_execution_ready": false,
+  "validation": {
+    "focused_tests": 94,
+    "full_suite": {
+      "passed": 1227,
+      "skipped": 4,
+      "subtests": 22
+    },
+    "scene_default_vs_legacy": "New omitted-noise resolves authored; explicit Daylow unchanged.",
+    "legacy_resume_guard": "Reject implicit migration before mutation; existing route and judge-reasoning guards retained."
+  }
+}

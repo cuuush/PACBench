@@ -1,0 +1,335 @@
+{
+  "state": "unrun",
+  "scenes": [
+    {
+      "scene_id": "w1-namesake-reed",
+      "source_day": "2026-10-05",
+      "window_start": "2026-10-05T11:00:00-04:00",
+      "window_end": "2026-10-05T11:20:00-04:00",
+      "participants": [
+        "Me",
+        "Alex Reed"
+      ],
+      "message_range": [
+        2,
+        4
+      ],
+      "generation_spec": {
+        "id": "w1-namesake-reed",
+        "channel": "imessage",
+        "thread": "alex-reed",
+        "scene": "Alex Reed, the user’s ceramics friend, mentions their food preference while discussing a pizza topping. Establish that this Alex is from ceramics, without comparing them to Alex Chen or the user. No invitation, new plan or preference change.",
+        "test_intent": "",
+        "facts": [
+          "Alex Reed avoids mushrooms and eats dairy."
+        ],
+        "at": "2026-10-05T11:00:00-04:00",
+        "window_start": "2026-10-05T11:00:00-04:00",
+        "window_end": "2026-10-05T11:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          4
+        ],
+        "participants": [
+          "Me",
+          "Alex Reed"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex Reed. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-05. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 11:00 and 11:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex Reed, the user’s ceramics friend, mentions their food preference while discussing a pizza topping. Establish that this Alex is from ceramics, without comparing them to Alex Chen or the user. No invitation, new plan or preference change.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex Reed avoids mushrooms and eats dairy.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-evening-control",
+      "source_day": "2026-10-05",
+      "window_start": "2026-10-05T19:00:00-04:00",
+      "window_end": "2026-10-05T19:20:00-04:00",
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "message_range": [
+        2,
+        4
+      ],
+      "generation_spec": {
+        "id": "w1-evening-control",
+        "channel": "imessage",
+        "thread": "devon",
+        "scene": "Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi’s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.",
+        "test_intent": "",
+        "facts": [
+          "The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street."
+        ],
+        "at": "2026-10-05T19:00:00-04:00",
+        "window_start": "2026-10-05T19:00:00-04:00",
+        "window_end": "2026-10-05T19:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          4
+        ],
+        "participants": [
+          "Me",
+          "Devon"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-05. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 19:00 and 19:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi’s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-jen-answer",
+      "source_day": "2026-10-06",
+      "window_start": "2026-10-06T15:00:00-04:00",
+      "window_end": "2026-10-06T15:20:00-04:00",
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "message_range": [
+        2,
+        3
+      ],
+      "generation_spec": {
+        "id": "w1-jen-answer",
+        "channel": "imessage",
+        "thread": "jen",
+        "scene": "Jen answers the user’s interview-room question with Room 204. The revised checklist is still being polished. The user briefly acknowledges. Do not deliver the checklist, complete the cover-letter task, or add interview timing.",
+        "test_intent": "",
+        "facts": [
+          "Jen answers the room question with Room 204.",
+          "The revised checklist is still outstanding."
+        ],
+        "at": "2026-10-06T15:00:00-04:00",
+        "window_start": "2026-10-06T15:00:00-04:00",
+        "window_end": "2026-10-06T15:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          3
+        ],
+        "participants": [
+          "Me",
+          "Jen"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Jen. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-06. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 15:00 and 15:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Jen answers the user’s interview-room question with Room 204. The revised checklist is still being polished. The user briefly acknowledges. Do not deliver the checklist, complete the cover-letter task, or add interview timing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Jen answers the room question with Room 204.\n2. The revised checklist is still outstanding.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 3 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-namesake-chen",
+      "source_day": "2026-10-06",
+      "window_start": "2026-10-06T18:00:00-04:00",
+      "window_end": "2026-10-06T18:20:00-04:00",
+      "participants": [
+        "Me",
+        "Alex Chen"
+      ],
+      "message_range": [
+        2,
+        4
+      ],
+      "generation_spec": {
+        "id": "w1-namesake-chen",
+        "channel": "imessage",
+        "thread": "alex-chen",
+        "scene": "Alex Chen, the user’s office friend, mentions their food preference in a brief lunch-related chat and says friends call them AC. Do not discuss Alex Reed or create an outing. This is the first message in this DM, so establish the office connection naturally.",
+        "test_intent": "",
+        "facts": [
+          "Alex Chen, also called AC, avoids dairy and accepts mushrooms; Alex Chen is distinct from Alex Reed."
+        ],
+        "at": "2026-10-06T18:00:00-04:00",
+        "window_start": "2026-10-06T18:00:00-04:00",
+        "window_end": "2026-10-06T18:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          4
+        ],
+        "participants": [
+          "Me",
+          "Alex Chen"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex Chen. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-06. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex Chen, the user’s office friend, mentions their food preference in a brief lunch-related chat and says friends call them AC. Do not discuss Alex Reed or create an outing. This is the first message in this DM, so establish the office connection naturally.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex Chen, also called AC, avoids dairy and accepts mushrooms; Alex Chen is distinct from Alex Reed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-concert-companion",
+      "source_day": "2026-10-07",
+      "window_start": "2026-10-07T17:00:00-04:00",
+      "window_end": "2026-10-07T17:20:00-04:00",
+      "participants": [
+        "Me",
+        "Devon"
+      ],
+      "message_range": [
+        3,
+        4
+      ],
+      "generation_spec": {
+        "id": "w1-concert-companion",
+        "channel": "imessage",
+        "thread": "devon",
+        "scene": "The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.",
+        "test_intent": "",
+        "facts": [
+          "Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed."
+        ],
+        "at": "2026-10-07T17:00:00-04:00",
+        "window_start": "2026-10-07T17:00:00-04:00",
+        "window_end": "2026-10-07T17:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          3,
+          4
+        ],
+        "participants": [
+          "Me",
+          "Devon"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Devon. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-07. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 17:00 and 17:20 local time. Keep references to the current time of day consistent with that window.\nScenario: The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 3 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-ben-distinct-mail",
+      "source_day": "2026-10-08",
+      "window_start": "2026-10-08T12:00:00-04:00",
+      "window_end": "2026-10-08T12:20:00-04:00",
+      "participants": [
+        "Me",
+        "Ben"
+      ],
+      "message_range": [
+        2,
+        3
+      ],
+      "generation_spec": {
+        "id": "w1-ben-distinct-mail",
+        "channel": "email",
+        "thread": "ben-other",
+        "scene": "In this email with subject Sunday tool return, Ben asks to return the user’s drill Sunday October 11 at 3 pm at the user’s door and the user agrees. Do not mention dinner or explain that these are separate events. Keep it short.",
+        "test_intent": "",
+        "facts": [
+          "Ben's Sunday 3 pm drill return at the user's door is separate from Saturday dinner."
+        ],
+        "at": "2026-10-08T12:00:00-04:00",
+        "window_start": "2026-10-08T12:00:00-04:00",
+        "window_end": "2026-10-08T12:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          3
+        ],
+        "participants": [
+          "Me",
+          "Ben"
+        ],
+        "chat_name": "",
+        "email_subject": "Sunday tool return",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a natural email exchange. Subject: Sunday tool return. Participants: Me, Ben; Me is the owner's speaker label, not a spoken name. Date: 2026-10-08, local time 12:00–12:20.\nScenario: In this email with subject Sunday tool return, Ben asks to return the user’s drill Sunday October 11 at 3 pm at the user’s door and the user agrees. Do not mention dinner or explain that these are separate events. Keep it short.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Ben's Sunday 3 pm drill return at the user's door is separate from Saturday dinner.\nUse 2–3 emails. The subject is header metadata; do not put a Subject: prefix inside an email body. Copy quoted earlier messages faithfully; never invent different addresses, dates or wording for them. Return only JSON with dialogue (an array of {\"sender\": \"Name\", \"body\": \"email text\"}) and writer_note (a short string). Bodies may contain paragraphs and quoted replies using escaped newlines."
+    },
+    {
+      "scene_id": "w1-proofreading-done",
+      "source_day": "2026-10-08",
+      "window_start": "2026-10-08T18:00:00-04:00",
+      "window_end": "2026-10-08T18:20:00-04:00",
+      "participants": [
+        "Me",
+        "Jen"
+      ],
+      "message_range": [
+        2,
+        3
+      ],
+      "generation_spec": {
+        "id": "w1-proofreading-done",
+        "channel": "imessage",
+        "thread": "jen",
+        "scene": "The user sends Jen feedback after completing the cover-letter proofreading, identifying the company name in paragraph two as the needed fix. Jen acknowledges receipt. Do not invent another task, deadline, checklist delivery or appointment.",
+        "test_intent": "",
+        "facts": [
+          "The user completes the cover-letter proofreading obligation."
+        ],
+        "at": "2026-10-08T18:00:00-04:00",
+        "window_start": "2026-10-08T18:00:00-04:00",
+        "window_end": "2026-10-08T18:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          3
+        ],
+        "participants": [
+          "Me",
+          "Jen"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Jen. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-08. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 18:00 and 18:20 local time. Keep references to the current time of day consistent with that window.\nScenario: The user sends Jen feedback after completing the cover-letter proofreading, identifying the company name in paragraph two as the needed fix. Jen acknowledges receipt. Do not invent another task, deadline, checklist delivery or appointment.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. The user completes the cover-letter proofreading obligation.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 3 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    },
+    {
+      "scene_id": "w1-small-future-plan",
+      "source_day": "2026-10-10",
+      "window_start": "2026-10-10T20:00:00-04:00",
+      "window_end": "2026-10-10T20:20:00-04:00",
+      "participants": [
+        "Me",
+        "Alex Reed"
+      ],
+      "message_range": [
+        2,
+        4
+      ],
+      "generation_spec": {
+        "id": "w1-small-future-plan",
+        "channel": "imessage",
+        "thread": "alex-reed",
+        "scene": "Alex Reed and the user arrange a quick coffee Tuesday October 13 at 8 am at Birch. A brief ceramics aside is fine. Keep the agreement small and natural; no recap of other plans, change to food preferences, or extra outing.",
+        "test_intent": "",
+        "facts": [
+          "Alex Reed and the user agree to October 13 coffee at 8 am at Birch."
+        ],
+        "at": "2026-10-10T20:00:00-04:00",
+        "window_start": "2026-10-10T20:00:00-04:00",
+        "window_end": "2026-10-10T20:20:00-04:00",
+        "timezone": "America/New_York",
+        "message_range": [
+          2,
+          4
+        ],
+        "participants": [
+          "Me",
+          "Alex Reed"
+        ],
+        "chat_name": "",
+        "noise": "authored",
+        "messages_per_person": null,
+        "prompt_version": "scene-authored-v1"
+      },
+      "writer_prompt": "Write a believable imessage conversation from this scenario. Use `Me` exactly for the user's own messages and distinct names for other people. `Me` is a speaker label, never a person's name inside message bodies; use natural pronouns there. The user must speak at least once. Do not use `User`, `I`, or another alias for the user's speaker label.\n\nChat members: Me, Alex Reed. Use only these speaker labels. Members can be silent.\nConversation date: 2026-10-10. Relative dates in the conversation use this date as their reference.\nThese messages will be timestamped between 20:00 and 20:20 local time. Keep references to the current time of day consistent with that window.\nScenario: Alex Reed and the user arrange a quick coffee Tuesday October 13 at 8 am at Birch. A brief ceramics aside is fine. Keep the agreement small and natural; no recap of other plans, change to food preferences, or extra outing.\n\nThe conversation must naturally and unambiguously establish each of these facts (they are authoring constraints, not lines to copy):\n1. Alex Reed and the user agree to October 13 coffee at 8 am at Birch.\n\nContinue each person's voice from their earlier messages. Start with what they want to say; small talk and unrelated remarks are optional. Allow short message bursts and different reply lengths. Do not force an opening greeting, joke or tired-after-work aside into every exchange. Write only text messages: no bracketed stage directions, photo placeholders, or imaginary attachment markers.\n\nMake commitments clear, but never turn confirmations into a recital of date, time, place, and companion. A short 'yeah that works' after a specific proposal is a real acceptance. In a continuation, people can change one detail without repeating the whole existing plan. A tentative 'should be' alone is not an acceptance.\n\nUse natural date language in casual messages. 'Friday' is enough when this conversation date makes it unambiguous; avoid month, day number, or year unless a person would actually clarify it.\n\nWrite between 2 and 4 messages. Write one message per line, as `Name: message` using consistent speaker names. No timestamps, headers, or narration inside the dialogue. Return only a JSON object with `dialogue` (one string containing the message lines) and `writer_note` (one or two sentences about the creative choices that made the conversation natural). The note is an explanation for the author, not a private reasoning transcript."
+    }
+  ]
+}

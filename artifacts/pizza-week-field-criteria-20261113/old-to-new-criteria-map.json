@@ -1,0 +1,1210 @@
+{
+  "policy": "independent-requested-fields-v1",
+  "state": "authored-revision-not-frozen",
+  "old_spec_sha256": "102f1238543e3fdcdd1b18dd377ab9d2b24e518e941fbbda573e954b8758d0ea",
+  "new_spec_sha256": "31e194b5ee5efb53fd30fd86e2022db455128891c09be06b3f6c11677e2bee15",
+  "old_denominator": 63,
+  "new_denominator": 155,
+  "arithmetic": "Existing equal points per claim and existing recovery arithmetic; no question reweighting or historical regrade.",
+  "rosters": "Member claims plus one pure no-extra closure claim. Closure does not require restating expected members and does not fail merely for an omitted member. No second exact-roster/count claim.",
+  "scalar_values": "One calendar date or proper name is one value; interval endpoints and restaurant/street fields are separate.",
+  "scope": "Given dates/person/event identifiers anchor claims without creating duplicate points. Unrequested trap explanations and complements are not scored.",
+  "notable_scope_choices": [
+    "Recurrence question asks when, so Devon venue is context only.",
+    "RSVP venue-withholding reason is context, not a second requirement.",
+    "Series-final needs no game on October14; narrating the end reason is not required.",
+    "Namesake affiliations provide source disambiguation but are not mandatory answer text.",
+    "The complete pizza recap adds a pure no-extra-outing closure to preserve the authored third-party-isolation challenge.",
+    "Withdrawal is enforced by the current closed roster; Leo history is not a duplicate point."
+  ],
+  "impact": "Roster-heavy questions have more claim points. Report per-question all-claims-correct and family results alongside global totals; do not compare raw totals against old63/58unit drafts.",
+  "fresh_reviews_required": true,
+  "questions": [
+    {
+      "question_id": "rsvp-before",
+      "question": "Where are we with everyone’s replies for Friday lunch?",
+      "old_count": 2,
+      "new_count": 5,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The complete confirmed roster is the user and Maya.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "the user is confirmed for the Friday October 9 lunch.",
+            "Maya is confirmed for the Friday October 9 lunch.",
+            "No person outside the set the user, Maya is recorded as confirmed for the Friday October 9 lunch."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Leo has not replied and Tess is conditional; neither is confirmed.",
+          "new_ids": [
+            "fact-4",
+            "fact-5"
+          ],
+          "new_statements": [
+            "Leo has not replied to the lunch invitation.",
+            "Tess’s lunch attendance is conditional on her shift."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "cancellation-before",
+      "question": "Which studio booking was cancelled?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The message does not identify whether pottery or framing was cancelled; neither cancellation can be assigned with confidence.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The cancellation cannot be assigned to either studio booking from the available message."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "obligations-before",
+      "question": "What are Jen and I waiting on from each other?",
+      "old_count": 2,
+      "new_count": 4,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Jen has promised the revised checklist; the user is also waiting for Jen to answer the interview-room question, without an established promise to answer it.",
+          "new_ids": [
+            "fact-1",
+            "fact-2"
+          ],
+          "new_statements": [
+            "Jen’s promised revised checklist remains outstanding.",
+            "The user’s interview-room question to Jen remains unanswered."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The user owes Jen proofreading of her cover letter by Thursday evening.",
+          "new_ids": [
+            "fact-3",
+            "fact-4"
+          ],
+          "new_statements": [
+            "The user still owes Jen cover-letter proofreading.",
+            "The agreed proofreading deadline is Thursday evening."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "lunch-snapshot",
+      "question": "Where and when is Friday lunch with Maya?",
+      "old_count": 1,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Friday October 9 at 1 pm at Rosa's on Oak Street.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The Friday lunch time is 1 pm.",
+            "The Friday lunch venue is Rosa’s.",
+            "The Friday lunch venue is on Oak Street."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "short-reply",
+      "question": "What did I agree with the watercolor tutor for today?",
+      "old_count": 1,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Tuesday October 6 watercolor workshop at 10 am at MR Hall.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The user agreed to the watercolor workshop.",
+            "The workshop starts at 10 am.",
+            "The workshop venue is MR Hall."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "draft-before",
+      "question": "What’s the status of the PizzaLab tasting?",
+      "old_count": 1,
+      "new_count": 2,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The user has requested a draft plan but has not committed to attending.",
+          "new_ids": [
+            "fact-1",
+            "fact-2"
+          ],
+          "new_statements": [
+            "The user has requested a draft tasting plan.",
+            "The user has not committed to attending the tasting."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "rsvp-after",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "old_count": 2,
+      "new_count": 9,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Complete confirmed roster: user, Maya, Leo, Tess and Nora.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5",
+            "fact-6"
+          ],
+          "new_statements": [
+            "the user is confirmed for the Friday October 9 lunch.",
+            "Maya is confirmed for the Friday October 9 lunch.",
+            "Leo is confirmed for the Friday October 9 lunch.",
+            "Tess is confirmed for the Friday October 9 lunch.",
+            "Nora is confirmed for the Friday October 9 lunch.",
+            "No person outside the set the user, Maya, Leo, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+          "new_ids": [
+            "fact-7",
+            "fact-8",
+            "fact-9"
+          ],
+          "new_statements": [
+            "The lunch time is noon.",
+            "The lunch venue is Mario’s.",
+            "The lunch venue is on Pine Street."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "lunch-refreshed",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "old_count": 1,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The Friday lunch time is noon.",
+            "The Friday lunch venue is Mario’s.",
+            "The Friday lunch venue is on Pine Street."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "lunch-fresh",
+      "question": "Where and when is Friday lunch with Maya now?",
+      "old_count": 1,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Friday October 9 at noon at Mario's on Pine Street.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The Friday lunch time is noon.",
+            "The Friday lunch venue is Mario’s.",
+            "The Friday lunch venue is on Pine Street."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "cancellation-after",
+      "question": "What’s the status of my studio bookings?",
+      "old_count": 2,
+      "new_count": 5,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Wednesday October 7 pottery is cancelled.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The pottery booking is cancelled."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Thursday October 8 framing at 10 am at the Oak studio remains booked.",
+          "new_ids": [
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5"
+          ],
+          "new_statements": [
+            "The framing booking remains agreed.",
+            "The framing booking is Thursday October 8.",
+            "The framing booking starts at 10 am.",
+            "The framing venue is the Oak studio."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "attendance-unknown",
+      "question": "Did I attend Tuesday’s watercolor workshop?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The available messages do not establish whether the user attended.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The available messages do not establish whether the user attended the watercolor workshop."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "obligations-middle",
+      "question": "Where are we with Jen’s checklist, interview room and cover letter?",
+      "old_count": 3,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Jen has supplied the interview room, Room 204.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The supplied interview room is Room 204."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Jen still owes the revised checklist.",
+          "new_ids": [
+            "fact-2"
+          ],
+          "new_statements": [
+            "Jen’s revised checklist remains outstanding."
+          ]
+        },
+        {
+          "old_id": "fact-3",
+          "old_statement": "The user still owes cover-letter proofreading.",
+          "new_ids": [
+            "fact-3"
+          ],
+          "new_statements": [
+            "The user’s cover-letter proofreading remains outstanding."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "recurrence-exception",
+      "question": "When is our game this week and the following week?",
+      "old_count": 1,
+      "new_count": 4,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Thursday October 8 at 8 pm this week; Wednesday October 14 at 8 pm the next, at Devon's.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4"
+          ],
+          "new_statements": [
+            "This week’s game date is Thursday October 8.",
+            "This week’s game time is 8 pm.",
+            "The following week’s agreed game date is Wednesday October 14.",
+            "The following week’s agreed game time is 8 pm."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "invitation-placeholder",
+      "question": "What’s the status of Rae’s concert invitation, and where is it?",
+      "old_count": 2,
+      "new_count": 2,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "No acceptance or decline by the user is recorded in the available messages.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "No acceptance or decline by the user is recorded."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The venue has not been supplied; the invitation withholds it until RSVP.",
+          "new_ids": [
+            "fact-2"
+          ],
+          "new_statements": [
+            "The concert venue has not been supplied."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "withdrawal",
+      "question": "What’s the Friday lunch plan—who, when and where?",
+      "old_count": 2,
+      "new_count": 8,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The lunch remains agreed for Friday October 9 at 12:30 pm at Mario’s on Pine Street.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The Friday lunch time is 12:30 pm.",
+            "The Friday lunch venue is Mario’s.",
+            "The Friday lunch venue is on Pine Street."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The complete confirmed roster is the user, Maya, Tess and Nora; Leo is no longer attending.",
+          "new_ids": [
+            "fact-4",
+            "fact-5",
+            "fact-6",
+            "fact-7",
+            "fact-8"
+          ],
+          "new_statements": [
+            "the user is confirmed for the Friday October 9 lunch.",
+            "Maya is confirmed for the Friday October 9 lunch.",
+            "Tess is confirmed for the Friday October 9 lunch.",
+            "Nora is confirmed for the Friday October 9 lunch.",
+            "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "link-before",
+      "question": "What’s the link for my Friday parcel-support call?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "No support-call link has been supplied.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "No parcel-support call link has been supplied in the available source."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "obligations-after",
+      "question": "Has Jen sent the checklist, and what do I still owe her?",
+      "old_count": 2,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Jen has delivered the revised checklist.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "Jen has delivered the revised checklist."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The user still owes cover-letter proofreading by Thursday evening.",
+          "new_ids": [
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The user still owes cover-letter proofreading.",
+            "The agreed proofreading deadline is Thursday evening."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "draft-after",
+      "question": "What’s the plan for the PizzaLab tasting—who and when?",
+      "old_count": 2,
+      "new_count": 5,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The user has decided to attend Sunday October 11, 2–2:30 pm.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4"
+          ],
+          "new_statements": [
+            "The user has decided to attend the PizzaLab tasting.",
+            "The tasting attendance is planned for Sunday October 11.",
+            "The intended tasting start time is 2 pm.",
+            "The intended tasting end time is 2:30 pm."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Devon declined and is not joining.",
+          "new_ids": [
+            "fact-5"
+          ],
+          "new_statements": [
+            "Devon declined to join the tasting."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "game-reference",
+      "question": "What was Thursday’s game plan, and was Alex Reed coming?",
+      "old_count": 2,
+      "new_count": 8,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "One Thursday October 8 game was arranged at 8 pm at Devon’s, with Devon, Maya and the user.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5",
+            "fact-6",
+            "fact-7"
+          ],
+          "new_statements": [
+            "Exactly one Thursday game was arranged.",
+            "The Thursday game time is 8 pm.",
+            "The Thursday game is at Devon’s home.",
+            "Devon is confirmed for the Thursday game.",
+            "Maya is confirmed for the Thursday game.",
+            "the user is confirmed for the Thursday game.",
+            "No person outside the set Devon, Maya, the user is recorded as confirmed for the Thursday game."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Alex Reed had not confirmed attendance.",
+          "new_ids": [
+            "fact-8"
+          ],
+          "new_statements": [
+            "Alex Reed’s attendance is unconfirmed."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "visit-mid",
+      "question": "When does Morgan’s visit end, and where are they staying?",
+      "old_count": 2,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Morgan is staying at the user’s home.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "Morgan is staying at the user’s home."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The agreed end of the stay is Monday October 12 at 9 am.",
+          "new_ids": [
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The currently agreed end date is Monday October 12.",
+            "The currently agreed end time is 9 am."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "pizza-final",
+      "question": "What pizza plans did I have for Friday October 9? Include who, when and where.",
+      "old_count": 2,
+      "new_count": 13,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Lunch: exactly user and Maya, 12:30 pm at Mario's on Pine Street.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5",
+            "fact-6"
+          ],
+          "new_statements": [
+            "the user is confirmed for the October 9 pizza lunch.",
+            "Maya is confirmed for the October 9 pizza lunch.",
+            "No person outside the set the user, Maya is recorded as confirmed for the October 9 pizza lunch.",
+            "The pizza lunch time is 12:30 pm.",
+            "The pizza lunch venue is Mario’s.",
+            "The pizza lunch venue is on Pine Street."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Separate evening pizza: exactly user and Devon, 6 pm at Luigi's on 5th Street.",
+          "new_ids": [
+            "fact-7",
+            "fact-8",
+            "fact-9",
+            "fact-10",
+            "fact-11",
+            "fact-12",
+            "fact-13"
+          ],
+          "new_statements": [
+            "the user is confirmed for the October 9 evening pizza outing.",
+            "Devon is confirmed for the October 9 evening pizza outing.",
+            "No person outside the set the user, Devon is recorded as confirmed for the October 9 evening pizza outing.",
+            "The evening pizza time is 6 pm.",
+            "The evening pizza venue is Luigi’s.",
+            "The evening pizza venue is on 5th.",
+            "No additional user pizza outing beyond that lunch and evening outing is agreed in the available October 9 plans."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "lunch-history",
+      "question": "How did the time and place of the October 9 lunch change?",
+      "old_count": 2,
+      "new_count": 7,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The time changed from 1 pm to noon, then 12:30 pm.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The original lunch time was 1 pm.",
+            "The intermediate lunch time was noon.",
+            "The final lunch time was 12:30 pm."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The venue changed from Rosa’s on Oak Street to Mario’s on Pine Street.",
+          "new_ids": [
+            "fact-4",
+            "fact-5",
+            "fact-6",
+            "fact-7"
+          ],
+          "new_statements": [
+            "The original lunch venue was Rosa’s.",
+            "The original lunch venue was on Oak Street.",
+            "The final lunch venue was Mario’s.",
+            "The final lunch venue was on Pine Street."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "ben-final",
+      "question": "When and where did Ben and I agree to have dinner?",
+      "old_count": 1,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The final agreed dinner with Ben was Saturday October 10 at 7 pm at Juniper Cafe.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The final agreed dinner date is Saturday October 10.",
+            "The final agreed dinner time is 7 pm.",
+            "The final agreed dinner venue is Juniper Cafe."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "ben-mail-separate",
+      "question": "What arrangements did Ben and I make for October 10–11? Include times and places.",
+      "old_count": 2,
+      "new_count": 6,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Dinner was agreed for Saturday October 10 at 7 pm at Juniper Cafe.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The dinner date was Saturday October 10.",
+            "The dinner time was 7 pm.",
+            "The dinner venue was Juniper Cafe."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Ben would return the drill Sunday October 11 at 3 pm at the user’s door.",
+          "new_ids": [
+            "fact-4",
+            "fact-5",
+            "fact-6"
+          ],
+          "new_statements": [
+            "The drill return date was Sunday October 11.",
+            "The drill return time was 3 pm.",
+            "The drill return was arranged at the user’s door."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "roles",
+      "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+      "old_count": 4,
+      "new_count": 6,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The concert is Sunday October 11 at 8 pm at Foundry Theatre.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The concert date is Sunday October 11.",
+            "The concert time is 8 pm.",
+            "The concert venue is Foundry Theatre."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The user has not confirmed attendance.",
+          "new_ids": [
+            "fact-4"
+          ],
+          "new_statements": [
+            "The user’s concert attendance is unconfirmed."
+          ]
+        },
+        {
+          "old_id": "fact-3",
+          "old_statement": "Devon is conditional on his shift, not a confirmed companion.",
+          "new_ids": [
+            "fact-5"
+          ],
+          "new_statements": [
+            "Devon’s concert attendance is conditional on his shift."
+          ]
+        },
+        {
+          "old_id": "fact-4",
+          "old_statement": "No one is confirmed to accompany the user.",
+          "new_ids": [
+            "fact-6"
+          ],
+          "new_statements": [
+            "No confirmed companion for the user is recorded."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "series-final",
+      "question": "Do we have a game this coming Wednesday?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "No; the recurring game series ended, so there is no agreed October 14 game.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "No game is agreed for Wednesday October 14."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "attendance-final",
+      "question": "Did I attend the October 6 watercolor workshop?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "No; the user explicitly reported missing it.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The user reported that they missed the October 6 workshop."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "visit-final",
+      "question": "What arrival and departure times did Morgan and I settle on?",
+      "old_count": 2,
+      "new_count": 4,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Arrival was planned for Friday October 9 around 4 pm.",
+          "new_ids": [
+            "fact-1",
+            "fact-2"
+          ],
+          "new_statements": [
+            "The planned arrival date was Friday October 9.",
+            "The planned arrival time was around 4 pm."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The final agreed departure was Sunday October 11 at 10 am.",
+          "new_ids": [
+            "fact-3",
+            "fact-4"
+          ],
+          "new_statements": [
+            "The final agreed departure date was Sunday October 11.",
+            "The final agreed departure time was 10 am."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "dates",
+      "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "old_count": 2,
+      "new_count": 3,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The call is Thursday October 15 at 10 am.",
+          "new_ids": [
+            "fact-1",
+            "fact-2"
+          ],
+          "new_statements": [
+            "The interview-prep call date is Thursday October 15.",
+            "The interview-prep call time is 10 am."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The certificate is from the workshop on January 2, 2024.",
+          "new_ids": [
+            "fact-3"
+          ],
+          "new_statements": [
+            "The certificate is from the workshop on January 2, 2024."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "upcoming-small",
+      "question": "What plans or invitations do I have with Alex Reed and Alex Chen this week?",
+      "old_count": 2,
+      "new_count": 9,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Coffee with Alex Reed is agreed for Tuesday October 13 at 8 am at Birch.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5"
+          ],
+          "new_statements": [
+            "The activity arranged with Alex Reed is coffee.",
+            "The coffee date is Tuesday October 13.",
+            "The coffee time is 8 am.",
+            "The coffee venue is Birch.",
+            "The coffee arrangement is agreed."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Alex Chen’s Wednesday October 14 at 6 pm climbing invitation remains unanswered.",
+          "new_ids": [
+            "fact-6",
+            "fact-7",
+            "fact-8",
+            "fact-9"
+          ],
+          "new_statements": [
+            "Alex Chen’s invitation is for climbing.",
+            "The climbing invitation date is Wednesday October 14.",
+            "The climbing invitation time is 6 pm.",
+            "Alex Chen’s invitation remains unanswered."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "namesakes",
+      "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+      "old_count": 3,
+      "new_count": 7,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "AC is Alex Chen from the office; Alex Chen avoids dairy and accepts mushrooms.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "AC refers to Alex Chen.",
+            "Alex Chen avoids dairy.",
+            "Alex Chen accepts mushrooms."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "Alex Reed from ceramics avoids mushrooms and eats dairy.",
+          "new_ids": [
+            "fact-4",
+            "fact-5"
+          ],
+          "new_statements": [
+            "Alex Reed avoids mushrooms.",
+            "Alex Reed eats dairy."
+          ]
+        },
+        {
+          "old_id": "fact-3",
+          "old_statement": "The user now avoids dairy and accepts mushrooms.",
+          "new_ids": [
+            "fact-6",
+            "fact-7"
+          ],
+          "new_statements": [
+            "The user currently avoids dairy.",
+            "The user currently accepts mushrooms."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "tasks-final",
+      "question": "Is anything still outstanding between Jen and me on the checklist, interview room or cover letter?",
+      "old_count": 1,
+      "new_count": 4,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "None of those three items remains outstanding.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3"
+          ],
+          "new_statements": [
+            "The revised-checklist obligation is closed.",
+            "The interview-room question is answered.",
+            "The cover-letter proofreading obligation is closed."
+          ]
+        },
+        {
+          "old_id": null,
+          "old_statement": null,
+          "new_ids": [
+            "fact-4"
+          ],
+          "new_statements": [
+            "Completion of Jen’s company-name correction is not established."
+          ],
+          "reason": "The unchanged between-Jen-and-me question invites her unconfirmed promised correction, as well as the owner’s completed proofreading."
+        }
+      ]
+    },
+    {
+      "question_id": "hall-alias",
+      "question": "What do MR Hall and ZX Annex stand for?",
+      "old_count": 2,
+      "new_count": 2,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "MR Hall means Maple Ridge Hall.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "MR Hall means Maple Ridge Hall."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "ZX Annex has no established full expansion.",
+          "new_ids": [
+            "fact-2"
+          ],
+          "new_statements": [
+            "ZX Annex has no established full expansion in the available source."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "link-final",
+      "question": "What’s the link for my parcel-support call?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The support-call link is https://example.org/parcel381 .",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The parcel-support call link is https://example.org/parcel381 ."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "next-week-pizza",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "old_count": 3,
+      "new_count": 9,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "Lunch at 1 pm at Mario’s on Pine Street, with exactly the user and Maya.",
+          "new_ids": [
+            "fact-1",
+            "fact-2",
+            "fact-3",
+            "fact-4",
+            "fact-5",
+            "fact-6"
+          ],
+          "new_statements": [
+            "The October 16 lunch time is 1 pm.",
+            "The October 16 lunch venue is Mario’s.",
+            "The October 16 lunch venue is on Pine Street.",
+            "the user is confirmed for the October 16 lunch.",
+            "Maya is confirmed for the October 16 lunch.",
+            "No person outside the set the user, Maya is recorded as confirmed for the October 16 lunch."
+          ]
+        },
+        {
+          "old_id": "fact-2",
+          "old_statement": "The user avoids dairy; mushrooms are fine.",
+          "new_ids": [
+            "fact-7",
+            "fact-8"
+          ],
+          "new_statements": [
+            "The user avoids dairy.",
+            "The user accepts mushrooms."
+          ]
+        },
+        {
+          "old_id": "fact-3",
+          "old_statement": "Maya has not decided whether to continue avoiding dairy on October 16.",
+          "new_ids": [
+            "fact-9"
+          ],
+          "new_statements": [
+            "Maya has not decided whether to continue avoiding dairy on October 16."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "refund",
+      "question": "What’s the latest on my cancelled pottery booking?",
+      "old_count": 1,
+      "new_count": 1,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The refund for the cancelled October 7 pottery booking had been issued.",
+          "new_ids": [
+            "fact-1"
+          ],
+          "new_statements": [
+            "The pottery refund is reported as issued."
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "third-party-collision",
+      "question": "Who was I supposed to meet for pizza on Friday evening?",
+      "old_count": 1,
+      "new_count": 2,
+      "mapping": [
+        {
+          "old_id": "fact-1",
+          "old_statement": "The complete companion list for the user’s Friday October 9 evening pizza is Devon only.",
+          "new_ids": [
+            "fact-1",
+            "fact-2"
+          ],
+          "new_statements": [
+            "Devon is the user’s Friday-evening pizza companion.",
+            "No companion other than Devon is agreed for that Friday-evening pizza outing."
+          ]
+        }
+      ]
+    }
+  ],
+  "post_audit_revision": {
+    "reason": "Independent source-only/155-criterion review: remove entailed lunch-existence weight, and cover Jen’s unconfirmed promised correction invited by the unchanged broad question",
+    "changes": {
+      "withdrawal": {
+        "before": [
+          "The lunch remains agreed.",
+          "The Friday lunch time is 12:30 pm.",
+          "The Friday lunch venue is Mario’s.",
+          "The Friday lunch venue is on Pine Street.",
+          "the user is confirmed for the Friday October 9 lunch.",
+          "Maya is confirmed for the Friday October 9 lunch.",
+          "Tess is confirmed for the Friday October 9 lunch.",
+          "Nora is confirmed for the Friday October 9 lunch.",
+          "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+        ],
+        "after": [
+          "The Friday lunch time is 12:30 pm.",
+          "The Friday lunch venue is Mario’s.",
+          "The Friday lunch venue is on Pine Street.",
+          "the user is confirmed for the Friday October 9 lunch.",
+          "Maya is confirmed for the Friday October 9 lunch.",
+          "Tess is confirmed for the Friday October 9 lunch.",
+          "Nora is confirmed for the Friday October 9 lunch.",
+          "No person outside the set the user, Maya, Tess, Nora is recorded as confirmed for the Friday October 9 lunch."
+        ]
+      },
+      "tasks-final": {
+        "before": [
+          "The revised-checklist obligation is closed.",
+          "The interview-room question is answered.",
+          "The cover-letter proofreading obligation is closed."
+        ],
+        "after": [
+          "The revised-checklist obligation is closed.",
+          "The interview-room question is answered.",
+          "The cover-letter proofreading obligation is closed.",
+          "Jen promised to correct the cover letter’s company name; completion of that correction is not established."
+        ]
+      }
+    },
+    "denominator": 155,
+    "public_question_changes": 0,
+    "source_changes": 0
+  },
+  "post_contract_review_revision": {
+    "question_id": "tasks-final",
+    "before": "Jen promised to correct the cover letter’s company name; completion of that correction is not established.",
+    "after": "Completion of Jen’s company-name correction is not established.",
+    "reason": "The independent contract reviewer rejected a promise-plus-completion compound. Grade only the outstanding completion-status field; person/task names anchor that field without separately requiring a promise recital.",
+    "rejected_review": "/workspace/PACBench-stable-20261113/artifacts/pizza-week-hybrid-stream-v4-20261113/evaluation-errors.json",
+    "denominator": 155,
+    "public_question_changes": 0,
+    "source_changes": 0,
+    "prior_spec_sha256": "cd5c7269a5358ebde124d0aa718bba83caab6ff8c83fb83d56152a088c082c99"
+  },
+  "post_source_review_revision": {
+    "question_id": "pizza-final",
+    "criterion": "fact-12",
+    "before": "The evening pizza venue is on 5th Street.",
+    "after": "The evening pizza venue is on 5th.",
+    "reason": "Actual rendered source says on 5th; do not require an unestablished Street suffix.",
+    "independent_audit_sha256": "dd371b93b8a0aa7c2250fafc7187ea5d7e2e21a4a309d0d5e61f7870199df353",
+    "denominator": 155,
+    "public_question_changes": 0,
+    "source_changes": 0,
+    "prior_spec_sha256": "8e61e6c0d251a32878a8a513a97408362f995c797ecdc80f17992600ba66616c"
+  }
+}

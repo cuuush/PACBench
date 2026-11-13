@@ -1,0 +1,95 @@
+{
+  "audit_type": "affected_criteria_recheck_v2",
+  "status": "two local revisions supported; overall review remains partial; no freeze approval",
+  "scope": "Only dates/fact-2 and next-week-pizza/fact-3 reassessed. Other 61 criteria not reassessed.",
+  "old_input": {
+    "filename": "partial-criterion-review-input.json",
+    "sha256": "79ad251544e921a24403f0b6613c3902f1892b91f2f25f1efe3ccd35b1a4b6d8"
+  },
+  "new_input": {
+    "filename": "partial-criterion-review-input-v2.json",
+    "sha256": "2b9f828bebc457f9a414271977a961fc0888f5c178ce405b0929377cbb7bef83"
+  },
+  "integrity_checks": {
+    "actual_sources_unchanged": 102,
+    "questions_unchanged": 37,
+    "other_criteria_unchanged": 61,
+    "original_audits_preserved": {
+      "partial-source-only-audit.json": "b4b7343caa649aea3a713dcc7701d5b8afa78492a1744da765bac8259346eab2",
+      "partial-criterion-audit.json": "46337a08e389d0f31f7c76d8ce78d3e9c90738a361440322b0e8923d0e020ba7"
+    }
+  },
+  "criteria": [
+    {
+      "questionID": "dates",
+      "criterionID": "fact-2",
+      "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+      "at": "2026-10-12T10:20:00-04:00",
+      "old_statement": "The certificate is dated January 2, 2024.",
+      "new_statement": "The certificate is from the workshop on January 2, 2024.",
+      "assessment": "supported",
+      "finding": "The revision correctly ties January 2, 2024 to the workshop from which Jen’s certificate came. It no longer asserts a certificate issue/print date. This resolves the original attribution concern.",
+      "evidence_ids": [
+        "message-2c109b7e56ce10091102fdd5"
+      ],
+      "source_citations": [
+        {
+          "source_id": "message-2c109b7e56ce10091102fdd5",
+          "written_at": "2026-10-08T16:00:00-04:00",
+          "available_at": "2026-10-09T03:00:00-04:00",
+          "text": "Found my certificate from the workshop on January 2, 2024."
+        }
+      ],
+      "available_source_chronology": "All cited sources imported before this October 12 checkpoint under next-day 03:00 America/New_York rule.",
+      "natural_question_fairness": "Directly responsive to the certificate-from portion of the natural question; no source-attribution explanation should be required.",
+      "compound_independent_details": "One historical date with its correct workshop attribution.",
+      "decision": "Original local wording concern resolved; no new scoring rule, weighting or atomic mapping approved."
+    },
+    {
+      "questionID": "next-week-pizza",
+      "criterionID": "fact-3",
+      "question": "What’s arranged for pizza on October 16—who, when, where, and any food requirements?",
+      "at": "2026-10-12T11:20:00-04:00",
+      "old_statement": "Maya’s food requirements for that date remain undecided.",
+      "new_statement": "Maya has not decided whether to continue avoiding dairy on October 16.",
+      "assessment": "supported_recorded_status",
+      "finding": "The revision correctly limits uncertainty to continued dairy avoidance on October 16. Maya’s explicit undecided status after October 11 supports this; it does not extend the expired dairy-free interval or assert that dairy is now acceptable. This resolves the original overbroad food-requirements wording concern.",
+      "evidence_ids": [
+        "message-2307007e4a00111ea2a44c6e",
+        "message-33c7950d8188a5ff02cb766a",
+        "message-9f01bcf4d946e1b1611153c5"
+      ],
+      "source_citations": [
+        {
+          "source_id": "message-2307007e4a00111ea2a44c6e",
+          "written_at": "2026-10-07T15:00:20-04:00",
+          "available_at": "2026-10-08T03:00:00-04:00",
+          "text": "For me, dairy-free just through Sunday October 11 inclusive. I haven’t decided about after that."
+        },
+        {
+          "source_id": "message-33c7950d8188a5ff02cb766a",
+          "written_at": "2026-10-11T11:00:20-04:00",
+          "available_at": "2026-10-12T03:00:00-04:00",
+          "text": "Still not sure whether I’ll keep avoiding dairy after tonight."
+        },
+        {
+          "source_id": "message-9f01bcf4d946e1b1611153c5",
+          "written_at": "2026-10-11T11:00:30-04:00",
+          "available_at": "2026-10-12T03:00:00-04:00",
+          "text": "Let me know when you decide."
+        }
+      ],
+      "available_source_chronology": "All cited sources imported before this October 12 checkpoint under next-day 03:00 America/New_York rule.",
+      "natural_question_fairness": "Directly responsive to food requirements; a concise statement that Maya’s dairy requirement needs checking should satisfy without narrating interval reasoning.",
+      "compound_independent_details": "One time-scoped dairy-status judgment; no additional dietary requirements inferred.",
+      "decision": "Original local wording concern resolved; no new scoring rule, weighting or atomic mapping approved."
+    }
+  ],
+  "unchanged_caveats": [
+    "Eight writer scenes remain ungenerated. Descriptors, time windows and message ranges supply no missing dialogue or private facts.",
+    "Unsupported missing-writer-dependent criteria and complete-corpus absence/status caveats from the original criterion audit remain adverse findings.",
+    "Original granularity and unasked-detail findings for other criteria remain unchanged. Any new atomic mapping, weighting, required extras or scoring choices require author approval.",
+    "No full-source validation, overall criterion approval or freeze approval is given. Only lunch-continuity resumes; next-day 03:00 local availability rule remains in force."
+  ],
+  "execution": "Offline file inspection and audit write only; no code edits, provider/model runs, network or paid calls."
+}

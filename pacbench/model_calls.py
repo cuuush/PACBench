@@ -16,6 +16,39 @@ from typing import Any
 
 MODEL_TIMEOUT_S = 180
 ENCRYPTED_REDACTION = "<encrypted reasoning retained in private run artifact>"
+DIRECT_RESPONSE_EVIDENCE_VERSION = "direct-response-evidence-v1"
+RESPONSE_HEADER_ALLOWLIST = (
+    "content-type", "content-encoding", "date", "x-request-id",
+    "x-openrouter-request-id", "x-generation-id",
+)
+
+
+def direct_response_metadata(response):
+    """Retain correlation hints, never authentication/cookie headers."""
+    headers = getattr(response, 'headers', {}) or {}
+    selected = {}
+    for name in RESPONSE_HEADER_ALLOWLIST:
+        value = headers.get(name)
+        if isinstance(value, str):
+            selected[name] = value[:1024]
+    status = getattr(response, 'status', None)
+    return {'version': DIRECT_RESPONSE_EVIDENCE_VERSION,
+            'http_status': status if type(status) is int else None,
+            'headers': selected,
+            'scope': 'Response correlation hints; headers do not establish a generation ID or charge.'}
+
+
+def save_failed_response_body(record_path, body):
+    """Keep exact failed bytes private instead of losing them during parsing."""
+    private = record_path.parent / 'private'
+    private.mkdir(mode=0o700, exist_ok=True)
+    target = private / (record_path.name + '.response-body.bin')
+    fd = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    with os.fdopen(fd, 'wb') as stream:
+        stream.write(body)
+    return {'relative_path': 'private/' + target.name,
+            'bytes': len(body), 'sha256': hashlib.sha256(body).hexdigest(),
+            'scope': 'Private raw HTTP body; not a usable judgment or verified cost receipt.'}
 
 
 def read_direct_response(response, started, timing=None):
@@ -132,6 +165,8 @@ class ModelClient:
             request_started=time.monotonic()
             response_timing={}
             raw: dict[str, Any] | None = None
+            response_body = None
+            response_metadata = None
             error_response: str | None = None
             error = ""
             transient = False
@@ -145,8 +180,17 @@ class ModelClient:
                     headers={"Authorization": f"Bearer {self.key}",
                              "Content-Type": "application/json"})
                 with urllib.request.urlopen(req, timeout=MODEL_TIMEOUT_S) as response:
-                    raw = json.loads(read_direct_response(response,request_started,response_timing)
-                        if os.environ.get('PACBENCH_DIRECT')=='1' else response.read())
+                    if os.environ.get('PACBENCH_DIRECT') == '1':
+                        response_metadata = direct_response_metadata(response)
+                        response_body = read_direct_response(response, request_started, response_timing)
+                        response_metadata.update(body_bytes=len(response_body),
+                            body_sha256=hashlib.sha256(response_body).hexdigest())
+                        decoded = json.loads(response_body)
+                        if not isinstance(decoded, dict):
+                            raise ValueError('model response must be a JSON object')
+                        raw = decoded
+                    else:
+                        raw = json.loads(response.read())
                 if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
                     if isinstance(raw.get('usage'), dict) and 'cost' in raw['usage']:
                         raw['usage']['cost_usd'] = raw['usage']['cost']
@@ -191,6 +235,10 @@ class ModelClient:
                     'wall_duration_s':round(time.monotonic()-request_started,6),
                     'wall_deadline_s':MODEL_TIMEOUT_S,
                     'scope':'Client-observed HTTP timing; does not identify upstream queue or model compute'}
+                if response_metadata is not None:
+                    record['direct_response'] = response_metadata
+                if error and response_body is not None:
+                    record['failed_response_body'] = save_failed_response_body(path, response_body)
             _write_record(path, record)
             if spending_refused:
                 from .gateway_client import SpendingBlocked

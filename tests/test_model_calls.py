@@ -217,3 +217,60 @@ def test_gateway_budget_refusal_is_terminal_without_transport_retry(tmp_path):
         with pytest.raises(RuntimeError,match='HTTP 429'):client('Write a scene')
     assert call.call_count==1 and not sleep.called
     assert len(list(tmp_path.glob('*.json')))==1
+
+
+@pytest.mark.parametrize('body', [b'         \n\n', b'{"unexpected":"private upstream detail"}',
+                                 b'[{"value":1}]', b'42', b'null'])
+def test_direct_invalid_reply_keeps_private_bytes_and_safe_headers_without_retry(tmp_path,monkeypatch,body):
+    import hashlib
+    import stat
+    from email.message import Message
+    from pacbench import model_calls
+    monkeypatch.setenv('PACBENCH_DIRECT','1')
+    monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
+    class Response:
+        status=200
+        def __init__(self):
+            self.stream=io.BytesIO(body);self.headers=Message()
+            for key,value in [('Content-Type','application/json'),('X-Request-ID','correlation-only'),
+                ('X-Generation-ID','gen-observed-header'),('Authorization','SECRET_AUTH'),
+                ('Set-Cookie','SECRET_COOKIE')]:self.headers[key]=value
+        def read1(self,*args):return self.stream.read(*args)
+        def __enter__(self):return self
+        def __exit__(self,*args):self.stream.close()
+    client=ModelClient(key='inert',model='model',record_dir=tmp_path)
+    with mock.patch('pacbench.model_calls.urllib.request.urlopen',return_value=Response()) as opened:
+        with pytest.raises(RuntimeError,match='audit record'):client('Judge the unchanged answer')
+    assert opened.call_count==1
+    records=list(tmp_path.glob('*.json'));assert len(records)==1
+    value=json.loads(records[0].read_text());assert value['status']=='failed' and value['cost_usd'] is None
+    metadata=value['direct_response']
+    assert metadata['http_status']==200 and metadata['body_sha256']==hashlib.sha256(body).hexdigest()
+    assert metadata['body_bytes']==len(body)
+    assert metadata['headers']=={'content-type':'application/json','x-request-id':'correlation-only','x-generation-id':'gen-observed-header'}
+    assert 'SECRET_AUTH' not in records[0].read_text() and 'SECRET_COOKIE' not in records[0].read_text()
+    raw=tmp_path/value['failed_response_body']['relative_path']
+    assert raw.read_bytes()==body and stat.S_IMODE(raw.stat().st_mode)==0o600
+    assert value['failed_response_body']['sha256']==metadata['body_sha256']
+    assert not list(tmp_path.glob('*.bin'))
+
+
+def test_direct_success_records_correlation_but_never_copies_raw_body(tmp_path,monkeypatch):
+    from email.message import Message
+    monkeypatch.setenv('PACBENCH_DIRECT','1')
+    monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
+    body=json.dumps({'id':'gen-response','choices':[{'message':{'content':'complete'}}],
+                     'usage':{'prompt_tokens':2,'completion_tokens':1,'cost':0.001}}).encode()
+    class Response:
+        status=200
+        headers=Message()
+        def __init__(self):self.stream=io.BytesIO(body)
+        def read1(self,*args):return self.stream.read(*args)
+        def __enter__(self):return self
+        def __exit__(self,*args):self.stream.close()
+    with mock.patch('pacbench.model_calls.urllib.request.urlopen',return_value=Response()):
+        output=ModelClient(key='inert',model='model',record_dir=tmp_path)('Judge the answer')
+    value=json.loads(Path(output.record_path).read_text())
+    assert output.text=='complete' and value['response']['id']=='gen-response'
+    assert value['direct_response']['body_bytes']==len(body)
+    assert 'failed_response_body' not in value and not (tmp_path/'private').exists()

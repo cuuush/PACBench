@@ -83,7 +83,7 @@ def test_v7_blinds_authored_intent_and_checks_unique_citations():
               'checks':[{'id':'dinner','at':'2026-10-19T10:00:00-04:00',
                          'prompt':'When is dinner?', 'expect':'SECRET_EXPECTATION',
                          'facts':['SECRET_CHECK_FACT']}]}
-    prompt=review_prompt([msg],resolved)
+    prompt=review_prompt([msg],resolved,version='source-realism-v9')
     assert all(x not in prompt for x in ('SECRET_SCENE','SECRET_SCENE_FACT',
                                           'SECRET_EXPECTATION','SECRET_CHECK_FACT','secret-thread'))
     assert msg['text'] in prompt and msg['written_at'] in prompt
@@ -93,14 +93,14 @@ def test_v7_blinds_authored_intent_and_checks_unique_citations():
           'alternatives':['none'],'ambiguous':False}
     verdict={'consistent':True,'questions_answerable':True,'natural_enough':True,
              'issues':[],'assessments':[item]}
-    assert verdict_passes(verdict,[msg],resolved)
+    assert verdict_passes(verdict,[msg],resolved,version='source-realism-v9')
     duplicate={**msg,'source_id':'m2','thread':'another'}
-    assert not verdict_passes(verdict,[msg,duplicate],resolved)
+    assert not verdict_passes(verdict,[msg,duplicate],resolved,version='source-realism-v9')
     from pacbench.corpus_review import validation_errors
-    assert validation_errors(verdict,[msg,duplicate],resolved)==[
+    assert validation_errors(verdict,[msg,duplicate],resolved,version='source-realism-v9')==[
         {'path':'assessments[dinner].source_evidence[0]','code':'timestamp_quote_ambiguous_match'}]
-    assert not verdict_passes({**verdict,'assessments':[{**item,'ambiguous':True}]},[msg],resolved)
-    assert not verdict_passes({**verdict,'assessments':[]},[msg],resolved)
+    assert not verdict_passes({**verdict,'assessments':[{**item,'ambiguous':True}]},[msg],resolved,version='source-realism-v9')
+    assert not verdict_passes({**verdict,'assessments':[]},[msg],resolved,version='source-realism-v9')
 
 
 def test_v7_receipt_reports_bad_quote_without_altering_model_verdict(tmp_path):
@@ -115,7 +115,7 @@ def test_v7_receipt_reports_bad_quote_without_altering_model_verdict(tmp_path):
                  'alternatives':['none'],'ambiguous':False}]}
     def model(_): return SimpleNamespace(text=json.dumps(verdict),record_path='call.json',usage={})
     with pytest.raises(ValueError,match='Corpus realism review rejected'):
-        review_corpus([msg],resolved,model,tmp_path)
+        review_corpus([msg],resolved,model,tmp_path,version='source-realism-v9')
     saved=json.loads((tmp_path/'realism-review.json').read_text())
     assert saved['review']==verdict and saved['review']['issues']==[]
     assert saved['validation_errors']==[{'path':'assessments[dinner].source_evidence[0]',
@@ -132,16 +132,16 @@ def test_v8_quotes_public_updates_but_rejects_future_or_conditional_inputs():
         return {'check_id':check['id'],'event_date':'2026-11-01','alternatives':['none'],
             'ambiguous':False,'source_evidence':[{'written_at':update['at'],'quote':update['prompt']}]}
     verdict={'assessments':[assessment(update),assessment(recall)]}
-    assert validation_errors(verdict,[],resolved)==[]
+    assert validation_errors(verdict,[],resolved,version='source-realism-v9')==[]
     assert all(e['code']=='timestamp_quote_no_match' for e in
         validation_errors(verdict,[],resolved,version='source-realism-v7'))
     recall['at']='2026-10-26T16:00:00-04:00'
-    assert validation_errors(verdict,[],resolved)==[
+    assert validation_errors(verdict,[],resolved,version='source-realism-v9')==[
         {'path':'assessments[recall].source_evidence[0]','code':'source_after_question'}]
     update['trigger']='clarification'
-    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict,[],resolved))
-    assert 'clarification' in review_prompt([],resolved)
-    assert 'conditional inputs' in review_prompt([],resolved)
+    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict,[],resolved,version='source-realism-v9'))
+    assert 'clarification' in review_prompt([],resolved,version='source-realism-v9')
+    assert 'conditional inputs' in review_prompt([],resolved,version='source-realism-v9')
 
 
 def test_public_input_order_dependencies_and_cross_session_intended_state():
@@ -155,13 +155,13 @@ def test_public_input_order_dependencies_and_cross_session_intended_state():
             'ambiguous':False,'source_evidence':[{'written_at':evidence['at'],'quote':evidence['prompt']}]}
             for r in target]}
     resolved={'checks':rows}
-    assert validation_errors(verdict(rows,rows[0]),[],resolved)==[]
-    assert any(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved))
+    assert validation_errors(verdict(rows,rows[0]),[],resolved,version='source-realism-v9')==[]
+    assert any(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved,version='source-realism-v9'))
     rows[0]['trigger']='clarification'
     rows[1]['requires']=['first']
     rows.append({'id':'third','at':'2026-10-26T17:00:00-04:00','prompt':'Latest plan?',
                  'requires':['second']})
-    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved))
+    assert all(e['code']=='timestamp_quote_no_match' for e in validation_errors(verdict(rows,rows[1]),[],resolved,version='source-realism-v9'))
 
 
 def test_large_corpus_deadline_is_confined_and_does_not_change_review_request(tmp_path,monkeypatch):
@@ -180,6 +180,6 @@ def test_large_corpus_deadline_is_confined_and_does_not_change_review_request(tm
         return SimpleNamespace(text=json.dumps(verdict),record_path=str(path),usage={})
     monkeypatch.setattr(ModelClient,'__call__',completed)
     client=ModelClient(key='inert',model='offline',record_dir=tmp_path)
-    result=review_corpus([msg],resolved,client,tmp_path)
-    assert client.timeout_s==180 and client.max_attempts==2 and seen==[(900,review_prompt([msg],resolved))]
+    result=review_corpus([msg],resolved,client,tmp_path,version='source-realism-v9')
+    assert client.timeout_s==180 and client.max_attempts==2 and seen==[(900,review_prompt([msg],resolved,version='source-realism-v9'))]
     assert result['execution_condition']=={'version':'corpus-review-real-deadline-v1','wall_deadline_s':900,'max_attempts':1}

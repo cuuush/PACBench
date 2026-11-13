@@ -202,3 +202,24 @@ This version replaces v10's split output instructions, which sometimes elicited
 only per-fact judgments. It does not permit automatic format retries or rerolls.
 Changed checker prompts require new bound checks, reusing the exact source text;
 prior failed and ungraded receipts remain separate evidence.
+# Source review and uncertainty
+
+New preparations use `source-realism-v10` for the independent source-blind corpus
+review. It distinguishes determinate answers, grounded unknown attributes,
+references needing clarification, and invalid questions. Mixed questions retain
+their known attributes. An invitation, booking, promise or old quotation does
+not establish an accepted invitation, attendance, completed task or current
+preference.
+
+Grounded uncertainty must be responsive to the public question and justified
+against the complete eligible history. The request and receipt bind each
+checkpoint's evidence set; citations preserve source identities, exact text,
+written and collection times, and ordered conditional public inputs. A question's
+presupposition is not a factual report. Source coherence, naturalness, and the
+separate independent verification of every frozen criterion remain required.
+Unresolved contradictory current source cannot pass as mere uncertainty.
+
+Historical v9 reviews keep their original standard and verdicts. A prospective
+v10 review does not turn a v9 rejection into a pass; retain the predecessor and
+the changed review condition. Qualify the condition with positive and negative
+controls before live use.

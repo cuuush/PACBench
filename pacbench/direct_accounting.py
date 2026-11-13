@@ -234,7 +234,10 @@ class DirectBudget:
                 'reserved':str(bound),'accounted':str(bound),'state':'reserved','transport':VERSION,
                 'provider_request':request['provider'],'completion_bound_tokens':maximum,
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
-                'http_status':None,'error_label':None}
+                'http_status':None,'error_label':None,
+                'native_request_parameter_keys':sorted(body),
+                'native_request_parameters':{k:body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in body},
+                'parameter_observation_scope':'Native input before route/price enforcement; absence is not a provider default. completion_bound_tokens is an accounting bound, not an injected output limit.'}
             if retry_of is not None:
                 grant=retry_of['authorized_retry'];grant['used_by']=row['id']
                 row.update(explicit_retry_of=retry_of['id'],retry_authorization_id=grant['id'])

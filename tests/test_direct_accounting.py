@@ -319,3 +319,13 @@ def test_native_cached_and_reasoning_token_details_are_retained_without_payload(
     assert r['usage_detail']['prompt_tokens_details.cached_tokens']==2
     assert r['usage_detail']['completion_tokens_details.reasoning_tokens']==1
     assert 'secret' not in str(r['usage_detail']) and 'other' not in r['usage_detail']
+
+
+def test_native_request_parameters_are_observed_without_injecting_cap_or_thinking(budget):
+    a=budget.reserve('default',{'model':MODEL});row=budget.snapshot()[0]
+    assert row['native_request_parameters']=={}
+    assert 'max_tokens' not in a['request'] and 'max_completion_tokens' not in a['request'] and 'reasoning_effort' not in a['request']
+    assert row['completion_bound_tokens']==50
+    b=budget.reserve('configured',{'model':MODEL,'reasoning_effort':'low','max_completion_tokens':20})
+    assert budget.snapshot()[1]['native_request_parameters']=={'reasoning_effort':'low','max_completion_tokens':20}
+    assert b['request']['reasoning_effort']=='low' and b['request']['max_completion_tokens']==20

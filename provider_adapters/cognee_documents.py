@@ -23,6 +23,13 @@ def ingest(source, root):
     prior=[]
     for path in sorted((root/'ingestion').glob('*.json')):
         record=json.loads(path.read_text())
+        recovery=root/'ingestion-recovery'/path.name
+        if recovery.exists():
+            import hashlib
+            overlay=json.loads(recovery.read_text())
+            if overlay.get('original_record_sha256')!=hashlib.sha256(path.read_bytes()).hexdigest():
+                raise RuntimeError('Recovery evidence does not bind the original failed import')
+            record=overlay['verified_record']
         native=record.get('result',{})
         if record.get('ready') is not True or native.get('processing_complete') is not True:
             raise RuntimeError('Prior Cognee ingestion is uncertain; do not continue or resubmit')

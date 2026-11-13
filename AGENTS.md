@@ -46,11 +46,16 @@ existing docs and run evidence in machine-readable artifacts.
 - Validate specs with `python -m pacbench.specs`. Use the existing compiler.
   Generate and review once, then freeze and reuse `week.json` with all siblings.
   Preserve bodies, identities, membership, threads and written/collection times.
+  Omitted `noise` uses scene-directed authored mode; explicit legacy modes and
+  frozen policies stay supported. Resuming legacy preparation requires an
+  explicit mode so a default change cannot silently migrate its sources.
 - Scenes may supply exact messages instead of using the writer. Keep the normal
   independent checks and freeze audit; never rewrite rejected supplied source.
 - Require current source, contract and corpus reviews bound to actual inputs
   and receipts. Bulk review is advisory; retain required independent source
-  audits. Never relabel stale reviews, reroll a rejected verdict for approval,
+  audits of every frozen question and scoring criterion against the actual
+  source available at its checkpoint. Reuse unchanged validation and recheck
+  affected material after changes. Never relabel stale reviews, reroll a rejected verdict for approval,
   or silently migrate historical evidence to a new protocol.
 - Freeze natural questions, evidence-cited criteria and recovery rules before
   execution. Grade only facts reasonably invited by the question. Preserve

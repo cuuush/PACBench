@@ -309,3 +309,13 @@ def test_abandoned_retry_cannot_exceed_aggregate_cap(budget):
     with budget.locked() as state:state['calls'].append({'id':'external','project':'other','state':'allocated','accounted':'19.9997'})
     with pytest.raises(RuntimeError,match='cap'):budget.reserve('native',body)
     rows=budget.snapshot();assert rows[0]['authorized_retry']['used_by'] is None and rows[0]['accounted']=='0.0002'
+
+
+def test_native_cached_and_reasoning_token_details_are_retained_without_payload(budget):
+    row=budget.reserve('native',{'model':MODEL});data=json.loads(reply())
+    data['usage'].update(prompt_tokens_details={'cached_tokens':2,'secret':'never'},completion_tokens_details={'reasoning_tokens':1},other='ignored')
+    budget.settle(row['id'],200,json.dumps(data).encode())
+    r=budget.snapshot()[0]
+    assert r['usage_detail']['prompt_tokens_details.cached_tokens']==2
+    assert r['usage_detail']['completion_tokens_details.reasoning_tokens']==1
+    assert 'secret' not in str(r['usage_detail']) and 'other' not in r['usage_detail']

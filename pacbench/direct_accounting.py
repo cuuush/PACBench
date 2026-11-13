@@ -265,7 +265,15 @@ class DirectBudget:
                 if any(e.get('model') is not None and e['model']!=MODEL for e in events):
                     row['error_label']='model_mismatch';return
                 payload=next(e for e in reversed(events) if isinstance(e.get('usage'),dict))
-                usage=payload['usage'];cost=money(usage['cost']);inp=usage['prompt_tokens'];out=usage['completion_tokens']
+                usage=payload['usage']
+                from .usage import TOKEN_DETAILS
+                detail={}
+                for name,value in usage.items():
+                    if name in TOKEN_DETAILS and type(value) is int and value>=0:detail[name]=value
+                    if name in ('prompt_tokens_details','completion_tokens_details','input_tokens_details','output_tokens_details') and isinstance(value,dict):
+                        detail.update({name+'.'+k:v for k,v in value.items() if k in TOKEN_DETAILS and type(v) is int and v>=0})
+                row['usage_detail']=detail
+                cost=money(usage['cost']);inp=usage['prompt_tokens'];out=usage['completion_tokens']
                 if (status==200 and type(inp) is int and type(out) is int and
                         0<=inp<=self.config['context_tokens'] and 0<=out<=row['completion_bound_tokens'] and
                         cost<=money(row['reserved'])):

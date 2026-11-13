@@ -1,0 +1,221 @@
+{
+  "version": "native-import-cause-audit-v1",
+  "at": "2026-11-13T19:31:19.226516+00:00",
+  "input_gate": "pass under the recorded native ingestion conditions",
+  "native_semantic_errors": "Retained as benchmark quality outcomes, not evidence of incomplete source delivery",
+  "benchmark_questions_restarted": false,
+  "native_store_corrections": 0,
+  "provider_prompt_changes": 0,
+  "new_paid_calls_for_audit": 0,
+  "source_evidence": {
+    "message-e7d38b0e1efefd1f09f84755": {
+      "sender": "Maya",
+      "from_owner": false,
+      "written_at": "2026-10-07T13:00:00-04:00",
+      "text": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?",
+      "canonical_message_sha256": "d2ed04668b4f06986e8cdd51c28debbfecece9df7c8a0bf139138fb9d4055cc0"
+    },
+    "message-96cc61b4451281d78c880fcb": {
+      "sender": "Me",
+      "from_owner": true,
+      "written_at": "2026-10-07T13:00:10-04:00",
+      "text": "12:30 works.",
+      "canonical_message_sha256": "c22ee181c67c8fd67145838f6abb4a326c918515970a7b197f05d734440f8693"
+    },
+    "message-6a60e2c84341718ab64ecaf6": {
+      "sender": "Maya",
+      "from_owner": false,
+      "written_at": "2026-10-06T14:00:00-04:00",
+      "text": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?",
+      "canonical_message_sha256": "f7c521ef92a3fe32a78d06b656817724d0c0bf5ac6599ef553a85ac24dfbba8f"
+    },
+    "message-12292df8a4113436fee10c20": {
+      "sender": "Me",
+      "from_owner": true,
+      "written_at": "2026-10-06T14:00:10-04:00",
+      "text": "Yes, Mario's.",
+      "canonical_message_sha256": "d914cf12422464d08952f5da79af1d33a2f2ba1ee6564d77d1dd03f74dea3f36"
+    },
+    "message-1ffd93226f0713a7a98b402b": {
+      "sender": "Maya",
+      "from_owner": false,
+      "written_at": "2026-10-09T19:00:00-04:00",
+      "text": "Clearing out Monday’s notes:\n> For pizza, I avoid mushrooms; I’m fine with dairy.",
+      "canonical_message_sha256": "00025977087d75678fe50a62b2d0f29cc78e7fc22303e7c6b0b120f5aa343847"
+    },
+    "message-6d3348d05e242abfe9ddf451": {
+      "sender": "Me",
+      "from_owner": true,
+      "written_at": "2026-10-07T15:00:00-04:00",
+      "text": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on.",
+      "canonical_message_sha256": "0c7428c73a1e22c2391924c07afbb82aa54d07efbb48c5c59784e2ffc0c1bd2c"
+    },
+    "message-4a691ac7f752b563f08659b0": {
+      "sender": "Tess",
+      "from_owner": false,
+      "written_at": "2026-10-08T10:00:00-04:00",
+      "text": "Sorry, childcare fell through. I’m out for Friday.",
+      "canonical_message_sha256": "efbca9f542755f93f8ee943d0f4e1f03f7b8da7b6c6691eb5931ee943b757081"
+    },
+    "message-8f1923071fabc0205e774d82": {
+      "sender": "Maya",
+      "from_owner": false,
+      "written_at": "2026-10-08T10:00:10-04:00",
+      "text": "Nora just cancelled with me too. Then it’s just you and me for lunch now.",
+      "canonical_message_sha256": "e0903c3c9d9416c8d1ca57bfa9ec3895776535a7ac36ae445b23621116087431"
+    },
+    "message-e84db33ee141baeb2b02524e": {
+      "sender": "Me",
+      "from_owner": true,
+      "written_at": "2026-10-05T10:00:00-04:00",
+      "text": "For pizza, I avoid mushrooms; I’m fine with dairy.",
+      "canonical_message_sha256": "5c51bb15ab0f69289214cf1f7f5308590265ffcf8a214fb1aa405d5850a1be92"
+    }
+  },
+  "provider_findings": {
+    "memcal": {
+      "finding": "Stored Friday lunch time remains noon despite submitted12:30 correction.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "77841de94d564fda3d2a43e19d57de55b1f09c23a6e4c1aa56a912cd862d3060",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "additional_evidence": "Native propose and merge call journals both contain12:30 in their request suffixes; both finished stop without truncation. The critical12:30 email was not one of the shortened emails."
+    },
+    "mem0": {
+      "finding": "October8 attendance update reasserts noon after the October7 time changed to12:30.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "6fc15f0f4f7f9c454509a8bb92c166b6457542d1ceb9c07f60dba14aff02f046",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Documented is_reasoning_model flag; plugin OSSBackend binds768-dimensional local embeddings. Native fact store has55 memories across all7 document IDs; it has no raw-document readback interface."
+    },
+    "hindsight": {
+      "finding": "Retained facts resolve the12:30 lunch to the old quoted venue and misattribute the quoted preference.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "1e0115c5bd0b4e409cf238a032aba361d1f7f78f3a53a475e9da17182d3a8a85",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Historical retain timestamps and source dates are explicit; native per-request timeout300s is disclosed. All observation consolidations completed. Prompts/output limits unchanged."
+    },
+    "openviking": {
+      "finding": "October9 native overview treats the old quoted preference as Maya's own statement.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "5c6e09dafed81c3b565ab36e8a3e5024349b7b300b5cdd2cb401dcf10a385e42",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Native resource ingestion and semantic summaries. All125 message bodies retained exactly in12 native leaf documents; only inter-chunk whitespace differs."
+    },
+    "honcho": {
+      "finding": "Native fact with source citation to Maya's relayed Monday note assigns the quoted preference to Maya.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "2e67d89bfc5c79af2b0e5b833e2236fb7ba183f557793ebcf106e3640fcd87c3",
+      "source_ids": [
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Source authors, metadata and message timestamps verified exactly; actual native membership windows and AI-observer citations checked. Simulated native clock, native batching and documented thinking_effort=none condition retained."
+    },
+    "reme": {
+      "finding": "Native daily cards resolve the venue to the old quote and misattribute the old dietary note.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "c4b2962b020e996873f22d10eddcb63c0213a8066633827a1553f3817447fe04",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-96cc61b4451281d78c880fcb",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20",
+        "message-1ffd93226f0713a7a98b402b",
+        "message-6d3348d05e242abfe9ddf451"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Native auto_memory and native resource watcher; all7 persisted raw resource files match source bytes. Real processing clock, explicit historical source dates."
+    },
+    "cognee": {
+      "finding": "Final native TextSummary/GlobalContextSummary preserves wrong quoted venue and quoted-preference attribution.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "56f818edc7966982b94c353593a29a8a6ee7255d89083a90abe60aad5b71557f",
+      "source_ids": [
+        "message-1ffd93226f0713a7a98b402b",
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-6a60e2c84341718ab64ecaf6"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Native remember/cognify/improve; complete final7 raw-document readbacks and terminal pipeline records. Real processing clock, explicit historical source dates. No native code or prompts patched."
+    },
+    "supermemory": {
+      "finding": "Native source-linked October7 memory says12:30 at Rosa's despite confirmed Mario's venue.",
+      "classification": "native extraction/update outcome; no source transport or lifecycle defect found for this finding",
+      "stored_fact_review_sha256": "f445b3f0a0185b1b534ecdb8bee57d04264af86a33e8ee1b4c281115f93af651",
+      "source_ids": [
+        "message-e7d38b0e1efefd1f09f84755",
+        "message-6a60e2c84341718ab64ecaf6",
+        "message-12292df8a4113436fee10c20"
+      ],
+      "verification": "Complete native processing and exact delivered sources checked; relevant persisted source/fact evidence retained. No memories or provider prompts were corrected.",
+      "native_condition": "Documented dreaming=instant condition, differing from native dynamic default, retained and disclosed. Source-linked records inspected on copied store; original file unchanged and no model calls."
+    }
+  },
+  "memcal_native_preprocessing": {
+    "emails_received_full": 22,
+    "imessages_verified": 103,
+    "quote_history_removed": 1,
+    "url_normalization": 2,
+    "reader_or_archive_length_limits_hit": 0,
+    "source_quote_duplicate_preserved_earlier": [
+      "message-8002dd308259933cffaf62ee"
+    ],
+    "audit_sha256": "4823c18a0f1450301e4d4f6609ddd6085af43966065d34eb86a6c780a4eae164"
+  },
+  "correction_to_previous_report": "The3 shortened Memcal email flags were previously described as3 quoted-history removals. Native replay shows1 quote removal and2 URL normalizations. This corrects the interpretation; original records remain unchanged.",
+  "remaining_limits": [
+    "Source delivery correctness does not guarantee native extraction accuracy.",
+    "Per-resource summary extraction may lack cross-document context; native retrieval can still resolve facts later.",
+    "No additional inference was run to establish causal effects of model reasoning settings.",
+    "All-week qualification stores contain future source relative to early checkpoints and cannot be reused for chronological benchmark questions."
+  ],
+  "recommendation": "Input and lifecycle prerequisites are satisfied. Keep extraction mistakes and native preprocessing as disclosed quality outcomes. Preserve prior completed runs; use fresh chronological stores for affected benchmark providers, without manually repairing native facts.",
+  "memcal_critical_time_update_reader_check": {
+    "source_id": "message-e7d38b0e1efefd1f09f84755",
+    "rfc822_sha256": "5464c2cf1c35f409e6756bc242d7411004847b7e867e39944c6ddacaac5c3ca3",
+    "native_archive_id": 76,
+    "native_reader_received_full_body": true,
+    "envelope_author_time_recipients_verified": true,
+    "native_archive_shape_exact": true,
+    "body_chars": 183,
+    "kept_chars": 183,
+    "native_body_truncated_flag": false,
+    "quote_history_removed": false,
+    "native_url_normalization": false,
+    "length_limit_reached": false,
+    "quoted_text_duplicates_prior_source_ids": []
+  }
+}

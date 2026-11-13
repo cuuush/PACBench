@@ -1,0 +1,69 @@
+{
+  "native-default": {
+    "captured_at_httpx_send_before_network": true,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "request_keys": [
+      "messages",
+      "model",
+      "response_format"
+    ],
+    "parameters": {
+      "reasoning": {
+        "present": false,
+        "value": null
+      },
+      "reasoning_effort": {
+        "present": false,
+        "value": null
+      },
+      "max_tokens": {
+        "present": false,
+        "value": null
+      },
+      "max_completion_tokens": {
+        "present": false,
+        "value": null
+      },
+      "temperature": {
+        "present": false,
+        "value": null
+      }
+    }
+  },
+  "documented-llm-args-probe": {
+    "captured_at_httpx_send_before_network": true,
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "request_keys": [
+      "max_completion_tokens",
+      "messages",
+      "model",
+      "reasoning_effort",
+      "response_format"
+    ],
+    "parameters": {
+      "reasoning": {
+        "present": false,
+        "value": null
+      },
+      "reasoning_effort": {
+        "present": true,
+        "value": "low"
+      },
+      "max_tokens": {
+        "present": false,
+        "value": null
+      },
+      "max_completion_tokens": {
+        "present": true,
+        "value": 16384
+      },
+      "temperature": {
+        "present": false,
+        "value": null
+      }
+    }
+  },
+  "paid_calls": 0,
+  "socket_connect_attempts": 0,
+  "scope": "Reproduction with dummy prompt and key; not the missing historical request body. Both HTTPX send and socket connect abort before network."
+}

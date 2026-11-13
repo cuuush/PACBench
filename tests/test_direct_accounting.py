@@ -60,6 +60,22 @@ def test_private_rejection_capture_distinguishes_eof_from_interruption(budget,co
     assert saved['state']=='uncertain' and saved['accounted']==saved['reserved']
 
 
+@pytest.mark.parametrize('status',[401,403])
+def test_global_auth_hold_notifies_measured_supervisor(budget,tmp_path,monkeypatch,status):
+    stop=tmp_path/'STOP';monkeypatch.setenv('PACBENCH_DIRECT_STOP_ON_429',str(stop))
+    row=budget.reserve('native',{'model':MODEL,'messages':[]});budget.settle(row['id'],status)
+    assert json.loads(stop.read_text())['reason']=='upstream_authentication_blocked'
+
+
+def test_reservation_cap_notifies_supervisor_without_new_admission(budget,tmp_path,monkeypatch):
+    stop=tmp_path/'STOP';monkeypatch.setenv('PACBENCH_DIRECT_STOP_ON_429',str(stop))
+    with budget.locked() as state:state['calls'].append({'id':'old','project':'old','state':'uncertain','accounted':'20'})
+    before=budget.snapshot()
+    with pytest.raises(RuntimeError,match='spending cap reached'):budget.reserve('native',{'model':MODEL,'messages':[]})
+    assert json.loads(stop.read_text())['reason']=='task_reservation_cap_reached'
+    assert budget.snapshot()==before
+
+
 def test_nonblocking_snapshot_never_waits_on_suspended_ledger_owner(budget, monkeypatch):
     import fcntl
     from pacbench import usage

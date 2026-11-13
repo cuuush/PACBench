@@ -1,0 +1,81 @@
+{
+  "version": "native-stored-fact-review-v2",
+  "provider": "mem0",
+  "state": "input-integrity-pass-native-quality-errors-recorded",
+  "messages_submitted": 125,
+  "completed_batches": 7,
+  "batches": [
+    {
+      "day": "2026-10-05",
+      "submitted_source_sha256": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e",
+      "source_messages": 33,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-06",
+      "submitted_source_sha256": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41",
+      "source_messages": 23,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-07",
+      "submitted_source_sha256": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32",
+      "source_messages": 26,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-08",
+      "submitted_source_sha256": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9",
+      "source_messages": 21,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-09",
+      "submitted_source_sha256": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f",
+      "source_messages": 4,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-10",
+      "submitted_source_sha256": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9",
+      "source_messages": 8,
+      "native_processing_ready": true
+    },
+    {
+      "day": "2026-10-11",
+      "submitted_source_sha256": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c",
+      "source_messages": 10,
+      "native_processing_ready": true
+    }
+  ],
+  "native_fact_count": 53,
+  "native_fact_source_days": [
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+    "2026-10-09",
+    "2026-10-10",
+    "2026-10-11"
+  ],
+  "native_database_unchanged_by_inspection": true,
+  "raw_document_readback": "Not provided by this infer=True native fact-store interface; submission equality and native completion verified, not lossless raw-source archival.",
+  "quality_cases": [
+    {
+      "source_day": "2026-10-07",
+      "source_fact": "Maya proposed 12:30 for the October 9 lunch, the owner and Tess agreed, and Maya confirmed Nora also agreed.",
+      "source_quote": "12:30 works.",
+      "observation": "The final 53-fact snapshot has no 12:30 fact tied to that lunch. Its 12:30 entry describes the separate North Hall bulletin. Historical noon/1pm lunch memories remain.",
+      "classification": "native extraction/update omission after complete source delivery"
+    },
+    {
+      "source_day": "2026-10-09",
+      "source_quote": "Clearing out Monday\u2019s notes:\n> For pizza, I avoid mushrooms; I\u2019m fine with dairy.",
+      "native_fact_id": "fde28a91-c008-43fe-93bb-073d315630b5",
+      "stored_fact": "Maya told the user on October 9, 2026 that for pizza she avoids mushrooms but is fine with dairy.",
+      "observation": "The quoted old owner preference is stored as Maya\u2019s stated preference.",
+      "classification": "native quoted-history attribution error"
+    }
+  ],
+  "scope": "Read-only native Qdrant enumeration and exact ingestion receipts. Native quality errors are retained as outcomes. This is not a recall score or proof that every source fact was extracted correctly."
+}

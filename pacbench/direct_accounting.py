@@ -46,6 +46,17 @@ def now():
     return datetime.fromtimestamp(stamp, timezone.utc).isoformat()
 
 
+def stop_measured_admission(reason, identifier=None):
+    """Notify the run supervisor without changing reservations or native params."""
+    value=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
+    if not value:return
+    try:
+        with Path(value).open('x') as receipt:
+            json.dump({'reason':reason,'request_id':identifier,'at':now()},receipt)
+    except FileExistsError:
+        pass
+
+
 class DirectBudget:
     def __init__(self, path=STATE/'ledger.json', *, nonblocking=False):
         self.path=Path(path)
@@ -208,8 +219,10 @@ class DirectBudget:
             if state.get('handoff',{}).get('frozen') is True:
                 raise RuntimeError('Task ledger frozen for session transfer; source spending is disabled')
             if any(c.get('reported_liability_exceeds_bound') for c in calls):
+                stop_measured_admission('reported_liability_exceeds_bound')
                 raise RuntimeError('Reported task liability exceeded a reserved bound; paid admission stopped')
             if any(c.get('http_status') in (401,403) for c in calls):
+                stop_measured_admission('upstream_authentication_blocked')
                 raise RuntimeError('Task authentication blocked')
             own=[c for c in calls if c['project']==project]
             if sum(c.get('http_status') in (400,422) for c in own)>=3:
@@ -232,6 +245,7 @@ class DirectBudget:
             if any(c.get('request_sha256')==fingerprint and c['state']=='reserved' for c in own):
                 raise RuntimeError('Identical request already in flight')
             if sum(money(c['accounted']) for c in calls)+bound>money(self.config['cap']):
+                stop_measured_admission('task_reservation_cap_reached')
                 raise RuntimeError('Task spending cap reached')
             row={'id':str(uuid.uuid4()),'project':project,'model':MODEL,'started':now(),'finished':None,
                 'reserved':str(bound),'accounted':str(bound),'state':'reserved','transport':VERSION,
@@ -262,14 +276,8 @@ class DirectBudget:
                     'x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-reset-tokens'}
                 row['response_diagnostic_headers']={str(k).lower():str(v)[:1024]
                     for k,v in headers.items() if str(k).lower() in allowed}
-            admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
-            if status==429 and admission_stop:
-                target=Path(admission_stop)
-                try:
-                    with target.open('x') as receipt:
-                        json.dump({'reason':'upstream_rate_limit','request_id':identifier,'at':now()},receipt)
-                except FileExistsError:
-                    pass
+            if status in (401,403,429):
+                stop_measured_admission('upstream_rate_limit' if status==429 else 'upstream_authentication_blocked',identifier)
             try:
                 if isinstance(data,str):data=data.encode()
                 if status != 200 and data:

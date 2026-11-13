@@ -35,4 +35,12 @@ client deadline under `corpus-review-real-deadline-v1`; per-answer judges retain
 their 180-second default. The source-review prompt and validation gates stay the
 same.
 
+An explicit user authorization may permit one further attempt while an ended
+response's charge remains uncertain. Record that authorization against the
+original ledger ID and exact project/request fingerprint. Consume it once when
+reserving the new attempt; retain the original full hold and count both against
+the shared cap. This does not infer cancellation, settle the original charge,
+accept its incomplete reply, or enable automatic SDK retries. Authentication,
+route, usage-health and total-budget admission checks still apply.
+
 Initial pass/fail/ungraded counts are disjoint. If recovery authoring or review fails, preserve the completed initial verdict and report the recovery error separately. A question asking what happened to a specific object is valid; asking about a boolean status does not assert that status. Current scope-review artifacts flag overly literal criteria and vague event references without changing the original grades. Future contracts must identify the intended event rather than rely on author-only labels such as “first outing.”

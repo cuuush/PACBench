@@ -1,0 +1,66 @@
+{
+  "state": "pass",
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "Both public inputs are assessable. q-1 is a declarative user correction that supersedes the earlier Friday pickup, and q-2 is answered by that retained correction in the fresh session.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "explicit_public_report",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Pickup is now Sunday October 11 at 11 am, not Friday."
+        ],
+        "unresolved_fields": [],
+        "reason": "The public input is an explicit user correction that updates the pickup from the earlier Friday time to Sunday October 11 at 11 am. The earlier source is explicitly superseded, so there is no unresolved current-state conflict.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:q-1",
+            "written_at": "2026-10-06T09:00:00-04:00",
+            "quote": "The pickup is now Sunday October 11 at 11 am, not Friday. Please remember that."
+          }
+        ]
+      },
+      {
+        "check_id": "q-2",
+        "event_date": "2026-10-07",
+        "answerability": "determinate",
+        "grounding_kind": "explicit_public_report",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Pickup is Sunday October 11 at 11 am."
+        ],
+        "unresolved_fields": [],
+        "reason": "The fresh-session question asks when the pickup is. The eligible prior explicit public correction establishes the updated pickup as Sunday October 11 at 11 am, so the requested attribute has an ordinary supported answer.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:q-1",
+            "written_at": "2026-10-06T09:00:00-04:00",
+            "quote": "The pickup is now Sunday October 11 at 11 am, not Friday. Please remember that."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": [],
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-control-recovery-v1-20261113/model-calls/ef159f08c51a026d4ec485c32ce21e1d28521d8940441e8d1c3cd0f76d4f91c8.json",
+  "original_unknown_charge_still_held": true
+}

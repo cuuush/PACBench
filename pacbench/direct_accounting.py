@@ -72,6 +72,26 @@ class DirectBudget:
         with self.locked() as state:
             return [{**c,'accounted_upper_bound_usd':float(money(c['accounted']))} for c in state['calls']]
 
+    def authorize_retry(self,identifier,*,authorization):
+        """Record an explicit, single-use operator retry without releasing a hold.
+
+        This is never called by SDK retry loops. The original response must have
+        ended, and its exact project/request identity remains authoritative.
+        """
+        if not isinstance(authorization,str) or not authorization.strip():
+            raise ValueError('Explicit retry authorization required')
+        with self.locked() as state:
+            row=next(c for c in state['calls'] if c['id']==identifier)
+            if (row.get('transport')!=VERSION or row.get('state')!='uncertain' or
+                    row.get('http_status')!=200 or not row.get('finished') or
+                    not row.get('request_sha256') or not row.get('upstream_request_id')):
+                raise ValueError('Only an ended, identified uncertain response can receive a retry authorization')
+            if row.get('authorized_retry'):raise ValueError('Attempt already has a retry authorization')
+            grant={'id':str(uuid.uuid4()),'authorized_at':now(),'authorization':authorization,
+                   'project':row['project'],'request_sha256':row['request_sha256'],'used_by':None}
+            row['authorized_retry']=grant
+            return dict(grant)
+
     def reserve(self,project,body):
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
             raise ValueError('Invalid accounting project')
@@ -119,10 +139,17 @@ class DirectBudget:
                    c.get('state')=='uncertain' and
                    (c.get('input_tokens') is None or c.get('output_tokens') is None) for c in own)>=3:
                 raise RuntimeError('Three completed provider responses lack usable token usage; project stopped')
-            if any(c.get('transport')==VERSION and c['state']=='uncertain' and
+            uncertain=[c for c in own if c.get('transport')==VERSION and c['state']=='uncertain' and
                    c.get('http_status') not in (400,422,429) and
-                   (not c.get('request_sha256') or c['request_sha256']==fingerprint) for c in own):
-                raise RuntimeError('Uncertain request outcome; no automatic replay')
+                   (not c.get('request_sha256') or c['request_sha256']==fingerprint)]
+            retry_of=None
+            if uncertain:
+                grant=uncertain[0].get('authorized_retry',{}) if len(uncertain)==1 else {}
+                if (grant.get('used_by') is None and grant.get('id') and
+                        grant.get('request_sha256')==fingerprint and grant.get('project')==project):
+                    retry_of=uncertain[0]
+                else:
+                    raise RuntimeError('Uncertain request outcome; no automatic replay')
             if any(c.get('request_sha256')==fingerprint and c['state']=='reserved' for c in own):
                 raise RuntimeError('Identical request already in flight')
             if sum(money(c['accounted']) for c in calls)+bound>money(self.config['cap']):
@@ -132,6 +159,9 @@ class DirectBudget:
                 'provider_request':request['provider'],'completion_bound_tokens':maximum,
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
                 'http_status':None,'error_label':None}
+            if retry_of is not None:
+                grant=retry_of['authorized_retry'];grant['used_by']=row['id']
+                row.update(explicit_retry_of=retry_of['id'],retry_authorization_id=grant['id'])
             calls.append(row)
         return {'id':row['id'],'request':request}
 

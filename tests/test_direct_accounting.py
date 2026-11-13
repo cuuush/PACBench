@@ -167,3 +167,52 @@ def test_native_public_inventory_needs_no_credential_but_inference_still_does(mo
     for path,body in [('chat/completions',b'{"model":"anything"}'),('key',b'')]:
         with pytest.raises(RuntimeError,match='Unaccounted'):
             hook.admitted('https://openrouter.ai/api/v1/'+path,{},body)
+
+
+def ended_unknown(budget):
+    body={'model':MODEL,'stream':True,'messages':[{'role':'user','content':'Frozen request'}]}
+    row=budget.reserve('native',body)
+    budget.settle(row['id'],200,json.dumps({'id':'generation-ended','model':MODEL}).encode())
+    return row,body
+
+
+def test_explicit_retry_keeps_original_hold_and_consumes_exactly_once(budget):
+    original,body=ended_unknown(budget)
+    before=budget.snapshot()[0]
+    grant=budget.authorize_retry(original['id'],authorization='User explicitly authorizes one bounded retry with unknown charge held')
+    retry=budget.reserve('native',body)
+    rows=budget.snapshot()
+    assert rows[0]['accounted']==before['accounted'] and rows[0]['state']=='uncertain'
+    assert rows[0]['authorized_retry']['used_by']==retry['id']
+    assert rows[1]['explicit_retry_of']==original['id']
+    assert rows[1]['retry_authorization_id']==grant['id']
+    budget.settle(retry['id'],200,reply())
+    with pytest.raises(RuntimeError,match='Uncertain'):budget.reserve('native',body)
+    with pytest.raises(ValueError,match='already'):budget.authorize_retry(original['id'],authorization='Again')
+
+
+def test_explicit_retry_does_not_bypass_cap_or_consume_grant_on_refusal(budget):
+    original,body=ended_unknown(budget)
+    budget.authorize_retry(original['id'],authorization='User authorization')
+    with budget.locked() as state:state['calls'][0]['accounted']='20'
+    with pytest.raises(RuntimeError,match='spending cap'):budget.reserve('native',body)
+    assert budget.snapshot()[0]['authorized_retry']['used_by'] is None
+
+
+def test_retry_authorization_requires_ended_identified_response(budget):
+    row=budget.reserve('native',{'model':MODEL})
+    with pytest.raises(ValueError):budget.authorize_retry(row['id'],authorization='User authorization')
+    budget.settle(row['id'],200,b'{}')
+    with pytest.raises(ValueError):budget.authorize_retry(row['id'],authorization='User authorization')
+    with pytest.raises(ValueError):budget.authorize_retry(row['id'],authorization='')
+
+
+def test_concurrent_explicit_retries_consume_one_durable_grant(budget):
+    original,body=ended_unknown(budget)
+    budget.authorize_retry(original['id'],authorization='One user-authorized retry')
+    def reserve(_):
+        try:return budget.reserve('native',body)['id']
+        except RuntimeError:return None
+    with ThreadPoolExecutor(max_workers=2) as pool:ids=list(pool.map(reserve,range(2)))
+    assert sum(i is not None for i in ids)==1
+    assert len(budget.snapshot())==2

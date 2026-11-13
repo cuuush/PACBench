@@ -53,7 +53,8 @@ def test_mem0_uses_distinct_native_profile_identities(tmp_path):
     assert env["PACBENCH_PROVIDER_ONLY"] == "1"
 
 
-def test_mem0_native_reasoning_parameters_do_not_inherit_legacy_chat_limit(tmp_path):
+@pytest.mark.parametrize('model',['muse-spark-1.3-contributor','deepseek/deepseek-v4.1-flash-1017'])
+def test_mem0_native_reasoning_parameters_do_not_inherit_legacy_chat_limit(tmp_path,model):
     import os
     import subprocess
     from pacbench.harness import ISOLATED_BIN
@@ -67,12 +68,13 @@ def test_mem0_native_reasoning_parameters_do_not_inherit_legacy_chat_limit(tmp_p
     script = '''
 from mem0.configs.llms.openai import OpenAIConfig
 from mem0.llms.openai import OpenAILLM
-cfg=OpenAIConfig(model='muse-spark-1.3-contributor',api_key='offline-test',is_reasoning_model=True)
+import sys
+cfg=OpenAIConfig(model=sys.argv[1],api_key='offline-test',is_reasoning_model=True)
 assert cfg.max_tokens==2000 and cfg.reasoning_effort is None
 params=OpenAILLM(cfg)._get_supported_params(messages=[{'role':'user','content':'offline probe'}])
 assert not {'max_tokens','max_completion_tokens','temperature','reasoning_effort'} & params.keys()
 '''
-    result=subprocess.run([str(ISOLATED_BIN.parent/'python'),'-c',script],
+    result=subprocess.run([str(ISOLATED_BIN.parent/'python'),'-c',script,model],
         env={**os.environ,'HOME':str(tmp_path),'MEM0_TELEMETRY':'false'},capture_output=True,text=True,timeout=30)
     assert result.returncode==0,result.stderr
 

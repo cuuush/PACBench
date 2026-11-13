@@ -269,8 +269,8 @@ def hindsight(source,root,at,processing_at):
     from pacbench.provider_loader import provider_module
     HindsightMemoryProvider = provider_module("hindsight").HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
-    from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
-    deadline=time.monotonic()+PROCESSING_TIMEOUT_S
+    from pacbench.document_ingestion import HINDSIGHT_PROCESSING_TIMEOUT_S
+    deadline=time.monotonic()+HINDSIGHT_PROCESSING_TIMEOUT_S
     cfg=json.loads((root/'hermes-home/hindsight/config.json').read_text())
     validate_route(cfg['llm_base_url'],os.environ['HINDSIGHT_LLM_API_KEY'])
     provider=HindsightMemoryProvider()
@@ -299,6 +299,7 @@ def hindsight(source,root,at,processing_at):
         return {'ready':not failed and not pending,'interface':'Hindsight.retain(content,document_id,retain_async=False)',
                 'result':result.model_dump(mode='json') if hasattr(result,'model_dump') else str(result),
                 'processing_status':statuses,
+                'processing_deadline_s':HINDSIGHT_PROCESSING_TIMEOUT_S,
                 'readiness':'Native retain and observation consolidation completion via Operations API'}
     finally:provider.shutdown()
 

@@ -79,9 +79,9 @@ TMPDIR=/var/tmp vendor/venv-hermes-isolated/bin/python -m pytest -q
 
 The source pins and ordinary backend settings below remain authoritative.
 
-**Upgraded Pizza Day validation is enabled; the new Pizza Week remains held**
-until native provider and Honcho scheduling checks pass. The isolated Hermes
-v0.23.1 integration has
+**Fresh native trials require the pinned setup and original shared accounting.**
+Use the reviewed cohort launcher below only with an authorized spending cap.
+The isolated Hermes v0.23.1 integration has
 passed a free synthetic local gateway/CLI canary and a separate direct HTTPS
 check. Each turn owns and gracefully stops its native gateway. The current
 Honcho `honcho-wall-clock-v5` protocol uses a shared-offset Python clock for
@@ -287,3 +287,14 @@ original accounting restoration, applicable approval and integrity checks pass,
 isolated local arms. It uses the original $20 task cap, exact DeepInfra Flex
 route, native questions and shared frozen source. Do not run Week in the source
 session during this handoff.
+
+Failed-arm retries use a new output directory and `--providers`, for example
+`python scripts/run_reviewed_week_cohort.py --providers mem0 hindsight honcho --output runs/week-retry --concurrency 3`.
+Preserve successful original arms and select replacements explicitly when
+publishing; do not copy failed stores into a fresh attempt.
+
+For an ended OpenRouter request with a recorded generation ID but missing usage,
+`python -m pacbench.openrouter_reconcile LEDGER_REQUEST_ID` fetches free generation
+and model-catalog receipts, stores them in the private accounting directory,
+and settles only validated actual usage. Requests without a generation ID remain
+held. No inference call, budget reset, or automatic replay is performed.

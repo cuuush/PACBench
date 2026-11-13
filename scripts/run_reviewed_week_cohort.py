@@ -16,7 +16,11 @@ import argparse
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--concurrency',type=int,choices=(1,2,3),default=3)
+ALL_PROVIDERS=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
+parser.add_argument('--providers',nargs='+',choices=ALL_PROVIDERS,default=ALL_PROVIDERS,
+    help='Run only these arms in fresh stores; retain completed arms from earlier cohorts')
 args=parser.parse_args()
+if len(args.providers)!=len(set(args.providers)):parser.error('Duplicate providers')
 repo=Path(__file__).resolve().parents[1]
 prepared=repo/'artifacts/pizza-week-hybrid-stream-v7-20261113/week.json';root=args.output.resolve()
 assert prepared.is_file(),'Full source review and freeze must complete first'
@@ -44,7 +48,7 @@ from pacbench.context_isolation import validate_recall_environment
 os.environ['TMPDIR']='/var/tmp'
 validate_recall_environment()
 root.mkdir(exist_ok=False)
-providers=['memcal','mem0','hindsight','supermemory','openviking','honcho','reme','cognee','memos']
+providers=args.providers
 record={'version':'stable-native-week-cohort-v3','state':'running','providers':providers,'concurrency':args.concurrency,
  'started':datetime.now(timezone.utc).isoformat(),'performance_scope':'Concurrent functional trials; no latency ranking',
  'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),

@@ -9,7 +9,7 @@ from pathlib import Path
 from .gateway_client import STATE
 
 
-def snapshot(roles, state=STATE):
+def snapshot(roles, state=STATE, *, nonblocking=False):
     if not roles:
         return {'state':'unavailable','reason':'No isolated gateway project mapping','calls':[]}
     if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
@@ -17,7 +17,8 @@ def snapshot(roles, state=STATE):
         if active():
             from .direct_accounting import live_budget,VERSION
             try:
-                calls=[direct_call(c,roles[c['project']]) for c in live_budget().snapshot() if c['project'] in roles]
+                budget=live_budget(nonblocking=True) if nonblocking else live_budget()
+                calls=[direct_call(c,roles[c['project']]) for c in budget.snapshot() if c['project'] in roles]
                 return {'state':'captured','at':datetime.now(timezone.utc).isoformat(),'calls':calls,'transport':VERSION}
             except (OSError,ValueError,KeyError,RuntimeError) as exc:
                 return {'state':'unavailable','reason':type(exc).__name__,'calls':[]}
@@ -36,7 +37,8 @@ def snapshot(roles, state=STATE):
         except (OSError, ValueError, KeyError, TypeError) as exc:
             return {'state': 'unavailable', 'reason': type(exc).__name__, 'calls': []}
     try:
-        with sqlite3.connect(f'file:{Path(state) / "ledger.sqlite3"}?mode=ro', uri=True) as db:
+        with sqlite3.connect(f'file:{Path(state) / "ledger.sqlite3"}?mode=ro', uri=True,
+                             timeout=0 if nonblocking else 5) as db:
             db.row_factory = sqlite3.Row
             marks = ','.join('?' for _ in roles)
             columns = {r['name'] for r in db.execute('PRAGMA table_info(calls)')}
@@ -74,7 +76,9 @@ def direct_call(row, role):
         value=Decimal(str(call['accounted']))
         if not value.is_finite() or value<0:raise ValueError('Invalid direct settled charge')
         call.update(actual_cost_usd=float(value),actual_cost_usd_decimal=format(value,'f'),
-                    actual_cost_source='openrouter.usage.cost')
+                    actual_cost_source=('openrouter.generation.total_cost'
+                        if row.get('reconciliation',{}).get('cost_source')=='total_cost'
+                        else 'openrouter.usage.cost'))
     return call
 
 def ledger_call(row, role):

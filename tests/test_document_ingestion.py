@@ -272,7 +272,8 @@ def test_old_ingestion_receipts_keep_their_original_clock_condition():
     assert processing_at(at,'memcal','America/New_York',version=LEGACY_VERSION)=='2026-10-15T03:00:00-04:00'
 
 
-def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch):
+@pytest.mark.parametrize('provider',['memcal','hindsight'])
+def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch,provider):
     from pacbench import document_ingestion as module
     schedule=prepare_sources(tmp_path,[message('one')],'America/New_York')
     source=tmp_path/'sources'/schedule[0]['id']
@@ -280,11 +281,12 @@ def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch
     monkeypatch.setattr(module.subprocess,'run',lambda *a,**kw:
         subprocess.CompletedProcess(a[0],1,json.dumps(failure)+'\n','failure diagnostic'))
     monkeypatch.setattr(module,'snapshot',lambda roles:{'state':'captured','at':'now','calls':[]})
-    record=module.ingest_day('memcal',source,tmp_path/'arm',{'PACBENCH_USAGE_ROLES':'{}'},
+    record=module.ingest_day(provider,source,tmp_path/'arm',{'PACBENCH_USAGE_ROLES':'{}'},
                              schedule[0]['at'],'America/New_York')
     assert record['state']=='failed' and record['ready'] is False
     assert record['result']==failure and record['returncode']==1
     assert record['hermes_ingestion_turns']==0
+    assert record['processing_timeout_s']==(3630 if provider=='hindsight' else 900)
 
 
 def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path):

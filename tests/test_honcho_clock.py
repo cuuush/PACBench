@@ -236,14 +236,17 @@ def test_checkpoint_order_uses_instants_across_dst_fallback():
     assert next_checkpoint(rows,'2026-11-01T01:45:00-04:00') == '2026-11-01T01:15:00-05:00'
 
 
-@pytest.mark.parametrize('busy', ['claims','eligible','embeddings','busy_connections','model'])
+@pytest.mark.parametrize('busy', ['claims','eligible','embeddings','busy_connections','model','accounting-lock'])
 def test_judging_never_suspends_observed_native_work(monkeypatch,tmp_path,busy):
     provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
     monkeypatch.setattr(clock,'load',lambda r:(provider,{}))
     monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat(),
-        **({busy:1} if busy!='model' else {})))
-    monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[
-        {'role':'memory_provider','finished':None}] if busy=='model' else []})
+        **({busy:1} if busy not in {'model','accounting-lock'} else {})))
+    def cost_snapshot(roles, *, nonblocking=False):
+        assert nonblocking
+        return {'state':'unavailable' if busy=='accounting-lock' else 'captured','calls':[
+            {'role':'memory_provider','finished':None}] if busy=='model' else []}
+    monkeypatch.setattr('pacbench.usage.snapshot',cost_snapshot)
     events=[]
     @contextmanager
     def paused(r):
@@ -286,7 +289,7 @@ def test_unsupported_freezer_runs_native_time_only_when_running_unpaused_is_veri
     provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
     monkeypatch.setattr(clock,'load',lambda r:(provider,{'container':'owned-db'}))
     monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat()))
-    monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[]})
+    monkeypatch.setattr('pacbench.usage.snapshot',lambda r,**kw:{'state':'captured','calls':[]})
     events=[]
     @contextmanager
     def paused(root):

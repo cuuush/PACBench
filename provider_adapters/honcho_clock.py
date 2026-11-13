@@ -257,7 +257,10 @@ def benchmark_overhead(root, roles):
     try:
         stack.enter_context(paused_apps(root))
         state = snapshot(root)
-        usage = cost_snapshot(roles)
+        # A just-suspended API thread may own the shared accounting lock.
+        # Never wait on a suspended owner: unavailable accounting takes the
+        # existing native-work-active path, resuming apps before judging.
+        usage = cost_snapshot(roles, nonblocking=True)
         busy_model = usage.get('state') != 'captured' or any(
             c.get('role') == 'memory_provider' and c.get('finished') is None
             for c in usage.get('calls',[]))

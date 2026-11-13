@@ -64,7 +64,8 @@ def mem0_model_settings(model: str, base: str, *, openrouter: bool = False) -> d
     if openrouter:
         # Native Mem0 gives this setting precedence over openai_base_url.
         settings['openrouter_base_url'] = base
-    if model == 'muse-spark-1.3-contributor':
+    from .openrouter_route import MODEL as OPENROUTER_MODEL
+    if model in {'muse-spark-1.3-contributor', OPENROUTER_MODEL}:
         settings['is_reasoning_model'] = True
     return settings
 
@@ -369,10 +370,10 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         config['oss']['llm']['config']['api_key'] = memory_key
         config["sync_max_chars"] = 6000
         # The README's manual setup documents this SDK flag for reasoning
-        # models. Its name heuristic knows GPT/o-series, but not Spark. Let
+        # models. Its name heuristic knows GPT/o-series, but not Spark/DeepSeek. Let
         # the native SDK choose its reasoning-model request parameters rather
         # than treating Spark as a legacy chat model with a 2,000-token cap.
-        if configured_model == 'muse-spark-1.3-contributor':
+        if config['oss']['llm']['config'].get('is_reasoning_model') is True:
             save(root/'model-compatibility.json',{
                 'model':configured_model,'is_reasoning_model':True,
                 'route':'Hermes Mem0 README manual OSS configuration; native SDK explicit model classification',

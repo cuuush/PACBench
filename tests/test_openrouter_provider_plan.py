@@ -35,7 +35,8 @@ def test_native_model_configuration_matches_real_setup_fields(tmp_path):
     assert spark_config['llm_provider'] == spark_env['HINDSIGHT_API_LLM_PROVIDER'] == 'meta'
     mem0 = native_pilot.openrouter_provider_plan('mem0', tmp_path)['native_settings']
     assert mem0['openrouter_base_url'] == mem0['openai_base_url'] == BASE
-    assert 'is_reasoning_model' not in mem0
+    assert mem0['is_reasoning_model'] is True
+    assert not {'max_tokens','max_completion_tokens','reasoning_effort'} & mem0.keys()
 
 
 def test_direct_openrouter_provision_is_blocked_before_side_effects(tmp_path, monkeypatch):

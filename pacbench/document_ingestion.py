@@ -20,6 +20,7 @@ NIGHTLY_JSON_VERSION = 'daily-source-documents-v2'
 LEGACY_VERSION = 'daily-source-documents-v1'
 SUPPORTED_VERSIONS = (LEGACY_VERSION,NIGHTLY_JSON_VERSION,VERSION)
 PROCESSING_TIMEOUT_S = 900
+HINDSIGHT_PROCESSING_TIMEOUT_S = 3600
 PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {
@@ -197,6 +198,11 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
     if timeout_s is None:
         timeout_s=PROCESSING_TIMEOUT_S  # One nightly batch may contain several real conversations.
+        if provider=='hindsight':
+            # Retain plus native consolidation can outlast the generic batch
+            # watchdog during upstream retries. Completion remains mandatory;
+            # give the connector time to save its terminal readiness evidence.
+            timeout_s=HINDSIGHT_PROCESSING_TIMEOUT_S+30
         if provider=='honcho':
             defaults=json.loads((root/'native-processing-settings.json').read_text())
             timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
@@ -206,6 +212,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     before=snapshot(roles)
     started=time.monotonic()
     record={'version':VERSION,'provider':provider,'at':at,'processing_at':native_at,
+            'processing_timeout_s':timeout_s,
             'document_sha256':hashlib.sha256((source/'messages.txt').read_bytes()).hexdigest(),
             'source_ids':json.loads((source/'source.json').read_text())['source_ids'],
             'delivery':('native-sources' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),

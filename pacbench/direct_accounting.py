@@ -47,8 +47,9 @@ def now():
 
 
 class DirectBudget:
-    def __init__(self, path=STATE/'ledger.json'):
+    def __init__(self, path=STATE/'ledger.json', *, nonblocking=False):
         self.path=Path(path)
+        self.nonblocking=nonblocking
         with self.locked() as state:
             self.config=state['config']
         if (self.config.get('model')!=MODEL or self.config.get('endpoint')!=ENDPOINT or
@@ -59,7 +60,7 @@ class DirectBudget:
     def locked(self):
         # Never create, replace or reset a missing task ledger.
         with self.path.open('r+') as f:
-            fcntl.flock(f,fcntl.LOCK_EX)
+            fcntl.flock(f,fcntl.LOCK_EX | (fcntl.LOCK_NB if self.nonblocking else 0))
             state=json.load(f)
             if state.get('version')!=1 or not isinstance(state.get('calls'),list):
                 raise RuntimeError('Invalid task ledger')
@@ -91,6 +92,46 @@ class DirectBudget:
                    'project':row['project'],'request_sha256':row['request_sha256'],'used_by':None}
             row['authorized_retry']=grant
             return dict(grant)
+
+    def reconcile_generation(self, identifier, generation, model_record, *, receipt_sha256):
+        """Settle one identified ended response from authoritative generation data.
+
+        The caller fetches and privately preserves the OpenRouter receipt. Never
+        estimate missing costs/tokens or release an unidentified historical hold.
+        """
+        g=generation
+        if (model_record.get('id')!=MODEL or
+                g.get('model') not in {MODEL,model_record.get('canonical_slug')} or
+                not g.get('model') or g.get('provider_name')!='DeepInfra' or
+                g.get('service_tier')!='flex' or g.get('is_byok') is not False or
+                not (g.get('cancelled') is True or g.get('finish_reason')) or
+                not re.fullmatch(r'[0-9a-f]{64}',receipt_sha256)):
+            raise ValueError('Unverified generation identity or terminal state')
+        inp=g.get('native_tokens_prompt');out=g.get('native_tokens_completion')
+        cost=money(g.get('total_cost'))
+        if type(inp) is not int or type(out) is not int or min(inp,out)<0 or cost!=money(g.get('usage')):
+            raise ValueError('Incomplete generation usage')
+        with self.locked() as state:
+            row=next(c for c in state['calls'] if c['id']==identifier)
+            if (row.get('state')!='uncertain' or row.get('http_status')!=200 or
+                    not row.get('finished') or not row.get('upstream_request_id') or
+                    row['upstream_request_id']!=g.get('id')):
+                raise ValueError('Generation does not identify an ended uncertain request')
+            if cost>money(row['reserved']):
+                row.update(accounted=str(cost),reported_liability_exceeds_bound=True,
+                    error_label='generation_liability_exceeds_bound',
+                    reconciliation={'source':'OpenRouter GET /api/v1/generation',
+                        'receipt_sha256':receipt_sha256,'at':now(),'cost_source':'total_cost'})
+                return dict(row)  # Admission remains globally stopped.
+            if inp>self.config['context_tokens'] or out>row['completion_bound_tokens']:
+                raise ValueError('Generation exceeds token bounds; retain hold')
+            previous={k:row.get(k) for k in ('state','accounted','error_label','input_tokens','output_tokens')}
+            row.update(state='settled',accounted=str(cost),input_tokens=inp,output_tokens=out,error_label=None,
+                reconciliation={'source':'OpenRouter GET /api/v1/generation','at':now(),
+                    'receipt_sha256':receipt_sha256,'original_accounting':previous,
+                    'cancelled':g.get('cancelled'),'canonical_model':g['model'],
+                    'cost_source':'total_cost','token_source':'native_tokens_prompt/native_tokens_completion'})
+            return dict(row)
 
     def reserve(self,project,body):
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
@@ -200,8 +241,8 @@ class DirectBudget:
                 pass
 
 
-def live_budget():
-    budget=DirectBudget()
+def live_budget(*, nonblocking=False):
+    budget=DirectBudget(nonblocking=nonblocking)
     require_authorization(budget)
     return budget
 

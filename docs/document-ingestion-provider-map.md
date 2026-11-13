@@ -10,7 +10,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 
 | Provider | Native daily delivery | Local setup / current status |
 | --- | --- | --- |
-| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings and gateway inference. Set the documented `is_reasoning_model: true` flag for Spark; the SDK then chooses its native reasoning-model parameters. No custom output budget or reasoning effort. The earlier legacy-chat classification was a setup error; larger-output trials remain a different configuration. |
+| Mem0 | `Memory.add(raw_transcript, infer=True)` | OSS SDK, local Qdrant, Ollama embeddings and gateway inference. Set the documented `is_reasoning_model: true` flag for Spark and the selected DeepSeek reasoning model; the SDK then chooses its native reasoning-model parameters. No custom output budget or reasoning effort. The earlier legacy-chat classification was a setup error; larger-output trials remain a different configuration. |
 | Hindsight | Retain raw text with source time and document ID; wait for consolidation | Documented `local_external` backend and isolated bank; 1.2.1 server/client on the exact selected direct OpenRouter route. New-version native processing and recall require qualification. |
 | OpenViking | Upload then `resources(wait=True)`; check semantic/vector completion | Local server/store and Ollama embeddings. Native resource processing is distinct from interactive memory capture. Expose `viking_read`; original-source access earns no retention credit. Check model-health receipts independently of native completion. |
 | Supermemory | `documents.add(dreaming="instant")` with raw content, canonical container tags and custom ID; wait for indexing and memory consolidation | Published local server and native SDK, Ollama embeddings. Use the native namespace resolver. Explicit instant mode processes each already-batched daily document instead of default dynamic grouping across documents. The October 23 native canary completed extraction and populated the profile. The mode is recorded in setup and ingestion receipts; earlier dynamic-mode blockers are separate conditions. |
@@ -54,7 +54,7 @@ It changes neither Hermes nor memory-provider model settings. Scoring sanity
 controls must cover correct and wrong answers plus valid evidence diagnostics;
 passing fact grades alone is insufficient calibration.
 
-Memcal's source database preserves realistic GUIDs, Apple-epoch timestamps, sender handles, service fields, chat membership and joins. Names live in a separate contacts fixture. No provider-specific facts or extraction hints are inserted. Future iMessage connectors can use that same source fixture. Nightly worker deadlines allow 15 minutes for a multi-conversation batch. All inference remains under the shared daily spending cap.
+Memcal's source database preserves realistic GUIDs, Apple-epoch timestamps, sender handles, service fields, chat membership and joins. Names live in a separate contacts fixture. No provider-specific facts or extraction hints are inserted. Future iMessage connectors can use that same source fixture. Nightly worker deadlines normally allow 15 minutes for a multi-conversation batch. Hindsight receives a bounded 60-minute retain/consolidation wait, plus 30 seconds to save its final processing receipt: native upstream retries can exceed the generic watchdog. It still requires actual successful consolidation; no queue state, output limit or native retry setting is changed. The receipt records this waiting condition. All inference remains under the shared task spending cap.
 
 Honcho's explicit `--honcho-clock simulated` profile advances PostgreSQL,
 API, deriver and Hermes wall clocks between daily bulk imports. The upgraded
@@ -239,3 +239,8 @@ content and metadata. A source-bound `supermemory-native-v3-completion-observer-
 receipt is required before crediting completed dreaming. This is read-only API
 compatibility instrumentation; the v5 source write, shipped plugin, native
 processing and current SDK remain unchanged.
+
+The Honcho overhead check reads accounting without waiting while native apps are
+suspended. A busy accounting lock means the apps resume and native time keeps
+running during judging, using the existing recorded fallback. It never waits on
+a lock whose owner it suspended or treats unavailable accounting as idle.

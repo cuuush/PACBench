@@ -29,6 +29,24 @@ def test_missing_history_is_not_recreated(tmp_path):
     assert not (tmp_path/'missing').exists()
 
 
+def test_nonblocking_snapshot_never_waits_on_suspended_ledger_owner(budget, monkeypatch):
+    import fcntl
+    from pacbench import usage
+    import pacbench.direct_accounting as accounting
+    monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
+    monkeypatch.setattr('pacbench.openrouter_direct.active',lambda:True)
+    monkeypatch.setattr(accounting,'live_budget',
+        lambda **kw:DirectBudget(budget.path,**kw))
+    original=budget.path.read_bytes()
+    with budget.path.open('r+') as owner:
+        fcntl.flock(owner,fcntl.LOCK_EX)
+        result=usage.snapshot({'native':'memory_provider'},nonblocking=True)
+        assert result['state']=='unavailable'
+        assert result['reason']=='BlockingIOError'
+        assert budget.path.read_bytes()==original
+    assert usage.snapshot({'native':'memory_provider'},nonblocking=True)['state']=='captured'
+
+
 def test_three_completed_unmetered_responses_stop_background_admission(budget):
     for i in range(3):
         row=budget.reserve('provider',{'model':MODEL,'messages':[{'role':'user','content':str(i)}],'max_tokens':5})
@@ -216,3 +234,45 @@ def test_concurrent_explicit_retries_consume_one_durable_grant(budget):
     with ThreadPoolExecutor(max_workers=2) as pool:ids=list(pool.map(reserve,range(2)))
     assert sum(i is not None for i in ids)==1
     assert len(budget.snapshot())==2
+
+
+def generation_receipt(cost='0.00001'):
+    return {'id':'gen-offline','model':'canonical-model','provider_name':'DeepInfra',
+            'service_tier':'flex','is_byok':False,'cancelled':True,'total_cost':cost,
+            'usage':cost,'native_tokens_prompt':3,'native_tokens_completion':2}
+
+
+def test_generation_reconciliation_keeps_original_bound_and_authoritative_cost(budget):
+    row=budget.reserve('judge',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,b'{"id":"gen-offline"}')
+    result=budget.reconcile_generation(row['id'],generation_receipt(),
+        {'id':MODEL,'canonical_slug':'canonical-model'},receipt_sha256='a'*64)
+    assert result['state']=='settled' and result['accounted']=='0.00001'
+    assert result['reserved']=='0.0002'
+    assert result['reconciliation']['original_accounting']['state']=='uncertain'
+    from pacbench.usage import direct_call
+    assert direct_call(result,'judge')['actual_cost_source']=='openrouter.generation.total_cost'
+
+
+@pytest.mark.parametrize('field,value',[
+    ('id','another-generation'),('model','another-model'),('provider_name','other'),
+    ('service_tier','other'),('cancelled',False),('native_tokens_prompt',None),
+    ('native_tokens_completion',True),('usage','0.00002')])
+def test_invalid_generation_receipts_do_not_release_holds(budget,field,value):
+    row=budget.reserve('judge',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,b'{"id":"gen-offline"}')
+    before=budget.snapshot();receipt=generation_receipt();receipt[field]=value
+    with pytest.raises(ValueError):
+        budget.reconcile_generation(row['id'],receipt,{'id':MODEL,'canonical_slug':'canonical-model'},
+            receipt_sha256='a'*64)
+    assert budget.snapshot()==before
+
+
+def test_generation_liability_over_bound_stops_admission_without_understatement(budget):
+    row=budget.reserve('judge',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,b'{"id":"gen-offline"}')
+    result=budget.reconcile_generation(row['id'],generation_receipt('0.0003'),
+        {'id':MODEL,'canonical_slug':'canonical-model'},receipt_sha256='a'*64)
+    assert result['state']=='uncertain' and result['accounted']=='0.0003'
+    with pytest.raises(RuntimeError,match='liability exceeded'):
+        budget.reserve('different-project',{'model':MODEL,'messages':[]})

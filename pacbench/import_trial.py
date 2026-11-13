@@ -10,7 +10,7 @@ from .followups import save
 from .gateway_client import require_live_cost_boundary
 from .native_pilot import (read_prepared, copy_prepared_files, provision, probe,
     ingest_pending, stop_arm_model_work)
-from .document_ingestion import prepare_sources, ingest_day, processing_at, VERSION
+from .document_ingestion import prepare_sources, ingest_day, processing_at, record_recall_isolation, VERSION
 from .usage import snapshot, provider_model_health
 from .openrouter_route import MODEL
 
@@ -45,9 +45,11 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
             options={}
             if provider=='honcho' and honcho_clock=='simulated':
                 from provider_adapters.honcho_enrollment import initial_at
+                from provider_adapters.honcho_enrollment import PROTOCOL as MEMBERSHIP
                 from provider_adapters.honcho_clock import VERSION as CLOCK_VERSION
                 options['honcho_simulated_at']=initial_at(messages)
                 report['provider_clocks']={'honcho':CLOCK_VERSION}
+                report['provider_membership_protocols']={'honcho':MEMBERSHIP}
             env=provision(root,provider,MODEL,local_timezone=zone,inference_route='openrouter',**options)
             if provider=='hindsight':
                 result['native_request_timeout_s']=int(env.get('HINDSIGHT_API_LLM_TIMEOUT','120'))
@@ -71,7 +73,8 @@ def run(source, output, *, providers, honcho_clock='real', max_messages=150):
                 ingest_pending([batch],result['completed_batches'],failed,output,root,provider,env,
                     zone,env['PACBENCH_STOP_FILE'],ingest_day,health)
                 save(root/'status.json',result);save(output/'summary.json',report)
-            errors=audit_ingestion(output,root,messages,report)
+            record_recall_isolation(root)
+            errors=audit_ingestion(output,root,messages,report,import_only=True)
             result['ingestion_audit']={'state':'fail' if errors else 'pass','errors':errors}
             result['state']='incomplete' if errors else 'processing-complete'
             result['stored_fact_review']='pending; processing receipts are not semantic verification'

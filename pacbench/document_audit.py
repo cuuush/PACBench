@@ -178,7 +178,7 @@ def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=Non
     return errors
 
 
-def audit_ingestion(root, arm, messages, summary):
+def audit_ingestion(root, arm, messages, summary, *, import_only=False):
     errors=[]
     declared_clock = summary.get('provider_clocks',{}).get(arm.name)
     if declared_clock is not None:
@@ -342,8 +342,13 @@ def audit_ingestion(root, arm, messages, summary):
                  *(arm/'turns').glob('*/followups/combined/turn.json'),arm/'followups/combined/turn.json']:
         if path.exists():turns.append(json.loads(path.read_text()))
     expected={(t['session_id'],t['prompt']) for t in turns}
-    validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York',
-                               chronological=bool(summary.get('evaluation_plan_hash')),version=version)
+    if import_only:
+        check(summary.get('mode')=='native-import-validation','Import-only audit requires explicit qualification scope')
+        check(not turns,'Import-only validation contains benchmark turns')
+        check(not list((root/'model-calls').glob('*.json')),'Import-only validation contains judge calls')
+    else:
+        validate_evaluation_clocks(schedule,[arm.name],[t['at'] for t in turns],summary['process_timezone'] or 'America/New_York',
+                                   chronological=bool(summary.get('evaluation_plan_hash')),version=version)
     if summary.get('evaluation_plan_hash'):
         plan=json.loads((root/'evaluation-plan.json').read_text())
         for row in plan['checks']:
@@ -369,6 +374,7 @@ def audit_ingestion(root, arm, messages, summary):
                             follow=directory/'followups/combined/usage.json'
                             finished=json.loads(follow.read_text())['finished'] if follow.exists() else usage['finished']
                             check(datetime.fromisoformat(window['started'])>=datetime.fromisoformat(finished),'Future ingestion began before earlier evaluation finished')
+    if import_only and not (arm/'hermes-home/state.db').exists():return errors
     with sqlite3.connect(f'file:{arm/"hermes-home/state.db"}?mode=ro',uri=True) as db:
         actual=db.execute("SELECT session_id,content FROM messages WHERE role='user' ORDER BY id").fetchall()
         check(set(actual)==expected and len(actual)==len(expected),'Native Hermes user messages differ from evaluation questions')

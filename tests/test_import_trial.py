@@ -24,7 +24,7 @@ def test_import_only_waits_for_every_batch_and_never_runs_benchmark(tmp_path,mon
     monkeypatch.setattr(trial,'provider_model_health',lambda *a:{'state':'pass'})
     stopped=[];monkeypatch.setattr(trial,'stop_arm_model_work',lambda root:stopped.append(root))
     audited=[]
-    monkeypatch.setattr('pacbench.document_audit.audit_ingestion',lambda *a:audited.append(True) or [])
+    monkeypatch.setattr('pacbench.document_audit.audit_ingestion',lambda *a,**kw:audited.append(kw['import_only']) or [])
     def forbidden(*a,**kw):pytest.fail('Import-only validation invoked benchmark execution')
     monkeypatch.setattr('pacbench.harness.run_turn',forbidden)
     monkeypatch.setattr('pacbench.native_pilot.ModelClient',forbidden)

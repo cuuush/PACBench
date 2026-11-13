@@ -121,7 +121,7 @@ class ExtractionLog(logging.Handler):
 
 
 def mem0(source, root, at, processing_at):
-    from mem0 import Memory
+    from pacbench.provider_loader import provider_module
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'hermes-home/mem0.json').read_text())
     from pacbench.openrouter_direct import active
@@ -136,7 +136,12 @@ def mem0(source, root, at, processing_at):
     def observe(llm,response,request):
         model_calls.append({'request':request,'response':response.model_dump(mode='json')})
     cfg['oss']['llm']['config']['response_callback']=observe
-    memory=Memory.from_config(cfg['oss'])
+    # The shipped backend binds vector dimensions to the configured embedder
+    # and rejects incompatible existing stores. Bare Memory.from_config keeps
+    # Qdrant's 1536 default, silently relying on a prior smoke search to create
+    # the actual 768-dimensional collection. Import must stand on its own.
+    backend=provider_module('mem0','_backend').OSSBackend(cfg['oss'])
+    memory=backend._memory
     validate_route(str(memory.llm.client.base_url).rstrip('/'),memory.llm.client.api_key)
     errors=ExtractionLog()
     logging.getLogger().addHandler(errors)
@@ -149,8 +154,10 @@ def mem0(source, root, at, processing_at):
         folder=root/'ingestion-model-calls'
         folder.mkdir(exist_ok=True)
         (folder/(source.name+'.json')).write_text(json.dumps(model_calls,ensure_ascii=False,indent=2)+'\n')
+        backend.close()
     incomplete=any(c.get('finish_reason')=='length' for call in model_calls for c in call['response'].get('choices',[]))
     return {'ready':not errors.errors and not incomplete,'interface':'mem0.Memory.add(str,infer=True)',
+            'construction':'Hermes shipped OSSBackend with native embedding dimension binding',
             'result':result,'native_errors':errors.errors,'model_output_truncated':incomplete,
             'model_call_record':str(folder/(source.name+'.json')),
             'readiness':'Synchronous OSS add with no native error or truncated model response'}

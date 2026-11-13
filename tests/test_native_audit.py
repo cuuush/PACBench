@@ -294,3 +294,19 @@ def test_audit_reads_private_session_bound_prompt_after_native_gc(trace):
     assert audit(root)['state'] == 'pass', audit(root)
     next((home / 'private-system-prompts').rglob('*.json')).unlink()
     assert any('snapshot unavailable or invalid' in e for e in audit(root)['errors'])
+
+
+def test_import_only_audit_requires_no_queries_and_keeps_all_source_checks(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text());summary['mode']='native-import-validation'
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    assert 'Import-only validation contains benchmark turns' in audit_ingestion(root,arm,messages,summary,import_only=True)
+    (arm/'recall.json').unlink()
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute('DELETE FROM messages');db.execute('DELETE FROM sessions')
+    assert audit_ingestion(root,arm,messages,summary,import_only=True)==[]
+    record=arm/summary['ingestion_schedule'][0]['file'];data=json.loads(record.read_text())
+    data['ready']=False;data['state']='failed';save(record,data)
+    assert 'native processing did not complete' in audit_ingestion(root,arm,messages,summary,import_only=True)

@@ -348,3 +348,40 @@ def test_clock_audit_keeps_versioned_hash_and_v3_overhead_semantics(tmp_path, de
     save(tmp_path/'provider-clock.json', config)
     save(tmp_path/'provider-clock-startup.json', startup)
     assert clock.audit_evidence(tmp_path, declared)
+
+
+def test_cleaned_queue_can_use_native_citations_only_when_idle(monkeypatch,tmp_path):
+    monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
+    acks=[{'session_id':'s','observer':{'peer_id':'hermes'},'messages':[{'id':'n1','metadata':{'source_id':'m1'}}]}]
+    citation={'id':'n1','session_id':'s','observer':'hermes','source_id':'m1','conclusion_ids':['conclusion']}
+    monkeypatch.setattr(clock,'snapshot',lambda *a:idle_snapshot())
+    monkeypatch.setattr(clock,'conclusion_witnesses',lambda *a:[citation])
+    r=clock.wait_for_batch(tmp_path,acks,{})
+    assert r['ready'] and r['completion_evidence']['citations']==[citation]
+    assert r['message_witnesses']==[]
+    citation['observer']='other'
+    with pytest.raises(ValueError):clock.wait_for_batch(tmp_path,acks,{})
+
+
+def test_persistent_citation_requires_source_identity_and_real_fact_ids():
+    acks=[{'session_id':'s','observer':{'peer_id':'hermes'},'messages':[{'id':'n','metadata':{'source_id':'m'}}]}]
+    row={'id':'n','session_id':'s','observer':'hermes','source_id':'m','conclusion_ids':['fact']}
+    assert clock.citation_coverage([row],acks)=={'n'}
+    for changed in [{'source_id':'wrong'},{'session_id':'wrong'},{'conclusion_ids':[]}]:
+        with pytest.raises(ValueError):clock.citation_coverage([{**row,**changed}],acks)
+    with pytest.raises(ValueError):clock.citation_coverage([row,row],acks)
+
+
+def test_persistent_citation_audit_needs_matching_source_observer_and_idle_state():
+    import hashlib
+    from pacbench.document_audit import audit_honcho_receipt
+    source={'source_id':'m1','channel':'imessage','thread':'chat','sender':'Ben','from_owner':False,'written_at':'2026-09-15T12:00:00-04:00','text':'Lunch tomorrow?'}
+    session='source-'+hashlib.sha256(json.dumps(('imessage','chat')).encode()).hexdigest()[:24]
+    ack={'session_id':session,'observer':{'peer_id':'hermes','observe_others':True},'messages':[{'id':'native-message','session_id':session,'peer_id':'Ben','content':source['text'],'created_at':source['written_at'],'metadata':{k:v for k,v in source.items() if k!='text'}}]}
+    citation={'id':'native-message','session_id':session,'observer':'hermes','source_id':'m1','conclusion_ids':['native-fact']}
+    result={'clock_protocol':clock.VERSION,'result':[ack],'processing_status':[idle_snapshot()], 'message_witnesses':[], 'completion_evidence':{'protocol':'honcho-native-conclusion-source-v1','citations':[citation]}}
+    assert audit_honcho_receipt([source],result)==[]
+    result['processing_status'][0]['pending']=1
+    assert audit_honcho_receipt([source],result)
+    result['processing_status'][0]['pending']=0;citation['observer']='wrong'
+    assert audit_honcho_receipt([source],result)

@@ -198,6 +198,39 @@ def snapshot(root, ids=(), observer='hermes'):
     return json.loads(proc.stdout)
 
 
+def conclusion_witnesses(root, ids, observer):
+    """Read persistent native citations after successful queue cleanup."""
+    _,config=load(root)
+    identifiers=','.join(_literal(i) for i in ids) or 'NULL'
+    sql=f"""SELECT coalesce(json_agg(x),'[]'::json) FROM (
+      SELECT m.public_id AS id,m.session_name AS session_id,
+        m.metadata->>'source_id' AS source_id,d.observer,
+        array_agg(DISTINCT d.id) AS conclusion_ids
+      FROM messages m JOIN conclusion_source_messages cs
+        ON cs.message_id=m.public_id AND cs.tenant_id=m.tenant_id AND cs.workspace_name=m.workspace_name
+      JOIN documents d ON d.id=cs.conclusion_id AND d.tenant_id=cs.tenant_id AND d.workspace_name=cs.workspace_name
+      WHERE m.public_id IN ({identifiers}) AND d.observer={_literal(observer)} AND d.deleted_at IS NULL
+      GROUP BY m.public_id,m.session_name,m.metadata,d.observer) x"""
+    result=_docker(config,'exec',config['container'],'psql','-U','postgres','-d','postgres','-X','-t','-A','-c',sql)
+    if result.returncode:raise RuntimeError('Persistent native conclusion telemetry unavailable')
+    return json.loads(result.stdout)
+
+
+def citation_coverage(citations, acknowledgments):
+    expected={m['id']:(a['session_id'],a['observer']['peer_id'],m.get('metadata',{}).get('source_id'))
+        for a in acknowledgments for m in a['messages']}
+    seen=set()
+    for row in citations:
+        identifier=row.get('id')
+        if (identifier in seen or identifier not in expected or
+            (row.get('session_id'),row.get('observer'),row.get('source_id'))!=expected[identifier] or
+            not row.get('source_id') or not isinstance(row.get('conclusion_ids'),list) or
+            not row['conclusion_ids'] or any(not isinstance(i,str) or not i for i in row['conclusion_ids'])):
+            raise ValueError('Native conclusion citation does not bind the submitted message and observer')
+        seen.add(identifier)
+    return seen
+
+
 def _docker(config, *args):
     environment = {k:v for k,v in os.environ.items() if k not in {
         'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
@@ -490,11 +523,12 @@ def wait_for_batch(root, acknowledgments, roles):
     if not expected or len(observers) != 1:
         raise RuntimeError('Cannot establish native source enrollment')
     observer = next(iter(observers))
-    evidence = {}; history = []; previous = None
+    evidence = {}; history = []; previous = None; citations=[]
     def receipt(ready, reason, health):
         return {'ready': ready, 'interface': 'native messages + simulated wall clock',
                 'result': acknowledgments, 'processing_status': history,
                 'message_witnesses': list(evidence.values()), 'clock_protocol': VERSION,
+                **({'completion_evidence':{'protocol':'honcho-native-conclusion-source-v1','citations':citations}} if citations else {}),
                 'source_error_scope':'submitted-source-sessions-v1',
                 'model_health': health, 'readiness': reason}
     deadline = time.monotonic() + 900
@@ -523,6 +557,11 @@ def wait_for_batch(root, acknowledgments, roles):
             from provider_adapters.honcho_local import queue_errors
             history[-1]['native_queue_errors'] = queue_errors(root, include_all=True)
             return receipt(False, 'Native Honcho source processing failed; error witnesses preserved', health)
+        if not complete and not any(state[k] for k in ('claims','pending','embeddings')):
+            citations=conclusion_witnesses(root,sorted(expected),observer)
+            covered=citation_coverage(citations,acknowledgments)
+            covered.update(r['id'] for r in evidence.values() if r['processed'] and not r['has_error'])
+            complete=covered==expected
         # Preserve a completion witness before simulated cleanup can remove it.
         if complete and not any(state[k] for k in ('claims', 'pending', 'embeddings')):
             return receipt(True, 'All submitted messages observed, processed and error-free', health)

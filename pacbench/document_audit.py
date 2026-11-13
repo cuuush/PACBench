@@ -154,9 +154,17 @@ def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=Non
             if error_scope=='submitted-source-sessions-v1':
                 return [e for e in failures if e.get('session_name') is None or e['session_name'] in sessions]
             return failures
-        if (not ids or {r.get('id') for r in witnesses} != ids or
+        covered={r.get('id') for r in witnesses if r.get('processed') is True and r.get('has_error') is False}
+        proof=result.get('completion_evidence')
+        if proof is not None:
+            from provider_adapters.honcho_clock import citation_coverage
+            try:
+                if proof.get('protocol')!='honcho-native-conclusion-source-v1':raise ValueError('Unsupported completion evidence')
+                covered.update(citation_coverage(proof.get('citations',[]),result.get('result',[])))
+            except (ValueError,KeyError,TypeError):errors.append('Honcho persistent completion citations are invalid')
+        if (not ids or covered != ids or not {r.get('id') for r in witnesses}<=ids or
                 len({r.get('queue_id') for r in witnesses}) != len(witnesses) or
-                any(r.get('processed') is not True or r.get('has_error') is not False for r in witnesses) or
+                any(r.get('has_error') is not False for r in witnesses) or
                 any(final.get(k) != 0 for k in ('claims','pending','embeddings')) or
                 any(source_errors(s) for s in changes)):
             errors.append('Honcho simulated-clock message enrollment/completion is unproven')

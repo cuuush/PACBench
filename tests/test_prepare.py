@@ -438,7 +438,7 @@ def test_scene_v11_never_infers_approval_from_incomplete_or_invalid_shape(tmp_pa
 
 def test_scene_v11_empty_chatter_keeps_an_independent_whole_scene_judgment(tmp_path):
     from pacbench.authoring import judge_scene, SceneJudgeError, JUDGE_PROMPT_VERSION
-    plan=ScenePlan(id='chatter',participants=('Me','Sam'),messages=({'sender':'Sam','text':'Nice film','at':'2026-10-05T12:00:00-04:00'},),facts=())
+    plan=ScenePlan(id='chatter',at='2026-10-05T12:00:00-04:00',participants=('Me','Sam'),messages=({'sender':'Sam','text':'Nice film','at':'2026-10-05T12:00:00-04:00'},),facts=())
     prompt=judge_prompt(plan,[('Sam','Nice film')])
     assert JUDGE_PROMPT_VERSION=='scene-judge-v11'
     assert 'without inventing an event or commitment requirement' in prompt

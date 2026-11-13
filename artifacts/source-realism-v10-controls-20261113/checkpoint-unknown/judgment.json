@@ -1,0 +1,58 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/22ff8eb9666c97d4dc23dbbe8f62ef54aed8f123869e74adf6791a68f188be61.json",
+  "prompt_sha256": "c6512121fc69cd37b7b032f5f0ca08c0a0a6a2ace99fca2669c5a4d9efb11333",
+  "oracle": {
+    "states": [
+      "bounded_unknown"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "One public question assessed. At the 2026-10-07T09:00 checkpoint, only the booking/reminder is eligible; it grounds the workshop but not attendance. Later messages are excluded by written/collection timing.",
+    "assessments": [
+      {
+        "check_id": "unknown",
+        "event_date": "2026-10-06",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Watercolor workshop was scheduled for Tuesday October 6 at 10 am."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "attendance outcome",
+            "missing": "No eligible source reports whether the user attended the workshop; the booking/reminder only establishes the scheduled event.",
+            "alternatives": [
+              "attended",
+              "did not attend"
+            ]
+          }
+        ],
+        "reason": "The only eligible source before the 2026-10-07T09:00 checkpoint is the booking/reminder, which grounds the workshop on 2026-10-06 at 10 am but does not report attendance. The later messages are after the checkpoint or collected after it and cannot support the answer.",
+        "alternatives": [
+          "attended",
+          "did not attend"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "booking",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6 at 10 am."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

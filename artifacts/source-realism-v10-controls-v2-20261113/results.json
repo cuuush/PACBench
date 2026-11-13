@@ -1,0 +1,178 @@
+{
+  "state": "fail",
+  "results": [
+    {
+      "id": "known-attendance",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "determinate"
+      ],
+      "known": [
+        [
+          "The watercolor workshop was scheduled for Tuesday, October 6, 2026 at 10 am.",
+          "The user reported attending the watercolor workshop on October 6, 2026."
+        ]
+      ],
+      "unresolved": [
+        []
+      ]
+    },
+    {
+      "id": "checkpoint-unknown",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "bounded_unknown"
+      ],
+      "known": [
+        [
+          "A watercolor workshop was scheduled for Tuesday, October 6 at 10 am."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "attendance",
+            "missing": "No eligible source before the 2026-10-07T09:00 cutoff reports whether the user attended the watercolor workshop.",
+            "alternatives": [
+              "attended",
+              "did not attend"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "mixed-alias",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "bounded_unknown"
+      ],
+      "known": [
+        [
+          "MR Hall stands for Maple Ridge Hall.",
+          "ZX Annex is mentioned as a room location in an old handout."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "expansion of ZX Annex",
+            "missing": "The eligible history does not state what 'ZX' abbreviates or what 'ZX Annex' stands for; it only mentions a room at ZX Annex in an old handout.",
+            "alternatives": [
+              "No expansion is provided in the eligible history"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "resolved-stale-quote",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "determinate"
+      ],
+      "known": [
+        [
+          "Current dairy preference: avoid dairy",
+          "Current mushroom preference: mushrooms are fine"
+        ]
+      ],
+      "unresolved": [
+        []
+      ]
+    },
+    {
+      "id": "unresolved-conflict",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid"
+      ],
+      "known": [
+        [
+          "Booking P7 is referenced as a single booking on Friday October 9.",
+          "Two current receipts assert different times for booking P7."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "confirmed time for booking P7",
+            "missing": "No single time is established because 7 pm and 8 pm are both asserted as current and neither is corrected or superseded.",
+            "alternatives": [
+              "7 pm",
+              "8 pm"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "absent-target",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid"
+      ],
+      "known": [
+        []
+      ],
+      "unresolved": [
+        []
+      ]
+    },
+    {
+      "id": "earlier-question-only",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid",
+        "invalid"
+      ],
+      "known": [
+        [],
+        []
+      ],
+      "unresolved": [
+        [],
+        []
+      ]
+    },
+    {
+      "id": "ambiguous-cancellation",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "clarification_warranted"
+      ],
+      "known": [
+        [
+          "Studio listed two bookings: pottery Wednesday October 7 at 10 am and framing Thursday October 8 at 10 am.",
+          "Studio then reported that “that appointment is cancelled,” without naming which booking was meant."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "cancelled booking identity",
+            "missing": "Which of the two listed studio bookings “that appointment” refers to",
+            "alternatives": [
+              "pottery Wednesday October 7 at 10 am",
+              "framing Thursday October 8 at 10 am"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "retained-public-correction",
+      "state": "ungraded",
+      "error_type": "RuntimeError",
+      "error": "model call failed; audit record /workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/ef159f08c51a026d4ec485c32ce21e1d28521d8940441e8d1c3cd0f76d4f91c8.json: IncompleteChatStream: Judge stream ended without [DONE]"
+    }
+  ]
+}

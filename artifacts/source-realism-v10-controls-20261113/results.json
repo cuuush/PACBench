@@ -1,0 +1,211 @@
+{
+  "state": "fail",
+  "results": [
+    {
+      "id": "known-attendance",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "determinate"
+      ],
+      "known": [
+        [
+          "The watercolor workshop was scheduled for Tuesday October 6 at 10 am.",
+          "The owner reported attending the watercolor workshop on 2026-10-06."
+        ]
+      ],
+      "unresolved": [
+        []
+      ]
+    },
+    {
+      "id": "checkpoint-unknown",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "bounded_unknown"
+      ],
+      "known": [
+        [
+          "Watercolor workshop was scheduled for Tuesday October 6 at 10 am."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "attendance outcome",
+            "missing": "No eligible source reports whether the user attended the workshop; the booking/reminder only establishes the scheduled event.",
+            "alternatives": [
+              "attended",
+              "did not attend"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "mixed-alias",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "bounded_unknown"
+      ],
+      "known": [
+        [
+          "MR Hall is Maple Ridge Hall."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "ZX Annex expansion",
+            "missing": "The eligible history mentions ZX Annex but does not state what the abbreviation stands for or provide an expansion.",
+            "alternatives": [
+              "not established"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "resolved-stale-quote",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "determinate"
+      ],
+      "known": [
+        [
+          "current dairy preference: avoid dairy",
+          "current mushroom preference: mushrooms are fine"
+        ]
+      ],
+      "unresolved": [
+        []
+      ]
+    },
+    {
+      "id": "unresolved-conflict",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid"
+      ],
+      "known": [
+        [
+          "Booking P7 is a single booking.",
+          "The booking date is Friday October 9, 2026."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "booking P7 time",
+            "missing": "No single time is established because two current source records conflict and neither supersedes the other.",
+            "alternatives": [
+              "7 pm",
+              "8 pm"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "absent-target",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid"
+      ],
+      "known": [
+        []
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "Victor's confirmed passport number",
+            "missing": "No eligible source record or explicit public report identifies Victor or any passport number; the public question is only an interrogative presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "earlier-question-only",
+      "state": "pass",
+      "review_passes": false,
+      "states": [
+        "invalid",
+        "invalid"
+      ],
+      "known": [
+        [],
+        []
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "Victor's passport renewal status",
+            "missing": "No eligible source record establishes Victor, a passport, or any renewal event; the public question is only a presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ],
+        [
+          {
+            "attribute": "Victor's confirmed passport number",
+            "missing": "No eligible source record establishes Victor, a passport, or a confirmed passport number; the public question is only a presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ambiguous-cancellation",
+      "state": "pass",
+      "review_passes": true,
+      "states": [
+        "clarification_warranted"
+      ],
+      "known": [
+        [
+          "Two studio bookings were listed: pottery on Wednesday October 7 at 10 am and framing on Thursday October 8 at 10 am.",
+          "A cancellation message was sent on October 5 at 9:01 am saying 'that appointment is cancelled'."
+        ]
+      ],
+      "unresolved": [
+        [
+          {
+            "attribute": "cancelled booking identity",
+            "missing": "An explicit referent or discriminator for 'that appointment' after a two-item booking list.",
+            "alternatives": [
+              "pottery Wednesday October 7 at 10 am",
+              "framing Thursday October 8 at 10 am"
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "id": "retained-public-correction",
+      "state": "fail",
+      "review_passes": false,
+      "states": [
+        "determinate"
+      ],
+      "known": [
+        [
+          "Pickup is Sunday October 11 at 11 am."
+        ]
+      ],
+      "unresolved": [
+        []
+      ]
+    }
+  ]
+}

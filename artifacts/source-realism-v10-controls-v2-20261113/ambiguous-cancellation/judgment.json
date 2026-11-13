@@ -1,0 +1,64 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/ffea9448e7f3d79d123ea234d62e690153617dcc1d4cb4a837f5a64df29ffb96.json",
+  "prompt_sha256": "ac1be0da2830b46e7b548658ff97a27fe288fa224d605339e7fe97c0801d8fd2",
+  "oracle": {
+    "states": [
+      "clarification_warranted"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "The only public check is q-1. The cancellation report exists, but its referent is ambiguous between the two listed studio bookings, so clarification is warranted rather than a determinate answer.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "clarification_warranted",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": true,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Studio listed two bookings: pottery Wednesday October 7 at 10 am and framing Thursday October 8 at 10 am.",
+          "Studio then reported that “that appointment is cancelled,” without naming which booking was meant."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "cancelled booking identity",
+            "missing": "Which of the two listed studio bookings “that appointment” refers to",
+            "alternatives": [
+              "pottery Wednesday October 7 at 10 am",
+              "framing Thursday October 8 at 10 am"
+            ]
+          }
+        ],
+        "reason": "The complete eligible history contains a cancellation report, but the phrase “that appointment” follows a message listing two separate bookings and does not specify which one was cancelled. The referent therefore has multiple material interpretations, requiring clarification.",
+        "alternatives": [
+          "pottery Wednesday October 7 at 10 am",
+          "framing Thursday October 8 at 10 am"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "m-1",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am."
+          },
+          {
+            "source_id": "m-2",
+            "written_at": "2026-10-05T09:01:00-04:00",
+            "quote": "Sorry, that appointment is cancelled."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

@@ -1,0 +1,54 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/2220245b544df047020874cbefd9bef3def6396ec4f8fce967871457472d13fe.json",
+  "prompt_sha256": "d37d6e8955163efc0000e38c1a7911453ded6232c839cbac740bc61ef91368be",
+  "oracle": {
+    "states": [
+      "determinate"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "The single question has a determinate answer from the owner's explicit attendance report, supported by the prior booking message. No unresolved attributes or source conflicts are present.",
+    "assessments": [
+      {
+        "check_id": "known",
+        "event_date": "2026-10-06",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "The watercolor workshop was scheduled for Tuesday October 6 at 10 am.",
+          "The owner reported attending the watercolor workshop on 2026-10-06."
+        ],
+        "unresolved_fields": [],
+        "reason": "The owner's message on 2026-10-06 explicitly reports attending the watercolor workshop that day, and the booking message identifies the workshop as Tuesday October 6; both are before the 2026-10-07 question cutoff.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "booking",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6 at 10 am."
+          },
+          {
+            "source_id": "outcome",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "I attended the watercolor workshop today."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

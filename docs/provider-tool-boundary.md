@@ -38,7 +38,7 @@ recall turns in these selected trials.
 
 This is a tool boundary, not OS isolation. Native provider internals can read their stores, run subprocesses and call models. All inference remains metered through the gateway; nested work is not assumed free.
 
-For Hindsight 1.1.0, read its native `/llm-requests` trace API. Under historical
+For Hindsight, read its native `/llm-requests` trace API. Under historical
 `source-provenance-v1`, any returned original chunk incurs the source penalty.
 Under `source-provenance-v2`, raw-only recall incurs the penalty, while chunks
 explicitly linked from returned retained records are attached citations and keep
@@ -49,6 +49,14 @@ missing/truncated traces stay unclassified. Work completed after every Hermes
 request input cannot supply that answer. Keep native token telemetry separate
 from authoritative gateway costs, and omit model prompts/reasoning from public
 trace records.
+
+Hindsight 1.2 also renders tools as schema-constrained JSON assistant outputs
+and plain user turns named `Result of <function>`. The v3 observer binds these
+to native declarations, request schema names, request IDs and ordered replayed
+results; equal repeated calls remain distinct. Missing or inconsistent evidence
+fails closed. Private raw snapshots support later read-only observer corrections
+without new inference. Keep those snapshots out of publication. An observer
+correction does not rewrite the original turn or grant missing retention credit.
 
 New Cognee/MemOS trials use `source-provenance-v3`: the same credit rules also
 apply to automatic context injection, even when the provider exposes no tools

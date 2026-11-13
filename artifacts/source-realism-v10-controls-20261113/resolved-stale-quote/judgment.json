@@ -1,0 +1,54 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/91c3778d464e77fc29d54bde22afc3b46e587264b5ba70c31a976dfef712f61a.json",
+  "prompt_sha256": "ff9c4ad1bb29a9b16b1d0ac4f08a98f12654ab6f56573fc41da6039781a1b0c9",
+  "oracle": {
+    "states": [
+      "determinate"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "The correction explicitly updates the earlier Monday note, and the later quotation only identifies the Monday note as obsolete rather than introducing a new preference. The current preferences are therefore source-supported and determinate.",
+    "assessments": [
+      {
+        "check_id": "preference",
+        "event_date": "2026-10-12T09:00:00-04:00",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "current dairy preference: avoid dairy",
+          "current mushroom preference: mushrooms are fine"
+        ],
+        "unresolved_fields": [],
+        "reason": "The 2026-10-07 correction explicitly states that mushrooms are fine now and asks to avoid dairy from now on. The 2026-10-09 message clarifies that the earlier Monday note is old and not a new preference. No later eligible source changes these preferences before the 2026-10-12 question.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "correction",
+            "written_at": "2026-10-07T15:00:00-04:00",
+            "quote": "Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on."
+          },
+          {
+            "source_id": "quote",
+            "written_at": "2026-10-09T15:00:00-04:00",
+            "quote": "These are my old Monday notes, not a new preference: \"I avoid mushrooms; dairy is fine.\""
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

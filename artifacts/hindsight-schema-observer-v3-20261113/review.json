@@ -1,0 +1,50 @@
+{
+  "version": "hindsight-schema-observer-review-v3",
+  "state": "pass",
+  "scope": "Read-only saved-store diagnostic; original turn and grading unchanged; no inference or native provider mutation",
+  "original_turn": "runs/pizza-day-stable-20261113/hindsight/repeat-1/hindsight/turns/pizza-plan/turn.json",
+  "original_turn_sha256": "50dcf53ed4313091446f3a537f01e7959fe67f43f929c72bef235724cae032ae",
+  "private_native_rows_sha256": "d28dacf8303b3f5d6b2be71812305fb9d54a65d66e0881b71ed13746c2100205",
+  "native_llm_row_ids": [
+    "3d5254ad-9748-401f-b5f3-a227f35a67a0",
+    "5d25d129-73b4-4878-b716-559dc077dc6b",
+    "e7e58f2a-6674-456e-82bb-bced83663dfd",
+    "97049a0e-17af-4c72-bd31-fe1274759360"
+  ],
+  "native_rows": 8,
+  "native_llm_rows": 4,
+  "native_local_embedding_rerank_rows": 4,
+  "isolated_sql_copy": "Original PostgreSQL store copied before starting only PostgreSQL; original store and provider APIs never started; copied server stopped",
+  "operations": [
+    {
+      "name": "search_observations",
+      "provenance_category": "memory_search",
+      "result_observed": true
+    },
+    {
+      "name": "recall",
+      "provenance_category": "unclassified",
+      "result_observed": true
+    },
+    {
+      "name": "answer_ready",
+      "provenance_category": "memory_reasoning",
+      "result_observed": false
+    },
+    {
+      "name": "done",
+      "provenance_category": "memory_reasoning",
+      "result_observed": false
+    }
+  ],
+  "actual_query": "What is the pizza plan we discussed?",
+  "explicit_query_match": true,
+  "native_operation_complete": true,
+  "behavior_review": "Observation search, raw-fact recall, answer-ready signal and final synthesis. No repeated operation or stalled call in the saved native trace.",
+  "retention_credit": 0,
+  "retention_reason": "Native recall includes a 2100-character original transcript chunk; retained facts lack explicit chunk links. Do not award clean retention.",
+  "code_sha256": {
+    "pacbench/hindsight_traces.py": "53048eb1f9725c4411171ae329d56044505d809349dd2910a867f29b6683d361",
+    "pacbench/native_pilot.py": "285817de4800c7677fe8085f85e8d88807607aad5ff2e6ccc2946b1dc9d4df37"
+  }
+}

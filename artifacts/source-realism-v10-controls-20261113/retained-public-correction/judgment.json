@@ -1,0 +1,59 @@
+{
+  "state": "fail",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/e9a9227a1e8eb1c610c544d2393b95fa2de73e50ef068a0e57690dc82a6a5070.json",
+  "prompt_sha256": "272c7d5abad73f84401f85920965521c6578209c8183746897b9895f2ef8055f",
+  "oracle": {
+    "states": [
+      "determinate",
+      "determinate"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "Only the recall input is a public question; the update input is an explicit correction used as eligible evidence. The original pickup message is superseded by the user's definite correction, so it is not an unresolved conflict.",
+    "assessments": [
+      {
+        "check_id": "recall",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "determinate",
+        "grounding_kind": "explicit_public_report",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Pickup is Sunday October 11 at 11 am."
+        ],
+        "unresolved_fields": [],
+        "reason": "The public update at 2026-10-06 explicitly corrects the original pickup to Sunday October 11 at 11 am, and the recall at 2026-10-07 asks for that retained information. The original Friday October 9 at 10 am message is explicitly superseded, not an unresolved contradiction.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:update",
+            "written_at": "2026-10-06T09:00:00-04:00",
+            "quote": "The pickup is now Sunday October 11 at 11 am, not Friday. Please remember that."
+          },
+          {
+            "source_id": "pickup",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your pickup is Friday October 9 at 10 am."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments",
+      "code": "ids_or_order_mismatch"
+    }
+  ]
+}

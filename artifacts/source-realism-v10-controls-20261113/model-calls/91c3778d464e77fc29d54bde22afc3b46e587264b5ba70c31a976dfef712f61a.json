@@ -1,0 +1,1304 @@
+{
+  "created_at": "2026-11-13T04:41:46.925770+00:00",
+  "client_wall_deadline_s": 180,
+  "client_max_attempts": 1,
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Independently audit this complete raw personal-message corpus and every public question. No authored answer keys or expectations are provided. Read actual source identities, bodies, written and collection times, quoted history, and ordered public inputs. Source after a question’s collection cutoff cannot support that answer. Resolve each relative date from its own written context. Both written and collection times must be no later than the checkpoint. Public questions’ presuppositions do not independently establish facts, including in earlier questions. Conditional replies and their dependent inputs are not established history. Never assume the assistant saved an update or completed an external action.\nFor intended answerability, assume prior delivered information is retained across fresh sessions, while resolving conversational references in their actual session. A definite public user report/correction updates intended knowledge without another person’s confirmation. Actual provider persistence is tested later and is not a source-answerability requirement.\nCoherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown. Explicit corrections, rejected proposals, clearly attributed disagreements, and explicitly obsolete quotations are not unresolved contradictions.\nAssess the source-supported response boundary, not whether the underlying world state is fully known. Use answerability determinate, bounded_unknown, clarification_warranted, or invalid. Determinate means the requested attribute has an ordinary supported answer. Bounded unknown means a grounded event/entity and requested attribute exist, but its value is not established in the complete eligible history. Clarification warranted means a grounded reference has multiple material interpretations; identify alternatives and the missing discriminator. Invalid means there is no grounded objectively assessable response boundary, inaccessible information is required as a definite fact, or unresolved source conflict prevents a valid test. Saying unknown is not a universal escape: an entirely absent event or unresolvable target is invalid. Do not overlook or erase information the source DOES establish.\nHandle mixed questions by attribute: keep known details in known_fields and identify each unresolved attribute in unresolved_fields. Classify requested attributes: an explicitly recorded invitation status can be determinate; attendance without an outcome report is bounded unknown. If any requested attribute is unresolved, classify the mixed question as bounded_unknown or clarification_warranted while preserving its other known attributes. A booking/acknowledgement is not attendance; an invitation is not acceptance; a promise is not completed work; an unexplained name expansion is not known. Inspect the complete eligible history before concluding a requested value is absent, and identify that unresolved attribute explicitly.\nReturn one assessment per question in canonical order. Each has check_id, event_date, answerability, assessable (boolean), ambiguous (descriptive boolean), current_state_conflict (boolean), known_fields (strings; nonempty for assessable questions), unresolved_fields (array of {attribute, missing, alternatives:[strings]}), reason (nonempty), full_eligible_history_reviewed:true, grounding_kind (source_record, explicit_public_report, presupposition_only or absent), alternatives (nonempty strings or [\"none\"]), and source_evidence:[{source_id,written_at,quote}]. Use exact nonempty contiguous source quotes. Cite raw source_id or public-input:<question-id>; a question alone does not establish its own event. Only a source_record or explicit_public_report can ground an assessable response; an interrogative presupposition is not a report. The harness binds eligible-evidence hashes to the request and receipt; do not copy opaque hashes into your output. For unresolved fields, citations must ground the referent, and the reason must explain the missing information after examining ALL eligible history. Known fields must remain responsive and source-supported; do not substitute blanket uncertainty for resolvable facts.\nSet questions_answerable true only when every question has an assessable source-derived boundary (determinate, bounded_unknown or clarification_warranted), consistent true only for coherent source, and natural_enough true only for plausible source. Report genuine defects in issues; do not list properly bounded unknowns, resolved corrections or old quotations as defects by themselves. Any invalid assessment or current-state conflict prevents approval. Return one JSON object conforming to the schema below. Schema fields describe output types, not desired verdicts or defaults. This review does not replace independent criterion verification.\nResponse schema:\n{\"type\": \"object\", \"required\": [\"consistent\", \"questions_answerable\", \"natural_enough\", \"issues\", \"notes\", \"assessments\"], \"properties\": {\"consistent\": {\"type\": \"boolean\"}, \"questions_answerable\": {\"type\": \"boolean\"}, \"natural_enough\": {\"type\": \"boolean\"}, \"issues\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"notes\": {\"type\": \"string\", \"minLength\": 1}, \"assessments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"check_id\", \"event_date\", \"answerability\", \"grounding_kind\", \"assessable\", \"ambiguous\", \"current_state_conflict\", \"full_eligible_history_reviewed\", \"known_fields\", \"unresolved_fields\", \"reason\", \"alternatives\", \"source_evidence\"], \"properties\": {\"check_id\": {\"type\": \"string\", \"minLength\": 1}, \"event_date\": {\"type\": \"string\", \"minLength\": 1}, \"answerability\": {\"enum\": [\"bounded_unknown\", \"clarification_warranted\", \"determinate\", \"invalid\"]}, \"grounding_kind\": {\"enum\": [\"source_record\", \"explicit_public_report\", \"presupposition_only\", \"absent\"]}, \"assessable\": {\"type\": \"boolean\"}, \"ambiguous\": {\"type\": \"boolean\"}, \"current_state_conflict\": {\"type\": \"boolean\"}, \"full_eligible_history_reviewed\": {\"type\": \"boolean\"}, \"known_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"unresolved_fields\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"attribute\", \"missing\", \"alternatives\"], \"properties\": {\"attribute\": {\"type\": \"string\", \"minLength\": 1}, \"missing\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}}}}, \"reason\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}, \"source_evidence\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"written_at\", \"quote\"], \"properties\": {\"source_id\": {\"type\": \"string\", \"minLength\": 1}, \"written_at\": {\"type\": \"string\", \"minLength\": 1}, \"quote\": {\"type\": \"string\", \"minLength\": 1}}}}}}}}}\nComplete raw source records:\n[{\"arrived_at\": \"2026-10-05T09:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"old\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"I avoid mushrooms; dairy is fine.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:00:00-04:00\"}, {\"arrived_at\": \"2026-10-07T15:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-07T15:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"correction\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-07T15:00:00-04:00\"}, {\"arrived_at\": \"2026-10-09T15:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-09T15:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"quote\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-09T15:00:00-04:00\"}]\nOrdered timestamped public inputs and scope bindings:\n[{\"at\": \"2026-10-12T09:00:00-04:00\", \"eligible_evidence_hash\": \"c164bc88c1b894e35530c19a4ae2c748c2ed65feddc959a91232e0f9fdd53a3b\", \"id\": \"preference\", \"prompt\": \"What are my current dairy and mushroom preferences?\"}]"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"consistent\":true,\"questions_answerable\":true,\"natural_enough\":true,\"issues\":[],\"notes\":\"The correction explicitly updates the earlier Monday note, and the later quotation only identifies the Monday note as obsolete rather than introducing a new preference. The current preferences are therefore source-supported and determinate.\",\"assessments\":[{\"check_id\":\"preference\",\"event_date\":\"2026-10-12T09:00:00-04:00\",\"answerability\":\"determinate\",\"grounding_kind\":\"source_record\",\"assessable\":true,\"ambiguous\":false,\"current_state_conflict\":false,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"current dairy preference: avoid dairy\",\"current mushroom preference: mushrooms are fine\"],\"unresolved_fields\":[],\"reason\":\"The 2026-10-07 correction explicitly states that mushrooms are fine now and asks to avoid dairy from now on. The 2026-10-09 message clarifies that the earlier Monday note is old and not a new preference. No later eligible source changes these preferences before the 2026-10-12 question.\",\"alternatives\":[\"none\"],\"source_evidence\":[{\"source_id\":\"correction\",\"written_at\":\"2026-10-07T15:00:00-04:00\",\"quote\":\"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\"},{\"source_id\":\"quote\",\"written_at\":\"2026-10-09T15:00:00-04:00\",\"quote\":\"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\"}]}]}",
+          "reasoning": "We need answer audit. Need parse. Need produce JSON per schema. Need assess one question check_id likely \"preference\", event_date? Public input at 2026-10-12. Need determine answerability. Need inspect sources.\n\nWe have raw records:\nold at 2026-10-05: Me: \"I avoid mushrooms; dairy is fine.\"\ncorrection at 2026-10-07: \"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\"\nquote at 2026-10-09: \"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\"\n\nPublic question at 2026-10-12: \"What are my current dairy and mushroom preferences?\"\n\nNeed assess source-supported response boundary. Current preferences: correction explicitly updates: mushrooms fine now, avoid dairy from now on. Quote clarifies old Monday notes not new preference. So current dairy avoid, mushrooms fine. Determinate. Grounding source_record. known_fields include dairy: avoid; mushrooms: fine. unresolved none. assessable true. ambiguous false. current_state_conflict false. full history true. reason. alternatives [\"none\"]. source_evidence cite correction and maybe quote. Need exact nonempty contiguous quotes. source_id \"correction\", written_at \"2026-10-07T15:00:00-04:00\", quote exact \"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\" Also quote source \"quote\" exact. Maybe old? Need cite correction enough. But source_evidence can include correction and quote. Need event_date maybe \"2026-10-12T09:00:00-04:00\" or question date? Schema event_date string. Use public input at. check_id \"preference\". grounding_kind source_record. known_fields strings nonempty. unresolved_fields [].\n\nNeed overall consistent true, questions_answerable true, natural_enough true, issues []? Need notes. Need ensure no invalid. The question asks \"my current dairy and mushroom preferences\" and source establishes. Good.\n\nNeed consider \"current\" at question time 2026-10-12. Correction at 10/7 says from now on. Quote at 10/9 says old Monday notes not new preference. No later changes. So determinate.\n\nNeed output one JSON object. Need include all required fields. For source_evidence quote exact. Need maybe include old? Not necessary. But \"full_eligible_history_reviewed\": true. \"alternatives\": [\"none\"] nonempty. \"ambiguous\": false. \"current_state_conflict\": false. \"assessable\": true. \"answerability\": \"determinate\". \"grounding_kind\": \"source_record\". \"known_fields\": [\"dairy: avoid\", \"mushrooms: fine\"] maybe \"current dairy preference: avoid dairy\", \"current mushroom preference: mushrooms are fine\". Good.\n\nNeed \"issues\": [] and notes nonempty. \"consistent\": true. \"questions_answerable\": true. \"natural_enough\": true.\n\nNeed ensure JSON valid. No markdown. Final only JSON.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer audit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need produce",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON per",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " schema. Need assess one question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id likely",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"preference\",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event_date?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Public input at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "12.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need determine answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " inspect sources",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nWe have raw",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " records:\nold at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "05:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Me",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"I avoid mushrooms;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dairy is fine.\"",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\ncorrection at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "07:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Correction to Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": mushrooms are fine now. Please avoid dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " me from now on.\"\nquote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at 2026-10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-09: \"These",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are my old Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes, not a new preference",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \\\"I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " avoid mushrooms; dairy is fine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\\\"\"\n\nPublic question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at 2026-10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-12: \"What are",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " my current dairy and mushroom",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " preferences?\"\n\nNeed assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-supported response",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " boundary. Current preferences",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly updates",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": mushrooms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine now, avoid dairy from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " now on. Quote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " clarifies",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new preference. So current dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " avoid, mushrooms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine. Determ",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "inate. Ground",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ing source_record",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": avoid; mushrooms:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine. unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " none. assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able true. ambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " false. current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_state_conflict false. full",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " history",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true. reason. alternatives",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"none\"]. source_evidence cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction and maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need exact non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty contiguous quotes. source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id \"correction\",",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " written_at \"2026-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "10-07T15:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "00:00-04:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "00\", quote exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Correction to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Monday: mushrooms are fine now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Please avoid dairy for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " me from now on.\" Also",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"quote\" exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction enough",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_evidence can include correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and quote. Need event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "12T09:00:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "00-04:00",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" or question date? Schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event_date string",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Use public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input at.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id \"preference",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\". grounding_k",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ind source_record. known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " strings non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty. unresolved",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "].\n\nNeed overall",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " consistent true, questions",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_answerable true, natural_en",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ough true, issues []",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need ensure no invalid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The question asks",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"my current dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and mushroom",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " preferences\" and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source establishes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Good.\n\nNeed consider",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" at question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " time 2026-10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-12. Correction at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "7 says from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " now on. Quote at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 10/9 says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes not new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " preference. No later",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " changes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So determ",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "inate.\n\nNeed output one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON object. Need include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " all required",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fields. For",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " maybe include old",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " necessary. But \"full",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_eligible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_history_reviewed\": true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"altern",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "atives\": [\"none",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"]",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " nonempty.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\": false",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_state_conflict\": false",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"ass",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "essable\": true.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability\": \"determinate\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"grounding_kind\":",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"source_record\". \"known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\": [\"dairy: avoid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\", \"mushrooms:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine\"] maybe \"current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dairy preference: avoid dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\", \"current mushroom preference:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mushrooms are fine\". Good",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"issues\": []",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty. \"consistent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\": true. \"questions_answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able\": true. \"natural",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_enough\": true.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " ensure JSON valid. No markdown.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Final only JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794544896-2ZBYnmLYNR3KHhXv3BhO",
+    "provider": "DeepInfra",
+    "created": 1794544896,
+    "usage": {
+      "prompt_tokens": 2030,
+      "completion_tokens": 996,
+      "total_tokens": 3026,
+      "cost": 0.000276601472,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1536,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000276601472,
+        "upstream_inference_prompt_cost": 4.2342272e-05,
+        "upstream_inference_completions_cost": 0.0002342592
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 652,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000276601472
+    }
+  },
+  "text": "{\"consistent\":true,\"questions_answerable\":true,\"natural_enough\":true,\"issues\":[],\"notes\":\"The correction explicitly updates the earlier Monday note, and the later quotation only identifies the Monday note as obsolete rather than introducing a new preference. The current preferences are therefore source-supported and determinate.\",\"assessments\":[{\"check_id\":\"preference\",\"event_date\":\"2026-10-12T09:00:00-04:00\",\"answerability\":\"determinate\",\"grounding_kind\":\"source_record\",\"assessable\":true,\"ambiguous\":false,\"current_state_conflict\":false,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"current dairy preference: avoid dairy\",\"current mushroom preference: mushrooms are fine\"],\"unresolved_fields\":[],\"reason\":\"The 2026-10-07 correction explicitly states that mushrooms are fine now and asks to avoid dairy from now on. The 2026-10-09 message clarifies that the earlier Monday note is old and not a new preference. No later eligible source changes these preferences before the 2026-10-12 question.\",\"alternatives\":[\"none\"],\"source_evidence\":[{\"source_id\":\"correction\",\"written_at\":\"2026-10-07T15:00:00-04:00\",\"quote\":\"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\"},{\"source_id\":\"quote\",\"written_at\":\"2026-10-09T15:00:00-04:00\",\"quote\":\"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\"}]}]}",
+  "usage": {
+    "prompt_tokens": 2030,
+    "completion_tokens": 996,
+    "total_tokens": 3026,
+    "cost": 0.000276601472,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1536,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000276601472,
+      "upstream_inference_prompt_cost": 4.2342272e-05,
+      "upstream_inference_completions_cost": 0.0002342592
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 652,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000276601472
+  },
+  "cost_usd": 0.000276601472,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 0.378254,
+    "first_body_after_s": 0.544847,
+    "last_body_after_s": 10.530587,
+    "body_bytes": 101375,
+    "wall_duration_s": 10.655733,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 04:41:36 GMT",
+      "x-generation-id": "gen-1794544896-2ZBYnmLYNR3KHhXv3BhO"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 101375,
+    "body_sha256": "1b1bae00370491f1543512ee4de3b90621713d8f62d2ba80514f0d6097873031"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 101375,
+    "body_sha256": "1b1bae00370491f1543512ee4de3b90621713d8f62d2ba80514f0d6097873031",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 257
+  },
+  "accounting_receipt": {
+    "id": "f4e571e3-c26c-4a33-a67b-e10a4000a60f",
+    "state": "settled",
+    "accounted": "0.000276601472",
+    "reserved": "0.1746927616",
+    "input_tokens": 2030,
+    "output_tokens": 996,
+    "upstream_request_id": "gen-1794544896-2ZBYnmLYNR3KHhXv3BhO"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/91c3778d464e77fc29d54bde22afc3b46e587264b5ba70c31a976dfef712f61a.json.response-body.bin",
+    "bytes": 101375,
+    "sha256": "1b1bae00370491f1543512ee4de3b90621713d8f62d2ba80514f0d6097873031",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

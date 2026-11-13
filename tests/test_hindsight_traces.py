@@ -49,6 +49,12 @@ def test_native_traces_deduplicate_growing_message_history():
     assert len(convert(rows,turn)[0]['record']['toolCalls'])==2
 
 
+def test_legacy_native_tools_with_final_json_schema_remain_supported():
+    rows=recorded_rows({})
+    rows[-1]['llm_info']['request']={'response_schema':'ReflectResponse'}
+    assert len(convert(rows,make_turn())[0]['record']['toolCalls'])==2
+
+
 def test_incomplete_native_reflection_traces_never_assert_clean_retention(monkeypatch):
     monkeypatch.setattr('pacbench.hindsight_traces.read',lambda env:[])
     monkeypatch.setattr('pacbench.hindsight_traces.time.monotonic',iter([0,7]).__next__)
@@ -103,3 +109,85 @@ def test_complete_traces_stop_after_native_flush_without_waiting_for_deadline(mo
     traces=capture({}, {'ids':[]}, make_turn())
     assert read.call_count==1
     assert len(traces)==1 and traces[0]['record']['complete']
+
+
+def schema_rows(repeated=False):
+    """1.2's native tools_via_schema role/content and request metadata format."""
+    import json
+    tools=[{'name':n,'description':d,'parameters':{'type':'object'}} for n,d in
+           [('search_observations','Search observations.'),('recall','Search raw memories.'),('done','Your final answer.')]]
+    system={'role':'system','content':'Native instructions\n\n## Functions\n\nYou act by calling these functions:\n\n'+json.dumps(tools)}
+    history=[system,{'role':'user','content':'Public query'}];rows=[]
+    calls=[('recall',{'query':'Public query'},{'memories':[],'chunks':{'c':{'chunk_text':'original source'}}}),
+           ('recall',{'query':'Public query'},{'memories':[],'chunks':{}})] if repeated else [
+           ('search_observations',{'query':'Public query'},{'observations':[]}),
+           ('recall',{'query':'Public query'},{'memories':[],'chunks':{'c':{'chunk_text':'original source'}}})]
+    for index,(name,args,result) in enumerate(calls+[('done',{'answer':'Answer'},None)]):
+        instruction=f"Call `{name}` now ({next(t['description'] for t in tools if t['name']==name).rstrip('.')}). Reply with only its arguments, as one JSON object."
+        messages=[dict(m) for m in history];messages[-1]['content']+='\n\n'+instruction
+        rows.append({'id':f'native-{index}','trace_id':'schema-operation','scope':'reflect' if name=='done' else 'reflect_tool_call',
+            'status':'success','started_at':f'2026-10-26T10:00:0{index}+00:00',
+            'ended_at':f'2026-10-26T10:00:0{index+1}+00:00','input':messages,'output':json.dumps(args),
+            'llm_info':{'request':{'response_schema':name}}})
+        if result is not None:
+            history.extend([{'role':'assistant','content':json.dumps({'call':{'name':name,'arguments':args}})},
+                            {'role':'user','content':f'Result of `{name}`:\n'+json.dumps(result)}])
+    return rows
+
+
+def test_schema_tools_pair_native_outputs_and_replayed_results():
+    trace=convert(schema_rows(),make_turn())[0]
+    assert trace['attribution']=='explicit-query-match'
+    assert trace['record']['query']=='Public query'
+    assert trace['record']['complete']
+    operations=trace['record']['toolCalls']
+    assert [c['toolName'] for c in operations]==['search_observations','recall','done']
+    assert operations[1]['result']['chunks']['c']['chunk_text']=='original source'
+    turn=make_turn();turn.provider_traces=[trace]
+    assert tool_profile(turn)['source_fallback_attempted']
+    assert not tool_profile(turn)['unclassified_operations']
+    assert 'input' not in trace['record'] and 'output' not in trace['record']
+
+
+def test_schema_repeated_identical_calls_keep_separate_result_occurrences():
+    calls=convert(schema_rows(repeated=True),make_turn())[0]['record']['toolCalls']
+    assert calls[0]['id']!=calls[1]['id']
+    assert calls[0]['args']==calls[1]['args']
+    assert calls[0]['result']['chunks'] and not calls[1]['result']['chunks']
+
+
+def test_schema_free_choice_output_is_recognized():
+    import json
+    rows=schema_rows();row=rows[1]
+    original='Call `recall` now (Search raw memories). Reply with only its arguments, as one JSON object.'
+    free=('Decide your next step: call exactly ONE of the declared functions. Reply with one JSON object, '
+          '{"call": {"name": <function name>, "arguments": {...}}}.')
+    row['input'][-1]['content']=row['input'][-1]['content'].removesuffix(original)+free
+    row['llm_info']['request']['response_schema']='next_call'
+    row['output']=json.dumps({'call':{'name':'recall','arguments':json.loads(row['output'])}})
+    assert convert(rows,make_turn())[0]['record']['toolCalls'][1]['result']['chunks']
+
+
+@pytest.mark.parametrize('mutation',['replay','result','query','declaration','output','duplicate-id'])
+def test_schema_ambiguous_or_changed_native_evidence_fails_closed(mutation):
+    import json
+    rows=schema_rows()
+    if mutation=='replay':rows[2]['input'][2]['content']=json.dumps({'call':{'name':'recall','arguments':{}}})
+    elif mutation=='result':rows[2]['input'][3]['content']='Result of `search_observations`:\n{"changed":true}'
+    elif mutation=='query':rows[2]['input'][1]['content']='Different query'
+    elif mutation=='declaration':rows[1]['llm_info']['request']['response_schema']='unknown'
+    elif mutation=='output':rows[1]['output']='not JSON'
+    else:rows[1]['id']=rows[0]['id']
+    with pytest.raises(ValueError):convert(rows,make_turn())
+
+
+def test_raw_native_snapshot_survives_conversion_failure_privately(tmp_path,monkeypatch):
+    import json,hashlib,stat
+    rows=schema_rows();rows[1]['output']='incomplete JSON'
+    monkeypatch.setattr('pacbench.hindsight_traces.read',lambda env:rows)
+    traces=capture({'PACBENCH_HINDSIGHT_TRACE_DIR':str(tmp_path)}, {'ids':[]},make_turn())
+    assert traces[0]['error'].startswith('Native trace observation failed:')
+    witness=traces[0]['native_snapshot'];path=tmp_path/(witness['sha256']+'.json')
+    assert hashlib.sha256(path.read_bytes()).hexdigest()==witness['sha256']
+    assert json.loads(path.read_text())==rows
+    assert stat.S_IMODE(path.stat().st_mode)==0o600

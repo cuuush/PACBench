@@ -1,0 +1,93 @@
+{
+  "created_at": "2026-11-13T04:55:06.297643+00:00",
+  "client_wall_deadline_s": 180,
+  "client_max_attempts": 1,
+  "status": "failed",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Independently audit this complete raw personal-message corpus and EVERY public check/input ID. Some inputs are declarative reports or instructions rather than grammatical questions. Assess every supplied ID, including behavior/report turns; do not omit them. Identifiers are labels, never answer hints or evidence; derive classifications from eligible text. No authored answer keys or expectations are provided. Read actual source identities, bodies, written and collection times, quoted history, and ordered public inputs. Source after a question’s collection cutoff cannot support that answer. Resolve each relative date from its own written context. Both written and collection times must be no later than the checkpoint. Public questions’ presuppositions do not independently establish facts, including in earlier questions. Conditional replies and their dependent inputs are not established history. Never assume the assistant saved an update or completed an external action.\nFor intended answerability, assume prior delivered information is retained across fresh sessions, while resolving conversational references in their actual session. A definite public user report/correction updates intended knowledge without another person’s confirmation. Actual provider persistence is tested later and is not a source-answerability requirement.\nCoherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown. Explicit corrections, rejected proposals, clearly attributed disagreements, and explicitly obsolete quotations are not unresolved contradictions.\nAssess the source-supported response boundary, not whether the underlying world state is fully known. Use answerability determinate, bounded_unknown, clarification_warranted, or invalid. Determinate means the requested attribute has an ordinary supported answer. Bounded unknown means a grounded event/entity and requested attribute exist, but its value is not established in the complete eligible history. Clarification warranted means a grounded reference has multiple material interpretations; identify alternatives and the missing discriminator. Invalid means there is no grounded objectively assessable response boundary, inaccessible information is required as a definite fact, or unresolved source conflict prevents a valid test. Saying unknown is not a universal escape: an entirely absent event or unresolvable target is invalid. Do not overlook or erase information the source DOES establish.\nHandle mixed questions by attribute: keep known details in known_fields and identify each unresolved attribute in unresolved_fields. Classify requested attributes: an explicitly recorded invitation status can be determinate; attendance without an outcome report is bounded unknown. If any requested attribute is unresolved, classify the mixed question as bounded_unknown or clarification_warranted while preserving its other known attributes. A booking/acknowledgement is not attendance; an invitation is not acceptance; a promise is not completed work; an unexplained name expansion is not known. Inspect the complete eligible history before concluding a requested value is absent, and identify that unresolved attribute explicitly.\nReturn exactly one assessment per supplied public check/input ID in canonical order, including declarative behavior/report turns. Each has check_id, event_date, answerability, assessable (boolean), ambiguous (descriptive boolean), current_state_conflict (boolean), known_fields (strings; nonempty for assessable questions), unresolved_fields (array of {attribute, missing, alternatives:[strings]}), reason (nonempty), full_eligible_history_reviewed:true, grounding_kind (source_record, explicit_public_report, presupposition_only or absent), alternatives (nonempty strings or [\"none\"]), and source_evidence:[{source_id,written_at,quote}]. Use exact nonempty contiguous source quotes. Cite raw source_id or public-input:<question-id>; a question alone does not establish its own event. Only a source_record or explicit_public_report can ground an assessable response; an interrogative presupposition is not a report. The harness binds eligible-evidence hashes to the request and receipt; do not copy opaque hashes into your output. For unresolved fields, citations must ground the referent, and the reason must explain the missing information after examining ALL eligible history. Known fields must remain responsive and source-supported; do not substitute blanket uncertainty for resolvable facts.\nSet questions_answerable true only when every public check/input has an assessable source-derived boundary (determinate, bounded_unknown or clarification_warranted), consistent true only for coherent source, and natural_enough true only for plausible source. Report genuine defects in issues; do not list properly bounded unknowns, resolved corrections or old quotations as defects by themselves. Any invalid assessment or current-state conflict prevents approval. Return one JSON object conforming to the schema below. Schema fields describe output types, not desired verdicts or defaults. This review does not replace independent criterion verification.\nRequired assessment IDs in order:\n[\"q-1\", \"q-2\"]\nResponse schema:\n{\"type\": \"object\", \"required\": [\"consistent\", \"questions_answerable\", \"natural_enough\", \"issues\", \"notes\", \"assessments\"], \"properties\": {\"consistent\": {\"type\": \"boolean\"}, \"questions_answerable\": {\"type\": \"boolean\"}, \"natural_enough\": {\"type\": \"boolean\"}, \"issues\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"notes\": {\"type\": \"string\", \"minLength\": 1}, \"assessments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"check_id\", \"event_date\", \"answerability\", \"grounding_kind\", \"assessable\", \"ambiguous\", \"current_state_conflict\", \"full_eligible_history_reviewed\", \"known_fields\", \"unresolved_fields\", \"reason\", \"alternatives\", \"source_evidence\"], \"properties\": {\"check_id\": {\"type\": \"string\", \"minLength\": 1}, \"event_date\": {\"type\": \"string\", \"minLength\": 1}, \"answerability\": {\"enum\": [\"bounded_unknown\", \"clarification_warranted\", \"determinate\", \"invalid\"]}, \"grounding_kind\": {\"enum\": [\"source_record\", \"explicit_public_report\", \"presupposition_only\", \"absent\"]}, \"assessable\": {\"type\": \"boolean\"}, \"ambiguous\": {\"type\": \"boolean\"}, \"current_state_conflict\": {\"type\": \"boolean\"}, \"full_eligible_history_reviewed\": {\"type\": \"boolean\"}, \"known_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"unresolved_fields\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"attribute\", \"missing\", \"alternatives\"], \"properties\": {\"attribute\": {\"type\": \"string\", \"minLength\": 1}, \"missing\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}}}}, \"reason\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}, \"source_evidence\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"written_at\", \"quote\"], \"properties\": {\"source_id\": {\"type\": \"string\", \"minLength\": 1}, \"written_at\": {\"type\": \"string\", \"minLength\": 1}, \"quote\": {\"type\": \"string\", \"minLength\": 1}}}}}}, \"minItems\": 2, \"maxItems\": 2}}}\nComplete raw source records:\n[{\"arrived_at\": \"2026-10-05T09:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:00:00-04:00\", \"from_owner\": false, \"sender\": \"Studio\", \"source_id\": \"m-1\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Your pickup is Friday October 9 at 10 am.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:00:00-04:00\"}]\nOrdered timestamped public inputs and scope bindings:\n[{\"at\": \"2026-10-06T09:00:00-04:00\", \"eligible_evidence_hash\": \"f821c27522672f5ed75c6e17a16bf67796e4ffe27a0c01d72dae5770fd941ad3\", \"id\": \"q-1\", \"kind\": \"behavior\", \"prompt\": \"The pickup is now Sunday October 11 at 11 am, not Friday. Please remember that.\", \"session\": \"old\"}, {\"at\": \"2026-10-07T09:00:00-04:00\", \"eligible_evidence_hash\": \"923661f25e195412fdce97fbf5e6312b463caa20b8580424908d463c16bca91d\", \"id\": \"q-2\", \"prompt\": \"When is my pickup?\", \"session\": \"fresh\"}]"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": ""
+        },
+        "finish_reason": null
+      }
+    ],
+    "id": "gen-1794545694-xr1Q6fPqi6tJxYsstNNR",
+    "provider": "DeepInfra",
+    "created": 1794545694
+  },
+  "text": "",
+  "usage": {},
+  "cost_usd": null,
+  "cost_status": "not reported by API",
+  "error": "IncompleteChatStream: Judge stream ended without [DONE]",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.491486,
+    "first_body_after_s": 1.695748,
+    "last_body_after_s": 9.179377,
+    "body_bytes": 92566,
+    "wall_duration_s": 12.016499,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 04:54:55 GMT",
+      "x-generation-id": "gen-1794545694-xr1Q6fPqi6tJxYsstNNR"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 92566,
+    "body_sha256": "c61650b1822c58721364031427e01a1d623a541241082b9ea9df57dd7cd598ae"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "accounting_receipt": {
+    "id": "8b4d1be6-556e-41ca-99f3-80e7b5bcb07a",
+    "state": "uncertain",
+    "accounted": "0.1746927616",
+    "reserved": "0.1746927616",
+    "input_tokens": null,
+    "output_tokens": null,
+    "upstream_request_id": "gen-1794545694-xr1Q6fPqi6tJxYsstNNR"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/ef159f08c51a026d4ec485c32ce21e1d28521d8940441e8d1c3cd0f76d4f91c8.json.response-body.bin",
+    "bytes": 92566,
+    "sha256": "c61650b1822c58721364031427e01a1d623a541241082b9ea9df57dd7cd598ae",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  },
+  "failed_response_body": {
+    "relative_path": "private/ef159f08c51a026d4ec485c32ce21e1d28521d8940441e8d1c3cd0f76d4f91c8.json.response-body.bin",
+    "bytes": 92566,
+    "sha256": "c61650b1822c58721364031427e01a1d623a541241082b9ea9df57dd7cd598ae",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

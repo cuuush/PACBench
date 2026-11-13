@@ -1,0 +1,2444 @@
+{
+  "created_at": "2026-11-13T04:53:11.376872+00:00",
+  "client_wall_deadline_s": 180,
+  "client_max_attempts": 1,
+  "status": "ok",
+  "model": "deepseek/deepseek-v4.1-flash-1017",
+  "url": "https://openrouter.ai/api/v1/chat/completions",
+  "protocol": "chat",
+  "attempt": 1,
+  "request": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "temperature": 0.0,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Independently audit this complete raw personal-message corpus and EVERY public check/input ID. Some inputs are declarative reports or instructions rather than grammatical questions. Assess every supplied ID, including behavior/report turns; do not omit them. Identifiers are labels, never answer hints or evidence; derive classifications from eligible text. No authored answer keys or expectations are provided. Read actual source identities, bodies, written and collection times, quoted history, and ordered public inputs. Source after a question’s collection cutoff cannot support that answer. Resolve each relative date from its own written context. Both written and collection times must be no later than the checkpoint. Public questions’ presuppositions do not independently establish facts, including in earlier questions. Conditional replies and their dependent inputs are not established history. Never assume the assistant saved an update or completed an external action.\nFor intended answerability, assume prior delivered information is retained across fresh sessions, while resolving conversational references in their actual session. A definite public user report/correction updates intended knowledge without another person’s confirmation. Actual provider persistence is tested later and is not a source-answerability requirement.\nCoherence and naturalness are mandatory separate gates. Reject unresolved contradictory current source assertions or implausible source, even if an answer could say unknown. Explicit corrections, rejected proposals, clearly attributed disagreements, and explicitly obsolete quotations are not unresolved contradictions.\nAssess the source-supported response boundary, not whether the underlying world state is fully known. Use answerability determinate, bounded_unknown, clarification_warranted, or invalid. Determinate means the requested attribute has an ordinary supported answer. Bounded unknown means a grounded event/entity and requested attribute exist, but its value is not established in the complete eligible history. Clarification warranted means a grounded reference has multiple material interpretations; identify alternatives and the missing discriminator. Invalid means there is no grounded objectively assessable response boundary, inaccessible information is required as a definite fact, or unresolved source conflict prevents a valid test. Saying unknown is not a universal escape: an entirely absent event or unresolvable target is invalid. Do not overlook or erase information the source DOES establish.\nHandle mixed questions by attribute: keep known details in known_fields and identify each unresolved attribute in unresolved_fields. Classify requested attributes: an explicitly recorded invitation status can be determinate; attendance without an outcome report is bounded unknown. If any requested attribute is unresolved, classify the mixed question as bounded_unknown or clarification_warranted while preserving its other known attributes. A booking/acknowledgement is not attendance; an invitation is not acceptance; a promise is not completed work; an unexplained name expansion is not known. Inspect the complete eligible history before concluding a requested value is absent, and identify that unresolved attribute explicitly.\nReturn exactly one assessment per supplied public check/input ID in canonical order, including declarative behavior/report turns. Each has check_id, event_date, answerability, assessable (boolean), ambiguous (descriptive boolean), current_state_conflict (boolean), known_fields (strings; nonempty for assessable questions), unresolved_fields (array of {attribute, missing, alternatives:[strings]}), reason (nonempty), full_eligible_history_reviewed:true, grounding_kind (source_record, explicit_public_report, presupposition_only or absent), alternatives (nonempty strings or [\"none\"]), and source_evidence:[{source_id,written_at,quote}]. Use exact nonempty contiguous source quotes. Cite raw source_id or public-input:<question-id>; a question alone does not establish its own event. Only a source_record or explicit_public_report can ground an assessable response; an interrogative presupposition is not a report. The harness binds eligible-evidence hashes to the request and receipt; do not copy opaque hashes into your output. For unresolved fields, citations must ground the referent, and the reason must explain the missing information after examining ALL eligible history. Known fields must remain responsive and source-supported; do not substitute blanket uncertainty for resolvable facts.\nSet questions_answerable true only when every public check/input has an assessable source-derived boundary (determinate, bounded_unknown or clarification_warranted), consistent true only for coherent source, and natural_enough true only for plausible source. Report genuine defects in issues; do not list properly bounded unknowns, resolved corrections or old quotations as defects by themselves. Any invalid assessment or current-state conflict prevents approval. Return one JSON object conforming to the schema below. Schema fields describe output types, not desired verdicts or defaults. This review does not replace independent criterion verification.\nRequired assessment IDs in order:\n[\"q-1\"]\nResponse schema:\n{\"type\": \"object\", \"required\": [\"consistent\", \"questions_answerable\", \"natural_enough\", \"issues\", \"notes\", \"assessments\"], \"properties\": {\"consistent\": {\"type\": \"boolean\"}, \"questions_answerable\": {\"type\": \"boolean\"}, \"natural_enough\": {\"type\": \"boolean\"}, \"issues\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"notes\": {\"type\": \"string\", \"minLength\": 1}, \"assessments\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"check_id\", \"event_date\", \"answerability\", \"grounding_kind\", \"assessable\", \"ambiguous\", \"current_state_conflict\", \"full_eligible_history_reviewed\", \"known_fields\", \"unresolved_fields\", \"reason\", \"alternatives\", \"source_evidence\"], \"properties\": {\"check_id\": {\"type\": \"string\", \"minLength\": 1}, \"event_date\": {\"type\": \"string\", \"minLength\": 1}, \"answerability\": {\"enum\": [\"bounded_unknown\", \"clarification_warranted\", \"determinate\", \"invalid\"]}, \"grounding_kind\": {\"enum\": [\"source_record\", \"explicit_public_report\", \"presupposition_only\", \"absent\"]}, \"assessable\": {\"type\": \"boolean\"}, \"ambiguous\": {\"type\": \"boolean\"}, \"current_state_conflict\": {\"type\": \"boolean\"}, \"full_eligible_history_reviewed\": {\"type\": \"boolean\"}, \"known_fields\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}}, \"unresolved_fields\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"attribute\", \"missing\", \"alternatives\"], \"properties\": {\"attribute\": {\"type\": \"string\", \"minLength\": 1}, \"missing\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}}}}, \"reason\": {\"type\": \"string\", \"minLength\": 1}, \"alternatives\": {\"type\": \"array\", \"items\": {\"type\": \"string\", \"minLength\": 1}, \"minItems\": 1}, \"source_evidence\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"written_at\", \"quote\"], \"properties\": {\"source_id\": {\"type\": \"string\", \"minLength\": 1}, \"written_at\": {\"type\": \"string\", \"minLength\": 1}, \"quote\": {\"type\": \"string\", \"minLength\": 1}}}}}}, \"minItems\": 1, \"maxItems\": 1}}}\nComplete raw source records:\n[{\"arrived_at\": \"2026-10-05T09:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-05T09:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"m-1\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"I avoid mushrooms; dairy is fine.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-05T09:00:00-04:00\"}, {\"arrived_at\": \"2026-10-07T15:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-07T15:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"m-2\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-07T15:00:00-04:00\"}, {\"arrived_at\": \"2026-10-09T15:00:00-04:00\", \"channel\": \"imessage\", \"collected_at\": \"2026-10-09T15:00:00-04:00\", \"from_owner\": true, \"sender\": \"Me\", \"source_id\": \"m-3\", \"structured\": {\"participants\": [\"Me\", \"Studio\"]}, \"text\": \"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\", \"thread\": \"test-thread\", \"written_at\": \"2026-10-09T15:00:00-04:00\"}]\nOrdered timestamped public inputs and scope bindings:\n[{\"at\": \"2026-10-12T09:00:00-04:00\", \"eligible_evidence_hash\": \"db4c6182ce23b30eea56c860bf8487d810522497cf2739db444226c2f55193df\", \"id\": \"q-1\", \"prompt\": \"What are my current dairy and mushroom preferences?\"}]"
+      }
+    ],
+    "reasoning_effort": "low",
+    "response_format": {
+      "type": "json_object"
+    },
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    }
+  },
+  "response": {
+    "model": "deepseek/deepseek-v4.1-flash-1017",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"consistent\":true,\"questions_answerable\":true,\"natural_enough\":true,\"issues\":[],\"notes\":\"Single public check assessed. All eligible source records predate the 2026-10-12 checkpoint, and the later correction plus explicit obsolete-quotation message resolve the current preferences.\",\"assessments\":[{\"check_id\":\"q-1\",\"event_date\":\"2026-10-12T09:00:00-04:00\",\"answerability\":\"determinate\",\"grounding_kind\":\"source_record\",\"assessable\":true,\"ambiguous\":false,\"current_state_conflict\":false,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"Current dairy preference: avoid dairy\",\"Current mushroom preference: mushrooms are fine\"],\"unresolved_fields\":[],\"reason\":\"The owner's 2026-10-07 correction states mushrooms are fine now and to avoid dairy from now on. The 2026-10-09 message explicitly labels the earlier Monday note as old and not a new preference, so the current preferences are determinate.\",\"alternatives\":[\"none\"],\"source_evidence\":[{\"source_id\":\"m-2\",\"written_at\":\"2026-10-07T15:00:00-04:00\",\"quote\":\"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\"},{\"source_id\":\"m-3\",\"written_at\":\"2026-10-09T15:00:00-04:00\",\"quote\":\"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\"}]}]}",
+          "reasoning": "We need answer JSON only. Need audit. Need parse. We have one public input q-1 at 2026-10-12. Sources m1 Oct5, m2 Oct7 correction, m3 Oct9 old notes not new preference. Need assess current dairy and mushroom preferences. Need determine answerability. Source m2 explicit correction: mushrooms fine now, avoid dairy from now on. m3 says old Monday notes not new preference quoting m1. So current: mushrooms fine, dairy avoid. Determinate. Need cite exact quotes. Need event_date? For q-1 likely 2026-10-12? Schema event_date string. Use public input at date? Usually event_date is question date? Need infer. We need one assessment. check_id q-1. answerability determinate. grounding_kind explicit_public_report? The source is from owner, explicit public report/correction. Could be source_record? It's raw personal message from owner. \"explicit_public_report\" maybe for public user report/correction. Since m2 is explicit correction from owner. Use explicit_public_report. assessable true. ambiguous false. current_state_conflict false. full_eligible_history_reviewed true. known_fields: \"Current dairy preference: avoid dairy\", \"Current mushroom preference: mushrooms are fine\". unresolved_fields []. reason nonempty. alternatives [\"none\"]. source_evidence include m2 quote and maybe m3 quote to show old notes not new. Need exact contiguous quotes. m2: \"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\" m3: \"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\" Need quote exact including escaped quotes? In JSON string. Could include m2 and m3. Maybe m1 not needed. Need source_id raw. written_at exact. For m2 written_at 2026-10-07T15:00:00-04:00. m3 2026-10-09T15:00:00-04:00. Need event_date maybe \"2026-10-12T09:00:00-04:00\" or \"2026-10-12\". Schema string. Use public input at. Need consistent true, questions_answerable true, natural_enough true. issues []. notes nonempty. Need ensure \"current_state_conflict\" false. \"ambiguous\" descriptive boolean false. \"alternatives\" nonempty strings or [\"none\"]. Good.\n\nNeed consider \"Both written and collection times must be no later than checkpoint.\" All sources before q. Good. \"Source after question’s collection cutoff cannot support\" none. \"Conditional replies...\" none. \"Never assume assistant saved update\" irrelevant. \"A definite public user report/correction updates intended knowledge without another person’s confirmation.\" m2 correction. m3 explicitly obsolete quotation. So determinate.\n\nNeed output exactly JSON object. No markdown. Ensure schema. known_fields nonempty for assessable. unresolved_fields empty. source_evidence quotes exact. Need maybe include m1? Not necessary. But full history reviewed. Could cite m2 and m3. m3 quote includes escaped quotes. Need exact nonempty contiguous source quotes. The quote in m3 text: These are my old Monday notes, not a new preference: \"I avoid mushrooms; dairy is fine.\" In JSON string need escape inner quotes. That's fine. It is contiguous. m2 quote exact. Good.\n\nNeed maybe event_date \"2026-10-12T09:00:00-04:00\". Good.\n\nNeed reason mention m2 correction supersedes m1, m3 confirms old notes not new. \"The owner's 2026-10-07 correction states mushrooms are fine now and to avoid dairy from now on; the 2026-10-09 message explicitly labels the Monday note as old and not a new preference. Thus current preferences are determinate.\" Good.\n\nNeed notes maybe \"Single public check assessed; all eligible source records predate checkpoint.\" Good.\n\nNeed issues empty. consistent true. natural_enough true. questions_answerable true.\n\nNeed ensure \"grounding_kind\": explicit_public_report. Is m2 a source_record? The enum includes source_record and explicit_public_report. Since raw source record from owner, maybe source_record. But \"explicit_public_report\" likely for public user report/correction. The instruction: \"Only a source_record or explicit_public_report can ground an assessable response; an interrogative presupposition is not a report.\" m2 is a source record and explicit public report. Which choose? For personal message corpus, source_record seems appropriate. But \"A definite public user report/correction updates intended knowledge\" suggests explicit_public_report. Need decide. The source is raw source record, not public input. But it is an explicit report from owner. The enum \"source_record\" likely for raw source records. \"explicit_public_report\" for public-input report turns. Here q-1 is question, no report. m2 is source record. Use source_record? Hmm. The schema says grounding_kind enum source_record, explicit_public_report, presupposition_only, absent. Since evidence is raw source record m-2, use source_record. But m2 is also explicit correction. The instruction \"A definite public user report/correction updates intended knowledge\" maybe \"public\" means from user in source? It says \"public user report/correction\" maybe public input. But raw source records are personal messages. I think source_record is safest because source_id m-2. However \"explicit_public_report\" could be used for m2 because it's explicit report. Need not overthink. The source is a raw personal-message corpus; source_record is exact. Use source_record. But if they expect explicit_public_report for correction? The enum includes both. \"Only a source_record or explicit_public_report can ground an assessable response\" both acceptable. I'll use source_record because evidence is raw source record. But \"explicit_public_report\" maybe for declarative public input. q-1 is interrogative. So source_record.\n\nNeed maybe include m1? If cite m2 and m3 enough. m3 quote includes old note. Good.\n\nNeed final JSON. Ensure no trailing.",
+          "reasoning_details": [
+            {
+              "type": "reasoning.text",
+              "text": "We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need answer JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " only.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need audit. Need parse",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " have one public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input q-1 at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-12",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Sources m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 Oct",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "5, m2 Oct7",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction, m3 Oct9",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " preference. Need assess current dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and mushroom preferences. Need determine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answerability",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction: mushrooms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", avoid dairy from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " now on. m3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old Monday notes not new preference",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quoting",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1. So current:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mushrooms fine, dairy avoid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Determ",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "inate. Need cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need event_date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? For",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-1 likely",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-12",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event_date string",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Use",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " public input",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " date",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? Usually",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " event_date is question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " date? Need infer. We",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need one",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessment.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id q-1.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ability determinate. grounding_k",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ind explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_public_report? The source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " owner,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit public report/c",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "orrection. Could",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " be source_record? It's",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " raw personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " owner.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"explicit_public_report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" maybe for public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user report/c",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "orrection. Since",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " from owner. Use explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_public_report. assess",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able true. ambiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " false. current_state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_conflict false. full",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "eligible_history_reviewed true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". known_fields:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " dairy preference: avoid dairy",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\", \"Current mushroom preference:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mushrooms are fine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " unresolved_fields [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "]. reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty. alternatives [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\"none\"]. source_evidence include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m2 quote and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " maybe m3 quote to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " show",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not new",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need exact contiguous",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes. m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": \"Correction to Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": mushrooms are fine now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Please avoid dairy for me from now on.\" m3: \"These",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are my old Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes, not a new preference: \\\"I",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " avoid mushrooms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; dairy is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine.\\\"\" Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact including",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " escaped",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes? In",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON string. Could include m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and m3. Maybe m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 not needed. Need source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_id",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " raw",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". written",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_at exact",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". For m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " written_at",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-07",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "T15:00:00",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-04:00. m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 2026-10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-09T15:00",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ":00-04:00",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"2026-10-12",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "T09:00:00",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-04:00\" or",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "12\". Schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " string",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Use public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " at.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need consistent true",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", questions_answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able true, natural_en",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ough true.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " issues [",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "]. notes non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty. Need ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"current",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_state",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_conf",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "lict\" false.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ambiguous\" descriptive",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " boolean false. \"altern",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "atives\" non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty strings",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " or",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " [\"none\"]. Good.\n\nNeed consider \"Both written and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " collection times must be no",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " later than checkpoint.\" All sources",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " before q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Good.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " after",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "’s collection",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cutoff cannot support",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" none",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"Condition",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "al replies",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "...\" none",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". \"Never",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assume assistant",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " saved update",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" irrelevant.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"A",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " definite public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "/correction updates",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intended knowledge without another",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " person’",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "s confirmation.\" m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "3 explicitly",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " obsolete",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotation",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". So",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " determ",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "inate.\n\nNeed output",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exactly JSON object",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". No markdown. Ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". known",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " nonempty for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessable. unresolved_fields",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " empty. source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_evidence quotes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " exact. Need maybe include m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1? Not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " necessary. But full",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " history reviewed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Could cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m2 and m3.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m3 quote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " escaped",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes. Need exact non",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "empty contiguous source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quotes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " quote in m3 text",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ": These",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are my old Monday",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " notes,",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " not a new preference:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"I avoid",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mushrooms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "; dairy is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " fine.\" In JSON string",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " escape inner quotes. That",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s fine",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". It",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is contiguous. m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2 quote exact. Good.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed maybe event",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_date \"2026-10",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-12T",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "09:00:00-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "04:00\". Good.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\n\nNeed reason",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mention m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2 correction supers",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "edes m1, m3",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " confirms",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " old notes not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " new.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"The owner",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "'s 2026-10-07 correction states",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " mushrooms are fine now",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and to",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " avoid dairy from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " now on; the",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " 2026-10-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "09 message",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicitly labels the Monday note as old and not a new preference. Thus current preferences are determ",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "inate.\" Good.\n\nNeed notes",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " maybe \"Single",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " public check",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ";",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " all eligible",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source records pred",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ate checkpoint.\" Good.\n\nNeed",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " issues empty",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". consistent",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " true. natural_en",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ough true. questions_answer",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "able true.\n\nNeed ensure",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"ground",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ing_kind\": explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_public_report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_record? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " enum includes source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_record and explicit_public_report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Since raw source record from",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " owner",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source_record. But \"ex",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "plicit_",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "public_report\" likely for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " public user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " report/c",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "orrection. The instruction:",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Only",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a source_record or explicit_",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "public_report can ground",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " an assessable response;",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " an interrogative presupp",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "osition is not a report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".\" m2 is a source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " record and",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit public report. Which choose",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "? For",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " message corpus",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", source_record seems",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " appropriate. But \"A",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " definite public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user report/correction updates",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intended",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " knowledge",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" suggests explicit_public_report.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Need",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " decide",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The source is raw",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " record, not public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " input.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " it",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is an",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " explicit report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " from owner. The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " enum",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"source_record\" likely for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " raw source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " records. \"explicit_public_report\" for public-input",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " report turns",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Here q-1 is question",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ", no",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " report. m2 is source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " record",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Use source_record?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " Hmm. The schema",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " says grounding_kind enum source_record, explicit_public_report, presupposition_only, absent. Since evidence is raw source record m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2, use source_record. But m2 is also explicit correction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". The instruction",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"A",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " definite public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " user report/correction updates",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " intended",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " knowledge\" maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"public",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" means from user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " in",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " It says \"public user",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " report/correction\" maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " public input",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". But raw",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source records",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " are personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " messages. I think source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_record is safest",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source_id",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-2. However",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"explicit_public_report\" could be used for m",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "2 because it's explicit",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Need not",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " overthink. The source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " a raw",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " personal",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-message corpus",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ";",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " source_record is exact. Use source_record.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " But if they",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " expect explicit_public_report for",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " correction? The",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " enum",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes both.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"Only a source",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "_record or explicit_public_report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " can ground an",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " assessable response\" both acceptable",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". I'll use source_record because",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " evidence",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " is raw source record. But",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " \"explicit_public_report",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "\" maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " for declar",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ative public input. q",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "-",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "1 is interrog",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "ative.",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " So source_record.\n\nNeed maybe",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " include",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m1",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": "?",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " If",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " cite",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " m2",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " and m3 enough",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". m3 quote",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " includes old note",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Good.\n\nNeed final",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": " JSON",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ". Ensure no trailing",
+              "format": "unknown",
+              "index": 0
+            },
+            {
+              "type": "reasoning.text",
+              "text": ".",
+              "format": "unknown",
+              "index": 0
+            }
+          ]
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "id": "gen-1794545575-Pq0jp0xSbQelZkQ7bJV9",
+    "provider": "DeepInfra",
+    "created": 1794545575,
+    "usage": {
+      "prompt_tokens": 2121,
+      "completion_tokens": 1653,
+      "total_tokens": 3774,
+      "cost": 0.000438262272,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 1536,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000438262272,
+        "upstream_inference_prompt_cost": 4.9476672e-05,
+        "upstream_inference_completions_cost": 0.0003887856
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 1318,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      },
+      "cost_usd": 0.000438262272
+    }
+  },
+  "text": "{\"consistent\":true,\"questions_answerable\":true,\"natural_enough\":true,\"issues\":[],\"notes\":\"Single public check assessed. All eligible source records predate the 2026-10-12 checkpoint, and the later correction plus explicit obsolete-quotation message resolve the current preferences.\",\"assessments\":[{\"check_id\":\"q-1\",\"event_date\":\"2026-10-12T09:00:00-04:00\",\"answerability\":\"determinate\",\"grounding_kind\":\"source_record\",\"assessable\":true,\"ambiguous\":false,\"current_state_conflict\":false,\"full_eligible_history_reviewed\":true,\"known_fields\":[\"Current dairy preference: avoid dairy\",\"Current mushroom preference: mushrooms are fine\"],\"unresolved_fields\":[],\"reason\":\"The owner's 2026-10-07 correction states mushrooms are fine now and to avoid dairy from now on. The 2026-10-09 message explicitly labels the earlier Monday note as old and not a new preference, so the current preferences are determinate.\",\"alternatives\":[\"none\"],\"source_evidence\":[{\"source_id\":\"m-2\",\"written_at\":\"2026-10-07T15:00:00-04:00\",\"quote\":\"Correction to Monday: mushrooms are fine now. Please avoid dairy for me from now on.\"},{\"source_id\":\"m-3\",\"written_at\":\"2026-10-09T15:00:00-04:00\",\"quote\":\"These are my old Monday notes, not a new preference: \\\"I avoid mushrooms; dairy is fine.\\\"\"}]}]}",
+  "usage": {
+    "prompt_tokens": 2121,
+    "completion_tokens": 1653,
+    "total_tokens": 3774,
+    "cost": 0.000438262272,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 1536,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 0.000438262272,
+      "upstream_inference_prompt_cost": 4.9476672e-05,
+      "upstream_inference_completions_cost": 0.0003887856
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 1318,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    },
+    "cost_usd": 0.000438262272
+  },
+  "cost_usd": 0.000438262272,
+  "cost_status": "reported; retained in the linked accounting receipt",
+  "error": "",
+  "error_response": null,
+  "direct_timing": {
+    "headers_after_s": 1.12795,
+    "first_body_after_s": 1.478842,
+    "last_body_after_s": 16.086411,
+    "body_bytes": 182718,
+    "wall_duration_s": 16.204616,
+    "wall_deadline_s": 180,
+    "scope": "Client-observed HTTP timing; does not identify upstream queue or model compute"
+  },
+  "direct_response": {
+    "version": "direct-response-evidence-v1",
+    "http_status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Fri, 13 Nov 2026 04:52:56 GMT",
+      "x-generation-id": "gen-1794545575-Pq0jp0xSbQelZkQ7bJV9"
+    },
+    "scope": "Response correlation hints; headers do not establish a generation ID or charge.",
+    "body_bytes": 182718,
+    "body_sha256": "709e69cb8aaeee1a26020dc4353098b32d0bd73d273bacf61faf6203ddfaa9ea"
+  },
+  "response_transport": "complete-chat-stream-v1",
+  "stream_completion": {
+    "protocol": "complete-chat-stream-v1",
+    "body_bytes": 182718,
+    "body_sha256": "709e69cb8aaeee1a26020dc4353098b32d0bd73d273bacf61faf6203ddfaa9ea",
+    "done": true,
+    "finish_reason": "stop",
+    "usage_complete": true,
+    "events": 452
+  },
+  "accounting_receipt": {
+    "id": "2e7655c9-9bc5-4727-87b5-7a949a1babad",
+    "state": "settled",
+    "accounted": "0.000438262272",
+    "reserved": "0.1746927616",
+    "input_tokens": 2121,
+    "output_tokens": 1653,
+    "upstream_request_id": "gen-1794545575-Pq0jp0xSbQelZkQ7bJV9"
+  },
+  "stream_wire_response": {
+    "relative_path": "private/f68a982d454b45e92bc904e18e823b3043bc953c3771848046c9464d190b2179.json.response-body.bin",
+    "bytes": 182718,
+    "sha256": "709e69cb8aaeee1a26020dc4353098b32d0bd73d273bacf61faf6203ddfaa9ea",
+    "scope": "Private original SSE response; completion and usage are validated separately."
+  }
+}

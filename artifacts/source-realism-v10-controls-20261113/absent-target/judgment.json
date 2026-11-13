@@ -1,0 +1,69 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/5b80cf6ed04ce26e0f54c93668cb6bba79e03998fde3b0147b16d6da483116bf.json",
+  "prompt_sha256": "29fd481b72e7495032f468415a03dbdad723af37cb834451cea33458860182ff",
+  "oracle": {
+    "states": [
+      "invalid"
+    ],
+    "passes": false
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": false,
+    "natural_enough": true,
+    "issues": [
+      "Question 'absent' is invalid: the eligible history contains no source record or explicit public report identifying Victor or a passport number; the question's presupposition cannot ground an answer."
+    ],
+    "notes": "Reviewed the single raw source record and the ordered public input. The only source message is a pizza invitation; no eligible evidence supports a Victor/passport fact.",
+    "assessments": [
+      {
+        "check_id": "absent",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "invalid",
+        "grounding_kind": "absent",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [],
+        "unresolved_fields": [
+          {
+            "attribute": "Victor's confirmed passport number",
+            "missing": "No eligible source record or explicit public report identifies Victor or any passport number; the public question is only an interrogative presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ],
+        "reason": "The complete eligible history contains only a pizza invitation and no source record or explicit public report about Victor or a passport number. The public question's presupposition does not establish the fact, so there is no grounded objectively assessable response boundary.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:absent",
+            "written_at": "2026-10-07T09:00:00-04:00",
+            "quote": "What is Victor’s confirmed passport number?"
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments[absent]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[absent]",
+      "code": "referent_not_factually_grounded"
+    },
+    {
+      "path": "assessments[absent]",
+      "code": "no_independent_referent_grounding"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/3ee3ad17f79b4db228a6fcf91396249458e227601f6427babe158aafb5470a09.json",
+  "prompt_sha256": "f62ccc3462333ba51b0b250bd85d0e1c82e51c736a47fea4ed3f3da1079b595c",
+  "oracle": {
+    "states": [
+      "invalid",
+      "invalid"
+    ],
+    "passes": false
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": false,
+    "natural_enough": true,
+    "issues": [
+      "q-1 is invalid: no eligible source mentions Victor, a passport, or any passport renewal.",
+      "q-2 is invalid: no eligible source mentions Victor or any passport number."
+    ],
+    "notes": "The only raw source is m-1, a pizza invitation collected on 2026-10-05. It contains no Victor or passport information, so both public checks lack a grounded assessable response boundary.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-06T09:00:00-04:00",
+        "answerability": "invalid",
+        "grounding_kind": "absent",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [],
+        "unresolved_fields": [],
+        "reason": "The complete eligible history contains only m-1, a pizza invitation; it does not mention Victor, a passport, or any renewal. The question's presupposition cannot ground an assessable event, so the requested status is invalid rather than bounded unknown.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": []
+      },
+      {
+        "check_id": "q-2",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "invalid",
+        "grounding_kind": "absent",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [],
+        "unresolved_fields": [],
+        "reason": "The complete eligible history contains only m-1, a pizza invitation; it does not mention Victor or any passport number. There is no grounded referent or event for a confirmed passport number, so the request is invalid rather than bounded unknown.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": []
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments[q-1]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[q-1]",
+      "code": "referent_not_factually_grounded"
+    },
+    {
+      "path": "assessments[q-2]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[q-2]",
+      "code": "referent_not_factually_grounded"
+    }
+  ]
+}

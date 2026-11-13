@@ -1,0 +1,113 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/c274ef9fa54862d3f283b1af4a6eadf10888ba4143080fa0ecb9673ef5b43587.json",
+  "prompt_sha256": "27b42c997d2ac93f220803cc1479b21d9dff858f73866f89914fc48ca4c45131",
+  "oracle": {
+    "states": [
+      "invalid",
+      "invalid"
+    ],
+    "passes": false
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": false,
+    "natural_enough": true,
+    "issues": [
+      "Both public questions concern Victor’s passport, but the complete eligible corpus contains only an unrelated pizza message. No source record or explicit public report establishes Victor, a passport, a renewal, or a passport number, so both questions are invalid rather than bounded unknown."
+    ],
+    "notes": "Reviewed the complete raw corpus: one iMessage from Me to Studio on 2026-10-05 about pizza. The public questions on 2026-10-06 and 2026-10-07 are presupposition-only and have no eligible source grounding for Victor or any passport facts.",
+    "assessments": [
+      {
+        "check_id": "earlier",
+        "event_date": "2026-10-06T09:00:00-04:00",
+        "answerability": "invalid",
+        "grounding_kind": "presupposition_only",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [],
+        "unresolved_fields": [
+          {
+            "attribute": "Victor's passport renewal status",
+            "missing": "No eligible source record establishes Victor, a passport, or any renewal event; the public question is only a presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ],
+        "reason": "The only eligible source is an unrelated pizza message. No source record or explicit public report establishes Victor or a passport renewal, and the question’s presupposition cannot ground an answer. An entirely absent target/event is invalid rather than bounded unknown.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:earlier",
+            "written_at": "2026-10-06T09:00:00-04:00",
+            "quote": "Did Victor renew his passport?"
+          }
+        ]
+      },
+      {
+        "check_id": "later",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "invalid",
+        "grounding_kind": "presupposition_only",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [],
+        "unresolved_fields": [
+          {
+            "attribute": "Victor's confirmed passport number",
+            "missing": "No eligible source record establishes Victor, a passport, or a confirmed passport number; the public question is only a presupposition.",
+            "alternatives": [
+              "none"
+            ]
+          }
+        ],
+        "reason": "The complete eligible history contains no source record or explicit public report about Victor or a passport number. The question presupposes a confirmed number but does not establish it, and an entirely absent target/event is invalid rather than bounded unknown.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "public-input:later",
+            "written_at": "2026-10-07T09:00:00-04:00",
+            "quote": "What is Victor’s confirmed passport number?"
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments[earlier]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[earlier]",
+      "code": "referent_not_factually_grounded"
+    },
+    {
+      "path": "assessments[earlier]",
+      "code": "no_independent_referent_grounding"
+    },
+    {
+      "path": "assessments[later]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[later]",
+      "code": "referent_not_factually_grounded"
+    },
+    {
+      "path": "assessments[later]",
+      "code": "no_independent_referent_grounding"
+    }
+  ]
+}

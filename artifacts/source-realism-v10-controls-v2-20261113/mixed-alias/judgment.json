@@ -1,0 +1,57 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/e2fb94c9da4a55bb8ec32a7772d3b4779e700c4512c1a7e69134d28172d492a3.json",
+  "prompt_sha256": "5bd81526667a62b49ccb8818f59bdddfb16aeaa3d4ad10c85fc97e04678b10a1",
+  "oracle": {
+    "states": [
+      "bounded_unknown"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "Single public check assessed against the complete eligible source history. The source coherently expands MR Hall but leaves ZX Annex unexpanded, yielding a bounded unknown rather than an invalid or contradictory item.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "MR Hall stands for Maple Ridge Hall.",
+          "ZX Annex is mentioned as a room location in an old handout."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "expansion of ZX Annex",
+            "missing": "The eligible history does not state what 'ZX' abbreviates or what 'ZX Annex' stands for; it only mentions a room at ZX Annex in an old handout.",
+            "alternatives": [
+              "No expansion is provided in the eligible history"
+            ]
+          }
+        ],
+        "reason": "The only eligible source, m-1, explicitly expands MR Hall as Maple Ridge Hall. It mentions ZX Annex only as a room location in an old handout and never states what ZX or ZX Annex stands for. Thus the mixed request has a known MR Hall expansion and a bounded unknown for ZX Annex.",
+        "alternatives": [
+          "MR Hall = Maple Ridge Hall; ZX Annex expansion not established"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "m-1",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "MR Hall is Maple Ridge Hall. The old handout also lists a room at ZX Annex."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

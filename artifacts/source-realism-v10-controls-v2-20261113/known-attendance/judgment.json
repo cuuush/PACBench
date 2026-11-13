@@ -1,0 +1,54 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/c981833e08bf22c2dc7519ff1c7c0a36a3c8f122d7c680f84412f1e6575bd205.json",
+  "prompt_sha256": "10541f10ca8ce83d5b1fe0587255481ad130cef0722b59d39c1112a2981851eb",
+  "oracle": {
+    "states": [
+      "determinate"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "The single public check is directly supported by the owner's explicit report before the checkpoint; no unresolved contradiction or ambiguity is present.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-07T09:00:00-04:00",
+        "answerability": "determinate",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "The watercolor workshop was scheduled for Tuesday, October 6, 2026 at 10 am.",
+          "The user reported attending the watercolor workshop on October 6, 2026."
+        ],
+        "unresolved_fields": [],
+        "reason": "The owner explicitly reported attending the watercolor workshop on 2026-10-06, before the 2026-10-07 checkpoint, and the prior reminder identifies the workshop date.",
+        "alternatives": [
+          "none"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "m-1",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6 at 10 am."
+          },
+          {
+            "source_id": "m-2",
+            "written_at": "2026-10-06T12:00:00-04:00",
+            "quote": "I attended the watercolor workshop today."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

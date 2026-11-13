@@ -1,0 +1,58 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-v2-20261113/model-calls/5599cde7406c6ae0ea9beba9c0f3dccf8160ac8e5b3994392351e1706925dc28.json",
+  "prompt_sha256": "79d63d02810f6f251b2b0e300926ed31254b13173e506c65e938a4f52022b20d",
+  "oracle": {
+    "states": [
+      "bounded_unknown"
+    ],
+    "passes": true
+  },
+  "review": {
+    "consistent": true,
+    "questions_answerable": true,
+    "natural_enough": true,
+    "issues": [],
+    "notes": "Only q-1 is supplied. The eligible history establishes the workshop schedule but contains no timely attendance report before the q-1 cutoff; later attendance reports are excluded by collection/written times.",
+    "assessments": [
+      {
+        "check_id": "q-1",
+        "event_date": "2026-10-07",
+        "answerability": "bounded_unknown",
+        "grounding_kind": "source_record",
+        "assessable": true,
+        "ambiguous": false,
+        "current_state_conflict": false,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "A watercolor workshop was scheduled for Tuesday, October 6 at 10 am."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "attendance",
+            "missing": "No eligible source before the 2026-10-07T09:00 cutoff reports whether the user attended the watercolor workshop.",
+            "alternatives": [
+              "attended",
+              "did not attend"
+            ]
+          }
+        ],
+        "reason": "m-1 establishes that a watercolor workshop was scheduled for Tuesday, October 6 at 10 am. The only attendance reports are not eligible for q-1: m-3 was written before the cutoff but collected at 2026-10-07T11:00, after the 2026-10-07T09:00 cutoff, and m-2 was written/collected at 2026-10-07T10:00, also after the cutoff. Thus the workshop is grounded, but attendance is not established in the eligible history.",
+        "alternatives": [
+          "attended",
+          "did not attend"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "m-1",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Your watercolor workshop is Tuesday October 6 at 10 am."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": true,
+  "validation_errors": []
+}

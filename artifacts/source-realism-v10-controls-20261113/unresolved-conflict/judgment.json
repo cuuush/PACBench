@@ -1,0 +1,82 @@
+{
+  "state": "pass",
+  "scope": "Control classification and gate outcome; separate manual semantic review still required",
+  "model_call": "/workspace/PACBench-stable-20261113/artifacts/source-realism-v10-controls-20261113/model-calls/73ff200c00d66a1c931082339999880a90519b225a3e30552d54de0cbe9703ae.json",
+  "prompt_sha256": "1763daf09cf128e9bb665b205c87e0d2ae0d8b3fc924bf1214ee9c8b8ee64b65",
+  "oracle": {
+    "states": [
+      "invalid"
+    ],
+    "passes": false,
+    "consistent": false
+  },
+  "review": {
+    "consistent": false,
+    "questions_answerable": false,
+    "natural_enough": false,
+    "issues": [
+      "Unresolved current-source conflict for booking P7: receipt-a says 7 pm and receipt-b says 8 pm, and the conflict record says both remain current with neither superseding the other.",
+      "The 'conflict' message is an implausible/meta Studio iMessage rather than a natural customer-service message."
+    ],
+    "notes": "One public question assessed. Booking P7 and its date are grounded, but the requested single time is not established because of an unresolved current-source contradiction; the source also contains an implausible meta conflict message.",
+    "assessments": [
+      {
+        "check_id": "conflict",
+        "event_date": "2026-10-09",
+        "answerability": "invalid",
+        "grounding_kind": "source_record",
+        "assessable": false,
+        "ambiguous": false,
+        "current_state_conflict": true,
+        "full_eligible_history_reviewed": true,
+        "known_fields": [
+          "Booking P7 is a single booking.",
+          "The booking date is Friday October 9, 2026."
+        ],
+        "unresolved_fields": [
+          {
+            "attribute": "booking P7 time",
+            "missing": "No single time is established because two current source records conflict and neither supersedes the other.",
+            "alternatives": [
+              "7 pm",
+              "8 pm"
+            ]
+          }
+        ],
+        "reason": "The complete eligible history contains receipt-a and receipt-b, both current per the conflict record, giving 7 pm and 8 pm for the same booking P7; the conflict record explicitly says neither corrects or supersedes the other. Therefore no single definitively confirmed time exists, and the unresolved current-source conflict makes the question invalid.",
+        "alternatives": [
+          "7 pm",
+          "8 pm"
+        ],
+        "source_evidence": [
+          {
+            "source_id": "receipt-a",
+            "written_at": "2026-10-05T09:00:00-04:00",
+            "quote": "Current final booking P7: Friday October 9 at 7 pm."
+          },
+          {
+            "source_id": "receipt-b",
+            "written_at": "2026-10-05T09:01:00-04:00",
+            "quote": "Current final booking P7: Friday October 9 at 8 pm."
+          },
+          {
+            "source_id": "conflict",
+            "written_at": "2026-10-05T09:02:00-04:00",
+            "quote": "Both receipts describe the same one booking and both are still current; neither corrects or supersedes the other."
+          }
+        ]
+      }
+    ]
+  },
+  "review_passes": false,
+  "validation_errors": [
+    {
+      "path": "assessments[conflict]",
+      "code": "response_boundary_unassessable"
+    },
+    {
+      "path": "assessments[conflict]",
+      "code": "unresolved_source_conflict"
+    }
+  ]
+}

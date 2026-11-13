@@ -166,5 +166,13 @@
     "skipped": 7,
     "subtests": 22,
     "scope": "Final suite includes read-only native silent-failure guards, model-response evidence and header-correlated generation observations; bootstrap identities checked with unchanged bootstrap code at969bab0."
-  }
+  },
+  "final_read_only_check": {
+    "revision": "6058392eb754629d0836d594ae851a862c019884",
+    "command": "python3 -m pacbench.bootstrap --check --start-services",
+    "state": "pass",
+    "components": 10,
+    "paid_inference_calls": 0
+  },
+  "bootstrap_source_and_constraint_files_unchanged_since_full_install": "969bab0 ->6058392: git diff empty"
 }

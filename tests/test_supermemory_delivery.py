@@ -16,12 +16,12 @@ def native(tmp_path,monkeypatch):
     (root/'document-ingestion-config.json').write_text(json.dumps({'dreaming':'instant'}))
     monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
-        _resolve_container_tag=lambda *a:'native-tag'))
+        _expand_container_tag=lambda *a:'native-tag',_sanitize_tag=lambda value:value))
     monkeypatch.setattr('pacbench.provider_loader.provider_module',
         lambda *a, **kw: sys.modules['plugins.memory.supermemory'])
     documents=SimpleNamespace(add=Mock(return_value=SimpleNamespace(
         id='accepted-id',model_dump=lambda **kw:{'id':'accepted-id','status':'queued'})),get=Mock())
-    client=Mock(return_value=SimpleNamespace(documents=documents))
+    client=Mock(return_value=SimpleNamespace(add=documents.add,documents=documents))
     monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=client))
     monkeypatch.setenv('SUPERMEMORY_API_KEY','local-test-key')
     monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
@@ -48,13 +48,17 @@ def test_document_delivery_failure_is_sanitized_and_never_retried(native,status)
 @pytest.mark.parametrize('observed_first',[False,True])
 def test_status_failure_preserves_accepted_document_and_prior_states(native,observed_first):
     source,root,documents,_=native
-    state={'id':'accepted-id','status':'done','dreaming_status':'dreaming',
-           'content':'Raw daily text\n','custom_id':'day','container_tags':['native-tag']}
+    state={'id':'accepted-id','system':{'status':'done','dreaming_status':'dreaming'},
+           'content':'Raw daily text\n','metadata':{'source':'daily-transcript','collected_at':'now'}}
     prior=[SimpleNamespace(model_dump=lambda **kw:state)] if observed_first else []
     documents.get.side_effect=[*prior,TimeoutError('SECRET_NATIVE_BODY')]
     result=supermemory(source,root,'now','now')
     assert not result['ready'] and result['result']['id']=='accepted-id'
-    assert result['processing_status']==([state] if observed_first else [])
+    assert len(result['processing_status'])==int(observed_first)
+    if observed_first:
+        observed=result['processing_status'][0]
+        assert observed['native_system']==state['system'] and observed['content']==state['content']
+        assert observed['request_namespace']=='native-tag' and observed['dreaming_status']=='dreaming'
     assert result['native_error']['commit_state']=='accepted'
     assert result['native_error']['phase']=='document-status'
     assert result['native_error']['error_class']=='TimeoutError'

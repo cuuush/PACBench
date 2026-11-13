@@ -96,7 +96,7 @@ def start(root, env, model, base, key):
         try:
             with urlopen(endpoint + "/health", timeout=2) as response:
                 candidate = json.load(response)
-            if candidate.get("version") == "1.6.6":
+            if candidate.get("version") == PINS["cognee"]["backend_requirement"].split("==")[1]:
                 health = candidate
                 break
         except Exception:
@@ -116,7 +116,7 @@ def start(root, env, model, base, key):
         "reason":"Native hybrid graph/chunk prefetch can contain original source; independent passage provenance remains pending"}
     save(root/'prefetch-provenance.json',declaration)
     env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps(declaration)
-    save(root / "native-server-setup.json", {"route": "Native Cognee1.6.6 local API; native Hermes HTTP transport to loopback",
+    save(root / "native-server-setup.json", {"route": "Native Cognee1.6.8 local API; native Hermes HTTP transport to loopback",
         "provider_revision": revision, "endpoint": endpoint, "dataset": scope, "pid": process.pid,
         "health": health, "model": model, "sdk_model": "openai/" + model,
         "memory_backend": "local native SQLite, graph and vector stores; isolated roots",

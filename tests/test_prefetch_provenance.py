@@ -39,3 +39,14 @@ def test_no_injection_has_no_source_penalty_and_legacy_protocols_keep_semantics(
 def test_invalid_native_condition_is_rejected():
     with pytest.raises(ValueError):
         observe({'protocol':VERSION,'provider':'unknown','state':'retained','reason':'unproven'},'text')
+
+
+def test_supermemory_v5_hybrid_context_cannot_imply_retention():
+    t=turn('unverified')
+    t.prefetch_provenance=observe({'protocol':VERSION,'provider':'supermemory','state':'unverified',
+        'reason':'Native hybrid formatter omits original result type.'},t.prefetch_context)
+    result=tool_profile(t,provenance_version='source-provenance-v3')
+    assert result['unclassified_operations']==1
+    from pacbench.followups import tool_category
+    assert tool_category('supermemory-read-document',{})=='source_evidence'
+    assert tool_category('supermemory-search',{'query':'Friday'})=='unclassified'

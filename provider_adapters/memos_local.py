@@ -12,7 +12,6 @@ import time
 
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
-from pacbench.reme_memos_setup import PINS
 from provider_adapters.reme_memos_documents import request
 
 REPO=Path(__file__).resolve().parents[1]
@@ -29,10 +28,10 @@ def plan_config(root,model,base,key):
 
 def start(root,env,model,base,key):
     validate_route(base,key)
-    root=Path(root).resolve();source=REPO/'vendor/memos'
-    revision=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
-    if revision!=PINS['memos'][1]:raise ValueError('MemOS source differs from pinned integration')
-    package=source/'apps/memos-local-plugin'
+    root=Path(root).resolve()
+    from pacbench.provider_versions import verify_memos_package
+    package,release=verify_memos_package(REPO)
+    revision=release['sha256']
     if not (package/'dist/bridge.cjs').exists():raise RuntimeError('Build the native MemOS package before execution')
     plugin=package/'adapters/hermes/memos_provider'
     (root/'hermes-home/plugins/memtensor').symlink_to(plugin,target_is_directory=True)
@@ -79,8 +78,8 @@ def start(root,env,model,base,key):
     env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps(declaration)
     save(root/'memos-document-config.json',{'endpoint':endpoint})
     save(root/'native-server-setup.json',{'route':'Pinned native public core bootstrap and HTTP API; unchanged Hermes memtensor stdio bridge',
-        'provider_revision':revision,'endpoint':endpoint,'pid':process.pid,'health':health,
-        'model':model,'embedding':'Native default local MiniLM384; verified cached assets; offline loading',
+        'provider_revision':revision,'source_type':'official-npm-release','native_package_release':release,'endpoint':endpoint,'pid':process.pid,'health':health,
+        'model':model,'embedding':'Native local MiniLM384; verified cached assets; offline loading',
         'inference_overrides':'Exact selected OpenAI-compatible model; host fallback disabled; native output/reasoning/batching defaults unchanged',
         'http_role':'Hermes viewer role: autoRecovery false; native stdio bridge owns recovery writes',
         'ingestion_condition':'native-raw-document-import-v1','extraction_performed':False,

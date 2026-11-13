@@ -6,14 +6,29 @@ import os
 from pathlib import Path
 import subprocess
 
-# Exact entries in the pinned Hermes v0.23.1 plugin catalog, not live catalog data.
-CATALOG = {
+# Historical entries in the pinned Hermes v0.23.1 catalog.
+HERMES_CATALOG = {
     'mem0': ('mem0ai/mem0/integrations/hermes-plugin-mem0', '43849c6e9d4d773b83a8144b6373aedc67241a5d'),
     'honcho': ('plastic-labs/honcho/hermes-plugin-honcho', '894b88321872e01702a1aa638ddfdde6ad60f173'),
     'hindsight': ('vectorize-io/hindsight/hindsight-integrations/hermes', 'f14cc1eb5624b0374cb4d82768eb2e0b9c21ae24'),
     'supermemory': ('supermemoryai/hermes-supermemory', '91405dd00fdf2a0b3515b25c25557598f6793299'),
     'openviking': ('volcengine/OpenViking/examples/hermes-plugin', 'e855796c83f9eb575d9b0f3082926660730f6a63'),
 }
+
+# Explicit upstream source selection for the stable-provider upgrade cohort.
+# Hermes remains unmodified: use its documented source install with exact --ref.
+# Standalone Supermemory publishes no tags/releases; record its current declared
+# plugin version and full revision rather than claiming a tagged stable release.
+CATALOG = {
+    'mem0': ('mem0ai/mem0/integrations/hermes-plugin-mem0', '94c3fe9f238f3dbf29c9ce98643bd71eb13077cd'),
+    'honcho': ('plastic-labs/honcho/hermes-plugin-honcho', '70c67624169683b9e265517aec95a51b8077cabc'),
+    'hindsight': ('vectorize-io/hindsight/hindsight-integrations/hermes', '0eb02d8c418eac6b489bc63883c993b2257dfac4'),
+    'supermemory': ('supermemoryai/hermes-supermemory', 'a8f360166419958ce77b876c69f7be3bf0716d67'),
+    'openviking': ('volcengine/OpenViking/examples/hermes-plugin', '86edb40a01733490b930266dcfcab7c2cebf94b3'),
+}
+SOURCE_VERSIONS = {'mem0': '1.3.0', 'honcho': '1.2.0', 'hindsight': '1.2.4',
+                   'supermemory': '2.0.0', 'openviking': '2.1.4'}
+SOURCE_PROFILE = 'upstream-stable-providers-20261113-v1'
 
 # Read-only import and adapter-surface checks, run in the actual Hermes interpreter.
 _PROBE = r'''
@@ -50,7 +65,7 @@ elif name == 'openviking':
 elif name == 'supermemory':
     from supermemory import Supermemory
     assert callable(Supermemory)
-    for attr in ('_load_supermemory_config', '_resolve_container_tag', '_clean_text_for_capture'):
+    for attr in ('_load_supermemory_config', '_sanitize_tag', '_expand_container_tag', '_clean_text_for_capture'):
         assert callable(getattr(plugin, attr))
 else: raise RuntimeError('Unsupported catalog provider')
 print(json.dumps({'provider': name, 'plugin_version': project.get('version'), 'dependencies': project.get('dependencies', [])}))
@@ -64,7 +79,7 @@ def _expected_source(identifier: str) -> str:
 
 
 def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: Path, tree: Path) -> dict:
-    """Install exact catalog source without changing the shared client environment.
+    """Install reviewed upstream source without changing the shared client environment.
 
     Hermes uses a separate PM runtime even with --no-deps. The memory provider is
     left inactive until its declared dependencies and adapter imports are checked.
@@ -72,12 +87,12 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
     if name not in CATALOG:
         raise RuntimeError(f'Unsupported external catalog provider: {name}')
     identifier, sha = CATALOG[name]
-    # Fail closed if PACBench's pins drift from the checkout's reviewed entry.
+    # Verify the unchanged Hermes catalog separately from the explicit upstream selection.
     from ruamel.yaml import YAML
     from ruamel.yaml.error import YAMLError
     parser = YAML(typ="safe")
     entry = parser.load((tree / 'plugin-catalog' / f'{name}.yaml').read_text())
-    if (entry.get('name') != name or entry.get('sha') != sha or
+    if (entry.get('name') != name or entry.get('sha') != HERMES_CATALOG[name][1] or
         entry.get('repo', '').removesuffix('/') != 'https://github.com/' + '/'.join(identifier.split('/')[:2]) or
         entry.get('subdir', '') != '/'.join(identifier.split('/')[2:])):
         raise RuntimeError(f'Pinned Hermes catalog mismatch for {name}')
@@ -99,7 +114,7 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
     if (not directory.is_dir() or directory.is_symlink() or metadata.get('pinned') is not True or
         metadata.get('revision') != sha or metadata.get('source') != _expected_source(identifier) or
         not isinstance(manifest, dict) or manifest.get('name') != name or
-        str(manifest.get('version')) != str(entry.get('version'))):
+        str(manifest.get('version')) != SOURCE_VERSIONS[name]):
         raise RuntimeError(f'Hermes catalog install for {name} failed source or manifest verification')
     python = hermes_bin.parent / 'python'
     try:
@@ -114,10 +129,12 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
         checked = json.loads(probe.stdout.strip().splitlines()[-1])
     except (ValueError, IndexError) as exc:
         raise RuntimeError(f'Hermes plugin dependency probe for {name} returned invalid output') from exc
-    if checked.get('provider') != name or checked.get('plugin_version') != str(entry.get('version')):
+    if checked.get('provider') != name or checked.get('plugin_version') != SOURCE_VERSIONS[name]:
         raise RuntimeError(f'Hermes plugin dependency probe for {name} returned mismatched identity')
     receipt = {'source': identifier, 'revision': sha, 'version': checked['plugin_version'],
-               'dependencies': checked['dependencies'], 'install': 'hermes-plugins-ref-no-deps-v1'}
+               'dependencies': checked['dependencies'], 'install': 'hermes-plugins-ref-no-deps-v1',
+               'source_profile': SOURCE_PROFILE, 'hermes_catalog_revision': HERMES_CATALOG[name][1],
+               'source_selection': ('upstream untagged plugin revision; no release tags available' if name == 'supermemory' else 'plugin shipped in selected stable backend release')}
     if name == 'hindsight':
         receipt['native_recall_types_default'] = 'observation'
     return receipt

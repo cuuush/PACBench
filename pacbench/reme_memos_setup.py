@@ -13,8 +13,8 @@ import subprocess
 from urllib.parse import urlsplit
 
 PINS = {
-    "reme": ("https://github.com/agentscope-ai/ReMe.git", "37395034cf06f6c56268f2e738fab2a14779e513"),
-    "memos": ("https://github.com/MemTensor/MemOS.git", "3a16e5fe3048a209f722806f4123fa2e533588fd"),
+    "reme": ("https://github.com/agentscope-ai/ReMe.git", "36c23674ad8c599dae20b0687af40acd8ecb990e"),
+    "memos": ("https://registry.npmjs.org/@memtensor/memos-local-plugin/-/memos-local-plugin-2.0.21.tgz", "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539"),
 }
 
 
@@ -80,11 +80,19 @@ def prepare(provider: str, root: Path, source: Path, endpoint: str, model: str) 
     """Prepare a new run-owned home; refuse to replace existing runtime state."""
     source = source.resolve()
     pin = PINS[provider][1]
-    actual = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
+    if provider == 'memos':
+        from .provider_versions import verify_memos_package
+        package,release=verify_memos_package(Path(__file__).resolve().parents[1])
+        if source != package.resolve():
+            raise ValueError('Select the verified official MemOS local release package')
+        actual=release['sha256']
+        plugin=source/'adapters/hermes/memos_provider'
+    else:
+        actual = subprocess.check_output(["git", "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
+        plugin=source/'integrations/hermes_agent'
     if actual != pin:
         raise ValueError(f"Provider source pin differs: expected {pin}, got {actual}")
     cfg = settings(provider, root, endpoint, model)
-    plugin = source / ("integrations/hermes_agent" if provider == "reme" else "apps/memos-local-plugin/adapters/hermes/memos_provider")
     if not (plugin / "__init__.py").is_file():
         raise ValueError("Native provider package is missing")
     root = root.resolve()

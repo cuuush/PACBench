@@ -87,5 +87,10 @@ def start(root, env, model, base, key, *, resume=False):
         stop();raise RuntimeError('Supermemory startup did not produce its native API key; inspect private log')
     # README manual endpoint first, then the key emitted by real first boot.
     save(root/'hermes-home/supermemory.json',{'base_url':endpoint,'container_tag':directory.name+'-'+root.parent.name+'-'+root.name})
+    from pacbench.prefetch_provenance import VERSION
+    declaration={'protocol':VERSION,'provider':'supermemory','state':'unverified',
+        'reason':'Native v5 default hybrid retrieval can return document chunks; the plugin formatter merges chunk and memory text and omits their type. Independent passage provenance is pending.'}
+    save(root/'prefetch-provenance.json',declaration)
+    env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps(declaration)
     env.update(SUPERMEMORY_BASE_URL=endpoint,SUPERMEMORY_API_KEY=native_key)
     return stop

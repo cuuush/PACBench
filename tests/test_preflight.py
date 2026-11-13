@@ -52,6 +52,8 @@ def setup(tmp_path, monkeypatch):
         if args == ('diff', 'HEAD'): return 'exact patch\n'
         return ''
     monkeypatch.setattr(preflight, '_git', git)
+    monkeypatch.setattr('pacbench.provider_versions.verify_memcal_source',
+                        lambda repo: {'revision': 'known-pin', 'version': '0.8.11', 'working_tree_changes': False})
     return repo, prepared, state
 
 

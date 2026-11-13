@@ -41,17 +41,17 @@ def test_queue_acceptance_and_indexing_do_not_prove_completed_memory(provider,st
 
 def test_supermemory_discovery_paginates_and_watches_only_the_required_session_and_direct_writes():
     def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
-    pages=[{'memories':[{'id':'unrelated','metadata':{'session_id':'another'}}],
+    pages=[{'documents':[{'id':'unrelated','metadata':{'session_id':'another'}}],
             'pagination':{'current_page':1,'total_pages':2}},
-           {'memories':[{'id':'captured','metadata':{'session_id':'required'}}],
+           {'documents':[{'id':'captured','metadata':{'session_id':'required'}}],
             'pagination':{'current_page':2,'total_pages':2}}]
     listing=Mock(side_effect=[model(v) for v in pages])
-    get=Mock(side_effect=lambda id:model({'id':id,'status':'done','dreamingStatus':'done'}))
-    c=SimpleNamespace(documents=SimpleNamespace(list=listing,get=get))
+    get=Mock(side_effect=lambda namespace,id:model({'id':id,'system':{'status':'done','dreamingStatus':'done'}}))
+    c=SimpleNamespace(list=listing,documents=SimpleNamespace(get=get))
     states=supermemory_status(c,'native-tag',[],['required'])
     assert [s['id'] for s in states]==['captured']
     assert get.call_count==1 and listing.call_count==2
-    assert all(call.kwargs['include_content'] is False for call in listing.call_args_list)
+    assert all(call.args == ('native-tag','documents') for call in listing.call_args_list)
     assert complete('supermemory',states)==(True,False)
     listing.reset_mock(side_effect=True)
     listing.side_effect=AssertionError('Do not wait on unrelated capture when an explicit write exists')
@@ -132,26 +132,25 @@ def test_supermemory_capture_must_contain_the_actual_user_instruction(mode):
     content+='[role: user]\nMove it to Sunday\n[user:end]' if mode=='assistant-echo' else 'Okay.'
     content+='\n[assistant:end]'
     metadata={'type':'conversation','session_id':'other' if mode=='wrong-session' else 'required'}
-    listing=Mock(return_value=model({'memories':[{'id':'doc','metadata':metadata}],
+    listing=Mock(return_value=model({'documents':[{'id':'doc','metadata':metadata}],
         'pagination':{'current_page':1,'total_pages':1}}))
     get=Mock(return_value=model({'id':'doc','metadata':metadata,'content':content,
-        'status':'done','dreaming_status':'dreaming' if mode=='pending' else 'done'}))
-    client=SimpleNamespace(documents=SimpleNamespace(list=listing,get=get))
+        'system':{'status':'done','dreaming_status':'dreaming' if mode=='pending' else 'done'}}))
+    client=SimpleNamespace(list=listing,documents=SimpleNamespace(get=get))
     states=supermemory_status(client,'native-tag',[],['required'],
         [{'session':'required','user':capture['prompt'],'binding':digest(capture)}])
     assert complete('supermemory',states)==(mode=='done',False)
-    assert all(call.kwargs['include_content'] is False for call in listing.call_args_list)
+    assert all(call.args == ('native-tag','documents') for call in listing.call_args_list)
 
 
 def test_supermemory_all_required_instructions_must_be_captured():
     def model(value):return SimpleNamespace(model_dump=lambda **kwargs:value)
     metadata={'type':'conversation','session_id':'required'}
-    client=SimpleNamespace(documents=SimpleNamespace(
-        list=Mock(return_value=model({'memories':[{'id':'doc','metadata':metadata}],
-            'pagination':{'current_page':1,'total_pages':1}})),
+    client=SimpleNamespace(list=Mock(return_value=model({'documents':[{'id':'doc','metadata':metadata}],
+            'pagination':{'current_page':1,'total_pages':1}})),documents=SimpleNamespace(
         get=Mock(return_value=model({'id':'doc','metadata':metadata,
             'content':'[role: user]\nFirst update\n[user:end]',
-            'status':'done','dreaming_status':'done'}))))
+            'system':{'status':'done','dreaming_status':'done'}}))))
     states=supermemory_status(client,'native-tag',[],['required'],[
         {'session':'required','user':'First update','binding':'first'},
         {'session':'required','user':'Second update','binding':'second'}])

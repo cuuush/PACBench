@@ -350,3 +350,37 @@ def test_honcho_readiness_audit_carries_enrollment_across_daily_batches():
     assert previous=={session:1}
     second={**original,'source_id':'source-2'}
     assert 'Honcho readiness preceded new source work enrollment' in audit_honcho_receipt([second],receipt(second),previous)
+
+
+def test_v5_supermemory_native_status_cannot_claim_consolidation_from_indexing():
+    from types import SimpleNamespace
+    from provider_adapters.supermemory_native import document
+    from pacbench.native_writes import complete
+    seen=[]
+    def get(namespace, identifier):
+        seen.append((namespace,identifier))
+        return SimpleNamespace(model_dump=lambda **_: {'id':'source/day','content':'Original raw text',
+            'system':{'status':'done','dreamingStatus':'dreaming'}})
+    client=SimpleNamespace(documents=SimpleNamespace(get=get))
+    raw,state=document(client,'isolated-namespace','source/day')
+    assert seen==[('isolated-namespace','source%2Fday')]
+    assert raw['content']=='Original raw text' and complete('supermemory',[state])==(False,False)
+
+
+def test_v5_supermemory_document_audit_binds_namespace_source_and_both_statuses():
+    from copy import deepcopy
+    from pacbench.document_audit import audit_supermemory_receipt
+    system={'status':'done','dreamingStatus':'done'}
+    receipt={'native_api_protocol':'supermemory-v5-documents-v1','request_namespace':'namespace',
+        'container_tag':'namespace','result':{'id':'2026-10-05'},
+        'delivery_options':{'dreaming':'instant'},'processing_status':[{
+            'id':'2026-10-05','content':'Exact original raw text',
+            'metadata':{'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'},
+            'status':'done','dreaming_status':'done','native_system':system,'request_namespace':'namespace'}]}
+    assert audit_supermemory_receipt(receipt,'2026-10-05','Exact original raw text')==[]
+    for change in ['namespace','source','consolidation']:
+        broken=deepcopy(receipt)
+        if change=='namespace':broken['processing_status'][-1]['request_namespace']='other'
+        if change=='source':broken['processing_status'][-1]['content']='Extracted or changed text'
+        if change=='consolidation':broken['processing_status'][-1]['native_system']['dreamingStatus']='dreaming'
+        assert audit_supermemory_receipt(broken,'2026-10-05','Exact original raw text')

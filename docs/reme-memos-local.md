@@ -8,8 +8,8 @@ No benchmark inference was run while adding this setup support.
 
 | Provider | Repository | Revision |
 | --- | --- | --- |
-| ReMe | `https://github.com/agentscope-ai/ReMe.git` | `37395034cf06f6c56268f2e738fab2a14779e513` |
-| MemOS local plugin | `https://github.com/MemTensor/MemOS.git` | `3a16e5fe3048a209f722806f4123fa2e533588fd` |
+| ReMe | `https://github.com/agentscope-ai/ReMe.git` | `36c23674ad8c599dae20b0687af40acd8ecb990e` |
+| MemOS local plugin | official npm `@memtensor/memos-local-plugin` | `2.0.21`; verified archive in `vendor/MEMOS_LOCAL_PIN.json` |
 
 ReMe's plugin manifest declares Hermes `>=0.21`. Verify the selected Hermes
 runtime rather than changing the benchmark's pin silently. Both source plugins
@@ -22,11 +22,11 @@ After installing the official sources and dependencies into isolated runtimes:
 ```sh
 python -m pacbench.reme_memos_setup reme /absolute/new-run-root /path/to/ReMe \
   --endpoint http://127.0.0.1:11434/v1 --model your-installed-local-model
-python -m pacbench.reme_memos_setup memos /absolute/another-new-run-root /path/to/MemOS \
+python -m pacbench.reme_memos_setup memos /absolute/another-new-run-root /path/to/memos-local-plugin/package \
   --endpoint http://127.0.0.1:11434/v1 --model your-installed-local-model
 ```
 
-The root must not already exist. The helper verifies the source commit, links the
+The root must not already exist. The helper verifies the ReMe source commit or official MemOS archive and shipped files, links the
 native plugin into a run-owned Hermes home, and writes private configuration.
 `runtime.json` contains process environment settings, not credentials. Apply them
 to a clean process environment; do not inherit unrelated provider configuration

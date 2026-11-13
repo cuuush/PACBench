@@ -167,11 +167,12 @@ def audit_ready(checks,context,root,version):
 
 
 def supermemory_status(client,tag,ids,sessions,captures=None):
+    from provider_adapters.supermemory_native import document
     found=set(ids);page=1
     while not ids:
-        response=client.documents.list(container_tags=[tag],include_content=False,limit=100,page=page)
+        response=client.list(tag,'documents',limit=100,page=page)
         value=response.model_dump(mode='json')
-        rows=value.get('memories');pagination=value.get('pagination',{})
+        rows=value.get('documents');pagination=value.get('pagination',{})
         if not isinstance(rows,list):raise ValueError('Native document listing unavailable')
         pages=pagination.get('total_pages',pagination.get('totalPages'))
         current=pagination.get('current_page',pagination.get('currentPage'))
@@ -186,10 +187,8 @@ def supermemory_status(client,tag,ids,sessions,captures=None):
         page+=1
     statuses=[]
     for id in sorted(found):
-        value=client.documents.get(id).model_dump(mode='json')
-        statuses.append({'id':value.get('id'),'status':value.get('status'),
-            'dreaming_status':value.get('dreaming_status',value.get('dreamingStatus'))})
-        if value.get('id')!=id:raise ValueError('Native write identity mismatch')
+        value,status=document(client,tag,id)
+        statuses.append(status)
         if captures is not None and not ids:
             metadata=value.get('metadata') or {}
             users=re.findall(r'(?:\A|\n\n---\n\n)\[role: user\]\n(.*?)\n\[user:end\](?=\n\[role: assistant\]|\Z)',
@@ -306,11 +305,9 @@ def worker(args):
             from supermemory import Supermemory
             from pacbench.provider_loader import provider_module
             plugin = provider_module("supermemory")
-            _load_supermemory_config, _resolve_container_tag = plugin._load_supermemory_config, plugin._resolve_container_tag
-            cfg=_load_supermemory_config(str(root/'hermes-home'))
-            if not cfg['base_url'].startswith('http://127.0.0.1:'):raise ValueError('Nonlocal memory server')
+            from provider_adapters.supermemory_native import namespace
+            cfg,tag=namespace(plugin,root/'hermes-home')
             client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
-            tag=_resolve_container_tag(cfg['container_tag'],'default')
             captures=None
             if 'captures' in inputs:
                 _clean_text_for_capture = plugin._clean_text_for_capture

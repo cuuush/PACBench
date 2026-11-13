@@ -24,7 +24,7 @@ PINS = {
         'repository': 'https://github.com/topoteretes/cognee-integrations',
         'commit': 'a176248914fdb32a78354854b300174203b15a5c',
         'plugin_subdirectory': 'integrations/hermes-agent',
-        'backend_requirement': 'cognee==1.6.6',
+        'backend_requirement': 'cognee==1.6.8',
         'capture': 'typed-session-entries-and-session-end-graph-promotion',
         'document_ingestion': True,
     },

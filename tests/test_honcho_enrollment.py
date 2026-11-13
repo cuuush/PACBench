@@ -221,7 +221,7 @@ def test_installed_native_sdk_enrollment_uses_only_membership_requests():
     proc=subprocess.run([str(python),str(script)],cwd=root,env=env,capture_output=True,text=True,timeout=20)
     assert proc.returncode==0,proc.stderr
     result=json.loads(proc.stdout)
-    assert result['sdk_version']=='2.2.0' and result['model_calls']==result['live_network_calls']==0
+    assert result['sdk_version']=='2.9.0' and result['model_calls']==result['live_network_calls']==0
     assert result['result']=='enrolled' and result['source_messages_submitted']==0
 
 

@@ -17,14 +17,15 @@ from .preparation_audit import audit_prepared
 
 def provider_inventory(repo: Path = harness.REPO) -> dict:
     """Inspect installation paths only; do not launch providers or inference."""
+    from .provider_versions import memcal_source
     paths = {
-        'memcal': ['../memcal/integrations/hermes/memcal/__init__.py'],
+        'memcal': [str(memcal_source(repo) / 'integrations/hermes/memcal/__init__.py')],
         'mem0': [],
         'hindsight': ['vendor/venv-hindsight/bin/python'],
         'openviking': ['vendor/venv-openviking/bin/openviking-server'],
         'reme': ['vendor/venv-reme/bin/python'],
         'cognee': ['vendor/venv-cognee/bin/python'],
-        'memos': ['vendor/memos/apps/memos-local-plugin/dist/bridge.cjs'],
+        'memos': ['vendor/memos-local-plugin/package/dist/bridge.cjs'],
         'supermemory': ['vendor/supermemory-local/supermemory-server-linux-x64',
                         'vendor/supermemory-local/installation.json'],
         'honcho': ['vendor/honcho-local/.venv/bin/python'],
@@ -32,13 +33,13 @@ def provider_inventory(repo: Path = harness.REPO) -> dict:
     requirements = {
         'memcal': 'Native Messages and TLS IMAP fixtures; installed Memcal and Hermes client dependencies.',
         'mem0': 'Hermes Mem0 SDK, local Qdrant and Ollama nomic-embed-text.',
-        'hindsight': 'Hindsight 1.1.0 server and client in separate environments.',
+        'hindsight': 'Hindsight 1.2.1 server and client in separate environments.',
         'openviking': 'OpenViking server and Ollama nomic-embed-text.',
         'reme': 'Pinned ReMe runtime, Hermes resource plugin and local embeddings.',
         'cognee': 'Pinned Cognee server, native HTTP Hermes plugin and local Ollama embeddings.',
         'memos': 'Pinned local MemOS bridge, Hermes memtensor plugin and offline MiniLM assets.',
         'supermemory': 'Verified local server, SDK and Ollama nomic-embed-text.',
-        'honcho': 'Honcho 3.4.1 checkout, SDK 2.2.0, Docker/pgvector and Ollama; simulated clock additionally needs pinned libfaketime.',
+        'honcho': 'Honcho 3.6.1 checkout, SDK 2.9.0, Docker/pgvector and Ollama; simulated clock additionally needs pinned libfaketime.',
     }
     providers = []
     for name, files in paths.items():
@@ -124,11 +125,8 @@ def inspect(prepared: Path, *, repo: Path = harness.REPO,
     check('client_dependencies', lambda: _runtime_metadata(repo / 'vendor/venv-hermes-isolated/bin/python'))
 
     def memcal():
-        root = repo.parent / 'memcal'
-        if not (root / 'integrations/hermes/memcal/__init__.py').is_file():
-            raise RuntimeError('Sibling Memcal checkout with its shipped Hermes integration is missing')
-        return {'revision': _git(root, 'rev-parse', 'HEAD').strip(),
-                'working_tree_changes': bool(_git(root, 'status', '--porcelain').strip())}
+        from .provider_versions import verify_memcal_source
+        return verify_memcal_source(repo)
 
     check('memcal_checkout', memcal)
     check('isolated_scratch', _scratch_check)

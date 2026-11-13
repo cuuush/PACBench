@@ -30,9 +30,10 @@ not a zero score or claim about their other use cases.
 ## Cognee
 
 Source: [official Hermes plugin](https://github.com/topoteretes/cognee-integrations/tree/a176248914fdb32a78354854b300174203b15a5c/integrations/hermes-agent).
-The inspected plugin requires `cognee==1.6.6` in an isolated runtime because its
-requirements conflict with Hermes's. Follow that version's local setup, not the
-default remote wizard choice. Pin a unique dataset, data root, system root and
+The unchanged plugin's automatic local installer selects `cognee==1.6.6` in
+a private environment because its requirements conflict with Hermes's. The
+current cohort manually provisions 1.6.8 behind its native loopback HTTP
+transport and verifies compatibility; the automatic installer is not invoked. Pin a unique dataset, data root, system root and
 server port. Clear inherited remote URL/key settings; select the memory provider,
 not merely plugin enablement. Record actual loaded plugin and backend revisions.
 

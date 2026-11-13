@@ -554,18 +554,14 @@ def supermemory(source,root,at,processing_at):
     from supermemory import Supermemory
     from pacbench.provider_loader import provider_module
     plugin = provider_module("supermemory")
-    _load_supermemory_config, _resolve_container_tag = plugin._load_supermemory_config, plugin._resolve_container_tag
-    cfg=_load_supermemory_config(str(root/'hermes-home'))
-    tag=_resolve_container_tag(cfg['container_tag'],'default')
-    if not cfg['base_url'].startswith('http://127.0.0.1:'):
-        raise ValueError('Supermemory document ingest requires the run-owned local server')
+    from provider_adapters.supermemory_native import namespace, document
+    cfg,tag=namespace(plugin,root/'hermes-home')
     client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
     delivery=json.loads((root/'document-ingestion-config.json').read_text())
     if delivery.get('dreaming')!='instant':raise ValueError('Undeclared Supermemory ingestion mode')
     content=(source/'messages.txt').read_text()
     try:
-        result=client.documents.add(content=content,
-            container_tags=[tag],custom_id=source.name,dreaming=delivery['dreaming'],
+        result=client.add(tag,content=content,id=source.name,date=at,dreaming=delivery['dreaming'],
             metadata={'source':'daily-transcript','collected_at':at})
     except Exception as error:
         failure={**native_error_receipt(error),'phase':'document-add'}
@@ -583,7 +579,7 @@ def supermemory(source,root,at,processing_at):
     ready=False;reason='Native memory processing deadline exceeded';failure=None
     while True:
         try:
-            status=client.documents.get(result.id).model_dump(mode='json')
+            raw,status=document(client,tag,result.id)
         except Exception as error:
             # Delivery already succeeded. Preserve its ID and every observed
             # state, rather than losing them to a traceback or resubmitting.
@@ -593,8 +589,8 @@ def supermemory(source,root,at,processing_at):
         # SDK responses duplicate camel/snake aliases and may append complete
         # memories on every poll. Keep the source witness and state changes,
         # not repeated native memory dumps or duplicate spelling aliases.
-        observed={k:status.get(k) for k in ('id','custom_id','content','container_tags','status')}
-        observed['dreaming_status']=status.get('dreaming_status',status.get('dreamingStatus'))
+        observed={**status,'content':raw.get('content'),'metadata':raw.get('metadata'),
+                  'native_system':raw.get('system'),'request_namespace':tag}
         if not statuses or observed!=statuses[-1]:statuses.append(observed)
         state=status.get('status')
         dreaming=status.get('dreaming_status',status.get('dreamingStatus'))
@@ -611,7 +607,8 @@ def supermemory(source,root,at,processing_at):
             reason='Native memory consolidation status unavailable';break
         if time.monotonic()>=deadline:break
         time.sleep(1)
-    return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
+    return {'ready':ready,'reason':reason,'interface':'Supermemory SDK v5 add(namespace,raw content) + documents.get(namespace,id)',
+            'native_api_protocol':'supermemory-v5-documents-v1','request_namespace':tag,
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
             **({'native_error':failure} if failure else {}),
             'delivery_options':{'dreaming':delivery['dreaming']},

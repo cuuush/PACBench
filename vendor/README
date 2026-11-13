@@ -46,18 +46,14 @@ Reproduce this non-PM-managed environment from the PACBench root, with Python
   (cd vendor/hermes-isolated && uv sync --locked --no-default-groups --extra all --python /path/to/python3.14)
   uv pip install --python "$UV_PROJECT_ENVIRONMENT/bin/python" -r vendor/hermes-isolated-extra-requirements.txt -e /path/to/memcal
 
-This installed the upstream `all` extra, including browser harness, and then
-the pinned client requirements and editable Memcal resolved and imported successfully. The current integration
-preserves the existing `/workspace/memcal` checkout; the upgrade bundle's earlier
-`dea42cfdcb4f0dbf3375054dfd96e0f8a408d55a` import check is a separate environment.
-Observed versions were browser-harness 0.1.13, Pillow 13.0.0, MCP 2.3.0,
-httpx2 2.15.1, starlette 1.9.0, Supermemory 3.62.0, Mem0 2.0.10, Honcho 2.2.0,
-Hindsight client and embed 1.1.0, Memcal 0.8.10 and pytypedstream 0.1.0.
-The target also has pytest 9.1.1 for validation. A generic `uv pip check`
-reports the upstream Pillow mismatch; PM checks it against the locked override.
-These imports and resolution checks do not establish native provider operation.
-A subsequent `uv sync` may remove the separately installed clients; reinstall
-and recheck them after syncing.
+The current stable-provider cohort uses Memcal 0.8.11 from an isolated checkout.
+Set `PACBENCH_MEMCAL_SRC` to that clean release checkout when its location differs
+from the default sibling `memcal-stable-20261113`; source verification requires
+commit `e67b8d912484b5b4317dafcff4d60fc975194d8e`. Original development
+installations do not determine current runtime versions. Install the additional
+client requirements after syncing Hermes and verify the actual distributions.
+Hermes v0.23.1 is still the current stable release. Its upstream Pillow lock
+override is retained. Offline imports and tests alone do not qualify recall.
 
 - `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
 - `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
@@ -78,7 +74,7 @@ daemon using `vendor/venv-hindsight/bin/python`:
 
   uv venv --python 3.12 vendor/venv-hindsight
   uv pip install --python vendor/venv-hindsight/bin/python torch --index-url https://download.pytorch.org/whl/cpu
-  uv pip install --python vendor/venv-hindsight/bin/python hindsight-all==1.1.0
+  uv pip install --python vendor/venv-hindsight/bin/python hindsight-all==1.2.1
 
 Use the official CPU PyTorch wheel on Linux CPU hosts; the default GPU wheel pulls
 several GB of unused CUDA dependencies. These are hardware/transport installations,
@@ -87,9 +83,9 @@ Hindsight's server version is separate from Hermes' pinned client version:
 the older 0.6.1 API does not implement the native Meta model adapter.
 
 Honcho uses the upstream manual self-hosting checkout at commit
-`5314d0a8635f02375b8ad73c89eb80f86d7d1cb4` (3.4.1), installed with
+`70c67624169683b9e265517aec95a51b8077cabc` (3.6.1), installed with
 `uv sync --frozen --no-dev` in `vendor/honcho-local`. Keep its native batching
-and output defaults. Hermes pins the published `honcho-ai==2.2.0` client. A release update does not establish successful ingestion;
+and output defaults. Hermes pins the published `honcho-ai==2.9.0` client. A release update does not establish successful ingestion;
 verify a small native import and Hermes recall before larger runs.
 
 ## Hermes catalog memory providers
@@ -106,26 +102,34 @@ plugin code, not the independently provisioned native servers):
 | Supermemory | `supermemoryai/hermes-supermemory` | `91405dd00fdf2a0b3515b25c25557598f6793299` |
 | OpenViking | `volcengine/OpenViking/examples/hermes-plugin` | `e855796c83f9eb575d9b0f3082926660730f6a63` |
 
-For fresh trial homes, PACBench invokes Hermes's documented source form with an
-explicit `--ref` and `--no-deps --no-enable`. The latter avoids changing the
-shared client environment; Hermes may still bootstrap a separate per-home
-package-manager runtime. PACBench checks the checkout catalog entry against its
-recorded pin, the install metadata and manifest, then checks the declared plugin
-dependencies and adapter imports in the trial interpreter before activating
-`memory.provider`. `catalog-plugin.json` records the source, revision, version,
-and declared dependencies. A failed install or probe blocks that arm. Fresh
-homes disable lazy installs after verification; they never use a live catalog
-refresh to choose their plugin. Configure the provider normally after setup; do
-not install into a real user home for a trial.
+For fresh homes the stable-provider cohort uses Hermes's documented source form
+with explicit `--ref --no-deps --no-enable`. `pacbench/catalog_plugins.py`
+records selected upstream source revisions separately from the historical
+Hermes catalog above. Plugins come from Mem0 2.2.1, Honcho 3.6.1, Hindsight 1.2.1
+and OpenViking 0.5.4.1 releases. Supermemory has no standalone plugin tags or
+releases; its current declared plugin 2.0.0 is pinned to full revision
+`a8f360166419958ce77b876c69f7be3bf0716d67`, requiring SDK 5.0.1.
+The published local server remains server-v0.0.9. Native v5 document import,
+namespace reads, processing and dreaming completion must all be verified.
 
-The Supermemory pin requires `supermemory>=3.50.0,<4`; the isolated client pin
-above is 3.62.0. Hindsight also requires `hindsight-embed>=0.10.1,<2`. Its
-new default recall type is observation-only, including the recall tool; the
-install receipt records this and historical broader recall is not equivalent.
-OpenViking Quick Local installs a moving 0.5.x server version; preserve and
-record the separately pinned native server for comparable trials.
+Cognee 1.6.8 runs in a private server environment with the unchanged 1.4.3 native
+HTTP integration. Its automatic local installer still selects 1.6.6; PACBench
+manually provisions the newer local server and records that distinction.
+ReMe uses stable v0.4.2.2, including its `core` extra, rather than development
+0.4.2.3. Install its shipped Hermes integration from the same release. Preserve
+its default resource watcher, extraction, indexing and result-hook witnesses.
 
-These checks establish source identity, direct requirements and adapter import
-surfaces, not successful ingestion or recall. The separate live-trial gateway
-lifecycle guard remains authoritative. Catalog-provider resume is blocked until
-existing-home plugin provenance and recovery have a verified protocol.
+MemOS's native local plugin is a separate release from the root Python package.
+Install official npm `@memtensor/memos-local-plugin@2.0.21` under
+`vendor/memos-local-plugin/`, preserving the verified `release.tgz` and extracted
+`package/`. `MEMOS_LOCAL_PIN.json` binds the archive; the harness compares every
+shipped file before loading it. Install dependencies with Node's inherited proxy
+support (`NODE_USE_ENV_PROXY=1`). Production installation used `--omit=dev
+--omit=optional --legacy-peer-deps` because unused DeepSeek Harness development
+peers conflict upstream. No runtime source files are rewritten. The native
+Hermes bridge, public core bootstrap and raw-document HTTP API remain unchanged.
+
+Each new cohort needs fresh native processing, context injection and tool checks.
+Fresh homes disable lazy installs after verified plugin installation. Service
+readiness and dependent-write processing receipts remain required; version
+updates never imply successful ingestion or recall.

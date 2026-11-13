@@ -27,7 +27,8 @@ from .usage import tracked_turn
 from .stop import OperatorStop, check_stop
 from .provider_lineup import RETIRED_PROVIDERS, require_not_retired
 
-MEMCAL_SRC = harness.REPO.parent / "memcal"
+from .provider_versions import memcal_source
+MEMCAL_SRC = memcal_source(harness.REPO)
 # These use profile-local stores without requiring a shared remote namespace.
 ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "supermemory", "honcho", "reme", "cognee", "memos"}
 _ARM_SHUTDOWNS = {}
@@ -248,6 +249,9 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
               honcho_simulated_at: str | None = None,
               inference_route: str = 'muse-gateway') -> dict:
     require_not_retired(provider)
+    if provider == 'memcal':
+        from .provider_versions import verify_memcal_source
+        verify_memcal_source(harness.REPO)
     if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
         raise ValueError('Unknown inference route')
     if inference_route == 'openrouter':
@@ -624,7 +628,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     if inference_route == 'codex-subscription':
         report['hermes_model'] = report['judge_model'] = 'gpt-6-luna'
         report['subscription_cost_status'] = 'unpriced'
-    report['provenance_version'] = ('source-provenance-v3' if any(p in {'cognee','memos'} for p in selected) else 'source-provenance-v2')
+    report['provenance_version'] = ('source-provenance-v3' if any(p in {'cognee','memos','supermemory'} for p in selected) else 'source-provenance-v2')
     report['provider_loader_protocol']='native-loaded-source-v1'
     from .clock_context import NATIVE as CLOCK_CONTEXT
     from .openrouter_direct import active as direct_active

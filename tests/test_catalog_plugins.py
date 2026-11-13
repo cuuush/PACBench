@@ -23,12 +23,12 @@ def test_exact_ref_install_and_dependency_probe(name, tmp_path, monkeypatch):
         if len(calls) == 1:
             plugin = home/'plugins'/name
             plugin.mkdir()
-            (plugin/'plugin.yaml').write_text(f"name: {name}\nversion: {entry['version']}\n")
+            (plugin/'plugin.yaml').write_text(f"name: {name}\nversion: {catalog.SOURCE_VERSIONS[name]}\n")
             (home/'plugins'/'.install-metadata.json').write_text(json.dumps({name: {
                 'source': catalog._expected_source(source), 'revision': sha, 'pinned': True}}))
             return SimpleNamespace(returncode=0, stdout='', stderr='')
         return SimpleNamespace(returncode=0, stdout=json.dumps({'provider': name,
-            'plugin_version': str(entry['version']), 'dependencies': ['example>=1']}), stderr='')
+            'plugin_version': str(catalog.SOURCE_VERSIONS[name]), 'dependencies': ['example>=1']}), stderr='')
     monkeypatch.setattr(catalog.subprocess, 'run', run)
     receipt = catalog.install_catalog_provider(name, home, fallback, Path('/fake/bin/hermes'), harness.ISOLATED_TREE)
     assert calls[0][1:] == ['plugins', 'install', source, '--ref', sha, '--no-deps', '--no-enable']

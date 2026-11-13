@@ -163,7 +163,7 @@ def audit(root: Path, *, providers=None) -> dict:
                                     hook_index=saved.get('native_query_index'),protocol=clock_protocol)
                                 check(observed.get('state')=='pass' and observed==saved,
                                       f'{label}: actual system clock or natural provider query is unproven')
-                            if summary.get('provenance_version')=='source-provenance-v3' and result['provider'] in {'cognee','memos'}:
+                            if summary.get('provenance_version')=='source-provenance-v3' and result['provider'] in {'cognee','memos','supermemory'}:
                                 from .prefetch_provenance import observe
                                 declaration=read(arm/'prefetch-provenance.json')
                                 check(declaration.get('provider')==result['provider'] and

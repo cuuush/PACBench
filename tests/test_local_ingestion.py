@@ -111,7 +111,7 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     resolve=Mock(return_value='native_canonical_tag')
     plugin=SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
-        _resolve_container_tag=resolve)
+        _expand_container_tag=resolve,_sanitize_tag=lambda value:value)
     resolver=Mock(return_value=plugin)
     monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     add=Mock(return_value=SimpleNamespace(
@@ -120,16 +120,17 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
                   {'status':'done',dreaming_field:'dreaming'},
                    {'status':'done',dreaming_field:'dreaming'},
                    {'status':'done',dreaming_field:'done'}])
-    get=Mock(side_effect=lambda id:SimpleNamespace(model_dump=lambda **kw:next(statuses)))
+    get=Mock(side_effect=lambda namespace,id:SimpleNamespace(model_dump=lambda **kw:{'id':id,'system':next(statuses)}))
     documents=SimpleNamespace(add=add,get=get)
-    monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=lambda **kw:SimpleNamespace(documents=documents)))
+    monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=lambda **kw:SimpleNamespace(add=add,documents=documents)))
     monkeypatch.setenv('SUPERMEMORY_API_KEY','local-test-key')
     monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
     sleep=Mock();monkeypatch.setattr('provider_adapters.document_connector.time.sleep',sleep)
     result=supermemory(source,home.parent,'now','now')
     resolver.assert_called_once_with('supermemory')
     resolve.assert_called_once_with('raw-tag','default')
-    assert add.call_args.kwargs['container_tags']==['native_canonical_tag']
+    assert add.call_args.args==('native_canonical_tag',)
+    assert add.call_args.kwargs['id']=='day' and add.call_args.kwargs['date']=='now'
     assert add.call_args.kwargs['content']=='Raw daily text\n'
     assert add.call_args.kwargs['dreaming']=='instant'
     assert result['delivery_options']=={'dreaming':'instant'}

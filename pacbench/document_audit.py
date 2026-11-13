@@ -58,11 +58,15 @@ def audit_supermemory_receipt(result, day, text):
     if (final.get('status')!='done' or
             final.get('dreaming_status',final.get('dreamingStatus'))!='done'):
         errors.append('Supermemory memory consolidation did not complete')
-    if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or
-            final.get('custom_id',final.get('customId'))!=day or
+    v5=result.get('native_api_protocol')=='supermemory-v5-documents-v1'
+    identity_ok=(final.get('id')==day and final.get('request_namespace')==result.get('request_namespace')==result.get('container_tag')
+                 and (final.get('metadata') or {}).get('collected_at')
+                 and (final.get('native_system') or {}).get('status')=='done'
+                 and (final.get('native_system') or {}).get('dreaming_status', (final.get('native_system') or {}).get('dreamingStatus'))=='done') if v5 else (
+                     final.get('custom_id',final.get('customId'))==day and result.get('container_tag') in final.get('container_tags',final.get('containerTags',[])))
+    if (not final.get('id') or final.get('id')!=result.get('result',{}).get('id') or not identity_ok or
             not same_submitted_text(final.get('content'),text) or
-            not result.get('container_tag') or
-            result['container_tag'] not in final.get('container_tags',final.get('containerTags',[]))):
+            not result.get('container_tag')):
         errors.append('Supermemory completion receipt differs from submitted source or namespace')
     return errors
 

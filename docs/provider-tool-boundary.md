@@ -57,3 +57,12 @@ provenance classification to the captured context. Confirmed source content
 receives zero retention credit; unverified native hybrid passages remain
 uncredited pending review. This adds evidence tracking, not claims or weights.
 Older v1/v2 trials keep their original recorded conditions and grades.
+
+
+The current Supermemory 2.0.0 plugin defaults to hybrid v5 retrieval. Its native
+formatter merges `memory` and original document `chunk` text and omits result
+type. Without independent passage witnesses, injected context and hybrid search
+are unverified for retention credit. Explicit `supermemory-read-document` is a
+source read. Native default retrieval stays enabled; semantic grading is
+unchanged. Do not assume the formatted label “Relevant Memories” proves an
+extracted-memory path.

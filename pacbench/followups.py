@@ -119,10 +119,16 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'memcal_search_wiki', 'memcal_list_days', 'memcal_list_month',
                 'mem0_search', 'hindsight_recall', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
         return 'memory_search'
-    if name in {'supermemory-search','supermemory_search','brv_query'}:
+    if name in {'supermemory-search','supermemory_search'}:
+        return 'unclassified'  # Native v5 default hybrid formatter merges chunks and memories.
+    if name == 'brv_query':
         return 'memory_search'
-    if name in {'supermemory-profile','supermemory_profile','brv_status'}:
+    if name in {'supermemory-profile','supermemory_profile'}:
+        return 'unclassified' if arguments.get('query') else 'memory_detail'
+    if name == 'brv_status':
         return 'memory_detail'
+    if name in {'supermemory-read-document','supermemory_read_document'}:
+        return 'source_evidence'
     if name in {'supermemory-save','supermemory_store','supermemory-forget','supermemory_forget','brv_curate'}:
         return 'memory_write'
     if name=='hindsight_reflect':

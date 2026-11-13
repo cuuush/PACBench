@@ -1,0 +1,76 @@
+{
+  "version": "native-stored-fact-review-v2",
+  "provider": "hindsight",
+  "state": "input-integrity-pass-native-quality-errors-recorded",
+  "source_messages_verified": 125,
+  "native_documents": 7,
+  "source_readbacks": [
+    {
+      "day": "2026-10-05",
+      "source_messages": 33,
+      "native_text_exact": true,
+      "source_sha256": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e"
+    },
+    {
+      "day": "2026-10-06",
+      "source_messages": 23,
+      "native_text_exact": true,
+      "source_sha256": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41"
+    },
+    {
+      "day": "2026-10-07",
+      "source_messages": 26,
+      "native_text_exact": true,
+      "source_sha256": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32"
+    },
+    {
+      "day": "2026-10-08",
+      "source_messages": 21,
+      "native_text_exact": true,
+      "source_sha256": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9"
+    },
+    {
+      "day": "2026-10-09",
+      "source_messages": 4,
+      "native_text_exact": true,
+      "source_sha256": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f"
+    },
+    {
+      "day": "2026-10-10",
+      "source_messages": 8,
+      "native_text_exact": true,
+      "source_sha256": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9"
+    },
+    {
+      "day": "2026-10-11",
+      "source_messages": 10,
+      "native_text_exact": true,
+      "source_sha256": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c"
+    }
+  ],
+  "native_memory_units": 131,
+  "native_fact_types": {
+    "world": 58,
+    "observation": 73
+  },
+  "native_async_operations": {
+    "completed": 7
+  },
+  "native_failed_operations": 0,
+  "inspection_method": "Native PostgreSQL on separate preserved copy; TCP-only clone auth, default read-only transactions, no provider API or model startup. Original database hashes unchanged; inspection processes stopped.",
+  "native_quality_cases": [
+    {
+      "source_fact": "The October9 lunch moved to Mario\u2019s on October6; October7\u2019s 12:30 message says same place agreed yesterday and quotes older Rosa\u2019s history.",
+      "stored_memory_id": "9a345ecd-e570-4546-a0cf-99248b338035",
+      "stored_text": "Friday lunch moved to 12:30 at Rosa's on Oak Street (originally pizza at 1 pm); Maya, Tess, and user in, Leo out; Nora also confirmed 12:30. | When: 2026-10-09 at 12:30 | Where: Rosa's on Oak Street | Involving: Maya, Tess, user, Leo, Nora | Maya proposed the earlier time",
+      "classification": "native quoted-history/current-venue extraction error"
+    },
+    {
+      "source_fact": "October9 message quotes an old owner preference while clearing Monday notes; owner had already reversed it October7.",
+      "stored_memory_id": "c2df6160-9656-41f5-82eb-d8c41645474f",
+      "stored_text": "Maya avoids mushrooms on pizza but is fine with dairy. | Involving: Maya",
+      "classification": "native quoted-history attribution error"
+    }
+  ],
+  "scope": "Native completion and exact source persistence verified. Final retained facts and derived observations contain semantic errors; these are preserved as quality outcomes, not corrected or seeded. No benchmark queries or judge calls during inspection."
+}

@@ -1,0 +1,87 @@
+{
+  "version": "native-stored-fact-review-v2",
+  "provider": "cognee",
+  "state": "input-integrity-pass-native-quality-errors-recorded",
+  "source_messages_verified": 125,
+  "native_documents": 7,
+  "source_readbacks": [
+    {
+      "day": "2026-10-05",
+      "source_messages": 33,
+      "native_raw_text_exact": true,
+      "source_sha256": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e"
+    },
+    {
+      "day": "2026-10-06",
+      "source_messages": 23,
+      "native_raw_text_exact": true,
+      "source_sha256": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41"
+    },
+    {
+      "day": "2026-10-07",
+      "source_messages": 26,
+      "native_raw_text_exact": true,
+      "source_sha256": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32"
+    },
+    {
+      "day": "2026-10-08",
+      "source_messages": 21,
+      "native_raw_text_exact": true,
+      "source_sha256": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9"
+    },
+    {
+      "day": "2026-10-09",
+      "source_messages": 4,
+      "native_raw_text_exact": true,
+      "source_sha256": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f"
+    },
+    {
+      "day": "2026-10-10",
+      "source_messages": 8,
+      "native_raw_text_exact": true,
+      "source_sha256": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9"
+    },
+    {
+      "day": "2026-10-11",
+      "source_messages": 10,
+      "native_raw_text_exact": true,
+      "source_sha256": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c"
+    }
+  ],
+  "dataset_id": "cb9e6ca4-4f2b-5785-b335-9d619f24bbf2",
+  "native_graph_dataset_binding_verified": true,
+  "native_graph_nodes": 167,
+  "native_graph_relationships": 537,
+  "native_node_types": {
+    "DocumentChunk": 7,
+    "TextDocument": 7,
+    "TextSummary": 7,
+    "Entity": 86,
+    "EntityType": 8,
+    "Timestamp": 31,
+    "GlobalContextSummary": 8,
+    "FactConflict": 11,
+    "null": 2
+  },
+  "native_successful_terminal_operations": {
+    "remember": 7,
+    "add_pipeline": 7,
+    "indexing_pipeline": 7,
+    "cognify_pipeline": 7,
+    "memify_pipeline": 14,
+    "improve": 7
+  },
+  "native_improve_runs_verified": 7,
+  "native_failed_terminal_operations": 0,
+  "native_graph_unchanged_by_read_only_inspection": true,
+  "quality_cases": [
+    {
+      "source_day": "2026-10-09",
+      "source_fact": "Maya quotes an old owner preference while clearing Monday\u2019s notes; this is not Maya adopting that dietary preference.",
+      "native_node_id": "4865a021-4559-5df2-a4d2-fb096cbe5e91",
+      "stored_excerpt": "Maya sent Me notes while clearing out Monday's notes.\nFor pizza, Maya avoids mushrooms.\nFor pizza, Maya is fine with dairy.\nMushrooms are the pizza topping Maya avoids.\nDairy is a pizza ingredient Maya is fine with.",
+      "classification": "native quoted-history attribution error in TextSummary, also propagated into GlobalContextSummary"
+    }
+  ],
+  "scope": "All raw input and cognify plus automatic improve completion verified. Final native summaries retain semantic errors. No source re-upload, prompt rewrite, fact seeding or reasoning-setting change."
+}

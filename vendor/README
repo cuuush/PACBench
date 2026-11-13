@@ -32,8 +32,10 @@ Existing source trees at a different revision, untracked files, or changes
 other than Hermes's reviewed isolation patch fail closed. Preserve and move
 those directories aside explicitly before retrying; the installer never resets
 them. Downloads can require several GB. Top-level provider releases, source
-commits and asset hashes are pinned; provider dependency trees outside Hermes
-and Honcho still use the releases' declared constraints, not a universal lock.
+commits and asset hashes are pinned. Reviewed Python patch versions and selected
+backend dependencies are constrained by `vendor/runtime-locks`; MemOS uses its
+reviewed npm lock. These snapshots constrain the selected runtime without
+installing optional or development packages.
 Installation identity is not native processing or recall qualification.
 
 Example saved cloud-environment setup, with this repository already selected
@@ -389,3 +391,13 @@ interrupting a response does not establish that its body was complete. Native
 SDK retries can replace the original exception, so inspect this preserved
 evidence when diagnosing a rejection. Evidence retention never automatically
 releases a cost hold or treats missing tokens as zero.
+
+`vendor/runtime-locks` also constrains the reviewed backend dependency versions
+and exact Python patch versions. Hermes and Honcho keep their upstream source
+lockfiles; the extra Hermes/native SDK install is constrained too. CPU PyTorch
+is selected by its exact reviewed wheel version. MemOS uses the committed npm
+lock with `npm ci`, followed by its two pinned Linux text-embedding addons.
+The constraint files do not install development or unselected optional packages.
+`bootstrap --check` compares installed constrained dependencies and npm packages
+with this manifest; a reviewed cohort now checks this before any paid work.
+This prevents a fresh session from silently selecting newer transitive SDKs.

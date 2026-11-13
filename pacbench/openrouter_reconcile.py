@@ -6,7 +6,7 @@ import json
 import os
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
-from .direct_accounting import live_budget, now
+from .direct_accounting import live_budget, now, observed_generation_id
 from .openrouter_route import MODEL
 from .openrouter_task import STATE
 
@@ -14,9 +14,10 @@ from .openrouter_task import STATE
 def reconcile(identifier):
     budget=live_budget()
     row=next(c for c in budget.snapshot() if c['id']==identifier)
-    if row.get('state')!='uncertain' or not row.get('upstream_request_id'):
+    if row.get('state')!='uncertain':
         raise ValueError('An identified uncertain request is required')
-    request=Request('https://openrouter.ai/api/v1/generation?'+urlencode({'id':row['upstream_request_id']}),
+    generation_id,_=observed_generation_id(row)
+    request=Request('https://openrouter.ai/api/v1/generation?'+urlencode({'id':generation_id}),
         headers={'Authorization':'Bearer '+os.environ['OPENROUTER_API_KEY']})
     with urlopen(request,timeout=30) as response:generation=json.load(response)['data']
     with urlopen('https://openrouter.ai/api/v1/models',timeout=30) as response:

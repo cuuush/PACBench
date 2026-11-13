@@ -93,3 +93,41 @@ def test_start_services_is_explicit_and_does_not_run_after_failed_identity_check
     monkeypatch.setattr(bootstrap,'verify',lambda _:dict(state='blocked'))
     monkeypatch.setattr(bootstrap,'start_services',lambda:pytest.fail('started with failed identities'))
     assert bootstrap.main(['--check','--start-services'])==1
+
+
+def test_backend_install_uses_reviewed_python_cpu_wheel_and_constraints(tmp_path,monkeypatch):
+    folder=tmp_path/'vendor/runtime-locks';folder.mkdir(parents=True)
+    lock=folder/'cognee.txt';lock.write_text('torch==2.15.0+cpu\nlitellm==1.109.1\n')
+    (folder/'manifest.json').write_text(json.dumps({'components':{'cognee':{'python':'3.12.14','sha256':hashlib.sha256(lock.read_bytes()).hexdigest()}}}))
+    monkeypatch.setattr(bootstrap,'ROOT',tmp_path);calls=[]
+    monkeypatch.setattr(bootstrap,'command',lambda args,**kw:calls.append(args))
+    bootstrap.venv('cognee',['cognee==1.6.8'],cpu_torch=True)
+    assert calls[0][-2:] == ['3.12.14',tmp_path/'vendor/venv-cognee']
+    assert 'torch==2.15.0+cpu' in calls[1] and '--no-deps' in calls[1]
+    assert '--constraint' in calls[2] and lock in calls[2] and 'torch==2.15.0+cpu' in calls[2]
+
+
+def test_dependency_drift_is_blocked_optional_packages_are_not_required(tmp_path,monkeypatch):
+    folder=tmp_path/'vendor/runtime-locks';folder.mkdir(parents=True)
+    lock=folder/'cognee.txt';lock.write_text('litellm==1.109.1\npytest==9.1.1\n')
+    (folder/'manifest.json').write_text(json.dumps({'components':{'cognee':{'python':'3.12.14','sha256':hashlib.sha256(lock.read_bytes()).hexdigest()}}}))
+    monkeypatch.setattr(bootstrap,'ROOT',tmp_path)
+    monkeypatch.setattr(bootstrap,'output',lambda _:json.dumps({'python':'3.12.14','packages':{'litellm':'1.109.1'}}))
+    assert bootstrap.verify_constraints('cognee','unused')['installed_versions_checked']==1
+    monkeypatch.setattr(bootstrap,'output',lambda _:json.dumps({'python':'3.12.14','packages':{'litellm':'1.110.0'}}))
+    with pytest.raises(RuntimeError,match='version drift'):bootstrap.verify_constraints('cognee','unused')
+    lock.write_text('litellm==changed\n')
+    with pytest.raises(RuntimeError,match='reviewed manifest'):bootstrap.runtime_lock('cognee')
+
+
+def test_memos_lock_checks_selected_dependencies_and_native_addons(tmp_path,monkeypatch):
+    folder=tmp_path/'vendor/runtime-locks';folder.mkdir(parents=True)
+    lock=folder/'memos-package-lock.json';lock.write_text(json.dumps({'packages':{'node_modules/selected':{'version':'1.2.3'},'node_modules/optional':{'version':'2.0.0'}}}))
+    (folder/'manifest.json').write_text(json.dumps({'components':{'memos':{'sha256':hashlib.sha256(lock.read_bytes()).hexdigest()}}}))
+    package=tmp_path/'package'
+    for name,version in [('selected','1.2.3'),('@img/sharp-linux-x64','0.34.5'),('@img/sharp-libvips-linux-x64','1.2.4')]:
+        path=package/'node_modules'/name/'package.json';path.parent.mkdir(parents=True);path.write_text(json.dumps({'version':version}))
+    monkeypatch.setattr(bootstrap,'ROOT',tmp_path)
+    assert bootstrap.verify_memos_dependencies(package)['installed_versions_checked']==1
+    (package/'node_modules/selected/package.json').write_text('{"version":"1.2.4"}')
+    with pytest.raises(RuntimeError,match='differs from lock'):bootstrap.verify_memos_dependencies(package)

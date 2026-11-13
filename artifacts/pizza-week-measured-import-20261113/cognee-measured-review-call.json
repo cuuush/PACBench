@@ -1,0 +1,36 @@
+{
+  "version": "native-long-call-observation-v1",
+  "provider": "cognee",
+  "native_task": "automatic improve: review_entities",
+  "generation": {
+    "id": "gen-1794601681-MA5pzUeBCKwmJDcIphDE",
+    "model": "deepseek/deepseek-v4.1-flash-20261017",
+    "provider_name": "DeepInfra",
+    "created_at": "2026-11-13T20:28:01.534Z",
+    "latency": 522,
+    "generation_time": 274544,
+    "native_tokens_prompt": 3883,
+    "native_tokens_completion": 27077,
+    "native_tokens_reasoning": 26177,
+    "native_tokens_cached": 1536,
+    "total_cost": 0.006556127,
+    "finish_reason": "stop",
+    "cancelled": false
+  },
+  "local_request_wall_s": 274.870381,
+  "native_request_parameter_keys": [
+    "messages",
+    "model",
+    "response_format"
+  ],
+  "native_request_parameters": {},
+  "native_request_sha256": "52a992f6ed036109a6b084a77e457ff4e07c32075c7b9178bd1a9483fbd120e1",
+  "settled_reported_charge_usd": "0.006556127872",
+  "interpretation": [
+    "OpenRouter reports latency and generation_time in milliseconds. Keep those native fields distinct; do not assume they sum exactly to client wall time or isolate every queue stage.",
+    "This completed call had 26,177 reasoning tokens out of 27,077 completion tokens. Its reported generation time accounts for almost all client wall time.",
+    "Observed input omits reasoning effort and output cap. This does not establish the server-side default effort. The harness did not inject a numeric cap or effort.",
+    "Reasoning content was not retained for this successful native Cognee response; counts alone cannot establish repetitive internal text.",
+    "Native processing and actual charges are preserved. No paid replay or inference-setting change was made for this audit."
+  ]
+}

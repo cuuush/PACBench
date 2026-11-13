@@ -1,0 +1,92 @@
+{
+  "version": "native-stored-fact-review-v2",
+  "provider": "memcal",
+  "state": "input-integrity-pass-native-quality-errors-recorded",
+  "source_messages_verified": 125,
+  "native_archive_records": 125,
+  "pending_source_spool": 0,
+  "all_seven_daily_native_runs_completed": true,
+  "native_model_calls": 27,
+  "finish_reasons": {
+    "stop": 26,
+    "length": 1
+  },
+  "native_stage_counts": {
+    "sweep": 7,
+    "propose": 15,
+    "merge": 4,
+    "propose:question-repair": 1
+  },
+  "recovered_truncations": 1,
+  "unresolved_truncations": 0,
+  "recovery_chain": {
+    "failed_generation": "gen-1794601869-oXjFSAsADDnqHR0XfPmt",
+    "output_cap_native": 17069,
+    "completion_tokens": 17069,
+    "reasoning_tokens": 17069,
+    "final_content_empty": true,
+    "failed_bundle_ids": [
+      "0644b3",
+      "38e0e3",
+      "517eb9",
+      "8c9911",
+      "9e578c",
+      "aec247"
+    ],
+    "successful_split_generations": [
+      "gen-1794602056-fJ6YJYe74SUPMJ0jwz1J",
+      "gen-1794602056-ujVupAlQgdnw1AUUJE84"
+    ],
+    "all_failed_bundles_reviewed_by_successful_splits": true,
+    "unrouted_bundles": 0
+  },
+  "request_cost_categories_mutually_exclusive": {
+    "regular_successful": {
+      "calls": 23,
+      "reported_usd": "0.021412225408"
+    },
+    "truncated_failed": {
+      "calls": 1,
+      "reported_usd": "0.004319407232"
+    },
+    "successful_split_recovery": {
+      "calls": 2,
+      "reported_usd": "0.004365308864"
+    },
+    "successful_question_repair": {
+      "calls": 1,
+      "reported_usd": "0.000168820288"
+    }
+  },
+  "all_calls_reported_usd": "0.030265761792",
+  "native_quality_cases": [
+    {
+      "source_fact": "October9 lunch was at Mario\u2019s on Pine at12:30, finally only the owner and Maya. The NorthHall bulletin was an unaccepted public listing, not a commitment.",
+      "stored_event": {
+        "id": 4,
+        "date": "2026-10-09",
+        "time": "12:30",
+        "kind": "commitment",
+        "title": "Pizza social",
+        "location": "North Hall",
+        "status": "confirmed",
+        "participants": "[\"Devon\", \"Nora\", \"Tess\"]",
+        "note": "Arts Bulletin's weekly listings announce a pizza social at North Hall on Friday at 12:30, with tickets available at the door. You have not replied to the listing."
+      },
+      "observation": "Successful split proposals distinguish the lunch and bulletin; subsequent native propose/merge/apply association and evidence-precedence behavior yields the fused final event.",
+      "classification": "native semantic association/precedence outcome; not unresolved truncation or harness transport loss"
+    }
+  ],
+  "native_config_evidence": {
+    "harness_injected_reasoning_effort": false,
+    "harness_injected_numeric_output_cap": false,
+    "native_output_cap_rule": "model_ceiling: generic OpenAI-compatible floor16000 + evidence_chars//2, native cap65536; selectedmodel has no Memcal registered endpoint profile",
+    "settings_unchanged": true
+  },
+  "source_evidence": [
+    "pinned Memcal e67b8d9: memcal/dream/propose.py:633,1370,1817,1876",
+    "pinned Memcal e67b8d9: memcal/dream/run.py:694",
+    "native call logs and dream.jsonl; input audit memcal-measured-input-audit.json"
+  ],
+  "scope": "Complete input and native recovery verified. Semantic quality is not perfect; preserve it as a benchmark outcome. No model replay or fact editing was performed for this review."
+}

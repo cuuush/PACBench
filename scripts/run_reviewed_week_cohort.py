@@ -54,6 +54,8 @@ with budget.locked() as state:
 from pacbench.context_isolation import validate_recall_environment
 os.environ['TMPDIR']='/var/tmp'
 validate_recall_environment()
+from pacbench.bootstrap import verify,COMPONENTS
+assert verify(COMPONENTS)['state']=='pass','Run python3 -m pacbench.bootstrap --install --start-services; reviewed dependencies must match before paid work'
 if args.preflight_only:
  print(json.dumps({'state':'preflight-passed','paid_calls':0}));raise SystemExit(0)
 root.mkdir(exist_ok=False)

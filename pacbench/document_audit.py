@@ -83,6 +83,21 @@ def audit_supermemory_receipt(result, day, text):
     return errors
 
 
+def openviking_observer_state(value):
+    """Validate the native post-wait snapshot; distinguish busy from malformed/error."""
+    result=value.get('result') or {}
+    queues=(result.get('status') or {}).get('queues')
+    if (value.get('status')!='ok' or result.get('is_healthy') is not True
+            or result.get('has_errors') is not False or not isinstance(queues,list)
+            or not all(isinstance(q,dict) for q in queues)
+            or not {'Embedding','Semantic'}.issubset({q.get('queue') for q in queues})):
+        return 'invalid'
+    counters=[q.get(k) for q in queues for k in ('pending','in_progress','errors')]
+    if any(type(v) is not int or v<0 for v in counters) or any(q['errors'] for q in queues):
+        return 'invalid'
+    return 'busy' if any(q['pending'] or q['in_progress'] for q in queues) else 'ready'
+
+
 def audit_openviking_receipt(result):
     native=result.get('result',{}).get('result',{})
     queues=native.get('queue_status')
@@ -91,6 +106,15 @@ def audit_openviking_receipt(result):
                 not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
                 for q in queues.values())):
         return ['OpenViking native semantic/vector processing did not succeed']
+    if result.get('completion_protocol') is not None:
+        global_value=result.get('native_global_queue_completion') or {}
+        global_queues=global_value.get('result')
+        if (result['completion_protocol']!='openviking-global-import-readiness-v2'
+                or global_value.get('status')!='ok' or not isinstance(global_queues,dict)
+                or not global_queues or any(not isinstance(q,dict) or q.get('error_count')!=0
+                    or q.get('errors')!=[] for q in global_queues.values())
+                or openviking_observer_state(result.get('native_global_queue_observation') or {})!='ready'):
+            return ['OpenViking global processing completion is unproven']
     return []
 
 

@@ -1,0 +1,45 @@
+{
+  "version": "native-stored-fact-review-v2",
+  "provider": "honcho",
+  "state": "input-integrity-pass-native-quality-errors-recorded",
+  "source_messages_verified": 125,
+  "native_source_text_metadata_speakers_timestamps_exact": true,
+  "native_fact_records": 379,
+  "fact_records_by_observer": {
+    "user": 142,
+    "hermes": 142,
+    "Alex-Reed": 4,
+    "Morgan": 9,
+    "Maya": 23,
+    "Jen": 10,
+    "Devon": 12,
+    "Tutor": 3,
+    "Tess": 5,
+    "Studio": 5,
+    "Ben": 5,
+    "Leo": 4,
+    "Arts-Bulletin": 2,
+    "Box-Office": 3,
+    "Courier": 4,
+    "Alex-Chen": 6
+  },
+  "fact_count_scope": "Native records include separate observer views; not directly comparable to other providers\u2019 fact counts.",
+  "native_queue_pending": 0,
+  "native_queue_errors": 0,
+  "inspection_method": "Network-disabled native PostgreSQL on preserved copy; read-only SQL; source database manifest unchanged; copy container stopped",
+  "native_quality_cases": [
+    {
+      "source_fact": "FridayOctober9 lunchvenuehad movedtoMario\u2019sonOctober6; October7sameplaceagreed refers toMario\u2019s.",
+      "native_fact_id": "4aMPjoiULlz7Bze_fM_2V",
+      "stored_fact": "user agreed to meet Maya at 12:30 on Friday (October 9, 2026) at Rosa's on Oak Street.",
+      "classification": "native quoted-history venue attribution error"
+    },
+    {
+      "source_fact": "October9Maya message relaysMonday\u2019soldnote, while her existingdairyfree intervalrunsthroughSunday.",
+      "native_fact_id": "wKqvHfF5peHtJUnmx1P9N",
+      "stored_fact": "Maya is fine with dairy in her diet.",
+      "classification": "native quote/history attribution error"
+    }
+  ],
+  "configuration_condition": "Simulated native clock; chronological source-peer enrollment; documented deriver effort none; native batching defaults retained"
+}

@@ -324,6 +324,7 @@ def openviking(source,root,at,processing_at):
         # full API response (its tool wrapper discards processing evidence).
         upload=p._client.upload_temp_file(source/'messages.txt')
         from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+        deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
         result=p._client.post('/api/v1/resources',{'temp_file_id':upload,
             'source_name':source.name+'.txt','wait':True,'timeout':PROCESSING_TIMEOUT_S-60},
             timeout=PROCESSING_TIMEOUT_S-30)
@@ -333,8 +334,33 @@ def openviking(source,root,at,processing_at):
             bool(native.get('root_uri')) and isinstance(queues,dict) and bool(queues) and not any(
                 not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
                 for q in queues.values()))
+        global_completion=None;global_observation=None;global_waits=0
+        if ready:
+            from pacbench.document_audit import openviking_observer_state
+            # Parent summaries escape per-resource task tracking. The global
+            # wait drains them; a subsequent observer snapshot catches embedding
+            # spawned between the wait's sequential queue snapshots.
+            while True:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('Native global processing deadline reached')
+                global_completion=p._client.post('/api/v1/system/wait',{},timeout=remaining)
+                global_waits+=1
+                global_queues=global_completion.get('result')
+                ready=(global_completion.get('status')=='ok' and isinstance(global_queues,dict)
+                    and bool(global_queues) and all(isinstance(q,dict) and q.get('error_count')==0
+                    and q.get('errors')==[] for q in global_queues.values()))
+                if not ready:break
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('Native global observation deadline reached')
+                global_observation=p._client.get('/api/v1/observer/queue?format=json',timeout=remaining)
+                state=openviking_observer_state(global_observation)
+                if state=='busy':continue
+                ready=state=='ready';break
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
-                'result':result,'readiness':'Native completed semantic/vector processing with queue status and no errors'}
+                'result':result,'completion_protocol':'openviking-global-import-readiness-v2',
+                'native_global_queue_completion':global_completion,
+                'native_global_queue_observation':global_observation,'native_global_wait_count':global_waits,
+                'readiness':'All scheduled native resource and global queue processing completed, including ancestor summaries; no errors or pending work'}
     finally:p.shutdown()
 
 

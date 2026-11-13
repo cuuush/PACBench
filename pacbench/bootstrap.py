@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import socket
 from pathlib import Path
 import subprocess
@@ -159,14 +160,68 @@ def embeddings():
             process.wait()
 
 
+def runtime_lock(name):
+    root=ROOT/'vendor/runtime-locks'
+    manifest=json.loads((root/'manifest.json').read_text())
+    row=manifest['components'][name]
+    path=root/(name+'.txt')
+    if path.exists() and file_digest(path)!=row['sha256']:
+        raise RuntimeError('Runtime dependency constraints differ from reviewed manifest')
+    if not path.exists() and 'sha256' in row:
+        raise RuntimeError('Reviewed runtime dependency constraints are missing')
+    return row,path
+
+
+def constraint_versions(path):
+    return dict(line.strip().split('==',1) for line in path.read_text().splitlines()
+                if line.strip() and not line.startswith('#'))
+
+
+def verify_constraints(name, python):
+    row,path=runtime_lock(name)
+    code="import importlib.metadata as m,json,re,sys;print(json.dumps({'python':sys.version.split()[0],'packages':{re.sub(r'[-_.]+','-',d.metadata['Name']).lower():d.version for d in m.distributions() if d.metadata['Name']}}))"
+    actual=json.loads(output([python,'-c',code]))
+    if actual['python']!=row['python']:raise RuntimeError('Python version differs from reviewed runtime')
+    if not path.exists():return {'python':row['python'],'upstream_lock':row['upstream_lock']}
+    pins=constraint_versions(path)
+    wrong=[name for name,version in actual['packages'].items() if name in pins and version!=pins[name]]
+    if wrong:raise RuntimeError('Runtime dependency version drift: '+','.join(sorted(wrong)))
+    return {'python':row['python'],'constraints_sha256':row['sha256'],
+            'installed_versions_checked':sum(name in pins for name in actual['packages']),
+            'scope':'Constraints pin selected runtime dependencies without installing optional/development packages'}
+
+
 def venv(name, requirements, *, cpu_torch=False):
+    row,lock=runtime_lock(name)
     path = ROOT / 'vendor' / ('venv-' + name)
     if not path.exists():
-        command(['uv', 'venv', '--python', '3.12', path])
+        command(['uv', 'venv', '--python', row['python'], path])
     python = path / 'bin/python'
+    pins=constraint_versions(lock)
     if cpu_torch:
-        command(['uv', 'pip', 'install', '--python', python, 'torch', '--index-url', 'https://download.pytorch.org/whl/cpu'])
-    command(['uv', 'pip', 'install', '--python', python, *requirements])
+        command(['uv', 'pip', 'install', '--python', python, 'torch=='+pins['torch'], '--no-deps',
+                 '--index-url', 'https://download.pytorch.org/whl/cpu'])
+    requirements=[*requirements,*(['torch=='+pins['torch']] if cpu_torch else [])]
+    command(['uv', 'pip', 'install', '--python', python, '--constraint', lock, *requirements])
+
+
+def verify_memos_dependencies(package):
+    folder=ROOT/'vendor/runtime-locks'
+    row=json.loads((folder/'manifest.json').read_text())['components']['memos']
+    lock=folder/'memos-package-lock.json'
+    if file_digest(lock)!=row['sha256']:raise RuntimeError('MemOS dependency lock differs')
+    checked=0
+    for relative,entry in json.loads(lock.read_text())['packages'].items():
+        if not relative:continue
+        path=Path(package)/relative/'package.json'
+        if path.is_file():
+            if json.loads(path.read_text())['version']!=entry['version']:
+                raise RuntimeError('Installed MemOS npm dependency differs from lock: '+relative)
+            checked+=1
+    for name,version in [('@img/sharp-linux-x64','0.34.5'),('@img/sharp-libvips-linux-x64','1.2.4')]:
+        if json.loads((Path(package)/'node_modules'/name/'package.json').read_text())['version']!=version:
+            raise RuntimeError('Native text-embedding addon differs')
+    return {'lock_sha256':row['sha256'],'installed_versions_checked':checked}
 
 
 def install(name):
@@ -189,11 +244,14 @@ def install(name):
         env = environment()
         env['UV_PROJECT_ENVIRONMENT'] = str(vendor / 'venv-hermes-isolated')
         subprocess.run(['uv', 'sync', '--locked', '--no-default-groups', '--extra', 'all', '--python', '3.14.9'], cwd=tree, env=env, check=True)
-        command(['uv', 'pip', 'install', '--python', vendor / 'venv-hermes-isolated/bin/python', '-r', vendor / 'hermes-isolated-extra-requirements.txt', '-e', memcal])
+        _,lock=runtime_lock('hermes')
+        command(['uv', 'pip', 'install', '--python', vendor / 'venv-hermes-isolated/bin/python',
+                 '--constraint',lock,'-r', vendor / 'hermes-isolated-extra-requirements.txt', '-e', memcal])
     elif name == 'honcho':
         tree = vendor / 'honcho-local'
         source('https://github.com/plastic-labs/honcho.git', '70c67624169683b9e265517aec95a51b8077cabc', tree)
-        command(['uv', 'sync', '--frozen', '--no-dev', '--python', '3.13'], cwd=tree)
+        row,_=runtime_lock('honcho')
+        command(['uv', 'sync', '--frozen', '--no-dev', '--python', row['python']], cwd=tree)
         command(['uv', 'pip', 'install', '--python', tree / '.venv/bin/python', 'time-machine==3.6.0'])
     elif name == 'reme':
         source(*REME_PINS['reme'], vendor / 'reme')
@@ -218,7 +276,12 @@ def install(name):
                     raise RuntimeError('Unsafe package archive')
                 stream.extractall(root, filter='data')
         verify_memos_package(ROOT)
-        command(['npm', 'install', '--omit=dev', '--omit=optional', '--legacy-peer-deps'], cwd=root / 'package')
+        locks=ROOT/'vendor/runtime-locks';manifest=json.loads((locks/'manifest.json').read_text())
+        lock=locks/'memos-package-lock.json'
+        if file_digest(lock)!=manifest['components']['memos']['sha256']:
+            raise RuntimeError('Native MemOS npm dependency lock differs')
+        shutil.copyfile(lock,root/'package/package-lock.json')
+        command(['npm', 'ci', '--omit=dev', '--omit=optional', '--legacy-peer-deps'], cwd=root / 'package')
         # Transformers imports Sharp even for text embeddings. Its Linux CPU
         # binaries are optional in npm metadata but required by this runtime.
         command(['npm', 'install', '--no-save', '--package-lock=false', '--omit=dev',
@@ -255,6 +318,7 @@ def verify(components):
                 detail = json.loads(output([ROOT / python, '-c', code]))
                 if detail != versions:
                     raise RuntimeError('Installed distribution versions differ from pins')
+                detail['dependency_constraints']=verify_constraints(name,ROOT/python)
                 if name in ('hermes', 'honcho'):
                     detail['clock'] = json.loads(output([ROOT / python, '-c', 'from pacbench.python_provider_clock import package_metadata; import json; print(json.dumps(package_metadata()))']))
             if name == 'hermes':
@@ -274,6 +338,7 @@ def verify(components):
                 if output(['git', '-C', tree, 'rev-parse', 'HEAD']) != revision or output(['git', '-C', tree, 'status', '--porcelain']):
                     raise RuntimeError('Provider integration source differs')
             elif name == 'memos':
+                detail['dependency_lock']=verify_memos_dependencies(ROOT/'vendor/memos-local-plugin/package')
                 _, detail = verify_memos_package(ROOT)
             elif name == 'supermemory':
                 if file_digest(ROOT / 'vendor/supermemory-local/supermemory-server-linux-x64') != 'd7987ecbf2b024c6de9d167becbcfcaabce447169b41d6f56db86f87d5187984':

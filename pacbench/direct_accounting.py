@@ -57,6 +57,31 @@ def stop_measured_admission(reason, identifier=None):
         pass
 
 
+def observed_generation_id(row):
+    """Use an actual response ID, never manufacture one from timestamps."""
+    body=row.get('upstream_request_id')
+    header=row.get('response_diagnostic_headers',{}).get('x-generation-id')
+    if body and header and body!=header:
+        raise ValueError('Response generation identifiers disagree')
+    if body:return body,'response-body:id'
+    if isinstance(header,str) and re.fullmatch(r'gen-[A-Za-z0-9_-]+',header):
+        return header,'response-header:x-generation-id'
+    raise ValueError('No observed generation identifier')
+
+
+def preserve_unusable_response(ledger, identifier, data, complete):
+    folder=Path(ledger).parent/'response-errors';folder.mkdir(mode=0o700,exist_ok=True)
+    path=folder/(identifier+'.response-body.bin')
+    try:
+        fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+        with os.fdopen(fd,'wb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
+    except FileExistsError:
+        if path.read_bytes()!=data:raise ValueError('Error evidence already differs')
+    return {'relative_path':str(path.relative_to(Path(ledger).parent)),
+            'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),'body_complete':bool(complete),
+            'scope':'Exact private failed or unusable response body; not proof of zero cost or permission to replay.'}
+
+
 class DirectBudget:
     def __init__(self, path=STATE/'ledger.json', *, nonblocking=False):
         self.path=Path(path)
@@ -157,9 +182,9 @@ class DirectBudget:
             raise ValueError('Incomplete generation usage')
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
+            observed_id,id_source=observed_generation_id(row)
             if (row.get('state')!='uncertain' or row.get('http_status')!=200 or
-                    not row.get('finished') or not row.get('upstream_request_id') or
-                    row['upstream_request_id']!=g.get('id')):
+                    not row.get('finished') or observed_id!=g.get('id')):
                 raise ValueError('Generation does not identify an ended uncertain request')
             if cost>money(row['reserved']):
                 row.update(accounted=str(cost),reported_liability_exceeds_bound=True,
@@ -171,8 +196,10 @@ class DirectBudget:
                 raise ValueError('Generation exceeds token bounds; retain hold')
             previous={k:row.get(k) for k in ('state','accounted','error_label','input_tokens','output_tokens')}
             row.update(state='settled',accounted=str(cost),input_tokens=inp,output_tokens=out,error_label=None,
+                upstream_request_id=observed_id,
                 reconciliation={'source':'OpenRouter GET /api/v1/generation','at':now(),
                     'receipt_sha256':receipt_sha256,'original_accounting':previous,
+                    'generation_identifier_source':id_source,
                     'cancelled':g.get('cancelled'),'canonical_model':g['model'],
                     'cost_source':'total_cost','token_source':'native_tokens_prompt/native_tokens_completion'})
             return dict(row)
@@ -284,17 +311,7 @@ class DirectBudget:
                     # Native SDK retries can overwrite the original exception.
                     # Retain exact error bytes privately before parsing; this
                     # is diagnostic evidence, never proof of a zero charge.
-                    folder=self.path.parent/'response-errors';folder.mkdir(mode=0o700,exist_ok=True)
-                    path=folder/(identifier+'.response-body.bin')
-                    try:
-                        fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
-                        with os.fdopen(fd,'wb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
-                    except FileExistsError:
-                        if path.read_bytes()!=data:raise ValueError('Error evidence already differs')
-                    row['private_error_body']={'relative_path':str(path.relative_to(self.path.parent)),
-                        'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),
-                        'body_complete':bool(body_complete),
-                        'scope':'Exact private failed-response body. Does not establish cost or authorize a replay.'}
+                    row['private_error_body']=preserve_unusable_response(self.path,identifier,data,body_complete)
                 text=data.decode()
                 if text.lstrip().startswith('{'):
                     events=[json.loads(text)]
@@ -324,6 +341,11 @@ class DirectBudget:
                     row.update(accounted=str(cost),state='settled',input_tokens=inp,output_tokens=out,error_label=None)
             except (ValueError,KeyError,TypeError,UnicodeError,StopIteration):
                 pass
+            finally:
+                # HTTP200 can contain an error envelope or unusable usage.
+                # Do not lose the original evidence to a later SDK exception.
+                if row['state']=='uncertain' and status==200 and data:
+                    row['private_error_body']=preserve_unusable_response(self.path,identifier,data,body_complete)
 
 
 def live_budget(*, nonblocking=False):

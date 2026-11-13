@@ -105,6 +105,55 @@ def test_openviking_native_completion_rejects_error_counters_even_without_error_
     assert bool(audit_openviking_receipt({'result':{'result':native}}))==(damage!='none')
 
 
+@pytest.mark.parametrize('global_error',[False,True])
+@pytest.mark.parametrize('snapshot_race',[False,True])
+def test_openviking_resource_ready_waits_for_background_global_completion(tmp_path,monkeypatch,global_error,snapshot_race):
+    from types import SimpleNamespace
+    from provider_adapters import document_connector as dc
+    root=tmp_path/'arm';root.mkdir();source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('all source')
+    (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'}}))
+    stages=[]
+    class Client:
+        def upload_temp_file(self,path):return 'native-upload'
+        def get(self,path,**kwargs):
+            stages.append('observer')
+            busy=snapshot_race and stages.count('observer')==1
+            return {'status':'ok','result':{'is_healthy':True,'has_errors':False,'status':{'queues':[
+                {'queue':q,'pending':int(busy and q=='Embedding'),'in_progress':0,'errors':0} for q in ['Semantic','Embedding','Semantic-Nodes']]}}}
+        def post(self,path,body,**kwargs):
+            stages.append(path)
+            if path=='/api/v1/resources':
+                return {'status':'ok','result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
+                    'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}}
+            assert path=='/api/v1/system/wait' and body=={} and kwargs['timeout']>0
+            stages.append('background-completed')
+            return {'status':'ok','result':{'Semantic':{'error_count':int(global_error),'errors':[]}}}
+    class Provider:
+        _client=Client()
+        def initialize(self,*a,**kw):pass
+        def shutdown(self):stages.append('shutdown')
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
+    monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
+    value=dc.openviking(source,root,'at','processing-at')
+    assert value['ready'] is (not global_error)
+    expected=['/api/v1/resources','/api/v1/system/wait','background-completed']
+    if not global_error:
+        expected+=['observer']
+        if snapshot_race:expected+=['/api/v1/system/wait','background-completed','observer']
+    assert stages==expected+['shutdown']
+    assert value['completion_protocol']=='openviking-global-import-readiness-v2'
+    from pacbench.document_audit import audit_openviking_receipt
+    assert bool(audit_openviking_receipt(value)) is global_error
+
+
+def test_openviking_global_protocol_requires_its_native_witness():
+    from pacbench.document_audit import audit_openviking_receipt
+    value={'result':{'result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
+        'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}},
+        'completion_protocol':'openviking-global-import-readiness-v2'}
+    assert audit_openviking_receipt(value)==['OpenViking global processing completion is unproven']
+
+
 @pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace','wrong-mode'])
 def test_supermemory_ready_flag_cannot_replace_native_completion_evidence(damage):
     from pacbench.document_audit import audit_supermemory_receipt
@@ -441,3 +490,18 @@ def test_v5_audit_accepts_only_source_bound_native_v3_completion_witness():
     for field,bad in [('namespace','other'),('content_sha256','0'*64),('dreaming_status','dreaming'),('processing_forced',True)]:
         broken=deepcopy(receipt);broken['processing_status'][0]['native_completion_witness'][field]=bad
         assert audit_supermemory_receipt(broken,'day',text)
+
+
+@pytest.mark.parametrize('damage',['none','busy','nodes-busy','missing','malformed','error','unhealthy'])
+def test_openviking_post_wait_observation_rejects_busy_or_unproven_work(damage):
+    from pacbench.document_audit import openviking_observer_state
+    queues=[{'queue':q,'pending':0,'in_progress':0,'errors':0} for q in ['Embedding','Semantic','Semantic-Nodes']]
+    value={'status':'ok','result':{'is_healthy':True,'has_errors':False,'status':{'queues':queues}}}
+    if damage=='busy':queues[0]['pending']=1
+    if damage=='nodes-busy':queues[2]['in_progress']=1
+    if damage=='missing':queues.pop(0)
+    if damage=='malformed':queues[0]['pending']='0'
+    if damage=='error':queues[1]['errors']=1
+    if damage=='unhealthy':value['result']['is_healthy']=False
+    expected='ready' if damage=='none' else 'busy' if damage in ('busy','nodes-busy') else 'invalid'
+    assert openviking_observer_state(value)==expected

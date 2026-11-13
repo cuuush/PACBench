@@ -301,6 +301,35 @@ def test_generation_reconciliation_keeps_original_bound_and_authoritative_cost(b
     assert direct_call(result,'judge')['actual_cost_source']=='openrouter.generation.total_cost'
 
 
+def test_header_identified_generation_reconciles_only_with_authoritative_match(budget):
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,b'{}',headers={'x-generation-id':'gen-offline'},body_complete=True)
+    result=budget.reconcile_generation(row['id'],generation_receipt(),
+        {'id':MODEL,'canonical_slug':'canonical-model'},receipt_sha256='a'*64)
+    assert result['state']=='settled' and result['accounted']=='0.00001'
+    assert result['upstream_request_id']=='gen-offline'
+    assert result['reconciliation']['generation_identifier_source']=='response-header:x-generation-id'
+
+
+def test_conflicting_generation_header_preserves_uncertain_hold(budget):
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,b'{"id":"gen-offline"}',headers={'x-generation-id':'gen-other'})
+    before=budget.snapshot()
+    with pytest.raises(ValueError,match='disagree'):
+        budget.reconcile_generation(row['id'],generation_receipt(),
+            {'id':MODEL,'canonical_slug':'canonical-model'},receipt_sha256='a'*64)
+    assert budget.snapshot()==before
+
+
+def test_http200_error_envelope_is_preserved_without_zero_cost_inference(budget):
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    raw=b'{"error":{"code":502,"message":"provider failed"}}'
+    budget.settle(row['id'],200,raw,body_complete=True)
+    saved=budget.snapshot()[0]
+    assert saved['state']=='uncertain' and saved['accounted']==saved['reserved']
+    assert (budget.path.parent/saved['private_error_body']['relative_path']).read_bytes()==raw
+
+
 @pytest.mark.parametrize('field,value',[
     ('id','another-generation'),('model','another-model'),('provider_name','other'),
     ('service_tier','other'),('cancelled',False),('native_tokens_prompt',None),

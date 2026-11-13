@@ -47,7 +47,7 @@ def build(components,calls):
         # completion timestamp. It includes controller pauses and operator work.
         upper=datetime.fromtimestamp(completion.stat().st_mtime,timezone.utc).isoformat() if completion.exists() else None
         evidence=json.loads(completion.read_text()) if completion.exists() else {}
-        complete=(summary['state']=='processing-complete' or evidence.get('completed_batches')==7)
+        complete=(summary['state']=='processing-complete' or evidence.get('completed_batches')==7 or (len(batches)==7 and all(b['recorded_ready'] is True for b in batches)))
         last_ready=next((b['observation_window_end'] for b in batches if b['day']=='2026-10-11' and b['recorded_ready']),None)
         result.append({'provider':component.name,'attempt':component.parent.name+'/'+component.name,
             'launch_at':launch,'native_last_batch_ready_at':last_ready if complete else None,

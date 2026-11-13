@@ -93,6 +93,39 @@ class DirectBudget:
             row['authorized_retry']=grant
             return dict(grant)
 
+    def abandon_worker_request(self, identifier, *, worker_pids, evidence_sha256, authorization):
+        """Permit one explicit retry after local workers die; preserve liability.
+
+        This records local abandonment only. Remote completion/cost remain
+        unknown and the original full reservation continues to count forever
+        unless authoritative usage later settles it.
+        """
+        if (not worker_pids or any(type(p) is not int or p<=1 for p in worker_pids)
+                or not re.fullmatch(r'[0-9a-f]{64}',evidence_sha256)
+                or not isinstance(authorization,str) or not authorization.strip()):
+            raise ValueError('Dead-worker evidence and explicit authorization required')
+        for pid in worker_pids:
+            try:
+                stat=(Path('/proc')/str(pid)/'stat').read_text()
+            except FileNotFoundError:
+                continue
+            # Linux zombie/exited workers cannot still own a local request.
+            if stat.rsplit(')',1)[1].split()[0] not in {'Z','X'}:
+                raise ValueError('Previous worker is still alive or PID was reused')
+        with self.locked() as state:
+            row=next(c for c in state['calls'] if c['id']==identifier)
+            if (row.get('transport')!=VERSION or row.get('state')!='reserved'
+                    or row.get('finished') or not row.get('request_sha256')
+                    or row.get('authorized_retry') or money(row['accounted'])!=money(row['reserved'])):
+                raise ValueError('Only an unresolved full reservation can be abandoned')
+            row.update(state='abandoned_unknown',error_label='local_worker_ended_remote_outcome_unknown',
+                abandonment={'at':now(),'worker_pids':worker_pids,'evidence_sha256':evidence_sha256,
+                    'remote_outcome':'unknown','original_hold_preserved':True})
+            row['authorized_retry']={'id':str(uuid.uuid4()),'authorized_at':now(),
+                'authorization':authorization,'project':row['project'],
+                'request_sha256':row['request_sha256'],'used_by':None}
+            return dict(row)
+
     def reconcile_generation(self, identifier, generation, model_record, *, receipt_sha256):
         """Settle one identified ended response from authoritative generation data.
 
@@ -182,7 +215,7 @@ class DirectBudget:
                    c.get('state')=='uncertain' and
                    (c.get('input_tokens') is None or c.get('output_tokens') is None) for c in own)>=3:
                 raise RuntimeError('Three completed provider responses lack usable token usage; project stopped')
-            uncertain=[c for c in own if c.get('transport')==VERSION and c['state']=='uncertain' and
+            uncertain=[c for c in own if c.get('transport')==VERSION and c['state'] in {'uncertain','abandoned_unknown'} and
                    c.get('http_status') not in (400,422,429) and
                    (not c.get('request_sha256') or c['request_sha256']==fingerprint)]
             retry_of=None

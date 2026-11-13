@@ -276,3 +276,36 @@ def test_generation_liability_over_bound_stops_admission_without_understatement(
     assert result['state']=='uncertain' and result['accounted']=='0.0003'
     with pytest.raises(RuntimeError,match='liability exceeded'):
         budget.reserve('different-project',{'model':MODEL,'messages':[]})
+
+
+def test_abandoned_worker_retains_hold_and_allows_one_distinct_retry(budget):
+    import subprocess,sys,hashlib
+    p=subprocess.Popen([sys.executable,'-c','pass']);p.wait()
+    body={'model':MODEL,'messages':[{'role':'user','content':'native source'}]}
+    first=budget.reserve('native',body)
+    held=budget.snapshot()[0]['accounted']
+    row=budget.abandon_worker_request(first['id'],worker_pids=[p.pid],evidence_sha256='a'*64,authorization='Explicit bounded recovery with old charge held')
+    assert row['state']=='abandoned_unknown' and row['accounted']==held and row['finished'] is None
+    second=budget.reserve('native',body)
+    assert second['id']!=first['id']
+    rows=budget.snapshot()
+    assert rows[1]['explicit_retry_of']==first['id']
+    assert sum(Decimal(r['accounted']) for r in rows)==2*Decimal(held)
+    with pytest.raises(RuntimeError):budget.reserve('native',body)
+
+
+def test_alive_worker_cannot_be_abandoned(budget):
+    import os
+    first=budget.reserve('native',{'model':MODEL})
+    with pytest.raises(ValueError,match='alive'):budget.abandon_worker_request(first['id'],worker_pids=[os.getpid()],evidence_sha256='a'*64,authorization='recovery')
+    assert budget.snapshot()[0]['state']=='reserved'
+
+
+def test_abandoned_retry_cannot_exceed_aggregate_cap(budget):
+    import subprocess,sys
+    p=subprocess.Popen([sys.executable,'-c','pass']);p.wait()
+    body={'model':MODEL};first=budget.reserve('native',body)
+    budget.abandon_worker_request(first['id'],worker_pids=[p.pid],evidence_sha256='a'*64,authorization='recovery')
+    with budget.locked() as state:state['calls'].append({'id':'external','project':'other','state':'allocated','accounted':'19.9997'})
+    with pytest.raises(RuntimeError,match='cap'):budget.reserve('native',body)
+    rows=budget.snapshot();assert rows[0]['authorized_retry']['used_by'] is None and rows[0]['accounted']=='0.0002'

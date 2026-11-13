@@ -1,0 +1,163 @@
+{
+  "version": "measured-import-progress-v1",
+  "observed_at": "2026-11-13T20:10:48.338385+00:00",
+  "execution_revision": "cf4c482dd1ee54b7ab2bf855cba204adabaec00b",
+  "state": "stopped-on-HTTP-429",
+  "input_gate_passed_for_this_attempt": false,
+  "benchmark_questions_sent": 0,
+  "judge_calls": 0,
+  "concurrency": 2,
+  "provider_timeout_s": 3600,
+  "providers": [
+    {
+      "provider": "mem0",
+      "state": "cancelled",
+      "started": "2026-11-13T20:03:17.473496+00:00",
+      "finished": "2026-11-13T20:04:32.129805+00:00",
+      "launch_to_cleanup_wall_s": 74.65694870299922,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": 1,
+      "stop_reason": "cancelled",
+      "benchmark_questions_sent": 0,
+      "judge_calls": 0,
+      "cleanup": {
+        "state": "verified-inventory-stopped",
+        "observed_process_count": 27,
+        "remaining_processes": 0,
+        "remaining_containers": 0,
+        "stores_deleted": false,
+        "ledger_modified": false,
+        "coverage": "Verified run bindings and observed descendants; no cgroup containment. A process that drops every binding between scans may be unobservable. Remote API outcomes remain uncertain until authoritative usage arrives."
+      }
+    },
+    {
+      "provider": "hindsight",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "supermemory",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "openviking",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "honcho",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "reme",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "cognee",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "memos",
+      "state": "not-started-cancelled",
+      "started": null,
+      "finished": null,
+      "launch_to_cleanup_wall_s": null,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": null,
+      "stop_reason": null,
+      "benchmark_questions_sent": null,
+      "judge_calls": null
+    },
+    {
+      "provider": "memcal",
+      "state": "cancelled",
+      "started": "2026-11-13T20:03:17.473704+00:00",
+      "finished": "2026-11-13T20:04:34.303624+00:00",
+      "launch_to_cleanup_wall_s": 76.83037727699775,
+      "launch_to_native_ready_s": null,
+      "first_batch_to_native_ready_s": null,
+      "returncode": -15,
+      "stop_reason": "cancelled",
+      "benchmark_questions_sent": 0,
+      "judge_calls": 0,
+      "cleanup": {
+        "state": "verified-inventory-stopped",
+        "observed_process_count": 4,
+        "remaining_processes": 0,
+        "remaining_containers": 0,
+        "stores_deleted": false,
+        "ledger_modified": false,
+        "coverage": "Verified run bindings and observed descendants; no cgroup containment. A process that drops every binding between scans may be unobservable. Remote API outcomes remain uncertain until authoritative usage arrives."
+      }
+    }
+  ],
+  "stop_evidence": {
+    "reason": "upstream_rate_limit",
+    "request_id": "d0876fac-4abb-4b29-85a5-b2529a03c3c8",
+    "at": "2026-11-13T20:04:28.508954+00:00"
+  },
+  "attempt_settled_reported_cost_usd": "0.001431217088",
+  "attempt_unresolved_bound_usd": "0.2608750592",
+  "shared_cap_usd": "20",
+  "shared_accounted_liability_at_snapshot_usd": "17.957946882056",
+  "interpretation": [
+    "Native stores and prior successful results are preserved. Cancelled elapsed times are not complete import latencies. Seven providers never started in this attempt.",
+    "The exact rejection body was not retained by that execution revision; the origin of the HTTP429 is not established. New error capture distinguishes body completeness and stores private bytes plus safe headers.",
+    "No missing tokens, canceled calls or failed requests are assumed free. Historical unknown holds and separate allocations remain counted.",
+    "Per-call and phase metrics include real observed work; local compute and local embedding charges are excluded."
+  ]
+}

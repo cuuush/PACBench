@@ -107,11 +107,14 @@ def test_openviking_native_completion_rejects_error_counters_even_without_error_
 
 @pytest.mark.parametrize('global_error',[False,True])
 @pytest.mark.parametrize('snapshot_race',[False,True])
-def test_openviking_resource_ready_waits_for_background_global_completion(tmp_path,monkeypatch,global_error,snapshot_race):
+@pytest.mark.parametrize('artifact_failure',[False,True])
+def test_openviking_resource_ready_waits_for_background_global_completion(tmp_path,monkeypatch,global_error,snapshot_race,artifact_failure):
     from types import SimpleNamespace
     from provider_adapters import document_connector as dc
     root=tmp_path/'arm';root.mkdir();source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('all source')
-    (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'}}))
+    workspace=root/'workspace';generated=workspace/'viking/default/resources/.overview.md'
+    generated.parent.mkdir(parents=True);generated.write_text('[Directory overview is not generated]' if artifact_failure else 'Native overview')
+    (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'},'storage':{'workspace':str(workspace)}}))
     stages=[]
     class Client:
         def upload_temp_file(self,path):return 'native-upload'
@@ -135,22 +138,22 @@ def test_openviking_resource_ready_waits_for_background_global_completion(tmp_pa
     monkeypatch.setattr('pacbench.provider_loader.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
     monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
     value=dc.openviking(source,root,'at','processing-at')
-    assert value['ready'] is (not global_error)
+    assert value['ready'] is (not global_error and not artifact_failure)
     expected=['/api/v1/resources','/api/v1/system/wait','background-completed']
     if not global_error:
         expected+=['observer']
         if snapshot_race:expected+=['/api/v1/system/wait','background-completed','observer']
     assert stages==expected+['shutdown']
-    assert value['completion_protocol']=='openviking-global-import-readiness-v2'
+    assert value['completion_protocol']=='openviking-global-import-readiness-v3'
     from pacbench.document_audit import audit_openviking_receipt
-    assert bool(audit_openviking_receipt(value)) is global_error
+    assert bool(audit_openviking_receipt(value)) is (global_error or artifact_failure)
 
 
 def test_openviking_global_protocol_requires_its_native_witness():
     from pacbench.document_audit import audit_openviking_receipt
     value={'result':{'result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
         'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}},
-        'completion_protocol':'openviking-global-import-readiness-v2'}
+        'completion_protocol':'openviking-global-import-readiness-v3'}
     assert audit_openviking_receipt(value)==['OpenViking global processing completion is unproven']
 
 
@@ -505,3 +508,13 @@ def test_openviking_post_wait_observation_rejects_busy_or_unproven_work(damage):
     if damage=='unhealthy':value['result']['is_healthy']=False
     expected='ready' if damage=='none' else 'busy' if damage in ('busy','nodes-busy') else 'invalid'
     assert openviking_observer_state(value)==expected
+
+
+def test_openviking_placeholder_check_is_read_only_and_rejects_absent_artifacts(tmp_path):
+    from pacbench.document_audit import openviking_generated_artifacts
+    assert openviking_generated_artifacts(tmp_path)['state']=='incomplete'
+    p=tmp_path/'viking/default/resources/.abstract.md';p.parent.mkdir(parents=True)
+    p.write_text('metadata\n[Directory overview is not ready]')
+    before=p.read_bytes();result=openviking_generated_artifacts(tmp_path)
+    assert result['state']=='incomplete' and result['files'][0]['failed_placeholder'] is True
+    assert p.read_bytes()==before

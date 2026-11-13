@@ -1,16 +1,22 @@
 {
   "version": "measured-import-setup-v1",
   "tested_entry_point": "python3 -m pacbench.bootstrap --install --start-services",
-  "current_verified_revision": "6a401e6db1a2c5f21b1bc5ca6a406321396aab33",
+  "current_verified_revision": "969bab085e08ecbbfd2cdbdbc36ecee8badc8c63",
   "current_check_command": "python3 -m pacbench.bootstrap --check --start-services",
   "current_check_result": "pass: 10 component identity checks; local embedding service healthy; zero model inference calls",
-  "cloud_environment_setup_snippet": "set -eu\ncd /workspace/PACBench\ngit fetch origin run/pizza-week-20261113\ngit switch --detach 6a401e6db1a2c5f21b1bc5ca6a406321396aab33\npython3 -m pacbench.bootstrap --install --start-services\npython3 -m pacbench.bootstrap --check\n",
+  "cloud_environment_setup_snippet": "set -eu\ncd /workspace/PACBench\ngit fetch origin run/pizza-week-20261113\ngit switch --detach 969bab085e08ecbbfd2cdbdbc36ecee8badc8c63\npython3 -m pacbench.bootstrap --install --start-services\npython3 -m pacbench.bootstrap --check\n",
   "measured_import_entry_point": "vendor/venv-hermes-isolated/bin/python -m pacbench.measured_import --output runs/week-import-measured-new --concurrency 2 --timeout-s 3600 --detach",
   "cancellation_command": "touch runs/week-import-measured-new/STOP",
   "conditions": [
     "Configure credentials through the cloud environment; do not embed them in setup or commit them.",
     "Restore and activate the original private task ledger with its authenticated handoff before paid import execution; never reset it or run duplicate copies.",
-    "Setup installs and starts the pinned local runtime but does not start an import or benchmark automatically.",
-    "The current route has returned HTTP429; listed catalog availability does not prove usable provider capacity."
-  ]
+    "Setup installs and starts the pinned local runtime but does not start an import or benchmark automatically."
+  ],
+  "dependency_verification": "Exact reviewed Python patch versions and selected runtime dependency versions; committed CPU Torch constraints and MemOS npm lock.",
+  "cold_reconstruction_test": "cold-bootstrap-validation.json: new empty Cognee environment, 171 installed package versions verified, no old environment copied, zero paid calls.",
+  "full_regression_tests": {
+    "passed": 1439,
+    "skipped": 7,
+    "subtests_passed": 22
+  }
 }

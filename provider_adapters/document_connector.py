@@ -356,10 +356,16 @@ def openviking(source,root,at,processing_at):
                 state=openviking_observer_state(global_observation)
                 if state=='busy':continue
                 ready=state=='ready';break
+        artifacts=None
+        if ready:
+            from pacbench.document_audit import openviking_generated_artifacts
+            artifacts=openviking_generated_artifacts(cfg['storage']['workspace'])
+            ready=artifacts['state']=='complete'
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
-                'result':result,'completion_protocol':'openviking-global-import-readiness-v2',
+                'result':result,'completion_protocol':'openviking-global-import-readiness-v3',
                 'native_global_queue_completion':global_completion,
                 'native_global_queue_observation':global_observation,'native_global_wait_count':global_waits,
+                'native_generated_artifact_check':artifacts,
                 'readiness':'All scheduled native resource and global queue processing completed, including ancestor summaries; no errors or pending work'}
     finally:p.shutdown()
 

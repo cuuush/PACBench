@@ -1,0 +1,170 @@
+{
+  "version": "reviewed-runtime-validation-v1",
+  "revision": "969bab085e08ecbbfd2cdbdbc36ecee8badc8c63",
+  "command": "python3 -m pacbench.bootstrap --install --start-services",
+  "result": {
+    "state": "pass",
+    "checks": [
+      {
+        "component": "hermes",
+        "state": "pass",
+        "detail": {
+          "memcal": "0.8.11",
+          "mem0ai": "2.2.1",
+          "honcho-ai": "2.9.0",
+          "supermemory": "5.0.1",
+          "hindsight-client": "1.2.1",
+          "time-machine": "3.6.0",
+          "dependency_constraints": {
+            "python": "3.14.9",
+            "constraints_sha256": "a8ff42f6d7bde5103991c0340074113ebc661b2de381dd95a3537969880ccdf9",
+            "installed_versions_checked": 125,
+            "scope": "Constraints pin selected runtime dependencies without installing optional/development packages"
+          },
+          "clock": {
+            "package": "time-machine",
+            "version": "3.6.0",
+            "python_sha256": "95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd",
+            "extension_sha256": "461407458c6e1f0f349c7d6be0c72633a52a79782f53df0e1d21c518cde4ce2b",
+            "abi": "cpython-314",
+            "bootstrap_sha256": "c86d40451fc7cf40f344284bbc36278bd21f44a0aef19ff8515e87e9139b16c9"
+          },
+          "memcal_source": {
+            "revision": "e67b8d912484b5b4317dafcff4d60fc975194d8e",
+            "version": "0.8.11",
+            "source": "/workspace/memcal-stable-20261113",
+            "working_tree_changes": false
+          }
+        }
+      },
+      {
+        "component": "hindsight",
+        "state": "pass",
+        "detail": {
+          "hindsight-all": "1.2.1",
+          "dependency_constraints": {
+            "python": "3.12.14",
+            "constraints_sha256": "ef7c78f6749317a2d91104341552e06a2da026eac8eaec3b25faed4c2e17f93a",
+            "installed_versions_checked": 205,
+            "scope": "Constraints pin selected runtime dependencies without installing optional/development packages"
+          }
+        }
+      },
+      {
+        "component": "honcho",
+        "state": "pass",
+        "detail": {
+          "time-machine": "3.6.0",
+          "dependency_constraints": {
+            "python": "3.13.5",
+            "upstream_lock": "vendor/honcho-local/uv.lock"
+          },
+          "clock": {
+            "package": "time-machine",
+            "version": "3.6.0",
+            "python_sha256": "95e63b5db9bb3a83189083700281483bc138d163e558e5ae0023fcdfe177c6dd",
+            "extension_sha256": "17fd4db930fca0dba6081546c404eb92c1ff62ec60f665cd43ae9a61841eef8e",
+            "abi": "cpython-313",
+            "bootstrap_sha256": "c86d40451fc7cf40f344284bbc36278bd21f44a0aef19ff8515e87e9139b16c9"
+          }
+        }
+      },
+      {
+        "component": "openviking",
+        "state": "pass",
+        "detail": {
+          "openviking": "0.5.4.1",
+          "dependency_constraints": {
+            "python": "3.12.14",
+            "constraints_sha256": "1386df3a9468d36c39464a87c6df7f0f3dca6df40ec93c66a5f28874d76c347d",
+            "installed_versions_checked": 324,
+            "scope": "Constraints pin selected runtime dependencies without installing optional/development packages"
+          }
+        }
+      },
+      {
+        "component": "reme",
+        "state": "pass",
+        "detail": {
+          "reme-ai": "0.4.2.2",
+          "dependency_constraints": {
+            "python": "3.12.14",
+            "constraints_sha256": "c9eedc8285f23ff333adce328663f8dfa6e38928d8730731ef36948e8117c223",
+            "installed_versions_checked": 147,
+            "scope": "Constraints pin selected runtime dependencies without installing optional/development packages"
+          }
+        }
+      },
+      {
+        "component": "cognee",
+        "state": "pass",
+        "detail": {
+          "cognee": "1.6.8",
+          "dependency_constraints": {
+            "python": "3.12.14",
+            "constraints_sha256": "6f154d02d70fa5a2d0586c99e79f68136949428a974b60a1bb2f0bd574f7a8b1",
+            "installed_versions_checked": 171,
+            "scope": "Constraints pin selected runtime dependencies without installing optional/development packages"
+          }
+        }
+      },
+      {
+        "component": "memos",
+        "state": "pass",
+        "detail": {
+          "protocol": "native-npm-source-v1",
+          "name": "@memtensor/memos-local-plugin",
+          "version": "2.0.21",
+          "tarball": "https://registry.npmjs.org/@memtensor/memos-local-plugin/-/memos-local-plugin-2.0.21.tgz",
+          "integrity": "sha512-7DAqAdOFo6n/ptco3Cy8ixJXFcfDgT9yet3Tod2bnPgNEiF+5qZt+3kP8gG8dy/X9VvFhg0/ctblhp/T9PcsPA==",
+          "sha256": "3a3634e4469bf0e22c520954653959e28e6db130371d1a3b171fe7186d5ea539"
+        }
+      },
+      {
+        "component": "supermemory",
+        "state": "pass",
+        "detail": {}
+      },
+      {
+        "component": "clock",
+        "state": "pass",
+        "detail": {}
+      },
+      {
+        "component": "embeddings",
+        "state": "pass",
+        "detail": {
+          "memos_offline_embedding_dimensions": 384
+        }
+      }
+    ],
+    "inference_calls": 0,
+    "scope": "Offline installed identity checks; no native processing or paid readiness claim.",
+    "services": {
+      "state": "ready",
+      "endpoint": "http://127.0.0.1:11435",
+      "model": "nomic-embed-text",
+      "paid_calls": 0,
+      "started_pid": null,
+      "embedding_health": {
+        "protocol": "local-embedding-preflight-v1",
+        "endpoint": "http://127.0.0.1:11435/v1",
+        "model": "nomic-embed-text",
+        "dimensions": 768,
+        "interface": "openai",
+        "elapsed_seconds": 0.545157,
+        "paid_inference": false,
+        "state": "pass"
+      }
+    }
+  },
+  "private_ledger_before_after_sha256_equal": true,
+  "paid_inference_calls": 0,
+  "cold_reconstruction_scope": "See cold-bootstrap-validation.json: Cognee only; other components checked after full bootstrap in existing installations.",
+  "regression": {
+    "passed": 1439,
+    "skipped": 7,
+    "subtests": 22,
+    "scope": "Latest suite includes native placeholder-failure detection; bootstrap identity validation itself used revision969bab0."
+  }
+}

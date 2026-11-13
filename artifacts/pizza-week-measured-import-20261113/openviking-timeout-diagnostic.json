@@ -1,0 +1,31 @@
+{
+  "version": "native-model-timeout-diagnostic-v1",
+  "provider": "openviking",
+  "attempt": "pizza-week-measured-openviking-global-20261113",
+  "state": "cancelled-unresolved-native-summary-failure",
+  "request_id": "157750ad-1faa-4f96-b191-5f221cf501d8",
+  "generation_id": "gen-1794607930-5T2hyGHcJnGSFyuMt1X0",
+  "duration_s": 300.449902,
+  "http_status": 200,
+  "complete_error_envelope": {
+    "error": {
+      "message": "A Timeout Occurred",
+      "code": 504,
+      "metadata": {
+        "error_type": "timeout"
+      }
+    }
+  },
+  "reported_tokens": null,
+  "reported_cost_usd": null,
+  "unresolved_bound_usd": "0.1746927616",
+  "generation_lookup_status": 404,
+  "native_source_evidence": "OpenViking semantic_processor._single_generate_overview catches the model exception and persists [Directory overview is not generated], while the global queue reports no errors.",
+  "failed_native_artifacts": [
+    "viking/default/resources/.overview.md",
+    "viking/default/resources/.abstract.md"
+  ],
+  "action": "Stopped entire isolated retest, preserved store and all outstanding bounds; queues alone cannot qualify import. Added read-only generated-summary placeholder check before a new affected-provider-only attempt.",
+  "model_settings_changed": false,
+  "cleanup": "verified-inventory-stopped; zero surviving owned processes or containers"
+}

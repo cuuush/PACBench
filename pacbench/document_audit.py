@@ -98,6 +98,20 @@ def openviking_observer_state(value):
     return 'busy' if any(q['pending'] or q['in_progress'] for q in queues) else 'ready'
 
 
+def openviking_generated_artifacts(workspace):
+    """Read-only check for native unresolved summary placeholders after drain."""
+    files=[]
+    for name in ('.overview.md','.abstract.md'):
+        for path in sorted((Path(workspace)/'viking').rglob(name)):
+            body=path.read_bytes()
+            failed=any(marker in body for marker in (
+                b'[Directory overview is not generated]',b'[Directory overview is not ready]'))
+            files.append({'path':str(path.relative_to(workspace)),
+                'sha256':hashlib.sha256(body).hexdigest(),'failed_placeholder':failed})
+    return {'state':'complete' if files and not any(f['failed_placeholder'] for f in files) else 'incomplete',
+        'files':files,'scope':'Native generated summary artifacts read without alteration; queue health alone can conceal model failures.'}
+
+
 def audit_openviking_receipt(result):
     native=result.get('result',{}).get('result',{})
     queues=native.get('queue_status')
@@ -109,12 +123,18 @@ def audit_openviking_receipt(result):
     if result.get('completion_protocol') is not None:
         global_value=result.get('native_global_queue_completion') or {}
         global_queues=global_value.get('result')
-        if (result['completion_protocol']!='openviking-global-import-readiness-v2'
+        if (result['completion_protocol']!='openviking-global-import-readiness-v3'
                 or global_value.get('status')!='ok' or not isinstance(global_queues,dict)
                 or not global_queues or any(not isinstance(q,dict) or q.get('error_count')!=0
                     or q.get('errors')!=[] for q in global_queues.values())
                 or openviking_observer_state(result.get('native_global_queue_observation') or {})!='ready'):
             return ['OpenViking global processing completion is unproven']
+        artifacts=result.get('native_generated_artifact_check') or {}
+        files=artifacts.get('files')
+        if (artifacts.get('state')!='complete' or not isinstance(files,list) or not files
+                or any(not isinstance(f,dict) or f.get('failed_placeholder') is not False
+                    or not f.get('sha256') or not f.get('path') for f in files)):
+            return ['OpenViking generated summaries contain unresolved processing failures']
     return []
 
 

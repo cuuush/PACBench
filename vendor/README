@@ -383,6 +383,14 @@ an intrinsic latency ranking. Full source and stored-content review remains a
 separate gate after processing; full-week stores cannot feed earlier benchmark
 checkpoints.
 
+OpenViking resource acceptance can precede detached ancestor summaries. The
+import adapter uses its documented global wait followed by a healthy idle
+queue observer (including Semantic-Nodes), under the same external deadline.
+It also reads native summary artifacts for unresolved failure placeholders: a
+model error can be swallowed by OpenViking while queue error counters stay zero.
+These are read-only readiness checks; no flush, fact repair or inference-setting
+change is applied. Failed attempts and full uncertain charge bounds are retained.
+
 Direct accounting also retains exact failed-response bodies under the private
 task state's `response-errors/`, with a SHA-256, byte count and explicit
 body-complete flag. Only allowlisted retry/rate-limit and correlation headers

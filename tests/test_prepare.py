@@ -388,3 +388,30 @@ def test_cast_is_scoped_to_channel_and_absent_cast_preserves_spec(tmp_path):
     assert 'Private character context' not in scene_prompt(plan)
     assert 'Private character context' not in judge_prompt(plan, [('Sam', 'Hi')])
     assert original['scenes'][0]['cast'] == {'Riley': "The user's friend who works at Spoke Cycles."}
+
+
+@pytest.mark.parametrize('mode', [None, 'low', 'medium', 'high'])
+def test_legacy_omitted_noise_resume_rejects_before_mutation(tmp_path, mode):
+    root=tmp_path/'existing';root.mkdir()
+    previous={} if mode is None else {'noise':mode}
+    (root/'resolved-spec.json').write_text(json.dumps(previous))
+    (root/'spec.json').write_text('original author input')
+    (root/'week.json').write_text('frozen evidence')
+    before={p.name:p.read_bytes() for p in root.iterdir()}
+    with pytest.raises(ValueError, match='Legacy preparation requires explicit noise'):
+        prepare({'id':'new'},root,resume=True)
+    assert {p.name:p.read_bytes() for p in root.iterdir()}==before
+
+
+@pytest.mark.parametrize('old_mode,new_mode', [('authored',None),('low','low'),('low','authored')])
+def test_resume_policy_accepts_unchanged_authored_and_explicit_legacy_or_migration(tmp_path, monkeypatch,old_mode,new_mode):
+    import importlib
+    module=importlib.import_module('pacbench.prepare')
+    root=tmp_path/'existing';root.mkdir()
+    (root/'resolved-spec.json').write_text(json.dumps({'noise':old_mode}))
+    seen=[]
+    monkeypatch.setattr(module,'_prepare_body',lambda spec,path,progress: seen.append(spec) or {'state':'incomplete','errors':[]})
+    spec={'id':'new'}
+    if new_mode is not None:spec['noise']=new_mode
+    prepare(spec,root,resume=True)
+    assert seen==[spec]

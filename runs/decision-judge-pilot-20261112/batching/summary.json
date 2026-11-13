@@ -1,0 +1,1541 @@
+{
+  "conditions": [
+    {
+      "model": "jev",
+      "mode": "isolated",
+      "requests": 36,
+      "claims": 36,
+      "correct": 33,
+      "accuracy": 0.9166666666666666,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 9,
+          "misrepresented": 3,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 18037,
+      "output_tokens": 1674,
+      "cost_usd": 0.000757554,
+      "cost_per_claim_usd": 2.104316666666667e-05,
+      "request_latency_median_seconds": 0.20172265150000612,
+      "request_latency_p95_seconds": 0.5073062840000375,
+      "sum_request_latencies_seconds": 8.929619472000013,
+      "amortized_latency_seconds_per_claim": 0.2480449853333337,
+      "mixed_4worker_window_seconds": 17.754339456000025,
+      "mixed_4worker_window_claims_per_second": 2.0276732958281873,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        },
+        {
+          "id": "case_00",
+          "expected": "missed",
+          "actual": "misrepresented"
+        },
+        {
+          "id": "case_02",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "jev",
+      "mode": "shared_single",
+      "requests": 36,
+      "claims": 36,
+      "correct": 35,
+      "accuracy": 0.9722222222222222,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 11,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 105012,
+      "output_tokens": 1670,
+      "cost_usd": 0.004410504,
+      "cost_per_claim_usd": 0.000122514,
+      "request_latency_median_seconds": 0.21866771900005233,
+      "request_latency_p95_seconds": 0.4545385950000309,
+      "sum_request_latencies_seconds": 8.786414968999907,
+      "amortized_latency_seconds_per_claim": 0.24406708247221964,
+      "mixed_4worker_window_seconds": 25.085224240000002,
+      "mixed_4worker_window_claims_per_second": 1.4351077612691094,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "jev",
+      "mode": "batch_forward",
+      "requests": 1,
+      "claims": 36,
+      "correct": 35,
+      "accuracy": 0.9722222222222222,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 11,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9007,
+      "output_tokens": 1565,
+      "cost_usd": 0.000378294,
+      "cost_per_claim_usd": 1.0508166666666667e-05,
+      "request_latency_median_seconds": 0.24899652299995978,
+      "request_latency_p95_seconds": 0.24899652299995978,
+      "sum_request_latencies_seconds": 0.24899652299995978,
+      "amortized_latency_seconds_per_claim": 0.0069165700833322165,
+      "mixed_4worker_window_seconds": 0.24899652299995978,
+      "mixed_4worker_window_claims_per_second": 144.5803321518904,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "jev",
+      "mode": "batch_repeat",
+      "requests": 1,
+      "claims": 36,
+      "correct": 35,
+      "accuracy": 0.9722222222222222,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 11,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9007,
+      "output_tokens": 1565,
+      "cost_usd": 0.000378294,
+      "cost_per_claim_usd": 1.0508166666666667e-05,
+      "request_latency_median_seconds": 0.32472031400004653,
+      "request_latency_p95_seconds": 0.32472031400004653,
+      "sum_request_latencies_seconds": 0.32472031400004653,
+      "amortized_latency_seconds_per_claim": 0.009020008722223515,
+      "mixed_4worker_window_seconds": 0.32472031400004653,
+      "mixed_4worker_window_claims_per_second": 110.86463780641344,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "jev",
+      "mode": "batch_reverse_questions",
+      "requests": 1,
+      "claims": 36,
+      "correct": 35,
+      "accuracy": 0.9722222222222222,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 11,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9007,
+      "output_tokens": 1565,
+      "cost_usd": 0.000378294,
+      "cost_per_claim_usd": 1.0508166666666667e-05,
+      "request_latency_median_seconds": 0.35936470900003314,
+      "request_latency_p95_seconds": 0.35936470900003314,
+      "sum_request_latencies_seconds": 0.35936470900003314,
+      "amortized_latency_seconds_per_claim": 0.009982353027778699,
+      "mixed_4worker_window_seconds": 0.35936470900003314,
+      "mixed_4worker_window_claims_per_second": 100.1767816883674,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "jev",
+      "mode": "batch_reverse_state",
+      "requests": 1,
+      "claims": 36,
+      "correct": 34,
+      "accuracy": 0.9444444444444444,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 10,
+          "misrepresented": 2,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9007,
+      "output_tokens": 1567,
+      "cost_usd": 0.000378294,
+      "cost_per_claim_usd": 1.0508166666666667e-05,
+      "request_latency_median_seconds": 0.3383693250000306,
+      "request_latency_p95_seconds": 0.3383693250000306,
+      "sum_request_latencies_seconds": 0.3383693250000306,
+      "amortized_latency_seconds_per_claim": 0.009399147916667516,
+      "mixed_4worker_window_seconds": 0.3383693250000306,
+      "mixed_4worker_window_claims_per_second": 106.39262291283865,
+      "providers": [
+        "TypeSafe"
+      ],
+      "served_models": [
+        "typesafe/jev-1.14-20261014"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_09",
+          "expected": "missed",
+          "actual": "misrepresented"
+        },
+        {
+          "id": "case_22",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "luna",
+      "mode": "isolated",
+      "requests": 36,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9647,
+      "output_tokens": 0,
+      "cost_usd": 0.0009647,
+      "cost_per_claim_usd": 2.6797222222222223e-05,
+      "request_latency_median_seconds": 0.27021769849994826,
+      "request_latency_p95_seconds": 0.4377346100000068,
+      "sum_request_latencies_seconds": 10.595797708999953,
+      "amortized_latency_seconds_per_claim": 0.2943277141388876,
+      "mixed_4worker_window_seconds": 18.55425871700004,
+      "mixed_4worker_window_claims_per_second": 1.9402553639621067,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "luna",
+      "mode": "shared_single",
+      "requests": 36,
+      "claims": 36,
+      "correct": 34,
+      "accuracy": 0.9444444444444444,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 1,
+          "missed": 10,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 68868,
+      "output_tokens": 0,
+      "cost_usd": 0.006886799999999999,
+      "cost_per_claim_usd": 0.0001913,
+      "request_latency_median_seconds": 0.28922088100000565,
+      "request_latency_p95_seconds": 0.5673794180000868,
+      "sum_request_latencies_seconds": 11.573967326999991,
+      "amortized_latency_seconds_per_claim": 0.3214990924166664,
+      "mixed_4worker_window_seconds": 24.880298887000095,
+      "mixed_4worker_window_claims_per_second": 1.446927955468008,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_21",
+          "expected": "missed",
+          "actual": "misrepresented"
+        },
+        {
+          "id": "case_07",
+          "expected": "missed",
+          "actual": "correct"
+        }
+      ]
+    },
+    {
+      "model": "luna",
+      "mode": "batch_forward",
+      "requests": 1,
+      "claims": 36,
+      "correct": 34,
+      "accuracy": 0.9444444444444444,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 1,
+          "missed": 10,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9473,
+      "output_tokens": 0,
+      "cost_usd": 0.0009473,
+      "cost_per_claim_usd": 2.631388888888889e-05,
+      "request_latency_median_seconds": 0.34739831699994284,
+      "request_latency_p95_seconds": 0.34739831699994284,
+      "sum_request_latencies_seconds": 0.34739831699994284,
+      "amortized_latency_seconds_per_claim": 0.009649953249998412,
+      "mixed_4worker_window_seconds": 0.34739831699994284,
+      "mixed_4worker_window_claims_per_second": 103.62744503453057,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_07",
+          "expected": "missed",
+          "actual": "correct"
+        },
+        {
+          "id": "case_21",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "luna",
+      "mode": "batch_repeat",
+      "requests": 1,
+      "claims": 36,
+      "correct": 34,
+      "accuracy": 0.9444444444444444,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 1,
+          "missed": 10,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9473,
+      "output_tokens": 0,
+      "cost_usd": 0.0009473,
+      "cost_per_claim_usd": 2.631388888888889e-05,
+      "request_latency_median_seconds": 0.4154960300000994,
+      "request_latency_p95_seconds": 0.4154960300000994,
+      "sum_request_latencies_seconds": 0.4154960300000994,
+      "amortized_latency_seconds_per_claim": 0.01154155638889165,
+      "mixed_4worker_window_seconds": 0.4154960300000994,
+      "mixed_4worker_window_claims_per_second": 86.64342713452976,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_07",
+          "expected": "missed",
+          "actual": "correct"
+        },
+        {
+          "id": "case_21",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "luna",
+      "mode": "batch_reverse_questions",
+      "requests": 1,
+      "claims": 36,
+      "correct": 34,
+      "accuracy": 0.9444444444444444,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 1,
+          "missed": 10,
+          "misrepresented": 1,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9473,
+      "output_tokens": 0,
+      "cost_usd": 0.0009473,
+      "cost_per_claim_usd": 2.631388888888889e-05,
+      "request_latency_median_seconds": 0.4059706709999773,
+      "request_latency_p95_seconds": 0.4059706709999773,
+      "sum_request_latencies_seconds": 0.4059706709999773,
+      "amortized_latency_seconds_per_claim": 0.011276963083332703,
+      "mixed_4worker_window_seconds": 0.4059706709999773,
+      "mixed_4worker_window_claims_per_second": 88.67635662282119,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_07",
+          "expected": "missed",
+          "actual": "correct"
+        },
+        {
+          "id": "case_21",
+          "expected": "missed",
+          "actual": "misrepresented"
+        }
+      ]
+    },
+    {
+      "model": "luna",
+      "mode": "batch_reverse_state",
+      "requests": 1,
+      "claims": 36,
+      "correct": 35,
+      "accuracy": 0.9722222222222222,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 1,
+          "misrepresented": 11,
+          "failure": 0
+        }
+      },
+      "input_tokens": 9473,
+      "output_tokens": 0,
+      "cost_usd": 0.0009473,
+      "cost_per_claim_usd": 2.631388888888889e-05,
+      "request_latency_median_seconds": 0.4337295579999818,
+      "request_latency_p95_seconds": 0.4337295579999818,
+      "sum_request_latencies_seconds": 0.4337295579999818,
+      "amortized_latency_seconds_per_claim": 0.012048043277777273,
+      "mixed_4worker_window_seconds": 0.4337295579999818,
+      "mixed_4worker_window_claims_per_second": 83.00102987217096,
+      "providers": [
+        "OpenAI"
+      ],
+      "served_models": [
+        "openai/gpt-6-luna-decisions-20261006"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": [
+        {
+          "id": "case_17",
+          "expected": "misrepresented",
+          "actual": "missed"
+        }
+      ]
+    },
+    {
+      "model": "microsoft",
+      "mode": "isolated",
+      "requests": 36,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 7015,
+      "output_tokens": 36,
+      "cost_usd": 0.00029463,
+      "cost_per_claim_usd": 8.184166666666667e-06,
+      "request_latency_median_seconds": 0.2686915049999925,
+      "request_latency_p95_seconds": 0.4451451839998981,
+      "sum_request_latencies_seconds": 10.34539138100024,
+      "amortized_latency_seconds_per_claim": 0.28737198280556225,
+      "mixed_4worker_window_seconds": 16.776852978999955,
+      "mixed_4worker_window_claims_per_second": 2.1458136424669267,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "microsoft",
+      "mode": "shared_single",
+      "requests": 36,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 69840,
+      "output_tokens": 36,
+      "cost_usd": 0.00293328,
+      "cost_per_claim_usd": 8.148e-05,
+      "request_latency_median_seconds": 0.29040093750001006,
+      "request_latency_p95_seconds": 0.4734836389999373,
+      "sum_request_latencies_seconds": 11.185243720999893,
+      "amortized_latency_seconds_per_claim": 0.3107012144722192,
+      "mixed_4worker_window_seconds": 25.19248681800002,
+      "mixed_4worker_window_claims_per_second": 1.4289974729401473,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "microsoft",
+      "mode": "batch_forward",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 6805,
+      "output_tokens": 36,
+      "cost_usd": 0.00028581,
+      "cost_per_claim_usd": 7.939166666666667e-06,
+      "request_latency_median_seconds": 0.7899422059999779,
+      "request_latency_p95_seconds": 0.7899422059999779,
+      "sum_request_latencies_seconds": 0.7899422059999779,
+      "amortized_latency_seconds_per_claim": 0.02194283905555494,
+      "mixed_4worker_window_seconds": 0.7899422059999779,
+      "mixed_4worker_window_claims_per_second": 45.57295423204797,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "microsoft",
+      "mode": "batch_repeat",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 6805,
+      "output_tokens": 36,
+      "cost_usd": 0.00028581,
+      "cost_per_claim_usd": 7.939166666666667e-06,
+      "request_latency_median_seconds": 0.6852689540000938,
+      "request_latency_p95_seconds": 0.6852689540000938,
+      "sum_request_latencies_seconds": 0.6852689540000938,
+      "amortized_latency_seconds_per_claim": 0.019035248722224826,
+      "mixed_4worker_window_seconds": 0.6852689540000938,
+      "mixed_4worker_window_claims_per_second": 52.5341178669464,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "microsoft",
+      "mode": "batch_reverse_questions",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 6805,
+      "output_tokens": 36,
+      "cost_usd": 0.00028581,
+      "cost_per_claim_usd": 7.939166666666667e-06,
+      "request_latency_median_seconds": 0.6826096599999119,
+      "request_latency_p95_seconds": 0.6826096599999119,
+      "sum_request_latencies_seconds": 0.6826096599999119,
+      "amortized_latency_seconds_per_claim": 0.018961379444441998,
+      "mixed_4worker_window_seconds": 0.6826096599999119,
+      "mixed_4worker_window_claims_per_second": 52.738778997069346,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "microsoft",
+      "mode": "batch_reverse_state",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 6805,
+      "output_tokens": 36,
+      "cost_usd": 0.00028581,
+      "cost_per_claim_usd": 7.939166666666667e-06,
+      "request_latency_median_seconds": 0.7920748510000521,
+      "request_latency_p95_seconds": 0.7920748510000521,
+      "sum_request_latencies_seconds": 0.7920748510000521,
+      "amortized_latency_seconds_per_claim": 0.022002079194445894,
+      "mixed_4worker_window_seconds": 0.7920748510000521,
+      "mixed_4worker_window_claims_per_second": 45.45025000421031,
+      "providers": [
+        "Azure"
+      ],
+      "served_models": [
+        "microsoft/microsoft-decision-1-20261009"
+      ],
+      "service_tiers": [
+        "None"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "isolated",
+      "requests": 36,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 8760,
+      "output_tokens": 348,
+      "cost_usd": 0.0007686336,
+      "cost_per_claim_usd": 2.1350933333333333e-05,
+      "request_latency_median_seconds": 1.2534547564999343,
+      "request_latency_p95_seconds": 2.2722496609999325,
+      "sum_request_latencies_seconds": 45.83224910699914,
+      "amortized_latency_seconds_per_claim": 1.273118030749976,
+      "mixed_4worker_window_seconds": 19.63642418699999,
+      "mixed_4worker_window_claims_per_second": 1.8333276800891927,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "shared_single",
+      "requests": 36,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 75924,
+      "output_tokens": 369,
+      "cost_usd": 0.00107481696,
+      "cost_per_claim_usd": 2.9856026666666668e-05,
+      "request_latency_median_seconds": 1.6731204875000003,
+      "request_latency_p95_seconds": 4.882628888999989,
+      "sum_request_latencies_seconds": 69.32698987799961,
+      "amortized_latency_seconds_per_claim": 1.9257497188333224,
+      "mixed_4worker_window_seconds": 24.708586957999955,
+      "mixed_4worker_window_claims_per_second": 1.4569833581011074,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "batch_forward",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 7394,
+      "output_tokens": 313,
+      "cost_usd": 0.000497560896,
+      "cost_per_claim_usd": 1.3821135999999999e-05,
+      "request_latency_median_seconds": 1.9836513999999852,
+      "request_latency_p95_seconds": 1.9836513999999852,
+      "sum_request_latencies_seconds": 1.9836513999999852,
+      "amortized_latency_seconds_per_claim": 0.055101427777777365,
+      "mixed_4worker_window_seconds": 1.9836513999999852,
+      "mixed_4worker_window_claims_per_second": 18.148350057878247,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "batch_repeat",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 7394,
+      "output_tokens": 313,
+      "cost_usd": 9.8460992e-05,
+      "cost_per_claim_usd": 2.7350275555555555e-06,
+      "request_latency_median_seconds": 2.7716986660000202,
+      "request_latency_p95_seconds": 2.7716986660000202,
+      "sum_request_latencies_seconds": 2.7716986660000202,
+      "amortized_latency_seconds_per_claim": 0.07699162961111167,
+      "mixed_4worker_window_seconds": 2.7716986660000202,
+      "mixed_4worker_window_claims_per_second": 12.988424911266938,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "batch_reverse_questions",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 7394,
+      "output_tokens": 313,
+      "cost_usd": 0.000497560896,
+      "cost_per_claim_usd": 1.3821135999999999e-05,
+      "request_latency_median_seconds": 4.915761019000001,
+      "request_latency_p95_seconds": 4.915761019000001,
+      "sum_request_latencies_seconds": 4.915761019000001,
+      "amortized_latency_seconds_per_claim": 0.13654891719444448,
+      "mixed_4worker_window_seconds": 4.915761019000001,
+      "mixed_4worker_window_claims_per_second": 7.323382861952751,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    },
+    {
+      "model": "ds",
+      "mode": "batch_reverse_state",
+      "requests": 1,
+      "claims": 36,
+      "correct": 36,
+      "accuracy": 1.0,
+      "failures": 0,
+      "http_failures": 0,
+      "confusion_matrix": {
+        "correct": {
+          "correct": 12,
+          "missed": 0,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "missed": {
+          "correct": 0,
+          "missed": 12,
+          "misrepresented": 0,
+          "failure": 0
+        },
+        "misrepresented": {
+          "correct": 0,
+          "missed": 0,
+          "misrepresented": 12,
+          "failure": 0
+        }
+      },
+      "input_tokens": 7394,
+      "output_tokens": 313,
+      "cost_usd": 0.0006533072,
+      "cost_per_claim_usd": 1.814742222222222e-05,
+      "request_latency_median_seconds": 3.3091846399998985,
+      "request_latency_p95_seconds": 3.3091846399998985,
+      "sum_request_latencies_seconds": 3.3091846399998985,
+      "amortized_latency_seconds_per_claim": 0.09192179555555274,
+      "mixed_4worker_window_seconds": 3.3091846399998985,
+      "mixed_4worker_window_claims_per_second": 10.878812733761844,
+      "providers": [
+        "DeepInfra"
+      ],
+      "served_models": [
+        "deepseek/deepseek-v4.1-flash-1017"
+      ],
+      "service_tiers": [
+        "flex"
+      ],
+      "errors": []
+    }
+  ],
+  "consistency": [
+    {
+      "model": "jev",
+      "reference": "batch_forward",
+      "comparison": "isolated",
+      "n": 36,
+      "agreement": 34,
+      "changes": [
+        {
+          "id": "case_00",
+          "reference": "missed",
+          "comparison": "misrepresented"
+        },
+        {
+          "id": "case_02",
+          "reference": "missed",
+          "comparison": "misrepresented"
+        }
+      ],
+      "probability_total_variation_mean": 0.043055555555555555,
+      "probability_total_variation_max": 0.67
+    },
+    {
+      "model": "jev",
+      "reference": "batch_forward",
+      "comparison": "shared_single",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.011944444444444447,
+      "probability_total_variation_max": 0.09999999999999999
+    },
+    {
+      "model": "jev",
+      "reference": "batch_forward",
+      "comparison": "batch_repeat",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.01027777777777778,
+      "probability_total_variation_max": 0.11
+    },
+    {
+      "model": "jev",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_questions",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.007777777777777777,
+      "probability_total_variation_max": 0.039999999999999966
+    },
+    {
+      "model": "jev",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_state",
+      "n": 36,
+      "agreement": 35,
+      "changes": [
+        {
+          "id": "case_09",
+          "reference": "missed",
+          "comparison": "misrepresented"
+        }
+      ],
+      "probability_total_variation_mean": 0.02916666666666667,
+      "probability_total_variation_max": 0.49000000000000005
+    },
+    {
+      "model": "luna",
+      "reference": "batch_forward",
+      "comparison": "isolated",
+      "n": 36,
+      "agreement": 34,
+      "changes": [
+        {
+          "id": "case_07",
+          "reference": "correct",
+          "comparison": "missed"
+        },
+        {
+          "id": "case_21",
+          "reference": "misrepresented",
+          "comparison": "missed"
+        }
+      ],
+      "probability_total_variation_mean": 0.11833333333333333,
+      "probability_total_variation_max": 0.83
+    },
+    {
+      "model": "luna",
+      "reference": "batch_forward",
+      "comparison": "shared_single",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.0,
+      "probability_total_variation_max": 0.0
+    },
+    {
+      "model": "luna",
+      "reference": "batch_forward",
+      "comparison": "batch_repeat",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.0,
+      "probability_total_variation_max": 0.0
+    },
+    {
+      "model": "luna",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_questions",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.0,
+      "probability_total_variation_max": 0.0
+    },
+    {
+      "model": "luna",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_state",
+      "n": 36,
+      "agreement": 33,
+      "changes": [
+        {
+          "id": "case_07",
+          "reference": "correct",
+          "comparison": "missed"
+        },
+        {
+          "id": "case_17",
+          "reference": "misrepresented",
+          "comparison": "missed"
+        },
+        {
+          "id": "case_21",
+          "reference": "misrepresented",
+          "comparison": "missed"
+        }
+      ],
+      "probability_total_variation_mean": 0.12222222222222223,
+      "probability_total_variation_max": 0.94
+    },
+    {
+      "model": "microsoft",
+      "reference": "batch_forward",
+      "comparison": "isolated",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.03122477999932924,
+      "probability_total_variation_max": 0.16183328491630397
+    },
+    {
+      "model": "microsoft",
+      "reference": "batch_forward",
+      "comparison": "shared_single",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.027808537631025646,
+      "probability_total_variation_max": 0.23705403496328958
+    },
+    {
+      "model": "microsoft",
+      "reference": "batch_forward",
+      "comparison": "batch_repeat",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.0,
+      "probability_total_variation_max": 0.0
+    },
+    {
+      "model": "microsoft",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_questions",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.00347403740242652,
+      "probability_total_variation_max": 0.02212628643342525
+    },
+    {
+      "model": "microsoft",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_state",
+      "n": 36,
+      "agreement": 36,
+      "changes": [],
+      "probability_total_variation_mean": 0.016830423630967328,
+      "probability_total_variation_max": 0.12354270374398404
+    },
+    {
+      "model": "ds",
+      "reference": "batch_forward",
+      "comparison": "isolated",
+      "n": 36,
+      "agreement": 36,
+      "changes": []
+    },
+    {
+      "model": "ds",
+      "reference": "batch_forward",
+      "comparison": "shared_single",
+      "n": 36,
+      "agreement": 36,
+      "changes": []
+    },
+    {
+      "model": "ds",
+      "reference": "batch_forward",
+      "comparison": "batch_repeat",
+      "n": 36,
+      "agreement": 36,
+      "changes": []
+    },
+    {
+      "model": "ds",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_questions",
+      "n": 36,
+      "agreement": 36,
+      "changes": []
+    },
+    {
+      "model": "ds",
+      "reference": "batch_forward",
+      "comparison": "batch_reverse_state",
+      "n": 36,
+      "agreement": 36,
+      "changes": []
+    }
+  ]
+}

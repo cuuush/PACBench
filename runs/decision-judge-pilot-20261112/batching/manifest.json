@@ -1,0 +1,46 @@
+{
+  "experiment": "Controlled batching vs individual requests, 36 original frozen synthetic cases; unchanged labels/rubric",
+  "requests": 304,
+  "models": [
+    "typesafe/jev-1.14 @ typesafe",
+    "openai/gpt-6-luna-decisions @ openai",
+    "microsoft/microsoft-decision-1 @ azure",
+    "deepseek/deepseek-v4.1-flash-1017 @ deepinfra/fp8/flex"
+  ],
+  "conditions": {
+    "isolated": "36 requests/model, one case of state and one identical case question per request",
+    "shared_single": "36 requests/model, identical full 36-case state and one question per request",
+    "batch_forward": "1 request/model, full state and all 36 questions",
+    "batch_repeat": "Prescheduled identical repeat, not a retry",
+    "batch_reverse_questions": "Reverse question map order only; state bytes unchanged",
+    "batch_reverse_state": "Reverse state map order only; forward question order"
+  },
+  "controls": {
+    "plan_frozen_before_calls_sha256": "ce8a9b1ef532830f9da745f74b5313a9198016d1173c9e86608b8e75088caa22",
+    "cases_sha256": "91d702e8d796234fc0f53f9c83542d8c450a6361e54e5f33f17bee8c6e95c770",
+    "question_text_and_criteria": "Exactly original frozen input.json for all conditions, same explicit partial-list rule",
+    "model_routing": "Provider-only, fallback disabled; verified response provider/snapshot consistency",
+    "schedule": "Modes sequential; seeded shuffled mixed-model tasks inside each mode; four client workers. No per-model dedicated throughput test.",
+    "retries": 0
+  },
+  "limitations": [
+    "Agent-authored gold labels, no independent human review.",
+    "36 correlated simple synthetic cases (12 topics), not long-context real PACBench cases.",
+    "Single pass individual conditions; two identical batch passes and one per order perturbation, insufficient to estimate stochastic repeatability or causal order effects.",
+    "All 36 cases are unrelated candidate answers. Native PACBench instead often grades multiple claims about one answer; this is a packaging experiment, not a realistic shared-answer workload.",
+    "Shared-state comparisons control context; isolated comparison changes context and can change predictions.",
+    "Batch questions share state, and outputs need not be statistically independent.",
+    "Mixed four-worker scheduling means summed latencies are hypothetical serial service time; window throughput is under mixed contention, not dedicated model throughput.",
+    "Modes run in fixed sequence, so cache warming/time effects remain. DS actual cache discounts are recorded, not normalized away.",
+    "New DeepSeek comparison is label-only strict-schema with the SAME decision rubric, temperature 0, reasoning off, max_tokens 1024. Earlier exact-flex baseline uses native PACBench prompt, JSON mode, full explanations/recovery/diagnostics and 4096 output cap. Both share model/provider but are different judge protocols."
+  ],
+  "billing_evidence": {
+    "jev_docs": "https://docs.typesafe.ai/primitives",
+    "context_docs": "https://docs.typesafe.ai/models",
+    "parallel_cookbook": "https://docs.typesafe.ai/cookbooks/parallel_questions",
+    "openrouter_schema": "https://openrouter.ai/docs/api/api-reference/alphadecisions/submit-a-decisions-request",
+    "interpretation": "TypeSafe documents state processed once and additional question tokens charged. Empirical input-token sums confirm savings versus resending full state; no assertion about internal execution independence.",
+    "limits": "TypeSafe direct default 64k/request and 32k/question, optional long-context 262k. OpenRouter advertises Jev 262k; not tested at limits. Luna page advertises up to 200 questions. Drex earlier returned 1..16 max. Limits vary by model/route."
+  },
+  "validation": "All JSON parsed, original case hash unchanged, 304 successful responses, providers verified, credential-pattern check passed"
+}

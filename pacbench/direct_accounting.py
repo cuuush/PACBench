@@ -247,14 +247,21 @@ class DirectBudget:
             calls.append(row)
         return {'id':row['id'],'request':request}
 
-    def settle(self,identifier,status,data=b''):
+    def settle(self,identifier,status,data=b'',*,headers=None,body_complete=False):
         # Called after reading/closing a response, never while holding a network lock.
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
             if row['state']=='settled':
                 return
             row.update(finished=now(),http_status=status or None,state='uncertain',
-                       error_label='response_usage_unavailable' if status==200 else 'upstream_request_failed')
+                       error_label='response_usage_unavailable' if status==200 else 'upstream_request_failed',
+                       response_body_complete=bool(body_complete))
+            if headers:
+                allowed={'retry-after','x-request-id','x-generation-id','x-openrouter-request-id',
+                    'x-ratelimit-limit-requests','x-ratelimit-remaining-requests','x-ratelimit-reset-requests',
+                    'x-ratelimit-limit-tokens','x-ratelimit-remaining-tokens','x-ratelimit-reset-tokens'}
+                row['response_diagnostic_headers']={str(k).lower():str(v)[:1024]
+                    for k,v in headers.items() if str(k).lower() in allowed}
             admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
             if status==429 and admission_stop:
                 target=Path(admission_stop)
@@ -265,6 +272,21 @@ class DirectBudget:
                     pass
             try:
                 if isinstance(data,str):data=data.encode()
+                if status != 200 and data:
+                    # Native SDK retries can overwrite the original exception.
+                    # Retain exact error bytes privately before parsing; this
+                    # is diagnostic evidence, never proof of a zero charge.
+                    folder=self.path.parent/'response-errors';folder.mkdir(mode=0o700,exist_ok=True)
+                    path=folder/(identifier+'.response-body.bin')
+                    try:
+                        fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+                        with os.fdopen(fd,'wb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
+                    except FileExistsError:
+                        if path.read_bytes()!=data:raise ValueError('Error evidence already differs')
+                    row['private_error_body']={'relative_path':str(path.relative_to(self.path.parent)),
+                        'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data),
+                        'body_complete':bool(body_complete),
+                        'scope':'Exact private failed-response body. Does not establish cost or authorize a replay.'}
                 text=data.decode()
                 if text.lstrip().startswith('{'):
                     events=[json.loads(text)]
@@ -316,7 +338,7 @@ def main():
     if sys.argv[1]=='reserve':
         print(json.dumps(budget.reserve(value['project'],value['request'])))
     elif sys.argv[1]=='settle':
-        budget.settle(value['id'],value['status'],value.get('data',''))
+        budget.settle(value['id'],value['status'],value.get('data',''),headers=value.get('headers'),body_complete=value.get('body_complete',False))
         print('{}')
     else:raise ValueError('Unknown accounting operation')
 

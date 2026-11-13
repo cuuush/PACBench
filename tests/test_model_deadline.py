@@ -12,8 +12,8 @@ from pacbench import model_calls
 from pacbench.direct_http import UrllibResponse
 
 class Budget:
-    def __init__(self):self.records=[]
-    def settle(self,*args):self.records.append(args)
+    def __init__(self):self.records=[];self.metadata=[]
+    def settle(self,*args,**kwargs):self.records.append(args);self.metadata.append(kwargs)
 
 
 def test_real_whitespace_keepalives_stop_at_wall_deadline_and_capture_incomplete_cost(monkeypatch):
@@ -37,6 +37,7 @@ def test_real_whitespace_keepalives_stop_at_wall_deadline_and_capture_incomplete
         assert time.monotonic()-started<1
         assert len(budget.records)==1 and budget.records[0][:2]==('pending',200)
         assert budget.records[0][2].strip()==b''  # no usage: accounting keeps the unknown bound.
+        assert budget.metadata[0]['body_complete'] is False
     finally:server.shutdown();server.server_close();thread.join()
 
 

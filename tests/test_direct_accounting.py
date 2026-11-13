@@ -33,12 +33,31 @@ def test_measured_import_429_stops_all_projects_without_releasing_hold(budget,tm
     stop=tmp_path/'STOP';monkeypatch.setenv('PACBENCH_DIRECT_STOP_ON_429',str(stop))
     row=budget.reserve('first',{'model':MODEL,'messages':[]})
     before=budget.snapshot()[0]['accounted']
-    budget.settle(row['id'],429,b'{"error":{"message":"rate limited"}}')
+    budget.settle(row['id'],429,b'{"error":{"message":"rate limited"}}',headers={
+        'Retry-After':'30','Authorization':'SECRET-SENTINEL','Set-Cookie':'SECRET-SENTINEL'})
     assert json.loads(stop.read_text())['reason']=='upstream_rate_limit'
     after=budget.snapshot();assert after[0]['accounted']==before and after[0]['state']=='uncertain'
     with pytest.raises(RuntimeError,match='admission stopped'):
         budget.reserve('different-project',{'model':MODEL,'messages':[]})
     assert budget.snapshot()==after
+    error=after[0]['private_error_body'];path=budget.path.parent/error['relative_path']
+    assert path.read_bytes()==b'{"error":{"message":"rate limited"}}'
+    assert path.stat().st_mode&0o777==0o600
+    assert after[0]['response_diagnostic_headers']=={'retry-after':'30'}
+    assert 'SECRET-SENTINEL' not in json.dumps(after)
+
+
+@pytest.mark.parametrize('complete',[True,False])
+def test_private_rejection_capture_distinguishes_eof_from_interruption(budget,complete):
+    from pacbench.direct_http import Capture
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    capture=Capture({'id':row['id'],'budget':budget},429,headers={'retry-after':'30'})
+    capture.add(b'{"error":{"code":429,"message":"capacity"}}')
+    capture.finish(complete=complete)
+    saved=budget.snapshot()[0]
+    assert saved['response_body_complete'] is complete
+    assert saved['private_error_body']['body_complete'] is complete
+    assert saved['state']=='uncertain' and saved['accounted']==saved['reserved']
 
 
 def test_nonblocking_snapshot_never_waits_on_suspended_ledger_owner(budget, monkeypatch):

@@ -35,20 +35,22 @@ if (process.env.PACBENCH_DIRECT === '1' && !globalThis.__pacbenchDirectFetch) {
     })); }
     catch (error) { helper('settle', {id: receipt.id, status: 0}); throw error; }
     let chunks = [], size = 0, settled = false;
-    const finish = () => {
+    const finish = (complete = false) => {
       if (!settled) {
         helper('settle', {id: receipt.id, status: response.status,
+          body_complete: complete,
+          headers: Object.fromEntries([...response.headers].filter(([name]) => /^(retry-after|x-request-id|x-generation-id|x-openrouter-request-id|x-ratelimit-)/i.test(name))),
           data: Buffer.concat(chunks).toString('utf8')});
         settled = true;
       }
     };
-    if (!response.body) { finish(); return response; }
+    if (!response.body) { finish(true); return response; }
     const reader = response.body.getReader();
     const body = new ReadableStream({
       async pull(controller) {
         try {
           const {done, value} = await reader.read();
-          if (done) { finish(); controller.close(); return; }
+          if (done) { finish(true); controller.close(); return; }
           size += value.byteLength;
           if (size > 32 * 1024 * 1024) throw new Error('Response accounting limit');
           chunks.push(Buffer.from(value)); controller.enqueue(value);

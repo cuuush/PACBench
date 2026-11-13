@@ -49,8 +49,8 @@ def admitted(url,headers,body):
 
 
 class Capture:
-    def __init__(self,receipt,status,encoding=''):
-        self.receipt=receipt;self.status=status;self.chunks=[];self.size=0;self.closed=False;self.encoding=encoding
+    def __init__(self,receipt,status,encoding='',headers=None):
+        self.receipt=receipt;self.status=status;self.chunks=[];self.size=0;self.closed=False;self.encoding=encoding;self.headers=headers
 
     def add(self,data):
         self.size+=len(data)
@@ -58,7 +58,7 @@ class Capture:
             self.finish();raise RuntimeError('Direct response exceeds accounting capture limit')
         self.chunks.append(data)
 
-    def finish(self):
+    def finish(self,complete=False):
         if not self.closed:
             data=b''.join(self.chunks)
             try:
@@ -67,13 +67,13 @@ class Capture:
                 elif self.encoding=='br':data=__import__('brotli').decompress(data)
                 elif self.encoding:data=b''
             except Exception:data=b''
-            self.receipt['budget'].settle(self.receipt['id'],self.status,data)
+            self.receipt['budget'].settle(self.receipt['id'],self.status,data,headers=self.headers,body_complete=complete)
             self.closed=True
 
 
 class UrllibResponse:
     def __init__(self,raw,receipt):
-        self.raw=raw;self.capture=Capture(receipt,raw.status)
+        self.raw=raw;self.capture=Capture(receipt,raw.status,headers=dict(raw.headers.items()))
     def __getattr__(self,name):return getattr(self.raw,name)
     def __enter__(self):return self
     def __exit__(self,*args):self.close()
@@ -81,11 +81,11 @@ class UrllibResponse:
         try:data=self.raw.read(*args)
         except BaseException:self.capture.finish();raise
         self.capture.add(data)
-        if not args or args[0] in (-1,None) or not data:self.capture.finish()
+        if not args or args[0] in (-1,None) or not data:self.capture.finish(complete=True)
         return data
     def read1(self,*args):
         data=self.raw.read1(*args);self.capture.add(data)
-        if not data:self.capture.finish()
+        if not data:self.capture.finish(complete=True)
         return data
     def close(self):
         try:self.raw.close()
@@ -122,6 +122,7 @@ def _install_httpx(httpx):
             try:
                 for chunk in self.raw:
                     self.capture.add(chunk);yield chunk
+                self.capture.finish(complete=True)
             finally:self.capture.finish()
         def close(self):
             try:self.raw.close()
@@ -132,6 +133,7 @@ def _install_httpx(httpx):
             try:
                 async for chunk in self.raw:
                     self.capture.add(chunk);yield chunk
+                self.capture.finish(complete=True)
             finally:self.capture.finish()
         async def aclose(self):
             try:await self.raw.aclose()
@@ -145,9 +147,9 @@ def _install_httpx(httpx):
         return fresh,receipt
     def observed(response,receipt,stream_class):
         if receipt is None or receipt.get('free'):return response
-        capture=Capture(receipt,response.status_code)
+        capture=Capture(receipt,response.status_code,headers=dict(response.headers.items()))
         if response.is_stream_consumed:
-            capture.add(response.content);capture.finish()
+            capture.add(response.content);capture.finish(complete=True)
         else:
             capture.encoding=response.headers.get('content-encoding','')
             response.stream=stream_class(response.stream,capture)

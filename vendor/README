@@ -380,3 +380,12 @@ compute and local embedding cost are excluded. Concurrent trials do not support
 an intrinsic latency ranking. Full source and stored-content review remains a
 separate gate after processing; full-week stores cannot feed earlier benchmark
 checkpoints.
+
+Direct accounting also retains exact failed-response bodies under the private
+task state's `response-errors/`, with a SHA-256, byte count and explicit
+body-complete flag. Only allowlisted retry/rate-limit and correlation headers
+are retained; authorization and cookie headers are excluded. Closing or
+interrupting a response does not establish that its body was complete. Native
+SDK retries can replace the original exception, so inspect this preserved
+evidence when diagnosing a rejection. Evidence retention never automatically
+releases a cost hold or treats missing tokens as zero.

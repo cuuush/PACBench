@@ -90,3 +90,16 @@ def test_exact_identity_and_quote_are_both_required():
     assert not verdict_passes(verdict,messages,resolved,version=VERSION)
     row['source_evidence'][0]['source_id']='booking';row['source_evidence'][0]['quote']='A plausible paraphrase.'
     assert not verdict_passes(verdict,messages,resolved,version=VERSION)
+
+
+def test_schema_requires_each_public_input_including_declarative_reports():
+    from pacbench.corpus_epistemic import response_schema
+    messages,resolved,_=fixture()
+    resolved['checks'].insert(0,{'id':'update','at':'2026-10-06T09:00:00-04:00','kind':'behavior',
+        'prompt':'The pickup is Sunday at 11. Please remember it.','session':'old'})
+    schema=response_schema(['update','attendance'])
+    assert schema['properties']['assessments']['minItems']==2
+    assert schema['properties']['assessments']['maxItems']==2
+    rendered=review_prompt(messages,resolved,version=VERSION)
+    assert 'including declarative behavior/report turns' in rendered
+    assert '["update", "attendance"]' in rendered

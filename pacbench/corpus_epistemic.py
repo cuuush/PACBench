@@ -9,7 +9,7 @@ PUBLIC_KEYS=('id','at','prompt','session','kind','trigger','depends_on','require
 STATES={'determinate','bounded_unknown','clarification_warranted','invalid'}
 
 
-def response_schema():
+def response_schema(assessment_ids=None):
     text={'type':'string','minLength':1};texts={'type':'array','items':text,'minItems':1}
     citation={'type':'object','required':['source_id','written_at','quote'],
         'properties':{key:text for key in ['source_id','written_at','quote']}}
@@ -24,6 +24,8 @@ def response_schema():
     top={**{k:{'type':'boolean'} for k in ['consistent','questions_answerable','natural_enough']},
         'issues':{'type':'array','items':text},'notes':text,
         'assessments':{'type':'array','items':{'type':'object','required':list(properties),'properties':properties}}}
+    if assessment_ids is not None:
+        top['assessments'].update(minItems=len(assessment_ids),maxItems=len(assessment_ids))
     return {'type':'object','required':list(top),'properties':top}
 
 
@@ -46,7 +48,10 @@ def prompt(messages,resolved):
                 'eligible_evidence_hash':digest(eligible_evidence(messages,resolved,r['id']))}
                for r in resolved['checks']]
     return (
-        'Independently audit this complete raw personal-message corpus and every public question. '
+        'Independently audit this complete raw personal-message corpus and EVERY public check/input ID. '
+        'Some inputs are declarative reports or instructions rather than grammatical questions. '
+        'Assess every supplied ID, including behavior/report turns; do not omit them. '
+        'Identifiers are labels, never answer hints or evidence; derive classifications from eligible text. '
         'No authored answer keys or expectations are provided. Read actual source identities, bodies, '
         'written and collection times, quoted history, and ordered public inputs. Source after a '
         'question’s collection cutoff cannot support that answer. Resolve each relative date from '
@@ -80,7 +85,8 @@ def prompt(messages,resolved):
         'an invitation is not acceptance; a promise is not completed work; an unexplained name '
         'expansion is not known. Inspect the complete eligible history before concluding a requested '
         'value is absent, and identify that unresolved attribute explicitly.\n'
-        'Return one assessment per question in canonical order. Each has check_id, event_date, '
+        'Return exactly one assessment per supplied public check/input ID in canonical order, '
+        'including declarative behavior/report turns. Each has check_id, event_date, '
         'answerability, assessable (boolean), ambiguous (descriptive boolean), current_state_conflict '
         '(boolean), known_fields (strings; nonempty for assessable questions), unresolved_fields (array of {attribute, missing, '
         'alternatives:[strings]}), reason (nonempty), full_eligible_history_reviewed:true, '
@@ -94,7 +100,7 @@ def prompt(messages,resolved):
         'referent, and the reason must explain the missing information after examining ALL eligible '
         'history. Known fields must remain responsive and source-supported; do not substitute '
         'blanket uncertainty for resolvable facts.\n'
-        'Set questions_answerable true only when every question has an assessable source-derived '
+        'Set questions_answerable true only when every public check/input has an assessable source-derived '
         'boundary (determinate, bounded_unknown or clarification_warranted), consistent true only '
         'for coherent source, and natural_enough true only for plausible source. Report genuine '
         'defects in issues; do not list properly bounded unknowns, resolved corrections or old '
@@ -102,7 +108,8 @@ def prompt(messages,resolved):
         'prevents approval. Return one JSON object conforming to the schema below. Schema fields '
         'describe output types, not desired verdicts or defaults. This review does not replace '
         'independent criterion verification.\n'
-        f'Response schema:\n{json.dumps(response_schema())}\n'
+        f'Required assessment IDs in order:\n{json.dumps([c["id"] for c in resolved["checks"]])}\n'
+        f'Response schema:\n{json.dumps(response_schema([c["id"] for c in resolved["checks"]]))}\n'
         f'Complete raw source records:\n{json.dumps(messages,ensure_ascii=False,sort_keys=True)}\n'
         f'Ordered timestamped public inputs and scope bindings:\n{json.dumps(questions,ensure_ascii=False,sort_keys=True)}')
 

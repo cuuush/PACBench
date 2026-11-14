@@ -12,6 +12,32 @@ from .followups import save
 def read(path):return json.loads(path.read_text())
 
 
+def archive_dead_gateway_controls(root,history):
+    """Archive a zero-byte interrupted native publication only after proving
+    its companion owner records refer to this home and no longer live."""
+    import fcntl
+    from .import_lifecycle import identity
+    home=root/'hermes-home';pidfile=home/'gateway.pid'
+    if not pidfile.exists() or pidfile.stat().st_size:return
+    with (home/'.pacbench-gateway.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        records=[]
+        for name in ('gateway.lock','gateway_state.json'):
+            path=home/name
+            if not path.exists():continue
+            value=read(path)
+            if value.get('kind')!='hermes-gateway' or value.get('hermes_home')!=str(home.resolve()):raise ValueError('Gateway companion ownership differs')
+            live=identity(value['pid'])
+            if live and live['state'] not in {'Z','X'} and int(live['start_ticks'])==value['start_time']:raise ValueError('Native gateway owner is still live')
+            records.append(name)
+        if not records:raise ValueError('Empty gateway record lacks companion ownership evidence')
+        archive=history/'interrupted-gateway-publication';archive.mkdir()
+        for name in ('gateway.pid',*records,'gateway.sock','gateway.sock.path','.gateway-planned-stop.json'):
+            path=home/name
+            if path.exists() or path.is_symlink():shutil.move(path,archive/name)
+        save(archive/'recovery.json',{'classification':'interrupted-zero-byte-publication','companion_owners_dead':True,'native_sessions_changed':False})
+
+
 def mem0_read_only_failed_import(output,root,receipt,batch):
     """Prove this specific SDK failure occurred before any persistent write.
 
@@ -160,6 +186,7 @@ def resume(output):
     for name in ['hermes-home',*stores]:
         if name=='cognee-cache' and not (root/name).exists():continue
         shutil.copytree(root/name,history/name,symlinks=True)
+    archive_dead_gateway_controls(root,history)
     if provider in {'mem0','cognee'}:
         for batch in report['ingestion_schedule']:
             p=root/batch['file']

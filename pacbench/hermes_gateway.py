@@ -91,6 +91,14 @@ def _ready(home: Path, pid: int) -> bool:
     # short-path pointer. Long run homes exceed Unix sun_path limits.
 
 
+def _published_ready(home,pid):
+    """Native metadata files can exist briefly before json.dump finishes."""
+    try:return _ready(home,pid)
+    except GatewayLifecycleError as exc:
+        if isinstance(exc.__cause__,json.JSONDecodeError):return False
+        raise
+
+
 def _control_ready(home: Path, pid: int, python: Path, env: dict, timeout: float) -> bool:
     """Require the same native identify check the CLI uses, in the same clock."""
     code = ("import sys; from pathlib import Path; "
@@ -209,7 +217,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                 if proc.poll() is not None:
                     raise GatewayLifecycleError('Run-owned gateway exited during startup')
                 if (home / 'gateway.pid').exists():
-                    if _ready(home, proc.pid) and _control_ready(
+                    if _published_ready(home, proc.pid) and _control_ready(
                             home, proc.pid, python, env, timeout=min(8., max(.1, deadline-time.monotonic()))):
                         _identity(home, proc.pid)
                         ready = True

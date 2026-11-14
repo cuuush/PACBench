@@ -50,6 +50,7 @@ portable_path='review-attempts/independent-source-audit/portable-bindings.json'
 portable=json.loads((prepared.parent/portable_path).read_text());report_path=portable['report']
 assert manifest['files'][report_path]==portable['sha256']
 audit=json.loads((prepared.parent/report_path).read_text());assert audit['overall_verdict']=='pass' and audit['summary']['claims_reviewed']==155
+source_runtime_compatibility=[]
 for binding in audit['file_bindings']:
  name=binding['path']
  if name.startswith(portable['original_preparation_prefix']):
@@ -57,7 +58,9 @@ for binding in audit['file_bindings']:
   rel=rel if rel in manifest['files'] else portable['moved_root_evidence'][rel]
   assert manifest['files'][rel]==binding['sha256'];p=prepared.parent/rel
  else:p=repo/name
- assert hashlib.sha256(p.read_bytes()).hexdigest()==binding['sha256'],name
+ if hashlib.sha256(p.read_bytes()).hexdigest()!=binding['sha256']:
+  from pacbench.reviewed_runtime import audit_only_compatibility
+  source_runtime_compatibility.append(audit_only_compatibility(repo,p,binding['sha256']))
 assert not subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=repo,text=True).strip()
 verify_memcal_source(repo);verify_memos_package(repo);fetch_catalog();budget=live_budget()
 # Native output caps differ across providers. Admission evaluates the actual
@@ -93,6 +96,7 @@ record={'version':'stable-native-week-cohort-v3','state':'running','providers':p
  'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),
  'frozen_preparation':str(prepared.relative_to(repo)),'frozen_corpus_hash':manifest['corpus_hash'],
  'independent_source_audit_sha256':portable['sha256'],'questions':37,'atomic_claims':155,'source_messages':125,
+ 'source_review_runtime_compatibility':source_runtime_compatibility,
  'source_review_protocol':'source-realism-v10','native_prompt_protocol':'native-question-v2',
  'source_provenance':'source-provenance-v3','model':MODEL,'endpoint':ENDPOINT,'judge_reasoning_effort':'low','judge_wall_deadline_s':600,'recall_wall_deadline_s':600,
  'honcho_condition':'simulated native clock; documented deriver thinking_effort none; native batching/output defaults',

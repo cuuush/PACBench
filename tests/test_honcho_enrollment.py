@@ -240,7 +240,9 @@ def test_two_threads_enroll_in_chronological_order_before_nightly_delivery(tmp_p
     monkeypatch.setattr('provider_adapters.honcho_clock.before_turn',advance)
     result=enrollment.enroll_source(source,root)
     assert result['ready'] is True and len(calls)==2 and len(result['observations'])==2
-    assert advances==[BEFORE,'2026-09-10T22:25:00+00:00']
+    # The first membership is already within its safe prelude. It must not
+    # manufacture a fresh five-second deadline from the current clock value.
+    assert advances==['2026-09-10T22:25:00+00:00']
     assert (source/'messages.json').read_text()==original
     enrollment.verify_before_submission(root,source,[second,message()],HOST)
 

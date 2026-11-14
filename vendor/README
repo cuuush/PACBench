@@ -554,3 +554,14 @@ completion is0.75USD/M. Maximizing over the shared1,050,000-token context with
 Extended cache TTL/retention is refused, catalog tiers are checked, and legacy
 reservations and pricing snapshots are retained unchanged. Source:
 https://openrouter.ai/docs/guides/best-practices/prompt-caching
+
+For this Luna endpoint, the explicit compatibility condition
+`PACBENCH_LUNA_COMPATIBILITY=temperature-omitted-default-v1` omits an unsupported
+native `temperature` field at the guarded transport boundary. This uses the
+provider default; it is not equivalent to temperature0. The ledger retains the
+original native parameter and omission metadata. Routing remains exact with
+`require_parameters=true`; source text and stock integrations stay unchanged.
+A complete, uniquely bound OpenRouter404 `Filter by Parameters` funnel can be
+recorded as `rejected_no_dispatch` by the narrow reconciliation method. Its
+reservation release is audited separately from provider-reported settled charges;
+absence of usage alone never permits release.

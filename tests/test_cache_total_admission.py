@@ -18,3 +18,29 @@ def test_cache_total_future_admission_retains_old_holds_and_rejects_ttl(tmp_path
     with pytest.raises(RuntimeError,match='spending cap'):b.reserve('other-memory',body)
     b.settle(r['id'],200,json.dumps({'model':b.model,'usage':{'cost':'.001','prompt_tokens':2,'completion_tokens':3},'choices':[]}).encode())
     b.reserve('other-memory',body);assert json.loads(path.read_text())['calls'][0]==old
+
+
+def test_predispatch_release_is_evidence_bound_idempotent_and_not_settled_zero(tmp_path):
+    import hashlib
+    path=tmp_path/'ledger.json';cfg=dict(cap='20',model='deepseek/deepseek-v4.1-flash-1017',endpoint='deepinfra/fp8/flex',context_tokens=100,max_completion_tokens=50,prompt_per_million='1',completion_per_million='2')
+    path.write_text(json.dumps(dict(version=1,config=cfg,calls=[])));b=DirectBudget(path)
+    r=b.reserve('unit',{'model':b.model,'messages':[]})
+    error={'error':{'code':404,'message':'No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection','metadata':{'failed_routing_step':'Filter by Parameters','routing_funnel':[{'step':'Filter by Allowed Providers','endpoint_count':1}]}}}
+    raw=json.dumps(error).encode();b.settle(r['id'],404,raw,body_complete=True)
+    before=json.loads(path.read_text())['calls'][0]['accounted'];sha=hashlib.sha256(raw).hexdigest()
+    with pytest.raises(ValueError):b.release_routing_rejection(r['id'],evidence_sha256='0'*64)
+    event=b.release_routing_rejection(r['id'],evidence_sha256=sha)
+    assert event['released_bound_usd']==before and event['provider_reported_cost_usd'] is None
+    assert b.release_routing_rejection(r['id'],evidence_sha256=sha)==event
+    state=json.loads(path.read_text());assert len(state['reservation_releases'])==1
+    assert state['calls'][0]['state']=='rejected_no_dispatch' and state['calls'][0]['accounted']=='0'
+
+
+def test_explicit_temperature_omission_preserves_native_parameter_evidence(tmp_path,monkeypatch):
+    path=tmp_path/'ledger.json';cfg=dict(cap='20',model='openai/gpt-6-luna',endpoint='amazon-bedrock/global',context_tokens=1050000,max_completion_tokens=128000,prompt_per_million='.45',completion_per_million='.75')
+    path.write_text(json.dumps(dict(version=1,config={'cap':'20'},route_configs={'luna-bedrock-global':cfg},calls=[])))
+    monkeypatch.setenv('PACBENCH_LUNA_COMPATIBILITY','temperature-omitted-default-v1')
+    b=DirectBudget(path,profile='luna-bedrock-global');r=b.reserve('unit-memory',{'model':b.model,'temperature':0,'messages':[]})
+    assert 'temperature' not in r['request']
+    row=json.loads(path.read_text())['calls'][0]
+    assert row['native_request_parameters']['temperature']==0 and row['omitted_unsupported_parameters']==['temperature']

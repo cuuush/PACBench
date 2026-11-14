@@ -257,6 +257,45 @@ class DirectBudget:
                     'cost_source':'total_cost','token_source':'native_tokens_prompt/native_tokens_completion'})
             return dict(row)
 
+    def release_routing_rejection(self,identifier,*,evidence_sha256):
+        """Release only an authenticated complete OpenRouter pre-dispatch rejection.
+
+        This is not a provider-reported zero charge. Original holds and the full
+        release evidence remain in the row and append-only release event list.
+        """
+        with self.locked() as state:
+            row=next(r for r in state['calls'] if r['id']==identifier)
+            self.check_row_profile(row)
+            if row['state']=='rejected_no_dispatch':
+                if row['no_dispatch_release']['evidence_sha256']!=evidence_sha256:raise ValueError('Release evidence changed')
+                return dict(row['no_dispatch_release'])
+            proof=row.get('private_error_body',{})
+            if (row['state']!='uncertain' or row.get('http_status')!=404 or not row.get('finished') or
+                not proof.get('body_complete') or proof.get('sha256')!=evidence_sha256 or
+                row.get('upstream_request_id') or row.get('authorized_retry') or
+                not row.get('request_sha256') or row.get('transport')!=VERSION):
+                raise ValueError('No uniquely bound terminal routing rejection')
+            path=(self.path.parent/proof['relative_path']).resolve()
+            if not path.is_relative_to(self.path.parent.resolve()):raise ValueError('Evidence path escaped task state')
+            raw=path.read_bytes()
+            if hashlib.sha256(raw).hexdigest()!=evidence_sha256:raise ValueError('Routing evidence hash differs')
+            envelope=json.loads(raw);error=envelope.get('error',{});metadata=error.get('metadata',{})
+            if (envelope.get('id') or envelope.get('usage') or error.get('code')!=404 or
+                error.get('message')!='No endpoints found that can handle the requested parameters. To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection' or
+                metadata.get('failed_routing_step')!='Filter by Parameters' or
+                not metadata.get('routing_funnel') or metadata.get('provider_name') or metadata.get('raw')):
+                raise ValueError('Rejection is not proven pre-dispatch')
+            before=sum(money(r['accounted']) for r in state['calls']);held=money(row['accounted'])
+            event={'id':str(uuid.uuid4()),'reservation_id':identifier,'at':now(),
+                'reason':'OpenRouter parameter filter rejected before model dispatch',
+                'evidence_sha256':evidence_sha256,'released_bound_usd':str(held),
+                'original_state':row['state'],'original_accounted_usd':row['accounted'],
+                'exposure_before_usd':str(before),'exposure_after_usd':str(before-held),
+                'provider_reported_cost_usd':None,'classification':'rejected_no_dispatch'}
+            row.update(state='rejected_no_dispatch',accounted='0',no_dispatch_release=event)
+            state.setdefault('reservation_releases',[]).append(event)
+            return dict(event)
+
     def reserve(self,project,body):
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
             raise ValueError('Invalid accounting project')
@@ -281,6 +320,14 @@ class DirectBudget:
                     not isinstance(content,list) or any(not isinstance(x,dict) or x.get('type')!='text' or
                         not isinstance(x.get('text'),str) for x in content)):
                 raise ValueError('Only text messages supported')
+        native_body=body
+        compatibility=os.environ.get('PACBENCH_LUNA_COMPATIBILITY')
+        omitted=[]
+        if compatibility:
+            if compatibility!='temperature-omitted-default-v1' or self.profile_name!='luna-bedrock-global':
+                raise ValueError('Unknown explicit Luna compatibility condition')
+            if 'temperature' in body:
+                omitted=['temperature'];body={k:v for k,v in body.items() if k!='temperature'}
         maximum=body.get('max_completion_tokens',body.get('max_tokens',self.config['max_completion_tokens']))
         if ('max_completion_tokens' in body and 'max_tokens' in body or type(maximum) is not int or
                 not 0<maximum<=self.config['max_completion_tokens']):
@@ -368,8 +415,10 @@ class DirectBudget:
                 'http_status':None,'error_label':None,
                 'route_profile':self.profile_name,'endpoint':self.endpoint,'pricing_snapshot':dict(self.config),
                 'reservation_policy':policy,
-                'native_request_parameter_keys':sorted(body),
-                'native_request_parameters':{k:body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in body},
+                'compatibility_condition':compatibility,'omitted_unsupported_parameters':omitted,
+                'effective_request_sha256':fingerprint,
+                'native_request_parameter_keys':sorted(native_body),
+                'native_request_parameters':{k:native_body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in native_body},
                 'parameter_observation_scope':'Native input before route/price enforcement; absence is not a provider default. completion_bound_tokens is an accounting bound, not an injected output limit.'}
             if retry_of is not None:
                 grant=retry_of['authorized_retry'];grant['used_by']=row['id']

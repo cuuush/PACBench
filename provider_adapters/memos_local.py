@@ -71,6 +71,9 @@ def start(root,env,model,base,key):
         time.sleep(.2)
     if health is None:
         stop();raise RuntimeError('Native MemOS HTTP service failed health check; inspect private log')
+    if health.get('ok') is False:
+        save(root/'native-startup-failure.json',{'state':'native-health-failed','health':health})
+        stop();raise RuntimeError('Native MemOS reported unhealthy; no questions may run')
     from pacbench.prefetch_provenance import VERSION
     declaration={'protocol':VERSION,'provider':'memos','state':'source',
         'reason':'This arm natively imports original text as raw document traces; generated extraction is not claimed'}

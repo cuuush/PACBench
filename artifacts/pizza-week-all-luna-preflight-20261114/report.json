@@ -1,0 +1,260 @@
+{
+  "version": "scored-week-budget-plan-v1",
+  "state": "blocked-under-existing20USD-cap-no-inference",
+  "paid_calls": 0,
+  "sources": 125,
+  "providers": 9,
+  "questions_each": 37,
+  "answer_targets": 333,
+  "criteria_targets": 1395,
+  "routes": {
+    "native_memory": "openai/gpt-6-luna @ amazon-bedrock/global",
+    "hermes_and_judge": "openai/gpt-6-luna @ amazon-bedrock/global",
+    "judge_effort": "low",
+    "judge_protocol": "semantic-judge-date-scope-v2",
+    "prompt_protocol": "native-question-v2"
+  },
+  "samples": {
+    "driver_turn": {
+      "n": 122,
+      "mean": "0.00330835",
+      "p90": "0.0063957",
+      "max": "0.0239653"
+    },
+    "driver_calls_per_turn": {
+      "n": 122,
+      "mean": "3.147540983606557377049180328",
+      "p90": "5",
+      "max": "9"
+    },
+    "judge_request": {
+      "n": 115,
+      "mean": "0.003793726956521739130434782609",
+      "p90": "0.0063701",
+      "max": "0.0093335"
+    },
+    "hypothetical_luna_native_during_turn": {
+      "n": 120,
+      "mean": "0.001465339166666666666666666667",
+      "p90": "0.0050854",
+      "max": "0.0236819"
+    }
+  },
+  "excluded_driver_turns": 2,
+  "excluded_native_windows": 4,
+  "planning_scenarios_usd": {
+    "all_luna": true,
+    "repricing_scope": "For all-Luna, existing DeepSeek Hermes/judge token counts are repriced at Luna base rates; not observed Luna scoring charges. Cache/long-context and model-dependent output variation can change actuals.",
+    "mean_one_pass": "3.018009944021739130434782609",
+    "stress_two_turns_p90_three_imports": "12.384080325",
+    "formula_low": "Measured Luna full import +333*(mean priced Hermes turn +mean priced judgment +hypothetical Luna-priced native retrieval window)",
+    "formula_high": "3*measured Luna full import +666*(p90 priced Hermes turn +p90 priced judgment +p90 hypothetical Luna retrieval)",
+    "limits": "Planning scenarios, not confidence intervals or guaranteed completion bounds. Native retrieval tokens came from DeepSeek and Luna can differ. Native background calls outside answer windows, unobserved failed calls, long reasoning tails and additional retries may exceed scenarios. Local compute excluded. Historical liabilities are separate and retained."
+  },
+  "cumulative_vs_inflight": {
+    "measured_clean_import_actual_usd": "0.165060375",
+    "uncapped_luna_single_reservation_usd": "0.51090000",
+    "uncapped_answer_judge_reservation_usd": "0.51090000",
+    "two_native_plus_one_answer_reservations_usd": "1.53270000",
+    "explanation": "Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1."
+  },
+  "financial_plan": {
+    "unchanged_cap_usd": "20",
+    "existing_exposure_usd": "19.503585917232",
+    "available_usd": "0.496414082768",
+    "proposed_new_cohort_liability_ceiling_usd": "14",
+    "additional_headroom_for_envelope_usd": "13.503585917232",
+    "minimum_total_cap_for_envelope_usd": "33.503585917232",
+    "suggested_approval_cap_usd": "34",
+    "single_luna_admission_deficit_usd": "0.014485917232",
+    "decision": "Proposed aggregate capUSD34, with a separate new cohort liability ceilingUSD14; retain all historic liabilities. This is a financial stop envelope, not guaranteed full completion. No cap or private authorization changed."
+  },
+  "execution_plan": [
+    "Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.",
+    "Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.",
+    "Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.",
+    "Use one shared cohort ID with a liability ceilingUSD14; unchanged aggregate cap remains independently binding.",
+    "Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.",
+    "Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly."
+  ],
+  "ledger_unchanged": true,
+  "sensitive_data_included": false,
+  "all_luna_condition": "luna-all-roles-v1",
+  "current_status": {
+    "scored_questions_run": 0,
+    "judges_run": 0,
+    "new_inference_charges_usd": "0",
+    "scores": null,
+    "coverage_completed": 0,
+    "coverage_target": 333,
+    "private_authorization_or_cap_changed": false,
+    "historical_holds_released": false,
+    "fixture_changed": false,
+    "new_token_caps": false,
+    "native_settings_changed": false,
+    "luna_scoring_scope": "Explicit scope-registration code tested; real private grant remains import-only while funding is blocked. Model-role authorization received, financial increase not received.",
+    "live_scoring_validation": "Not performed; offline schema/score-shape tests do not prove live Luna judgment accuracy or output validity."
+  },
+  "phase_estimates_usd": {
+    "ingest_processing": {
+      "reference": "0.165060375",
+      "stress_allowance": "0.495181125"
+    },
+    "hermes_answering": {
+      "repriced_mean_one_pass": "1.10168055",
+      "repriced_two_turns_p90": "4.2595362"
+    },
+    "judge": {
+      "repriced_mean_one_pass": "1.263311076521739130434782609",
+      "repriced_two_turns_p90": "4.2424866"
+    },
+    "native_retrieval": {
+      "repriced_mean_one_pass": "0.4879579425000000000000000001",
+      "repriced_two_turns_p90": "3.3868764"
+    }
+  },
+  "funding_explanation": "The14USD cohort ceiling rounds up the12.384080325USD stress scenario plus1.532700USD illustrative overlapping reservation buffer. It is a conservative financial stop envelope, not a proven bound guaranteeing333 completed answers. Existing19.503585917232USD exposure includes retained historical uncertainties/allocations, not19.50USD settled spend. No account top-up proposed or performed.",
+  "provider_statuses": [
+    {
+      "provider": "memcal",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "mem0",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "hindsight",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "supermemory",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "honcho",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "openviking",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "reme",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "cognee",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    },
+    {
+      "provider": "memos",
+      "state": "not-started-budget-blocked",
+      "answer_targets": 37,
+      "answers_completed": 0,
+      "quality_score": null,
+      "new_run_wall_s": null,
+      "new_inference_calls": 0,
+      "new_inference_charge_usd": "0"
+    }
+  ],
+  "validation": {
+    "source_revision": "2873b24191c49e8567c17474ff2024d536dde513",
+    "tests_passed": 1476,
+    "tests_skipped": 7,
+    "subtests_passed": 22,
+    "test_wall_s": 69.02,
+    "targeted_tests_passed": 60,
+    "structured_judge": "Synthetic ModelClient request verifies exact Luna model, JSON object response format, unchanged low reasoning and no new token cap; unchanged native judge parser accepts full date-scoped verdict/recovery/diagnostic shape. Existing malformed/retry/scoring regressions pass. No claim of live Luna judging quality.",
+    "chronological_visibility": "Existing333-target regression passes with frozen125-message fixture; no future leakage, final gate contains all125 unique IDs.",
+    "role_plans_verified": 9,
+    "real_preflight": {
+      "state": "blocked-cohort-envelope-unfunded",
+      "paid_calls": 0,
+      "available_usd": "0.496414082768",
+      "cohort_accounted_usd": "0",
+      "remaining_envelope_usd": "14",
+      "additional_headroom_usd": "13.503585917232",
+      "funded": false,
+      "role_routes": {
+        "condition": "luna-all-roles-v1",
+        "memory_provider": {
+          "model": "openai/gpt-6-luna",
+          "canonical_slug": "openai/gpt-6-luna-20260922",
+          "endpoint": "amazon-bedrock/global",
+          "provider_name": "Amazon Bedrock",
+          "quantization": "unknown",
+          "service_tier": null
+        },
+        "hermes": {
+          "model": "openai/gpt-6-luna",
+          "canonical_slug": "openai/gpt-6-luna-20260922",
+          "endpoint": "amazon-bedrock/global",
+          "provider_name": "Amazon Bedrock",
+          "quantization": "unknown",
+          "service_tier": null
+        },
+        "judge": {
+          "model": "openai/gpt-6-luna",
+          "canonical_slug": "openai/gpt-6-luna-20260922",
+          "endpoint": "amazon-bedrock/global",
+          "provider_name": "Amazon Bedrock",
+          "quantization": "unknown",
+          "service_tier": null
+        },
+        "selection": "Persistent memory/driver/judge accounting capability, including native recall and background calls; never inferred from wall-clock phase."
+      }
+    },
+    "real_preflight_exit": 2,
+    "paid_calls": 0,
+    "private_scope_change_executed": false
+  }
+}

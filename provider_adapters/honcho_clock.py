@@ -231,6 +231,25 @@ def citation_coverage(citations, acknowledgments):
     return seen
 
 
+def cleaned_queue_coverage(evidence, history, *, retention_seconds, not_before=None):
+    """An enrolled row disappearing inside error retention is native success.
+
+    This is independent of extraction: a successful batch need not cite every
+    acknowledgment. Never synthesize processed=True on the original witness.
+    """
+    if not history or retention_seconds <= 0 or not_before is None:return set()
+    final=history[-1]
+    if any(final.get(k)!=0 for k in ('claims','pending','embeddings')) or final.get('errors'):return set()
+    # Chronological enrollment is after the original source time. This lower
+    # bound also covers time before the first poll; a recently observed old
+    # error must never become a successful-cleanup witness.
+    start=datetime.fromisoformat(not_before)
+    end=datetime.fromisoformat(final['db_now'])
+    if not 0 <= (end-start).total_seconds() < retention_seconds:return set()
+    remaining={r['queue_id'] for r in final.get('messages',[])}
+    return {r['id'] for r in evidence if r.get('has_error') is False and r['queue_id'] not in remaining}
+
+
 def _docker(config, *args):
     environment = {k:v for k,v in os.environ.items() if k not in {
         'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
@@ -526,12 +545,17 @@ def wait_for_batch(root, acknowledgments, roles):
     if not expected or len(observers) != 1:
         raise RuntimeError('Cannot establish native source enrollment')
     observer = next(iter(observers))
-    evidence = {}; history = []; previous = None; citations=[]
+    evidence = {}; history = []; previous = None; citations=[];cleaned=set()
+    settings_path=root/'native-processing-settings.json'
+    retention=(json.loads(settings_path.read_text())['deriver'].get('QUEUE_ERROR_RETENTION_SECONDS',0)
+               if settings_path.exists() else 0)
     def receipt(ready, reason, health):
         return {'ready': ready, 'interface': 'native messages + simulated wall clock',
                 'result': acknowledgments, 'processing_status': history,
                 'message_witnesses': list(evidence.values()), 'clock_protocol': VERSION,
                 **({'completion_evidence':{'protocol':'honcho-native-conclusion-source-v1','citations':citations}} if citations else {}),
+                **({'queue_cleanup_evidence':{'protocol':'honcho-enrolled-queue-success-cleanup-v1',
+                    'retention_seconds':retention,'message_ids':sorted(cleaned)}} if cleaned else {}),
                 'source_error_scope':'submitted-source-sessions-v1',
                 'model_health': health, 'readiness': reason}
     deadline = time.monotonic() + 900
@@ -564,6 +588,10 @@ def wait_for_batch(root, acknowledgments, roles):
             citations=conclusion_witnesses(root,sorted(expected),observer)
             covered=citation_coverage(citations,acknowledgments)
             covered.update(r['id'] for r in evidence.values() if r['processed'] and not r['has_error'])
+            source_times=[m.get('created_at') for a in acknowledgments for m in a['messages']]
+            lower_bound=min(source_times,key=datetime.fromisoformat) if source_times and all(source_times) else None
+            cleaned=cleaned_queue_coverage(list(evidence.values()),history,retention_seconds=retention,not_before=lower_bound)
+            covered.update(cleaned)
             complete=covered==expected
         # Preserve a completion witness before simulated cleanup can remove it.
         if complete and not any(state[k] for k in ('claims', 'pending', 'embeddings')):
@@ -635,6 +663,17 @@ def audit_evidence(root, declared):
         previous_real = instant(startup['real_at'])
         steps = (root/'provider-clock-steps.jsonl').read_text().splitlines()
         check(bool(steps), 'Honcho clock has no observed advances')
+        reopen=root/'diagnostic-store-reopen.json'
+        if reopen.exists() and json.loads(reopen.read_text()).get('scored') is True:
+            # Startup now observes the reopened service, while the append-only
+            # step log still begins at the original service. Anchor that old
+            # prefix to its actual DB observation, not the later startup time.
+            first=json.loads(steps[0]);initial=instant(config['initial_at'])
+            origin=instant(first['from']);origin_real=instant(first['real_at'])
+            check(initial<=origin<=provider_at and origin_real<=instant(startup['real_at']) and
+                  abs((instant(first['pre_step']['db_now'])-origin).total_seconds())<=3,
+                  'Honcho retained clock prefix lacks its original native DB origin')
+            previous,previous_real=origin,origin_real
         for line in steps:
             step = json.loads(line)
             if step.get('kind') == 'benchmark-overhead':

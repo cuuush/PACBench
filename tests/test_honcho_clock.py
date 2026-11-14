@@ -385,3 +385,43 @@ def test_persistent_citation_audit_needs_matching_source_observer_and_idle_state
     assert audit_honcho_receipt([source],result)
     result['processing_status'][0]['pending']=0;citation['observer']='wrong'
     assert audit_honcho_receipt([source],result)
+
+
+def test_cleaned_enrolled_queue_is_success_only_inside_retention():
+    row={'id':'native','queue_id':4,'processed':False,'has_error':False}
+    history=[idle_snapshot(db_now='2026-10-12T07:00:00+00:00',pending=1,messages=[row]),
+             idle_snapshot(db_now='2026-10-12T07:31:00+00:00')]
+    assert clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")=={'native'}
+    assert row['processed'] is False
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=1800,not_before="2026-10-12T07:00:00+00:00")
+    history[-1]['pending']=1
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")
+    history[-1]['pending']=0;history[-1]['errors']=[{'id':4}]
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")
+
+
+def test_cleanup_does_not_confuse_expired_error_with_recent_observation():
+    row={'id':'native','queue_id':4,'processed':False,'has_error':False}
+    history=[idle_snapshot(db_now='2026-10-12T07:00:00+00:00',messages=[row]),
+             idle_snapshot(db_now='2026-10-12T07:00:01+00:00')]
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before='2026-09-01T07:00:00+00:00')
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000)
+
+
+def test_clock_reopen_audits_old_steps_against_original_db_origin(tmp_path):
+    from pacbench.followups import save
+    original=datetime(2026,10,5,tzinfo=timezone.utc);later=original+timedelta(hours=1)
+    real=datetime(2026,11,14,tzinfo=timezone.utc)
+    save(tmp_path/'provider-clock.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+        'initial_at':original.isoformat(),'wall_speed':1,'monotonic':'real','gateway_clock':'real',
+        'source_timestamps':'unchanged','native_batching':'unchanged','python_clock':{'os_clock':'real','tls_clock':'real'},'processes':{}})
+    save(tmp_path/'provider-clock-startup.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+        'provider_at':later.isoformat(),'api_date':later.isoformat(),'db_at':later.isoformat(),
+        'real_at':(real+timedelta(minutes=1)).isoformat(),'monotonic':'real','python_adoptions':{}})
+    save(tmp_path/'diagnostic-store-reopen.json',{'scored':True})
+    step={'version':clock.VERSION,'from':original.isoformat(),'to':later.isoformat(),'target':later.isoformat(),
+        'real_at':real.isoformat(),'db_after':later.isoformat(),'pre_step':idle_snapshot(db_now=original.isoformat()),'horizon':later.isoformat()}
+    p=tmp_path/'provider-clock-steps.jsonl';p.write_text(json.dumps(step)+'\n')
+    assert clock.audit_evidence(tmp_path,clock.VERSION)==[]
+    step['pre_step']['db_now']=(original-timedelta(minutes=1)).isoformat();p.write_text(json.dumps(step)+'\n')
+    assert clock.audit_evidence(tmp_path,clock.VERSION)

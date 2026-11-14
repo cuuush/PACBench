@@ -12,6 +12,45 @@ from .followups import save
 def read(path):return json.loads(path.read_text())
 
 
+def honcho_completed_cleanup_import(root,receipt):
+    """Recover an observer timeout from recorded native enrollment/cleanup.
+
+    Retention is reconstructed from the same disabled-TOML configuration and
+    inherited environment, then checked again on actual native reopen. Record
+    that distinction rather than presenting a historical config observation.
+    """
+    import subprocess,copy
+    from provider_adapters.honcho_clock import cleaned_queue_coverage
+    if any('QUEUE_ERROR_RETENTION' in k for k in os.environ):
+        raise ValueError('Historical native retention override cannot be reconstructed')
+    repo=Path(__file__).resolve().parents[1];native=repo/'vendor/honcho-local'
+    env={**os.environ,'PYTHONPATH':str(native),'HONCHO_CONFIG_TOML_DISABLED':'1'}
+    p=subprocess.run([str(native/'.venv/bin/python'),'-c',
+        'from src.config import settings; print(settings.DERIVER.QUEUE_ERROR_RETENTION_SECONDS)'],
+        env=env,capture_output=True,text=True,check=True,timeout=30)
+    retention=int(p.stdout.strip().splitlines()[-1]);r=receipt['result']
+    if r.get('readiness')!='Real processing deadline exceeded; missing witnesses are not success':
+        raise ValueError('Not a completed-queue observer timeout')
+    from datetime import datetime
+    lower_bound=min((m['created_at'] for a in r['result'] for m in a['messages']),key=datetime.fromisoformat)
+    ids=cleaned_queue_coverage(r['message_witnesses'],r['processing_status'],retention_seconds=retention,not_before=lower_bound)
+    expected={m['id'] for a in r['result'] for m in a['messages']}
+    if ids!=expected:raise ValueError('Native successful cleanup does not cover all accepted messages')
+    log=(root/'honcho-api.log').read_text()
+    if '"DELETE ' in log or '"PATCH ' in log:raise ValueError('Native destructive API history requires separate review')
+    recovered=copy.deepcopy(receipt);recovered.update(ready=True,state='ready',observer_recovery_protocol='honcho-completed-queue-observer-timeout-v1')
+    recovered['result'].update(ready=True,readiness='Recorded enrolled native rows successfully cleaned within error retention',
+        queue_cleanup_evidence={'protocol':'honcho-enrolled-queue-success-cleanup-v1','retention_seconds':retention,'message_ids':sorted(ids)})
+    proof={'protocol':'honcho-completed-queue-observer-timeout-v1','original_sha256':hashlib.sha256(json.dumps(receipt,sort_keys=True).encode()).hexdigest(),
+        'native_source_resubmissions':0,'native_queue_edits':0,'retention_seconds':retention,
+        'retention_evidence':'Same inherited environment has no retention override; disabled-TOML native config reconstructed; actual reopen revalidates the default',
+        'native_source_sha256':{name:hashlib.sha256((native/name).read_bytes()).hexdigest() for name in
+            ['src/reconciler/queue_cleanup.py','src/config.py']},
+        'api_log_sha256':hashlib.sha256(log.encode()).hexdigest(),
+        'deriver_log_sha256':hashlib.sha256((root/'honcho-deriver.log').read_bytes()).hexdigest()}
+    return recovered,proof
+
+
 def finalize_audit(output):
     """Offline finalization from the actual complete evaluation and smoke proof."""
     from .native_audit import audit
@@ -146,6 +185,8 @@ def verify_prefix(output,report,checks,*,allow_complete=False):
         p=root/batch['file']
         if not p.exists():gap=True;continue
         receipt=read(p);source=output/'sources'/batch['id']/'messages.txt'
+        if provider=='honcho' and receipt.get('ready') is False:
+            receipt,_=honcho_completed_cleanup_import(root,receipt)
         if provider in {'mem0','cognee'} and receipt.get('ready') is False:
             (mem0_read_only_failed_import if provider=='mem0' else cognee_read_only_failed_import)(output,root,receipt,batch);gap=True;continue
         if (gap or receipt.get('ready') is not True or receipt.get('state')!='ready' or
@@ -154,6 +195,11 @@ def verify_prefix(output,report,checks,*,allow_complete=False):
             raise ValueError('Partial or changed native ingest cannot be resumed')
         completed.append(batch['id'])
     next_row=checks[min(len(prefix),len(checks)-1)][0]
+    if provider=='honcho':
+        from provider_adapters.honcho_clock import load
+        from datetime import datetime
+        if load(root)[0].now()>=datetime.fromisoformat(next_row['at']):
+            raise ValueError('Retained Honcho clock has reached the next unanswered checkpoint')
     allowed={b['id'] for b in ready_sources(report['ingestion_schedule'],provider,next_row['at'],report['process_timezone'])}
     if not set(completed)<=allowed:raise ValueError('Retained store contains future sources')
     for row,contract,_ in checks[len(prefix):]:
@@ -181,7 +227,7 @@ def resume(output,*,terminal_only=False):
     from .import_lifecycle import scan
     from .openrouter_route import MODEL
     output=output.resolve();report=read(output/'summary.json');provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
-    if provider not in {'memos','supermemory','openviking','hindsight','mem0','cognee','memcal'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
+    if provider not in {'memos','supermemory','openviking','hindsight','mem0','cognee','memcal','honcho'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
     if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
@@ -209,10 +255,28 @@ def resume(output,*,terminal_only=False):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
     # Quiescent native stores and Hermes session DBs retain an immutable backup.
     stores={'memos':['memos-home'],'supermemory':['supermemory-data'],'openviking':['openviking-data'],'hindsight':['fallback-home'],'mem0':['qdrant','mem0-state'],
-        'cognee':['cognee-data','cognee-system','cognee-cache'],'memcal':['memcal-home']}[provider]
+        'cognee':['cognee-data','cognee-system','cognee-cache'],'memcal':['memcal-home'],
+        'honcho':['honcho-db','provider-clock']}[provider]
     for name in ['hermes-home',*stores]:
         if name=='cognee-cache' and not (root/name).exists():continue
+        if provider=='honcho' and name=='honcho-db':
+            import subprocess
+            from provider_adapters.honcho_local import PGVECTOR_IMAGE
+            docker_env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+            with (history/'honcho-db.tar').open('xb') as archive:
+                subprocess.run(['docker','--host=unix:///var/run/docker.sock','run','--rm','--user','0:0',
+                    '-v',str(root/name)+':/data:ro','--entrypoint','tar',PGVECTOR_IMAGE,'-C','/data','-cf','-','.'],
+                    stdout=archive,stderr=subprocess.PIPE,env=docker_env,check=True,timeout=120)
+            continue
         shutil.copytree(root/name,history/name,symlinks=True)
+    if provider=='honcho':
+        for batch in report['ingestion_schedule']:
+            p=root/batch['file']
+            if p.exists() and read(p).get('ready') is False:
+                recovered,proof=honcho_completed_cleanup_import(root,read(p))
+                archive=history/'native-completion-recovery';archive.mkdir(exist_ok=True)
+                shutil.copyfile(p,archive/p.name);save(archive/(p.stem+'.proof.json'),proof)
+                save(p,recovered)
     archive_dead_gateway_controls(root,history)
     if terminal_only and (root/'terminal-processing').exists():shutil.move(root/'terminal-processing',history/'prior-terminal-processing')
     if provider in {'mem0','cognee'}:
@@ -233,6 +297,10 @@ def resume(output,*,terminal_only=False):
         'memos_reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION'),'effective_output_ceiling_condition':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS')})
     env=None;result=report['results'][0]
     try:
+        if provider=='honcho':
+            effort=report['provider_generation_conditions']['honcho']['deriver_thinking_effort']
+            if effort!='none':raise ValueError('Unsupported retained Honcho inference condition')
+            os.environ['DERIVER_MODEL_CONFIG__THINKING_EFFORT']=effort
         env=provision(root,provider,MODEL,local_timezone=report['process_timezone'],resume=True,inference_route='openrouter')
         env.update(PACBENCH_STOP_FILE=str(stop),PACBENCH_CLOCK_CONTEXT_PROTOCOL=report['clock_context_protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'))
         if provider=='openviking':

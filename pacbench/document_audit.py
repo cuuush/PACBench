@@ -232,6 +232,16 @@ def audit_honcho_receipt(batch, result, previous_work=None, previous_rosters=Non
                 return [e for e in failures if e.get('session_name') is None or e['session_name'] in sessions]
             return failures
         covered={r.get('id') for r in witnesses if r.get('processed') is True and r.get('has_error') is False}
+        cleanup=result.get('queue_cleanup_evidence')
+        if cleanup is not None:
+            from provider_adapters.honcho_clock import cleaned_queue_coverage
+            try:
+                if cleanup['protocol']!='honcho-enrolled-queue-success-cleanup-v1':raise ValueError('Unsupported cleanup proof')
+                lower_bound=min((m['created_at'] for a in result['result'] for m in a['messages']),key=datetime.fromisoformat)
+                cleaned=cleaned_queue_coverage(witnesses,changes,retention_seconds=cleanup['retention_seconds'],not_before=lower_bound)
+                if sorted(cleaned)!=cleanup['message_ids']:raise ValueError('Cleanup coverage differs')
+                covered.update(cleaned)
+            except (ValueError,KeyError,TypeError):errors.append('Honcho successful native queue cleanup is unproven')
         proof=result.get('completion_evidence')
         if proof is not None:
             from provider_adapters.honcho_clock import citation_coverage
@@ -339,7 +349,9 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
         check(record['provider']==arm.name and record['version']==version and record['at']==at and record['source_ids']==ids,'ingestion acknowledgement binding mismatch')
         check(record['document_sha256']==meta['document_sha256'],'provider document hash mismatch')
         check(record['hermes_ingestion_turns']==0,'Hermes used for ingestion')
-        check(record['ready'] is True and record['state']=='ready' and record.get('returncode')==0,'native processing did not complete')
+        recovered_honcho=(arm.name=='honcho' and record.get('observer_recovery_protocol')=='honcho-completed-queue-observer-timeout-v1'
+            and record.get('returncode')==1 and record.get('result',{}).get('queue_cleanup_evidence',{}).get('protocol')=='honcho-enrolled-queue-success-cleanup-v1')
+        check(record['ready'] is True and record['state']=='ready' and (record.get('returncode')==0 or recovered_honcho),'native processing did not complete')
         check(record['processing_at']==processing_at(at,arm.name,summary['process_timezone'] or 'America/New_York',version=version),'native processing clock mismatch')
         if arm.name=='honcho':
             membership = summary.get('provider_membership_protocols',{}).get('honcho')

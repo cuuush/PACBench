@@ -185,9 +185,13 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
     dbdir.mkdir(exist_ok=resume)
     clock = None
     clock_args = []
-    if simulated_at is not None:
-        if resume:
-            raise ValueError('A simulated-clock store needs its own verified resume protocol')
+    if resume and (root/'provider-clock.json').exists():
+        from .honcho_clock import load, docker_clock_args
+        clock,_ = load(root)
+        if simulated_at is not None:
+            raise ValueError('Retained Honcho clocks cannot be reinitialized')
+        clock_args = docker_clock_args(clock)
+    elif simulated_at is not None:
         from .honcho_clock import create, docker_clock_args
         clock = create(root, simulated_at)
         clock_args = docker_clock_args(clock)
@@ -259,7 +263,8 @@ for m in models:
 fields=type(settings.DERIVER).model_fields
 processing={name:getattr(settings.DERIVER,name) for name in (
     'FLUSH_ENABLED','REPRESENTATION_BATCH_WORK_UNIT_TARGET_TOKENS',
-    'REPRESENTATION_BATCH_TARGET_INPUT_TOKENS','REPRESENTATION_BATCH_MAX_AGE_SECONDS')}
+    'REPRESENTATION_BATCH_TARGET_INPUT_TOKENS','REPRESENTATION_BATCH_MAX_AGE_SECONDS',
+    'QUEUE_ERROR_RETENTION_SECONDS')}
 assert all(value==fields[name].default for name,value in processing.items())
 assert settings.LLM.DEFAULT_MAX_TOKENS==type(settings.LLM).model_fields['DEFAULT_MAX_TOKENS'].default
 deriver_limit=settings.DERIVER.MODEL_CONFIG.max_output_tokens
@@ -283,6 +288,11 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
     validated=subprocess.run([str(python),'-c',guard],env=child,cwd=root,capture_output=True,text=True,timeout=30)
     if validated.returncode:raise RuntimeError('Honcho model configuration validation failed: '+validated.stderr.replace(key,'<redacted>'))
     processing=json.loads(validated.stdout.strip().splitlines()[-1])
+    if resume:
+        prior=previous['processing']
+        if any(processing.get(k)!=v for k,v in prior.items() if k!='deriver') or any(
+                processing['deriver'].get(k)!=v for k,v in prior['deriver'].items()):
+            raise ValueError('Retained Honcho native processing conditions changed')
     save(root/'native-processing-settings.json',processing)
     deadline=time.monotonic()+30
     while time.monotonic()<deadline:
@@ -290,7 +300,15 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         if ready.returncode==0:break
         time.sleep(.2)
     if resume:
-        original=json.loads((root/'ingestion.json').read_text())
+        daily=sorted((root/'ingestion').glob('*.json'))
+        if daily:
+            originals=[json.loads(p.read_text()) for p in daily]
+            if any(d.get('ready') is not True for d in originals):
+                raise ValueError('Honcho retained daily imports require verified completion')
+            acknowledgments=[ack for d in originals for ack in d['result']['result']]
+        else:
+            original=json.loads((root/'ingestion.json').read_text())
+            acknowledgments=original['result']['result']
         sql="""SELECT COALESCE(json_agg(json_build_object('id',public_id,'session_id',session_name,
             'peer_id',peer_name,'content',content,'created_at',created_at,'metadata',metadata)),'[]'::json)
             FROM messages WHERE session_name LIKE 'source-%'"""
@@ -298,10 +316,10 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
                          env=docker_env,capture_output=True,text=True,timeout=15)
         if p.returncode:raise RuntimeError('Cannot verify persisted Honcho source messages')
         actual=json.loads(p.stdout)
-        ids=verify_persisted_messages(original['result']['result'],actual)
-        save(root/'diagnostic-store-reopen.json',{'scored':False,'verified_source_messages':len(actual),
+        ids=verify_persisted_messages(acknowledgments,actual)
+        save(root/'diagnostic-store-reopen.json',{'scored':bool(daily),'verified_source_messages':len(actual),
             'original_native_ids':ids,'source_resubmissions':0,'queue_edits':0,
-            'scope':'Diagnostic store reopen only; no scored benchmark resume protocol'})
+            'scope':'Exact original acknowledged sources; retained clock; no source resubmission or queue edit'})
     migrated=subprocess.run([str(python),str(source/'scripts/provision_db.py')],cwd=source,env=child,
                              capture_output=True,text=True,timeout=90)
     save(root/'native-database-setup.json',{'route':'Honcho manual self-hosting migrations',

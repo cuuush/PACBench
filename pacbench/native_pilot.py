@@ -245,7 +245,7 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
         if provider not in CATALOG:
             raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
-        if resume and provider not in {'supermemory','openviking','hindsight','mem0'}:
+        if resume and provider not in {'supermemory','openviking','hindsight','mem0','honcho'}:
             raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
@@ -275,7 +275,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee','memcal'} or not (home/'config.yaml').exists()):
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee','memcal','honcho'} or not (home/'config.yaml').exists()):
         raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
@@ -516,7 +516,7 @@ finally:p.close()
         from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL
         env[ENVIRONMENT] = PROTOCOL
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,resume=resume,
             **({'simulated_at':honcho_simulated_at} if honcho_simulated_at else {}))
     if provider=='reme':
         from provider_adapters.reme_local import start

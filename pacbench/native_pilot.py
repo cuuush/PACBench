@@ -275,7 +275,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee'} or not (home/'config.yaml').exists()):
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee','memcal'} or not (home/'config.yaml').exists()):
         raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
@@ -417,7 +417,10 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         memcal_home.mkdir(parents=True, exist_ok=True)
         routed = {key:value for key,value in env.items() if key.startswith('MEMCAL_') and key not in {'MEMCAL_HOME','MEMCAL_SRC'}}
         routed['OPENAI_COMPAT_API_KEY'] = memory_key
-        (memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
+        if resume:
+            retained=dict(line.split('=',1) for line in (memcal_home/'.env').read_text().splitlines() if '=' in line)
+            if retained!=routed:raise ValueError('Retained Memcal model configuration differs')
+        else:(memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
         os.chmod(memcal_home / '.env', 0o600)
         # Native first-install bootstrap, with no facts seeded into the store.
         bootstrap = (
@@ -426,11 +429,12 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
             "import os; cfg=config.load(); "
             "assert cfg.llm_provider == 'openai-compatible' and cfg.openai_base_url == os.environ['MEMCAL_OPENAI_BASE_URL'] and cfg.openai_api_key == os.environ['OPENAI_COMPAT_API_KEY'], 'Memcal model routing must use the shared gateway'; cfg.ensure_dirs(); "
             "conn=db.open_db(cfg.db_path); brief.write(conn,cfg); conn.close()")
-        proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
-                               bootstrap, str(MEMCAL_SRC)],
-                              env={**os.environ, **env}, capture_output=True, timeout=30)
-        if proc.returncode:
-            raise RuntimeError("Memcal native scratch-store bootstrap failed")
+        if not resume:
+            proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
+                                   bootstrap, str(MEMCAL_SRC)],
+                                  env={**os.environ, **env}, capture_output=True, timeout=30)
+            if proc.returncode:
+                raise RuntimeError("Memcal native scratch-store bootstrap failed")
     if provider == 'hindsight':
         env['PACBENCH_HINDSIGHT_TRACE_DIR']=str((root/'private/hindsight-native-traces').resolve())
         save(root/'native-trace-observer.json',{'version':'hindsight-native-reflection-traces-v3',

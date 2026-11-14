@@ -181,7 +181,7 @@ def resume(output,*,terminal_only=False):
     from .import_lifecycle import scan
     from .openrouter_route import MODEL
     output=output.resolve();report=read(output/'summary.json');provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
-    if provider not in {'memos','supermemory','openviking','hindsight','mem0','cognee'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
+    if provider not in {'memos','supermemory','openviking','hindsight','mem0','cognee','memcal'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
     if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
@@ -209,7 +209,7 @@ def resume(output,*,terminal_only=False):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
     # Quiescent native stores and Hermes session DBs retain an immutable backup.
     stores={'memos':['memos-home'],'supermemory':['supermemory-data'],'openviking':['openviking-data'],'hindsight':['fallback-home'],'mem0':['qdrant','mem0-state'],
-        'cognee':['cognee-data','cognee-system','cognee-cache']}[provider]
+        'cognee':['cognee-data','cognee-system','cognee-cache'],'memcal':['memcal-home']}[provider]
     for name in ['hermes-home',*stores]:
         if name=='cognee-cache' and not (root/name).exists():continue
         shutil.copytree(root/name,history/name,symlinks=True)
@@ -246,7 +246,7 @@ def resume(output,*,terminal_only=False):
                 request=urllib.request.Request(url,headers={'X-OpenViking-Account':env['OPENVIKING_ACCOUNT'],'X-OpenViking-User':env['OPENVIKING_USER']})
                 with urllib.request.urlopen(request,timeout=10) as response:stat=json.load(response)
                 if stat.get('status')!='ok' or not stat.get('result'):raise ValueError('Retained native resource missing')
-        capability=read(root/'preflight.json') if terminal_only else probe(root,provider,env,smoke=True,smoke_timeout_s=120)
+        capability=read(root/'preflight.json') if terminal_only or provider=='memcal' else probe(root,provider,env,smoke=True,smoke_timeout_s=120)
         if not smoke_succeeded(capability):raise RuntimeError('Retained native capability failed')
         capability['wiring_verified']=True
         policy=policy_record(provider,capability['tools'])

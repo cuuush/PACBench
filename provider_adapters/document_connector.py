@@ -153,6 +153,10 @@ def mem0(source, root, at, processing_at):
     memory=backend._memory
     validate_route(str(memory.llm.client.base_url).rstrip('/'),memory.llm.client.api_key)
     errors=ExtractionLog()
+    native_logger=logging.getLogger('mem0.memory.main')
+    previous_native_level=native_logger.level
+    if native_logger.getEffectiveLevel()>logging.WARNING:
+        native_logger.setLevel(logging.WARNING)  # A quiet host must not suppress the native skip witness.
     logging.getLogger().addHandler(errors)
     try:
         result=memory.add((source/'messages.txt').read_text(),user_id=cfg['user_id'],
@@ -160,6 +164,7 @@ def mem0(source, root, at, processing_at):
                                                'collected_at':at})
     finally:
         logging.getLogger().removeHandler(errors)
+        native_logger.setLevel(previous_native_level)
         folder=root/'ingestion-model-calls'
         folder.mkdir(exist_ok=True)
         (folder/(source.name+'.json')).write_text(json.dumps(model_calls,ensure_ascii=False,indent=2)+'\n')

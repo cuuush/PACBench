@@ -66,3 +66,16 @@ def test_legitimate_empty_extraction_and_unrelated_warning_remain_allowed(tmp_pa
         return {'results':[]}
     r=connector(tmp_path,monkeypatch,add)
     assert r['ready'] and not r['native_errors']
+
+
+def test_quiet_host_does_not_suppress_native_failure_and_level_is_restored(tmp_path,monkeypatch):
+    native=logging.getLogger('mem0.memory.main');before=native.level
+    native.setLevel(logging.ERROR)
+    try:
+        def add(*a,**kw):
+            native.warning('Failed to embed memory text: an individual item failed')
+            return {'results':[]}
+        receipt=connector(tmp_path,monkeypatch,add)
+        assert not receipt['ready'] and receipt['native_errors'][0]['classification']=='native_per_item_embedding_failed'
+        assert native.level==logging.ERROR
+    finally:native.setLevel(before)

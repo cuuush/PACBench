@@ -71,7 +71,7 @@ def diagnostic_inputs(turn, contract, evidence_by_id, *, prior_turn=None, diagno
             'answer_visible_scope': ('provider evidence returned to Hermes: captured prefetch and direct tool results only; user prompts, tool arguments and background traces excluded' if diagnostic_version != LEGACY_DIAGNOSTIC_VERSION else 'captured prefetch and direct tool results only; background traces excluded'),
             'per_item_character_limit': limit}
 
-def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
+def run_checks(checks, context, root, judge, allowlist, env, *, question_dir, resume_prefix=0,
                run_turn=None, budget_snapshot=None, before_check=None, evidence_by_id=None, provenance_version='source-provenance-v1', diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, turn_timeout_s=180):
     from .stop import OperatorStop, check_stop
     native_turn = run_turn or harness.run_turn
@@ -82,9 +82,18 @@ def run_checks(checks, context, root, judge, allowlist, env, *, question_dir,
     sessions, outcomes = {}, {}
     report = {'state': 'running', 'context': context, 'checks': []}
     root.mkdir(parents=True, exist_ok=True)
-    with (root / 'evaluation.json').open('x') as record:
-        json.dump(report, record)
-    for row, contract, policy in checks:
+    if resume_prefix:
+        previous=json.loads((root/'evaluation.json').read_text())
+        if previous['context']!=context or len(previous['checks'])!=resume_prefix:raise ValueError('Resume prefix differs')
+        for (row,contract,_),item in zip(checks[:resume_prefix],previous['checks']):
+            if item['id']!=row['id'] or item['state']!='diagnostic' or item.get('recovery',{}).get('state','complete')!='complete':raise ValueError('Resume requires complete diagnostic prefix')
+            directory=root/'turns'/row['id'];turn=harness.TurnResult(**json.loads((directory/'turn.json').read_text()))
+            key=session_key(row,context);state=sessions.setdefault(key,fresh_state())
+            report['checks'].append(item);outcomes[row['id']]=item
+            advance(state,turn,directory,provenance_version)
+    else:
+        with (root / 'evaluation.json').open('x') as record:json.dump(report, record)
+    for row, contract, policy in checks[resume_prefix:]:
         key = session_key(row, context)
         state = sessions.setdefault(key, fresh_state())
         directory = root / 'turns' / row['id']

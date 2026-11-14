@@ -31,7 +31,7 @@ def plan_config(root,model,base,key):
     return config
 
 
-def start(root,env,model,base,key):
+def start(root,env,model,base,key,*,resume=False):
     validate_route(base,key)
     root=Path(root).resolve()
     from pacbench.provider_versions import verify_memos_package
@@ -39,9 +39,15 @@ def start(root,env,model,base,key):
     revision=release['sha256']
     if not (package/'dist/bridge.cjs').exists():raise RuntimeError('Build the native MemOS package before execution')
     plugin=package/'adapters/hermes/memos_provider'
-    (root/'hermes-home/plugins/memtensor').symlink_to(plugin,target_is_directory=True)
-    memos_home=root/'memos-home';memos_home.mkdir(mode=0o700)
-    save(memos_home/'config.yaml',plan_config(root,model,base,key))
+    link=root/'hermes-home/plugins/memtensor'
+    if resume:
+        if not link.is_symlink() or link.resolve()!=plugin.resolve():raise ValueError('Retained MemOS plugin differs')
+    else:link.symlink_to(plugin,target_is_directory=True)
+    memos_home=root/'memos-home';memos_home.mkdir(mode=0o700,exist_ok=resume)
+    config=plan_config(root,model,base,key)
+    if resume:
+        if json.loads((memos_home/'config.yaml').read_text())!=config:raise ValueError('Retained MemOS model condition differs')
+    else:save(memos_home/'config.yaml',config)
     (memos_home/'config.yaml').chmod(0o600)
     env.update(MEMOS_HOME=str(memos_home),MEMOS_HERMES_BRIDGE_MODE='shared',
         LLM_PROVIDER='openai_compatible',LLM_ENDPOINT=base,LLM_MODEL=model,LLM_API_KEY=key,

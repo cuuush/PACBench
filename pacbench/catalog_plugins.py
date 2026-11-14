@@ -78,6 +78,19 @@ def _expected_source(identifier: str) -> str:
     return source + ('#' + '/'.join(subdir) if subdir else '')
 
 
+def verify_retained_catalog_provider(name,home):
+    """Check the pinned existing installation; do not reinstall on recovery."""
+    if name!='supermemory':raise ValueError('No retained catalog recovery protocol')
+    from ruamel.yaml import YAML
+    identifier,sha=CATALOG[name];directory=home/'plugins'/name
+    metadata=json.loads((home/'plugins/.install-metadata.json').read_text())[name]
+    manifest=YAML(typ='safe').load((directory/'plugin.yaml').read_text())
+    if (not directory.is_dir() or directory.is_symlink() or metadata.get('pinned') is not True or
+        metadata.get('revision')!=sha or metadata.get('source')!=_expected_source(identifier) or
+        manifest.get('name')!=name or str(manifest.get('version'))!=SOURCE_VERSIONS[name]):
+        raise ValueError('Retained catalog source differs')
+
+
 def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: Path, tree: Path) -> dict:
     """Install reviewed upstream source without changing the shared client environment.
 

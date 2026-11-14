@@ -245,7 +245,7 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
         if provider not in CATALOG:
             raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
-        if resume:
+        if resume and provider!='supermemory':
             raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
@@ -275,8 +275,8 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider!='openviking' or not (home/'config.yaml').exists()):
-        raise ValueError('Only an existing OpenViking home supports verified ingestion resume')
+    if resume and (provider not in {'openviking','memos','supermemory'} or not (home/'config.yaml').exists()):
+        raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
     if not resume:harness.provision_home(
@@ -295,7 +295,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
-    if external:
+    if external and not resume:
         receipt = install_catalog_provider(provider, home, fallback, harness.ISOLATED_BIN, harness.ISOLATED_TREE)
         save(root / "catalog-plugin.json", receipt)
         # A memory provider is activated by memory.provider, not plugins.enabled.
@@ -305,6 +305,9 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         config["memory"]["provider"] = provider
         config.setdefault("security", {})["allow_lazy_installs"] = False
         harness._write_yaml(home / "config.yaml", config)
+    if external and resume:
+        from .catalog_plugins import verify_retained_catalog_provider
+        verify_retained_catalog_provider(provider,home)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),
@@ -505,11 +508,11 @@ finally:p.close()
     if provider=='memos':
         from provider_adapters.memos_local import start
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model,base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model,base,key,resume=resume)
     if provider=='supermemory':
         from provider_adapters.supermemory_local import start
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,resume=resume)
     return env
 
 

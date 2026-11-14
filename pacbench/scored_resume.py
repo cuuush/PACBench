@@ -97,7 +97,7 @@ def renew_scored_workspace(root,history):
     return workspace
 
 
-def verify_prefix(output,report,checks):
+def verify_prefix(output,report,checks,*,allow_complete=False):
     from .document_ingestion import ready_sources
     from .harness import question_prompt
     provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
@@ -105,7 +105,7 @@ def verify_prefix(output,report,checks):
     for item in evaluation['checks']:
         if item['state']!='diagnostic' or item.get('recovery',{}).get('state','complete')!='complete':break
         prefix.append(item)
-    if not 0<len(prefix)<len(checks):raise ValueError('No incomplete scored prefix to resume')
+    if not 0<len(prefix)<=len(checks) or len(prefix)==len(checks) and not allow_complete:raise ValueError('No incomplete scored prefix to resume')
     for (row,contract,_),item in zip(checks,prefix):
         d=root/'turns'/row['id'];t=read(d/'turn.json');g=read(d/'grade.json');j=read(d/'judgment.json')
         if (item['id']!=row['id'] or item['contract_hash']!=contract.contract_hash or
@@ -128,7 +128,7 @@ def verify_prefix(output,report,checks):
             receipt['document_sha256']!=hashlib.sha256(source.read_bytes()).hexdigest()):
             raise ValueError('Partial or changed native ingest cannot be resumed')
         completed.append(batch['id'])
-    next_row=checks[len(prefix)][0]
+    next_row=checks[min(len(prefix),len(checks)-1)][0]
     allowed={b['id'] for b in ready_sources(report['ingestion_schedule'],provider,next_row['at'],report['process_timezone'])}
     if not set(completed)<=allowed:raise ValueError('Retained store contains future sources')
     for row,contract,_ in checks[len(prefix):]:
@@ -142,7 +142,7 @@ def verify_prefix(output,report,checks):
     return prefix,completed
 
 
-def resume(output):
+def resume(output,*,terminal_only=False):
     from .native_pilot import read_prepared,provision,probe,smoke_succeeded,stop_arm_model_work,ingest_pending
     from .evaluation import load_evaluations,judge_evidence
     from .native_checks import run_checks
@@ -175,7 +175,8 @@ def resume(output):
     if hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest()!=report['input_hash'] or contract.contract_hash!=report['contract_hash']:raise ValueError('Frozen source identity differs')
     plan,checks=load_evaluations(output,messages,resolved)
     if plan['plan_hash']!=report['evaluation_plan_hash']:raise ValueError('Frozen evaluation plan differs')
-    prefix,ingested=verify_prefix(output,report,checks)
+    prefix,ingested=verify_prefix(output,report,checks,allow_complete=terminal_only)
+    if terminal_only and (provider!='openviking' or len(prefix)!=len(checks)):raise ValueError('Terminal-only recovery requires all OpenViking grades')
     history=root/'scored-resumes'/str(1+len(list((root/'scored-resumes').glob('*'))));history.mkdir(parents=True)
     for name in ('summary.json','native-audit.json'):
         if (output/name).exists():shutil.copyfile(output/name,history/name)
@@ -188,6 +189,7 @@ def resume(output):
         if name=='cognee-cache' and not (root/name).exists():continue
         shutil.copytree(root/name,history/name,symlinks=True)
     archive_dead_gateway_controls(root,history)
+    if terminal_only and (root/'terminal-processing').exists():shutil.move(root/'terminal-processing',history/'prior-terminal-processing')
     if provider in {'mem0','cognee'}:
         for batch in report['ingestion_schedule']:
             p=root/batch['file']
@@ -219,7 +221,7 @@ def resume(output):
                 request=urllib.request.Request(url,headers={'X-OpenViking-Account':env['OPENVIKING_ACCOUNT'],'X-OpenViking-User':env['OPENVIKING_USER']})
                 with urllib.request.urlopen(request,timeout=10) as response:stat=json.load(response)
                 if stat.get('status')!='ok' or not stat.get('result'):raise ValueError('Retained native resource missing')
-        capability=probe(root,provider,env,smoke=True,smoke_timeout_s=120)
+        capability=read(root/'preflight.json') if terminal_only else probe(root,provider,env,smoke=True,smoke_timeout_s=120)
         if not smoke_succeeded(capability):raise RuntimeError('Retained native capability failed')
         capability['wiring_verified']=True
         policy=policy_record(provider,capability['tools'])
@@ -241,7 +243,7 @@ def resume(output):
             judge_protocol=report['judge_protocol'],turn_timeout_s=report['recall_wall_deadline_s'],resume_prefix=len(prefix))
         if provider=='openviking' and report.get('terminal_processing_protocols'):
             from .terminal_processing import observe_before_stop
-            terminal=observe_before_stop(root,env,boundary=lambda:(check_stop(stop),require_live_cost_boundary()))
+            terminal=observe_before_stop(root,env,timeout_s=180,boundary=lambda:(check_stop(stop),require_live_cost_boundary()))
             result['terminal_processing']={k:terminal[k] for k in ('protocol','state','scope_hash')}
         result.update(state=sequence['state'],checks=sequence['checks'],capability=capability,reason='' if sequence['state']=='diagnostic' else 'Recovered sequence incomplete')
         capability['live_verified']=sequence['state']=='diagnostic'
@@ -259,17 +261,17 @@ def resume(output):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--detach',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--detach',action='store_true');p.add_argument('--terminal-only',action='store_true');a=p.parse_args()
     if a.detach:
         from .durable_job import launch
         import sys
         index=1
         while (a.output/f'scored-recovery-job-{index}.launch.private.json').exists():index+=1
         target=a.output/f'scored-recovery-job-{index}'
-        print(json.dumps(launch([sys.executable,'-m','pacbench.scored_resume',str(a.output.resolve())],target)));return
+        print(json.dumps(launch([sys.executable,'-m','pacbench.scored_resume',str(a.output.resolve()),*(['--terminal-only'] if a.terminal_only else [])],target)));return
     from .openrouter_direct import direct_environment
     key=os.environ['OPENROUTER_API_KEY']
-    with direct_environment(key):report=resume(a.output)
+    with direct_environment(key):report=resume(a.output,terminal_only=a.terminal_only)
     print(json.dumps({'provider':report['results'][0]['provider'],'state':report['state'],'audit':report['audit']['state']}))
 
 

@@ -14,7 +14,7 @@ def qualify(raw,status,*,identifier,text,metadata):
         raise ValueError('Accepted native source is not verified fully processed and exact')
 
 
-def recover(output,day):
+def recover(output,day,*,refresh_stalled=False):
     from .native_pilot import provision,stop_arm_model_work
     from .openrouter_route import MODEL
     from .provider_loader import provider_module
@@ -45,21 +45,31 @@ def recover(output,day):
         client=Supermemory(api_key=env['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
         identifier=native['result']['id'];source=output/'sources'/day
         text=(source/'messages.txt').read_text();meta={'source':'daily-transcript','collected_at':record['at']}
-        observations=[];deadline=time.monotonic()+90
+        observations=[];deadline=time.monotonic()+90;refreshed=False
         while True:
             raw,status=document(client,tag,identifier,endpoint=cfg['base_url'],key=env['SUPERMEMORY_API_KEY'])
             observed={**status,'content':raw.get('content'),'metadata':raw.get('metadata'),'native_system':raw.get('system'),'request_namespace':tag}
             if not observations or observed!=observations[-1]:observations.append(observed)
             save(history/'status-observations.private.json',observations)
             if status.get('status')=='done' and status.get('dreaming_status')=='done':break
-            if status.get('status') in {'failed','error'} or time.monotonic()>=deadline:raise RuntimeError('Native accepted import did not reach complete readiness')
+            if status.get('status') in {'failed','error'} or time.monotonic()>=deadline:
+                if refresh_stalled and not refreshed:
+                    if raw.get('id')!=identifier or raw.get('content')!=text or raw.get('metadata')!=meta:raise ValueError('Cannot refresh a changed source')
+                    marker=parent/'native-refresh-attempt.json'
+                    with marker.open('x') as stream:json.dump({'state':'sending','id':identifier,'source_sha256':hashlib.sha256(text.encode()).hexdigest(),'at':now()},stream)
+                    updated=client.documents.update(tag,identifier,content=text,metadata=meta,date=record['at'],dreaming='instant')
+                    if updated.id!=identifier:raise RuntimeError('Native update changed the stable document ID')
+                    save(marker,{'state':'accepted','id':identifier,'source_sha256':hashlib.sha256(text.encode()).hexdigest(),'at':now()})
+                    refreshed=True;deadline=time.monotonic()+180;continue
+                raise RuntimeError('Native accepted import did not reach complete readiness')
             time.sleep(1)
         qualify(raw,status,identifier=identifier,text=text,metadata=meta)
         if hashlib.sha256(text.encode()).hexdigest()!=record['document_sha256']:raise ValueError('Frozen source changed')
         proof={'protocol':'supermemory-accepted-read-only-recovery-v1','original_sha256':hashlib.sha256(original).hexdigest(),
-            'verified_at':now(),'sources_resubmitted':0,'native_writes':0,'observation_wall_s':round(time.monotonic()-start,6),
+            'verified_at':now(),'sources_resubmitted':int(refreshed),'new_documents_added':0,'same_id_reprocessing_requests':int(refreshed),
+            'native_writes':int(refreshed),'observation_wall_s':round(time.monotonic()-start,6),
             'original_worker_returncode':record.get('returncode'),'original_finished':record.get('usage',{}).get('finished'),
-            'scope':'Read-only native readiness observation; original failed worker and source remain archived'}
+            'scope':'Native readiness observation; optional single SDK update reprocesses the identical source under its existing stable ID. Original failed worker and source remain archived.'}
         native.update(ready=True,reason='',processing_status=[*native.get('processing_status',[]),*observations],recovery=proof)
         native.pop('native_error',None)
         record.update(state='ready',ready=True,returncode=0,recovery=proof)
@@ -72,10 +82,10 @@ def recover(output,day):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('day');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('day');p.add_argument('--refresh-stalled',action='store_true');a=p.parse_args()
     from .openrouter_direct import direct_environment
-    with direct_environment(os.environ['OPENROUTER_API_KEY']):proof=recover(a.output,a.day)
-    print(json.dumps({'state':'verified-native-readiness','sources_resubmitted':0,'verified_at':proof['verified_at']}))
+    with direct_environment(os.environ['OPENROUTER_API_KEY']):proof=recover(a.output,a.day,refresh_stalled=a.refresh_stalled)
+    print(json.dumps({'state':'verified-native-readiness','sources_resubmitted':proof['sources_resubmitted'],'verified_at':proof['verified_at']}))
 
 
 if __name__=='__main__':main()

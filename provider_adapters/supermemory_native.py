@@ -26,7 +26,7 @@ def document(client, tag, identifier, *, endpoint=None, key=None):
     return value, state
 
 
-def completion_witness(endpoint, key, tag, identifier, value):
+def completion_witness(endpoint, key, tag, identifier, value=None, *, include_native_source=False):
     """Observe the published local server's v3 consolidation field read-only.
 
     server-v0.0.9's v5 document response omits dreamingStatus. Its v3 read
@@ -66,7 +66,7 @@ def completion_witness(endpoint, key, tag, identifier, value):
     native=read('/v3/documents/'+urllib.parse.quote(native_id,safe=''))
     if (native.get('id')!=native_id or native.get('customId',native.get('custom_id'))!=identifier
             or tag not in native.get('containerTags',native.get('container_tags',[]))
-            or native.get('content')!=value.get('content') or native.get('metadata')!=value.get('metadata')):
+            or value is not None and (native.get('content')!=value.get('content') or native.get('metadata')!=value.get('metadata'))):
         raise ValueError('Native consolidation witness differs from v5 source or namespace')
     phase=native.get('dreamingStatus',native.get('dreaming_status'))
     if not isinstance(phase,str):raise ValueError('Native consolidation status unavailable')
@@ -75,4 +75,6 @@ def completion_witness(endpoint, key, tag, identifier, value):
             'native_id':native_id,'public_id':identifier,'namespace':tag,
             'status':native.get('status'),'dreaming_status':phase,
             'content_sha256':hashlib.sha256(content.encode()).hexdigest() if isinstance(content,str) else None,
-            'metadata':native.get('metadata'),'processing_forced':False}
+            'metadata':native.get('metadata'),'processing_forced':False,
+            **({'native_source':{'id':identifier,'content':content,'metadata':native.get('metadata')},
+                'source_binding':'independent-v3-source-observation-v1'} if include_native_source else {})}

@@ -10,3 +10,6 @@ def test_accepted_recovery_requires_exact_source_and_both_native_phases():
     for bad in [{**status,'dreaming_status':'processing'},{**status,'status':'failed'}]:
         with pytest.raises(ValueError):qualify(raw,bad,**kwargs)
     with pytest.raises(ValueError):qualify({**raw,'content':'truncated'},status,**kwargs)
+    qualify({**raw,'content':'frozen source','metadata':{**raw['metadata'],'temporalContext':'native-generated'}},status,
+            **{**kwargs,'text':'frozen source\n'})
+    with pytest.raises(ValueError):qualify({**raw,'content':'frozen source '},status,**kwargs)

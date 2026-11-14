@@ -493,7 +493,10 @@ def stage_turn(root, at, env):
     if (now-target).total_seconds()>START_TOLERANCE_S:
         raise RuntimeError('Provider clock is past the scripted checkpoint; refusing future-time exposure')
     prelude=target-timedelta(seconds=60)
-    child=before_turn(root,(prelude if now<prelude else now).isoformat(),env)
+    # Once inside the startup prelude, do not turn a snapshot of "now" into
+    # another five-second scripted deadline. Accounting/lock latency could
+    # expire that artificial target while the real question is still ahead.
+    child=(before_turn(root,prelude.isoformat(),env) if now<prelude else python_environment(clock,env))
     save(root/'provider-clock-startup-condition.json',{'version':PRELUDE,
         'lead_seconds':60,'offset_steps_while_hermes_alive':False,
         'question_window_seconds':START_TOLERANCE_S,'startup_hooks':'native; unchanged'})

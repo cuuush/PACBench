@@ -116,6 +116,14 @@ def resume(output):
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
         ('effective_output_ceiling_condition','PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),('compatibility_condition','PACBENCH_LUNA_COMPATIBILITY')]:
+        if field not in cohort and provider=='mem0' and field=='compatibility_condition':
+            # Early cohort manifests predate this display field. The effective
+            # per-request receipts, rather than a missing manifest key, bind
+            # the original condition; never infer it from a current default.
+            from .direct_accounting import live_budget
+            project='pacbench-'+hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]+'-mem0'
+            prior=[r for r in live_budget().snapshot() if r['project'] in {project+'-driver',project+'-memory'}]
+            if prior and {r.get('compatibility_condition') for r in prior}=={os.environ.get(variable)}:continue
         if cohort.get(field)!=os.environ.get(variable):raise ValueError('Recovery inference condition differs: '+field)
     if scan(root,'scored-resume-inspection')[0]:raise ValueError('Previous owned workers are still alive')
     messages,contract,resolved=read_prepared((output/report['source']).resolve(),150)

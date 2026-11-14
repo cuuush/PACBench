@@ -52,7 +52,12 @@ def test_status_failure_preserves_accepted_document_and_prior_states(native,obse
            'content':'Raw daily text\n','metadata':{'source':'daily-transcript','collected_at':'now'}}
     prior=[SimpleNamespace(model_dump=lambda **kw:state)] if observed_first else []
     documents.get.side_effect=[*prior,TimeoutError('SECRET_NATIVE_BODY')]
-    result=supermemory(source,root,'now','now')
+    ticks=iter([0,1,10000] if observed_first else [0,10000])
+    # This case exercises a terminal deadline; transient reads have their own
+    # recovery test below, without reissuing document add.
+    from unittest.mock import patch
+    with patch('provider_adapters.document_connector.time.monotonic',side_effect=lambda:next(ticks)):
+        result=supermemory(source,root,'now','now')
     assert not result['ready'] and result['result']['id']=='accepted-id'
     assert len(result['processing_status'])==int(observed_first)
     if observed_first:
@@ -64,3 +69,13 @@ def test_status_failure_preserves_accepted_document_and_prior_states(native,obse
     assert result['native_error']['error_class']=='TimeoutError'
     assert documents.add.call_count==1 and documents.get.call_count==len(prior)+1
     assert 'SECRET_NATIVE_BODY' not in json.dumps(result)
+
+
+def test_transient_status_timeout_does_not_kill_accepted_native_work(native):
+    source,root,documents,_=native
+    raw={'id':'accepted-id','system':{'status':'done','dreaming_status':'done'},
+         'content':'Raw daily text\n','metadata':{'source':'daily-transcript','collected_at':'now'}}
+    documents.get.side_effect=[TimeoutError('temporary'),SimpleNamespace(model_dump=lambda **kw:raw)]
+    result=supermemory(source,root,'now','now')
+    assert result['ready'] and len(result['transient_status_read_failures'])==1
+    assert 'native_error' not in result and documents.add.call_count==1 and documents.get.call_count==2

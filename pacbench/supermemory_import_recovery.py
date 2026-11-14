@@ -57,9 +57,19 @@ def recover(output,day,*,refresh_stalled=False):
         identifier=native['result']['id'];source=output/'sources'/day
         text=(source/'messages.txt').read_text();meta={'source':'daily-transcript','collected_at':record['at']}
         marker=parent/'native-refresh-attempt.json'
-        observations=[];deadline=time.monotonic()+90;refreshed=marker.exists()
+        observations=[];read_failures=[];deadline=time.monotonic()+300;refreshed=marker.exists()
         while True:
-            witness=completion_witness(cfg['base_url'],env['SUPERMEMORY_API_KEY'],tag,identifier,include_native_source=True)
+            from .stop import check_stop
+            from .gateway_client import require_live_cost_boundary
+            import urllib.error
+            check_stop(stop);require_live_cost_boundary()
+            try:witness=completion_witness(cfg['base_url'],env['SUPERMEMORY_API_KEY'],tag,identifier,include_native_source=True)
+            except (OSError,TimeoutError) as error:
+                if isinstance(error,urllib.error.HTTPError) and error.code not in {429,500,502,503,504}:raise
+                read_failures.append({'at':now(),'error_class':type(error).__name__,'read_only':True})
+                save(history/'read-failures.private.json',read_failures)
+                if time.monotonic()>=deadline:raise RuntimeError('Native read-only readiness window expired; no duplicate document write sent') from error
+                time.sleep(1);continue
             raw=witness.pop('native_source');raw['system']={'status':witness['status']}
             normalization=qualify_source(raw,identifier=identifier,text=text,metadata=meta)
             status={'id':identifier,'status':witness['status'],'dreaming_status':witness['dreaming_status'],'native_completion_witness':witness}
@@ -73,7 +83,7 @@ def recover(output,day,*,refresh_stalled=False):
                     updated=client.documents.update(tag,identifier,content=text,dreaming='instant')
                     if updated.id!=identifier:raise RuntimeError('Native update changed the stable document ID')
                     save(marker,{'state':'accepted','id':identifier,'source_sha256':hashlib.sha256(text.encode()).hexdigest(),'at':now()})
-                    refreshed=True;deadline=time.monotonic()+180;continue
+                    refreshed=True;deadline=time.monotonic()+300;continue
                 raise RuntimeError('Native accepted import did not reach complete readiness')
             time.sleep(1)
         qualify(raw,status,identifier=identifier,text=text,metadata=meta)
@@ -84,6 +94,7 @@ def recover(output,day,*,refresh_stalled=False):
             'native_update_commit_state':json.loads(marker.read_text())['state'] if marker.exists() else 'not-requested',
             'source_normalization':normalization,'delivered_sha256':hashlib.sha256(text.encode()).hexdigest(),
             'native_canonical_sha256':hashlib.sha256(raw['content'].encode()).hexdigest(),
+            'transient_status_read_failures':len(read_failures),
             'original_worker_returncode':record.get('returncode'),'original_finished':record.get('usage',{}).get('finished'),
             'scope':'Native readiness observation; optional single SDK update reprocesses the identical source under its existing stable ID. Original failed worker and source remain archived.'}
         native.update(ready=True,reason='',processing_status=[*native.get('processing_status',[]),*observations],recovery=proof)

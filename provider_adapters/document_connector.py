@@ -624,7 +624,7 @@ def supermemory(source,root,at,processing_at):
     from pacbench.gateway_client import require_live_cost_boundary
     from pacbench.usage import snapshot,provider_model_health
     roles=json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))
-    statuses=[];deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
+    statuses=[];status_read_failures=[];observation_timeout=min(PROCESSING_TIMEOUT_S-30,300);deadline=time.monotonic()+observation_timeout
     ready=False;reason='Native memory processing deadline exceeded';failure=None
     while True:
         try:
@@ -634,6 +634,9 @@ def supermemory(source,root,at,processing_at):
             # state, rather than losing them to a traceback or resubmitting.
             failure={**native_error_receipt(error),'phase':'document-status','commit_state':'accepted'}
             reason='Native document status unavailable; accepted delivery retained; raw error withheld'
+            if (type(error).__name__.endswith('TimeoutError') or isinstance(error,TimeoutError) or
+                    failure.get('http_status') in (429,500,502,503,504)) and time.monotonic()<deadline:
+                status_read_failures.append(failure);time.sleep(1);continue
             break
         # SDK responses duplicate camel/snake aliases and may append complete
         # memories on every poll. Keep the source witness and state changes,
@@ -649,7 +652,7 @@ def supermemory(source,root,at,processing_at):
             try:require_live_cost_boundary()
             except RuntimeError as exc:reason=str(exc);break
         if state=='done' and dreaming=='done':
-            ready=True;reason='';break
+            ready=True;reason='';failure=None;break
         if state in {'failed','error'} or dreaming in {'failed','error'}:
             reason='Native document processing or memory dreaming failed';break
         if state=='done' and dreaming is None:
@@ -661,6 +664,7 @@ def supermemory(source,root,at,processing_at):
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
             **({'native_error':failure} if failure else {}),
             'delivery_options':{'dreaming':delivery['dreaming']},
+            'status_observation_timeout_s':observation_timeout,'transient_status_read_failures':status_read_failures,
             'readiness_requirement':'Native document processing and memory dreaming both done'}
 
 

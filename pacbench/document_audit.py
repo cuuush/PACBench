@@ -376,10 +376,16 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
         if arm.name=='cognee':
             native=record.get('result',{})
             setup=json.loads((arm/'native-server-setup.json').read_text())
+            endpoints={setup.get('endpoint')}
+            for path in (arm/'scored-resumes').glob('*/native-server-setup.json'):
+                previous=json.loads(path.read_text())
+                if (previous.get('dataset')==setup.get('dataset') and previous.get('model')==setup.get('model') and
+                    all(previous.get(k)==setup.get(k) for k in ('version','integration_revision','backend_version'))):
+                    endpoints.add(previous.get('endpoint'))
             check(native.get('protocol') in {'cognee-native-document-qualification-v1','cognee-native-incremental-document-v2'} and
                   native.get('source_sha256')==native.get('document_sha256')==meta['document_sha256'] and
                   native.get('source_ids')==ids and native.get('source_at')==at and
-                  native.get('dataset')==setup.get('dataset') and native.get('service')==setup.get('endpoint') and
+                  native.get('dataset')==setup.get('dataset') and native.get('service') in endpoints and
                   bool(native.get('dataset_id')) and bool(native.get('data_id')) and
                   native.get('pipeline')=='cognify_pipeline' and
                   native.get('observed_statuses',[])[-1:] == ['DATASET_PROCESSING_COMPLETED'] and

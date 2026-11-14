@@ -1,0 +1,156 @@
+{
+  "version": "scored-week-budget-plan-v1",
+  "state": "blocked-no-paid-execution",
+  "paid_calls": 0,
+  "sources": 125,
+  "providers": 9,
+  "questions_each": 37,
+  "answer_targets": 333,
+  "criteria_targets": 1395,
+  "routes": {
+    "native_memory": "openai/gpt-6-luna @ amazon-bedrock/global",
+    "hermes_and_judge": "deepseek/deepseek-v4.1-flash-1017 @ deepinfra/fp8/flex",
+    "judge_effort": "low",
+    "judge_protocol": "semantic-judge-date-scope-v2",
+    "prompt_protocol": "native-question-v2"
+  },
+  "samples": {
+    "driver_turn": {
+      "n": 122,
+      "mean": "0.0006893616634754098360655737705",
+      "p90": "0.001135558144",
+      "max": "0.004248775104"
+    },
+    "driver_calls_per_turn": {
+      "n": 122,
+      "mean": "3.147540983606557377049180328",
+      "p90": "5",
+      "max": "9"
+    },
+    "judge_request": {
+      "n": 115,
+      "mean": "0.001900810208834782608695652174",
+      "p90": "0.003100619648",
+      "max": "0.005714397248"
+    },
+    "hypothetical_luna_native_during_turn": {
+      "n": 120,
+      "mean": "0.001465339166666666666666666667",
+      "p90": "0.0050854",
+      "max": "0.0236819"
+    }
+  },
+  "excluded_driver_turns": 2,
+  "excluded_native_windows": 4,
+  "planning_scenarios_usd": {
+    "mean_one_pass": "1.515545550979294084105488239",
+    "stress_two_turns_p90_three_imports": "6.703351934472",
+    "formula_low": "Measured Luna full import +333*(mean DeepSeek Hermes turn +mean DeepSeek judgment +hypothetical Luna-priced native retrieval window)",
+    "formula_high": "3*measured Luna full import +666*(p90 Hermes turn +p90 judgment +p90 hypothetical Luna retrieval)",
+    "limits": "Planning scenarios, not confidence intervals or guaranteed completion bounds. Native retrieval tokens came from DeepSeek and Luna can differ. Native background calls outside answer windows, unobserved failed calls, long reasoning tails and additional retries may exceed scenarios. Local compute excluded. Historical liabilities are separate and retained."
+  },
+  "cumulative_vs_inflight": {
+    "measured_clean_import_actual_usd": "0.165060375",
+    "uncapped_luna_single_reservation_usd": "0.51090000",
+    "uncapped_deepseek_single_reservation_usd": "0.1746927616",
+    "two_luna_plus_one_deepseek_reservations_usd": "1.1964927616",
+    "explanation": "Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1."
+  },
+  "financial_plan": {
+    "unchanged_cap_usd": "20",
+    "existing_exposure_usd": "19.503585917232",
+    "available_usd": "0.496414082768",
+    "proposed_new_cohort_liability_ceiling_usd": "8",
+    "additional_headroom_for_envelope_usd": "7.503585917232",
+    "minimum_total_cap_for_envelope_usd": "27.503585917232",
+    "suggested_approval_cap_usd": "28",
+    "single_luna_admission_deficit_usd": "0.014485917232",
+    "decision": "Approve an aggregate cap of$28 (increase$8) while retaining historic liabilities, with at most$8 new cohort liability. This is a financial stop envelope, not a guarantee all333 targets finish. No cap or private authorization changed.",
+    "approval_effect": "If approved, separately update and test the retained authorization/guard cap before paid re-preflight. This commit leaves cap20 and all historic ledger liabilities unchanged."
+  },
+  "execution_plan": [
+    "Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.",
+    "Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.",
+    "Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.",
+    "Use one shared cohort ID across children and profiles with an8USD liability ceiling; unchanged aggregate cap remains independently binding.",
+    "Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.",
+    "Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly."
+  ],
+  "ledger_unchanged": true,
+  "sensitive_data_included": false,
+  "validation": {
+    "paid_calls": 0,
+    "chronological_gates": "All333 frozen provider/question pairs pass; all125 unique sources visible only at eligible checkpoints. Final check sees all125. Tested in tests/test_role_routes.py.",
+    "model_settings_changed": false,
+    "output_caps_added": false,
+    "private_ledger_or_cap_modified": false,
+    "role_boundary": "Python transport chooses immutable per-request budget from project; Node settlement binds to original row profile. Shared flock ledger atomically covers every profile; role and cohort provenance retained.",
+    "legacy_default": "Single-profile callers retain previous model/route and reservation policy.",
+    "luna_grant": "Existing import/memory-only scope retained; no Luna driver/judge permission added.",
+    "phase_telemetry": "Existing per-batch native usage windows, per-turn tracking and model-call judge receipts remain; ledger records model/provider/route/role/cohort, tokens/cost/status. Native background requests retain memory role even outside foreground phase; timing correlation does not turn them into Hermes/judge spend.",
+    "tested_source_revision": "4a476f66faa8a329457616b7facf864669e66f9c",
+    "full_suite": {
+      "passed": 1474,
+      "skipped": 7,
+      "subtests_passed": 22,
+      "wall_s": 69.35
+    },
+    "real_preflight": {
+      "state": "blocked-cohort-envelope-unfunded",
+      "paid_calls": 0,
+      "available_usd": "0.496414082768",
+      "cohort_accounted_usd": "0",
+      "remaining_envelope_usd": "8",
+      "additional_headroom_usd": "7.503585917232",
+      "funded": false,
+      "role_routes": {
+        "condition": "luna-memory-deepseek-v1",
+        "memory_provider": {
+          "model": "openai/gpt-6-luna",
+          "canonical_slug": "openai/gpt-6-luna-20260922",
+          "endpoint": "amazon-bedrock/global",
+          "provider_name": "Amazon Bedrock",
+          "quantization": "unknown",
+          "service_tier": null
+        },
+        "hermes": {
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "endpoint": "deepinfra/fp8/flex",
+          "provider_name": "DeepInfra",
+          "quantization": "fp8",
+          "service_tier": "flex"
+        },
+        "judge": {
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "endpoint": "deepinfra/fp8/flex",
+          "provider_name": "DeepInfra",
+          "quantization": "fp8",
+          "service_tier": "flex"
+        },
+        "selection": "Persistent memory/driver/judge accounting capability, including native recall and background calls; never inferred from wall-clock phase."
+      }
+    },
+    "real_preflight_exit": 2,
+    "new_scored_calls": 0,
+    "frozen_evaluation_modules_unchanged": true
+  },
+  "phase_estimates_usd": {
+    "ingest_and_native_processing": {
+      "one_pass_reference": "0.165060375",
+      "stress_allowance": "0.495181125"
+    },
+    "hermes_answering": {
+      "mean_one_pass": "0.2295574339373114754098360656",
+      "stress_two_turns_p90": "0.756281723904"
+    },
+    "judge": {
+      "mean_one_pass": "0.6329697995419826086956521739",
+      "stress_two_turns_p90": "2.065012685568"
+    },
+    "native_retrieval": {
+      "mean_one_pass": "0.4879579425000000000000000001",
+      "stress_two_turns_p90": "3.3868764"
+    },
+    "scope": "Prospective scenarios, not charges. Import stress allowance is3import-equivalents for variation/failed-case recovery, not a plan to rerun valid providers. Native retrieval is hypothetical Luna repricing of observed DeepSeek tokens and omits work outside sampled windows; actual Luna output/cache use can differ."
+  }
+}

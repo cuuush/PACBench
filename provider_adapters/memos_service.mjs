@@ -8,6 +8,8 @@ if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Explicit loopbac
 const {core,home}=await bootstrapMemoryCoreFull({agent:'hermes',
   namespace:{agentKind:'hermes',profileId:'default'},autoRecovery:false,
   pkgVersion:'2.0.21',hostLlmBridge:null,initLogging:true});
+// The pinned bootstrap constructs core but does not call its public init().
+await core.init();
 const server=await startHttpServer({core,home,logTail:()=>[]},
   {host:'127.0.0.1',port,agent:'hermes'});
 process.stdout.write(JSON.stringify({endpoint:server.url,pid:process.pid,home:home.root})+'\n');

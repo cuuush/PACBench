@@ -71,12 +71,8 @@ def start(root,env,model,base,key):
         time.sleep(.2)
     if health is None:
         stop();raise RuntimeError('Native MemOS HTTP service failed health check; inspect private log')
-    # Native overall ok also reflects last successful use: a fresh unused
-    # client has lastOkAt=None. Fail concrete errors/unavailability, not absence
-    # of historical activity. Stock smoke/actual processing still prove readiness.
-    if health.get('ok') is False and any(
-        value.get('lastError') or value.get('available') is False
-        for value in (health.get('llm',{}),health.get('embedder',{}),health.get('skillEvolver',{}))):
+    # Our HTTP adapter awaits the public core.init() lifecycle before serving.
+    if health.get('ok') is False:
         save(root/'native-startup-failure.json',{'state':'native-health-failed','health':health})
         stop();raise RuntimeError('Native MemOS reported unhealthy; no questions may run')
     from pacbench.prefetch_provenance import VERSION

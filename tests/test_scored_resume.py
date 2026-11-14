@@ -6,6 +6,25 @@ from pacbench.native_checks import run_checks
 from pacbench.stop import OperatorStop
 
 
+def test_pinned_mem0_extraction_failure_cannot_write_future_input():
+    """Exercise the actual native SDK, rather than assuming a failed import is
+    harmless. Its initial LLM failure must precede vector/history writes."""
+    memory=pytest.importorskip('mem0.memory.main')
+    calls=[]
+    class Database:
+        def get_last_messages(self,*a,**kw):calls.append('history-read');return []
+        def __getattr__(self,name):raise AssertionError('Unexpected persistent operation: '+name)
+    class Vector:
+        def search(self,*a,**kw):calls.append('vector-read');return []
+        def __getattr__(self,name):raise AssertionError('Unexpected vector operation: '+name)
+    def fail(**kw):calls.append('llm-failure');raise RuntimeError('synthetic pre-dispatch refusal')
+    fake=SimpleNamespace(db=Database(),vector_store=Vector(),embedding_model=SimpleNamespace(embed=lambda *a:[0.0]),
+        llm=SimpleNamespace(generate_response=fail),custom_instructions=None)
+    with pytest.raises(Exception,match='LLM extraction failed'):
+        memory.Memory._add_to_vector_store(fake,[{'role':'user','content':'future synthetic source'}],{}, {'user_id':'synthetic'},True)
+    assert calls==['history-read','vector-read','llm-failure']
+
+
 def test_scored_workspace_recovery_keeps_original_pre_recall_witness(tmp_path,monkeypatch):
     from pacbench.scored_resume import renew_scored_workspace
     import pathlib,tempfile,shutil

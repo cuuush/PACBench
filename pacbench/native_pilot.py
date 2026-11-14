@@ -245,7 +245,7 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
         if provider not in CATALOG:
             raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
-        if resume and provider not in {'supermemory','openviking','hindsight'}:
+        if resume and provider not in {'supermemory','openviking','hindsight','mem0'}:
             raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
@@ -275,7 +275,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in {'openviking','memos','supermemory','hindsight'} or not (home/'config.yaml').exists()):
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0'} or not (home/'config.yaml').exists()):
         raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
@@ -334,7 +334,15 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     if inference_route=='openrouter' and split_enabled():
         if provider=='hindsight':env['HINDSIGHT_API_LLM_MAX_CONCURRENT']='1'
         if provider=='memcal':env['MEMCAL_MAX_PARALLEL']='1'
-    if provider == "mem0":
+    if provider == 'mem0' and resume:
+        config=json.loads((home/'mem0.json').read_text())
+        expected='pacbench-'+hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
+        if (config.get('mode')!='oss' or config.get('user_id')!=expected or
+            config['oss']['llm']['config']['model']!=model or config['oss'].get('graph_store') or
+            config['oss']['llm']['config']['api_key']!=memory_key):raise ValueError('Retained Mem0 native configuration differs')
+        from .gateway_client import validate_route
+        validate_route(config['oss']['llm']['config']['openai_base_url'],memory_key)
+    if provider == "mem0" and not resume:
         identity = "pacbench-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
         extraction_url, _ = client_settings(memory_project)
         configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")

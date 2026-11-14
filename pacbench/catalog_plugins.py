@@ -80,7 +80,7 @@ def _expected_source(identifier: str) -> str:
 
 def verify_retained_catalog_provider(name,home):
     """Check the pinned existing installation; do not reinstall on recovery."""
-    if name not in {'supermemory','openviking','hindsight'}:raise ValueError('No retained catalog recovery protocol')
+    if name not in {'supermemory','openviking','hindsight','mem0'}:raise ValueError('No retained catalog recovery protocol')
     from ruamel.yaml import YAML
     identifier,sha=CATALOG[name];directory=home/'plugins'/name
     metadata=json.loads((home/'plugins/.install-metadata.json').read_text())[name]

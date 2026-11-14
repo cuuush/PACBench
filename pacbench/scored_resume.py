@@ -12,6 +12,34 @@ from .followups import save
 def read(path):return json.loads(path.read_text())
 
 
+def mem0_read_only_failed_import(output,root,receipt,batch):
+    """Prove this specific SDK failure occurred before any persistent write.
+
+    The reviewed pinned implementation only reads history/vector search before
+    its first LLM extraction; writes, including message history, follow a usable
+    extraction response. No paid dispatch and no response therefore means this
+    failed attempt did not reveal its future source in native memory.
+    """
+    from . import harness
+    sdk=next((harness.ISOLATED_BIN.parent.parent/'lib').glob('python*/site-packages/mem0/memory/main.py'))
+    sha=hashlib.sha256(sdk.read_bytes()).hexdigest()
+    config=read(root/'hermes-home/mem0.json');usage=receipt.get('usage',{})
+    observations=root/'ingestion-model-calls'/ (batch['id']+'.json')
+    error=receipt.get('stderr','')
+    if (sha!='f329ca4a17af1fbefb32ac10d4cc7ae7ddbdb7435a87eb74c30915cff98b8b7c' or
+        config['oss'].get('graph_store') or receipt.get('ready') is not False or receipt.get('state')!='failed' or
+        usage.get('state')!='captured' or usage.get('model_calls')!=[] or
+        any(r.get('model_calls')!=0 for r in usage.get('roles',{}).values()) or
+        not observations.exists() or read(observations)!=[] or
+        'in _add_to_vector_store' not in error or 'LLM extraction failed: Connection error.' not in error):
+        raise ValueError('Failed Mem0 import is not proven read-only')
+    if receipt['document_sha256']!=hashlib.sha256((output/'sources'/batch['id']/'messages.txt').read_bytes()).hexdigest():raise ValueError('Failed source binding differs')
+    return {'protocol':'mem0-pre-extraction-read-only-failure-v1','sdk_source_sha256':sha,
+        'original_receipt_sha256':hashlib.sha256(json.dumps(receipt,sort_keys=True).encode()).hexdigest(),
+        'paid_dispatches':0,'extraction_responses':0,'persistent_native_writes':0,
+        'classification':'Failed before extraction; not complete and not a source eligible for recall'}
+
+
 def renew_scored_workspace(root,history):
     """Reopen the same empty cwd for retained Hermes sessions, without asserting
     that their legitimate prior scored conversations must not exist."""
@@ -50,6 +78,8 @@ def verify_prefix(output,report,checks):
         p=root/batch['file']
         if not p.exists():gap=True;continue
         receipt=read(p);source=output/'sources'/batch['id']/'messages.txt'
+        if provider=='mem0' and receipt.get('ready') is False:
+            mem0_read_only_failed_import(output,root,receipt,batch);gap=True;continue
         if (gap or receipt.get('ready') is not True or receipt.get('state')!='ready' or
             receipt['source_ids']!=batch['source_ids'] or
             receipt['document_sha256']!=hashlib.sha256(source.read_bytes()).hexdigest()):
@@ -81,7 +111,7 @@ def resume(output):
     from .import_lifecycle import scan
     from .openrouter_route import MODEL
     output=output.resolve();report=read(output/'summary.json');provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
-    if provider not in {'memos','supermemory','openviking','hindsight'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
+    if provider not in {'memos','supermemory','openviking','hindsight','mem0'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
     if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
@@ -99,9 +129,16 @@ def resume(output):
     for name in ('evaluation.json','status.json','native-server-setup.json','model-usage.json','model-usage-after-settlement.json','pre-recall-isolation.json'):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
     # Quiescent native stores and Hermes session DBs retain an immutable backup.
-    store={'memos':'memos-home','supermemory':'supermemory-data','openviking':'openviking-data','hindsight':'fallback-home'}[provider]
-    for name in ('hermes-home',store):
+    stores={'memos':['memos-home'],'supermemory':['supermemory-data'],'openviking':['openviking-data'],'hindsight':['fallback-home'],'mem0':['qdrant','mem0-state']}[provider]
+    for name in ['hermes-home',*stores]:
         shutil.copytree(root/name,history/name,symlinks=True)
+    if provider=='mem0':
+        for batch in report['ingestion_schedule']:
+            p=root/batch['file']
+            if p.exists() and read(p).get('ready') is False:
+                proof=mem0_read_only_failed_import(output,root,read(p),batch)
+                archive=history/'read-only-failed-imports';archive.mkdir(exist_ok=True)
+                shutil.move(p,archive/p.name);save(archive/(p.stem+'.proof.json'),proof)
     for row,_,_ in checks[len(prefix):]:
         d=root/'turns'/row['id']
         if d.exists():(history/'tail-turns').mkdir(exist_ok=True);shutil.move(d,history/'tail-turns'/row['id'])

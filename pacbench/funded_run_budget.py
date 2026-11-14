@@ -18,6 +18,12 @@ ENV = 'PACBENCH_FUNDED_RUN_ID'
 
 def credit_snapshot():
     from .openrouter_direct import active
+    if active():
+        # Node's reserve/settle helper deliberately runs with repository-only
+        # PYTHONPATH. Install the free-read capability translation here too;
+        # otherwise its local marker would be sent upstream as a real key.
+        from .direct_http import install
+        install()
     key=('pbdirect-budget-credit-probe' if active() else os.environ['OPENROUTER_API_KEY'])
     start=now();req=urllib.request.Request('https://openrouter.ai/api/v1/credits',headers={'Authorization':'Bearer '+key})
     with urllib.request.urlopen(req,timeout=15) as response:

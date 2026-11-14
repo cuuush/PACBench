@@ -153,7 +153,9 @@ def main():
     if a.detach:
         from .durable_job import launch
         import sys
-        target=a.output/'scored-recovery-job'
+        index=1
+        while (a.output/f'scored-recovery-job-{index}.launch.private.json').exists():index+=1
+        target=a.output/f'scored-recovery-job-{index}'
         print(json.dumps(launch([sys.executable,'-m','pacbench.scored_resume',str(a.output.resolve())],target)));return
     from .openrouter_direct import direct_environment
     key=os.environ['OPENROUTER_API_KEY']

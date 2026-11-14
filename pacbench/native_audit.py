@@ -183,7 +183,9 @@ def audit(root: Path, *, providers=None) -> dict:
                                   f'{label}: {context.get("reason", "recall context isolation failed")}')
                             check(data.get('context_isolation') == context,
                                   f'{label}: saved recall context receipt differs from native prompt')
-                            check(not data.get('policy_blocks') and all(
+                            check(not data.get('policy_blocks'),
+                                  f'{label}: provider/context/clock boundary failed in {path.relative_to(arm)}')
+                            check(all(
                                 c.get('name') in allowed and not source_read_blocked(
                                     c.get('name'),c.get('input',c.get('arguments',{})),rules) for c in data['tool_calls']),
                                 f'{label}: non-provider tool attempted in {path.relative_to(arm)}')

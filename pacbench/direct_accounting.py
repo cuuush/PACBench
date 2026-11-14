@@ -265,6 +265,8 @@ class DirectBudget:
             raise ValueError('Accounting capability/profile conflict')
         if self.config.get('request_scope')=='import-and-connectivity-probes' and not (project.endswith('-memory') or project.startswith('pacbench-route-probe-')):
             raise RuntimeError('Authorized route is import-only; benchmark and judge calls remain paused')
+        if self.config.get('request_scope')=='scored-week-roles' and not (project.endswith('-memory') or project.endswith('-driver') or project=='pacbench-judge'):
+            raise RuntimeError('Authorized scored route requires a declared role')
         if not isinstance(body,dict) or body.get('model')!=self.model:
             raise ValueError('Exact model required')
         if body.get('n',1) not in (None,1) or body.get('modalities') not in (None,['text']):
@@ -359,8 +361,8 @@ class DirectBudget:
                 grant=retry_of['authorized_retry'];grant['used_by']=row['id']
                 row.update(explicit_retry_of=retry_of['id'],retry_authorization_id=grant['id'])
             if split_enabled():
-                from .role_routes import CONDITION
-                row.update(role_route_condition=CONDITION,accounting_role=
+                from .role_routes import record as role_record
+                row.update(role_route_condition=role_record()['condition'],accounting_role=
                     'memory_provider' if project.endswith('-memory') else 'hermes' if project.endswith('-driver') else 'judge')
             if cohort:
                 own_cohort=[c for c in calls if c.get('cohort_id')==cohort]

@@ -15,7 +15,7 @@ from pacbench.followups import digest
 import argparse
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--cohort-spend-limit-usd')
-parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1'])
+parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1','luna-all-roles-v1'])
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--concurrency',type=int,choices=range(1,10),default=3)
 parser.add_argument('--detach',action='store_true',help='Keep the cohort running while the terminal or chat turn ends; save private PID/log receipt')

@@ -15,7 +15,7 @@ def stats(values):
                 p90=str(ordered[int(D('.9')*(len(ordered)-1))]),max=str(ordered[-1]))
 
 
-def build(repo,ledger_path):
+def build(repo,ledger_path, *, all_luna=False):
     raw=ledger_path.read_bytes();ledger=json.loads(raw);calls=ledger['calls']
     reference=repo/'runs/pizza-week-fresh-native-20261113'
     drivers=[];native=[];call_counts=[];excluded_driver=excluded_native=0
@@ -32,7 +32,7 @@ def build(repo,ledger_path):
                 else:excluded_native+=1
                 continue
             if role=='driver':
-                drivers.append(sum((D(r['accounted']) for r in rows),D(0)));call_counts.append(D(len(rows)))
+                drivers.append(sum(((D(r['input_tokens'])*D('.0000001')+D(r['output_tokens'])*D('.0000005')) if all_luna else D(r['accounted']) for r in rows),D(0)));call_counts.append(D(len(rows)))
             else:
                 # Price observed DeepSeek retrieval token counts at Luna base
                 # rates. This is a counterfactual, not measured Luna recall.
@@ -40,7 +40,7 @@ def build(repo,ledger_path):
     judges=[]
     for p in reference.glob('*/model-calls/*.json'):
         r=json.loads(p.read_text());u=r.get('usage') or {}
-        if r.get('status')=='ok' and 'cost' in u:judges.append(D(str(u['cost'])))
+        if r.get('status')=='ok' and 'cost' in u:judges.append(D(u['prompt_tokens'])*D('.0000001')+D(u['completion_tokens'])*D('.0000005') if all_luna else D(str(u['cost'])))
     samples=dict(driver_turn=stats(drivers),driver_calls_per_turn=stats(call_counts),judge_request=stats(judges),
                  hypothetical_luna_native_during_turn=stats(native))
     n=D(333);ingest=D('.165060375')
@@ -50,32 +50,34 @@ def build(repo,ledger_path):
     from .direct_accounting import request_cost_bound
     lunar=ledger['route_configs']['luna-bedrock-global'];peak_luna=request_cost_bound(lunar,lunar['max_completion_tokens'],shared_context=True)
     deep=ledger['config'];peak_deep=request_cost_bound(deep,deep['max_completion_tokens'])
-    envelope=D(8)
+    from decimal import ROUND_CEILING
+    envelope=(upper+3*peak_luna).to_integral_value(rounding=ROUND_CEILING) if all_luna else D(8)
+    proposed_cap=(exposure+envelope).to_integral_value(rounding=ROUND_CEILING)
     assert ledger_path.read_bytes()==raw
     return {'version':'scored-week-budget-plan-v1','state':'blocked-no-paid-execution','paid_calls':0,
             'sources':125,'providers':9,'questions_each':37,'answer_targets':333,'criteria_targets':1395,
             'routes':{'native_memory':'openai/gpt-6-luna @ amazon-bedrock/global',
-                      'hermes_and_judge':'deepseek/deepseek-v4.1-flash-1017 @ deepinfra/fp8/flex',
+                      'hermes_and_judge':'openai/gpt-6-luna @ amazon-bedrock/global' if all_luna else 'deepseek/deepseek-v4.1-flash-1017 @ deepinfra/fp8/flex',
                       'judge_effort':'low','judge_protocol':'semantic-judge-date-scope-v2','prompt_protocol':'native-question-v2'},
             'samples':samples,'excluded_driver_turns':excluded_driver,'excluded_native_windows':excluded_native,
-            'planning_scenarios_usd':{'mean_one_pass':str(lower),'stress_two_turns_p90_three_imports':str(upper),
-                'formula_low':'Measured Luna full import +333*(mean DeepSeek Hermes turn +mean DeepSeek judgment +hypothetical Luna-priced native retrieval window)',
-                'formula_high':'3*measured Luna full import +666*(p90 Hermes turn +p90 judgment +p90 hypothetical Luna retrieval)',
+            'planning_scenarios_usd':{'all_luna':all_luna,'repricing_scope':'For all-Luna, existing DeepSeek Hermes/judge token counts are repriced at Luna base rates; not observed Luna scoring charges. Cache/long-context and model-dependent output variation can change actuals.','mean_one_pass':str(lower),'stress_two_turns_p90_three_imports':str(upper),
+                'formula_low':'Measured Luna full import +333*(mean priced Hermes turn +mean priced judgment +hypothetical Luna-priced native retrieval window)',
+                'formula_high':'3*measured Luna full import +666*(p90 priced Hermes turn +p90 priced judgment +p90 hypothetical Luna retrieval)',
                 'limits':'Planning scenarios, not confidence intervals or guaranteed completion bounds. Native retrieval tokens came from DeepSeek and Luna can differ. Native background calls outside answer windows, unobserved failed calls, long reasoning tails and additional retries may exceed scenarios. Local compute excluded. Historical liabilities are separate and retained.'},
             'cumulative_vs_inflight':{'measured_clean_import_actual_usd':str(ingest),'uncapped_luna_single_reservation_usd':str(peak_luna),
-                'uncapped_deepseek_single_reservation_usd':str(peak_deep),
-                'two_luna_plus_one_deepseek_reservations_usd':str(2*peak_luna+peak_deep),
+                'uncapped_answer_judge_reservation_usd':str(peak_luna if all_luna else peak_deep),
+                'two_native_plus_one_answer_reservations_usd':str(3*peak_luna if all_luna else 2*peak_luna+peak_deep),
                 'explanation':'Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1.'},
             'financial_plan':{'unchanged_cap_usd':str(ledger['config']['cap']),'existing_exposure_usd':str(exposure),
                 'available_usd':str(available),'proposed_new_cohort_liability_ceiling_usd':str(envelope),
                 'additional_headroom_for_envelope_usd':str(max(D(0),envelope-available)),
-                'minimum_total_cap_for_envelope_usd':str(exposure+envelope),'suggested_approval_cap_usd':'28',
+                'minimum_total_cap_for_envelope_usd':str(exposure+envelope),'suggested_approval_cap_usd':str(proposed_cap),
                 'single_luna_admission_deficit_usd':str(max(D(0),peak_luna-available)),
-                'decision':'Approve an aggregate cap of$28 (increase$8) while retaining historic liabilities, with at most$8 new cohort liability. This is a financial stop envelope, not a guarantee all333 targets finish. No cap or private authorization changed.'},
+                'decision':f'Proposed aggregate capUSD{proposed_cap}, with a separate new cohort liability ceilingUSD{envelope}; retain all historic liabilities. This is a financial stop envelope, not guaranteed full completion. No cap or private authorization changed.'},
             'execution_plan':['Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.',
                 'Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.',
                 'Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.',
-                'Use one shared cohort ID across children and profiles with an8USD liability ceiling; unchanged aggregate cap remains independently binding.',
+                f'Use one shared cohort ID with a liability ceilingUSD{envelope}; unchanged aggregate cap remains independently binding.',
                 'Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.',
                 'Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly.'],
             'ledger_unchanged':True,'sensitive_data_included':False}
@@ -85,7 +87,8 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ledger',type=Path,default=Path('/workspace/shared/pacbench-openrouter-pizza-day-20261112/ledger.json'))
     parser.add_argument('--output',type=Path)
-    args=parser.parse_args();r=build(Path(__file__).resolve().parents[1],args.ledger)
+    parser.add_argument('--all-luna',action='store_true',help='Reprice previous scoring token samples for the explicitly selected all-Luna condition')
+    args=parser.parse_args();r=build(Path(__file__).resolve().parents[1],args.ledger,all_luna=args.all_luna)
     text=json.dumps(r,indent=2)+'\n'
     if args.output:args.output.write_text(text)
     print(text)

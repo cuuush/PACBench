@@ -511,3 +511,31 @@ changes, use `python3 -m pacbench.scored_budget_plan`. This reports scenario
 estimates separately from transient reservations and a bounded financial plan;
 it does not promise full completion or authorize spending. It needs the private
 run artifacts and original ledger, which bootstrap does not reconstruct.
+
+For the separately requested all-Luna scored condition, select
+`PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global` and
+`--role-routes luna-all-roles-v1`. All three accounting roles then use exactly
+`openai/gpt-6-luna` on `amazon-bedrock/global`, without provider fallback.
+Role labels, chronological source gates and measured native concurrency remain
+separate and unchanged. This explicitly changes the answer/judge model from the
+mixed condition; it does not change the existing judge schema, low reasoning,
+scoring rules, or native output settings.
+
+`python3 -m pacbench.scored_budget_plan --all-luna` reprices historical scoring
+token samples for planning. It is not a live Luna scoring measurement. The
+current proposed financial envelope is14USD; it is not an approved increase:
+
+```sh
+PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global \
+python3 scripts/run_reviewed_week_cohort.py \
+  --preflight-only --role-routes luna-all-roles-v1 \
+  --cohort-spend-limit-usd 14 --concurrency 1 \
+  --output runs/pizza-week-scored-all-luna
+```
+
+The existing Luna grant is import-only. After funding is established, the explicit
+route registration supports `--scope scored-week-roles` with the user's recorded
+all-role authorization; it preserves prices, token bounds, historical rows and
+the task cap and records the scope transition. A mere role environment variable
+cannot broaden a grant. Until the financial preflight passes, do not start paid
+work. The current20USD aggregate cap and historical holds remain intact.

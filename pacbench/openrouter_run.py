@@ -89,7 +89,7 @@ def transport_environment(access, cap):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cohort-spend-limit-usd',help='Optional additional shared cohort liability ceiling, including unresolved and in-flight calls; never raises task cap')
-    parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1'],help='Explicit Luna native memory with unchanged DeepSeek Hermes/judge; no inference settings changed')
+    parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1','luna-all-roles-v1'],help='Explicit per-role model route condition; all roles recorded separately')
     parser.add_argument('--plan', action='store_true', help='Print configuration without network or inference')
     parser.add_argument('--providers', nargs='+',
                         choices=ACTIVE_PROVIDERS, default=list(ACTIVE_PROVIDERS),

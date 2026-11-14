@@ -7,14 +7,17 @@ import os
 from .openrouter_route import PROFILES, PROFILE_NAME
 
 CONDITION = 'luna-memory-deepseek-v1'
+ALL_LUNA = 'luna-all-roles-v1'
+CONDITIONS = (CONDITION, ALL_LUNA)
 
 
 def split_enabled():
     condition = os.environ.get('PACBENCH_ROLE_ROUTES')
     if not condition:
         return False
-    if condition != CONDITION or PROFILE_NAME != 'deepseek-flex':
-        raise ValueError('Split roles require the explicit condition and DeepSeek driver profile')
+    expected='luna-bedrock-global' if condition==ALL_LUNA else 'deepseek-flex'
+    if condition not in CONDITIONS or PROFILE_NAME!=expected:
+        raise ValueError('Explicit role condition and parent driver profile differ')
     return True
 
 
@@ -24,7 +27,7 @@ def profile_for_project(project):
     if project.endswith('-memory'):
         return 'luna-bedrock-global'
     if project.endswith('-driver') or project == 'pacbench-judge':
-        return 'deepseek-flex'
+        return 'luna-bedrock-global' if os.environ.get('PACBENCH_ROLE_ROUTES')==ALL_LUNA else 'deepseek-flex'
     raise ValueError('Unknown accounting role in split-route run')
 
 
@@ -43,8 +46,9 @@ def is_memory_model(model):
 def record():
     if not split_enabled():
         return None
-    return {'condition': CONDITION, 'memory_provider': dict(PROFILES['luna-bedrock-global']),
-            'hermes': dict(PROFILES['deepseek-flex']), 'judge': dict(PROFILES['deepseek-flex']),
+    driver='luna-bedrock-global' if os.environ.get('PACBENCH_ROLE_ROUTES')==ALL_LUNA else 'deepseek-flex'
+    return {'condition': os.environ['PACBENCH_ROLE_ROUTES'], 'memory_provider': dict(PROFILES['luna-bedrock-global']),
+            'hermes': dict(PROFILES[driver]), 'judge': dict(PROFILES[driver]),
             'selection': 'Persistent memory/driver/judge accounting capability, including native recall and background calls; never inferred from wall-clock phase.'}
 
 

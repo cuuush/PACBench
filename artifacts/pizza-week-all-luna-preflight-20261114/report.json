@@ -1,6 +1,6 @@
 {
   "version": "scored-week-budget-plan-v1",
-  "state": "blocked-under-existing20USD-cap-no-inference",
+  "state": "archived-superseded-not-an-admission-policy",
   "paid_calls": 0,
   "sources": 125,
   "providers": 9,
@@ -58,25 +58,6 @@
     "two_native_plus_one_answer_reservations_usd": "1.53270000",
     "explanation": "Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1."
   },
-  "financial_plan": {
-    "unchanged_cap_usd": "20",
-    "existing_exposure_usd": "19.503585917232",
-    "available_usd": "0.496414082768",
-    "proposed_new_cohort_liability_ceiling_usd": "14",
-    "additional_headroom_for_envelope_usd": "13.503585917232",
-    "minimum_total_cap_for_envelope_usd": "33.503585917232",
-    "suggested_approval_cap_usd": "34",
-    "single_luna_admission_deficit_usd": "0.014485917232",
-    "decision": "Proposed aggregate capUSD34, with a separate new cohort liability ceilingUSD14; retain all historic liabilities. This is a financial stop envelope, not guaranteed full completion. No cap or private authorization changed."
-  },
-  "execution_plan": [
-    "Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.",
-    "Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.",
-    "Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.",
-    "Use one shared cohort ID with a liability ceilingUSD14; unchanged aggregate cap remains independently binding.",
-    "Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.",
-    "Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly."
-  ],
   "ledger_unchanged": true,
   "sensitive_data_included": false,
   "all_luna_condition": "luna-all-roles-v1",
@@ -256,5 +237,6 @@
     "real_preflight_exit": 2,
     "paid_calls": 0,
     "private_scope_change_executed": false
-  }
+  },
+  "superseded_by": "Explicit funded prepaid run budget; historical sample facts retained. No cap increase is requested."
 }

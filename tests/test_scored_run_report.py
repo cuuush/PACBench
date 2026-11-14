@@ -3,6 +3,20 @@ from pathlib import Path
 from pacbench.scored_run_report import build
 
 
+def test_cents_display_keeps_positive_subcent_values_visible(tmp_path):
+    from pacbench.scored_run_report import display_usd,budget_display
+    assert display_usd('0')=='$0.00'
+    assert display_usd('.000023612232')=='<$0.01'
+    assert display_usd('.217553695')=='$0.22'
+    p=tmp_path/'ledger.json';p.write_text(json.dumps({'config':{'cap':'20'},'calls':[
+        {'state':'settled','accounted':'2.014713321032'},
+        {'state':'uncertain','accounted':'10'}, {'state':'reserved','accounted':'4'},
+        {'state':'allocated','accounted':'3'}]}));before=p.read_bytes();d=budget_display(p)
+    assert d['verified_charges']=='$2.01' and d['outstanding_reservations']=='$4.00'
+    assert d['unresolved_charge_bounds']=='$10.00' and d['external_allocations']=='$3.00'
+    assert d['remaining_after_all_exposure']=='$0.99' and p.read_bytes()==before
+
+
 def test_partial_scores_keep_full_denominator_and_shared_judge_attribution(tmp_path):
     root=tmp_path/'cohort';component=root/'mem0';arm=component/'repeat-1/mem0';turn=arm/'turns/one';turn.mkdir(parents=True)
     (root/'cohort.json').write_text(json.dumps({'state':'running','providers':['mem0','reme']}))

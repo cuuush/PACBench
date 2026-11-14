@@ -62,7 +62,10 @@ assert not subprocess.check_output(['git','status','--porcelain','--untracked-fi
 verify_memcal_source(repo);verify_memos_package(repo);fetch_catalog();budget=live_budget()
 # Native output caps differ across providers. Admission evaluates the actual
 # request atomically; a preflight maximum must not reject fundable capped calls.
-assert sum(money(r['accounted']) for r in budget.snapshot())<Decimal('20'),'Shared task cap exhausted; original holds remain intact'
+from pacbench.funded_run_budget import selected
+with budget.locked() as state:funded=selected(state)
+admission_calls=[r for r in budget.snapshot() if not funded or r.get('funded_run_id')==funded['id']]
+assert sum(money(r['accounted']) for r in admission_calls)<Decimal(funded['limit_usd'] if funded else '20'),'Authorized spending cap exhausted'
 with budget.locked() as state:
  if state.get('handoff',{}).get('frozen') is True:raise RuntimeError('Transferred task accounting must be verified and activated in its destination session first')
 from pacbench.context_isolation import validate_recall_environment
@@ -84,7 +87,7 @@ record={'version':'stable-native-week-cohort-v3','state':'running','providers':p
  'memos_reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION'),
  'effective_output_ceiling_condition':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),
  'compatibility_condition':os.environ.get('PACBENCH_LUNA_COMPATIBILITY'),'incremental_admission':args.incremental,'role_routes':role_record(),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY'),'cohort_liability_limit_usd':args.cohort_spend_limit_usd,
- 'execution_scope':'import-only' if args.import_only else 'benchmark',
+ 'execution_scope':'import-only' if args.import_only else 'benchmark','funded_run_id':funded['id'] if funded else None,
  'started':datetime.now(timezone.utc).isoformat(),'performance_scope':'Concurrent functional trials; no latency ranking',
  'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),
  'frozen_preparation':str(prepared.relative_to(repo)),'frozen_corpus_hash':manifest['corpus_hash'],

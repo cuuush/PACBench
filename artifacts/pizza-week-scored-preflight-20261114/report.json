@@ -1,6 +1,6 @@
 {
   "version": "scored-week-budget-plan-v1",
-  "state": "blocked-no-paid-execution",
+  "state": "archived-superseded-not-an-admission-policy",
   "paid_calls": 0,
   "sources": 125,
   "providers": 9,
@@ -56,26 +56,6 @@
     "two_luna_plus_one_deepseek_reservations_usd": "1.1964927616",
     "explanation": "Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1."
   },
-  "financial_plan": {
-    "unchanged_cap_usd": "20",
-    "existing_exposure_usd": "19.503585917232",
-    "available_usd": "0.496414082768",
-    "proposed_new_cohort_liability_ceiling_usd": "8",
-    "additional_headroom_for_envelope_usd": "7.503585917232",
-    "minimum_total_cap_for_envelope_usd": "27.503585917232",
-    "suggested_approval_cap_usd": "28",
-    "single_luna_admission_deficit_usd": "0.014485917232",
-    "decision": "Approve an aggregate cap of$28 (increase$8) while retaining historic liabilities, with at most$8 new cohort liability. This is a financial stop envelope, not a guarantee all333 targets finish. No cap or private authorization changed.",
-    "approval_effect": "If approved, separately update and test the retained authorization/guard cap before paid re-preflight. This commit leaves cap20 and all historic ledger liabilities unchanged."
-  },
-  "execution_plan": [
-    "Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.",
-    "Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.",
-    "Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.",
-    "Use one shared cohort ID across children and profiles with an8USD liability ceiling; unchanged aggregate cap remains independently binding.",
-    "Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.",
-    "Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly."
-  ],
   "ledger_unchanged": true,
   "sensitive_data_included": false,
   "validation": {
@@ -152,5 +132,6 @@
       "stress_two_turns_p90": "3.3868764"
     },
     "scope": "Prospective scenarios, not charges. Import stress allowance is3import-equivalents for variation/failed-case recovery, not a plan to rerun valid providers. Native retrieval is hypothetical Luna repricing of observed DeepSeek tokens and omits work outside sampled windows; actual Luna output/cache use can differ."
-  }
+  },
+  "superseded_by": "Explicit funded prepaid run budget; historical sample facts retained. No cap increase is requested."
 }

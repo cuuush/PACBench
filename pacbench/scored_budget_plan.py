@@ -54,7 +54,7 @@ def build(repo,ledger_path, *, all_luna=False):
     envelope=(upper+3*peak_luna).to_integral_value(rounding=ROUND_CEILING) if all_luna else D(8)
     proposed_cap=(exposure+envelope).to_integral_value(rounding=ROUND_CEILING)
     assert ledger_path.read_bytes()==raw
-    return {'version':'scored-week-budget-plan-v1','state':'blocked-no-paid-execution','paid_calls':0,
+    return {'version':'scored-week-budget-plan-v1','state':'archived-scenarios-not-admission-policy','paid_calls':0,
             'sources':125,'providers':9,'questions_each':37,'answer_targets':333,'criteria_targets':1395,
             'routes':{'native_memory':'openai/gpt-6-luna @ amazon-bedrock/global',
                       'hermes_and_judge':'openai/gpt-6-luna @ amazon-bedrock/global' if all_luna else 'deepseek/deepseek-v4.1-flash-1017 @ deepinfra/fp8/flex',
@@ -68,18 +68,7 @@ def build(repo,ledger_path, *, all_luna=False):
                 'uncapped_answer_judge_reservation_usd':str(peak_luna if all_luna else peak_deep),
                 'two_native_plus_one_answer_reservations_usd':str(3*peak_luna if all_luna else 2*peak_luna+peak_deep),
                 'explanation':'Reservations are transient exposure, not additional actual spend. Sequential providers reduce overlaps; native internal concurrency remains native except the measured explicit serial conditions. All reservations and unknowns count inside both aggregate cap and optional cohort ceiling. Future native concurrency is not guaranteed by a measured peak of1.'},
-            'financial_plan':{'unchanged_cap_usd':str(ledger['config']['cap']),'existing_exposure_usd':str(exposure),
-                'available_usd':str(available),'proposed_new_cohort_liability_ceiling_usd':str(envelope),
-                'additional_headroom_for_envelope_usd':str(max(D(0),envelope-available)),
-                'minimum_total_cap_for_envelope_usd':str(exposure+envelope),'suggested_approval_cap_usd':str(proposed_cap),
-                'single_luna_admission_deficit_usd':str(max(D(0),peak_luna-available)),
-                'decision':f'Proposed aggregate capUSD{proposed_cap}, with a separate new cohort liability ceilingUSD{envelope}; retain all historic liabilities. This is a financial stop envelope, not guaranteed full completion. No cap or private authorization changed.'},
-            'execution_plan':['Offline route/accounting tests first; no inference until explicit funding decision and re-preflight.',
-                'Use one fresh chronological store per provider; import only eligible daily sources before each frozen question.',
-                'Run providers sequentially. Retain measured native serial settings for OpenViking/Hindsight/Memcal and unchanged Honcho clock/thinking setting.',
-                f'Use one shared cohort ID with a liability ceilingUSD{envelope}; unchanged aggregate cap remains independently binding.',
-                'Stop on cap/cohort denial, unresolved request or native failure under existing rules; never release an unknown hold to admit another call.',
-                'Retain valid cases and rerun only failed cases under verified recovery. Report failures, costs and partial coverage honestly.'],
+            'admission_policy':'Historical scenarios only; superseded by explicitly authorized funded prepaid run budget. No cap increase requested.',
             'ledger_unchanged':True,'sensitive_data_included':False}
 
 

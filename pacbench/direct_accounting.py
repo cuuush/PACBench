@@ -383,6 +383,8 @@ class DirectBudget:
             raise ValueError('Invalid cohort liability envelope')
         with self.locked() as state:
             calls=state['calls']
+            from .funded_run_budget import selected,credit_snapshot,check_admission
+            funded=selected(state)
             admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429') or os.environ.get('PACBENCH_STOP_FILE')
             if admission_stop and Path(admission_stop).exists():
                 raise RuntimeError('Measured import admission stopped after rate limit or cancellation')
@@ -416,7 +418,14 @@ class DirectBudget:
                     raise RuntimeError('Uncertain request outcome; no automatic replay')
             if any(c.get('request_sha256')==fingerprint and c['state']=='reserved' for c in own):
                 raise RuntimeError('Identical request already in flight')
-            if sum(money(c['accounted']) for c in calls)+bound>money(self.config['cap']):
+            if funded:
+                # Hold the task lock across this free read and admission so
+                # concurrent native workers cannot spend the same headroom.
+                try:check_admission(state,funded,bound,credit_snapshot())
+                except (RuntimeError,OSError,ValueError):
+                    stop_measured_admission('funded_run_or_prepaid_admission_stopped')
+                    raise
+            elif sum(money(c['accounted']) for c in calls)+bound>money(self.config['cap']):
                 stop_measured_admission('task_reservation_cap_reached')
                 raise RuntimeError('Task spending cap reached')
             row={'id':str(uuid.uuid4()),'project':project,'model':self.model,'started':now(),'finished':None,
@@ -436,6 +445,7 @@ class DirectBudget:
             if retry_of is not None:
                 grant=retry_of['authorized_retry'];grant['used_by']=row['id']
                 row.update(explicit_retry_of=retry_of['id'],retry_authorization_id=grant['id'])
+            if funded:row['funded_run_id']=funded['id']
             if split_enabled():
                 from .role_routes import record as role_record
                 row.update(role_route_condition=role_record()['condition'],accounting_role=

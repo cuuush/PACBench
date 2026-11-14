@@ -581,3 +581,19 @@ provider's documented `llm.reasoning.effort: none`; it changes only native MemOS
 reasoning, not Hermes/judge effort or factual inputs. Keep default-condition
 failures/results and report the variant separately. Do not silently relabel it
 as a successful native-default run.
+
+The explicitly authorized `PACBENCH_FUNDED_RUN_ID=pizza-week-scored-prepaid-20261114`
+continuation uses a named, resumable prepaid run budget. Its ceiling is the lesser
+of $20.00 and verified available credit at enrollment. Each outgoing request
+atomically reserves its conservative bound and rechecks current OpenRouter
+prepaid credit, including new pending/unknown requests. Existing historical
+charges, allocations and unknown bounds remain audit records; completed charges
+already reflected in provider credit are not charged to this new budget again.
+No account, key, credit or top-up settings are changed. Archived planning
+scenarios do not gate execution or request a higher limit.
+
+Continue the frozen chronological scored fixture under all-Luna role routes,
+retain completed cases and resume only a verified native state. Stop on a real
+admission refusal, truncation, inaccessible provider or failed readiness; preserve
+partial artifacts. Report actual charges separately from reservations and
+unknowns, with cents in user-facing summaries and exact receipt arithmetic.

@@ -47,13 +47,18 @@ def require_live_cost_boundary() -> dict:
     if active():
         from .direct_accounting import live_budget
         budget=live_budget();calls=budget.snapshot()
+        from .funded_run_budget import selected
+        with budget.locked() as state:funded=selected(state)
+        if funded:
+            calls=[c for c in calls if c.get('funded_run_id')==funded['id']]
         from decimal import Decimal
         total=sum(Decimal(c['accounted']) for c in calls)
         allocated=sum(Decimal(c['accounted']) for c in calls if c.get('kind')=='external_budget_allocation')
         if any(c.get('http_status') in (401,403) for c in calls):
             raise ModelAccessBlocked('Direct OpenRouter authentication blocked')
-        if total>=Decimal('20'):raise SpendingBlocked('Task spending cap reached')
-        return {'service':'pacbench-openrouter-direct','limit_usd':20,'accounted_usd':float(total),
+        limit=Decimal(funded['limit_usd']) if funded else Decimal('20')
+        if total>=limit:raise SpendingBlocked('Funded run spending cap reached' if funded else 'Task spending cap reached')
+        return {'service':'pacbench-openrouter-direct','limit_usd':float(limit),'accounted_usd':float(total),'funded_run_id':funded['id'] if funded else None,
                 'external_allocations_usd':float(allocated),'audit_allowance_usd':float(Decimal(20)-allocated),
                 'audit_spend_and_bounds_usd':float(total-allocated)}
     try:

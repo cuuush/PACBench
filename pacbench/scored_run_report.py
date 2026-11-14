@@ -2,7 +2,7 @@
 import argparse,hashlib,json,fcntl,time
 from collections import Counter,defaultdict
 from datetime import datetime,timezone
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 
@@ -18,6 +18,33 @@ def union(intervals):
     for a,b in sorted(intervals):
         total+=max(0,b-max(a,end if end is not None else a));end=max(b,end if end is not None else b)
     return total
+
+
+def display_usd(value):
+    """Presentation only: exact ledger arithmetic and receipts stay untouched."""
+    amount=Decimal(str(value))
+    if not amount.is_finite() or amount<0:raise ValueError('Invalid USD amount')
+    if 0<amount<Decimal('.01'):return '<$0.01'
+    return '$'+str(amount.quantize(Decimal('.01'),rounding=ROUND_HALF_UP))
+
+
+def budget_display(ledger):
+    with ledger.open() as stream:
+        fcntl.flock(stream,fcntl.LOCK_SH);state=json.load(stream)
+    from .funded_run_budget import selected
+    funded=selected(state)
+    totals=defaultdict(lambda:Decimal(0))
+    for row in state['calls']:
+        if not funded or row.get('funded_run_id')==funded['id']:totals[row['state']]+=Decimal(row['accounted'])
+    exposure=sum(totals.values(),Decimal(0));cap=Decimal(funded['limit_usd'] if funded else state['config']['cap'])
+    return {'verified_charges':display_usd(totals['settled']),
+        'unresolved_charge_bounds':display_usd(totals['uncertain']+totals['abandoned_unknown']),
+        'outstanding_reservations':display_usd(totals['reserved']),
+        'external_allocations':display_usd(totals['allocated']),
+        'remaining_after_all_exposure':display_usd(max(Decimal(0),cap-exposure)),
+        'authorized_cap':display_usd(cap),
+        'funded_run_id':funded['id'] if funded else None,
+        'scope':'Cents for display only; charges, unknowns, reservations and allocations remain separate. No refund inferred.'}
 
 
 def build(root,ledger):
@@ -93,6 +120,8 @@ def build(root,ledger):
 def main():
     p=argparse.ArgumentParser();p.add_argument('root',type=Path);p.add_argument('--ledger',type=Path,default=Path('/workspace/shared/pacbench-openrouter-pizza-day-20261112/ledger.json'));p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     report=build(a.root.resolve(),a.ledger);a.output.write_text(json.dumps(report,indent=2)+'\n')
-    print(json.dumps([{'provider':r['provider'],'state':r['state'],'graded':r['graded_answers'],'semantic_correct':r['initial_semantic_correct'],'criteria_graded':r['graded_atomic_criteria']} for r in report['providers']]))
+    print(json.dumps({'providers':[{'provider':r['provider'],'state':r['state'],'graded':r['graded_answers'],'semantic_correct':r['initial_semantic_correct'],'criteria_graded':r['graded_atomic_criteria'],
+        'verified_charges':display_usd(sum((Decimal(p['settled_actual_usd']) for p in r['phases'].values()),Decimal(0)))} for r in report['providers']],
+        'task_accounting':budget_display(a.ledger)}))
 
 if __name__=='__main__':main()

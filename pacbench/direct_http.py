@@ -34,7 +34,7 @@ def admitted(url,headers,body):
     project=project_from_authorization(supplied)
     if not project:raise RuntimeError('Unaccounted OpenRouter credential refused')
     auth='Bearer '+os.environ['PACBENCH_DIRECT_UPSTREAM_KEY']
-    if not body and parsed.path in {'/api/v1/models','/api/v1/key'}:
+    if not body and parsed.path in {'/api/v1/models','/api/v1/key','/api/v1/credits'}:
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
     if parsed.path!='/api/v1/chat/completions' or not body:
         raise RuntimeError('Unsupported direct model endpoint')

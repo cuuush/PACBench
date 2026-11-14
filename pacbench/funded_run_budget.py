@@ -43,6 +43,11 @@ def selected(state):
     if (not entry or entry.get('id')!=ident or entry.get('status')!='active' or
         not Decimal(0)<money(entry['limit_usd'])<=Decimal(20)):
         raise RuntimeError('Explicit funded run authorization unavailable')
+    safety=entry.get('prepaid_safety',{})
+    if not safety.get('evidence') or safety.get('auto_recharge') not in {'off','verified-threshold'}:
+        raise RuntimeError('Auto Recharge verification unavailable; paid admission paused')
+    if safety['auto_recharge']=='verified-threshold' and money(safety.get('local_stop_floor_usd',0))<=money(safety['threshold_usd']):
+        raise RuntimeError('Prepaid stop floor must exceed verified Auto Recharge threshold')
     return entry
 
 
@@ -54,7 +59,8 @@ def enroll(budget, ident, authorization, snapshot):
         # Caller verifies owned workers have stopped before this one-time boundary.
         limit=min(Decimal(20),money(snapshot['remaining_usd']))
         if limit<=0:raise RuntimeError('No verified prepaid credit')
-        entry={'id':ident,'status':'active','authorized_at':now(),'authorization':authorization,
+        entry={'id':ident,'status':'awaiting-auto-recharge-verification','authorized_at':now(),'authorization':authorization,
+            'prepaid_safety':{'auto_recharge':'unverified','evidence':None},
             'limit_usd':str(limit),'baseline_credit':snapshot,'baseline_ledger_rows':len(state['calls']),
             'historical_rows_sha256':hashlib.sha256(json.dumps(state['calls'],sort_keys=True).encode()).hexdigest(),
             'scope':'New inference only; historical charges already reflected in provider prepaid credit are not charged twice. Original receipts, allocations and unknown bounds remain historical audit records.',
@@ -73,7 +79,8 @@ def check_admission(state, entry, bound, snapshot):
     new=state['calls'][entry['baseline_ledger_rows']:]
     unreflected=sum((money(r['accounted']) for r in new if r['state'] not in {'settled','rejected_no_dispatch'} or
         r['state']=='settled' and r.get('finished','')>=snapshot['request_started']),Decimal(0))
-    if unreflected+bound>money(snapshot['remaining_usd']):raise RuntimeError('Verified prepaid credit cannot cover pending work')
+    floor=money(entry.get('prepaid_safety',{}).get('local_stop_floor_usd',0))
+    if unreflected+bound+floor>money(snapshot['remaining_usd']):raise RuntimeError('Verified prepaid credit cannot cover pending work and stop floor')
     entry['last_credit']=snapshot
 
 
@@ -82,7 +89,7 @@ def main():
     from .direct_accounting import live_budget
     r=enroll(live_budget(),a.enroll,a.authorization,credit_snapshot())
     from .scored_run_report import display_usd
-    print(json.dumps({'run_budget':r['id'],'limit':display_usd(r['limit_usd']),'historical_ledger':'preserved','top_up':False}))
+    print(json.dumps({'run_budget':r['id'],'limit':display_usd(r['limit_usd']),'status':r['status'],'historical_ledger':'preserved','top_up':False}))
 
 
 if __name__=='__main__':main()

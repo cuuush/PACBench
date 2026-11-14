@@ -14,7 +14,11 @@ def test_new_prepaid_budget_preserves_history_and_reserves_atomically(tmp_path,m
     assert entry['limit_usd']=='0.5'
     monkeypatch.setenv('PACBENCH_FUNDED_RUN_ID',entry['id']);monkeypatch.setenv('PACBENCH_RESERVATION_POLICY','openai-cache-total-shared-v1')
     monkeypatch.setattr('pacbench.funded_run_budget.credit_snapshot',lambda:snapshot)
-    body={'model':b.model,'messages':[]};r=b.reserve('one-driver',body)
+    body={'model':b.model,'messages':[]}
+    with pytest.raises(RuntimeError,match='authorization'):b.reserve('one-driver',body)
+    with b.locked() as state:
+        state['funded_runs'][entry['id']].update(status='active',prepaid_safety={'auto_recharge':'off','evidence':'Synthetic read-only test fixture'})
+    r=b.reserve('one-driver',body)
     with pytest.raises(RuntimeError,match='cap reached'):b.reserve('two-driver',body)
     b.settle(r['id'],200,json.dumps({'usage':{'cost':'.001','prompt_tokens':1,'completion_tokens':2}}).encode())
     b.reserve('two-driver',body)
@@ -31,3 +35,5 @@ def test_credit_covers_inflight_unknown_and_post_read_settlements():
     snap={'request_started':'2026-11-14T01:00:01+00:00','remaining_usd':'.5'}
     check_admission(state,entry,Decimal('.2'),snap)
     with pytest.raises(RuntimeError,match='prepaid'):check_admission(state,entry,Decimal('.20001'),snap)
+    entry['prepaid_safety']={'local_stop_floor_usd':'.01'}
+    with pytest.raises(RuntimeError,match='floor'):check_admission(state,entry,Decimal('.2'),snap)

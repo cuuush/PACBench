@@ -25,3 +25,11 @@ def test_memos_original_trace_search_is_source_access():
     assert tool_category('memos_get',{'kind':'trace'})=='source_evidence'
     assert tool_category('memos_get',{'kind':'world_model'})=='memory_detail'
     assert tool_category('memos_timeline',{})=='source_messages'
+
+
+def test_memos_native_none_condition_is_explicit_and_preserves_other_settings(monkeypatch):
+    before=plan_config(Path('/offline'),'openai/gpt-6-luna','url','inert')
+    monkeypatch.setenv('PACBENCH_MEMOS_REASONING_CONDITION','native-none-v1')
+    after=plan_config(Path('/offline'),'openai/gpt-6-luna','url','inert')
+    assert after['llm'].pop('reasoning')=={'effort':'none'}
+    assert after==before

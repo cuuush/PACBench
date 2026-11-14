@@ -18,12 +18,17 @@ REPO=Path(__file__).resolve().parents[1]
 
 
 def plan_config(root,model,base,key):
-    return {'version':1,'llm':{'provider':'openai_compatible','endpoint':base,
+    config={'version':1,'llm':{'provider':'openai_compatible','endpoint':base,
         'model':model,'apiKey':key,'fallbackToHost':False},
         # L3/evolver inherit that same explicitly selected native LLM config.
         'embedding':{'provider':'local','model':'Xenova/all-MiniLM-L6-v2',
             'local':{'cacheDir':'/workspace/shared/pacbench-memos-models','offline':True}},
         'hub':{'enabled':False},'telemetry':{'enabled':False}}
+    condition=os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION')
+    if condition:
+        if condition!='native-none-v1' or model!='openai/gpt-6-luna':raise ValueError('Unknown MemOS reasoning condition')
+        config['llm']['reasoning']={'effort':'none'}
+    return config
 
 
 def start(root,env,model,base,key):
@@ -83,7 +88,7 @@ def start(root,env,model,base,key):
     save(root/'memos-document-config.json',{'endpoint':endpoint})
     save(root/'native-server-setup.json',{'route':'Pinned native public core bootstrap and HTTP API; unchanged Hermes memtensor stdio bridge',
         'provider_revision':revision,'source_type':'official-npm-release','native_package_release':release,'endpoint':endpoint,'pid':process.pid,'health':health,
-        'model':model,'embedding':'Native local MiniLM384; verified cached assets; offline loading',
+        'model':model,'reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION','native-default'),'embedding':'Native local MiniLM384; verified cached assets; offline loading',
         'inference_overrides':'Exact selected OpenAI-compatible model; host fallback disabled; native output/reasoning/batching defaults unchanged',
         'http_role':'Hermes viewer role: autoRecovery false; native stdio bridge owns recovery writes',
         'ingestion_condition':'native-raw-document-import-v1','extraction_performed':False,

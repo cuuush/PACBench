@@ -81,6 +81,7 @@ if args.preflight_only:
 root.mkdir(exist_ok=False)
 providers=args.providers
 record={'version':'stable-native-week-cohort-v3','state':'running','providers':providers,'concurrency':args.concurrency,
+ 'memos_reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION'),
  'effective_output_ceiling_condition':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),
  'compatibility_condition':os.environ.get('PACBENCH_LUNA_COMPATIBILITY'),'incremental_admission':args.incremental,'role_routes':role_record(),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY'),'cohort_liability_limit_usd':args.cohort_spend_limit_usd,
  'execution_scope':'import-only' if args.import_only else 'benchmark',

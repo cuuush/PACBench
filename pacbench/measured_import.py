@@ -59,6 +59,8 @@ def observations(component, calls):
                'input_tokens': c.get('input_tokens'), 'output_tokens': c.get('output_tokens'),
                'usage_detail': c.get('usage_detail'), 'response_validation': c.get('response_validation'),
                'native_request_parameters': c.get('native_request_parameters'),
+               'reserved_bound_usd':c.get('reserved'),
+               'reservation_policy':c.get('reservation_policy','independent-input-output-v1'),
                'reported_cost_usd': c['accounted'] if c['state'] == 'settled' else None,
                'unresolved_bound_usd': c['accounted'] if c['state'] != 'settled' else None,
                'request_sha256': c.get('request_sha256'),
@@ -195,7 +197,7 @@ def main():
     def request_stop(*unused): stop.set();stop_file.touch(exist_ok=True)
     for sig in (signal.SIGINT,signal.SIGTERM): signal.signal(sig,request_stop)
     from .openrouter_route import MODEL,ENDPOINT,PROFILE_NAME
-    report={'model':MODEL,'endpoint':ENDPOINT,'route_profile':PROFILE_NAME,'native_concurrency_condition':os.environ.get('PACBENCH_LUNA_CONCURRENCY_CONDITION'),'version':'measured-native-import-v1','state':'running','started':now(),
+    report={'model':MODEL,'endpoint':ENDPOINT,'route_profile':PROFILE_NAME,'native_concurrency_condition':os.environ.get('PACBENCH_LUNA_CONCURRENCY_CONDITION'),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY','independent-input-output-v1'),'version':'measured-native-import-v1','state':'running','started':now(),
             'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
             'concurrency':args.concurrency,'provider_timeout_s':args.timeout_s,
             'benchmark_questions_sent':0,'judge_calls':0,'probe_source_ids':args.probe_source_ids,'results':[]}

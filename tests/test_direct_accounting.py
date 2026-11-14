@@ -420,3 +420,23 @@ def test_response_completion_evidence_keeps_lengths_without_text_or_reasoning(bu
     assert proof['finish_reasons']==([finish] if finish else [])
     assert 'PRIVATE-REASONING' not in json.dumps(result)
     assert result['state']==('uncertain' if error else 'settled')
+
+
+def test_shared_context_bound_covers_all_legal_input_output_allocations():
+    from pacbench.direct_accounting import request_cost_bound
+    for prompt,completion in [('1','2'),('2','1'),('0','2')]:
+        config={'context_tokens':10,'prompt_per_million':prompt,'completion_per_million':completion}
+        bound=request_cost_bound(config,4,shared_context=True)
+        for output in range(5):
+            for input_ in range(11-output):
+                cost=(Decimal(input_)*Decimal(prompt)+Decimal(output)*Decimal(completion))/1000000
+                assert cost<=bound
+        assert bound<=request_cost_bound(config,4)
+
+
+def test_authoritative_charge_above_bound_is_recorded_and_stops_admission(budget):
+    row=budget.reserve('native',{'model':MODEL,'messages':[]})
+    budget.settle(row['id'],200,reply('0.0003'))
+    saved=budget.snapshot()[0]
+    assert saved['accounted']=='0.0003' and saved['reported_liability_exceeds_bound'] is True
+    with pytest.raises(RuntimeError,match='liability exceeded'):budget.reserve('next',{'model':MODEL,'messages':[]})

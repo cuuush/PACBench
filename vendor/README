@@ -454,3 +454,12 @@ Hindsight's documented `HINDSIGHT_API_LLM_MAX_CONCURRENT=1` or Memcal's
 condition sidecar records the exact native environment. These are separately
 labeled budget-limited conditions; other providers and native defaults are
 unchanged. No reasoning effort or output cap is injected.
+
+For future Luna calls only, `PACBENCH_RESERVATION_POLICY=shared-context-v1`
+uses the documented shared input/output context window instead of reserving a
+full input window and maximum output simultaneously. It maximizes charge over
+`input + output <= context`, retaining worst tier prices and additive cache-write
+cost. It does not alter output limits, reasoning, requests or any historical
+hold. Every new ledger row records its policy. The public catalog's922,000
+max-prompt field is not assumed to be an independently enforced cap. Actual
+reported charges above any bound are recorded in full and stop new admission.

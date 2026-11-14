@@ -79,3 +79,24 @@ else:raise AssertionError('Unsupported native condition was accepted')
 print(json.dumps({'pass':True}))
 """)
     assert result['pass']
+
+
+def test_shared_context_refinement_changes_only_future_luna_reservations(tmp_path):
+    d=run("""
+import os,json
+from pathlib import Path
+from pacbench.openrouter_authorize_route import register
+from pacbench.direct_accounting import DirectBudget
+from pacbench.openrouter_route import MODEL
+p=Path(ROOT);p.mkdir()
+old={'id':'historical','project':'old','state':'uncertain','accounted':'19.4'}
+(p/'ledger.json').write_text(json.dumps({'version':1,'config':{'cap':'20'},'calls':[old]}))
+(p/'authorization.json').write_text(json.dumps({'task':'pacbench-pizza-day-20261112','approved_total_usd':'20'}))
+register({'context_tokens':1050000,'max_completion_tokens':128000,'prompt_per_million':'0.45','completion_per_million':'0.75'},'Explicit unit authorization',state_dir=p)
+b=DirectBudget(p/'ledger.json');os.environ['PACBENCH_RESERVATION_POLICY']='shared-context-v1'
+r=b.reserve('unit-memory',{'model':MODEL,'messages':[]})
+assert b.snapshot()[0]['accounted']=='19.4'
+assert r['request'].keys()=={'model','messages','provider'}
+print(json.dumps({'bound':b.snapshot()[1]['reserved'],'policy':b.snapshot()[1]['reservation_policy']}))
+""".replace('ROOT',repr(str(tmp_path/'state'))))
+    assert d=={'bound':'0.5109','policy':'shared-context-v1'}

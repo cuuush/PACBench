@@ -57,6 +57,17 @@ def stop_measured_admission(reason, identifier=None):
         pass
 
 
+def request_cost_bound(config, maximum, *, shared_context=False):
+    context=Decimal(config['context_tokens'])
+    prompt=money(config['prompt_per_million']);completion=money(config['completion_per_million'])
+    if shared_context:
+        # Official endpoint contract: input and output share the context window.
+        # Maximize I*p+O*c subject to I+O<=context and O<=maximum.
+        numerator=context*prompt+min(Decimal(maximum),context)*max(Decimal(0),completion-prompt)
+    else:numerator=context*prompt+Decimal(maximum)*completion
+    return numerator/Decimal(1000000)
+
+
 def observed_generation_id(row):
     """Use an actual response ID, never manufacture one from timestamps."""
     body=row.get('upstream_request_id')
@@ -268,8 +279,12 @@ class DirectBudget:
         if request.get('stream'):
             request['stream_options']={**request.get('stream_options',{}),'include_usage':True}
         fingerprint=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
-        bound=(Decimal(self.config['context_tokens'])*money(self.config['prompt_per_million'])+
-            Decimal(maximum)*money(self.config['completion_per_million']))/Decimal(1000000)
+        policy=os.environ.get('PACBENCH_RESERVATION_POLICY','independent-input-output-v1')
+        if policy not in ('independent-input-output-v1','shared-context-v1'):
+            raise ValueError('Unknown reservation policy')
+        if policy=='shared-context-v1' and PROFILE_NAME!='luna-bedrock-global':
+            raise ValueError('Shared-context refinement is reviewed only for Luna Bedrock')
+        bound=request_cost_bound(self.config,maximum,shared_context=policy=='shared-context-v1')
         with self.locked() as state:
             calls=state['calls']
             admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
@@ -312,6 +327,7 @@ class DirectBudget:
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
                 'http_status':None,'error_label':None,
                 'route_profile':PROFILE_NAME,'endpoint':ENDPOINT,'pricing_snapshot':dict(self.config),
+                'reservation_policy':policy,
                 'native_request_parameter_keys':sorted(body),
                 'native_request_parameters':{k:body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in body},
                 'parameter_observation_scope':'Native input before route/price enforcement; absence is not a provider default. completion_bound_tokens is an accounting bound, not an injected output limit.'}
@@ -369,10 +385,13 @@ class DirectBudget:
                         detail.update({name+'.'+k:v for k,v in value.items() if k in TOKEN_DETAILS and type(v) is int and v>=0})
                 row['usage_detail']=detail
                 cost=money(usage['cost']);inp=usage['prompt_tokens'];out=usage['completion_tokens']
-                if (status==200 and type(inp) is int and type(out) is int and
-                        0<=inp<=self.config['context_tokens'] and 0<=out<=row['completion_bound_tokens'] and
-                        cost<=money(row['reserved'])):
-                    row.update(accounted=str(cost),state='settled',input_tokens=inp,output_tokens=out,error_label=None)
+                if status==200 and type(inp) is int and type(out) is int and min(inp,out)>=0:
+                    if cost>money(row['reserved']):
+                        row.update(accounted=str(cost),state='settled',input_tokens=inp,output_tokens=out,
+                            reported_liability_exceeds_bound=True,error_label='reported_liability_exceeds_bound')
+                        stop_measured_admission('reported_liability_exceeded',identifier)
+                    elif inp<=self.config['context_tokens'] and out<=row['completion_bound_tokens']:
+                        row.update(accounted=str(cost),state='settled',input_tokens=inp,output_tokens=out,error_label=None)
             except (ValueError,KeyError,TypeError,UnicodeError,StopIteration):
                 pass
             finally:

@@ -1,0 +1,17 @@
+{
+  "version": "future-luna-shared-context-bound-v1",
+  "scope": "Future Luna reservations only; no old holds, allocations or request parameters changed. Opt-in accounting policy, not an inference-output cap.",
+  "official_sdk_reference": "https://github.com/OpenRouterTeam/python-sdk/blob/main/src/openrouter/components/publicendpoint.py",
+  "contract_excerpt": "Input and output tokens share the context window",
+  "context_tokens": 1050000,
+  "maximum_output_tokens": 128000,
+  "worst_input_price_per_million_including_cache_write": "0.45",
+  "worst_output_price_per_million": "0.75",
+  "formula": "context*p + min(maximum_output,context)*max(0,c-p), divided by1e6",
+  "unbounded_native_reservation_before_usd": "0.5685",
+  "unbounded_native_reservation_after_usd": "0.5109",
+  "native_12000_output_reservation_before_usd": "0.4815",
+  "native_12000_output_reservation_after_usd": "0.4761",
+  "unsupported_refinement_not_used": "No independent hard922000 input ceiling assumed; that would lack an enforcement guarantee when native output cap is smaller.",
+  "validation": "62 focused accounting/profile/lifecycle tests passed; exhaustive small-window input/output enumeration covers every permitted allocation; earlier holds and native request fields preserved; over-bound authoritative charges stop admission."
+}

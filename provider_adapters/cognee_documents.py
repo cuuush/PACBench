@@ -45,8 +45,10 @@ def ingest(source, root):
     require_idle(before)
     prior_ids={r['id'] for r in before}
     deadline=time.monotonic()+1800
+    from .cognee_capture_witness import captures
+    native_captures=captures(root,prior)
     result = qualify_incremental_document(backend, service_url=config['service_url'],
-        dataset=config['dataset'], text=text, prior=prior, processing_status=processing_status, timeout=1800)
+        dataset=config['dataset'], text=text, prior=prior, processing_status=processing_status, timeout=1800,native_captures=native_captures)
     while True:
         rows=pipeline_rows(root)
         if completed(rows,prior_ids):break

@@ -98,7 +98,7 @@ def qualify_document(backend, *, service_url, dataset, text, timeout=300,
 
 def qualify_incremental_document(backend, *, service_url, dataset, text, prior,
         processing_status, timeout=600, poll_interval=1,
-        clock=time.monotonic, sleep=time.sleep):
+        clock=time.monotonic, sleep=time.sleep,native_captures=()):
     """Witness this new item's extraction, independent of an older run status.
 
     `prior` contains only previously verified source IDs and raw-content hashes.
@@ -134,8 +134,8 @@ def qualify_incremental_document(backend, *, service_url, dataset, text, prior,
             raise QualificationError('Native document IDs missing or duplicated')
         return rows
     before=documents()
-    expected={p['data_id']:p['source_sha256'] for p in prior}
-    if len(expected)!=len(prior) or set(expected)!={r['id'] for r in before}:
+    expected={p['data_id']:p['source_sha256'] for p in [*prior,*native_captures]}
+    if len(expected)!=len(prior)+len(native_captures) or set(expected)!={r['id'] for r in before}:
         raise QualificationError('Dataset differs from verified prior source receipts')
     for identifier,digest in expected.items():
         actual=backend.read_raw_data(dataset_id=dataset_id,data_id=identifier,timeout=remaining())
@@ -178,7 +178,7 @@ def qualify_incremental_document(backend, *, service_url, dataset, text, prior,
         sleep(min(poll_interval,remaining()))
     return {'protocol':'cognee-native-incremental-document-v2',
         'service':expected_url,'dataset':dataset,'dataset_id':dataset_id,
-        'data_id':data_id,'source_sha256':source_hash,'prior_sources':prior,
+        'data_id':data_id,'source_sha256':source_hash,'prior_sources':prior,'native_captures':list(native_captures),
         'accepted_status':raw['status'],'pipeline':'cognify_pipeline',
         'observed_statuses':statuses,'item_completion_observations':observations,
         'stored_source_verified':True,'processing_complete':True,

@@ -275,7 +275,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0'} or not (home/'config.yaml').exists()):
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee'} or not (home/'config.yaml').exists()):
         raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()

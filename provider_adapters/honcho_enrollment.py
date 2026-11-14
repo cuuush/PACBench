@@ -215,10 +215,10 @@ def enroll_source(source, root):
                     raise EnrollmentError('Honcho enrollment clock already passed the earliest source event; refusing backdating')
                 if honcho_clock.enabled(root):
                     clock, _ = honcho_clock.load(root)
-                    target = max(clock.now(), horizon-timedelta(minutes=5))
-                    if target >= horizon:
+                    now=clock.now();target=horizon-timedelta(minutes=5)
+                    if now >= horizon:
                         raise EnrollmentError('Honcho enrollment has no chronological headroom')
-                    honcho_clock.before_turn(root, target.isoformat(), dict(os.environ))
+                    if now<target:honcho_clock.before_turn(root,target.isoformat(),dict(os.environ))
                 peers = []
                 for name in plan['source_peers']:
                     peer = client.peer(name)

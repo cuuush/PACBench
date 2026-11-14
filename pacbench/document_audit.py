@@ -389,7 +389,13 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
                 snapshots=native.get('item_completion_observations',[])
                 final=snapshots[-1] if snapshots else {}
                 items=final.get('items',[])
-                expected_ids={p['data_id'] for p in cognee_prior}|{native.get('data_id')}
+                captures=native.get('native_captures',[])
+                for capture in captures:
+                    path=(arm/capture['turn_file']).resolve()
+                    check(path.is_relative_to((arm/'turns').resolve()) and capture.get('protocol')=='cognee-native-observed-turn-qa-v1' and
+                          hashlib.sha256(path.read_bytes()).hexdigest()==capture.get('turn_sha256'),
+                          'Cognee additional document is not bound to an observed native turn')
+                expected_ids={p['data_id'] for p in [*cognee_prior,*captures]}|{native.get('data_id')}
                 check(native.get('prior_sources')==cognee_prior and
                       len(items)==len(expected_ids) and {i.get('id') for i in items}==expected_ids and
                       all(i.get('completed') is True for i in items) and

@@ -53,6 +53,17 @@ def test_changed_old_source_refuses_new_submission():
     assert b.writes==0
 
 
+def test_native_capture_requires_explicit_attribution_and_complete_identity():
+    b=Backend();b.docs['capture']='earlier observed native answer'
+    with pytest.raises(QualificationError,match='Dataset differs'):qualify(b,lambda **kw:status(True))
+    assert b.writes==0
+    binding={'data_id':'capture','source_sha256':hashlib.sha256(b.docs['capture'].encode()).hexdigest()}
+    def complete(**kw):
+        items=[{'id':ident,'completed':True} for ident in b.docs]
+        return {'items':items,'total':len(items),'completed':len(items),'pending':0}
+    r=qualify(b,complete,native_captures=[binding]);assert b.writes==1 and r['native_captures']==[binding]
+
+
 def test_same_count_with_wrong_completed_identity_does_not_pass():
     b=Backend();t=[0]
     def clock():t[0]+=.1;return t[0]

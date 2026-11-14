@@ -1,0 +1,9 @@
+{
+  "version": "tested-runtime-setup-v1",
+  "tested_source_revision": "18e4a8b1e193fe809d1f2b456b58e477eff38ea4",
+  "single_entry_point": "python3 -m pacbench.bootstrap --install --start-services",
+  "exact_cloud_setup_snippet": "set -eu\ncd /workspace/PACBench\ngit fetch origin run/pizza-week-20261113\ngit switch --detach 18e4a8b1e193fe809d1f2b456b58e477eff38ea4\npython3 -m pacbench.bootstrap --install --start-services\npython3 -m pacbench.bootstrap --check\n",
+  "prerequisites": "Existing checkout, network, Docker daemon for local PostgreSQL providers, and uv/system tools documented in vendor/README. Credentials supplied externally; bootstrap contains no credentials.",
+  "validated": "Pinned dependency installation and cold-start trials from earlier branch work; current10-component bootstrap check and local embedding health pass;1464offline tests pass. No paid calls in setup check.",
+  "limits": "Bootstrap reconstructs code/runtime, not private stores or spending history. Preserve/restore authorized private ledger separately; do not initialize a blank ledger. Default route remains DeepSeek; Luna is an explicitly authorized profile, not a silent setup change."
+}

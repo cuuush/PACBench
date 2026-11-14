@@ -1,0 +1,49 @@
+{
+  "version": "luna-native-store-review-v1",
+  "provider": "memcal",
+  "source_messages": 125,
+  "daily_batches": 7,
+  "source_delivery": "All source exports identical to audited Cognee bulk inputs: 125 distinct source IDs; unchanged texts, speakers, timestamps, threads and collection-day visibility. Native persisted readback checked separately below.",
+  "input_integrity_verified": true,
+  "quality_scope": "Selected native extraction checks, not exhaustive fact correctness and not question answering. Historical facts are retained as history; no manual memory repair.",
+  "source_sha256_by_day": {
+    "2026-10-05": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e",
+    "2026-10-06": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41",
+    "2026-10-07": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32",
+    "2026-10-08": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9",
+    "2026-10-09": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f",
+    "2026-10-10": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9",
+    "2026-10-11": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c"
+  },
+  "benchmark_questions": 0,
+  "judge_calls": 0,
+  "persisted_archived_messages": 125,
+  "raw_source_readback": "125 immutable archive records byte-for-byte equal to previously audited DeepSeek native collection; same stock cleaner normalization.",
+  "completed_spool_rows": 123,
+  "native_filtered_messages": [
+    {
+      "external_id": "15866a3b-7d56-5341-a8cc-57202eacc46f@mail.example.test",
+      "reason": "no-signal",
+      "text": "Draft only: tasting option\n\nPlease sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go."
+    },
+    {
+      "external_id": "c32166ab-c29b-5099-8cd7-a8c9e1168236@mail.example.test",
+      "reason": "no-signal",
+      "text": "Re: Parcel and support call\n\nI also booked a parcel-support video call Friday at 9. What is its link?"
+    }
+  ],
+  "finished_runs": 7,
+  "failed_native_calls": 0,
+  "propose_requests_completed": 11,
+  "native_call_files": 22,
+  "reviewed_line_records": 227,
+  "live_progress_anomaly": {
+    "rows_still_reading": 42,
+    "cause": "Native fresh_finished callback in memcal/dream/propose.py emits propose_request without entities; live.py _entities sees [] so _mark cannot change rows to done. All 11 request events show [], calls succeeded, all spool rows processed and seven runs finished. Live-only table is not pending work. Third-party code unchanged."
+  },
+  "quality_findings": [
+    "Friday lunch event correctly says 12:30 Mario Pine, Maya attending and Nora/Tess absent.",
+    "Maya wiki incorrectly attributes old owner quoted preferences to Maya.",
+    "Two sources are archived but excluded from extraction by native no-signal filtering (draft itinerary request and support-link question). This is visible native behavior, not missing harness input."
+  ]
+}

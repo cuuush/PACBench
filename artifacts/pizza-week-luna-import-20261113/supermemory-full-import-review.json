@@ -1,0 +1,30 @@
+{
+  "version": "luna-native-store-review-v1",
+  "provider": "supermemory",
+  "source_messages": 125,
+  "daily_batches": 7,
+  "source_delivery": "All source exports identical to audited Cognee bulk inputs: 125 distinct source IDs; unchanged texts, speakers, timestamps, threads and collection-day visibility. Native persisted readback checked separately below.",
+  "input_integrity_verified": true,
+  "quality_scope": "Selected native extraction checks, not exhaustive fact correctness and not question answering. Historical facts are retained as history; no manual memory repair.",
+  "source_sha256_by_day": {
+    "2026-10-05": "cc4c4a4f416045efcb1843e3936b8fe9ec86326402e96b969e67aa1dbe734a8e",
+    "2026-10-06": "d1a1bf1df8d216fcd7a8226be746c0bbfdd4dcad007b5c80336a396c65306d41",
+    "2026-10-07": "7c709b3e40a2510321e4205d2419670c63b48356d1e0d9c44702296589d93c32",
+    "2026-10-08": "841b33b362e6c4886fbcf1b148dbf7779b8fcb7c9fee0915c461f8b9fb8c9dd9",
+    "2026-10-09": "d2d199086176b9bc58f7afdfce89dc538bf85235fb9666adeb95365d8488083f",
+    "2026-10-10": "b0dfa03f54eda9f3614ce4244ad2121ab53554155429b5bb089e00c722b4e7c9",
+    "2026-10-11": "02c7bb51735c2ec36ad4136c00d4f39b009843862fa95a3a0f7f90453e8a1c1c"
+  },
+  "benchmark_questions": 0,
+  "judge_calls": 0,
+  "persisted_raw_documents": 7,
+  "raw_source_readback": "Exact except native removal of final newline; all quoted bodies preserved.",
+  "unique_memories": 86,
+  "latest_unforgotten_memories": 58,
+  "completed_processing_and_dreaming": 7,
+  "quality_findings": [
+    "Updated owner avoids-dairy fact and Maya uncertainty after Sunday are retained.",
+    "Latest unforgotten memories falsely say owner reiterated avoiding mushrooms/fine with dairy on Oct9; these are old Monday quotations, not new preferences. Historical isLatest=false memories were not treated as current errors."
+  ],
+  "evidence": "Native API on byte-identical private SQLite/store copy, paid model endpoint disabled; source hash manifest unchanged and inspection service stopped."
+}

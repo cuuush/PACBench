@@ -1,0 +1,88 @@
+{
+  "version": "luna-import-cause-analysis-v1",
+  "cognee": {
+    "deepseek_full_import_wall_s": 2610.412791,
+    "luna_full_import_wall_s": 298.513557249,
+    "deepseek_slow_call": {
+      "generation_id": "gen-1794593138-ly5AOetBRcDr6hfwpCB9",
+      "native_task": "Automatic improve conflict review; five FactConflict writes",
+      "input_tokens": 6171,
+      "output_tokens": 42375,
+      "reasoning_tokens": 41319,
+      "local_duration_s": 730.351632,
+      "upstream_generation_time_ms": 729971,
+      "upstream_latency_ms": 1354,
+      "actual_usd": "0.010450406",
+      "finish_reason": "stop",
+      "observed_retry_loop": false,
+      "reasoning_text_retained": false,
+      "conclusion": "Reported generation time dominates this call. Reasoning token count alone does not reveal repeated thoughts or a schema loop. No reasoning text was available to inspect."
+    },
+    "native_settings": "Installed Cognee1.6.8 ordinary text structured completion omits reasoning effort and output cap. LLM_MAX_COMPLETION_TOKENS16384 controls chunk sizing, not an output cap forwarded by this native adapter. New captured outbound payloads confirm no harness-injected effort/cap. Image low-reasoning setting is unrelated.",
+    "ingest_units": {
+      "full_week_native_add": 7,
+      "full_week_cognify": 7,
+      "full_week_automatic_improve_operations": 7,
+      "full_week_llm_calls": 14,
+      "llm_roles": {
+        "connection_test": 1,
+        "KnowledgeGraph": 7,
+        "ReviewResponse": 6
+      },
+      "four_message_conversation_probe": {
+        "source_messages": 4,
+        "add": 1,
+        "cognify": 1,
+        "multipart_files": 1,
+        "llm_calls": 2
+      },
+      "explanation": "The unchanged Week workload uses one newly collected daily bulk document, not one document per message. Probe separately proves four conversation messages are one ingest unit. Internal graph/conflict calls are not source documents. Daily visibility, message identity and complete authored quotes are preserved; no old source record is re-added across days."
+    },
+    "tokens": {
+      "deepseek_output": 184075,
+      "deepseek_reasoning": 160324,
+      "luna_output": 45531,
+      "luna_reasoning": 27271
+    },
+    "scope": "Model and route changed together; no matched paid control. These results do not isolate a Flex-only effect."
+  },
+  "openviking": {
+    "prior_failure": "HTTP200 followed by embedded JSON error code504 A Timeout Occurred after about300s. Native SDK sees choices=None; semantic processor catches failure and can write fallback summaries while queues appear healthy. A previous resource-level ready timer missed inflight ancestor work.",
+    "observed_not_inferred": "HTTP/body errors and timings are captured; exact upstream timeout hop or capacity cause is unknown. Our native client timeout was600s and harness does not impose300s per-call timeout.",
+    "pacbench_fix": "Strict v4 readiness waits for resource write plus global semantic/embedding barrier, validates queue health and all model response envelopes/termination, scans native logs for silent summary failure and artifacts for fallback placeholders. Never marks failed summaries ready or manually seeds facts.",
+    "luna_validation": {
+      "source_messages": 125,
+      "daily_batches": 7,
+      "llm_calls": 26,
+      "readiness_s": 206.929611793,
+      "all_calls_valid": true,
+      "all_batch_global_barriers_complete": true,
+      "leftover_owned_jobs": 0,
+      "condition": "Explicit native concurrency1 for full run; four-message default32 probe also succeeded."
+    },
+    "quality_limit": "Native Oct9 overview still treats an old quoted diet as current. Pipeline integrity success does not guarantee factual extraction accuracy.",
+    "baseline_comparison": "No valid complete DeepSeek OpenViking readiness latency; early timer and failed retries retained, not relabeled as successful baseline."
+  },
+  "memcal_live_progress": {
+    "anomaly": "42 run_bundles rows remain reading despite seven finished runs,123 processed spool rows and11 successful propose callbacks.",
+    "cause": "Pinned memcal e67b8d9 dream/propose.py fresh_finished callback omits entities. dream/live.py therefore cannot mark matching bundles done. All11 persisted request events have empty entities and no errors. Live-only display state is stale; no unfinished ingest found. Third-party source unchanged.",
+    "native_filters": "125 archived,123 extracted; two native no-signal sources explicitly documented in memcal review."
+  },
+  "request_audit": {
+    "luna_full_calls": 232,
+    "luna_probes": 6,
+    "generation_metadata_observed": 238,
+    "luna_http_errors": 0,
+    "identical_request_fingerprint_groups": 0,
+    "luna_missing_costs": 0,
+    "supermemory_finish_reasons": {
+      "tool_calls": 32,
+      "stop": 7
+    },
+    "supermemory_note": "More tool-call responses than DeepSeek baseline (39vs32 total requests); no visible HTTP failures or identical request bodies. Tool-call finishes are native workflow turns, not by themselves retries. Detailed native tool transcript was not captured here.",
+    "honcho_reasoning_tokens": 0,
+    "retry_scope": "No observed failed outgoing Luna calls or repeated identical payloads; Hindsight native completed operations report retry_count0 and Memcal failed_calls0. Upstream-internal retries are not observable.",
+    "timing_limit": "API duration includes network, upstream queue and generation. Exposed latency/generation_time fields are included per call; residual native/harness/embedding time cannot be partitioned exactly. No artificial multi-minute harness sleep was found or removed."
+  },
+  "benchmark_status": "No Luna questions or judges executed. Scores unavailable. Existing DeepSeek answers and stores preserved."
+}

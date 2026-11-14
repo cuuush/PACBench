@@ -245,7 +245,7 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
     if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
         if provider not in CATALOG:
             raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
-        if resume and provider!='supermemory':
+        if resume and provider not in {'supermemory','openviking','hindsight'}:
             raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
@@ -275,7 +275,7 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
     _, memory_key = client_settings(memory_project)
-    if resume and (provider not in {'openviking','memos','supermemory'} or not (home/'config.yaml').exists()):
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight'} or not (home/'config.yaml').exists()):
         raise ValueError('Provider lacks a verified retained-store resume protocol')
     from .catalog_plugins import CATALOG, install_catalog_provider
     external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
@@ -444,9 +444,12 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         validate_route(base,key)
         configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
         folder=home/'hindsight'
-        folder.mkdir()
+        folder.mkdir(exist_ok=resume)
         hindsight_config, hindsight_env = hindsight_model_settings(run_id, configured_model, base, key)
-        save(folder/'config.json', hindsight_config)
+        if resume:
+            retained=json.loads((folder/'config.json').read_text())
+            if any(retained.get(k)!=v for k,v in hindsight_config.items()):raise ValueError('Retained Hindsight profile/model differs')
+        else:save(folder/'config.json', hindsight_config)
         os.chmod(folder/'config.json',0o600)
         env.update(hindsight_env)
         # Ordinary provisioning creates an empty bank, not starter memories or a
@@ -460,13 +463,13 @@ cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
 p=HindsightEmbedded(profile=cfg['profile'],llm_provider=cfg['llm_provider'],llm_model=cfg['llm_model'],
     llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
-    result=p.create_bank(bank_id=sys.argv[2])
+    result=p.banks.list() if sys.argv[3]=='resume' else p.create_bank(bank_id=sys.argv[2])
     print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json'),
         'runtime_versions':{name:version(name) for name in ('hindsight-api-slim','hindsight-client','hindsight-embed')}}))
 finally:p.close()
 '''
         proc=subprocess.run([str(backend_python),'-c',bootstrap,
-                             str(home.resolve()),'pacbench-'+run_id],
+                             str(home.resolve()),'pacbench-'+run_id,'resume' if resume else 'fresh'],
                             env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
                             cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
         save(root/'native-bank-setup.json',{'route':'Self-hosted Hindsight native server; create_bank defaults; no starter facts',

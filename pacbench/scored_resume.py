@@ -81,7 +81,7 @@ def resume(output):
     from .import_lifecycle import scan
     from .openrouter_route import MODEL
     output=output.resolve();report=read(output/'summary.json');provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
-    if provider not in {'memos','supermemory'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
+    if provider not in {'memos','supermemory','openviking','hindsight'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
     if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
@@ -99,7 +99,8 @@ def resume(output):
     for name in ('evaluation.json','status.json','native-server-setup.json','model-usage.json','model-usage-after-settlement.json','pre-recall-isolation.json'):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
     # Quiescent native stores and Hermes session DBs retain an immutable backup.
-    for name in ('hermes-home','memos-home' if provider=='memos' else 'supermemory-data'):
+    store={'memos':'memos-home','supermemory':'supermemory-data','openviking':'openviking-data','hindsight':'fallback-home'}[provider]
+    for name in ('hermes-home',store):
         shutil.copytree(root/name,history/name,symlinks=True)
     for row,_,_ in checks[len(prefix):]:
         d=root/'turns'/row['id']
@@ -114,6 +115,17 @@ def resume(output):
     try:
         env=provision(root,provider,MODEL,local_timezone=report['process_timezone'],resume=True,inference_route='openrouter')
         env.update(PACBENCH_STOP_FILE=str(stop),PACBENCH_CLOCK_CONTEXT_PROTOCOL=report['clock_context_protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'))
+        if provider=='openviking':
+            import urllib.request,urllib.parse
+            from .document_audit import audit_openviking_receipt
+            for batch in report['ingestion_schedule']:
+                if batch['id'] not in ingested:continue
+                receipt=read(root/batch['file'])
+                if audit_openviking_receipt(receipt.get('result',{})):raise ValueError('Retained OpenViking readiness receipt differs')
+                uri='viking://resources/'+batch['id'];url=env['OPENVIKING_ENDPOINT']+'/api/v1/fs/stat?'+urllib.parse.urlencode({'uri':uri})
+                request=urllib.request.Request(url,headers={'X-OpenViking-Account':env['OPENVIKING_ACCOUNT'],'X-OpenViking-User':env['OPENVIKING_USER']})
+                with urllib.request.urlopen(request,timeout=10) as response:stat=json.load(response)
+                if stat.get('status')!='ok' or not stat.get('result'):raise ValueError('Retained native resource missing')
         capability=probe(root,provider,env,smoke=True,smoke_timeout_s=120)
         if not smoke_succeeded(capability):raise RuntimeError('Retained native capability failed')
         policy=policy_record(provider,capability['tools'])
@@ -133,6 +145,10 @@ def resume(output):
         sequence=run_checks(checks,plan['context'],root,judge,','.join(policy['allowed_tools']),env,question_dir=output/'combined-questions',
             before_check=before,evidence_by_id=evidence,provenance_version=report['provenance_version'],diagnostic_version=report['evidence_diagnostic_protocol'],
             judge_protocol=report['judge_protocol'],turn_timeout_s=report['recall_wall_deadline_s'],resume_prefix=len(prefix))
+        if provider=='openviking' and report.get('terminal_processing_protocols'):
+            from .terminal_processing import observe_before_stop
+            terminal=observe_before_stop(root,env,boundary=lambda:(check_stop(stop),require_live_cost_boundary()))
+            result['terminal_processing']={k:terminal[k] for k in ('protocol','state','scope_hash')}
         result.update(state=sequence['state'],checks=sequence['checks'],capability=capability,reason='' if sequence['state']=='diagnostic' else 'Recovered sequence incomplete')
         capability['live_verified']=sequence['state']=='diagnostic'
     finally:

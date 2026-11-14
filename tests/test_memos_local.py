@@ -33,3 +33,20 @@ def test_memos_native_none_condition_is_explicit_and_preserves_other_settings(mo
     after=plan_config(Path('/offline'),'openai/gpt-6-luna','url','inert')
     assert after['llm'].pop('reasoning')=={'effort':'none'}
     assert after==before
+
+
+def test_native_stop_reaps_run_owned_shared_bridge_without_touching_store(tmp_path):
+    import os,subprocess,sys
+    from types import SimpleNamespace
+    from provider_adapters.memos_local import stop_native
+    root=tmp_path/'arm';root.mkdir();store=root/'kept.db';store.write_bytes(b'original-store')
+    child=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)'],cwd=root,
+        env={k:os.environ[k] for k in ('PATH','LD_LIBRARY_PATH') if k in os.environ},start_new_session=True)
+    try:
+        proof=stop_native(root,SimpleNamespace(poll=lambda:0))
+        child.wait(timeout=3)
+        assert proof['state']=='verified-inventory-stopped' and not proof['remaining_processes']
+        assert any(p['pid']==child.pid for p in proof['observed_processes'])
+        assert store.read_bytes()==b'original-store' and proof['stores_deleted'] is False and proof['ledger_modified'] is False
+    finally:
+        if child.poll() is None:child.kill();child.wait()

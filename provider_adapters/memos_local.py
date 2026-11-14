@@ -17,6 +17,20 @@ from provider_adapters.reme_memos_documents import request
 REPO=Path(__file__).resolve().parents[1]
 
 
+def stop_native(root,process):
+    """The shared stdio bridge can outlive its Hermes/probe parent."""
+    from pacbench.import_lifecycle import scan,cleanup
+    owner='memos-native-stop'
+    known,_=scan(root,owner)
+    if process.poll() is None:
+        process.terminate()
+        try:process.wait(timeout=30)
+        except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
+    proof=cleanup(root,owner,known=known,container_cleanup=False)  # Native MemOS is SQLite/Node, not Docker.
+    save(root/'native-service-stop.json',proof)
+    return proof
+
+
 def plan_config(root,model,base,key):
     config={'version':1,'llm':{'provider':'openai_compatible','endpoint':base,
         'model':model,'apiKey':key,'fallbackToHost':False},
@@ -70,11 +84,12 @@ def start(root,env,model,base,key,*,resume=False):
         log_path.chmod(0o600)
         process=subprocess.Popen(['node',str(REPO/'provider_adapters/memos_service.mjs'),str(port)],
             cwd=root,env=child,stdin=subprocess.DEVNULL,stdout=log,stderr=log)
+    stopped=False
     def stop():
-        if process.poll() is None:
-            process.terminate()
-            try:process.wait(timeout=30)
-            except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
+        nonlocal stopped
+        if stopped:return
+        stopped=True
+        stop_native(root,process)
     atexit.register(stop)
     deadline=time.monotonic()+90;health=None
     while time.monotonic()<deadline and process.poll() is None:

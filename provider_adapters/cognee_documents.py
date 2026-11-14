@@ -7,7 +7,7 @@ import sys
 import time
 from .cognee_completion import pipeline_rows, completed, require_idle
 
-from provider_adapters.cognee_local import qualify_incremental_document
+from provider_adapters.cognee_local import qualify_incremental_document,QualificationError
 from provider_adapters.reme_memos_documents import document
 
 
@@ -41,8 +41,15 @@ def ingest(source, root):
         from uuid import UUID
         identifier=str(UUID(dataset_id))
         return backend._request('GET',f'/api/v1/datasets/{identifier}/processing-status?pipeline=cognify_pipeline',timeout=timeout)
-    before=pipeline_rows(root)
-    require_idle(before)
+    idle_deadline=time.monotonic()+120
+    while True:
+        before=pipeline_rows(root)
+        try:require_idle(before);break
+        except QualificationError:
+            if time.monotonic()>=idle_deadline:raise
+            from pacbench.stop import check_stop
+            check_stop()
+            time.sleep(.2)
     prior_ids={r['id'] for r in before}
     deadline=time.monotonic()+1800
     from .cognee_capture_witness import captures

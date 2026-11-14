@@ -69,7 +69,8 @@ def mem0_read_only_failed_import(output,root,receipt,batch):
 def cognee_read_only_failed_import(output,root,receipt,batch):
     if (receipt.get('ready') is not False or receipt.get('state')!='failed' or
         receipt.get('usage',{}).get('state')!='captured' or receipt['usage'].get('model_calls')!=[] or
-        'QualificationError: Dataset differs from verified prior source receipts' not in receipt.get('stderr','')):
+        not any(s in receipt.get('stderr','') for s in ['QualificationError: Dataset differs from verified prior source receipts',
+            'QualificationError: Previous native operation has no terminal witness; do not add another document'])):
         raise ValueError('Cognee failure is not a pre-submission integrity refusal')
     expected=hashlib.sha256((output/'sources'/batch['id']/'messages.txt').read_bytes()).hexdigest()
     if expected!=receipt.get('document_sha256'):raise ValueError('Failed source identity differs')

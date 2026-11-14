@@ -597,3 +597,10 @@ retain completed cases and resume only a verified native state. Stop on a real
 admission refusal, truncation, inaccessible provider or failed readiness; preserve
 partial artifacts. Report actual charges separately from reservations and
 unknowns, with cents in user-facing summaries and exact receipt arithmetic.
+
+The native-none MemOS condition retains its shipped160–2048-token relevance
+filter and its native `safeCutoff` fallback. Filter truncations remain explicit
+failed native calls and receive no extra tokens; the transport passes the response
+through so the stock handler can finish. They do not exhaust the separate32768
+harness ceiling. Answer/judge truncations and harness-ceiling exhaustion still
+stop the affected execution. Earlier guard-induced stops remain in the receipts.

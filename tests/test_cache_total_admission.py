@@ -4,6 +4,17 @@ import pytest
 from pacbench.direct_accounting import DirectBudget
 
 
+def test_native_memos_filter_limit_never_waives_answer_or_harness_truncation():
+    from pacbench.direct_accounting import native_memos_filter_limit
+    row={'project':'pacbench-synthetic-memos-memory','model':'openai/gpt-6-luna',
+        'native_request_parameters':{'reasoning':{'effort':'none'},'max_tokens':160},
+        'effective_output_maximum':160,'effective_output_ceiling_condition':32768}
+    assert native_memos_filter_limit(row)
+    assert not native_memos_filter_limit({**row,'project':'pacbench-synthetic-memos-driver'})
+    assert not native_memos_filter_limit({**row,'effective_output_maximum':32768})
+    assert not native_memos_filter_limit({**row,'native_request_parameters':{'max_tokens':160,'reasoning':{'effort':'medium'}}})
+
+
 def test_cache_total_future_admission_retains_old_holds_and_rejects_ttl(tmp_path,monkeypatch):
     path=tmp_path/'ledger.json';old={'id':'old','project':'old','state':'uncertain','accounted':'19.503585917232'}
     cfg=dict(cap='20',model='openai/gpt-6-luna',endpoint='amazon-bedrock/global',context_tokens=1050000,max_completion_tokens=128000,prompt_per_million='.45',completion_per_million='.75')

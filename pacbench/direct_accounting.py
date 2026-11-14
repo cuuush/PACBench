@@ -68,6 +68,18 @@ def request_cost_bound(config, maximum, *, shared_context=False):
     return numerator/Decimal(1000000)
 
 
+def native_memos_filter_limit(row):
+    """A supplied native relevance-filter limit, with its own safeCutoff path.
+
+    This is observed as a native failure, not repaired or granted extra tokens.
+    It must not be mistaken for exhaustion of the harness answer/judge ceiling.
+    """
+    native=row.get('native_request_parameters',{});cap=native.get('max_tokens')
+    return (row.get('project','').endswith('-memos-memory') and row.get('model')=='openai/gpt-6-luna' and
+        native.get('reasoning')=={'effort':'none'} and type(cap) is int and 160<=cap<=2048 and
+        row.get('effective_output_maximum')==cap and row.get('effective_output_ceiling_condition')==32768)
+
+
 def observed_generation_id(row):
     """Use an actual response ID, never manufacture one from timestamps."""
     body=row.get('upstream_request_id')
@@ -413,7 +425,7 @@ class DirectBudget:
                    c.get('state')=='uncertain' and
                    (c.get('input_tokens') is None or c.get('output_tokens') is None) for c in own)>=3:
                 raise RuntimeError('Three completed provider responses lack usable token usage; project stopped')
-            if any(c.get('finish_reason')=='length' for c in own):
+            if any(c.get('finish_reason')=='length' and not native_memos_filter_limit(c) for c in own):
                 raise RuntimeError('Prior native output was truncated; explicit recovery required')
             uncertain=[c for c in own if c.get('transport')==VERSION and c['state'] in {'uncertain','abandoned_unknown'} and
                    c.get('http_status') not in (400,422,429) and
@@ -531,8 +543,12 @@ class DirectBudget:
                 # HTTP200 can contain an error envelope or unusable usage.
                 # Do not lose the original evidence to a later SDK exception.
                 if row.get('finish_reason')=='length':
-                    row['error_label']='output_truncated'
-                    stop_measured_admission('output_truncated',identifier)
+                    if native_memos_filter_limit(row):
+                        row['error_label']='native_relevance_filter_output_truncated'
+                        row['truncation_handling']='Original response passed unchanged to native MemOS safeCutoff handling; no output-limit increase'
+                    else:
+                        row['error_label']='output_truncated'
+                        stop_measured_admission('output_truncated',identifier)
                 if row['state']=='uncertain' and status==200 and data:
                     row['private_error_body']=preserve_unusable_response(self.path,identifier,data,body_complete)
 

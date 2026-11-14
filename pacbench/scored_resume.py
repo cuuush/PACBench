@@ -12,6 +12,31 @@ from .followups import save
 def read(path):return json.loads(path.read_text())
 
 
+def finalize_audit(output):
+    """Offline finalization from the actual complete evaluation and smoke proof."""
+    from .native_audit import audit
+    from .native_pilot import smoke_succeeded
+    output=output.resolve();report=read(output/'summary.json');result=report['results'][0]
+    root=output/'repeat-1'/result['provider'];sequence=read(root/'evaluation.json')
+    if sequence['state']!='diagnostic' or len(sequence['checks'])!=37 or len(list((root/'turns').glob('*/grade.json')))!=37:
+        raise ValueError('All frozen scored cases must already be complete')
+    cap=result['capability']
+    if not smoke_succeeded(cap):raise ValueError('Native read-only smoke is not verified')
+    history=root/'audit-finalizations'/str(1+len(list((root/'audit-finalizations').glob('*'))));history.mkdir(parents=True)
+    for name in ('summary.json','native-audit.json'):
+        if (output/name).exists():shutil.copyfile(output/name,history/name)
+    if 'wiring_verified' not in cap:
+        save(history/'field-completion.json',{'field':'capability.wiring_verified','reason':'Earlier scored resume checked real native smoke but omitted its metadata flag',
+            'source_smoke_sha256':hashlib.sha256(json.dumps(cap,sort_keys=True).encode()).hexdigest(),'native_data_changed':False})
+        cap['wiring_verified']=True
+    result.update(state='diagnostic',checks=sequence['checks'],reason='Scored sequence complete; independent native audit follows')
+    cap['live_verified']=True;report['state']='diagnostic';save(output/'summary.json',report);save(root/'status.json',result)
+    checked=audit(output);report['audit']=checked
+    if checked['state']!='pass':report['state']='incomplete'
+    save(output/'summary.json',report);save(output/'native-audit.json',checked)
+    return report
+
+
 def archive_dead_gateway_controls(root,history):
     """Archive a zero-byte interrupted native publication only after proving
     its companion owner records refer to this home and no longer live."""
@@ -261,7 +286,9 @@ def resume(output,*,terminal_only=False):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--detach',action='store_true');p.add_argument('--terminal-only',action='store_true');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--detach',action='store_true');p.add_argument('--terminal-only',action='store_true');p.add_argument('--audit-only',action='store_true');a=p.parse_args()
+    if a.audit_only:
+        r=finalize_audit(a.output);print(json.dumps({'state':r['state'],'audit':r['audit']}));return
     if a.detach:
         from .durable_job import launch
         import sys

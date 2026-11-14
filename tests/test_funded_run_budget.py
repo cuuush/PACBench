@@ -37,3 +37,11 @@ def test_credit_covers_inflight_unknown_and_post_read_settlements():
     with pytest.raises(RuntimeError,match='prepaid'):check_admission(state,entry,Decimal('.20001'),snap)
     entry['prepaid_safety']={'local_stop_floor_usd':'.01'}
     with pytest.raises(RuntimeError,match='floor'):check_admission(state,entry,Decimal('.2'),snap)
+
+
+def test_read_only_budget_checks_do_not_rewrite_financial_history(tmp_path):
+    path=tmp_path/'ledger.json';cfg=dict(cap='20',model='deepseek/deepseek-v4.1-flash-1017',endpoint='deepinfra/fp8/flex',context_tokens=100,max_completion_tokens=10,prompt_per_million='1',completion_per_million='2')
+    path.write_text(json.dumps(dict(version=1,config=cfg,calls=[]),indent=2));before=path.read_bytes();stamp=path.stat().st_mtime_ns
+    b=DirectBudget(path,profile='deepseek-flex');b.snapshot()
+    with b.locked(write=False) as state:assert state['calls']==[]
+    assert path.read_bytes()==before and path.stat().st_mtime_ns==stamp

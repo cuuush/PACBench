@@ -124,7 +124,7 @@ class DirectBudget:
         self.provider={'only':[self.endpoint],'order':[self.endpoint],'allow_fallbacks':False,'require_parameters':True}
         self.path=Path(path)
         self.nonblocking=nonblocking
-        with self.locked() as state:
+        with self.locked(write=False) as state:
             self.config=self.selected_config(state)
         if (self.config.get('model')!=self.model or self.config.get('endpoint')!=self.endpoint or
                 money(self.config.get('cap'))!=Decimal('20')):
@@ -143,20 +143,21 @@ class DirectBudget:
             raise ValueError('Accounting row/profile conflict')
 
     @contextmanager
-    def locked(self):
+    def locked(self, *, write=True):
         # Never create, replace or reset a missing task ledger.
-        with self.path.open('r+') as f:
-            fcntl.flock(f,fcntl.LOCK_EX | (fcntl.LOCK_NB if self.nonblocking else 0))
+        with self.path.open('r+' if write else 'r') as f:
+            fcntl.flock(f,(fcntl.LOCK_EX if write else fcntl.LOCK_SH) | (fcntl.LOCK_NB if self.nonblocking else 0))
             state=json.load(f)
             if state.get('version')!=1 or not isinstance(state.get('calls'),list):
                 raise RuntimeError('Invalid task ledger')
             if hasattr(self,'config') and self.selected_config(state)!=self.config:
                 raise RuntimeError('Task configuration changed')
             yield state
-            f.seek(0);json.dump(state,f,separators=(',',':'));f.truncate();f.flush();os.fsync(f.fileno())
+            if write:
+                f.seek(0);json.dump(state,f,separators=(',',':'));f.truncate();f.flush();os.fsync(f.fileno())
 
     def snapshot(self):
-        with self.locked() as state:
+        with self.locked(write=False) as state:
             return [{**c,'accounted_upper_bound_usd':float(money(c['accounted']))} for c in state['calls']]
 
     def authorize_retry(self,identifier,*,authorization):
@@ -297,6 +298,7 @@ class DirectBudget:
             return dict(event)
 
     def reserve(self,project,body):
+        admission_started=time.monotonic()
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
             raise ValueError('Invalid accounting project')
         from .role_routes import split_enabled, profile_for_project
@@ -381,9 +383,17 @@ class DirectBudget:
         if bool(cohort)!=bool(cohort_limit):raise ValueError('Cohort ID and liability limit must be paired')
         if cohort and (not re.fullmatch(r'[a-f0-9]{32}',cohort) or not Decimal(0)<money(cohort_limit)<=Decimal(20)):
             raise ValueError('Invalid cohort liability envelope')
+        from .funded_run_budget import selected,credit_snapshot,check_admission,ENV as FUNDED_ENV
+        credit=None
+        if os.environ.get(FUNDED_ENV):
+            # Network reads do not own the ledger write lock. Concurrent holds
+            # and settlements after this read are still covered atomically by
+            # check_admission's pending/post-snapshot accounting below.
+            try:credit=credit_snapshot()
+            except (RuntimeError,OSError,ValueError):
+                stop_measured_admission('prepaid_credit_read_failed');raise
         with self.locked() as state:
             calls=state['calls']
-            from .funded_run_budget import selected,credit_snapshot,check_admission
             funded=selected(state)
             admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429') or os.environ.get('PACBENCH_STOP_FILE')
             if admission_stop and Path(admission_stop).exists():
@@ -419,9 +429,7 @@ class DirectBudget:
             if any(c.get('request_sha256')==fingerprint and c['state']=='reserved' for c in own):
                 raise RuntimeError('Identical request already in flight')
             if funded:
-                # Hold the task lock across this free read and admission so
-                # concurrent native workers cannot spend the same headroom.
-                try:check_admission(state,funded,bound,credit_snapshot())
+                try:check_admission(state,funded,bound,credit)
                 except (RuntimeError,OSError,ValueError):
                     stop_measured_admission('funded_run_or_prepaid_admission_stopped')
                     raise
@@ -431,6 +439,7 @@ class DirectBudget:
             row={'id':str(uuid.uuid4()),'project':project,'model':self.model,'started':now(),'finished':None,
                 'reserved':str(bound),'accounted':str(bound),'state':'reserved','transport':VERSION,
                 'provider_request':request['provider'],'completion_bound_tokens':maximum,
+                'admission_wall_s':round(time.monotonic()-admission_started,6),
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
                 'http_status':None,'error_label':None,
                 'route_profile':self.profile_name,'endpoint':self.endpoint,'pricing_snapshot':dict(self.config),

@@ -48,7 +48,7 @@ def require_live_cost_boundary() -> dict:
         from .direct_accounting import live_budget
         budget=live_budget();calls=budget.snapshot()
         from .funded_run_budget import selected
-        with budget.locked() as state:funded=selected(state)
+        with budget.locked(write=False) as state:funded=selected(state)
         if funded:
             calls=[c for c in calls if c.get('funded_run_id')==funded['id']]
         from decimal import Decimal

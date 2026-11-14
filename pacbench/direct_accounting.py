@@ -562,8 +562,8 @@ def main():
         budget=live_budget(project=value['project'])
     elif sys.argv[1]=='settle':
         base_budget=live_budget()
-        state=json.loads(base_budget.path.read_text())
-        row=next(r for r in state['calls'] if r['id']==value['id'])
+        with base_budget.locked(write=False) as state:
+            row=next(dict(r) for r in state['calls'] if r['id']==value['id'])
         budget=live_budget(profile=row.get('route_profile',PROFILE_NAME))
         if row.get('route_profile',PROFILE_NAME)!=budget.profile_name:raise ValueError('Settlement route differs from reservation')
     else:raise ValueError('Unknown accounting operation')

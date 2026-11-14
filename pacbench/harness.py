@@ -309,8 +309,13 @@ def run_turn(prompt: str, *, at: str, home: Path, allowlist: str,
                         at=datetime.fromisoformat(gateway_witness['question_accepted_at']).astimezone(
                             datetime.fromisoformat(requested_at).tzinfo).isoformat()
             else:
-                proc = subprocess.run(cmd, capture_output=True, text=True,
-                                      timeout=remaining, env=env, cwd=str(workspace))
+                if env.get('PACBENCH_STOP_FILE'):
+                    from .stop import communicate_until_stop
+                    child=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env=env,cwd=str(workspace))
+                    out,err=communicate_until_stop(child,timeout=remaining,env=env)
+                    proc=subprocess.CompletedProcess(cmd,child.returncode,out,err)
+                else:
+                    proc=subprocess.run(cmd,capture_output=True,text=True,timeout=remaining,env=env,cwd=str(workspace))
     except subprocess.TimeoutExpired as exc:
         # A timeout is a failed turn, not a missing one (§41: failures are
         # required artifacts). Synthesize the same diagnostic TurnResult a

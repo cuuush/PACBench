@@ -95,7 +95,7 @@ record={'version':'stable-native-week-cohort-v3','state':'running','providers':p
  'cap_usd':'20','external_allocations_held_usd':'3','original_unknown_control_cost_held':True,'results':[]}
 stop=threading.Event();stopfile=root/'STOP'
 def run(provider):
- if stop.is_set():return {'provider':provider,'state':'not-started-task-hold'}
+ if stop.is_set() or stopfile.exists():return {'provider':provider,'state':'not-started-task-hold'}
  target=root/provider;log=root/(provider+'.execution.private.log')
  cmd=[str(repo/'vendor/venv-hermes-isolated/bin/python'),'-m','pacbench.openrouter_run','--prepared',str(prepared),'--providers',provider,'--judge-reasoning-effort','low','--judge-timeout-s','600','--recall-timeout-s','600','--output',str(target),'--spend-limit-usd','20','--max-messages','150']
  if args.incremental:cmd+=['--incremental']

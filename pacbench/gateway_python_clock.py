@@ -82,7 +82,8 @@ def run_cli(cmd,*,home,python,env,cwd,timeout,witness):
     witness['cli_launch_at']=launch.isoformat()
     proc=subprocess.Popen(cmd,env=child,cwd=cwd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     started=start_ticks(proc.pid)
-    try:out,err=proc.communicate(timeout=timeout)
+    from .stop import communicate_until_stop
+    try:out,err=communicate_until_stop(proc,timeout=timeout,env=child)
     except subprocess.TimeoutExpired:
         proc.kill();out,err=proc.communicate()
         raise subprocess.TimeoutExpired(cmd,timeout,output=out,stderr=err)

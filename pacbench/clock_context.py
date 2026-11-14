@@ -14,6 +14,10 @@ NATIVE_TITLE_SOURCE_SHA256='8d5e38f31819f89677d1893e4332e049889a662fbaf09bcff77b
 # Historical records keep their original hashes and auxiliary classification.
 NATIVE_TITLE_SOURCE_HASHES={NATIVE_TITLE_SOURCE_SHA256,
     'e5beaa6185f91e887d27a35a5acdde613c0144c156e63ed053566127ff25ce0f'}
+# Stock Hermes adds this exact continuation after a partial network stream.
+# It remains an actor call, with the original question/context still verified.
+NATIVE_NETWORK_CONTINUATION_SHA256='e4403cfa28638e7bd7b96162d6ee75a886bbf99089c9e0f086863d30443c3495'
+NATIVE_CONTINUATION_SOURCE_SHA256='2230c0d6f50d85ac27739f7205c11a4c5538bc7796b89c7de960c494328560da'
 
 
 def instruction(at):
@@ -47,12 +51,19 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
             candidates=[r for r in candidates if r.get('request_id') not in set(before)]
         if not candidates or identifiers is not None and len(candidates)!=len(identifiers):
             raise ValueError('Missing/ambiguous actual HTTP input witness')
-        actor_ids=[];auxiliary_ids=[]
+        actor_ids=[];auxiliary_ids=[];continuation_ids=[]
         for row in candidates:
             if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2'):
                 raise ValueError('Unknown HTTP input witness protocol')
             systems=[m.get('content') for m in row['messages'] if m['role']=='system']
             users=[m.get('content') for m in row['messages'] if m['role']=='user']
+            if protocol==NATIVE and users and isinstance(users[-1],str) and hashlib.sha256(users[-1].encode()).hexdigest()==NATIVE_NETWORK_CONTINUATION_SHA256:
+                from pathlib import Path
+                source=Path(__file__).resolve().parents[1]/'vendor/hermes-isolated/agent/conversation_loop.py'
+                if hashlib.sha256(source.read_bytes()).hexdigest()!=NATIVE_CONTINUATION_SOURCE_SHA256:
+                    raise ValueError('Native network-continuation source differs from pinned classifier')
+                users=users[:-1]
+                continuation_ids.append(row['request_id'])
             if (len(systems)==1 and isinstance(systems[0],str) and
                     hashlib.sha256(systems[0].encode()).hexdigest()==NATIVE_TITLE_PROMPT_SHA256):
                 from pathlib import Path
@@ -98,6 +109,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
             api_input_sha256=[hashlib.sha256(json.dumps(r,sort_keys=True,ensure_ascii=False).encode()).hexdigest() for r in candidates],
             reason=('Actual HTTP system input carries the clock; native retrieval receives the unchanged natural question' if protocol==VERSION else
                     'Actual HTTP system input equals the native saved prompt; native retrieval receives the verbatim question with no benchmark clock instructions'))
+        if continuation_ids:record['native_network_continuation_api_input_ids']=continuation_ids
     except (OSError,ValueError,KeyError,TypeError,IndexError) as exc:
         record['reason']=str(exc)
     return record

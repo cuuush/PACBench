@@ -126,3 +126,27 @@ def test_native_condition_requires_independent_saved_prompt_witness(tmp_path,mon
     from pacbench.clock_context import NATIVE
     turn=witness(tmp_path,monkeypatch)
     assert delivery(tmp_path,turn,protocol=NATIVE)['state']=='fail'
+
+
+def test_pinned_native_network_continuation_retains_original_question(tmp_path,monkeypatch):
+    import hashlib,ast
+    from pacbench.clock_context import NATIVE,NATIVE_NETWORK_CONTINUATION_SHA256
+    turn=witness(tmp_path,monkeypatch)
+    source=Path(__file__).resolve().parents[1]/'vendor/hermes-isolated/agent/conversation_loop.py'
+    tree=ast.parse(source.read_text())
+    stub=next(ast.literal_eval(n.value) for n in tree.body if isinstance(n,ast.Assign)
+        and any(isinstance(t,ast.Name) and t.id=='_LENGTH_CONTINUATION_NETWORK_STUB' for t in n.targets))
+    assert hashlib.sha256(stub.encode()).hexdigest()==NATIVE_NETWORK_CONTINUATION_SHA256
+    p=tmp_path/'api-inputs.jsonl';data=rows(p);native='Stock Hermes prompt'
+    data[0]['messages'][0]['content']=native
+    data[0]['messages'].append({'role':'user','content':stub})
+    turn.context_isolation={'state':'pass','system_prompt_sha256':hashlib.sha256(native.encode()).hexdigest()}
+    p.write_text(json.dumps(data[0])+'\n')
+    result=delivery(tmp_path,turn,protocol=NATIVE)
+    assert result['state']=='pass' and result['actor_api_input_ids']==['request1']
+    assert result['native_network_continuation_api_input_ids']==['request1']
+    data[0]['messages'][-1]['content']=stub+' extra instruction'
+    p.write_text(json.dumps(data[0])+'\n');assert delivery(tmp_path,turn,protocol=NATIVE)['state']=='fail'
+    data[0]['messages'][-1]['content']=stub
+    data[0]['messages']=[data[0]['messages'][0],data[0]['messages'][-1]]
+    p.write_text(json.dumps(data[0])+'\n');assert delivery(tmp_path,turn,protocol=NATIVE)['state']=='fail'

@@ -1,4 +1,4 @@
-"""Recover a complete scored prefix in the same MemOS/Supermemory native store.
+"""Recover a complete scored prefix in a retained native provider store.
 
 Reject partial ingests, future state and successful-but-ungraded tail turns.
 Archive original evidence/stores before changing any runner state. No completed

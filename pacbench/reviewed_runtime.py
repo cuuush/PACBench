@@ -6,18 +6,26 @@ generation, review, eligibility, scoring and runtime statement remain bound.
 """
 import ast
 import hashlib
+import json
 from pathlib import Path
 
 REVIEWED_SHA = 'da11d4f51d9a6bfad6839088cf6f20e3645ba13bf92663f62301db6f5878875c'
 CURRENT_SHA = '04f71e3f09a76ea4f499ac58cb6076a7b9aa74870202601c714c346e8ac28622'
-RUNTIME_AST_SHA = '7be269f60c64e4f2955f695ebe8f72689025f3a7089e7b5aca48d7b8466bfee0'
+RUNTIME_AST_SHA = 'a902b7ab0d91e76e5ee59e47d214ede346a056b5cafe459db59895896d08d587'
 
 
 def execution_digest(source):
     tree=ast.parse(source)
     for node in tree.body:
         if isinstance(node,ast.FunctionDef) and node.name=='audit_followups':node.body=[ast.Pass()]
-    return hashlib.sha256(ast.dump(tree,include_attributes=False).encode()).hexdigest()
+    def canonical(value):
+        if isinstance(value,ast.AST):
+            return {'_type':type(value).__name__,**{k:canonical(v) for k,v in ast.iter_fields(value) if v is not None and v!=[]}}
+        if isinstance(value,list):return [canonical(v) for v in value]
+        return value
+    # Python 3.14's ast.dump omits empty fields by default; canonicalize them
+    # explicitly so the same parsed program has the same proof on 3.12/3.14.
+    return hashlib.sha256(json.dumps(canonical(tree),sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
 
 def audit_only_compatibility(repo,path,reviewed_sha):

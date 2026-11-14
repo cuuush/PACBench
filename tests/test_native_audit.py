@@ -103,6 +103,27 @@ def test_scored_recovery_attributes_existing_sessions_without_faking_empty_recei
     assert 'Unexpected Hermes ingestion or prior sessions' in audit_ingestion(root,arm,messages,summary)
 
 
+def test_interrupted_native_input_needs_frozen_question_gate_and_actual_context(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace;summary=json.loads((root/'summary.json').read_text())
+    summary['question_prompt_protocol']='native-question-v2'
+    turn=json.loads((arm/'recall.json').read_text());turn['prompt']='When is dinner?';save(arm/'recall.json',turn)
+    save(root/'evaluation-plan.json',{'checks':[{'id':'abort','at':turn['at']}]})
+    save(root/'evaluations/abort/contract.json',{'question':'When is dinner?'})
+    folder=arm/'scored-resumes/1';save(folder/'resume.json',{'protocol':'scored-prefix-retained-store-v1'})
+    save(folder/'tail-turns/abort/status.json',{'state':'interrupted'})
+    save(folder/'tail-turns/abort/source-state.json',{'ingested_batches':[x['id'] for x in summary['ingestion_schedule']]})
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute("UPDATE messages SET content='When is dinner?'")
+        db.execute("INSERT INTO sessions SELECT 'aborted',cwd,system_prompt,system_prompt_hash FROM sessions WHERE id='recall'")
+        db.execute("INSERT INTO messages VALUES (2,'aborted','user','When is dinner?')")
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    assert audit_ingestion(root,arm,messages,summary)==[]
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:db.execute("UPDATE messages SET content='Unexplained source text' WHERE id=2")
+    assert 'Native Hermes user messages differ from evaluation questions' in audit_ingestion(root,arm,messages,summary)
+
+
 def test_declared_judge_reasoning_requires_the_actual_model_request(trace):
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())

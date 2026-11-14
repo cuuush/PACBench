@@ -489,6 +489,40 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
     if import_only and not (arm/'hermes-home/state.db').exists():return errors
     with sqlite3.connect(f'file:{arm/"hermes-home/state.db"}?mode=ro',uri=True) as db:
         actual=db.execute("SELECT session_id,content FROM messages WHERE role='user' ORDER BY id").fetchall()
+        if resumed:
+            # A cooperative stop can occur after native Hermes saved its user
+            # input but before the CLI returned a TurnResult. Attribute that
+            # unfinished attempt from the actual database and archived gate;
+            # it remains ungraded and never becomes a fabricated answer.
+            known_sessions={pair[0] for pair in expected}
+            for session in {pair[0] for pair in actual}-known_sessions:
+                inputs=[text for sid,text in actual if sid==session]
+                if len(inputs)!=1:continue
+                candidates=[]
+                for status_path in (arm/'scored-resumes').glob('*/tail-turns/*/status.json'):
+                    state_path=status_path.parent/'source-state.json'
+                    if not state_path.exists() or (status_path.parent/'grade.json').exists():continue
+                    status=json.loads(status_path.read_text())
+                    if status.get('state') not in {'interrupted','ungraded','failed'}:continue
+                    identifier=status_path.parent.name
+                    contract_path=root/'evaluations'/identifier/'contract.json'
+                    if not contract_path.exists():continue
+                    row=next((r for r in json.loads((root/'evaluation-plan.json').read_text())['checks'] if r['id']==identifier),None)
+                    if row is None:continue
+                    from .harness import question_prompt
+                    question=json.loads(contract_path.read_text())['question']
+                    if inputs[0]!=question_prompt(question,row['at'],summary['question_prompt_protocol']):continue
+                    state=json.loads(state_path.read_text())
+                    due=ready_sources(schedule,arm.name,row['at'],summary['process_timezone'] or 'America/New_York',version=version)
+                    if set(state['ingested_batches'])!={b['id'] for b in due}:continue
+                    candidates.append(identifier)
+                if len(set(candidates))!=1:continue
+                cwd=db.execute('SELECT cwd FROM sessions WHERE id=?',(session,)).fetchone()
+                if not cwd:continue
+                from .context_isolation import actual_context
+                if actual_context(arm/'hermes-home',session,Path(cwd[0])).get('state')!='pass':continue
+                expected.add((session,inputs[0]))
+                attributed.add(session)
         check(set(actual)==expected and len(actual)==len(expected),'Native Hermes user messages differ from evaluation questions')
-        check({r[0] for r in db.execute('SELECT id FROM sessions')}=={t['session_id'] for t in turns},'Unexpected Hermes ingestion or prior sessions')
+        check({r[0] for r in db.execute('SELECT id FROM sessions')}==attributed,'Unexpected Hermes ingestion or prior sessions')
     return errors

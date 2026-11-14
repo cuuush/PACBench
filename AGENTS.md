@@ -29,6 +29,14 @@ existing docs and run evidence in machine-readable artifacts.
   it while the full allocation remains held. Use the persistent task ledger and
   exact DeepSeek/DeepInfra route. Muse's missing historical ledger does not block
   this authorized route; never claim its history was recovered or reset it.
+- The later scored Pizza Week continuation is explicitly authorized to use the
+  named `pizza-week-scored-prepaid-20261114` run budget: all roles use
+  `openai/gpt-6-luna` on `amazon-bedrock/global`, with no fallback. Its new-work
+  ceiling is the lesser of $20 and verified available prepaid credit. Preserve
+  historical receipts, allocations and unknown bounds separately; do not charge
+  already reflected historical spend to this new run twice. Resume that budget,
+  never enroll a replacement to erase its spending. Chris confirmed Auto Recharge
+  is off; retain the private verification. No top-up or account/key changes.
 - Check actual gateway state before paid work. Private state lives at
   `/workspace/shared/muse-gateway`; source code and public receipts do not
   recover its historical ledger. If that ledger is missing, keep Muse execution

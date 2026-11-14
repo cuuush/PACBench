@@ -523,9 +523,24 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
         check(len(report['attempts']) == int(eligible) and
               (not eligible or report['attempts'][0]['claim_ids'] == failed),
               'expected exactly one combined follow-up covering all eligible omissions')
-        check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
+        refusal=(report['state']=='incomplete' and eligible and len(report['attempts'])==1 and
+            report['attempts'][0].get('question') is None and report['attempts'][0].get('state')=='failed' and
+            report['attempts'][0].get('error')=='ValueError: combined follow-up failed neutral/complete coverage review')
+        check(len(list(output.glob('*/turn.json'))) == (0 if refusal else int(eligible)), 'unexpected combined follow-up turn count')
         effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path, provenance_version=provenance_version)
         check(report['initial_metrics'] == effort, 'initial effort mismatch')
+        if refusal:
+            binding=combined_binding(contract,plan,[c for c in contract.claims if c.id in failed])
+            rejected=read(output.parents[4]/'combined-questions'/(digest(binding)+'.rejected.json'))
+            drafts=rejected.get('drafts',[])
+            check(len(drafts)==2 and all(isinstance(d.get('question'),str) and 1<=len(d['question'].strip())<=2000 and
+                not(d.get('review',{}).get('safe') is True and _covers_all(d['review'],failed) and
+                    isinstance(d['review'].get('reason'),str) and d['review']['reason'].strip()) for d in drafts),
+                'Authoring refusal lacks both rejected frozen-policy drafts')
+            check(not list(output.glob('*/question-plan.json')) and not list(output.glob('*/judgment.json')) and
+                  report['attempts'][0]['verdicts']==[],'Pre-dispatch refusal contains a delivered recovery experiment')
+            check(report['score']==recovery_score(grade,effort,report['attempts']),'Refused recovery changed initial credit')
+            return errors  # Keep the explicit incomplete diagnostic; no invented plan or turn.
         previous = initial_turn
         for attempt in report['attempts']:
             directory = output / 'combined'

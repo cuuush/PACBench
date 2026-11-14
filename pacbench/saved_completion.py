@@ -71,7 +71,7 @@ def prepare(component, provider, checkpoint=None):
         raise ValueError('Saved evaluation differs from frozen plan')
     index=len(checks)-1 if checkpoint is None else next(i for i,(r,_,_) in enumerate(checks) if r['id']==checkpoint)
     row, contract, policy = checks[index]
-    if (any(r['state'] != 'diagnostic' or r.get('recovery', {}).get('state', 'complete') != 'complete'
+    if (any(r['state'] != 'diagnostic' or checkpoint is None and r.get('recovery', {}).get('state', 'complete') != 'complete'
             for i,r in enumerate(report['checks']) if i!=index) or report['checks'][index]['state'] != ('ungraded' if checkpoint is None else 'failed')):
         raise ValueError('Only one missing terminal judgment can be recovered')
     directory = arm / 'turns' / row['id']
@@ -145,6 +145,7 @@ def run(component, provider, overlay, judge, *, checkpoint=None):
     recovery = run_followups(contract=contract, plan=policy, grade=grade, initial_turn=turn,
         output=overlay / 'followups', judge=judge, home=component / 'repeat-1' / provider / 'hermes-home',
         allowlist='', extra_env={}, run_turn=no_provider,
+        **({'inherited_path':{'source_fallback':False,'unclassified':False}} if checkpoint is not None else {}),
         provenance_version=summary['provenance_version'], evidence_by_id=evidence,
         diagnostic_version=summary['evidence_diagnostic_protocol'], judge_protocol=summary['judge_protocol'])
     if any(_sha(component / p) != sha for p, sha in bindings.items()):
@@ -173,9 +174,14 @@ def publish(component,provider,overlay):
     for source,target in [('normalized-turn.json','turn.json'),('grade.json','grade.json'),('judgment.json','judgment.json')]:
         shutil.copyfile(overlay/source,directory/target)
     shutil.copytree(overlay/'followups',directory/'followups');save(directory/'status.json',status)
+    if (overlay/'judgment-attempts').exists():shutil.copytree(overlay/'judgment-attempts',directory/'judgment-attempts')
     evaluation=_read(arm/'evaluation.json')
     evaluation['checks']=[status if r['id']==manifest['checkpoint'] else r for r in evaluation['checks']]
-    evaluation['state']='diagnostic' if all(r['state']=='diagnostic' for r in evaluation['checks']) else 'incomplete'
+    evaluation['state']='diagnostic' if all(r['state']=='diagnostic' and r.get('recovery',{}).get('state','complete')=='complete' for r in evaluation['checks']) else 'partial'
+    evaluation['counts']={v:sum(r.get('verdict')==v for r in evaluation['checks']) for v in ('pass','fail')}
+    evaluation['counts']['ungraded']=sum(r.get('verdict') is None for r in evaluation['checks'])
+    incomplete=sum(r.get('recovery',{}).get('state','complete')!='complete' for r in evaluation['checks'])
+    if incomplete:evaluation['counts']['recovery_ungraded']=incomplete
     save(arm/'evaluation.json',evaluation)
     save(overlay/'publication.json',{'protocol':'saved-native-observer-correction-publication-v1',
         'original_evidence_preserved':True,'native_provider_calls':0,'answer_text_changed':False,'native_stores_changed':False})

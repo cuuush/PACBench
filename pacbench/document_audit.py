@@ -472,6 +472,22 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
     # user message to match an observed scored or archived aborted turn. A
     # recovered boundary is session attribution, not a fabricated empty receipt.
     expected={(t['session_id'],t['prompt']) for t in turns}
+    for t in turns:
+        saved=t.get('clock_context') or {}
+        identifiers=saved.get('native_network_continuation_api_input_ids',[])
+        if not identifiers:continue
+        from .clock_context import delivery,NATIVE,NATIVE_NETWORK_CONTINUATION_SHA256
+        from .harness import TurnResult
+        from .api_input_trace import rows
+        observed=delivery(arm,TurnResult(**t),identifiers=saved['api_input_ids'],hook_index=saved['native_query_index'],protocol=NATIVE)
+        check(observed==saved and observed['state']=='pass','Native network continuation lacks its original input witness')
+        if observed==saved and observed['state']=='pass':
+            for row in rows(arm/'api-inputs.jsonl'):
+                if row['request_id'] not in identifiers:continue
+                for message in row['messages']:
+                    value=message.get('content')
+                    if message['role']=='user' and isinstance(value,str) and hashlib.sha256(value.encode()).hexdigest()==NATIVE_NETWORK_CONTINUATION_SHA256:
+                        expected.add((t['session_id'],value))
     if import_only:
         check(summary.get('mode')=='native-import-validation','Import-only audit requires explicit qualification scope')
         check(not turns,'Import-only validation contains benchmark turns')

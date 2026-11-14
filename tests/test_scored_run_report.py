@@ -52,3 +52,10 @@ def test_identical_inputs_are_not_automatically_counted_as_retry_attempts(tmp_pa
     b['explicit_retry_of']='first';p.write_text(json.dumps({'calls':[a,b]}))
     phase=build(root,p)['providers'][0]['phases']['other_native_or_setup']
     assert phase['explicit_retry_attempts']==1 and phase['settled_actual_usd']=='0.002'
+    calls=root/'mem0/model-calls';calls.mkdir()
+    (calls/'writer.json').write_text(json.dumps({'response':{'id':'writer'},'request':{'messages':[{'role':'user','content':'Write one short user message asking for each missing detail. Hidden evidence.'}]}}))
+    writer=row('writer');writer['project']='pacbench-judge';writer['upstream_request_id']='writer'
+    p.write_text(json.dumps({'calls':[a,b,writer]}))
+    phases=build(root,p)['providers'][0]['phases']
+    assert phases['followup_authoring_review']['settled_actual_usd']=='0.001'
+    assert phases['other_native_or_setup']['settled_actual_usd']=='0.002'

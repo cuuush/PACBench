@@ -452,3 +452,20 @@ def test_retained_honcho_context_keeps_credit_but_included_history_is_source_acc
     profile=tool_profile(turn(calls=[{'name':'honcho_context','input':{}}],results=[result]))
     assert profile['source_fallback_attempted']==history
     assert profile['operations'][0]['category']==('source_messages' if history else 'memory_detail')
+
+
+def test_exhausted_authoring_is_incomplete_without_phantom_native_turn(tmp_path):
+    component=tmp_path/'component';output=component/'repeat-1/honcho/turns/case/followups'
+    c=contract();p=plan();g=grade(('correct','missed'));initial=turn(answer='It is Friday.')
+    def writer(prompt):
+        return json.dumps({'question':'Friday at seven, right?'}) if prompt.startswith('Write ') else json.dumps({'safe':False,'covers_claim_ids':[],'reason':'Leading question.'})
+    result=run_followups(contract=c,plan=p,grade=g,initial_turn=initial,output=output,
+        judge=judge,home=tmp_path,allowlist='',extra_env={},question_model=writer,
+        question_dir=component/'combined-questions',budget_snapshot=lambda:{'projects':[]},
+        run_turn=lambda *a,**kw:pytest.fail('Refused follow-up must never be sent'))
+    assert result['state']=='incomplete' and result['attempts'][0]['question'] is None
+    initial_grade={'claims':[asdict(s) for s in g.slots],'correct':g.correct,'missed':g.missed,'misrepresented':g.misrepresented,'recovery':g.recovery}
+    def audit():return audit_followups(contract=c,plan=p,initial_turn=initial,initial_grade=initial_grade,output=output)
+    assert audit()==['follow-up diagnostics incomplete']
+    rejected=next((component/'combined-questions').glob('*.rejected.json'));d=json.loads(rejected.read_text());d['drafts']=d['drafts'][:1];rejected.write_text(json.dumps(d))
+    assert any('both rejected' in error for error in audit())

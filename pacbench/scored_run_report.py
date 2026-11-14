@@ -60,10 +60,15 @@ def build(root,ledger):
         turns=[load(p) for p in arm.glob('turns/*/turn.json')]
         project='pacbench-'+hashlib.sha256(str(arm.resolve()).encode()).hexdigest()[:12]+'-'+name
         own=[r for r in calls if r.get('project') in {project+'-driver',project+'-memory'}]
-        judge_ids=set()
+        judge_ids=set();judge_phases={}
         for p in (component/'model-calls').glob('*.json'):
             data=load(p);identifier=(data.get('response') or {}).get('id')
-            if identifier in judges:judge_ids.add(judges[identifier]['id'])
+            if identifier in judges:
+                ident=judges[identifier]['id'];judge_ids.add(ident)
+                prompt=next((m.get('content','') for m in reversed((data.get('request') or {}).get('messages',[])) if m.get('role')=='user'),'')
+                judge_phases[ident]=('followup_authoring_review' if isinstance(prompt,str) and prompt.startswith((
+                    'Write one short user message asking for each missing detail.',
+                    'Does this message naturally ask for all missing information')) else 'judging')
         own.extend(r for r in calls if r['id'] in judge_ids)
         windows=[];phase_wall=defaultdict(list);inputs=[];integrity=[]
         for p in arm.glob('ingestion/*.json'):
@@ -79,9 +84,9 @@ def build(root,ledger):
                 interval=(stamp(u['started']),stamp(u['finished']));windows.append((*interval,'answer_retrieval'));phase_wall['answer_retrieval'].append(interval)
         groups=defaultdict(list)
         for r in own:
-            phase='judging' if r['id'] in judge_ids else next((phase for a,b,phase in windows if a<=stamp(r['started'])<=b),'other_native_or_setup')
+            phase=judge_phases[r['id']] if r['id'] in judge_ids else next((phase for a,b,phase in windows if a<=stamp(r['started'])<=b),'other_native_or_setup')
             groups[phase].append(r)
-            if phase=='judging' and r.get('finished'):phase_wall[phase].append((stamp(r['started']),stamp(r['finished'])))
+            if r['id'] in judge_ids and r.get('finished'):phase_wall[phase].append((stamp(r['started']),stamp(r['finished'])))
         phase_rows={}
         for phase,items in groups.items():
             phase_rows[phase]={'calls':len(items),'settled_actual_usd':str(sum((Decimal(r['accounted']) for r in items if r['state']=='settled'),Decimal(0))),

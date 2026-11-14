@@ -298,14 +298,28 @@ class DirectBudget:
         fingerprint=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
         policy=os.environ.get('PACBENCH_RESERVATION_POLICY',
             'shared-context-v1' if split_enabled() and self.profile_name=='luna-bedrock-global' else 'independent-input-output-v1')
-        if policy not in ('independent-input-output-v1','shared-context-v1'):
+        if policy not in ('independent-input-output-v1','shared-context-v1','openai-cache-total-shared-v1'):
             raise ValueError('Unknown reservation policy')
         if policy=='shared-context-v1' and self.profile_name!='luna-bedrock-global':
             from .role_routes import split_enabled
             if split_enabled():policy='independent-input-output-v1'
         if policy=='shared-context-v1' and self.profile_name!='luna-bedrock-global':
             raise ValueError('Shared-context refinement is reviewed only for Luna Bedrock')
-        bound=request_cost_bound(self.config,maximum,shared_context=policy=='shared-context-v1')
+        bound_config=self.config
+        if policy=='openai-cache-total-shared-v1':
+            if self.profile_name!='luna-bedrock-global' or self.config['context_tokens']!=1050000 or money(self.config['completion_per_million'])>Decimal('.75'):
+                raise ValueError('Cache-total policy requires reviewed Luna endpoint bounds')
+            def check_cache(value):
+                if isinstance(value,dict):
+                    if 'ttl' in value and value['ttl'] not in (None,'30m'):raise ValueError('Unsupported cache TTL for default-write reservation')
+                    if value.get('prompt_cache_retention') not in (None,'in_memory'):raise ValueError('Unsupported extended cache retention')
+                    for v in value.values():check_cache(v)
+                elif isinstance(value,list):
+                    for v in value:check_cache(v)
+            check_cache(body)
+            bound_config={**self.config,'prompt_per_million':'.25'}
+            request['provider']['max_price']['prompt']=.2
+        bound=request_cost_bound(bound_config,maximum,shared_context=policy in ('shared-context-v1','openai-cache-total-shared-v1'))
         cohort=os.environ.get('PACBENCH_COHORT_ID')
         cohort_limit=os.environ.get('PACBENCH_COHORT_LIMIT_USD')
         if bool(cohort)!=bool(cohort_limit):raise ValueError('Cohort ID and liability limit must be paired')

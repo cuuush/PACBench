@@ -14,6 +14,7 @@ from pacbench.openrouter_route import MODEL,ENDPOINT
 from pacbench.followups import digest
 import argparse
 parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--incremental',action='store_true')
 parser.add_argument('--cohort-spend-limit-usd')
 parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1','luna-all-roles-v1'])
 parser.add_argument('--output',type=Path,required=True)
@@ -28,7 +29,7 @@ args=parser.parse_args()
 if args.role_routes:os.environ['PACBENCH_ROLE_ROUTES']=args.role_routes
 from pacbench.role_routes import split_enabled,record as role_record
 split_enabled()
-if args.role_routes and not args.cohort_spend_limit_usd:parser.error('Split scored cohort requires an explicit shared liability ceiling')
+if args.role_routes and not args.cohort_spend_limit_usd and not args.incremental:parser.error('Split scored cohort requires an explicit shared liability ceiling')
 if args.cohort_spend_limit_usd:
  value=Decimal(args.cohort_spend_limit_usd)
  if not value.is_finite() or not 0<value<=20:parser.error('Cohort liability ceiling must be positive and<=20')
@@ -69,7 +70,7 @@ os.environ['TMPDIR']='/var/tmp'
 validate_recall_environment()
 from pacbench.bootstrap import verify,COMPONENTS
 assert verify(COMPONENTS)['state']=='pass','Run python3 -m pacbench.bootstrap --install --start-services; reviewed dependencies must match before paid work'
-if args.cohort_spend_limit_usd:
+if args.cohort_spend_limit_usd and not args.incremental:
  from pacbench.role_routes import liability_envelope
  envelope=liability_envelope(budget.snapshot(),args.cohort_spend_limit_usd,os.environ['PACBENCH_COHORT_ID'])
  if not envelope['funded']:
@@ -80,7 +81,7 @@ if args.preflight_only:
 root.mkdir(exist_ok=False)
 providers=args.providers
 record={'version':'stable-native-week-cohort-v3','state':'running','providers':providers,'concurrency':args.concurrency,
- 'role_routes':role_record(),'cohort_liability_limit_usd':args.cohort_spend_limit_usd,
+ 'incremental_admission':args.incremental,'role_routes':role_record(),'reservation_policy':os.environ.get('PACBENCH_RESERVATION_POLICY'),'cohort_liability_limit_usd':args.cohort_spend_limit_usd,
  'execution_scope':'import-only' if args.import_only else 'benchmark',
  'started':datetime.now(timezone.utc).isoformat(),'performance_scope':'Concurrent functional trials; no latency ranking',
  'execution_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),
@@ -95,6 +96,7 @@ def run(provider):
  if stop.is_set():return {'provider':provider,'state':'not-started-task-hold'}
  target=root/provider;log=root/(provider+'.execution.private.log')
  cmd=[str(repo/'vendor/venv-hermes-isolated/bin/python'),'-m','pacbench.openrouter_run','--prepared',str(prepared),'--providers',provider,'--judge-reasoning-effort','low','--judge-timeout-s','600','--recall-timeout-s','600','--output',str(target),'--spend-limit-usd','20','--max-messages','150']
+ if args.incremental:cmd+=['--incremental']
  if args.role_routes:cmd+=['--role-routes',args.role_routes]
  if args.cohort_spend_limit_usd:cmd+=['--cohort-spend-limit-usd',args.cohort_spend_limit_usd]
  if provider=='honcho':cmd+=['--honcho-clock','simulated']

@@ -46,6 +46,11 @@ def catalog_parameters(data, *, profile=None):
         # Cover all context tiers and additive cache writes. Paid built-in
         # tools/search remain forbidden by direct request admission.
         prompt=max(price('prompt'),price('input_cache_read'))+price('input_cache_write')
+        if os.environ.get('PACBENCH_RESERVATION_POLICY')=='openai-cache-total-shared-v1':
+            if (profile or PROFILE_NAME)!='luna-bedrock-global' or price('input_cache_write')!=price('prompt')*Decimal('1.25'):
+                raise ValueError('Default OpenAI cache-total billing contract differs')
+            prompt=max(price('prompt'),price('input_cache_read'),price('input_cache_write'))
+            if prompt>Decimal('.25'):raise ValueError('Cache-total price exceeds reviewed ceiling')
         bounds.append((prompt,price('completion')))
     prompt=max(p for p,c in bounds);completion=max(c for p,c in bounds)
     for key in ('context_length', 'max_completion_tokens'):
@@ -88,6 +93,7 @@ def transport_environment(access, cap):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--incremental',action='store_true',help='Admit each request at the shared hard cap without pre-funding a whole cohort')
     parser.add_argument('--cohort-spend-limit-usd',help='Optional additional shared cohort liability ceiling, including unresolved and in-flight calls; never raises task cap')
     parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1','luna-all-roles-v1'],help='Explicit per-role model route condition; all roles recorded separately')
     parser.add_argument('--plan', action='store_true', help='Print configuration without network or inference')
@@ -116,7 +122,7 @@ def main(argv=None):
         os.environ['PACBENCH_ROLE_ROUTES']=args.role_routes
     from .role_routes import split_enabled, record as role_record
     split_enabled()
-    if args.role_routes and not args.plan and not args.cohort_spend_limit_usd:
+    if args.role_routes and not args.plan and not args.cohort_spend_limit_usd and not args.incremental:
         parser.error('Split scored run requires an explicit shared cohort liability ceiling')
     if args.cohort_spend_limit_usd:
         value=Decimal(args.cohort_spend_limit_usd)
@@ -176,7 +182,7 @@ def main(argv=None):
     from .direct_accounting import live_budget
     from .openrouter_direct import direct_environment
     budget=live_budget()
-    if args.cohort_spend_limit_usd:
+    if args.cohort_spend_limit_usd and not args.incremental:
         from .role_routes import liability_envelope
         envelope=liability_envelope(budget.snapshot(),args.cohort_spend_limit_usd,os.environ['PACBENCH_COHORT_ID'])
         if not envelope['funded']:

@@ -539,3 +539,18 @@ all-role authorization; it preserves prices, token bounds, historical rows and
 the task cap and records the scope transition. A mere role environment variable
 cannot broaden a grant. Until the financial preflight passes, do not start paid
 work. The current20USD aggregate cap and historical holds remain intact.
+
+Incremental scored execution uses `--incremental` instead of pre-funding a whole
+cohort. The persistent20USD aggregate guard still atomically covers all settled,
+uncertain and in-flight exposure. Optional cohort ceilings remain additional
+limits, not mandatory reservations of forecast spend.
+
+The reviewed `PACBENCH_RESERVATION_POLICY=openai-cache-total-shared-v1` condition
+fixes future Luna cache-write accounting: OpenRouter documents default writes as
+1.25x the original input rate, a replacement rate rather than an additive fee.
+The maximum catalog default-write/input rate across context tiers is0.25USD/M;
+completion is0.75USD/M. Maximizing over the shared1,050,000-token context with
+128,000 output tokens yields a0.3265USD reservation. No new output cap is injected.
+Extended cache TTL/retention is refused, catalog tiers are checked, and legacy
+reservations and pricing snapshots are retained unchanged. Source:
+https://openrouter.ai/docs/guides/best-practices/prompt-caching

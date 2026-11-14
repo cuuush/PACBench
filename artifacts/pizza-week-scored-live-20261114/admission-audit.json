@@ -33,7 +33,9 @@
     "authoring_model_call_ids_matched_to_existing_ledger": 242,
     "authoring_matched_known_charge_usd": "0.160965661696",
     "authoring_unmatched_known_ids": 0,
-    "conclusion": "Current fixture authoring is already represented in the ledger. This does not establish that the old external2USD Week allocation or1USD judge allocation was unused; no external closure/charge receipt was found. Old unresolved rows have no usable token evidence; no speculative release."
+    "conclusion": "Current fixture authoring is already represented in the ledger. This does not establish that the old external2USD Week allocation or1USD judge allocation was unused; no external closure/charge receipt was found. Old unresolved rows have no usable token evidence; no speculative release.",
+    "later_bound_refinement": "55 exact endpoint-maximum holds refined by shared-window proof; original reservations/states retained; abandoned hold excluded. Superseded by explicit prepaid run admission; no charges erased.",
+    "refinement_proof_sha256": "8281ac98facc56f425dd521be11e05df5e583b7170edf10a9e57b8946b8b72d9"
   },
   "memos_fix": {
     "problem": "Our HTTP adapter omitted public core.init(); native bootstrap constructs the core but does not invoke it.",
@@ -51,7 +53,7 @@
     "native_conditions": "Measured serial OpenViking/Hindsight/Memcal; unchanged Honcho simulated clock/thinking none; exact Luna/Bedrock Global for every role; stock Hermes/native hooks."
   },
   "validation": {
-    "full_offline_tests_passed": 1480,
+    "full_offline_tests_passed": 1485,
     "skipped": 7,
     "subtests_passed": 22,
     "native_memos_offline_start": "pass",
@@ -62,5 +64,6 @@
     "state": "not-run-core-prioritized",
     "plan": "A separate tiny native store can receive direct-to-Hermes withdrawal, an explicitly identified stale source replay, and fresh-session recall. Use existing native session runner, isolate artifacts and source identity conditions; do not alter core fixture, denominator or stores.",
     "paid_calls": 0
-  }
+  },
+  "active_policy": "Explicit funded prepaid run; paused pending Auto Recharge verification"
 }

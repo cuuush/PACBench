@@ -12,6 +12,20 @@ from .followups import save
 def read(path):return json.loads(path.read_text())
 
 
+def renew_scored_workspace(root,history):
+    """Reopen the same empty cwd for retained Hermes sessions, without asserting
+    that their legitimate prior scored conversations must not exist."""
+    from .context_isolation import outside_project
+    receipt=root/'recall-workspace.json';data=read(receipt);workspace=Path(data['workspace'])
+    if (not workspace.is_absolute() or not workspace.name.startswith('pacbench-chat-') or
+        workspace.parent!=Path('/var/tmp') or not outside_project(workspace)):
+        raise ValueError('Retained scored workspace is not isolated')
+    if workspace.exists() and any(workspace.iterdir()):raise ValueError('Retained scored workspace is not empty')
+    workspace.mkdir(mode=0o700,exist_ok=True)
+    shutil.copyfile(receipt,history/'recall-workspace.json')
+    return workspace
+
+
 def verify_prefix(output,report,checks):
     from .document_ingestion import ready_sources
     from .harness import question_prompt
@@ -59,7 +73,6 @@ def resume(output):
     from .native_checks import run_checks
     from .gateway_client import client_settings,require_live_cost_boundary
     from .model_calls import ModelClient
-    from .native_resume import renew_empty_workspace
     from .document_ingestion import ready_sources,ingest_day,source_state
     from .tool_policy import policy_record
     from .stop import check_stop
@@ -83,7 +96,7 @@ def resume(output):
     history=root/'scored-resumes'/str(1+len(list((root/'scored-resumes').glob('*'))));history.mkdir(parents=True)
     for name in ('summary.json','native-audit.json'):
         if (output/name).exists():shutil.copyfile(output/name,history/name)
-    for name in ('evaluation.json','status.json','native-server-setup.json','model-usage.json','model-usage-after-settlement.json'):
+    for name in ('evaluation.json','status.json','native-server-setup.json','model-usage.json','model-usage-after-settlement.json','pre-recall-isolation.json'):
         if (root/name).exists():shutil.copyfile(root/name,history/name)
     # Quiescent native stores and Hermes session DBs retain an immutable backup.
     for name in ('hermes-home','memos-home' if provider=='memos' else 'supermemory-data'):
@@ -92,7 +105,7 @@ def resume(output):
         d=root/'turns'/row['id']
         if d.exists():(history/'tail-turns').mkdir(exist_ok=True);shutil.move(d,history/'tail-turns'/row['id'])
     save(root/'evaluation.json',{'state':'running','context':plan['context'],'checks':prefix})
-    renew_empty_workspace(root,history)
+    workspace=renew_scored_workspace(root,history)
     stop=history/'STOP';os.environ['PACBENCH_STOP_FILE']=str(stop)
     save(history/'resume.json',{'provider':provider,'completed_questions_preserved':[p['id'] for p in prefix],
         'completed_imports_preserved':ingested,'protocol':'scored-prefix-retained-store-v1','funded_run_id':os.environ.get('PACBENCH_FUNDED_RUN_ID'),
@@ -125,6 +138,9 @@ def resume(output):
     finally:
         stop_arm_model_work(root)
         if env:save(root/'model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+        from .process_cleanup import cleanup_run_processes
+        save(history/'workspace-cleanup.json',cleanup_run_processes(workspace))
+        shutil.rmtree(workspace,ignore_errors=True)
     report['state']='diagnostic' if result['state']=='diagnostic' else 'incomplete';save(root/'status.json',result);save(output/'summary.json',report)
     checked=audit(output);report['audit']=checked
     if checked['state']!='pass':report['state']='incomplete'

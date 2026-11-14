@@ -6,6 +6,21 @@ from pacbench.native_checks import run_checks
 from pacbench.stop import OperatorStop
 
 
+def test_scored_workspace_recovery_keeps_original_pre_recall_witness(tmp_path,monkeypatch):
+    from pacbench.scored_resume import renew_scored_workspace
+    import pathlib,tempfile,shutil
+    workspace=pathlib.Path(tempfile.mkdtemp(prefix='pacbench-chat-',dir='/var/tmp'))
+    root=tmp_path/'root';root.mkdir();history=tmp_path/'history';history.mkdir()
+    (root/'recall-workspace.json').write_text(json.dumps({'workspace':str(workspace)}))
+    witness=root/'pre-recall-isolation.json';witness.write_text('{"hermes_sessions_before_recall": []}')
+    before=witness.read_bytes();monkeypatch.setattr('pacbench.context_isolation.outside_project',lambda p:True)
+    try:
+        assert renew_scored_workspace(root,history)==workspace and witness.read_bytes()==before
+        (workspace/'unexpected').write_text('x')
+        with pytest.raises(ValueError,match='not empty'):renew_scored_workspace(root,history)
+    finally:shutil.rmtree(workspace)
+
+
 def test_prefix_restores_history_without_repeating_completed_turn(tmp_path,monkeypatch):
     root=tmp_path;d=root/'turns/one';d.mkdir(parents=True)
     item={'id':'one','state':'diagnostic','contract_hash':'a','recovery':{'state':'complete'}}

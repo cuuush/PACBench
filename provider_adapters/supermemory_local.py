@@ -70,7 +70,7 @@ def start(root, env, model, base, key, *, resume=False):
     deadline=time.monotonic()+300
     native_key=None
     while time.monotonic()<deadline and process.poll() is None:
-        output=re.sub(r'\x1b\[[0-9;]*m','',log_path.read_text(errors='replace')[log_offset:])
+        output=re.sub(r'\x1b\[[0-9;]*m','',log_path.read_bytes()[log_offset:].decode(errors='replace'))
         match=re.search(r'api key\s+([A-Za-z0-9_.-]+)',output,re.I)
         if match:
             try:

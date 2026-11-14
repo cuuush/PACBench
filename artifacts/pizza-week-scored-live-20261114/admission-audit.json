@@ -1,0 +1,66 @@
+{
+  "version": "live-scored-admission-audit-v1",
+  "prior_plan_superseded": "Whole-cohort estimates are not charges and no longer gate incremental execution. Earlier no-spend reports remain historical evidence.",
+  "pricing_fix": {
+    "policy": "openai-cache-total-shared-v1",
+    "documentation": "https://openrouter.ai/docs/guides/best-practices/prompt-caching",
+    "interpretation": "Default cache writes use a total replacement input rate. The previous guard added base input again. New requests use the reviewed0.25USD/M maximum default input/write tier and0.75USD/M output.",
+    "shared_context_tokens": 1050000,
+    "max_output_tokens": 128000,
+    "maximum_request_bound_usd": "0.3265",
+    "extended_cache_ttl": "Rejected before admission",
+    "output_caps_added": false,
+    "old_reservations_repriced": false
+  },
+  "compatibility": {
+    "condition": "temperature-omitted-default-v1",
+    "meaning": "Unsupported temperature omitted at transport; provider default. Not equivalent to temperature0. Stock provider source and instructions retained; original native temperature remains in ledger metadata."
+  },
+  "current_attempt_release": {
+    "reservation_id": "3df7ebf3-9450-4a12-86d7-53a11ac793c2",
+    "state": "rejected_no_dispatch",
+    "released_reservation_usd": "0.26258000",
+    "provider_reported_charge_usd": null,
+    "response_sha256": "92124e023b5d9c38231dfb06cf5ef0ca9820618d1653f4ab5cc6f1cab611c662",
+    "evidence": "Complete OpenRouter HTTP404 routing_funnel, failed_routing_step Filter by Parameters, no provider generation; uniquely bound to one attempt. Audited idempotent release preserves original bound and before/after exposure.",
+    "documentation": "https://openrouter.ai/docs/guides/routing/provider-selection"
+  },
+  "historical_audit": {
+    "original_rows_preserved": 3390,
+    "old_liability_usd": "19.503585917232",
+    "old_allocations_retained_usd": "3",
+    "old_unknowns_released_usd": "0",
+    "authoring_model_call_ids_matched_to_existing_ledger": 242,
+    "authoring_matched_known_charge_usd": "0.160965661696",
+    "authoring_unmatched_known_ids": 0,
+    "conclusion": "Current fixture authoring is already represented in the ledger. This does not establish that the old external2USD Week allocation or1USD judge allocation was unused; no external closure/charge receipt was found. Old unresolved rows have no usable token evidence; no speculative release."
+  },
+  "memos_fix": {
+    "problem": "Our HTTP adapter omitted public core.init(); native bootstrap constructs the core but does not invoke it.",
+    "fix": "Await native core.init() before serving and require healthy initialized state. No manual memory edits or third-party source changes.",
+    "validation": "Actual pinned native service starts healthy in a fresh temporary store with model endpoint127.0.0.1:1 and inert credentials, zero inference.",
+    "recovery": "Only MemOS failed startup needs rerun. Valid ReMe results preserved."
+  },
+  "conditions": {
+    "cap_usd": "20",
+    "account_top_up": false,
+    "providers_planned": 9,
+    "questions_per_provider": 37,
+    "criteria_per_provider": 155,
+    "fresh_chronological_state": true,
+    "native_conditions": "Measured serial OpenViking/Hindsight/Memcal; unchanged Honcho simulated clock/thinking none; exact Luna/Bedrock Global for every role; stock Hermes/native hooks."
+  },
+  "validation": {
+    "full_offline_tests_passed": 1480,
+    "skipped": 7,
+    "subtests_passed": 22,
+    "native_memos_offline_start": "pass",
+    "scoring_schema": "Existing date-scoped judge contract unchanged; real Luna judgments are being produced.",
+    "context": "Completed ReMe public questions match frozen authored questions; stock native memory-context suffix observed in actual API inputs. Empty recall workspaces pass; no PACBench tool-use nudges."
+  },
+  "sidecar_feasibility": {
+    "state": "not-run-core-prioritized",
+    "plan": "A separate tiny native store can receive direct-to-Hermes withdrawal, an explicitly identified stale source replay, and fresh-session recall. Use existing native session runner, isolate artifacts and source identity conditions; do not alter core fixture, denominator or stores.",
+    "paid_calls": 0
+  }
+}

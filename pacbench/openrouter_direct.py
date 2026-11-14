@@ -68,36 +68,40 @@ def provider_plan(provider: str, root: Path) -> dict:
     from .native_pilot import memcal_model_settings, mem0_model_settings, hindsight_model_settings
     from provider_adapters import honcho_local, openviking_local, supermemory_local
     key = '<runtime-secret; omit from public evidence>'
-    route = {'provider': deepcopy(PROVIDER)}
+    from .role_routes import memory_profile
+    from .openrouter_route import PROFILES
+    selected=PROFILES[memory_profile()];model=selected['model'];endpoint=selected['endpoint']
+    provider_route={'only':[endpoint],'order':[endpoint],'allow_fallbacks':False,'require_parameters':True}
+    route = {'provider': provider_route}
     extension = None
     if provider == 'memcal':
-        settings = memcal_model_settings(MODEL, BASE_URL, key)
+        settings = memcal_model_settings(model, BASE_URL, key)
     elif provider == 'mem0':
-        settings = {'model': MODEL, **mem0_model_settings(MODEL, BASE_URL, openrouter=True)}
+        settings = {'model': model, **mem0_model_settings(model, BASE_URL, openrouter=True)}
     elif provider == 'hindsight':
-        cfg, env = hindsight_model_settings('direct-plan', MODEL, BASE_URL, key)
+        cfg, env = hindsight_model_settings('direct-plan', model, BASE_URL, key)
         settings = {'config': cfg, 'environment': env}
         extension = {'HINDSIGHT_API_LLM_EXTRA_BODY': route}
     elif provider == 'openviking':
-        settings = openviking_local.plan_config(root, MODEL, BASE_URL, key, port=1)
+        settings = openviking_local.plan_config(root, model, BASE_URL, key, port=1)
         extension = {'vlm.extra_request_body': route}
     elif provider == 'honcho':
-        settings = honcho_local.plan_config(root, MODEL, BASE_URL, key, db_port=1)
+        settings = honcho_local.plan_config(root, model, BASE_URL, key, db_port=1)
         extension = {'each non-embedding model overrides.provider_params.extra_body': route}
     elif provider == 'supermemory':
-        settings = supermemory_local.plan_config(root, MODEL, BASE_URL, key, port=1)
+        settings = supermemory_local.plan_config(root, model, BASE_URL, key, port=1)
     elif provider == 'reme':
         from provider_adapters.reme_local import plan_config
-        settings = plan_config(root, MODEL, BASE_URL, key)
+        settings = plan_config(root, model, BASE_URL, key)
     elif provider == 'cognee':
         from provider_adapters.cognee_runtime import plan_config
-        settings = plan_config(root, MODEL, BASE_URL, key)
+        settings = plan_config(root, model, BASE_URL, key)
     elif provider == 'memos':
         from provider_adapters.memos_local import plan_config
-        settings = plan_config(root, MODEL, BASE_URL, key)
+        settings = plan_config(root, model, BASE_URL, key)
     else:
         raise ValueError('Unsupported native provider')
-    return {'provider': provider, 'model': MODEL, 'endpoint': ENDPOINT,
+    return {'provider': provider, 'model': model, 'endpoint': endpoint,
             'transport': 'direct OpenRouter HTTPS; no local inference proxy',
             'native_settings': settings,
             'documented_native_route_extensions': extension,

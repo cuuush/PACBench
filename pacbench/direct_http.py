@@ -38,7 +38,7 @@ def admitted(url,headers,body):
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
     if parsed.path!='/api/v1/chat/completions' or not body:
         raise RuntimeError('Unsupported direct model endpoint')
-    budget=live_budget();receipt=budget.reserve(project,json.loads(body))
+    budget=live_budget(project=project);receipt=budget.reserve(project,json.loads(body))
     from .api_input_trace import record as record_api_input
     record_api_input(project,receipt)
     from .api_input_trace import record_memory

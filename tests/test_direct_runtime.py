@@ -23,7 +23,7 @@ def test_native_fetch_preloads_reserve_route_and_settle(tmp_path,runtime):
        'model':MODEL,'endpoint':'deepinfra/fp8/flex'},'calls':[]}))
     helper=tmp_path/'accounting-python'
     helper.write_text('#!/usr/bin/env python3\nimport sys\nsys.path.insert(0,'+repr(str(REPO))+')\n'
-       'import pacbench.direct_accounting as a\na.live_budget=lambda:a.DirectBudget('+repr(str(ledger))+')\n'
+       'import pacbench.direct_accounting as a\na.live_budget=lambda **kw:a.DirectBudget('+repr(str(ledger))+')\n'
        'sys.argv=["accounting",sys.argv[-1]]\na.main()\n')
     helper.chmod(0o700)
     script=tmp_path/'probe.cjs'

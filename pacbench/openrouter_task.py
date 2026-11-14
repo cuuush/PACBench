@@ -15,8 +15,8 @@ def require_authorization(budget):
     except (OSError, ValueError):
         raise RuntimeError('OpenRouter task spending authorization is unavailable') from None
     if (auth.get('task') != 'pacbench-pizza-day-20261112' or
-            not ((auth.get('model')==MODEL and auth.get('endpoint')==ENDPOINT) or
-                any(r.get('model')==MODEL and r.get('endpoint')==ENDPOINT for r in auth.get('additional_routes',[]))) or
+            not ((auth.get('model')==budget.config['model'] and auth.get('endpoint')==budget.config['endpoint']) or
+                any(r.get('model')==budget.config['model'] and r.get('endpoint')==budget.config['endpoint'] for r in auth.get('additional_routes',[]))) or
             auth.get('approved_total_usd') != '20' or
             budget.path.resolve() != (STATE / 'ledger.json').resolve() or
             Decimal(budget.config['cap']) != Decimal('20')):

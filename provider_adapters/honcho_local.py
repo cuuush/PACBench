@@ -154,7 +154,8 @@ def plan_config(root, model, base, key, *, db_port):
 def child_environment(inherited, env, overrides, model):
     """Merge native settings, removing the Spark-only allowance for DeepSeek."""
     child = {**inherited, **env, **overrides}
-    from pacbench.openrouter_route import MODEL as OPENROUTER_MODEL
+    from pacbench.role_routes import memory_model
+    OPENROUTER_MODEL=memory_model()
     if model == OPENROUTER_MODEL:
         child.pop('DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS', None)
     return child

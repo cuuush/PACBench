@@ -463,3 +463,51 @@ cost. It does not alter output limits, reasoning, requests or any historical
 hold. Every new ledger row records its policy. The public catalog's922,000
 max-prompt field is not assumed to be an independently enforced cap. Actual
 reported charges above any bound are recorded in full and stop new admission.
+
+### Split roles for a scored Pizza Week
+
+The explicit `--role-routes luna-memory-deepseek-v1` condition keeps stock
+Hermes answering and the date-scoped judge on the existing DeepSeek/DeepInfra
+Flex route, while all provider-native model work uses Luna/Bedrock Global.
+Selection follows each persistent `-memory`, `-driver`, or `pacbench-judge`
+accounting capability. Native retrieval, post-answer processing and background
+workers therefore retain the memory route. No temporary global profile switch,
+extra prompt instructions, output cap or reasoning setting is added. Judge low
+reasoning and the existing 600-second judge/recall deadlines remain explicit
+launcher options. Hindsight and Memcal use the measured concurrency1 condition;
+OpenViking uses its separately recorded concurrency1 condition. Honcho retains
+the documented simulated clock and native thinking-none condition.
+
+Use the DeepSeek driver profile for the parent process. The split condition is
+opt-in; older callers keep their original single profile. Both profiles must
+already be explicitly authorized against the same private ledger. The installed
+Luna grant remains memory/import-only; it is not broadened to allow Luna judges
+or Hermes requests. Dependencies and model access still require normal
+preflight checks. Fresh stores and chronological daily source gates are required
+for the frozen37 questions; whole-Week qualification stores cannot answer early
+checkpoints fairly.
+
+A split scored cohort requires an explicit liability envelope. The example below
+is a **no-spend preflight**, and currently reports insufficient shared headroom:
+
+```sh
+PACBENCH_OPENROUTER_PROFILE=deepseek-flex \
+python3 scripts/run_reviewed_week_cohort.py \
+  --preflight-only --role-routes luna-memory-deepseek-v1 \
+  --cohort-spend-limit-usd 8 --concurrency 1 \
+  --output runs/pizza-week-scored-luna-memory
+```
+
+The additional cohort ceiling covers settled charges, uncertain calls and live
+reservations across all roles. It never raises the task cap or releases old
+holds. Child runs inherit one cohort identity; previously accounted cohort
+spend is subtracted from its remaining envelope rather than funded twice.
+Refusal at either ceiling stops admission and retains unresolved exposure.
+The historical task cap remains$20; any increase requires explicit approval
+and a separately reviewed accounting-authorization update before execution.
+
+For an estimate from existing private telemetry, without inference or ledger
+changes, use `python3 -m pacbench.scored_budget_plan`. This reports scenario
+estimates separately from transient reservations and a bounded financial plan;
+it does not promise full completion or authorize spending. It needs the private
+run artifacts and original ledger, which bootstrap does not reconstruct.

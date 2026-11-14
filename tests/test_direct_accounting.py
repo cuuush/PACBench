@@ -162,7 +162,7 @@ def install(monkeypatch,budget):
     import pacbench.direct_http as hook
     monkeypatch.setenv('PACBENCH_DIRECT_UPSTREAM_KEY','offline-upstream')
     monkeypatch.setenv('PACBENCH_DIRECT','1')
-    monkeypatch.setattr(hook,'live_budget',lambda:budget)
+    monkeypatch.setattr(hook,'live_budget',lambda **kw:budget)
     hook.install()
     return hook
 

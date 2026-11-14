@@ -47,7 +47,8 @@ def memcal_model_settings(model: str, base: str, key: str) -> dict:
 
 def hindsight_model_settings(run_id: str, model: str, base: str, key: str) -> tuple[dict, dict]:
     """Use Hindsight's native OpenAI transport for DeepSeek, Meta for Spark."""
-    from .openrouter_route import MODEL as OPENROUTER_MODEL
+    from .role_routes import memory_model
+    OPENROUTER_MODEL=memory_model()
     provider = 'openai' if model == OPENROUTER_MODEL else 'meta'
     config = {'mode': 'local_external', 'profile': 'pacbench-' + run_id,
               'bank_id': 'pacbench-' + run_id, 'llm_provider': provider,
@@ -66,7 +67,8 @@ def mem0_model_settings(model: str, base: str, *, openrouter: bool = False) -> d
     if openrouter:
         # Native Mem0 gives this setting precedence over openai_base_url.
         settings['openrouter_base_url'] = base
-    from .openrouter_route import MODEL as OPENROUTER_MODEL
+    from .role_routes import memory_model
+    OPENROUTER_MODEL=memory_model()
     if model in {'muse-spark-1.3-contributor', OPENROUTER_MODEL}:
         settings['is_reasoning_model'] = True
     return settings
@@ -284,6 +286,12 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         model_provider=('openai-codex' if inference_route == 'codex-subscription' else
                         'openrouter' if inference_route == 'openrouter' else 'meta-ai'),
         model_base_url=(None if inference_route == 'codex-subscription' else driver_url))
+    # Native services and in-process tools use their persistent memory capability.
+    # Hermes home above retains the separately selected answer model.
+    if inference_route == 'openrouter':
+        from .role_routes import memory_model, record as role_record
+        model=memory_model()
+        if role_record():save(root/'role-routes.json',role_record())
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
@@ -319,6 +327,10 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
         env['OPENROUTER_API_BASE'] = driver_url
         env['CUSTOM_BASE_URL'] = ''
         env['OPENROUTER_BASE_URL'] = driver_url
+    from .role_routes import split_enabled
+    if inference_route=='openrouter' and split_enabled():
+        if provider=='hindsight':env['HINDSIGHT_API_LLM_MAX_CONCURRENT']='1'
+        if provider=='memcal':env['MEMCAL_MAX_PARALLEL']='1'
     if provider == "mem0":
         identity = "pacbench-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
         extraction_url, _ = client_settings(memory_project)
@@ -636,7 +648,9 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             from .direct_accounting import VERSION as TRANSPORT_VERSION
         else:
             from .openrouter_proxy import VERSION as TRANSPORT_VERSION
-        report.update(hermes_model=MODEL, judge_model=MODEL, extraction_model=MODEL,
+        from .role_routes import memory_model, record as role_record
+        if role_record():report['role_routes']=role_record()
+        report.update(hermes_model=MODEL, judge_model=MODEL, extraction_model=memory_model(),
                       openrouter_endpoint=ENDPOINT, transport=TRANSPORT_VERSION)
     if inference_route == 'codex-subscription':
         report['hermes_model'] = report['judge_model'] = 'gpt-6-luna'

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER, PROFILE, PROFILE_NAME, with_route
+from .openrouter_route import MODEL, ENDPOINT, PROVIDER, PROFILE, PROFILE_NAME, with_route, PROFILES
 from .openrouter_task import STATE, require_authorization
 
 VERSION = 'direct-client-reservations-v1'
@@ -117,21 +117,30 @@ def preserve_unusable_response(ledger, identifier, data, complete):
 
 
 class DirectBudget:
-    def __init__(self, path=STATE/'ledger.json', *, nonblocking=False):
+    def __init__(self, path=STATE/'ledger.json', *, nonblocking=False, profile=None):
+        self.profile_name=profile or PROFILE_NAME
+        self.profile=PROFILES[self.profile_name]
+        self.model=self.profile['model'];self.endpoint=self.profile['endpoint']
+        self.provider={'only':[self.endpoint],'order':[self.endpoint],'allow_fallbacks':False,'require_parameters':True}
         self.path=Path(path)
         self.nonblocking=nonblocking
         with self.locked() as state:
             self.config=self.selected_config(state)
-        if (self.config.get('model')!=MODEL or self.config.get('endpoint')!=ENDPOINT or
+        if (self.config.get('model')!=self.model or self.config.get('endpoint')!=self.endpoint or
                 money(self.config.get('cap'))!=Decimal('20')):
             raise RuntimeError('Task accounting configuration differs')
 
     def selected_config(self,state):
-        if PROFILE_NAME=='deepseek-flex':return state['config']
-        config=state.get('route_configs',{}).get(PROFILE_NAME)
+        if self.profile_name=='deepseek-flex':return state['config']
+        config=state.get('route_configs',{}).get(self.profile_name)
         if not config or money(state['config']['cap'])!=Decimal('20'):
             raise RuntimeError('Explicit route accounting configuration is unavailable')
         return config
+
+    def check_row_profile(self,row):
+        if (row.get('route_profile',self.profile_name)!=self.profile_name or
+                row.get('model',self.model)!=self.model or row.get('endpoint',self.endpoint)!=self.endpoint):
+            raise ValueError('Accounting row/profile conflict')
 
     @contextmanager
     def locked(self):
@@ -160,6 +169,7 @@ class DirectBudget:
             raise ValueError('Explicit retry authorization required')
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
+            self.check_row_profile(row)
             if (row.get('transport')!=VERSION or row.get('state')!='uncertain' or
                     row.get('http_status')!=200 or not row.get('finished') or
                     not row.get('request_sha256') or not row.get('upstream_request_id')):
@@ -191,6 +201,7 @@ class DirectBudget:
                 raise ValueError('Previous worker is still alive or PID was reused')
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
+            self.check_row_profile(row)
             if (row.get('transport')!=VERSION or row.get('state')!='reserved'
                     or row.get('finished') or not row.get('request_sha256')
                     or row.get('authorized_retry') or money(row['accounted'])!=money(row['reserved'])):
@@ -210,10 +221,10 @@ class DirectBudget:
         estimate missing costs/tokens or release an unidentified historical hold.
         """
         g=generation
-        if (model_record.get('id')!=MODEL or
-                g.get('model') not in {MODEL,model_record.get('canonical_slug')} or
-                not g.get('model') or g.get('provider_name')!=PROFILE['provider_name'] or
-                g.get('service_tier')!=PROFILE['service_tier'] or g.get('is_byok') is not False or
+        if (model_record.get('id')!=self.model or
+                g.get('model') not in {self.model,model_record.get('canonical_slug')} or
+                not g.get('model') or g.get('provider_name')!=self.profile['provider_name'] or
+                g.get('service_tier')!=self.profile['service_tier'] or g.get('is_byok') is not False or
                 not (g.get('cancelled') is True or g.get('finish_reason')) or
                 not re.fullmatch(r'[0-9a-f]{64}',receipt_sha256)):
             raise ValueError('Unverified generation identity or terminal state')
@@ -223,6 +234,7 @@ class DirectBudget:
             raise ValueError('Incomplete generation usage')
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
+            self.check_row_profile(row)
             observed_id,id_source=observed_generation_id(row)
             if (row.get('state')!='uncertain' or row.get('http_status')!=200 or
                     not row.get('finished') or observed_id!=g.get('id')):
@@ -248,9 +260,12 @@ class DirectBudget:
     def reserve(self,project,body):
         if not re.fullmatch(r'[a-z0-9][a-z0-9_.-]{0,63}',project):
             raise ValueError('Invalid accounting project')
+        from .role_routes import split_enabled, profile_for_project
+        if split_enabled() and profile_for_project(project)!=self.profile_name:
+            raise ValueError('Accounting capability/profile conflict')
         if self.config.get('request_scope')=='import-and-connectivity-probes' and not (project.endswith('-memory') or project.startswith('pacbench-route-probe-')):
             raise RuntimeError('Authorized route is import-only; benchmark and judge calls remain paused')
-        if not isinstance(body,dict) or body.get('model')!=MODEL:
+        if not isinstance(body,dict) or body.get('model')!=self.model:
             raise ValueError('Exact model required')
         if body.get('n',1) not in (None,1) or body.get('modalities') not in (None,['text']):
             raise ValueError('Unsupported paid feature')
@@ -271,20 +286,29 @@ class DirectBudget:
         request=dict(body)
         if 'provider' in request:
             supplied=request.pop('provider')
-            if not isinstance(supplied,dict) or any(k not in PROVIDER or PROVIDER[k]!=v for k,v in supplied.items()):
+            if not isinstance(supplied,dict) or any(k not in self.provider or self.provider[k]!=v for k,v in supplied.items()):
                 raise ValueError('Conflicting provider settings')
-        request=with_route(request)
+        request=with_route(request,profile=self.profile_name)
         request['provider']['max_price']={'prompt':float(self.config['prompt_per_million']),
             'completion':float(self.config['completion_per_million']),'request':0}
         if request.get('stream'):
             request['stream_options']={**request.get('stream_options',{}),'include_usage':True}
         fingerprint=hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
-        policy=os.environ.get('PACBENCH_RESERVATION_POLICY','independent-input-output-v1')
+        policy=os.environ.get('PACBENCH_RESERVATION_POLICY',
+            'shared-context-v1' if split_enabled() and self.profile_name=='luna-bedrock-global' else 'independent-input-output-v1')
         if policy not in ('independent-input-output-v1','shared-context-v1'):
             raise ValueError('Unknown reservation policy')
-        if policy=='shared-context-v1' and PROFILE_NAME!='luna-bedrock-global':
+        if policy=='shared-context-v1' and self.profile_name!='luna-bedrock-global':
+            from .role_routes import split_enabled
+            if split_enabled():policy='independent-input-output-v1'
+        if policy=='shared-context-v1' and self.profile_name!='luna-bedrock-global':
             raise ValueError('Shared-context refinement is reviewed only for Luna Bedrock')
         bound=request_cost_bound(self.config,maximum,shared_context=policy=='shared-context-v1')
+        cohort=os.environ.get('PACBENCH_COHORT_ID')
+        cohort_limit=os.environ.get('PACBENCH_COHORT_LIMIT_USD')
+        if bool(cohort)!=bool(cohort_limit):raise ValueError('Cohort ID and liability limit must be paired')
+        if cohort and (not re.fullmatch(r'[a-f0-9]{32}',cohort) or not Decimal(0)<money(cohort_limit)<=Decimal(20)):
+            raise ValueError('Invalid cohort liability envelope')
         with self.locked() as state:
             calls=state['calls']
             admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
@@ -321,12 +345,12 @@ class DirectBudget:
             if sum(money(c['accounted']) for c in calls)+bound>money(self.config['cap']):
                 stop_measured_admission('task_reservation_cap_reached')
                 raise RuntimeError('Task spending cap reached')
-            row={'id':str(uuid.uuid4()),'project':project,'model':MODEL,'started':now(),'finished':None,
+            row={'id':str(uuid.uuid4()),'project':project,'model':self.model,'started':now(),'finished':None,
                 'reserved':str(bound),'accounted':str(bound),'state':'reserved','transport':VERSION,
                 'provider_request':request['provider'],'completion_bound_tokens':maximum,
                 'request_sha256':fingerprint,'input_tokens':None,'output_tokens':None,
                 'http_status':None,'error_label':None,
-                'route_profile':PROFILE_NAME,'endpoint':ENDPOINT,'pricing_snapshot':dict(self.config),
+                'route_profile':self.profile_name,'endpoint':self.endpoint,'pricing_snapshot':dict(self.config),
                 'reservation_policy':policy,
                 'native_request_parameter_keys':sorted(body),
                 'native_request_parameters':{k:body[k] for k in ('reasoning','reasoning_effort','max_tokens','max_completion_tokens','temperature','top_p','seed') if k in body},
@@ -334,6 +358,17 @@ class DirectBudget:
             if retry_of is not None:
                 grant=retry_of['authorized_retry'];grant['used_by']=row['id']
                 row.update(explicit_retry_of=retry_of['id'],retry_authorization_id=grant['id'])
+            if split_enabled():
+                from .role_routes import CONDITION
+                row.update(role_route_condition=CONDITION,accounting_role=
+                    'memory_provider' if project.endswith('-memory') else 'hermes' if project.endswith('-driver') else 'judge')
+            if cohort:
+                own_cohort=[c for c in calls if c.get('cohort_id')==cohort]
+                if any(money(c['cohort_limit_usd'])!=money(cohort_limit) for c in own_cohort):
+                    raise RuntimeError('Cohort liability envelope changed')
+                if sum(money(c['accounted']) for c in own_cohort)+bound>money(cohort_limit):
+                    raise RuntimeError('Cohort liability envelope reached')
+                row.update(cohort_id=cohort,cohort_limit_usd=cohort_limit)
             calls.append(row)
         return {'id':row['id'],'request':request}
 
@@ -341,6 +376,7 @@ class DirectBudget:
         # Called after reading/closing a response, never while holding a network lock.
         with self.locked() as state:
             row=next(c for c in state['calls'] if c['id']==identifier)
+            self.check_row_profile(row)
             if row['state']=='settled':
                 return
             row.update(finished=now(),http_status=status or None,state='uncertain',
@@ -373,7 +409,7 @@ class DirectBudget:
                         if isinstance(event.get(k),str):row[v]=event[k][:256]
                     for choice in event.get('choices') or []:
                         if isinstance(choice.get('finish_reason'),str):row['finish_reason']=choice['finish_reason'][:64]
-                if any(e.get('model') is not None and e['model'] not in {MODEL,PROFILE.get('canonical_slug',MODEL)} for e in events):
+                if any(e.get('model') is not None and e['model'] not in {self.model,self.profile.get('canonical_slug',self.model)} for e in events):
                     row['error_label']='model_mismatch';return
                 payload=next(e for e in reversed(events) if isinstance(e.get('usage'),dict))
                 usage=payload['usage']
@@ -401,8 +437,13 @@ class DirectBudget:
                     row['private_error_body']=preserve_unusable_response(self.path,identifier,data,body_complete)
 
 
-def live_budget(*, nonblocking=False):
-    budget=DirectBudget(nonblocking=nonblocking)
+def live_budget(*, nonblocking=False, project=None, profile=None):
+    if project is not None:
+        from .role_routes import profile_for_project
+        selected=profile_for_project(project)
+        if profile is not None and profile!=selected:raise ValueError("Accounting role/profile conflict")
+        profile=selected
+    budget=DirectBudget(nonblocking=nonblocking,profile=profile)
     require_authorization(budget)
     return budget
 
@@ -417,7 +458,15 @@ def project_from_authorization(header):
 def main():
     # Runtime fetch hooks use stdin/stdout locally, not a network service.
     value=json.load(sys.stdin)
-    budget=live_budget()
+    if sys.argv[1]=='reserve':
+        budget=live_budget(project=value['project'])
+    elif sys.argv[1]=='settle':
+        base_budget=live_budget()
+        state=json.loads(base_budget.path.read_text())
+        row=next(r for r in state['calls'] if r['id']==value['id'])
+        budget=live_budget(profile=row.get('route_profile',PROFILE_NAME))
+        if row.get('route_profile',PROFILE_NAME)!=budget.profile_name:raise ValueError('Settlement route differs from reservation')
+    else:raise ValueError('Unknown accounting operation')
     if sys.argv[1]=='reserve':
         print(json.dumps(budget.reserve(value['project'],value['request'])))
     elif sys.argv[1]=='settle':

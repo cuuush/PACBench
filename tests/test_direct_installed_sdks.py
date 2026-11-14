@@ -29,7 +29,7 @@ import asyncio,json,os,sys
 from pathlib import Path
 from pacbench.direct_accounting import DirectBudget,MODEL
 import pacbench.direct_http as hook
-hook.live_budget=lambda:DirectBudget(Path(sys.argv[1]))
+hook.live_budget=lambda **kw:DirectBudget(Path(sys.argv[1]))
 os.environ.update(PACBENCH_DIRECT='1',PACBENCH_DIRECT_UPSTREAM_KEY='offline-upstream')
 hook.install()
 import openai._base_client as base

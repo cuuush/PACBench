@@ -23,10 +23,11 @@ def plan_config(root, model, base, key, *, port):
          'server':{'host':'127.0.0.1','port':port,'observability':{
              'traces':{'enabled':True,'protocol':'local','local_path':str((root/'provider-api-calls.jsonl').resolve())},
              'dump_body':{'enabled':True,'max_bytes':8_000_000}}}}
-    condition=os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','native-defaults')
+    from pacbench.role_routes import split_enabled
+    condition=os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','luna-budget-serial-v1' if split_enabled() else 'native-defaults')
     if condition=='luna-budget-serial-v1':
-        from pacbench.openrouter_route import PROFILE_NAME
-        if PROFILE_NAME!='luna-bedrock-global':raise ValueError('Luna budget condition requires its exact approved route')
+        from pacbench.role_routes import memory_profile
+        if memory_profile()!='luna-bedrock-global':raise ValueError('Luna budget condition requires its exact approved route')
         config['vlm']['max_concurrent']=1
     elif condition!='native-defaults':raise ValueError('Unknown explicit OpenViking import condition')
     return config
@@ -41,7 +42,7 @@ def start(root,env,model,base,key):
     with socket.socket() as s:
         s.bind(('127.0.0.1',0));port=s.getsockname()[1]
     cfg=plan_config(root,model,base,key,port=port)
-    save(root/'import-condition.json',{'condition':os.environ.get('PACBENCH_OPENVIKING_IMPORT_CONDITION','native-defaults'),
+    save(root/'import-condition.json',{'condition':'luna-budget-serial-v1' if 'max_concurrent' in cfg['vlm'] else 'native-defaults',
         'vlm_max_concurrent':cfg['vlm'].get('max_concurrent',32),
         'comparison_caveat':'Explicit budget-limited serial API condition; compare separately from native default concurrency' if 'max_concurrent' in cfg['vlm'] else 'Native default concurrency'})
     path=root/'ov.conf';save(path,cfg);os.chmod(path,0o600)

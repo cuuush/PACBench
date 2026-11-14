@@ -15,18 +15,20 @@ import os
 from pathlib import Path
 import urllib.request
 
-from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL, PROFILE
+from .openrouter_route import MODEL, ENDPOINT, PROVIDER, CATALOG_URL, PROFILE, PROFILES, PROFILE_NAME
 from .provider_lineup import ACTIVE_PROVIDERS
 
 
-def catalog_parameters(data):
-    if data.get('data', {}).get('id') != MODEL:
+def catalog_parameters(data, *, profile=None):
+    selected=PROFILES[profile or PROFILE_NAME]
+    model=selected['model'];endpoint=selected['endpoint']
+    if data.get('data', {}).get('id') != model:
         raise ValueError('catalog model mismatch')
-    rows = [r for r in data['data']['endpoints'] if r.get('tag') == ENDPOINT]
+    rows = [r for r in data['data']['endpoints'] if r.get('tag') == endpoint]
     if len(rows) != 1:
         raise ValueError('exact endpoint unavailable or ambiguous')
     row = rows[0]
-    if row.get('model_id') != MODEL or row.get('quantization') != PROFILE['quantization'] or row.get('service_tier') != PROFILE['service_tier']:
+    if row.get('model_id') != model or row.get('quantization') != selected['quantization'] or row.get('service_tier') != selected['service_tier']:
         raise ValueError('endpoint metadata mismatch')
     if not {'tools', 'tool_choice', 'response_format'} <= set(row.get('supported_parameters', [])):
         raise ValueError('endpoint lacks required request parameters')
@@ -53,12 +55,13 @@ def catalog_parameters(data):
                 prompt_per_million=str(prompt), completion_per_million=str(completion))
 
 
-def fetch_catalog():
-    with urllib.request.urlopen(CATALOG_URL, timeout=30) as response:
+def fetch_catalog(*, profile=None):
+    url=CATALOG_URL if profile is None else f"https://openrouter.ai/api/v1/models/{PROFILES[profile]['model']}/endpoints"
+    with urllib.request.urlopen(url, timeout=30) as response:
         raw = response.read(4 * 1024 * 1024 + 1)
     if len(raw) > 4 * 1024 * 1024:
         raise ValueError('catalog exceeds size limit')
-    return catalog_parameters(json.loads(raw)), dict(catalog_url=CATALOG_URL,
+    return catalog_parameters(json.loads(raw),profile=profile), dict(catalog_url=url,
         observed_at=datetime.now(timezone.utc).isoformat(), response_sha256=hashlib.sha256(raw).hexdigest())
 
 
@@ -85,6 +88,8 @@ def transport_environment(access, cap):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--cohort-spend-limit-usd',help='Optional additional shared cohort liability ceiling, including unresolved and in-flight calls; never raises task cap')
+    parser.add_argument('--role-routes',choices=['luna-memory-deepseek-v1'],help='Explicit Luna native memory with unchanged DeepSeek Hermes/judge; no inference settings changed')
     parser.add_argument('--plan', action='store_true', help='Print configuration without network or inference')
     parser.add_argument('--providers', nargs='+',
                         choices=ACTIVE_PROVIDERS, default=list(ACTIVE_PROVIDERS),
@@ -107,6 +112,17 @@ def main(argv=None):
     parser.add_argument('--recall-timeout-s',type=int,default=180,
                         help='Native-trial Hermes wall deadline, 1–900 real seconds')
     args = parser.parse_args(argv)
+    if args.role_routes:
+        os.environ['PACBENCH_ROLE_ROUTES']=args.role_routes
+    from .role_routes import split_enabled, record as role_record
+    split_enabled()
+    if args.role_routes and not args.plan and not args.cohort_spend_limit_usd:
+        parser.error('Split scored run requires an explicit shared cohort liability ceiling')
+    if args.cohort_spend_limit_usd:
+        value=Decimal(args.cohort_spend_limit_usd)
+        if not value.is_finite() or not 0<value<=20 or not args.output:parser.error('Cohort limit requires output and a positive value <=20')
+        os.environ.setdefault('PACBENCH_COHORT_ID',hashlib.sha256(str(args.output.resolve()).encode()).hexdigest()[:32])
+        os.environ['PACBENCH_COHORT_LIMIT_USD']=str(value)
     if args.probe_source_ids and (not args.import_only or len(args.providers)!=1):parser.error('Conversation probe requires import-only and exactly one provider')
     if args.import_only and not args.prepared:parser.error('--import-only requires --prepared')
     if not 0<args.judge_timeout_s<=900:parser.error('Judge deadline must be 1–900 seconds')
@@ -123,6 +139,7 @@ def main(argv=None):
         print(json.dumps({'model': MODEL, 'provider': PROVIDER, 'memory_providers': args.providers,
                           'provider_plans': plans,
                           'roles': ['hermes', 'memory_provider', 'judge'],
+                          'role_routes':role_record(),
                           'judge_reasoning_effort':args.judge_reasoning_effort,
                           'judge_wall_deadline_s':args.judge_timeout_s,
                           'recall_wall_deadline_s':args.recall_timeout_s,
@@ -159,6 +176,11 @@ def main(argv=None):
     from .direct_accounting import live_budget
     from .openrouter_direct import direct_environment
     budget=live_budget()
+    if args.cohort_spend_limit_usd:
+        from .role_routes import liability_envelope
+        envelope=liability_envelope(budget.snapshot(),args.cohort_spend_limit_usd,os.environ['PACBENCH_COHORT_ID'])
+        if not envelope['funded']:
+            parser.error('Cohort liability envelope unfunded; additionalUSD='+envelope['additional_headroom_usd']+'; no inference sent')
     params,catalog=fetch_catalog()
     for name in ('prompt_per_million','completion_per_million'):
         if Decimal(params[name])>Decimal(budget.config[name]):
@@ -166,6 +188,13 @@ def main(argv=None):
     if (params['context_tokens']>budget.config['context_tokens'] or
             params['max_completion_tokens']>budget.config['max_completion_tokens']):
         parser.error('Catalog token bounds exceed task reservation bounds; no inference sent')
+    if split_enabled():
+        from .direct_accounting import live_budget
+        native_budget=live_budget(profile='luna-bedrock-global')
+        native_params,_=fetch_catalog(profile='luna-bedrock-global')
+        for field in ('prompt_per_million','completion_per_million','context_tokens','max_completion_tokens'):
+            if Decimal(str(native_params[field]))>Decimal(str(native_budget.config[field])):
+                parser.error('Native Luna catalog exceeds retained accounting ceiling; no inference sent')
     with direct_environment(key):
         judge_options=({'judge_reasoning_effort':args.judge_reasoning_effort}
                        if args.judge_reasoning_effort is not None else {})

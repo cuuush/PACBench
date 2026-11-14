@@ -32,28 +32,32 @@ PROVIDER = {'only': [ENDPOINT], 'order': [ENDPOINT],
 FORBIDDEN_FIELDS = frozenset({'models', 'route', 'plugins', 'transforms'})
 
 
-def validate_request(request: Mapping[str, Any]) -> None:
+def validate_request(request: Mapping[str, Any], *, profile=None) -> None:
     """Reject requests that do not declare precisely the selected route."""
+    selected=PROFILES[profile or PROFILE_NAME]
+    expected_model=selected['model'];endpoint=selected['endpoint']
+    expected_provider={'only':[endpoint],'order':[endpoint],'allow_fallbacks':False,'require_parameters':True}
     if not isinstance(request, Mapping):
         raise ValueError('request must be a mapping')
-    if request.get('model') != MODEL:
+    if request.get('model') != expected_model:
         raise ValueError('exact model required')
     if FORBIDDEN_FIELDS.intersection(request):
         raise ValueError('alternative routing is forbidden')
     provider = request.get('provider')
-    if not isinstance(provider, dict) or provider != PROVIDER:
+    if not isinstance(provider, dict) or provider != expected_provider:
         raise ValueError('exact provider route required')
     # bool is an int subclass; equality alone accepts 0/1 for these fields.
     if provider['allow_fallbacks'] is not False or provider['require_parameters'] is not True:
         raise ValueError('provider flags must be booleans')
 
 
-def with_route(request: Mapping[str, Any]) -> dict[str, Any]:
+def with_route(request: Mapping[str, Any], *, profile=None) -> dict[str, Any]:
     """Return a routed copy, refusing conflicting caller-supplied settings."""
     if not isinstance(request, Mapping):
         raise ValueError('request must be a mapping')
     result = deepcopy(dict(request))
-    result.setdefault('model', MODEL)
-    result.setdefault('provider', deepcopy(PROVIDER))
-    validate_request(result)
+    selected=PROFILES[profile or PROFILE_NAME];endpoint=selected['endpoint']
+    result.setdefault('model', selected['model'])
+    result.setdefault('provider', {'only':[endpoint],'order':[endpoint],'allow_fallbacks':False,'require_parameters':True})
+    validate_request(result,profile=profile)
     return result

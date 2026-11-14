@@ -463,8 +463,14 @@ cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
 p=HindsightEmbedded(profile=cfg['profile'],llm_provider=cfg['llm_provider'],llm_model=cfg['llm_model'],
     llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
-    result=p.banks.list() if sys.argv[3]=='resume' else p.create_bank(bank_id=sys.argv[2])
-    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json'),
+    if sys.argv[3]=='resume':
+        import urllib.request
+        p._ensure_started()
+        with urllib.request.urlopen(p._manager.get_url(cfg['profile'])+'/v1/default/banks',timeout=10) as response:
+            result=json.load(response)
+        assert sys.argv[2] in json.dumps(result), 'Retained Hindsight bank missing'
+    else:result=p.create_bank(bank_id=sys.argv[2]).model_dump(mode='json')
+    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result,
         'runtime_versions':{name:version(name) for name in ('hindsight-api-slim','hindsight-client','hindsight-embed')}}))
 finally:p.close()
 '''

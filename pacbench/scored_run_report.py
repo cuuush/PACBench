@@ -88,13 +88,16 @@ def build(root,ledger):
                 'unresolved_or_inflight_usd':str(sum((Decimal(r['accounted']) for r in items if r['state'] not in {'settled','rejected_no_dispatch'}),Decimal(0))),
                 'input_tokens_observed':sum(r.get('input_tokens') or 0 for r in items),'output_tokens_observed':sum(r.get('output_tokens') or 0 for r in items),
                 'reasoning_tokens_observed':sum((r.get('usage_detail') or {}).get('completion_tokens_details.reasoning_tokens',0) or 0 for r in items),
-                'requests_missing_usage':sum(r.get('input_tokens') is None for r in items),'http_statuses':dict(Counter(str(r.get('http_status')) for r in items)),
+                'requests_missing_usage':sum(r.get('input_tokens') is None for r in items),
+                'explicit_retry_attempts':sum(bool(r.get('explicit_retry_of')) for r in items),
+                'http_statuses':dict(Counter(str(r.get('http_status')) for r in items)),
                 'wall_interval_union_s':union(phase_wall[phase]) if phase_wall[phase] else None,
                 'observed_api_duration_union_s':union([(stamp(r['started']),stamp(r['finished'])) for r in items if r.get('finished')]),'per_call':[{'id':r['id'],'generation_id':r.get('upstream_request_id'),'model':r.get('served_model',r['model']),
                     'provider':r.get('served_provider'),'role':r.get('accounting_role'),'state':r['state'],'started':r['started'],'finished':r.get('finished'),
                     'duration_s':stamp(r['finished'])-stamp(r['started']) if r.get('finished') else None,'finish_reason':r.get('finish_reason'),
                     'cost_usd':r['accounted'] if r['state']=='settled' else None,'unknown_bound_usd':r['accounted'] if r['state'] not in {'settled','rejected_no_dispatch'} else None,
-                    'input_tokens':r.get('input_tokens'),'output_tokens':r.get('output_tokens'),'usage_detail':r.get('usage_detail')} for r in items]}
+                    'input_tokens':r.get('input_tokens'),'output_tokens':r.get('output_tokens'),
+                    'explicit_retry_of':r.get('explicit_retry_of'),'usage_detail':r.get('usage_detail')} for r in items]}
         source_states=[load(p) for p in arm.glob('turns/*/source-state.json')];schedule=summary.get('ingestion_schedule',[])
         from .document_ingestion import ready_sources
         chronological=all(set(s['ingested_batches'])=={b['id'] for b in ready_sources(schedule,name,s['at'],summary.get('process_timezone') or 'America/New_York')} for s in source_states)
@@ -107,6 +110,7 @@ def build(root,ledger):
             'input_batches':integrity,'source_records_delivered':len(inputs),'source_ids_unique':len(inputs)==len(set(inputs)),
             'chronological_gates_match_native_schedule':chronological if source_states else None,'context_isolation_passed':sum(t.get('context_isolation',{}).get('state')=='pass' for t in turns),
             'judge_contract_protocols':dict(Counter(load(p).get('judge_protocol') for p in arm.glob('turns/*/judgment.json'))),
+            'native_network_recovery_calls_observed':sum(len((t.get('clock_context') or {}).get('native_network_continuation_api_input_ids',[])) for t in turns),
             'identical_request_groups':sum(n>1 for n in Counter(r.get('request_sha256') for r in own if r.get('request_sha256')).values()),
             'retry_note':'Identical fingerprints are observable repetitions, not proof of retry loops. SDK-internal retries without outgoing attempts cannot be counted.',
             'phases':phase_rows})

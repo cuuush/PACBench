@@ -38,3 +38,17 @@ def test_partial_scores_keep_full_denominator_and_shared_judge_attribution(tmp_p
     assert d['phases']['other_native_or_setup']['wall_interval_union_s'] is None
     assert d['phases']['other_native_or_setup']['observed_api_duration_union_s']==1
     assert ledger.read_bytes()==before
+
+
+def test_identical_inputs_are_not_automatically_counted_as_retry_attempts(tmp_path):
+    root=tmp_path/'cohort';arm=root/'mem0/repeat-1/mem0';arm.mkdir(parents=True)
+    (root/'cohort.json').write_text(json.dumps({'state':'running','providers':['mem0']}))
+    project='pacbench-'+hashlib.sha256(str(arm.resolve()).encode()).hexdigest()[:12]+'-mem0-memory'
+    def row(i):return dict(id=i,project=project,model='openai/gpt-6-luna',state='settled',accounted='.001',
+        started='2026-11-14T01:00:00+00:00',finished='2026-11-14T01:00:01+00:00',request_sha256='same',input_tokens=2,output_tokens=1)
+    a,b=row('first'),row('second');p=tmp_path/'ledger.json';p.write_text(json.dumps({'calls':[a,b]}))
+    d=build(root,p)['providers'][0];phase=d['phases']['other_native_or_setup']
+    assert d['identical_request_groups']==1 and phase['explicit_retry_attempts']==0
+    b['explicit_retry_of']='first';p.write_text(json.dumps({'calls':[a,b]}))
+    phase=build(root,p)['providers'][0]['phases']['other_native_or_setup']
+    assert phase['explicit_retry_attempts']==1 and phase['settled_actual_usd']=='0.002'

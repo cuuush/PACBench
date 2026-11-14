@@ -60,7 +60,11 @@ def prepare(component, provider, checkpoint=None):
     summary = _read(component / 'summary.json')
     source = (component / summary['source']).resolve()
     messages, _, resolved = read_prepared(source, 150)
+    if checkpoint is not None and hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest()!=summary['input_hash']:
+        raise ValueError('Saved recovery source differs from the frozen input hash')
     plan, checks = load_evaluations(component, messages, resolved)
+    if checkpoint is not None and plan['plan_hash']!=summary['evaluation_plan_hash']:
+        raise ValueError('Saved recovery evaluation plan differs')
     arm = component / 'repeat-1' / provider
     report = _read(arm / 'evaluation.json')
     if [r['id'] for r in report['checks']] != [r['id'] for r, _, _ in checks]:
@@ -93,6 +97,9 @@ def prepare(component, provider, checkpoint=None):
              component / 'evaluations' / row['id'] / 'followup-plan.json',
              arm / 'evaluation.json', directory / 'turn.json', directory / 'status.json',
              directory / 'source-state.json', directory / 'usage.json', *receipts]
+    if checkpoint is not None:
+        files += [arm/name for name in ('api-inputs.jsonl','context.jsonl','provider-clock.json',
+                    'provider-clock-startup.json','diagnostic-store-reopen.json','tool-policy.json')]
     for i,(previous, _, _) in enumerate(checks):
         if i==index:continue
         d = arm / 'turns' / previous['id']

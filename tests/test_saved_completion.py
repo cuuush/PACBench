@@ -83,3 +83,26 @@ def test_native_retry_observer_repair_still_enforces_actual_tools(tmp_path,monke
         assert repaired.policy_blocks==0 and repaired.answer=='Original answer'
     else:
         with pytest.raises(ValueError,match='Actual tool policy violation'):sc.normalize_native_continuation(tmp_path,t)
+
+
+def test_publish_preserves_rejected_answer_and_other_completed_grade(tmp_path):
+    component=tmp_path/'component';arm=component/'repeat-1/honcho';d=arm/'turns/roles';d.mkdir(parents=True)
+    overlay=component/'reviews/native-retry';(overlay/'followups').mkdir(parents=True)
+    original={'answer':'Same original wrong answer','policy_blocks':1};status={'id':'roles','state':'failed','reason':'observer'}
+    def put(p,v):p.write_text(json.dumps(v))
+    put(d/'turn.json',original);put(d/'status.json',status);put(arm/'evaluation.json',{'checks':[status],'state':'incomplete'})
+    completed=arm/'turns/kept';completed.mkdir();put(completed/'grade.json',{'correct':3});kept=(completed/'grade.json').read_bytes()
+    bindings={str(p.relative_to(component)):sc._sha(p) for p in [d/'turn.json',d/'status.json',arm/'evaluation.json']}
+    put(overlay/'manifest.json',{'version':'saved-native-continuation-completion-v1','provider':'honcho','checkpoint':'roles','source_files':bindings})
+    put(overlay/'result.json',{'state':'complete','provider':'honcho','checkpoint':'roles','provider_calls':0})
+    put(overlay/'normalized-turn.json',{**original,'policy_blocks':0})
+    put(overlay/'grade.json',{'correct':0,'missed':3,'misrepresented':0,'interaction':None})
+    put(overlay/'judgment.json',{'answer':original['answer']})
+    put(overlay/'followups/recovery.json',{'state':'complete','score':{'points':0},'attempts':[]})
+    original_bytes=(d/'turn.json').read_bytes()
+    sc.publish(component,'honcho',overlay)
+    assert json.loads((d/'turn.json').read_text())['answer']==original['answer']
+    assert (overlay/'original-turn.json').read_bytes()==original_bytes
+    assert (completed/'grade.json').read_bytes()==kept
+    assert json.loads((d/'status.json').read_text())['verdict']=='fail'
+    with pytest.raises(ValueError):sc.publish(component,'honcho',overlay)

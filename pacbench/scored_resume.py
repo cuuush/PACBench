@@ -158,6 +158,7 @@ def resume(output):
     stores={'memos':['memos-home'],'supermemory':['supermemory-data'],'openviking':['openviking-data'],'hindsight':['fallback-home'],'mem0':['qdrant','mem0-state'],
         'cognee':['cognee-data','cognee-system','cognee-cache']}[provider]
     for name in ['hermes-home',*stores]:
+        if name=='cognee-cache' and not (root/name).exists():continue
         shutil.copytree(root/name,history/name,symlinks=True)
     if provider in {'mem0','cognee'}:
         for batch in report['ingestion_schedule']:

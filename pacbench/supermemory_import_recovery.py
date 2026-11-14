@@ -28,7 +28,10 @@ def recover(output,day):
         failure.get('phase')!='document-status' or not native.get('result',{}).get('id')):
         raise ValueError('Only an identified accepted status-read failure is recoverable')
     if scan(root,'accepted-supermemory-recovery')[0]:raise ValueError('Previous owned worker is still alive')
-    history=root/'accepted-import-recovery'/day;history.mkdir(parents=True,exist_ok=False)
+    parent=root/'accepted-import-recovery'/day
+    index=1
+    while (parent/f'attempt-{index}').exists():index+=1
+    history=parent/f'attempt-{index}';history.mkdir(parents=True,exist_ok=False)
     (history/'original.json').write_bytes(original)
     stop=history/'STOP';os.environ['PACBENCH_STOP_FILE']=str(stop)
     summary=json.loads((output/'summary.json').read_text());start=time.monotonic();env=None
@@ -47,6 +50,7 @@ def recover(output,day):
             raw,status=document(client,tag,identifier,endpoint=cfg['base_url'],key=env['SUPERMEMORY_API_KEY'])
             observed={**status,'content':raw.get('content'),'metadata':raw.get('metadata'),'native_system':raw.get('system'),'request_namespace':tag}
             if not observations or observed!=observations[-1]:observations.append(observed)
+            save(history/'status-observations.private.json',observations)
             if status.get('status')=='done' and status.get('dreaming_status')=='done':break
             if status.get('status') in {'failed','error'} or time.monotonic()>=deadline:raise RuntimeError('Native accepted import did not reach complete readiness')
             time.sleep(1)

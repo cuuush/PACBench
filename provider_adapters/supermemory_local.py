@@ -7,6 +7,7 @@ import re
 import socket
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 from pacbench.followups import save
 from pacbench.gateway_client import validate_route
@@ -28,6 +29,8 @@ def plan_config(root, model, base, key, *, port):
 
 def start(root, env, model, base, key, *, resume=False):
     validate_route(base, key)
+    from pacbench.import_lifecycle import scan,cleanup
+    if scan(root,'supermemory-start-inspection')[0]:raise RuntimeError('Previous run-owned Supermemory processes are still alive')
     runtime=Path(__file__).resolve().parents[1]/'vendor/supermemory-local'
     binary=runtime/'supermemory-server-linux-x64'
     if not binary.exists():raise RuntimeError('Install verified Supermemory local server first')
@@ -51,30 +54,43 @@ def start(root, env, model, base, key, *, resume=False):
                  'SUPERMEMORY_API_KEY','SUPERMEMORY_BASE_URL'):
         child.pop(name,None)
     log_path=root/'supermemory-server.private.log'
+    log_offset=log_path.stat().st_size if log_path.exists() else 0
     log=log_path.open('ab');os.chmod(log_path,0o600)
     process=subprocess.Popen([str(binary)],cwd=root,env=child,stdin=subprocess.DEVNULL,
                              stdout=log,stderr=log);log.close()
     def stop():
+        owned,_=scan(root,'supermemory-native-stop')
         if process.poll() is None:
             process.terminate()
             try:process.wait(timeout=15)
             except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
+        stopped=cleanup(root,'supermemory-native-stop',known=owned)
+        save(root/'native-service-stop.json',stopped)
     atexit.register(stop)
-    deadline=time.monotonic()+120
+    deadline=time.monotonic()+300
     native_key=None
     while time.monotonic()<deadline and process.poll() is None:
-        output=re.sub(r'\x1b\[[0-9;]*m','',log_path.read_text(errors='replace'))
+        output=re.sub(r'\x1b\[[0-9;]*m','',log_path.read_text(errors='replace')[log_offset:])
         match=re.search(r'api key\s+([A-Za-z0-9_.-]+)',output,re.I)
         if match:
             try:
                 with socket.create_connection(('127.0.0.1',port),timeout=1):pass
             except OSError:
                 time.sleep(.2);continue
-            native_key=match.group(1);break
+            candidate=match.group(1)
+            request=urllib.request.Request(endpoint+'/v3/documents/list',
+                data=json.dumps({'containerTags':[],'includeContent':False,'page':1,'limit':1}).encode(),
+                headers={'Authorization':'Bearer '+candidate,'Content-Type':'application/json'})
+            try:
+                with urllib.request.urlopen(request,timeout=2) as response:inventory=json.load(response)
+                if not isinstance(inventory.get('memories'),list):raise ValueError('Native inventory unavailable')
+            except (OSError,ValueError):time.sleep(.2);continue
+            native_key=candidate;break
         time.sleep(.2)
     receipt={'route':'Published Supermemory local server; documented OpenAI-compatible inference and embeddings',
         'installation':json.loads((runtime/'installation.json').read_text()),
         'endpoint':endpoint,'pid':process.pid,'model':model,'native_api_key_received':bool(native_key),
+        'readiness':'Authenticated native document inventory; TCP listening alone is insufficient',
         'embedding':'local Ollama nomic-embed-text','starter_facts':False,'resumed_store':resume,
         'network':'Run-owned endpoint in the private execution environment; no public port published'}
     save(root/'native-server-setup.json',receipt)

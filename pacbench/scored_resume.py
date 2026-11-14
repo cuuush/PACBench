@@ -88,10 +88,12 @@ def verify_prefix(output,report,checks):
     next_row=checks[len(prefix)][0]
     allowed={b['id'] for b in ready_sources(report['ingestion_schedule'],provider,next_row['at'],report['process_timezone'])}
     if not set(completed)<=allowed:raise ValueError('Retained store contains future sources')
-    for row,_,_ in checks[len(prefix):]:
+    for row,contract,_ in checks[len(prefix):]:
         p=root/'turns'/row['id']/'turn.json'
         if p.exists():
             t=read(p)
+            if t.get('prompt')!=question_prompt(contract.question,row['at'],report['question_prompt_protocol']) or t.get('at')!=row['at']:
+                raise ValueError('Archived failed turn differs from frozen question')
             if not t.get('returncode') and t.get('answer','').strip():raise ValueError('Ungraded successful turn needs judge-only recovery')
         if (root/'turns'/row['id']/'grade.json').exists():raise ValueError('Non-prefix grades require a different recovery protocol')
     return prefix,completed
@@ -173,6 +175,7 @@ def resume(output):
                 if stat.get('status')!='ok' or not stat.get('result'):raise ValueError('Retained native resource missing')
         capability=probe(root,provider,env,smoke=True,smoke_timeout_s=120)
         if not smoke_succeeded(capability):raise RuntimeError('Retained native capability failed')
+        capability['wiring_verified']=True
         policy=policy_record(provider,capability['tools'])
         if policy!=read(root/'tool-policy.json'):raise ValueError('Native tool policy changed')
         env['PACBENCH_SOURCE_ARGUMENT_RULES']=json.dumps(policy['source_argument_rules']);failed=set()

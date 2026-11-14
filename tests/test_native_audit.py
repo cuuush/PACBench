@@ -89,6 +89,20 @@ def test_missing_native_ingestion_cannot_pass(trace):
     assert audit(root)['state'] == 'fail'
 
 
+def test_scored_recovery_attributes_existing_sessions_without_faking_empty_receipt(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace;summary=json.loads((root/'summary.json').read_text())
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    save(arm/'pre-recall-isolation.json',{'hermes_sessions_before_recall':['recall'],'builtin_memory_before_recall':{}})
+    assert 'Hermes source conversation or builtin facts existed before recall' in audit_ingestion(root,arm,messages,summary)
+    save(arm/'scored-resumes/1/resume.json',{'protocol':'scored-prefix-retained-store-v1'})
+    assert audit_ingestion(root,arm,messages,summary)==[]
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute("INSERT INTO sessions VALUES ('unattributed','/tmp',NULL,NULL)")
+    assert 'Unexpected Hermes ingestion or prior sessions' in audit_ingestion(root,arm,messages,summary)
+
+
 def test_declared_judge_reasoning_requires_the_actual_model_request(trace):
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())

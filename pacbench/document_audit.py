@@ -417,15 +417,36 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
     check(not list((arm/'exposures').glob('*.json')) and not list(arm.glob('exposure-*.json')),'unexpected Hermes exposure records')
     check(sorted(p.name for p in (arm/'ingestion').glob('*.json'))==sorted(Path(r['file']).name for r in schedule),'unexpected or missing ingestion records')
     isolation=json.loads((arm/'pre-recall-isolation.json').read_text())
-    check(isolation['hermes_sessions_before_recall']==[] and
-          not any(v.strip() for v in isolation['builtin_memory_before_recall'].values()),
-          'Hermes source conversation or builtin facts existed before recall')
     # Independently inspect actual native session messages. Saved declarations
     # alone cannot establish that raw documents were kept out of Hermes chat.
     turns=[]
     for path in [arm/'recall.json',*(arm/'turns').glob('*/turn.json'),
                  *(arm/'turns').glob('*/followups/combined/turn.json'),arm/'followups/combined/turn.json']:
         if path.exists():turns.append(json.loads(path.read_text()))
+    resumed=any(json.loads(p.read_text()).get('protocol')=='scored-prefix-retained-store-v1'
+                for p in (arm/'scored-resumes').glob('*/resume.json'))
+    if resumed:
+        # Aborted attempts remain part of the actual Hermes session database,
+        # even though their failed questions are retried. Attribute them rather
+        # than pretending their native conversations disappeared. This does not
+        # promote failed attempts to grades or alter the frozen denominator.
+        for path in (arm/'scored-resumes').glob('*/tail-turns/*/turn.json'):
+            value=json.loads(path.read_text())
+            from .harness import question_prompt
+            frozen=json.loads((root/'evaluations'/path.parent.name/'contract.json').read_text())
+            plan=json.loads((root/'evaluation-plan.json').read_text())
+            row=next(r for r in plan['checks'] if r['id']==path.parent.name)
+            check(value.get('at')==row['at'] and value.get('prompt')==question_prompt(frozen['question'],row['at'],summary['question_prompt_protocol']),
+                  'Archived aborted turn differs from frozen question')
+            if value.get('session_id'):turns.append(value)
+    attributed={t.get('session_id') for t in turns if t.get('session_id')}
+    check((not isolation['hermes_sessions_before_recall'] or resumed and
+           set(isolation['hermes_sessions_before_recall'])<=attributed) and
+          not any(v.strip() for v in isolation['builtin_memory_before_recall'].values()),
+          'Hermes source conversation or builtin facts existed before recall')
+    # The exact database checks below still require every native session and
+    # user message to match an observed scored or archived aborted turn. A
+    # recovered boundary is session attribution, not a fabricated empty receipt.
     expected={(t['session_id'],t['prompt']) for t in turns}
     if import_only:
         check(summary.get('mode')=='native-import-validation','Import-only audit requires explicit qualification scope')

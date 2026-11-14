@@ -565,3 +565,11 @@ A complete, uniquely bound OpenRouter404 `Filter by Parameters` funnel can be
 recorded as `rejected_no_dispatch` by the narrow reconciliation method. Its
 reservation release is audited separately from provider-reported settled charges;
 absence of usage alone never permits release.
+
+A separately recorded `PACBENCH_EFFECTIVE_OUTPUT_TOKENS=32768` scored condition
+sets the actual transmitted output ceiling, retaining any smaller native limit.
+It is not merely an accounting adjustment. Original native parameters, effective
+ceiling and bound remain in each request receipt. Length termination records a
+truncation error, signals the run STOP file and prevents automatic paid retries.
+Use a fresh failed-provider run for this condition; preserve earlier valid cases
+and label conditions when comparing results.

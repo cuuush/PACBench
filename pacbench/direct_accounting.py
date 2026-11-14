@@ -48,7 +48,7 @@ def now():
 
 def stop_measured_admission(reason, identifier=None):
     """Notify the run supervisor without changing reservations or native params."""
-    value=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
+    value=os.environ.get('PACBENCH_DIRECT_STOP_ON_429') or os.environ.get('PACBENCH_STOP_FILE')
     if not value:return
     try:
         with Path(value).open('x') as receipt:
@@ -328,6 +328,15 @@ class DirectBudget:
                 raise ValueError('Unknown explicit Luna compatibility condition')
             if 'temperature' in body:
                 omitted=['temperature'];body={k:v for k,v in body.items() if k!='temperature'}
+        limit=os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS')
+        if limit:
+            if self.profile_name!='luna-bedrock-global' or not limit.isdigit() or not 1<=int(limit)<=self.config['max_completion_tokens']:
+                raise ValueError('Invalid explicit output ceiling')
+            if 'max_tokens' in body and 'max_completion_tokens' in body:raise ValueError('Conflicting native output caps')
+            key='max_tokens' if 'max_tokens' in body else 'max_completion_tokens'
+            native=body.get(key,self.config['max_completion_tokens'])
+            if type(native) is not int or native<=0:raise ValueError('Invalid native output cap')
+            body={**body,key:min(native,int(limit))}
         maximum=body.get('max_completion_tokens',body.get('max_tokens',self.config['max_completion_tokens']))
         if ('max_completion_tokens' in body and 'max_tokens' in body or type(maximum) is not int or
                 not 0<maximum<=self.config['max_completion_tokens']):
@@ -374,7 +383,7 @@ class DirectBudget:
             raise ValueError('Invalid cohort liability envelope')
         with self.locked() as state:
             calls=state['calls']
-            admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429')
+            admission_stop=os.environ.get('PACBENCH_DIRECT_STOP_ON_429') or os.environ.get('PACBENCH_STOP_FILE')
             if admission_stop and Path(admission_stop).exists():
                 raise RuntimeError('Measured import admission stopped after rate limit or cancellation')
             if state.get('handoff',{}).get('frozen') is True:
@@ -392,6 +401,8 @@ class DirectBudget:
                    c.get('state')=='uncertain' and
                    (c.get('input_tokens') is None or c.get('output_tokens') is None) for c in own)>=3:
                 raise RuntimeError('Three completed provider responses lack usable token usage; project stopped')
+            if any(c.get('finish_reason')=='length' for c in own):
+                raise RuntimeError('Prior native output was truncated; explicit recovery required')
             uncertain=[c for c in own if c.get('transport')==VERSION and c['state'] in {'uncertain','abandoned_unknown'} and
                    c.get('http_status') not in (400,422,429) and
                    (not c.get('request_sha256') or c['request_sha256']==fingerprint)]
@@ -415,6 +426,8 @@ class DirectBudget:
                 'http_status':None,'error_label':None,
                 'route_profile':self.profile_name,'endpoint':self.endpoint,'pricing_snapshot':dict(self.config),
                 'reservation_policy':policy,
+                'effective_output_ceiling_condition':int(limit) if limit else None,
+                'effective_output_maximum':maximum,
                 'compatibility_condition':compatibility,'omitted_unsupported_parameters':omitted,
                 'effective_request_sha256':fingerprint,
                 'native_request_parameter_keys':sorted(native_body),
@@ -498,6 +511,9 @@ class DirectBudget:
             finally:
                 # HTTP200 can contain an error envelope or unusable usage.
                 # Do not lose the original evidence to a later SDK exception.
+                if row.get('finish_reason')=='length':
+                    row['error_label']='output_truncated'
+                    stop_measured_admission('output_truncated',identifier)
                 if row['state']=='uncertain' and status==200 and data:
                     row['private_error_body']=preserve_unusable_response(self.path,identifier,data,body_complete)
 

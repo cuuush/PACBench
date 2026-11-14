@@ -44,3 +44,18 @@ def test_explicit_temperature_omission_preserves_native_parameter_evidence(tmp_p
     assert 'temperature' not in r['request']
     row=json.loads(path.read_text())['calls'][0]
     assert row['native_request_parameters']['temperature']==0 and row['omitted_unsupported_parameters']==['temperature']
+
+
+def test_explicit_output_ceiling_is_transmitted_preserves_smaller_native_and_stops_truncation(tmp_path,monkeypatch):
+    path=tmp_path/'ledger.json';cfg=dict(cap='20',model='openai/gpt-6-luna',endpoint='amazon-bedrock/global',context_tokens=1050000,max_completion_tokens=128000,prompt_per_million='.45',completion_per_million='.75')
+    path.write_text(json.dumps(dict(version=1,config={'cap':'20'},route_configs={'luna-bedrock-global':cfg},calls=[])))
+    monkeypatch.setenv('PACBENCH_EFFECTIVE_OUTPUT_TOKENS','32768');monkeypatch.setenv('PACBENCH_RESERVATION_POLICY','openai-cache-total-shared-v1')
+    stop=tmp_path/'STOP';monkeypatch.setenv('PACBENCH_STOP_FILE',str(stop))
+    b=DirectBudget(path,profile='luna-bedrock-global');body={'model':b.model,'messages':[]}
+    first=b.reserve('health-memory',{**body,'max_tokens':160});assert first['request']['max_tokens']==160
+    b.settle(first['id'],200,json.dumps({'model':b.model,'usage':{'cost':'.001','prompt_tokens':2,'completion_tokens':1},'choices':[]}).encode())
+    r=b.reserve('unit-driver',body);assert r['request']['max_completion_tokens']==32768
+    row=json.loads(path.read_text())['calls'][-1];assert Decimal(row['reserved'])==Decimal('.278884') and row['native_request_parameters']=={}
+    b.settle(r['id'],200,json.dumps({'model':b.model,'usage':{'cost':'.002','prompt_tokens':2,'completion_tokens':32768},'choices':[{'finish_reason':'length'}]}).encode())
+    assert json.loads(stop.read_text())['reason']=='output_truncated'
+    with pytest.raises(RuntimeError,match='truncated|admission stopped'):b.reserve('unit-driver',body)

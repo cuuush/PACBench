@@ -113,11 +113,20 @@ def verify_honcho_delivery(path, *, complete=False):
 class ExtractionLog(logging.Handler):
     """Observe native errors; never turn swallowed parser failures into readiness."""
     def __init__(self):
-        super().__init__(logging.ERROR)
+        super().__init__(logging.WARNING)
         self.errors=[]
 
     def emit(self,record):
-        self.errors.append({'logger':record.name,'message':record.getMessage()})
+        message=record.getMessage()
+        prefixes=('Failed to embed memory text: ', 'Failed to embed memory text (async): ')
+        if (record.levelno == logging.WARNING and record.name == 'mem0.memory.main' and message.startswith(prefixes)):
+            import hashlib
+            self.errors.append({'logger':record.name,'level':'WARNING',
+                'classification':'native_per_item_embedding_failed',
+                'message':'Native per-item fallback embedding failed; extracted item may be skipped',
+                'message_sha256':hashlib.sha256(message.encode()).hexdigest()})
+        elif record.levelno >= logging.ERROR:
+            self.errors.append({'logger':record.name,'message':message})
 
 
 def mem0(source, root, at, processing_at):
@@ -159,8 +168,10 @@ def mem0(source, root, at, processing_at):
     return {'ready':not errors.errors and not incomplete,'interface':'mem0.Memory.add(str,infer=True)',
             'construction':'Hermes shipped OSSBackend with native embedding dimension binding',
             'result':result,'native_errors':errors.errors,'model_output_truncated':incomplete,
+            'native_failure_observation':'mem0-errors-and-per-item-embedding-warnings-v1',
             'model_call_record':str(folder/(source.name+'.json')),
-            'readiness':'Synchronous OSS add with no native error or truncated model response'}
+            'readiness':('Native OSS import failed readiness; returned results do not certify all extracted items persisted'
+                         if errors.errors or incomplete else 'Synchronous OSS add with no observed native failure or truncated model response')}
 
 
 def memcal(source, root, at, processing_at):
@@ -688,8 +699,10 @@ def main(args=None):
     if provider=='memos':
         from provider_adapters.reme_memos_documents import ingest
         def ingest_memos(source,root,at,processing_at):
-            endpoint=json.loads((root/'memos-document-config.json').read_text())['endpoint']
-            return ingest('memos',source,endpoint)
+            from .memos_semantic_ready import RAW
+            config=json.loads((root/'memos-document-config.json').read_text())
+            return ingest('memos',source,config['endpoint'],memos_condition=config.get('ingestion_condition',RAW),
+                          memos_database=root/'memos-home/data/memos.db')
         dispatch['memos']=ingest_memos
     try:
         result=dispatch[provider](Path(src),Path(arm),at,processing_at)

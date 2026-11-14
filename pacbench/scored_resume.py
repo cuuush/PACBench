@@ -231,6 +231,7 @@ def resume(output,*,terminal_only=False):
     if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
     cohort=read(output.parent/'cohort.json')
     for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
+        ('memos_ingest_condition','PACBENCH_MEMOS_INGEST_CONDITION'),
         ('effective_output_ceiling_condition','PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),('compatibility_condition','PACBENCH_LUNA_COMPATIBILITY')]:
         if field not in cohort and provider=='mem0' and field=='compatibility_condition':
             # Early cohort manifests predate this display field. The effective

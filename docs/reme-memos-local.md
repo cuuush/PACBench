@@ -100,6 +100,46 @@ It verifies `messages.txt` against `source.json` before any write. ReMe uses a
 stable native request ID and `auto_memory` to extract from one complete raw
 document. MemOS requires a native import acknowledgment followed by exact
 API readback. Neither connector blindly retries a possibly executed request.
+
+The default `native-raw-document-import-v1` remains the original raw/lexical
+condition. MemOS 2.0.21's importer writes **null** embedding columns; merely
+configuring a local embedder does not embed imported rows. Preserve those
+historical results and stores. A separate, opt-in
+`native-raw-document-semantic-ready-v1` condition uses the pinned package's
+documented `POST /api/v1/embeddings/rebuild` with `{"mode":"repair","limit":100}`.
+It is bounded by 50 batches and 120 seconds by default, rejects no-progress,
+errors and a misleading `done` with remaining repair slots, and verifies fresh
+maintenance counters, unchanged trace identity, and finite, nonzero,
+dimension-correct vector BLOBs for the exact submitted trace ID through a
+read-only native SQLite observation. A timeout preserves an uncertain receipt;
+it never reimports or blindly repeats a timed-out write.
+
+For a fresh scored arm, explicitly set
+`PACBENCH_MEMOS_INGEST_CONDITION=native-raw-document-semantic-ready-v1` before
+using the reviewed cohort launcher. Setup and cohort receipts record it;
+retained-store resume rejects changing the condition. The standalone equivalent
+adds these arguments to the MemOS command above:
+
+```sh
+--memos-condition native-raw-document-semantic-ready-v1 \
+  --memos-database /path/to/run/memos-home/data/memos.db
+```
+
+Repair fills `vec_summary` from the **raw document**, and `vec_action` from the
+native `"(empty)"` action placeholder for these non-lightweight imports with no
+assistant text/tools. It can also repair vectors of existing policies, world
+models and skills; it creates none of those records or extracted facts. Very
+short traces excluded by native embedding eligibility cannot earn this
+semantic-ready claim. Source-assisted retrieval still receives zero retention
+credit. Keep semantic-ready results separate from raw-only results, including
+their local embedding time and any other explicitly selected inference settings.
+
+The opt-in native integration regression runs with
+`PACBENCH_TEST_NATIVE_MEMOS=1`: it uses a disposable store, cached local MiniLM,
+an allowlisted environment without account credentials, and a rejecting local
+LLM endpoint. It checks both vector columns for the exact ID, unchanged record
+counts/text and zero LLM requests.
+
 The active runner registers both providers and records the actually loaded
 native plugin source hash. Every arm still needs a fresh-session Hermes input
 and tool audit before it can be called working. ReMe's prefetch-only native

@@ -2,6 +2,16 @@
 
 Eligible systems have a practical documented way to ingest daily raw text locally. Real message capture qualifies alongside document import. Collect new messages, preserve their metadata and text, submit them through the native interface, and wait for processing. Hermes only receives later questions through its selected provider's normal context and tools.
 
+Mem0 OSS 2.2.1 can recover a failed batch embedding by embedding extracted items
+individually. A per-item failure logs `Failed to embed memory text:` at WARNING
+(the async path adds `(async)`) and skips that item, potentially returning an
+empty or partial successful result. The import observer records these exact
+native warnings as `native_per_item_embedding_failed` and refuses readiness;
+generic warnings and a successful fallback are not failures. No expected fact
+count is imposed, and legitimate empty extraction is still allowed. Preserve
+the returned result and warning receipt; do not blindly replay a partially
+persisted add. This observes native failure, not extraction accuracy.
+
 Honcho's 100-message bound is per API request, not per conversation. A nightly collector groups messages by their real thread, opens or reuses that thread's native session, enrolls the configured observer before submission, and sends ordered requests of at most 100 messages. A 300-message thread uses three requests in the same session; it does not become three conversations. Native processing decides its own extraction batches. This connector-side pagination needs no server code changes or raised limit. Delivery acknowledgments prove transport, not completed memory processing.
 
 Use the provider's native API and documented configuration. Run-owned stores, local embeddings and gateway transport are setup; processing choices such as Supermemory's `dreaming=instant`, Mem0's reasoning-model flag and Honcho's deriver allowance must remain explicit. None authorizes changing provider prompts, patching extraction, forcing queue completion or splitting out known answer facts. Local Honcho also needs PostgreSQL and its API/deriver services; this is self-hosted integration work, not a claim of a five-minute consumer iMessage connector. The benchmark's synthetic clock is test infrastructure, separate from the production collector.
@@ -18,7 +28,7 @@ The [Hermes memory documentation](https://github.com/NousResearch/hermes-agent/b
 | Memcal | Native Messages SQLite and TLS IMAP readers, separate contacts, normal nightly processing | Provider-independent Apple schema and RFC 5322 fixtures; nightly processing at 03:00 scenario-local time. Version 0.8.2 with product fixes on `main`. |
 | ReMe | Publish the complete raw transcript under native `resource/`; default `auto_resource` watcher extracts a source-linked daily card | Isolated local Application/workspace and native BM25 indexing. Observe the actual resource action, generated card and indexed chunk IDs. Hermes exposes automatic prefetch only; no invented query tool. |
 | Cognee | Shipped `HttpBackend.remember_permanent`: raw multipart upload to native `/api/v1/remember`, which runs add and cognify | Local 1.6.8 server, isolated dataset and native Ollama embeddings. Wait for actual document extraction and exact raw-source readback. Incremental loads additionally require this new item's cognify completion stamp, not an earlier dataset status. Native first-turn prefetch can be empty because retrieval is queued after a preceding turn. |
-| MemOS | Native `/api/v1/import?ownership=target` with the raw document as trace text and summary, empty assistant text | Local SQLite/FTS and native offline CPU MiniLM. Require exact API readback. This import does no extraction: automatic or explicit retrieval of imported documents is source-assisted. |
+| MemOS | Native `/api/v1/import?ownership=target` with the raw document as trace text and summary, empty assistant text | Default raw/lexical condition requires exact API readback; native import leaves vectors null. Separate opt-in `native-raw-document-semantic-ready-v1` runs bounded native embedding repair and per-ID vector verification. Both conditions do no fact extraction; original-document retrieval remains source-assisted. See [condition details](reme-memos-local.md). |
 | Holographic | Fact storage and regex extraction | Excluded: no practical general automatic source ingestion. |
 | Memobase | Inspected native dispatcher processes chat/summary, not accepted raw-document blocks | Excluded at the inspected pin. Do not fabricate assistant turns to bypass document eligibility. |
 | RetainDB | Hosted storage/import | Excluded: Hermes documents no verified local backend. |

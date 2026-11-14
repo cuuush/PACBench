@@ -34,6 +34,10 @@ def plan_config(root,model,base,key):
 def start(root,env,model,base,key,*,resume=False):
     validate_route(base,key)
     root=Path(root).resolve()
+    from .memos_semantic_ready import RAW, selected_condition
+    ingest_condition = selected_condition()
+    if resume and json.loads((root/'native-server-setup.json').read_text()).get('ingestion_condition', RAW) != ingest_condition:
+        raise ValueError('Retained MemOS ingest condition differs; use a separate fresh arm')
     from pacbench.provider_versions import verify_memos_package
     package,release=verify_memos_package(REPO)
     revision=release['sha256']
@@ -91,13 +95,13 @@ def start(root,env,model,base,key,*,resume=False):
         'reason':'This arm natively imports original text as raw document traces; generated extraction is not claimed'}
     save(root/'prefetch-provenance.json',declaration)
     env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps(declaration)
-    save(root/'memos-document-config.json',{'endpoint':endpoint})
+    save(root/'memos-document-config.json',{'endpoint':endpoint,'ingestion_condition':ingest_condition})
     save(root/'native-server-setup.json',{'route':'Pinned native public core bootstrap and HTTP API; unchanged Hermes memtensor stdio bridge',
         'provider_revision':revision,'source_type':'official-npm-release','native_package_release':release,'endpoint':endpoint,'pid':process.pid,'health':health,
         'model':model,'reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION','native-default'),'embedding':'Native local MiniLM384; verified cached assets; offline loading',
         'inference_overrides':'Exact selected OpenAI-compatible model; host fallback disabled; native output/reasoning/batching defaults unchanged',
         'http_role':'Hermes viewer role: autoRecovery false; native stdio bridge owns recovery writes',
-        'ingestion_condition':'native-raw-document-import-v1','extraction_performed':False,
+        'ingestion_condition':ingest_condition,'extraction_performed':False,
         'retrieval_credit':'source-assisted','native_plugin_name':'memtensor',
         'provider_clock':'Real native processing clock; imported trace/source timestamps preserve original scenario dates',
         'plugin_source_sha256':hashlib.sha256((plugin/'__init__.py').read_bytes()).hexdigest()})

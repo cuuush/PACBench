@@ -424,14 +424,22 @@ def audit_ingestion(root, arm, messages, summary, *, import_only=False):
             cognee_prior.append({'data_id':native.get('data_id'),'source_sha256':native.get('source_sha256')})
         if arm.name=='memos':
             from provider_adapters.reme_memos_documents import payload
+            from provider_adapters.memos_semantic_ready import RAW, SEMANTIC, proof_valid
             expected,_=payload('memos',source)
             native=record.get('result',{});actual=native.get('native_readback',{})
-            check(native.get('ingestion_condition')=='native-raw-document-import-v1' and
+            condition=native.get('ingestion_condition')
+            setup=json.loads((arm/'native-server-setup.json').read_text())
+            check(condition==setup.get('ingestion_condition',RAW),'MemOS ingest condition differs from declared runtime')
+            check(condition in (RAW,SEMANTIC) and
                   native.get('retrieval_credit')=='source-assisted' and native.get('extraction_performed') is False and
                   native.get('document_sha256')==meta['document_sha256'] and native.get('source_ids')==ids and
                   native.get('native_readback_exact') is True and
                   all(actual.get(key)==value for key,value in expected['traces'][0].items()),
                   'MemOS native raw-document import/readback is unproven')
+            if condition == SEMANTIC:
+                check(setup.get('ingestion_condition')==SEMANTIC and
+                      proof_valid(native.get('semantic_readiness'),actual,meta['document_sha256']),
+                      'MemOS semantic-ready condition lacks native repair/identity evidence')
         if arm.name=='memcal' and any(m['channel']=='email' for m in batch):
             result=record.get('result',{})
             check(result.get('email_ingest',{}).get('read')==sum(m['channel']=='email' for m in batch),

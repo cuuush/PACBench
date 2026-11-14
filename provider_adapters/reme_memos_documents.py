@@ -14,6 +14,7 @@ from pathlib import Path
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from pacbench.reme_memos_setup import local_endpoint
+from .memos_semantic_ready import RAW, SEMANTIC, CONDITIONS
 
 
 class _NoRedirect(HTTPRedirectHandler):
@@ -73,9 +74,19 @@ def request(endpoint: str, path: str, body: dict | None, timeout: float) -> dict
     return result
 
 
-def ingest(provider: str, source: Path, endpoint: str, *, timeout: float = 600) -> dict:
+def ingest(provider: str, source: Path, endpoint: str, *, timeout: float = 600,
+           memos_condition: str = RAW, repair_timeout_s: float = 120, max_repair_batches: int = 50,
+           memos_database: Path | None = None) -> dict:
+    if memos_condition not in CONDITIONS or provider != 'memos' and memos_condition != RAW:
+        raise ValueError('Unknown or inapplicable MemOS ingest condition')
+    if memos_condition == SEMANTIC:
+        from .memos_semantic_ready import validate_bounds
+        validate_bounds(repair_timeout_s,max_repair_batches)
+        if memos_database is None or not Path(memos_database).is_file():
+            raise ValueError('Semantic-ready condition requires the existing run-owned native MemOS database')
     body, receipt = payload(provider, source)
     receipt = {**receipt, "ready": False}
+    if provider == 'memos':receipt['ingestion_condition'] = memos_condition
     try:
         if provider == "reme":
             result = request(endpoint, "/auto_memory", body, timeout)
@@ -96,6 +107,13 @@ def ingest(provider: str, source: Path, endpoint: str, *, timeout: float = 600) 
                                 "value", "alpha", "priority", "turnId"))
                 receipt["ready"] = receipt["native_readback_exact"]
             receipt["readiness"] = "Native raw document import plus exact API readback; no extraction claim"
+            if receipt['ready'] and memos_condition == SEMANTIC:
+                from .memos_semantic_ready import repair
+                proof = receipt['semantic_readiness'] = {}
+                receipt['ready'] = False  # A transport exception must never retain raw-only readiness.
+                receipt['ready'] = repair(endpoint, actual, receipt['document_sha256'], call=request, proof=proof,
+                    database=memos_database,timeout_s=repair_timeout_s, max_batches=max_repair_batches)
+                receipt['readiness'] = 'Native raw import plus bounded embedding repair and unchanged trace; no extraction claim'
     except Exception as error:
         receipt.update(native_error_class=type(error).__name__, outcome="uncertain-or-failed-no-retry")
     return receipt
@@ -107,8 +125,14 @@ def main() -> int:
     parser.add_argument("source", type=Path)
     parser.add_argument("--endpoint", required=True)
     parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument('--memos-condition', choices=CONDITIONS, default=RAW)
+    parser.add_argument('--repair-timeout-s', type=float, default=120)
+    parser.add_argument('--max-repair-batches', type=int, default=50)
+    parser.add_argument('--memos-database',type=Path,help='Run-owned native data/memos.db; required for semantic-ready per-trace proof')
     args = parser.parse_args()
-    receipt = ingest(args.provider, args.source, args.endpoint, timeout=args.timeout)
+    receipt = ingest(args.provider, args.source, args.endpoint, timeout=args.timeout,
+        memos_condition=args.memos_condition, repair_timeout_s=args.repair_timeout_s, max_repair_batches=args.max_repair_batches,
+        memos_database=args.memos_database)
     print(json.dumps(receipt, ensure_ascii=False, indent=2))
     return 0 if receipt["ready"] else 1
 

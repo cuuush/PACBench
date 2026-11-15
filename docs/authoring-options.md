@@ -17,11 +17,16 @@ Source type, name and subject cannot change within a thread.
 
 Exact scenes infer each new speaker's membership **at that message**, not at the
 start of the scene. Optional scene-local `participants` establish known silent
-members at the scene start. Generated scenes need local `participants` on the
-first scene: the writer never establishes membership or invents speakers. Later
+members at the scene start. Generated first scenes need outside speaker IDs
+in local `participants` or `joins` before writing: the writer never establishes
+membership or invents speakers. Later
 generated scenes can omit the list to retain the existing roster, or list new
 members to add them at that scene's start. Membership persists; omission never
-removes a person. No explicit join event is required. `Me` is the owner label.
+removes a person. Alternatively, `joins: ["Nora"]` explicitly adds a member
+at the start of a scene, even if silent, without repeating the roster. This is
+additions only: names must be distinct, nonempty new contacts, excluding Me and
+existing members. Use scene-local threads for joins; legacy channels stay fixed.
+No explicit join event is required. `Me` is the owner label.
 An outgoing-only first scene needs explicit recipients: unknown future speakers
 cannot supply recipients retroactively. Membership is separate from an event's
 attendance/RSVP roster.
@@ -97,8 +102,10 @@ Generated source retains normal independent scene review, bound to actual text,
 facts and context. Neither generated source nor exact source reaches providers
 with private author directions, facts or answer keys.
 
-This complete minimal example mixes exact and generated source, infers Sam's
-join on the second Tuesday message, and retains him silently on Wednesday. It
+This complete minimal example mixes exact and generated source. Three existing
+iMessage members (Me, Maya and Leo) gain a fourth, Sam, at Tuesday’s scene start.
+Sam can remain silent; his membership persists on Wednesday. An exact sender
+not declared by participants or joins still joins only at their first message. It
 compiles offline. Because of the Apple fixture limitation above, it is **not** a
 claim of native Messages transport support.
 
@@ -110,10 +117,11 @@ claim of native Messages transport support.
   "days": {
     "monday": {
       "scenes": [{"id": "invite", "thread": "lunch", "time": "6 pm",
+        "participants": ["Me", "Maya", "Leo"],
         "messages": [{"sender": "Maya", "text": "Lunch Friday?"}]}]
     },
     "tuesday": {
-      "scenes": [{"id": "new-speaker", "thread": "lunch", "time": "noon",
+      "scenes": [{"id": "new-speaker", "thread": "lunch", "time": "noon", "joins": ["Sam"],
         "messages": [{"sender": "Maya", "text": "The café has new chairs."},
                      {"sender": "Sam", "text": "Hi both!"}]}]
     },
@@ -252,3 +260,13 @@ Historical v9 reviews keep their original standard and verdicts. A prospective
 v10 review does not turn a v9 rejection into a pass; retain the predecessor and
 the changed review condition. Qualify the condition with positive and negative
 controls before live use.
+
+## Visible names across platforms
+
+The compiler does not link different visible names across platforms. For example,
+Alex on text and Alice in an email remain separate source identities even if
+Alice writes “Alex is my nickname.” That sentence is observable evidence for a
+memory system to interpret, not a hidden compiler identity mapping. No global
+alias or identity-link field is introduced. Legacy identical labels still use
+the same synthetic contact identity across messaging and email; different
+account addresses can belong to that same-label contact.

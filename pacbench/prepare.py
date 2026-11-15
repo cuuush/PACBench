@@ -253,6 +253,7 @@ def normalize_week(spec, week_start=None):
             if 'thread' not in row:
                 if channel_id not in channels:raise ValueError(f'Unknown channel {channel_id!r}; supply a stable thread key')
                 definition=channels[channel_id]
+                if 'joins' in row:raise ValueError('joins requires a scene-local thread, not a fixed legacy channel')
                 if 'participants' in row:raise ValueError('Legacy channels have fixed membership; use scene-local thread metadata for changing groups')
                 row.update(channel=definition['type'],thread=channel_id,participants=list(definition['participants']),
                     chat_name=definition.get('name',''))
@@ -271,7 +272,11 @@ def normalize_week(spec, week_start=None):
                 local=row.pop('participants',None)
                 if local is not None:validate_participants(local)
                 roster=list(prior['participants']) if prior else ['Me']
-                for member in local or []:
+                joins=row.pop('joins',[])
+                if (not isinstance(joins,list) or any(not isinstance(p,str) or not p.strip() or p!=p.strip() for p in joins) or
+                        len(set(joins))!=len(joins) or any(p in roster for p in joins)):
+                    raise ValueError('joins must list distinct new contact names, excluding existing members and Me')
+                for member in [*(local or []),*joins]:
                     if member not in roster:roster.append(member)
                 if 'messages' in row and row['messages'] is not None:
                     row['initial_participants']=list(roster)

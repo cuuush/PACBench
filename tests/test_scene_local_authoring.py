@@ -2,6 +2,7 @@
 import copy
 import json
 import re
+import subprocess
 from dataclasses import replace
 from datetime import datetime
 from email import policy
@@ -209,15 +210,15 @@ def test_draft_uses_default_clock_without_changing_questions_or_jen_blend(tmp_pa
     assert 'channels' not in new and 'cast' not in new
     oldmsgs=built(revised['w1-neighbors-start']);join=built(revised['w1-neighbors-new-speaker'])
     later=built(revised['w1-neighbors-later'])
-    assert all('Nora' not in m['structured']['participants'] for m in [*oldmsgs,join[0]])
-    assert 'Nora' in join[1]['structured']['participants'] and 'Nora' in later[0]['structured']['participants']
+    assert all('Nora' not in m['structured']['participants'] for m in oldmsgs)
+    assert 'Nora' in join[0]['structured']['participants'] and 'Nora' in later[0]['structured']['participants']
 
 
 def test_guide_mixed_example_compiles_offline(tmp_path):
     text=Path('docs/authoring-options.md').read_text()
     example=json.loads(re.search(r'```json\n(.*?)\n```',text,re.S)[1])
     plans,_,_=resolve_spec(example,tmp_path)
-    assert len(plans)==3 and plans[-1].participants==('Me','Maya','Sam')
+    assert len(plans)==3 and plans[-1].participants==('Me','Maya','Leo','Sam')
 
 
 @pytest.mark.parametrize('imported', [False, True])
@@ -286,3 +287,65 @@ def test_legacy_review_cannot_be_dropped_on_resume_before_writes(tmp_path,monkey
         prepare(old,root,resume=True)
     assert (root/'resolved-spec.json').read_bytes()==before
     assert not (root/'spec.json').exists()
+
+
+def test_explicit_silent_join_additive_rosters_and_stable_history(tmp_path):
+    rows=[exact(participants=['Me','Sam','Robin']),
+        exact(id='two',time='7 pm',joins=['Nora'],messages=[{'sender':'Sam','text':'Nice mural.'}]),
+        exact(id='three',time='8 pm',participants=['Me','Sam'],messages=[{'sender':'Me','text':'Lovely colors.'}])]
+    plans=resolve_spec(week(rows),tmp_path)[0]
+    before=built(plans[0]);second=built(plans[1]);third=built(plans[2])
+    assert before[0]['structured']['participants']==['Me','Sam','Robin']
+    assert second[0]['structured']['participants']==third[0]['structured']['participants']==['Me','Sam','Robin','Nora']
+    assert built(plans[0])==before
+    assert len({m['thread'] for m in before+second+third})==1
+    from pacbench.imessage_fixture import append_messages
+    db=tmp_path/'chat.db';append_messages(db,before)
+    with pytest.raises(ValueError,match='historical membership'):append_messages(db,second)
+    # Generated source can declare the same silent addition before generation.
+    rows[1]={'id':'two','thread':'friends','time':'7 pm','joins':['Nora'],
+             'scene':'Sam and I discuss a mural.','facts':[]}
+    generated=resolve_spec(week(rows),tmp_path)[0][1]
+    assert generated.participants==('Me','Sam','Robin','Nora')
+    assert 'Nora' in scene_prompt(generated)
+
+
+@pytest.mark.parametrize('joins',[None,'Nora',[1],[''],[' Nora '],['Nora','Nora'],['Me'],['Sam']])
+def test_invalid_explicit_joins_fail_offline(tmp_path,joins):
+    with pytest.raises(ValueError,match='joins'):
+        resolve_spec(week([exact(),exact(id='two',time='7 pm',joins=joins)]),tmp_path)
+
+
+def test_visible_names_are_not_linked_by_nickname_evidence(tmp_path):
+    from pacbench.email_fixture import append_emails,mail_address
+    from pacbench.imessage_fixture import identity
+    plans=resolve_spec(week([
+        exact(thread='alex-text',messages=[{'sender':'Alex','text':'How is the mural?'}]),
+        exact(id='email',thread='alice-email',type='email',subject='The mural',time='7 pm',
+              messages=[{'sender':'Alice','text':'Alex is my nickname. I liked the mural too.'}]),
+        exact(id='same-label',thread='alex-email',type='email',subject='Paint',time='8 pm',
+              messages=[{'sender':'Alex','text':'Those colors are great.'}])]),tmp_path)[0]
+    public=[m for p in plans for m in built(p)]
+    assert [m['sender'] for m in public]==['Alex','Alice','Alex']
+    assert [p.participants for p in plans]==[('Me','Alex'),('Me','Alice'),('Me','Alex')]
+    assert public[1]['text']=='Alex is my nickname. I liked the mural too.'
+    assert identity('Alex')['uid']!=identity('Alice')['uid']
+    assert mail_address('Alex')==identity('Alex')['uid'].lower()+'@mail.example.test'
+    assert mail_address('Alice')!=mail_address('Alex')
+    p=tmp_path/'mail.json';append_emails(p,public[1:])
+    rendered=json.loads(p.read_text())['messages']
+    assert mail_address('Alice') in rendered[0]['rfc822']
+    assert mail_address('Alex') in rendered[1]['rfc822']
+    assert not any('alias' in key or 'identity' in key for m in public for key in (m.get('structured') or {}))
+
+
+def test_latest_refinement_preserves_all_questions_messages_and_clean_timing(tmp_path):
+    old=json.loads(subprocess.check_output(['git','show','51b2d8d:specs/pizza_week_assistant.json'],text=True))
+    new=json.loads(Path('specs/pizza_week_assistant.json').read_text())
+    def scenes(spec):return {r['id']:r for w in spec['weeks'] for d in w.values() for r in d.get('scenes',[])}
+    for key,r in scenes(old).items():
+        revised=scenes(new)[key]
+        assert r.get('messages')==revised.get('messages')
+        assert r.get('time')==revised.get('time')
+        assert r.get('message_range')==revised.get('message_range')
+    assert resolve_spec(old,tmp_path)[2]['checks']==resolve_spec(new,tmp_path)[2]['checks']

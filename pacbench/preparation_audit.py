@@ -74,6 +74,15 @@ def audit_scenes(root, resolved, life_id, messages):
         plan=ScenePlan(**{k:v for k,v in spec.items() if k in names})
         built=[o.public() for o in build_scene_observations(life_id,plan,row['lines'])]
         expected.extend(built)
+        if plan.source_review == 'author-source-v1':
+            from .authoring import realize_scene
+            from .prepare import realization_binding
+            exact=realize_scene(plan,None,None)
+            if (row['source_ids']!=[m['source_id'] for m in built] or
+                    row['record']!=vars(exact.record) or row['verdict']!=exact.verdict or
+                    row.get('verification_binding')!=realization_binding(plan,row['lines'],())):
+                errors.append(f'{plan.id}: invalid unjudged author-source integrity/provenance')
+            continue  # Deliberately no model verdict or checker receipt to validate.
         if row['source_ids']!=[m['source_id'] for m in built] or row['record']['status']!='ok' or row['verdict'].get('supported') is not True:
             errors.append(f"{plan.id}: incomplete source verification")
         if plan.messages is not None:
@@ -137,18 +146,18 @@ def audit_prepared(root: Path) -> dict:
             if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
                     quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues')):
                 errors.append('Corpus realism review is stale or unresolved')
-            if (quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10') and
+            if (quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10','source-realism-v11') and
                     quality.get('scope') != 'source-coherence-and-public-question-answerability'):
                 errors.append('Corpus realism review scope is missing or incorrect')
             from .corpus_review import verdict_passes
-            if quality.get('review_version')=='source-realism-v10':
+            if quality.get('review_version') in {'source-realism-v10','source-realism-v11'}:
                 from .corpus_epistemic import eligible_evidence
                 expected_bindings={c['id']:digest(eligible_evidence(messages,resolved,c['id'])) for c in resolved['checks']}
                 if quality.get('eligibility_bindings')!=expected_bindings:
                     errors.append('Corpus review eligible-history bindings differ from actual checkpoints')
             if not verdict_passes(quality.get('review'), messages, resolved, version=quality.get('review_version')):
                 errors.append('Corpus realism review lacks valid source-grounded assessments')
-            if quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10') and 'validation_errors' in quality:
+            if quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10','source-realism-v11') and 'validation_errors' in quality:
                 from .corpus_review import validation_errors
                 if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved,
                                                                     version=quality['review_version']):

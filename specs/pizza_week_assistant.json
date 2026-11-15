@@ -2,403 +2,301 @@
   "id": "pizza-week-assistant-mixed-v1",
   "week_start": "2026-10-05",
   "timezone": "America/New_York",
-  "channels": {
-    "crew": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Maya",
-        "Leo",
-        "Tess"
-      ]
-    },
-    "maya": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Maya"
-      ]
-    },
-    "devon": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Devon"
-      ]
-    },
-    "ben": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Ben"
-      ]
-    },
-    "studio": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Studio"
-      ]
-    },
-    "alex-reed": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Alex Reed"
-      ]
-    },
-    "alex-chen": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Alex Chen"
-      ]
-    },
-    "jen": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Jen"
-      ]
-    },
-    "visit": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Morgan"
-      ]
-    },
-    "games": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Devon",
-        "Maya"
-      ]
-    },
-    "workshop": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Tutor"
-      ]
-    },
-    "newsletter": {
-      "type": "imessage",
-      "participants": [
-        "Me",
-        "Arts Bulletin"
-      ]
-    },
-    "lunch-mail": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Maya",
-        "Leo",
-        "Tess"
-      ],
-      "subject": "Friday lunch"
-    },
-    "ben-mail": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Ben"
-      ],
-      "subject": "Dinner this week"
-    },
-    "ben-other": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Ben"
-      ],
-      "subject": "Sunday tool return"
-    },
-    "tickets": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Box Office"
-      ],
-      "subject": "Rae concert invitation"
-    },
-    "delivery": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Courier"
-      ],
-      "subject": "Parcel and support call"
-    },
-    "draft-service": {
-      "type": "email",
-      "participants": [
-        "Me",
-        "Planning Assistant"
-      ],
-      "subject": "Draft only: tasting option"
-    }
-  },
   "weeks": [
     {
       "monday": {
         "scenes": [
           {
             "id": "draft-only",
-            "channel": "draft-service",
             "time": "9 am",
             "messages": [
               {
                 "sender": "Me",
                 "text": "Please sketch an itinerary for the Sunday October 11, 2–2:30 pm PizzaLab tasting. I’m still deciding whether to go.",
-                "at": "2026-10-05T09:00:00-04:00"
+                "time": "9:00:00 am"
               }
             ],
-            "facts": [
-              "The user asks for a draft tasting itinerary while still deciding whether to attend."
-            ]
+            "thread": "draft-service",
+            "participants": [
+              "Me",
+              "Planning Assistant"
+            ],
+            "type": "email",
+            "subject": "Draft only: tasting option"
           },
           {
             "id": "preference-old",
-            "channel": "maya",
             "time": "10:00 am",
             "messages": [
               {
                 "sender": "Me",
                 "text": "For pizza, I avoid mushrooms; I’m fine with dairy.",
-                "at": "2026-10-05T10:00:00-04:00"
+                "time": "10:00:00 am"
               },
               {
                 "sender": "Maya",
                 "text": "Good to know.",
-                "at": "2026-10-05T10:00:10-04:00"
+                "time": "10:00:10 am"
               }
             ],
-            "facts": [
-              "The user initially reports avoiding mushrooms and being fine with dairy."
+            "thread": "maya",
+            "participants": [
+              "Me",
+              "Maya"
             ]
           },
           {
             "id": "namesake-reed",
-            "channel": "alex-reed",
             "time": "11:00 am",
             "facts": [
-              "Alex Reed avoids mushrooms and eats dairy."
+              "Alex Reed avoids mushrooms and eats dairy.",
+              "Alex Reed is the user’s ceramics friend; only Alex’s food preferences are discussed.",
+              "This exchange creates no order, invitation or plan."
             ],
-            "scene": "Alex Reed, the user’s ceramics friend, mentions enjoying cheese and avoiding mushrooms while reminiscing about pizza toppings at a past ceramics break. Establish the ceramics connection naturally. The user only acknowledges Alex’s preference; do not assign the user any food preference, place an order, invite anyone, or create a new plan. Do not compare Alex with Alex Chen.",
+            "scene": "Alex Reed and I reminisce about pizza during a ceramics break.",
             "message_range": [
               2,
               4
+            ],
+            "thread": "alex-reed",
+            "participants": [
+              "Me",
+              "Alex Reed"
             ]
           },
           {
             "id": "visit-plan",
-            "channel": "visit",
             "time": "12:00 pm",
             "messages": [
               {
                 "sender": "Morgan",
                 "text": "Can I stay with you Friday October 9 through Monday October 12? Arrive about 4 pm Friday, leave 9 am Monday.",
-                "at": "2026-10-05T12:00:00-04:00"
+                "time": "12:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Yes, guest room is yours. I have meals out but you can let yourself in.",
-                "at": "2026-10-05T12:00:10-04:00"
+                "time": "12:00:10 pm"
               }
             ],
-            "facts": [
-              "Morgan plans to visit the user at the user's home October 9 around 4 pm through October 12 at 9 am."
+            "thread": "visit",
+            "participants": [
+              "Me",
+              "Morgan"
             ]
           },
           {
             "id": "games-standing",
-            "channel": "games",
             "time": "1:00 pm",
             "messages": [
               {
                 "sender": "Devon",
                 "text": "Our regular game is Wednesdays at 8 pm at my place. This week only, Thursday October 8 instead? Back to Wednesdays after that.",
-                "at": "2026-10-05T13:00:00-04:00"
+                "time": "1:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Thursday this week works.",
-                "at": "2026-10-05T13:00:10-04:00"
+                "time": "1:00:10 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Same here.",
-                "at": "2026-10-05T13:00:20-04:00"
+                "time": "1:00:20 pm"
               }
             ],
-            "facts": [
-              "The weekly Wednesday game moves only its October 7 occurrence to Thursday October 8 at 8 pm.",
-              "The following ordinary occurrence is Wednesday October 14 at 8 pm at Devon's."
+            "thread": "games",
+            "participants": [
+              "Me",
+              "Devon",
+              "Maya"
             ]
           },
           {
             "id": "workshop-plan",
-            "channel": "workshop",
             "time": "2:00 pm",
             "messages": [
               {
                 "sender": "Tutor",
                 "text": "Your watercolor workshop is Tuesday October 6, 10–11 am at MR Hall.",
-                "at": "2026-10-05T14:00:00-04:00"
+                "time": "2:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "👍",
-                "at": "2026-10-05T14:00:10-04:00"
+                "time": "2:00:10 pm"
               },
               {
                 "sender": "Tutor",
                 "text": "Great, see you Tuesday.",
-                "at": "2026-10-05T14:00:20-04:00"
+                "time": "2:00:20 pm"
               }
             ],
-            "facts": [
-              "The user agrees to the Tuesday October 6 watercolor workshop at 10 am at MR Hall."
+            "thread": "workshop",
+            "participants": [
+              "Me",
+              "Tutor"
             ]
           },
           {
             "id": "jen-open",
-            "channel": "jen",
             "time": "3:00 pm",
             "messages": [
               {
                 "sender": "Jen",
                 "text": "The old application checklist was useful last month.",
-                "at": "2026-10-05T15:00:00-04:00"
+                "time": "3:00:00 pm"
               },
               {
                 "sender": "Jen",
                 "text": "I’ll send you the revised checklist tomorrow.",
-                "at": "2026-10-05T15:00:10-04:00"
+                "time": "3:00:10 pm"
               },
               {
                 "sender": "Me",
                 "text": "Thanks. Could you also tell me the interview room?",
-                "at": "2026-10-05T15:00:20-04:00"
+                "time": "3:00:20 pm"
               },
               {
                 "sender": "Jen",
                 "text": "Can you proofread my cover letter by Thursday evening?",
-                "at": "2026-10-05T15:00:30-04:00"
+                "time": "3:00:30 pm"
               },
               {
                 "sender": "Me",
                 "text": "I can do that.",
-                "at": "2026-10-05T15:00:40-04:00"
+                "time": "3:00:40 pm"
               }
             ],
-            "facts": [
-              "Jen promises to send the revised checklist; the user’s interview-room question to Jen remains unanswered.",
-              "The user agrees to proofread Jen's cover letter by Thursday evening."
+            "thread": "jen",
+            "participants": [
+              "Me",
+              "Jen"
             ]
           },
           {
             "id": "appointments",
-            "channel": "studio",
             "time": "4:00 pm",
             "messages": [
               {
                 "sender": "Studio",
                 "text": "Your bookings: pottery Wednesday October 7 at 10 am; framing Thursday October 8 at 10 am, both at our Oak studio.",
-                "at": "2026-10-05T16:00:00-04:00"
+                "time": "4:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Thanks, those are the two I booked.",
-                "at": "2026-10-05T16:00:10-04:00"
+                "time": "4:00:10 pm"
               },
               {
                 "sender": "Studio",
                 "text": "Sorry, that appointment is cancelled.",
-                "at": "2026-10-05T16:00:20-04:00"
+                "time": "4:00:20 pm"
               }
             ],
-            "facts": [
-              "Pottery and framing are distinct booked appointments.",
-              "The cancellation does not identify which booking it concerns."
+            "thread": "studio",
+            "participants": [
+              "Me",
+              "Studio"
             ]
           },
           {
             "id": "lunch-invite",
-            "channel": "crew",
             "time": "6:00 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Office party balloons have their own lighting budget apparently.",
-                "at": "2026-10-05T18:00:00-04:00"
+                "time": "6:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "The snacks deserve representation.",
-                "at": "2026-10-05T18:00:10-04:00"
+                "time": "6:00:10 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?",
-                "at": "2026-10-05T18:00:20-04:00"
+                "time": "6:00:20 pm"
               },
               {
                 "sender": "Me",
                 "text": "Yes, Friday works for me.",
-                "at": "2026-10-05T18:00:30-04:00"
+                "time": "6:00:30 pm"
               },
               {
                 "sender": "Tess",
                 "text": "I can make it if my shift finishes early.",
-                "at": "2026-10-05T18:00:40-04:00"
+                "time": "6:00:40 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Also that trailer gave away the entire ending.",
-                "at": "2026-10-05T18:00:50-04:00"
+                "time": "6:00:50 pm"
               }
             ],
-            "facts": [
-              "Maya and the user agree to Friday October 9 lunch at 1 pm at Rosa's on Oak Street.",
-              "Leo has not replied.",
-              "Tess is conditional, not confirmed."
+            "thread": "crew",
+            "participants": [
+              "Me",
+              "Maya",
+              "Leo",
+              "Tess"
             ]
           },
           {
             "id": "evening-control",
-            "channel": "devon",
             "time": "7:00 pm",
             "facts": [
-              "The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street."
+              "The user and Devon agree to Friday October 9 pizza at 6 pm at Luigi's on 5th Street.",
+              "This outing is just Devon and the user; Maya’s lunch is not discussed."
             ],
-            "scene": "Devon and the user arrange pizza Friday October 9 at 6 pm at Luigi’s on 5th Street, just the two of them. Devon briefly complains about a homemade crust. Confirm the outing naturally; do not mention the Maya lunch or introduce anyone else.",
+            "scene": "Devon and I discuss Friday pizza and homemade crust.",
             "message_range": [
               2,
               4
+            ],
+            "thread": "devon",
+            "participants": [
+              "Me",
+              "Devon"
             ]
           },
           {
             "id": "ben-original",
-            "channel": "ben-mail",
             "time": "8:00 pm",
             "messages": [
               {
                 "sender": "Ben",
                 "text": "Dinner Thursday October 8 at 7 pm at Juniper Cafe?",
-                "at": "2026-10-05T20:00:00-04:00"
+                "time": "8:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Thursday at 7 at Juniper works.",
-                "at": "2026-10-05T20:00:10-04:00"
+                "time": "8:00:10 pm"
               }
             ],
-            "facts": [
-              "Ben and the user agree to Thursday October 8 dinner at 7 pm at Juniper Cafe."
+            "thread": "ben-mail",
+            "participants": [
+              "Me",
+              "Ben"
+            ],
+            "type": "email",
+            "subject": "Dinner this week"
+          },
+          {
+            "id": "neighbors-start",
+            "thread": "neighbors",
+            "time": "8:30 pm",
+            "messages": [
+              {
+                "sender": "Sam",
+                "text": "That mural on our block looks great."
+              },
+              {
+                "sender": "Me",
+                "text": "The colors are lovely."
+              }
             ]
           }
         ]
@@ -499,197 +397,192 @@
         "scenes": [
           {
             "id": "leo-delayed",
-            "channel": "crew",
             "time": "10:00 am",
             "messages": [
               {
                 "sender": "Leo",
                 "text": "Friday works.",
-                "at": "2026-10-06T10:00:00-04:00"
+                "time": "10:00:00 am"
               },
               {
                 "sender": "Me",
                 "text": "Great, see you then.",
-                "at": "2026-10-06T10:00:10-04:00"
+                "time": "10:00:10 am"
               }
             ],
-            "facts": [
-              "Leo accepts Monday's Friday October 9 lunch invitation on Tuesday morning."
-            ]
+            "thread": "crew"
           },
           {
             "id": "studio-clarifies",
-            "channel": "studio",
             "time": "11:00 am",
             "messages": [
               {
                 "sender": "Studio",
                 "text": "Sorry, I meant the Wednesday pottery booking. Thursday framing is still booked.",
-                "at": "2026-10-06T11:00:00-04:00"
+                "time": "11:00:00 am"
               },
               {
                 "sender": "Me",
                 "text": "Thanks for clearing that up.",
-                "at": "2026-10-06T11:00:10-04:00"
+                "time": "11:00:10 am"
               }
             ],
-            "facts": [
-              "Only Wednesday pottery is cancelled; Thursday framing remains booked."
-            ]
+            "thread": "studio"
           },
           {
             "id": "lunch-time",
-            "channel": "maya",
             "time": "12:00 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Could Friday lunch be noon instead?",
-                "at": "2026-10-06T12:00:00-04:00"
+                "time": "12:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Noon works. I’ll tell the others.",
-                "at": "2026-10-06T12:00:10-04:00"
+                "time": "12:00:10 pm"
               }
             ],
-            "facts": [
-              "Friday lunch changes to noon; venue is unchanged."
-            ]
+            "thread": "maya"
           },
           {
             "id": "lunch-relay",
-            "channel": "crew",
             "time": "12:30 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "Maya and I just agreed noon instead for Friday.",
-                "at": "2026-10-06T12:30:00-04:00"
+                "time": "12:30:00 pm"
               },
               {
                 "sender": "Leo",
                 "text": "Noon is good for me.",
-                "at": "2026-10-06T12:30:10-04:00"
+                "time": "12:30:10 pm"
               },
               {
                 "sender": "Tess",
                 "text": "Shift got covered. I can come at noon too.",
-                "at": "2026-10-06T12:30:20-04:00"
+                "time": "12:30:20 pm"
               }
             ],
-            "facts": [
-              "Leo accepts the relayed noon change.",
-              "Tess is now confirmed for the lunch."
-            ]
+            "thread": "crew"
           },
           {
             "id": "lunch-venue",
-            "channel": "lunch-mail",
             "time": "2:00 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Rosa's is closed Friday. Same lunch, can we switch to Mario's on Pine Street?",
-                "at": "2026-10-06T14:00:00-04:00"
+                "time": "2:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Yes, Mario's.",
-                "at": "2026-10-06T14:00:10-04:00"
+                "time": "2:00:10 pm"
               },
               {
                 "sender": "Leo",
                 "text": "Works for me.",
-                "at": "2026-10-06T14:00:20-04:00"
+                "time": "2:00:20 pm"
               },
               {
                 "sender": "Tess",
                 "text": "Works for me too.",
-                "at": "2026-10-06T14:00:30-04:00"
+                "time": "2:00:30 pm"
               }
             ],
-            "facts": [
-              "The lunch moves to Mario's on Pine Street; noon remains its time."
-            ]
+            "thread": "lunch-mail",
+            "participants": [
+              "Me",
+              "Maya",
+              "Leo",
+              "Tess"
+            ],
+            "type": "email",
+            "subject": "Friday lunch"
           },
           {
             "id": "jen-answer",
-            "channel": "jen",
             "time": "3:00 pm",
             "facts": [
               "Jen answers the room question with Room 204.",
-              "The revised checklist is still outstanding."
+              "The revised checklist is still outstanding.",
+              "The user briefly acknowledges the room answer; neither checklist delivery nor completed proofreading nor interview timing is established."
             ],
-            "scene": "Jen answers the user’s interview-room question with Room 204. The revised checklist is still being polished. The user briefly acknowledges. Do not deliver the checklist, complete the cover-letter task, or add interview timing.",
+            "scene": "Jen and I discuss the interview room and her checklist.",
             "message_range": [
               2,
               3
-            ]
+            ],
+            "thread": "jen"
           },
           {
             "id": "hall-expansion",
-            "channel": "workshop",
             "time": "4:00 pm",
             "messages": [
               {
                 "sender": "Tutor",
                 "text": "MR Hall is Maple Ridge Hall. The old handout also lists a room over at ZX Annex.",
-                "at": "2026-10-06T16:00:00-04:00"
+                "time": "4:00:00 pm"
               }
             ],
-            "facts": [
-              "MR Hall means Maple Ridge Hall.",
-              "ZX Annex is mentioned without a full expansion."
-            ]
+            "thread": "workshop"
           },
           {
             "id": "tickets-invite",
-            "channel": "tickets",
             "time": "5:00 pm",
             "messages": [
               {
                 "sender": "Box Office",
                 "text": "You’re invited: Rae performs Sunday October 11 at 8 pm. Location shown after RSVP.",
-                "at": "2026-10-06T17:00:00-04:00"
+                "time": "5:00:00 pm"
               }
             ],
-            "facts": [
-              "The user is invited to Rae's concert but has not accepted; venue is withheld."
-            ]
+            "thread": "tickets",
+            "participants": [
+              "Me",
+              "Box Office"
+            ],
+            "type": "email",
+            "subject": "Rae concert invitation"
           },
           {
             "id": "namesake-chen",
-            "channel": "alex-chen",
             "time": "6:00 pm",
             "facts": [
-              "Alex Chen, also called AC, avoids dairy and accepts mushrooms."
+              "Alex Chen, also called AC, avoids dairy and accepts mushrooms.",
+              "Alex Chen is the user’s office friend.",
+              "Only Alex’s food preferences are discussed; there is no new outing, order, user preference or discussion of Alex Reed."
             ],
-            "scene": "Alex Chen, the user’s office friend, mentions their own food preference in a brief conversation about a past lunch and says friends call them AC. Establish the office connection naturally. The user only acknowledges; do not place an order, discuss Alex Reed, assign a preference to the user, or create an outing.",
+            "scene": "Alex Chen and I chat about an earlier office lunch.",
             "message_range": [
               2,
               4
+            ],
+            "thread": "alex-chen",
+            "participants": [
+              "Me",
+              "Alex Chen"
             ]
           },
           {
             "id": "roster-addition",
-            "channel": "crew",
             "time": "6:30 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Nora is joining too. I invited her to our Friday lunch and she said yes to noon at Mario’s.",
-                "at": "2026-10-06T18:30:00-04:00"
+                "time": "6:30:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Great, add Nora to the table.",
-                "at": "2026-10-06T18:30:10-04:00"
+                "time": "6:30:10 pm"
               }
             ],
-            "facts": [
-              "Nora joins the existing confirmed roster; no previous attendee is removed."
-            ]
+            "thread": "crew"
           }
         ]
       },
@@ -825,232 +718,213 @@
         "scenes": [
           {
             "id": "leo-withdraws",
-            "channel": "crew",
             "time": "11:00 am",
             "messages": [
               {
                 "sender": "Leo",
                 "text": "New shift landed. I can’t make Friday lunch after all.",
-                "at": "2026-10-07T11:00:00-04:00"
+                "time": "11:00:00 am"
               },
               {
                 "sender": "Maya",
                 "text": "We’ll miss you. Lunch is still on.",
-                "at": "2026-10-07T11:00:10-04:00"
+                "time": "11:00:10 am"
               },
               {
                 "sender": "Tess",
                 "text": "I’m still coming.",
-                "at": "2026-10-07T11:00:20-04:00"
+                "time": "11:00:20 am"
               }
             ],
-            "facts": [
-              "Leo withdraws from Friday lunch; Maya confirms the lunch is still on and Tess confirms she is still coming."
-            ]
+            "thread": "crew"
           },
           {
             "id": "ben-replaces",
-            "channel": "ben-mail",
             "time": "12:00 pm",
             "messages": [
               {
                 "sender": "Ben",
                 "text": "Could we move dinner to Saturday October 10? Same time and place.\n\nOn Monday you wrote:\n> Thursday at 7 at Juniper works.",
-                "at": "2026-10-07T12:00:00-04:00"
+                "time": "12:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Yes, Saturday instead.",
-                "at": "2026-10-07T12:00:10-04:00"
+                "time": "12:00:10 pm"
               }
             ],
-            "facts": [
-              "Saturday October 10 replaces Thursday dinner with Ben; 7 pm and Juniper Cafe remain unchanged."
-            ]
+            "thread": "ben-mail"
           },
           {
             "id": "fresh-time-old-quote",
-            "channel": "lunch-mail",
             "time": "1:00 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Actually 12:30 Friday would be better. Same place we agreed yesterday.\n\nOn Monday October 5, Maya wrote in the group:\n> Pizza Friday at 1, Rosa's on Oak Street? Leo, Tess, want in?",
-                "at": "2026-10-07T13:00:00-04:00"
+                "time": "1:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "12:30 works.",
-                "at": "2026-10-07T13:00:10-04:00"
+                "time": "1:00:10 pm"
               },
               {
                 "sender": "Tess",
                 "text": "Me too.",
-                "at": "2026-10-07T13:00:20-04:00"
+                "time": "1:00:20 pm"
               },
               {
                 "sender": "Leo",
                 "text": "I’m still out, sorry.",
-                "at": "2026-10-07T13:00:30-04:00"
+                "time": "1:00:30 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Nora says 12:30 works too; I just texted her.",
-                "at": "2026-10-07T13:00:40-04:00"
+                "time": "1:00:40 pm"
               }
             ],
-            "facts": [
-              "Lunch time becomes 12:30 pm; Mario's remains the venue.",
-              "The quoted Monday address does not restore Rosa's or Leo's attendance.",
-              "Nora accepts the 12:30 change through Maya."
-            ]
+            "thread": "lunch-mail"
           },
           {
             "id": "jen-delivery",
-            "channel": "jen",
             "time": "2:00 pm",
             "messages": [
               {
                 "sender": "Jen",
                 "text": "Here’s the revised checklist: ID, printed portfolio, two references. That’s the complete new version.",
-                "at": "2026-10-07T14:00:00-04:00"
+                "time": "2:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Received, thanks.",
-                "at": "2026-10-07T14:00:10-04:00"
+                "time": "2:00:10 pm"
               }
             ],
-            "facts": [
-              "Jen delivers the revised checklist; this does not complete the user's cover-letter proofreading."
-            ]
+            "thread": "jen"
           },
           {
             "id": "preference-correction",
-            "channel": "maya",
             "time": "3:00 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "Correction to what I said Monday: mushrooms are fine now. Please avoid dairy for me from now on.",
-                "at": "2026-10-07T15:00:00-04:00"
+                "time": "3:00:00 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Got it, no dairy for you.",
-                "at": "2026-10-07T15:00:10-04:00"
+                "time": "3:00:10 pm"
               },
               {
                 "sender": "Maya",
                 "text": "For me, dairy-free just through Sunday October 11 inclusive. I haven’t decided about after that.",
-                "at": "2026-10-07T15:00:20-04:00"
+                "time": "3:00:20 pm"
               }
             ],
-            "facts": [
-              "The user's corrected preference is dairy-free; mushrooms are now fine.",
-              "Maya requests dairy-free food through October 11 inclusive, with no decision on later dates."
-            ]
+            "thread": "maya"
           },
           {
             "id": "concert-revealed",
-            "channel": "tickets",
             "time": "4:00 pm",
             "messages": [
               {
                 "sender": "Box Office",
                 "text": "Venue announcement: Rae’s Sunday October 11 concert will be at Foundry Theatre, 8 pm.",
-                "at": "2026-10-07T16:00:00-04:00"
+                "time": "4:00:00 pm"
               }
             ],
-            "facts": [
-              "The announced concert venue is Foundry Theatre; the announcement makes no attendance statement about the user."
-            ]
+            "thread": "tickets"
           },
           {
             "id": "concert-companion",
-            "channel": "devon",
             "time": "5:00 pm",
             "facts": [
-              "Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed."
+              "Devon is a conditional potential companion; Rae is the performer, not a companion; user remains unconfirmed.",
+              "The user is considering Rae’s Sunday concert; Devon can come only if the shift ends early.",
+              "Neither person commits; no RSVP, purchase, booking, new time or venue is established."
             ],
-            "scene": "The user is considering Rae’s Sunday concert and asks Devon to come if the user decides to go. Devon can only come if the shift ends early. Leave both attendance decisions unresolved; no RSVP, purchase or booking takes place. Use ordinary tentative wording, not explanations of what counts as confirmation. No new time or venue.",
+            "scene": "Devon and I discuss possibly going to Rae’s concert.",
             "message_range": [
               3,
               4
-            ]
+            ],
+            "thread": "devon"
           },
           {
             "id": "link-neighbor",
-            "channel": "delivery",
             "time": "6:00 pm",
             "messages": [
               {
                 "sender": "Courier",
                 "text": "Parcel 381 will arrive Friday. Driver recruitment webinar: https://example.org/drivers .",
-                "at": "2026-10-07T18:00:00-04:00"
+                "time": "6:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "I also booked a parcel-support video call Friday at 9. What is its link?",
-                "at": "2026-10-07T18:00:10-04:00"
+                "time": "6:00:10 pm"
               },
               {
                 "sender": "Courier",
                 "text": "I don’t have your support-call link yet.",
-                "at": "2026-10-07T18:00:20-04:00"
+                "time": "6:00:20 pm"
               }
             ],
-            "facts": [
-              "The drivers URL is unrelated to the user's Friday 9 am parcel-support call; its link is not yet provided."
-            ]
+            "thread": "delivery",
+            "participants": [
+              "Me",
+              "Courier"
+            ],
+            "type": "email",
+            "subject": "Parcel and support call"
           },
           {
             "id": "unrelated-pizza",
-            "channel": "newsletter",
             "time": "7:00 pm",
             "messages": [
               {
                 "sender": "Arts Bulletin",
                 "text": "This week’s listings: Pizza social, North Hall, Friday at 12:30. Tickets available at the door.",
-                "at": "2026-10-07T19:00:00-04:00"
+                "time": "7:00:00 pm"
               }
             ],
-            "facts": [
-              "A public pizza social at North Hall is not the user's agreed lunch with Maya."
+            "thread": "newsletter",
+            "participants": [
+              "Me",
+              "Arts Bulletin"
             ]
           },
           {
             "id": "personal-commitment",
-            "channel": "devon",
             "time": "8 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "I’ve decided: I will attend the PizzaLab tasting Sunday October 11, 2–2:30 pm. Want to join?",
-                "at": "2026-10-07T20:00:00-04:00"
+                "time": "8:00:00 pm"
               },
               {
                 "sender": "Devon",
                 "text": "Not for me, thanks.",
-                "at": "2026-10-07T20:00:10-04:00"
+                "time": "8:00:10 pm"
               }
             ],
-            "facts": [
-              "The owner now states a personal commitment to attend the PizzaLab tasting; Devon declines."
-            ]
+            "thread": "devon"
           },
           {
             "id": "jen-matinee-invite",
-            "channel": "jen",
             "time": "8:30 pm",
             "messages": [
               {
                 "sender": "Jen",
                 "text": "Might catch the 2pm matinee at the Roxy on Saturday if you're bored. No tickets yet, just seeing who's around.",
-                "at": "2026-10-07T20:30:07-04:00"
+                "time": "8:30:07 pm"
               }
             ],
-            "facts": []
+            "thread": "jen"
           }
         ]
       },
@@ -1136,175 +1010,188 @@
         "scenes": [
           {
             "id": "complete-roster",
-            "channel": "crew",
             "time": "10:00 am",
             "messages": [
               {
                 "sender": "Tess",
                 "text": "Sorry, childcare fell through. I’m out for Friday.",
-                "at": "2026-10-08T10:00:00-04:00"
+                "time": "10:00:00 am"
               },
               {
                 "sender": "Maya",
                 "text": "Nora just cancelled with me too. Then it’s just you and me for lunch now.",
-                "at": "2026-10-08T10:00:10-04:00"
+                "time": "10:00:10 am"
               },
               {
                 "sender": "Me",
                 "text": "Yes, just the two of us.",
-                "at": "2026-10-08T10:00:20-04:00"
+                "time": "10:00:20 am"
               }
             ],
-            "facts": [
-              "The complete final Friday lunch roster is user and Maya."
-            ]
+            "thread": "crew"
           },
           {
             "id": "ben-declined",
-            "channel": "ben",
             "time": "11:00 am",
             "messages": [
               {
                 "sender": "Ben",
                 "text": "Could we do tomorrow instead of Saturday?",
-                "at": "2026-10-08T11:00:00-04:00"
+                "time": "11:00:00 am"
               },
               {
                 "sender": "Me",
                 "text": "Not Friday. Saturday is still good.",
-                "at": "2026-10-08T11:00:10-04:00"
+                "time": "11:00:10 am"
               },
               {
                 "sender": "Ben",
                 "text": "Saturday it is. What about trying North Cafe someday?",
-                "at": "2026-10-08T11:00:20-04:00"
+                "time": "11:00:20 am"
               },
               {
                 "sender": "Me",
                 "text": "Maybe someday, not this dinner.",
-                "at": "2026-10-08T11:00:30-04:00"
+                "time": "11:00:30 am"
               }
             ],
-            "facts": [
-              "Friday is declined; Saturday October 10 at 7 pm at Juniper remains the only agreed dinner with Ben."
+            "thread": "ben",
+            "participants": [
+              "Me",
+              "Ben"
             ]
           },
           {
             "id": "ben-distinct-mail",
-            "channel": "ben-other",
             "time": "12:00 pm",
             "facts": [
-              "Ben's Sunday 3 pm drill return at the user's door is separate from Saturday dinner."
+              "Ben's Sunday 3 pm drill return at the user's door is separate from Saturday dinner.",
+              "Ben asks to return the drill Sunday October 11 at 3 pm at the user’s door, and the user agrees."
             ],
-            "scene": "In this email with subject Sunday tool return, Ben asks to return the user’s drill Sunday October 11 at 3 pm at the user’s door and the user agrees. Do not mention dinner or explain that these are separate events. Keep it short.",
+            "scene": "Ben and I arrange to return my drill.",
             "message_range": [
               2,
               3
-            ]
+            ],
+            "thread": "ben-other",
+            "participants": [
+              "Me",
+              "Ben"
+            ],
+            "type": "email",
+            "subject": "Sunday tool return"
           },
           {
             "id": "attendance-evidence",
-            "channel": "workshop",
             "time": "1:00 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "I missed Tuesday’s watercolor workshop after all. Please send the notes.",
-                "at": "2026-10-08T13:00:00-04:00"
+                "time": "1:00:00 pm"
               },
               {
                 "sender": "Tutor",
                 "text": "Will do.",
-                "at": "2026-10-08T13:00:10-04:00"
+                "time": "1:00:10 pm"
               }
             ],
-            "facts": [
-              "The user explicitly reports not attending the Tuesday watercolor workshop."
-            ]
+            "thread": "workshop"
           },
           {
             "id": "game-context",
-            "channel": "devon",
             "time": "2:00 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "Could Alex Reed join our game tonight?",
-                "at": "2026-10-08T14:00:00-04:00"
+                "time": "2:00:00 pm"
               },
               {
                 "sender": "Devon",
                 "text": "Yes, the Thursday game with Maya at my place, 8. Tell him.",
-                "at": "2026-10-08T14:00:10-04:00"
+                "time": "2:00:10 pm"
               },
               {
                 "sender": "Me",
                 "text": "I’ll ask him; don’t count him until he answers.",
-                "at": "2026-10-08T14:00:20-04:00"
+                "time": "2:00:20 pm"
               }
             ],
-            "facts": [
-              "The DM refers to the existing Thursday game; Alex Reed is only a proposed invitee, not confirmed."
-            ]
+            "thread": "devon"
           },
           {
             "id": "link-arrives",
-            "channel": "delivery",
             "time": "3:00 pm",
             "messages": [
               {
                 "sender": "Courier",
                 "text": "Here’s your parcel-support call link for tomorrow at 9: https://example.org/parcel381 .",
-                "at": "2026-10-08T15:00:00-04:00"
+                "time": "3:00:00 pm"
               }
             ],
-            "facts": [
-              "The support-call URL is https://example.org/parcel381 ."
-            ]
+            "thread": "delivery"
           },
           {
             "id": "date-history",
-            "channel": "jen",
             "time": "4:00 pm",
             "messages": [
               {
                 "sender": "Jen",
                 "text": "Found my certificate from the workshop on January 2, 2024.",
-                "at": "2026-10-08T16:00:00-04:00"
+                "time": "4:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Nice, that’ll be useful for the interview.",
-                "at": "2026-10-08T16:00:10-04:00"
+                "time": "4:00:10 pm"
               },
               {
                 "sender": "Jen",
                 "text": "For interview prep, can we call next Thursday—October 15—at 10 am?",
-                "at": "2026-10-08T16:00:20-04:00"
+                "time": "4:00:20 pm"
               },
               {
                 "sender": "Me",
                 "text": "Yes, October 15 at 10 works.",
-                "at": "2026-10-08T16:00:30-04:00"
+                "time": "4:00:30 pm"
               }
             ],
-            "facts": [
-              "The certificate concerns January 2, 2024, not an upcoming date.",
-              "Jen and the user agree to October 15 at 10 am for interview prep."
+            "thread": "jen"
+          },
+          {
+            "id": "neighbors-new-speaker",
+            "thread": "neighbors",
+            "time": "5 pm",
+            "messages": [
+              {
+                "sender": "Sam",
+                "text": "They finished painting the other wall too."
+              },
+              {
+                "sender": "Nora",
+                "text": "Hi both, I’m in this chat now. I like the new wall."
+              },
+              {
+                "sender": "Me",
+                "text": "Welcome, Nora!"
+              }
             ]
           },
           {
             "id": "proofreading-done",
-            "channel": "jen",
             "time": "6:00 pm",
             "facts": [
-              "The user completes the cover-letter proofreading obligation."
+              "The user completes the cover-letter proofreading obligation.",
+              "The user identifies the company name in paragraph two as the needed fix; Jen acknowledges receiving the feedback.",
+              "This exchange creates no new task, deadline or appointment and does not deliver the checklist."
             ],
-            "scene": "The user sends Jen feedback after completing the cover-letter proofreading, identifying the company name in paragraph two as the needed fix. Jen acknowledges receipt. Do not invent another task, deadline, checklist delivery or appointment.",
+            "scene": "Jen and I discuss my feedback on her cover letter.",
             "message_range": [
               2,
               3
-            ]
+            ],
+            "thread": "jen"
           }
         ]
       },
@@ -1312,65 +1199,68 @@
         "scenes": [
           {
             "id": "visit-excursion",
-            "channel": "visit",
             "time": "5:00 pm",
             "messages": [
               {
                 "sender": "Morgan",
                 "text": "Settled into your guest room, thanks. Tomorrow I’m leaving at 8 for a museum, back about 5. My bag stays here.",
-                "at": "2026-10-09T17:00:00-04:00"
+                "time": "5:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Enjoy. The room is yours for the rest of the stay.",
-                "at": "2026-10-09T17:00:10-04:00"
+                "time": "5:00:10 pm"
               }
             ],
-            "facts": [
-              "Morgan has arrived at the user's home; Saturday's excursion does not end the planned stay."
-            ]
+            "thread": "visit"
           },
           {
             "id": "low-priority-real-update",
-            "channel": "newsletter",
             "time": "6:00 pm",
             "messages": [
               {
                 "sender": "Arts Bulletin",
                 "text": "Your refund for the pottery class cancelled Wednesday October 7 has been issued.",
-                "at": "2026-10-09T18:00:00-04:00"
+                "time": "6:00:00 pm"
               }
             ],
-            "facts": [
-              "The bulletin provides a real refund update for the cancelled pottery booking, without creating an outing."
-            ]
+            "thread": "newsletter"
           },
           {
             "id": "old-preference-quote",
-            "channel": "maya",
             "time": "7:00 pm",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Clearing out Monday’s notes:\n> For pizza, I avoid mushrooms; I’m fine with dairy.",
-                "at": "2026-10-09T19:00:00-04:00"
+                "time": "7:00:00 pm"
               }
             ],
-            "facts": [
-              "Maya quotes the user’s Monday food preference; no new preference change is stated."
-            ]
+            "thread": "maya"
           },
           {
             "id": "jen-matinee-followup",
-            "channel": "jen",
             "time": "7:30 pm",
-            "scene": "In the same DM, Jen follows up about the Roxy matinee with a quick movie-related aside. The user replies casually but doesn't commit. Leave the invitation open; no one books a ticket. Don't repeat the day or time or introduce another activity.",
+            "scene": "Jen and I chat briefly about movies and her matinee invitation.",
             "message_range": [
               2,
               4
             ],
             "facts": [
-              "Jen's existing matinee invitation is still open; the user has not accepted and no tickets are booked."
+              "Jen's existing matinee invitation is still open; the user has not accepted and no tickets are booked.",
+              "The user responds casually without committing; the conversation introduces no other activity and does not repeat the invitation’s day or time."
+            ],
+            "thread": "jen"
+          },
+          {
+            "id": "neighbors-later",
+            "thread": "neighbors",
+            "time": "8:30 pm",
+            "messages": [
+              {
+                "sender": "Sam",
+                "text": "The mural really brightens the street."
+              }
             ]
           }
         ],
@@ -1462,61 +1352,57 @@
         "scenes": [
           {
             "id": "visit-end-change",
-            "channel": "visit",
             "time": "6:00 pm",
             "messages": [
               {
                 "sender": "Morgan",
                 "text": "Back from the museum. Train changed: I’ll finish my stay Sunday October 11 at 10 am instead of Monday.",
-                "at": "2026-10-10T18:00:00-04:00"
+                "time": "6:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Okay, Sunday at 10 then.",
-                "at": "2026-10-10T18:00:10-04:00"
+                "time": "6:00:10 pm"
               }
             ],
-            "facts": [
-              "Morgan's final departure changes to Sunday October 11 at 10 am."
-            ]
+            "thread": "visit"
           },
           {
             "id": "series-ends",
-            "channel": "games",
             "time": "7:00 pm",
             "messages": [
               {
                 "sender": "Devon",
                 "text": "I can’t host the weekly games anymore. Let’s end the series now, including October 14.",
-                "at": "2026-10-10T19:00:00-04:00"
+                "time": "7:00:00 pm"
               },
               {
                 "sender": "Me",
                 "text": "Understood, no more weekly game bookings.",
-                "at": "2026-10-10T19:00:10-04:00"
+                "time": "7:00:10 pm"
               },
               {
                 "sender": "Maya",
                 "text": "Understood too.",
-                "at": "2026-10-10T19:00:20-04:00"
+                "time": "7:00:20 pm"
               }
             ],
-            "facts": [
-              "The game series ends; October 14 and later recurring games are no longer agreed."
-            ]
+            "thread": "games"
           },
           {
             "id": "small-future-plan",
-            "channel": "alex-reed",
             "time": "8:00 pm",
             "facts": [
-              "Alex Reed and the user agree to October 13 coffee at 8 am at Birch."
+              "Alex Reed and the user agree to October 13 coffee at 8 am at Birch.",
+              "The coffee is Tuesday October 13 at 8 in the morning, not 8 in the evening.",
+              "The exchange does not change food preferences or create any additional outing."
             ],
-            "scene": "Alex Reed and the user arrange a quick coffee Tuesday October 13 at 8 am at Birch. A brief ceramics aside is fine. Keep the agreement small and natural; no recap of other plans, change to food preferences, or extra outing. Make the morning time unambiguous in the dialogue, rather than writing only 8.",
+            "scene": "Alex Reed and I arrange a quick coffee and chat about ceramics.",
             "message_range": [
               2,
               4
-            ]
+            ],
+            "thread": "alex-reed"
           }
         ]
       },
@@ -1524,84 +1410,75 @@
         "scenes": [
           {
             "id": "future-pizza",
-            "channel": "maya",
             "time": "11:00 am",
             "messages": [
               {
                 "sender": "Maya",
                 "text": "Pizza Friday October 16 at 1 at Mario's on Pine Street, just us?",
-                "at": "2026-10-11T11:00:00-04:00"
+                "time": "11:00:00 am"
               },
               {
                 "sender": "Me",
                 "text": "Yes, next Friday at 1, just us.",
-                "at": "2026-10-11T11:00:10-04:00"
+                "time": "11:00:10 am"
               },
               {
                 "sender": "Maya",
                 "text": "Still not sure whether I’ll keep avoiding dairy after tonight.",
-                "at": "2026-10-11T11:00:20-04:00"
+                "time": "11:00:20 am"
               },
               {
                 "sender": "Me",
                 "text": "Let me know when you decide.",
-                "at": "2026-10-11T11:00:30-04:00"
+                "time": "11:00:30 am"
               },
               {
                 "sender": "Maya",
                 "text": "Nora booked Luigi’s on 5th for Friday October 9 at 6 too. Her guest list was just herself and her flatmates Eli and Jo.",
-                "at": "2026-10-11T11:00:40-04:00"
+                "time": "11:00:40 am"
               }
             ],
-            "facts": [
-              "A distinct October 16 lunch is agreed at 1 pm at Mario's on Pine Street, with exactly user and Maya.",
-              "Maya has not decided whether to continue avoiding dairy on October 16.",
-              "Nora’s October 9 6 pm Luigi’s booking has the complete guest list Nora, Eli and Jo, distinct from the user and Devon."
-            ]
+            "thread": "maya"
           },
           {
             "id": "pending-invite",
-            "channel": "alex-chen",
             "time": "12:00 pm",
             "messages": [
               {
                 "sender": "Alex Chen",
                 "text": "Want to try the climbing wall Wednesday October 14 at 6 pm? No rush to answer.",
-                "at": "2026-10-11T12:00:00-04:00"
+                "time": "12:00:00 pm"
               }
             ],
-            "facts": [
-              "Alex Chen proposes October 14 climbing at 6 pm; the user has not accepted or declined."
-            ]
+            "thread": "alex-chen"
           },
           {
             "id": "quiet-chatter",
-            "channel": "devon",
             "time": "7:00 pm",
             "messages": [
               {
                 "sender": "Me",
                 "text": "😂",
-                "at": "2026-10-11T19:00:00-04:00"
+                "time": "7:00:00 pm"
               },
               {
                 "sender": "Devon",
                 "text": "That spaceship model looked better than the digital version.",
-                "at": "2026-10-11T19:00:10-04:00"
+                "time": "7:00:10 pm"
               },
               {
                 "sender": "Me",
                 "text": "Still couldn’t forgive the ending.",
-                "at": "2026-10-11T19:00:20-04:00"
+                "time": "7:00:20 pm"
               },
               {
                 "sender": "Devon",
                 "text": "Fair. Practical effects deserved a better script.",
-                "at": "2026-10-11T19:00:30-04:00"
+                "time": "7:00:30 pm"
               }
             ],
-            "facts": [],
-            "scene": "Me and Devon exchange casual opinions about a film; they make no new plan or commitment."
+            "scene": "Me and Devon exchange casual opinions about a film; they make no new plan or commitment.",
+            "thread": "devon"
           }
         ]
       }

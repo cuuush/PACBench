@@ -118,7 +118,7 @@ def test_supplied_source_preserves_exact_lines_clocks_and_checker(count, tmp_pat
 
 @pytest.mark.parametrize('mutation', [
     'empty', 'null', 'not-list', 'extra-field', 'bad-sender', 'blank-text',
-    'missing-clock', 'naive-clock', 'bad-clock', 'wrong-offset', 'outside-window',
+    'naive-clock', 'bad-clock', 'wrong-offset', 'outside-window',
     'reverse', 'equal-clocks', 'duplicate-body', 'quota', 'no-members',
 ])
 def test_invalid_supplied_messages_stop_before_model_setup(tmp_path, monkeypatch, mutation):

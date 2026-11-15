@@ -1,109 +1,138 @@
 # Writing a spec
 
-Keep one JSON per scenario in `specs/`; its duration can be a day, a month or longer. [Pizza Week](../specs/pizza_week.json) shows the format: `week_start`, reusable `channels`, and seven `days` sections, from `monday` through `sunday`. Empty days are `{}`. `python -m pacbench.specs` checks the whole directory for structural errors without generating text, creating artifacts or calling a model. Preparation still requires independent semantic checks.
+Keep one JSON per scenario in `specs/`. Pin `week_start` and `timezone`, then use
+`days` (seven weekday sections) or `weeks` (a list of those sections). Empty days
+are `{}`. `python -m pacbench.specs` compiles and validates offline: it does not
+write scenes, call a model or run providers. The revised
+[Pizza Week assistant draft](../specs/pizza_week_assistant.json) is for review,
+not a generated or verified corpus.
 
-Define each chat once under `channels`, with its source `type`, `participants` and optional group `name`. A scene then needs only `id`, `channel`, a human-readable `time`, a short `scene` description (or exact `messages`, below) and inline English `facts`. Its channel key also identifies its thread. The same contact name resolves to the same synthetic source identity across DMs and groups; silent group members remain members.
+## Threads and participants
 
-Optionally define recurring people before channels in `cast`, mapping each participant name to a concise description. This private context goes to the writer and checker for scenes involving that person; it is not source evidence or provider metadata. All facts in a scene are checked together in one independent review.
+Give every scene a stable `thread` key. The first scene creates that thread;
+later scenes with that key continue it. The default source `type` is `imessage`.
+For email, set `type: "email"` and `subject` on its first scene. Use different
+keys for separate groups or email subjects, even if the people are identical.
+Source type, name and subject cannot change within a thread.
 
-Scene style:
+Exact scenes infer each new speaker's membership **at that message**, not at the
+start of the scene. Optional scene-local `participants` establish known silent
+members at the scene start. Generated scenes need local `participants` on the
+first scene: the writer never establishes membership or invents speakers. Later
+generated scenes can omit the list to retain the existing roster, or list new
+members to add them at that scene's start. Membership persists; omission never
+removes a person. No explicit join event is required. `Me` is the owner label.
+An outgoing-only first scene needs explicit recipients: unknown future speakers
+cannot supply recipients retroactively. Membership is separate from an event's
+attendance/RSVP roster.
 
-- Use `cast` for stable character context.
-- Describe what happens in one short scene sentence.
-- Let channel and time metadata establish the thread and sequence.
-- Put one checkable outcome or constraint in each fact, including date scope and continuity; avoid narrative instructions.
+Public source records carry the roster available at **each message**. Stable
+opaque thread IDs do not depend on roster, and adding a speaker does not mutate
+older observations. The document transport emits a new roster header when it
+changes, under the same conversation ID. Email From/To headers use that message's
+roster and keep reply references on the same thread.
 
-## Supply exact messages for a simple scene
+**Apple Messages limitation:** the current synthetic reader schema has a single
+`chat_handle_join` roster with no historical membership clock. Updating it would
+make old messages appear to have future members. Its fixture therefore rejects
+membership changes, both within a batch and across appends; it neither backfills
+the old chat nor creates another chat. Shared native source preparation currently
+builds this fixture, so a changing iMessage group cannot yet pass that preparation
+path, including Memcal's native Messages reader. Offline public records/document
+exports demonstrate the join faithfully; they do not establish Apple fixture or
+provider coverage. Earlier completed snapshot files remain unchanged. There is
+no silent fixture fallback.
 
-Use `messages` to provide the source directly instead of asking the writer to
-compose it. Generated and supplied scenes can coexist in the same spec and
-thread. For example, this scene fragment belongs to a week pinned to
-`2026-10-05`, with a `sam` channel containing `Me` and `Sam`:
+Legacy top-level `channels` with scene `channel` references remain supported as
+fixed rosters. Do not mix the legacy and scene-local formats for the same thread.
+Optional `cast` is private backstory, never membership authority; every cast name
+must independently occur in source membership. New examples need no preamble.
+
+## Exact messages and readable timing
+
+An exact scene normally needs only `sender` and `text` per message. The first
+message uses the scene start; each subsequent omitted clock adds one elapsed
+minute to the previous message. An optional `time`, such as `"6:03 pm"` or
+`"6:03:07 pm"`, overrides that message on the scene's local calendar day.
+Legacy offset-aware ISO `at` is also accepted and preserved; do not supply both.
+An override resets the base for the next default. Text, whitespace, Unicode and
+speaker identity are preserved. No owner reply is invented.
+
+Clocks must be strictly increasing and inside the scene window (`time` through
+`until`, or 20 minutes). Relative defaults advance correctly over midnight and
+DST. Readable times on the scene's day cannot denote the next day: use another
+scene or a legacy ISO override for that explicit clock. Nonexistent or ambiguous
+local overrides fail; use a valid offset-aware ISO instant for a repeated DST
+hour. Offsets must agree with the specified IANA timezone. Date-specific ISO
+values do not move with `--week-start`. Unknown fields, empty text, duplicate
+bodies, invalid speakers and generated quotas on exact scenes fail offline.
+
+**Omit scene `facts` for new exact source.** It bypasses both writer and scene
+checker. Receipts say `author-source-v1`, `state: "unjudged"`, and record a
+hash-bound deterministic integrity check—not a fabricated semantic pass.
+Prepare, imported-dialogue validation, cache/reuse and freeze audits enforce
+exact bodies, timestamps, speakers and public metadata. A forged model-verdict
+or checker receipt is rejected. Question/answer grading and independent
+source-supported question/criterion audits remain separate and still apply.
+Corpus review `source-realism-v11` uses all actual source for answerability while
+exempting author-owned source from writing/naturalness/scene-fact judging.
+It does not endorse an authored expectation merely because its source was exact.
+
+For compatibility, explicitly supplied legacy scene `facts` (including `[]`)
+retain the original model-checking contract. Old compiled scenes, checker
+receipts and frozen artifacts keep their protocol. Remove that field only when
+authoring a **new** intentionally unjudged scene; nonempty facts cannot accompany
+`source_review: "author-source-v1"`. Historical facts are never silently discarded. Resuming a legacy reviewed scene
+as unjudged source is refused before files change; use a fresh preparation for
+that deliberate change.
+
+## Generated scenes and a mixed example
+
+Say what people are doing or discussing in that moment. A simple scene can be
+`"Maya and I discuss lunch plans."` Put factual outcomes and constraints in
+`facts`, not writer directions or a checkpoint recap. The writer sees prior
+messages in this thread; the checker sees preceding cross-thread source context.
+Generated source retains normal independent scene review, bound to actual text,
+facts and context. Neither generated source nor exact source reaches providers
+with private author directions, facts or answer keys.
+
+This complete minimal example mixes exact and generated source, infers Sam's
+join on the second Tuesday message, and retains him silently on Wednesday. It
+compiles offline. Because of the Apple fixture limitation above, it is **not** a
+claim of native Messages transport support.
 
 ```json
 {
-  "id": "pizza-proposal",
-  "channel": "sam",
-  "time": "6 pm",
-  "messages": [
-    {"sender": "Sam", "text": "Pizza Friday at six?", "at": "2026-10-05T18:00:02-04:00"}
-  ],
-  "facts": ["Sam proposes pizza Friday at 6 pm."]
-}
-```
-
-For a short exchange, add message objects in order:
-
-```json
-"messages": [
-  {"sender": "Sam", "text": "Pizza Friday at six?", "at": "2026-10-05T18:00:02-04:00"},
-  {"sender": "Me", "text": "Yes, that works.", "at": "2026-10-05T18:00:17-04:00"},
-  {"sender": "Sam", "text": "Great!", "at": "2026-10-05T18:03:04-04:00"}
-]
-```
-
-Each object accepts exactly `sender`, `text` and `at`. The source preserves their
-values, including body whitespace, newlines and Unicode; it never invents an
-owner reply or spreads supplied timestamps. The channel and membership come
-from the normal channel definition. A single incoming or outgoing message is
-valid, even when other channel members are silent. A `scene` description is
-optional for supplied source and, if provided, remains private author context.
-Keep the usual `facts` list accurate for the actual text; a proposal is not an
-accepted plan, and ungraded chatter can use `facts: []`.
-
-Timestamps must include UTC offsets matching the spec's time zone, be strictly
-increasing and lie inside the scene window (`time` through `until`, or the
-default 20 minutes). Empty messages, unknown senders, undeclared object fields,
-duplicate message bodies and conflicting clocks fail offline validation. For
-a next-day reply, add another scene in that day's section on the same channel,
-with its own exact timestamp; prior thread messages remain available as context.
-Absolute message timestamps do not shift with `--week-start`: update them when
-changing the simulated calendar, or validation will reject the mismatch.
-
-Supplied source ignores global noise quotas and cannot declare `message_range`
-or `messages_per_person`. Only generated scenes share automatic chat-volume
-targets. This bypasses the writer alone: the independent scene checker still
-reviews all facts together against the exact source and preceding context,
-including each supplied message's timestamp. A rejection preserves its receipt
-and blocks that thread; the writer never rewrites the source, and a failed
-cached recheck is not rerolled for approval. Edit the spec and resume when needed.
-
-The normal contract review, corpus review, hash-bound freeze audit and provider
-ingestion paths apply. Saved provenance marks the scene as `supplied`, with zero
-writer attempts and a required checker receipt. Body or timestamp edits invalidate
-scene reuse. Providers receive only normal public source records with opaque
-IDs, never `facts`, scene descriptions, writer provenance or the answer key.
-Offline validation needs no model; preparing supplied scenes still requires
-the normal verification and review calls.
-
-## Conversation context and generation
-
-Email channels use `type: "email"` and a `subject`. Each generated entry becomes an RFC 5322 email body with From/To, Date, Message-ID and reply references. Bodies preserve paragraphs and quoted reply history as part of the actual sender's message. Legacy low/medium/high email exchanges stay at 2–6 messages; more email volume comes from authored threads rather than text-chat quotas. Messaging and email addresses are distinct accounts on the same separate Contacts card. Memcal consumes Inbox/Sent through its native secure IMAP reader against a synthetic local mailbox; this is a protocol fixture, not a running Proton Bridge. No native readers or archive writes are substituted. The checker sees preceding source context across channels; the writer sees its own preceding thread and authored requirements.
-
-Every scene checker sees preceding cross-channel source context. Its cache binds the actual checked transcript and context, not just the scene description. A changed checker/context can reverify cached text without rewriting it; only a rejected realization needs a new draft. The private scene cache preserves unvisited renders through interrupted revisions. Frozen-source audits compare message bodies and metadata with the saved passing checker input and model receipt.
-
-```json
-{
-  "week_start": "2026-09-07",
-  "cast": {"Devon": "The user's friend from work."},
-  "channels": {
-    "devon": {"type": "imessage", "participants": ["Me", "Devon"]}
-  },
+  "id": "small-mixed-example",
+  "week_start": "2026-10-05",
+  "timezone": "America/New_York",
   "days": {
     "monday": {
-      "scenes": [
-        {"id": "invite", "channel": "devon", "time": "7:30 am",
-         "scene": "A conversation about getting pizza.",
-         "facts": ["They agree to get pizza on Friday.",
-                   "They agree on Domino's as the venue.",
-                   "Maria is coming too."]}
-      ]
-    }
+      "scenes": [{"id": "invite", "thread": "lunch", "time": "6 pm",
+        "messages": [{"sender": "Maya", "text": "Lunch Friday?"}]}]
+    },
+    "tuesday": {
+      "scenes": [{"id": "new-speaker", "thread": "lunch", "time": "noon",
+        "messages": [{"sender": "Maya", "text": "The café has new chairs."},
+                     {"sender": "Sam", "text": "Hi both!", "time": "12:03 pm"}]}]
+    },
+    "wednesday": {
+      "scenes": [{"id": "plans", "thread": "lunch", "time": "6 pm",
+        "scene": "Maya and I discuss lunch plans.",
+        "facts": ["Maya and the user agree to lunch Friday at noon at Rosa's."]}]
+    },
+    "thursday": {"conversations": [{"id": "recall", "time": "9 am",
+      "turns": [{"id": "lunch-plan", "prompt": "What lunch plans do I have?",
+        "expect": "Report the agreed Friday lunch at noon at Rosa's."}]}]},
+    "friday": {}, "saturday": {}, "sunday": {}
   }
 }
 ```
 
-This fragment belongs in a complete seven-day week. Facts stay next to the scene; there is no top-level fact catalog or fact-ID matching. Assistant turns use an English `expect` description or a list of inline English `facts` for recall; see [conversations](flexible-checks.md).
+For a generated first scene, add `participants: ["Me", "Maya"]`; for a new email
+thread also add `type: "email", subject: "Lunch"`. Silent members may remain
+silent; participants do not imply attendance. Cast is optional backstory and is
+omitted here.
 
 For an update scene, describe what changes. Use “same time” or “venue unchanged” when people rely on prior context; listing the old restaurant as a new scene fact encourages an unnatural recap. Inspect generated dialogue for added reminders that would weaken the intended test. Expectations should judge facts the question naturally invites, rather than requiring unrelated details in a yes/no answer.
 
@@ -167,11 +196,11 @@ writer output and record findings with scene IDs and quoted source evidence:
   review; verbosity by itself is not proof of a harder or better test.
 
 Offline compilation and prompt tests establish wiring and compatibility only.
-Human writing review, fresh scene verification and corpus-wide review remain
-pending until actual generation. Use fresh preparation for changed scenes and
+Human writing review, fresh generated-scene verification and independent question/corpus review remain
+pending until actual preparation; author-owned exact scenes remain explicitly unjudged. Use fresh preparation for changed scenes and
 review bindings; do not relabel the earlier frozen corpus or its scores.
 
-For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sunday maps. Channels remain shared, so an ongoing chat keeps its identity across the month. Scene IDs gain a week prefix when compiled; assistant turn and session IDs stay as authored. [Pizza Month](../specs/pizza_month.json) covers 30 consecutive source days, then asks upcoming-plan questions. `ingestion_days: 30` verifies that exact daily coverage and prevents interim questions.
+For multiple weeks, replace `days` with a `weeks` array of complete Monday–Sunday maps. Thread keys remain shared, so an ongoing chat keeps its identity across the month; legacy channel definitions retain fixed rosters. Scene IDs gain a week prefix when compiled; assistant turn and session IDs stay as authored. [Pizza Month](../specs/pizza_month.json) covers 30 consecutive source days, then asks upcoming-plan questions. `ingestion_days: 30` verifies that exact daily coverage and prevents interim questions.
 
 Concrete dates are assigned during preparation from the spec's `week_start` Monday. `--week-start` explicitly overrides it; update any prose containing concrete dates when moving a scenario. Legacy unpinned inputs can still prepare relative to the host week, but the inventory requires a fixed date. Eastern defaults to `America/New_York`, including daylight saving time. Dates and offsets are frozen in the compiled corpus.
 
@@ -196,8 +225,7 @@ semantic verdict. Missing fields remain ungraded; explicit negative judgments
 remain rejected, including negatives inside malformed responses.
 
 The checker requires commitments only where the authored scenario or facts do.
-Supplied chatter without either is checked for coherence, identities, chronology
-and relevant continuity; an empty facts array does not automatically approve it.
+Legacy supplied chatter with an explicit facts field keeps that checker contract; an empty facts array does not automatically approve it. New author-owned exact scenes omit facts and bypass this scene checker, as described above.
 This version replaces v10's split output instructions, which sometimes elicited
 only per-fact judgments. It does not permit automatic format retries or rerolls.
 Changed checker prompts require new bound checks, reusing the exact source text;

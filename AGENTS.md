@@ -57,8 +57,11 @@ existing docs and run evidence in machine-readable artifacts.
   Omitted `noise` uses scene-directed authored mode; explicit legacy modes and
   frozen policies stay supported. Resuming legacy preparation requires an
   explicit mode so a default change cannot silently migrate its sources.
-- Scenes may supply exact messages instead of using the writer. Keep the normal
-  independent checks and freeze audit; never rewrite rejected supplied source.
+- Scenes may supply exact messages instead of using the writer. New exact
+  source without a facts field bypasses writer and scene judging, with
+  explicit unjudged integrity provenance. Preserve legacy inline-fact review
+  contracts, independent question/criterion checks and freeze audits; never
+  rewrite rejected legacy supplied source.
 - Require current source, contract and corpus reviews bound to actual inputs
   and receipts. Bulk review is advisory; retain required independent source
   audits of every frozen question and scoring criterion against the actual

@@ -8,7 +8,7 @@ from .followups import digest, save
 from .semantic_contract import _dialogue
 
 VERSION = 'source-realism-v10'
-SOURCE_BLIND = {'source-realism-v7','source-realism-v8','source-realism-v9',VERSION}
+SOURCE_BLIND = {'source-realism-v7','source-realism-v8','source-realism-v9',VERSION,'source-realism-v11'}
 SUPPORTED_VERSIONS = {'source-realism-v3', 'source-realism-v4', 'source-realism-v5', 'source-realism-v6', *SOURCE_BLIND}
 
 
@@ -19,8 +19,23 @@ def review_intent(resolved):
 
 def review_prompt(messages, resolved, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unsupported corpus review version')
-    if version=='source-realism-v10':
+    if version in {'source-realism-v10','source-realism-v11'}:
         from .corpus_epistemic import prompt
+        if version=='source-realism-v11':
+            from .authoring import ScenePlan,build_scene_observations
+            from dataclasses import fields
+            names={f.name for f in fields(ScenePlan)}
+            exact_ids=[]
+            for s in resolved['scenes']:
+                if s.get('source_review')=='author-source-v1':
+                    plan=ScenePlan(**{k:v for k,v in s.items() if k in names})
+                    exact_ids.extend(o.source_id for o in build_scene_observations(resolved['id'],plan,
+                        [(m['sender'],m['text']) for m in plan.messages]))
+            return prompt(messages,resolved)+ ('\nAuthor-owned exact source IDs: '+json.dumps(exact_ids)+
+                '\nThese records are intentionally unjudged author source: do not assess their writing, '
+                'naturalness or compliance with scene facts. The natural_enough gate applies only to '
+                'generated source. Use ALL actual records for independent question answerability and '
+                'source-supported criterion checks; an author-owned record is not proof that an expectation is valid.')
         return prompt(messages,resolved)
     if version == 'source-realism-v9':
         return _v8_prompt(messages,resolved) + (
@@ -153,7 +168,7 @@ def _v7_prompt(messages, resolved, *, include_turn_metadata=False):
 
 def validation_errors(verdict, messages, resolved, *, version=VERSION):
     """Verify exact citations; v8 also accepts delivered public user inputs."""
-    if version=='source-realism-v10':
+    if version in {'source-realism-v10','source-realism-v11'}:
         from .corpus_epistemic import validation_errors as epistemic_errors
         return epistemic_errors(verdict,messages,resolved)
     errors = []
@@ -292,7 +307,7 @@ def review_corpus(messages, resolved, model, root: Path, *, version=VERSION):
     if version in SOURCE_BLIND:
         receipt['scope'] = 'source-coherence-and-public-question-answerability'
         receipt['validation_errors'] = validation_errors(verdict, messages, resolved,version=version)
-    if version=='source-realism-v10':
+    if version in {'source-realism-v10','source-realism-v11'}:
         from .corpus_epistemic import eligible_evidence
         receipt['eligibility_bindings']={c['id']:digest(eligible_evidence(messages,resolved,c['id'])) for c in resolved['checks']}
     save(root / 'realism-review.json', receipt)

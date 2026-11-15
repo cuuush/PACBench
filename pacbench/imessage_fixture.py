@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 VERSION = 'apple-messages-text-v4'
+MEMBERSHIP_LIMITATION = ('Apple Messages fixture has a global chat_handle_join roster, not historical membership. '
+    'Changing membership in the same thread is unsupported; refusing to backfill old messages or create a different chat.')
 APPLE_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 SCHEMA = (Path(__file__).parent/'source_schemas/apple_messages.sql').read_text()
 
@@ -74,14 +76,14 @@ def append_messages(path: Path, messages: list[dict], *, contacts=()) -> dict:
                     any(not isinstance(name,str) or not name.strip() for name in roster) or
                     'Me' not in roster or len(roster)<2 or len(set(roster))!=len(roster) or
                     any(m['sender'] not in roster for m in batch)):
-                    raise ValueError('Inconsistent source chat membership')
+                    raise ValueError('Inconsistent source chat membership. '+MEMBERSHIP_LIMITATION)
             else:
                 roster = sorted(set((prior_thread or {}).get('participants',[])) |
                                 {'Me'} | {m['sender'] for m in batch if not m['from_owner']})
             if len(roster)<2:
                 raise ValueError('Outgoing-only chat requires explicit recipient source metadata')
             if prior_thread and rosters and prior_thread['participants'] != roster:
-                raise ValueError('Source membership changed without a modeled chat membership event')
+                raise ValueError(MEMBERSHIP_LIMITATION)
             labels = {(m.get('structured') or {}).get('chat_name','') for m in batch}
             if len(labels)!=1:raise ValueError('Inconsistent source group name')
             display = next(iter(labels))

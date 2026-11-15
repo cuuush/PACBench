@@ -55,6 +55,7 @@ message uses the scene start; each subsequent omitted clock adds one elapsed
 minute to the previous message. An optional `time`, such as `"6:03 pm"` or
 `"6:03:07 pm"`, overrides that message on the scene's local calendar day.
 Legacy offset-aware ISO `at` is also accepted and preserved; do not supply both.
+Use an override only when the gap or exact clock matters to the story or a test.
 An override resets the base for the next default. Text, whitespace, Unicode and
 speaker identity are preserved. No owner reply is invented.
 
@@ -114,7 +115,7 @@ claim of native Messages transport support.
     "tuesday": {
       "scenes": [{"id": "new-speaker", "thread": "lunch", "time": "noon",
         "messages": [{"sender": "Maya", "text": "The café has new chairs."},
-                     {"sender": "Sam", "text": "Hi both!", "time": "12:03 pm"}]}]
+                     {"sender": "Sam", "text": "Hi both!"}]}]
     },
     "wednesday": {
       "scenes": [{"id": "plans", "thread": "lunch", "time": "6 pm",
@@ -136,7 +137,7 @@ omitted here.
 
 For an update scene, describe what changes. Use “same time” or “venue unchanged” when people rely on prior context; listing the old restaurant as a new scene fact encourages an unnatural recap. Inspect generated dialogue for added reminders that would weaken the intended test. Expectations should judge facts the question naturally invites, rather than requiring unrelated details in a yes/no answer.
 
-Omitting `noise` (or explicitly setting `noise: "authored"`) lets the scene descriptions control topics and length, without automatic message quotas, per-person targets or generic noise instructions. New specs should omit this field and describe chatter in each scene. Pizza Day remains the unchanged explicit low-noise smoke test. Explicit scene `message_range` bounds, when supplied, still apply. Previously, omission selected `low`. Existing frozen manifests retain their resolved policy and are not rewritten. When resuming an older legacy preparation, specify its old `noise` mode explicitly; omission is rejected before any files change. To deliberately migrate it, specify `noise: "authored"`; changed generation fingerprints require new scene generation and verification. An unchanged authored preparation resumes with the same fingerprints whether the field is omitted or explicit.
+Omitting `noise` (or explicitly setting `noise: "authored"`) lets the scene descriptions control topics and length, without automatic message quotas, per-person targets or generic noise instructions. For new specs, leave out `noise` and numeric message-count ranges. If length matters, describe it in the scene, such as “a quick check-in” or “a long, rambling group chat.” The writer chooses the count. Pizza Day remains the unchanged explicit low-noise smoke test. Legacy specs with explicit `message_range` bounds remain supported for reproducibility. Previously, omission selected `low`. Existing frozen manifests retain their resolved policy and are not rewritten. When resuming an older legacy preparation, specify its old `noise` mode explicitly; omission is rejected before any files change. To deliberately migrate it, specify `noise: "authored"`; changed generation fingerprints require new scene generation and verification. An unchanged authored preparation resumes with the same fingerprints whether the field is omitted or explicit.
 
 For compatibility, `noise` also accepts `low`, `medium` or `high`. Low is the shortest natural exchange (normally 2–12 messages). Medium targets 20–40 messages per person per conversation per day. High targets 600–800 per person, including unrelated topics, facts and side plans. Multiple scenes in the same chat/day share that target. Each member must meet the minimum; the total exchange stays bounded, while individual speakers may exceed their target share. Larger exchanges use bounded chunks; messages are never padded, copied or truncated to meet a count. Prefer scene-authored chatter for new specs; explicit legacy modes remain available for reproducibility. An optional `until` sets the scene's ending wall time; high otherwise continues through the rest of its day, respecting the next scene in that chat. Authored start times remain unchanged. Within each window, deterministic uneven gaps provide synthetic pacing; they do not claim to reproduce an empirically measured distribution.
 

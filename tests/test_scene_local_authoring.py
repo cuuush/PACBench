@@ -2,7 +2,6 @@
 import copy
 import json
 import re
-import subprocess
 from dataclasses import replace
 from datetime import datetime
 from email import policy
@@ -177,21 +176,32 @@ def test_email_rosters_change_per_message_without_changing_thread(tmp_path):
     assert msgs[0]['thread']==msgs[1]['thread']
 
 
-def test_draft_preserves_existing_questions_exact_instants_and_jen_blend(tmp_path):
-    old=json.loads(subprocess.check_output(['git','show','f439bfb:specs/pizza_week_assistant.json'],text=True))
+def test_draft_uses_default_clock_without_changing_questions_or_jen_blend(tmp_path):
     new=json.loads(Path('specs/pizza_week_assistant.json').read_text())
-    op,_,orr=resolve_spec(old,tmp_path);np,_,nrr=resolve_spec(new,tmp_path)
-    assert len(nrr['checks'])==42 and nrr['checks']==orr['checks']
-    catalog=resolve_spec(json.loads(Path('specs/pizza_week_catalog.json').read_text()),tmp_path)[2]
+    np,_,nrr=resolve_spec(new,tmp_path)
+    catalog_plans,_,catalog=resolve_spec(json.loads(
+        Path('specs/pizza_week_catalog.json').read_text()),tmp_path)
     by_id={r['id']:r for r in nrr['checks']}
-    assert len(catalog['checks'])==37
-    assert all(by_id[r['id']]['prompt']==r['prompt'] for r in catalog['checks'])
-    orig={p.id:p for p in op};revised={p.id:p for p in np}
-    for sid,p in orig.items():
+    assert len(by_id)==42 and len(catalog['checks'])==37
+    assert all(by_id[r['id']]==r for r in catalog['checks'])
+    revised={p.id:p for p in np}
+    speaker_text=lambda p: [(m['sender'],m['text']) for m in p.messages]
+    for p in catalog_plans:
         if p.messages is not None:
-            assert p.messages==revised[sid].messages
-            assert revised[sid].source_review=='author-source-v1'
-        else:assert len(revised[sid].scene)<100
+            assert speaker_text(p)==speaker_text(revised[p.id])
+    for w in new['weeks']:
+        for d in w.values():
+            for scene in d.get('scenes',[]):
+                assert not {'message_range','messages_per_person','size_range'} & scene.keys()
+                for msg in scene.get('messages',[]):
+                    assert set(msg)=={'sender','text'}
+    for p in np:
+        if p.messages is None:
+            continue
+        assert p.source_review=='author-source-v1'
+        clocks=[datetime.fromisoformat(m['at']) for m in p.messages]
+        assert clocks[0]==datetime.fromisoformat(p.at)
+        assert all((b-a).total_seconds()==60 for a,b in zip(clocks,clocks[1:]))
     invitation=revised['w1-jen-matinee-invite'];followup=revised['w1-jen-matinee-followup']
     assert len(invitation.messages)==1 and invitation.messages[0]['sender']=='Jen'
     assert invitation.thread==followup.thread and followup.messages is None

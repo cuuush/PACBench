@@ -94,9 +94,11 @@ that deliberate change.
 
 ## Generated scenes and a mixed example
 
-Say what people are doing or discussing in that moment. A simple scene can be
-`"Maya and I discuss lunch plans."` Put factual outcomes and constraints in
-`facts`, not writer directions or a checkpoint recap. The writer sees prior
+Describe the conversation in third person: who is talking, what they are
+discussing, and the tone or format if it matters. For example,
+`"Two friends decide whether to get pizza."` is enough. Avoid first-person
+summaries such as “Devon and I get pizza.” Put the outcome, date, and other
+required details in `facts`, not in a recap of what happens outside the chat. The writer sees prior
 messages in this thread; the checker sees preceding cross-thread source context.
 Generated source retains normal independent scene review, bound to actual text,
 facts and context. Neither generated source nor exact source reaches providers
@@ -127,7 +129,7 @@ claim of native Messages transport support.
     },
     "wednesday": {
       "scenes": [{"id": "plans", "thread": "lunch", "time": "6 pm",
-        "scene": "Maya and I discuss lunch plans.",
+        "scene": "Two friends discuss lunch plans.",
         "facts": ["Maya and the user agree to lunch Friday at noon at Rosa's."]}]
     },
     "thursday": {"conversations": [{"id": "recall", "time": "9 am",

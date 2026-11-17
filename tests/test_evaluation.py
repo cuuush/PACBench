@@ -213,19 +213,22 @@ def correct_judge(prompt):
 
 
 @pytest.mark.parametrize('context', ['shared', 'isolated'])
-def test_sequence_continuity_and_source_access_cannot_be_laundered(tmp_path, context):
+@pytest.mark.parametrize('clock_protocol', ['user-clock-prefix-v1', 'ephemeral-system-clock-v2'])
+def test_sequence_continuity_and_source_access_cannot_be_laundered(tmp_path, context, clock_protocol):
+    from pacbench.clock_context import expected_prompt, instruction
     checks, calls = checkpoints(tmp_path), []
     def runner(prompt, **kwargs):
         calls.append(kwargs)
         index = len(calls)
         sid = kwargs['session_id'] or f'session-{index}'
         tool = [{'name': 'memcal_open_source', 'input': {'source': 'E1'}}] if index == 1 else []
-        return TurnResult(prompt=f"[Simulated now: {kwargs['at']}. Treat this as the current date and time for everything in this turn.]\n\n{prompt}",
+        return TurnResult(prompt=expected_prompt(kwargs['at'], prompt, clock_protocol),
             at=kwargs['at'], answer='Synthetic current answer.', tool_calls=tool,
             tool_results=[{'tool': 'memcal_open_source', 'success': True, 'text': '{}'}] if tool else [],
             policy_blocks=0, latency_s=1, returncode=0, stderr_tail='', raw_events=0, session_id=sid,
             session_input_tokens=100 * index if context == 'shared' else 100,
-            session_output_tokens=20 * index if context == 'shared' else 20)
+            session_output_tokens=20 * index if context == 'shared' else 20,
+            clock_context={'protocol':clock_protocol})
     report = run_checks(checks, context, tmp_path / 'arm', correct_judge, '', {},
         question_dir=tmp_path / 'questions', run_turn=runner, budget_snapshot=lambda: {'projects': []})
     assert report['state'] == 'diagnostic'
@@ -236,16 +239,19 @@ def test_sequence_continuity_and_source_access_cannot_be_laundered(tmp_path, con
     second = json.loads((tmp_path / 'arm/turns/event-2/followups/recovery.json').read_text())
     assert second['initial_metrics']['input_tokens'] == 100
     judgment = json.loads((tmp_path / 'arm/turns/event-2/judgment.json').read_text())
+    assert judgment['question'].startswith(instruction(checks[1][0]['at']))
+    if context == 'shared':
+        assert judgment['conversation'][0]['content'].startswith(instruction(checks[0][0]['at']))
     assert len(judgment['conversation']) == (2 if context == 'shared' else 0)
     assert 'Do not award a fact merely because' in judgment['prompt'] if context == 'shared' else True
-    assert audit_checks(checks, context, tmp_path / 'arm') == []
+    assert audit_checks(checks, context, tmp_path / 'arm', clock_context_protocol=clock_protocol) == []
     with pytest.raises(FileExistsError):
         run_checks(checks, context, tmp_path / 'arm', correct_judge, '', {},
             question_dir=tmp_path / 'questions', run_turn=runner)
     path = tmp_path / 'arm/turns/event-2/judgment.json'
     judgment['conversation'] = [{'role': 'assistant', 'content': 'Invented history'}]
     path.write_text(json.dumps(judgment))
-    assert any('judge conversation mismatch' in e for e in audit_checks(checks, context, tmp_path / 'arm'))
+    assert any('judge conversation mismatch' in e for e in audit_checks(checks, context, tmp_path / 'arm', clock_context_protocol=clock_protocol))
 
 
 def test_supplied_prompt_is_not_rewritten_and_nonelicitable_facts_fail_closed(tmp_path):

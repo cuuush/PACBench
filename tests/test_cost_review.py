@@ -50,6 +50,9 @@ def test_native_costs_count_unique_requests_and_keep_background_and_holds(tmp_pa
     assert row['cost']['memory_provider']['settled_upper_bound_usd']==.01
     assert row['cost']['memory_provider']['held_usd']==.1
     assert row['cost']['memory_provider']['input_tokens'] is None
+    requests_by_id={c['id']:c for c in row['request_costs']}
+    assert requests_by_id['ingest']['provider']=='local' and requests_by_id['ingest']['stages']==['ingestion']
+    assert requests_by_id['background']['stages']==['outside_captured_windows']
     assert row['phases']['ingestion']['memory_provider']['model_requests']==1
     assert row['phases']['outside_captured_windows']['memory_provider']['model_requests']==1
     assert row['complete_for_cost_comparison'] is True
@@ -115,3 +118,16 @@ def test_replaced_attempt_cost_does_not_disappear_or_blend_into_selected_arm(tmp
     attempt=report['other_attempts'][0]
     assert attempt['daily_batches_ready']==1
     assert attempt['cost']['memory_provider']['held_usd']==.1
+
+
+def test_reconciled_charges_stay_separate_from_estimates_and_legacy_guard_amount():
+    calls = [call('actual', 'hermes', cost=.02), call('estimated', 'hermes', cost=.03),
+             call('pending', 'hermes', state='unknown', cost=.04)]
+    calls[0]['actual_cost_usd'] = .015
+    summary = summarize(calls)
+    assert summary['actual_cost_usd'] is None  # Other requests have no confirmed charge.
+    assert summary['actual_cost_known_usd'] == .015
+    assert summary['token_price_estimate_usd'] == .03
+    assert summary['unconfirmed_budget_bound_usd'] == .04
+    # Historical guard amount remains readable but is not an estimate subtotal.
+    assert summary['settled_upper_bound_usd'] == .05

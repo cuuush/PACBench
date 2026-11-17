@@ -173,7 +173,8 @@ def test_clock_processes_due_native_batch_before_later_scripted_question(monkeyp
     monkeypatch.setattr(clock,'step_if_idle',step)
     result=clock.before_turn(tmp_path,target.isoformat(),{})
     assert advances==[due+timedelta(milliseconds=10),target]
-    assert result['FAKETIME_DONT_FAKE_MONOTONIC']=='1'
+    assert result['PACBENCH_PYTHON_CLOCK_FILE']==str(provider.path)
+    assert 'LD_PRELOAD' not in result
 
 
 def test_source_age_step_cannot_cross_question_horizon(monkeypatch,tmp_path):
@@ -197,33 +198,35 @@ def test_recovery_uses_current_time_without_crossing_next_check(monkeypatch,tmp_
     at, env=clock.before_recovery(tmp_path,(now-timedelta(minutes=1)).isoformat(),{
         'PACBENCH_CLOCK_NEXT_CHECKPOINT':(now+timedelta(minutes=1)).isoformat()})
     assert datetime.fromisoformat(at)>=now
-    assert env['FAKETIME_DONT_FAKE_MONOTONIC']=='1'
+    assert env['PACBENCH_PYTHON_CLOCK_FILE']==str(provider.path)
+    assert 'LD_PRELOAD' not in env
     with pytest.raises(RuntimeError,match='checkpoint'):
         clock.before_recovery(tmp_path,(now-timedelta(minutes=1)).isoformat(),{
             'PACBENCH_CLOCK_NEXT_CHECKPOINT':(now-timedelta(seconds=1)).isoformat()})
 
 
 def test_offline_clock_audit_rejects_missing_or_unsafe_evidence(tmp_path):
+    # Preserve the frozen v3 audit format; v4 additionally requires Python adoption.
     from pacbench.followups import save
     target=datetime.now(timezone.utc)
-    save(tmp_path/'provider-clock.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock.json',{'version':'honcho-wall-clock-v3','library_sha256':clock.LEGACY_LIBRARY_SHA256,
         'wall_speed':1,'monotonic':'real','gateway_clock':'real',
         'source_timestamps':'unchanged','native_batching':'unchanged'})
-    save(tmp_path/'provider-clock-startup.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+    save(tmp_path/'provider-clock-startup.json',{'version':'honcho-wall-clock-v3','library_sha256':clock.LEGACY_LIBRARY_SHA256,
         'provider_at':target.isoformat(),'api_date':target.isoformat(),'db_at':target.isoformat(),
         'real_at':target.isoformat(),'monotonic':'real'})
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
     later=target+timedelta(minutes=30)
-    step={'version':clock.VERSION,'from':target.isoformat(),'to':later.isoformat(),
+    step={'version':'honcho-wall-clock-v3','from':target.isoformat(),'to':later.isoformat(),
         'target':later.isoformat(),'real_at':target.isoformat(),'db_after':later.isoformat(),
         'pre_step':idle_snapshot(),'horizon':later.isoformat()}
     path=tmp_path/'provider-clock-steps.jsonl'; path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)==[]
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')==[]
     step['pre_step']['claims']=1;path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
     step['pre_step']['claims']=0;step['horizon']=target.isoformat()
     path.write_text(json.dumps(step)+'\n')
-    assert clock.audit_evidence(tmp_path,clock.VERSION)
+    assert clock.audit_evidence(tmp_path,'honcho-wall-clock-v3')
 
 
 def test_checkpoint_order_uses_instants_across_dst_fallback():
@@ -233,13 +236,17 @@ def test_checkpoint_order_uses_instants_across_dst_fallback():
     assert next_checkpoint(rows,'2026-11-01T01:45:00-04:00') == '2026-11-01T01:15:00-05:00'
 
 
-@pytest.mark.parametrize('busy', ['claims','eligible','embeddings','busy_connections','model'])
+@pytest.mark.parametrize('busy', ['claims','eligible','embeddings','busy_connections','model','accounting-lock'])
 def test_judging_never_suspends_observed_native_work(monkeypatch,tmp_path,busy):
     provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
     monkeypatch.setattr(clock,'load',lambda r:(provider,{}))
-    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(**({busy:1} if busy!='model' else {})))
-    monkeypatch.setattr('pacbench.usage.snapshot',lambda r:{'state':'captured','calls':[
-        {'role':'memory_provider','finished':None}] if busy=='model' else []})
+    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat(),
+        **({busy:1} if busy not in {'model','accounting-lock'} else {})))
+    def cost_snapshot(roles, *, nonblocking=False):
+        assert nonblocking
+        return {'state':'unavailable' if busy=='accounting-lock' else 'captured','calls':[
+            {'role':'memory_provider','finished':None}] if busy=='model' else []}
+    monkeypatch.setattr('pacbench.usage.snapshot',cost_snapshot)
     events=[]
     @contextmanager
     def paused(r):
@@ -267,3 +274,154 @@ def test_suspension_owner_death_stops_native_work(monkeypatch,tmp_path,abort):
     assert events==[('unpause','owned-db'),'cleanup',('stop','--time','5','owned-db')]
     assert not marker.exists()
     assert json.loads((tmp_path/'provider-clock-interrupted.json').read_text())['scored'] is False
+
+
+@pytest.mark.parametrize('error,inspection,allowed',[
+    ('OCI runtime pause failed: freezer not supported',{'Running':True,'Paused':False},True),
+    ('permission denied',{'Running':True,'Paused':False},False),
+    ('freezer not supported',{'Running':False,'Paused':False},False),
+    ('freezer not supported',{'Running':True,'Paused':True},False),
+    ('freezer not supported',{},False),
+])
+def test_unsupported_freezer_runs_native_time_only_when_running_unpaused_is_verified(monkeypatch,tmp_path,error,inspection,allowed):
+    from types import SimpleNamespace
+    import time
+    provider=ProviderClock(tmp_path/'clock',datetime.now(timezone.utc))
+    monkeypatch.setattr(clock,'load',lambda r:(provider,{'container':'owned-db'}))
+    monkeypatch.setattr(clock,'snapshot',lambda r:idle_snapshot(db_now=provider.now().isoformat()))
+    monkeypatch.setattr('pacbench.usage.snapshot',lambda r,**kw:{'state':'captured','calls':[]})
+    events=[]
+    @contextmanager
+    def paused(root):
+        events.append('apps-paused')
+        try:yield
+        finally:events.append('apps-resumed')
+    monkeypatch.setattr(clock,'paused_apps',paused)
+    def docker(config,*args):
+        events.append(args[0])
+        if args[0]=='pause':return SimpleNamespace(returncode=1,stderr=error,stdout='')
+        if args[0]=='inspect':return SimpleNamespace(returncode=0,stderr='',stdout=json.dumps(inspection))
+        pytest.fail('Fallback must never unpause, restart or edit the database')
+    monkeypatch.setattr(clock,'_docker',docker)
+    monkeypatch.setattr(provider,'resume_suspended',lambda *a:pytest.fail('A running database must never be rewound'))
+    offset=provider.path.read_bytes()
+    if not allowed:
+        with pytest.raises(RuntimeError,match='Cannot suspend'):
+            with clock.benchmark_overhead(tmp_path,{}):pytest.fail('Unsafe pause failure reached judge')
+        assert events[-1]=='apps-resumed'
+        assert not (tmp_path/'provider-clock-running-overhead.jsonl').exists()
+    else:
+        with clock.benchmark_overhead(tmp_path,{}):
+            assert events[-1]=='apps-resumed'
+            time.sleep(.02)
+        row=json.loads((tmp_path/'provider-clock-running-overhead.jsonl').read_text())
+        assert row['state']=='observed' and row['native_clock_running'] is True
+        assert row['database_paused'] is False and row['offset_adjustment'] is False
+        assert row['offset_before_sha256']==row['offset_after_sha256']
+        assert row['pause_failure']['inspection']=={'Running':True,'Paused':False}
+        assert datetime.fromisoformat(row['provider_finished_at'])>datetime.fromisoformat(row['provider_started_at'])
+    assert provider.path.read_bytes()==offset
+@pytest.mark.parametrize('declared', ['honcho-wall-clock-v3', 'honcho-wall-clock-v5'])
+def test_clock_audit_keeps_versioned_hash_and_v3_overhead_semantics(tmp_path, declared):
+    from pacbench.followups import save
+    from pacbench.provider_clock import LEGACY_LIBRARY_SHA256
+    now = datetime.now(timezone.utc)
+    later = now + timedelta(minutes=10)
+    expected_hash = LIBRARY_SHA256 if declared == 'honcho-wall-clock-v5' else LEGACY_LIBRARY_SHA256
+    config = {'version': declared, 'library_sha256': expected_hash, 'wall_speed': 1,
+        'monotonic': 'real', 'gateway_clock': 'real', 'source_timestamps': 'unchanged', 'native_batching': 'unchanged'}
+    startup = {'version': declared, 'library_sha256': expected_hash,
+        'provider_at': now.isoformat(), 'api_date': now.isoformat(), 'db_at': now.isoformat(),
+        'real_at': now.isoformat(), 'monotonic': 'real'}
+    if declared==clock.VERSION:
+        config.update(python_clock={'os_clock':'real','tls_clock':'real'},processes={})
+        startup['python_adoptions']={}
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    overhead = {'kind': 'benchmark-overhead', 'version': declared, 'provider_at': now.isoformat(),
+        'real_started_at': now.isoformat(), 'real_at': later.isoformat(), 'database_paused': True,
+        'db_after': now.isoformat(), 'pre_step': idle_snapshot()}
+    (tmp_path/'provider-clock-steps.jsonl').write_text(json.dumps(overhead)+'\n')
+    assert clock.audit_evidence(tmp_path, declared) == []
+    config['library_sha256'] = LEGACY_LIBRARY_SHA256 if declared == 'honcho-wall-clock-v5' else LIBRARY_SHA256
+    startup['library_sha256'] = config['library_sha256']
+    save(tmp_path/'provider-clock.json', config)
+    save(tmp_path/'provider-clock-startup.json', startup)
+    assert clock.audit_evidence(tmp_path, declared)
+
+
+def test_cleaned_queue_can_use_native_citations_only_when_idle(monkeypatch,tmp_path):
+    monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
+    acks=[{'session_id':'s','observer':{'peer_id':'hermes'},'messages':[{'id':'n1','metadata':{'source_id':'m1'}}]}]
+    citation={'id':'n1','session_id':'s','observer':'hermes','source_id':'m1','conclusion_ids':['conclusion']}
+    monkeypatch.setattr(clock,'snapshot',lambda *a:idle_snapshot())
+    monkeypatch.setattr(clock,'conclusion_witnesses',lambda *a:[citation])
+    r=clock.wait_for_batch(tmp_path,acks,{})
+    assert r['ready'] and r['completion_evidence']['citations']==[citation]
+    assert r['message_witnesses']==[]
+    citation['observer']='other'
+    with pytest.raises(ValueError):clock.wait_for_batch(tmp_path,acks,{})
+
+
+def test_persistent_citation_requires_source_identity_and_real_fact_ids():
+    acks=[{'session_id':'s','observer':{'peer_id':'hermes'},'messages':[{'id':'n','metadata':{'source_id':'m'}}]}]
+    row={'id':'n','session_id':'s','observer':'hermes','source_id':'m','conclusion_ids':['fact']}
+    assert clock.citation_coverage([row],acks)=={'n'}
+    for changed in [{'source_id':'wrong'},{'session_id':'wrong'},{'conclusion_ids':[]}]:
+        with pytest.raises(ValueError):clock.citation_coverage([{**row,**changed}],acks)
+    with pytest.raises(ValueError):clock.citation_coverage([row,row],acks)
+
+
+def test_persistent_citation_audit_needs_matching_source_observer_and_idle_state():
+    import hashlib
+    from pacbench.document_audit import audit_honcho_receipt
+    source={'source_id':'m1','channel':'imessage','thread':'chat','sender':'Ben','from_owner':False,'written_at':'2026-09-15T12:00:00-04:00','text':'Lunch tomorrow?'}
+    session='source-'+hashlib.sha256(json.dumps(('imessage','chat')).encode()).hexdigest()[:24]
+    ack={'session_id':session,'observer':{'peer_id':'hermes','observe_others':True},'messages':[{'id':'native-message','session_id':session,'peer_id':'Ben','content':source['text'],'created_at':source['written_at'],'metadata':{k:v for k,v in source.items() if k!='text'}}]}
+    citation={'id':'native-message','session_id':session,'observer':'hermes','source_id':'m1','conclusion_ids':['native-fact']}
+    result={'clock_protocol':clock.VERSION,'result':[ack],'processing_status':[idle_snapshot()], 'message_witnesses':[], 'completion_evidence':{'protocol':'honcho-native-conclusion-source-v1','citations':[citation]}}
+    assert audit_honcho_receipt([source],result)==[]
+    result['processing_status'][0]['pending']=1
+    assert audit_honcho_receipt([source],result)
+    result['processing_status'][0]['pending']=0;citation['observer']='wrong'
+    assert audit_honcho_receipt([source],result)
+
+
+def test_cleaned_enrolled_queue_is_success_only_inside_retention():
+    row={'id':'native','queue_id':4,'processed':False,'has_error':False}
+    history=[idle_snapshot(db_now='2026-10-12T07:00:00+00:00',pending=1,messages=[row]),
+             idle_snapshot(db_now='2026-10-12T07:31:00+00:00')]
+    assert clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")=={'native'}
+    assert row['processed'] is False
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=1800,not_before="2026-10-12T07:00:00+00:00")
+    history[-1]['pending']=1
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")
+    history[-1]['pending']=0;history[-1]['errors']=[{'id':4}]
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before="2026-10-12T07:00:00+00:00")
+
+
+def test_cleanup_does_not_confuse_expired_error_with_recent_observation():
+    row={'id':'native','queue_id':4,'processed':False,'has_error':False}
+    history=[idle_snapshot(db_now='2026-10-12T07:00:00+00:00',messages=[row]),
+             idle_snapshot(db_now='2026-10-12T07:00:01+00:00')]
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000,not_before='2026-09-01T07:00:00+00:00')
+    assert not clock.cleaned_queue_coverage([row],history,retention_seconds=2592000)
+
+
+def test_clock_reopen_audits_old_steps_against_original_db_origin(tmp_path):
+    from pacbench.followups import save
+    original=datetime(2026,10,5,tzinfo=timezone.utc);later=original+timedelta(hours=1)
+    real=datetime(2026,11,14,tzinfo=timezone.utc)
+    save(tmp_path/'provider-clock.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+        'initial_at':original.isoformat(),'wall_speed':1,'monotonic':'real','gateway_clock':'real',
+        'source_timestamps':'unchanged','native_batching':'unchanged','python_clock':{'os_clock':'real','tls_clock':'real'},'processes':{}})
+    save(tmp_path/'provider-clock-startup.json',{'version':clock.VERSION,'library_sha256':LIBRARY_SHA256,
+        'provider_at':later.isoformat(),'api_date':later.isoformat(),'db_at':later.isoformat(),
+        'real_at':(real+timedelta(minutes=1)).isoformat(),'monotonic':'real','python_adoptions':{}})
+    save(tmp_path/'diagnostic-store-reopen.json',{'scored':True})
+    step={'version':clock.VERSION,'from':original.isoformat(),'to':later.isoformat(),'target':later.isoformat(),
+        'real_at':real.isoformat(),'db_after':later.isoformat(),'pre_step':idle_snapshot(db_now=original.isoformat()),'horizon':later.isoformat()}
+    p=tmp_path/'provider-clock-steps.jsonl';p.write_text(json.dumps(step)+'\n')
+    assert clock.audit_evidence(tmp_path,clock.VERSION)==[]
+    step['pre_step']['db_now']=(original-timedelta(minutes=1)).isoformat();p.write_text(json.dumps(step)+'\n')
+    assert clock.audit_evidence(tmp_path,clock.VERSION)

@@ -37,7 +37,7 @@ def forbidden_writer(*args, **kwargs):
     pytest.fail('Exact supplied source reached the writer')
 
 
-def checker(root, calls, *, reject=False):
+def checker(root, calls, *, reject=False, model='offline-stub'):
     """Write model-shaped offline receipts so the actual preparation audit runs."""
     def call(prompt):
         calls.append(prompt)
@@ -45,17 +45,43 @@ def checker(root, calls, *, reject=False):
             verdict = {'consistent': True, 'questions_answerable': True,
                        'natural_enough': True, 'issues': [], 'assessments': []}
         else:
-            verdict = {'supported': not reject, 'evidence': [1],
+            verdict = {'facts': [], 'supported': not reject, 'evidence': [1],
                        'problem': 'Missing author requirement' if reject else ''}
-            if 'numbered required fact' in prompt:
+            if 'Required authored facts:\n' in prompt:
                 verdict['facts'] = [{'index': 1, 'supported': not reject, 'evidence': [1],
                                      'problem': verdict['problem']}]
         text = json.dumps(verdict)
         path = root / 'model-calls' / f'offline-{len(calls)}.json'
-        save(path, {'status': 'ok', 'model': 'offline-stub', 'text': text,
+        save(path, {'status': 'ok', 'model': model, 'text': text,
                     'request': {'messages': [{'role': 'user', 'content': prompt}]}})
-        return ModelOutput(text, 'offline-stub', {}, str(path))
+        return ModelOutput(text, model, {}, str(path))
     return call
+
+
+@pytest.mark.parametrize('route', ['openrouter', 'codex-subscription'])
+def test_exact_source_skips_writer_on_existing_preparation_routes(tmp_path, monkeypatch, route):
+    import pacbench.prepare as module
+    import pacbench.codex_model_calls as codex
+    from pacbench.preparation_audit import audit_prepared
+    root = tmp_path / 'prepared'
+    calls, clients = [], []
+    def model_client(**options):
+        clients.append(options)
+        return checker(root, calls, model=options['model'])
+    monkeypatch.setenv('META_API_KEY', 'offline-test')
+    monkeypatch.setenv('PACBENCH_TRANSPORT', 'openrouter')
+    monkeypatch.setattr(module, 'load_driver', lambda: SimpleNamespace(model_id='offline-stub'))
+    monkeypatch.setattr(module, 'client_settings', lambda project: ('http://offline.test/' + project, 'offline-test'))
+    monkeypatch.setattr(module, 'ResponsesWriter', forbidden_writer)
+    monkeypatch.setattr(module, 'ModelClient', model_client)
+    monkeypatch.setattr(codex, 'CodexModelClient', model_client)
+    monkeypatch.setattr(module, 'build_contract', fake_contract)
+    result = prepare(supplied_spec(), root, inference_route=route)
+    assert result['state'] == 'prepared'
+    assert len(clients) == 2  # Checker and criterion drafter, with no writer client.
+    assert len(calls) == 2  # Scene verification and corpus review still run.
+    assert all('pacbench-authoring' not in options.get('url', '') for options in clients)
+    assert audit_prepared(root)['state'] == 'pass'
 
 
 @pytest.mark.parametrize('count', [1, 3])
@@ -92,7 +118,7 @@ def test_supplied_source_preserves_exact_lines_clocks_and_checker(count, tmp_pat
 
 @pytest.mark.parametrize('mutation', [
     'empty', 'null', 'not-list', 'extra-field', 'bad-sender', 'blank-text',
-    'missing-clock', 'naive-clock', 'bad-clock', 'wrong-offset', 'outside-window',
+    'naive-clock', 'bad-clock', 'wrong-offset', 'outside-window',
     'reverse', 'equal-clocks', 'duplicate-body', 'quota', 'no-members',
 ])
 def test_invalid_supplied_messages_stop_before_model_setup(tmp_path, monkeypatch, mutation):

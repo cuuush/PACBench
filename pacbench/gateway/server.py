@@ -1,0 +1,303 @@
+"""Pass through native chat/Responses protocols; persist billing metadata only."""
+from __future__ import annotations
+
+import hmac
+import json
+import re
+import time
+import urllib.error
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+from .ledger import BudgetRefused, CONTEXT_TOKENS, MODEL
+from .protocol import request_shape, observe_usage
+from .metering import observe_metadata
+from .transport import open_without_redirect
+
+MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+DEADLINE_SECONDS = 180
+ROUTE = re.compile(r'/p/([a-z0-9][a-z0-9_.-]{0,63})/v1/(chat/completions|responses|models)')
+
+
+def upstream_error_diagnostic(response):
+    """Read a bounded error body in memory; return only fixed protocol labels."""
+    try:
+        value = json.loads(response.read(16385))
+        error = value.get('error', {})
+        if not isinstance(error, dict):return {}
+    except (OSError, ValueError, TypeError, AttributeError):
+        return {}
+    result = {}
+    codes = {'invalid_api_key', 'authentication_error', 'invalid_request_error',
+             'context_length_exceeded', 'unsupported_parameter', 'invalid_value',
+             'rate_limit_exceeded', 'model_not_found', 'content_filter'}
+    params = {'max_tokens', 'max_completion_tokens', 'max_output_tokens', 'temperature',
+              'response_format', 'reasoning_effort', 'tools', 'tool_choice',
+              'messages', 'input', 'stream', 'stream_options', 'model', 'top_p'}
+    if isinstance(error.get('code'),str) and error['code'] in codes:result['code'] = error['code']
+    if isinstance(error.get('param'),str) and error['param'] in params:result['param'] = error['param']
+    # Some compatible transports return only prose. Never return that text or
+    # arbitrary parsed fields; these hints are classifications, not raw errors.
+    message = error.get('message')
+    if isinstance(message, str):
+        lowered = message.lower()
+        for phrase, label in [('unsupported parameter', 'unsupported_parameter'),
+                              ('context length', 'context_length_exceeded'),
+                              ('invalid json schema', 'invalid_json_schema'),
+                              ('invalid api key', 'invalid_api_key')]:
+            if phrase in lowered:
+                result['message_class'] = label
+                break
+    return result
+
+
+def usage_from(value):
+    if not isinstance(value, dict):
+        return None
+    usage = value.get('usage') or (value.get('response') or {}).get('usage')
+    if not isinstance(usage, dict):
+        return None
+    a = usage.get('prompt_tokens', usage.get('input_tokens'))
+    b = usage.get('completion_tokens', usage.get('output_tokens'))
+    if all(type(n) is int and 0 <= n <= CONTEXT_TOKENS for n in (a,b)):
+        return a,b
+    return None
+
+
+def response_diagnostic(value):
+    """Only fixed finish labels and reported counts; never response text."""
+    if not isinstance(value,dict):return {}
+    value=value.get('response') if isinstance(value.get('response'),dict) else value
+    result={}
+    choices=value.get('choices')
+    if isinstance(choices,list) and choices and isinstance(choices[0],dict):
+        reason=choices[0].get('finish_reason')
+        if reason in ('stop','length','tool_calls','function_call','content_filter'):
+            result['finish_reason']=reason
+    usage=value.get('usage')
+    if isinstance(usage,dict):
+        details=usage.get('completion_tokens_details',usage.get('output_tokens_details'))
+        if isinstance(details,dict):
+            tokens=details.get('reasoning_tokens')
+            if type(tokens) is int and 0<=tokens<=CONTEXT_TOKENS:result['reasoning_tokens']=tokens
+    return result
+
+
+class Server(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def __init__(self, address, ledger, client_key, upstream_key,
+                 *, upstream='https://api.meta.ai/v1', opener=None):
+        self.ledger, self.client_key, self.upstream_key = ledger, client_key, upstream_key
+        self.upstream = upstream.rstrip('/')
+        self.open = opener or open_without_redirect
+        super().__init__(address, Handler)
+
+
+class Handler(BaseHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'
+
+    def log_message(self, *args):
+        pass  # No prompts, credentials, upstream errors or request bodies in logs.
+
+    def reply(self, status, data):
+        body = json.dumps(data).encode()
+        self.send_response(status)
+        self.send_header('Content-Type','application/json')
+        self.send_header('Content-Length',str(len(body)))
+        self.send_header('Connection','close')
+        self.end_headers()
+        self.close_connection = True
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def error(self, status, kind, label):
+        self.reply(status, {'error':{'type':kind,'message':label}})
+
+    def authenticated(self):
+        supplied = self.headers.get('Authorization','').removeprefix('Bearer ')
+        if not hmac.compare_digest(supplied, self.server.client_key):
+            self.error(401,'authentication_error','Local gateway authentication required')
+            return False
+        return True
+
+    def do_GET(self):
+        if not self.authenticated():
+            return
+        if self.path == '/health':
+            self.reply(200,self.server.ledger.health())
+            return
+        route = ROUTE.fullmatch(self.path)
+        if not route or route[2] != 'models':
+            self.error(404,'request_refused','Unsupported gateway path')
+            return
+        request = urllib.request.Request(self.server.upstream+'/models',
+                    headers={'Authorization':'Bearer '+self.server.upstream_key})
+        try:
+            with self.server.open(request, timeout=30) as response:
+                value = json.load(response)
+            if not isinstance(value.get('data'),list):
+                raise ValueError('Invalid model inventory')
+            # Only this priced model is admitted for paid requests.
+            value['data'] = [r for r in value['data'] if r.get('id') == MODEL]
+            if not value['data']:
+                raise ValueError('Priced model is unavailable')
+            self.server.ledger.confirm_auth()
+            self.reply(200,value)
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401,403):self.server.ledger.block_auth()
+            self.error(exc.code,'upstream_error','Model inventory HTTP '+str(exc.code))
+        except Exception:
+            self.error(502,'upstream_error','Model inventory unavailable')
+
+    def do_POST(self):
+        if not self.authenticated():
+            return
+        route = ROUTE.fullmatch(self.path)
+        if not route or route[2] not in ('chat/completions','responses'):
+            self.error(404,'request_refused','Unsupported gateway path')
+            return
+        if self.server.ledger.health()['upstream_auth_blocked']:
+            self.error(503,'upstream_auth_blocked','Upstream authentication failed; paid work blocked until a successful model inventory')
+            return
+        try:
+            length = int(self.headers.get('Content-Length','0'))
+            # Whole-body bytes plus overhead conservatively bound text tokens.
+            if not 0 < length <= CONTEXT_TOKENS - 32768:
+                raise ValueError('Request body exceeds the metered text-input bound')
+            self.connection.settimeout(30)
+            body = self.rfile.read(length)
+            if len(body) != length:
+                raise ValueError('Incomplete request body')
+            value = json.loads(body)
+            if not isinstance(value,dict) or value.get('model') != MODEL:
+                raise ValueError('Only the configured priced Spark Contributor model is allowed')
+            if value.get('stream') is not None and type(value['stream']) is not bool:
+                raise ValueError('Invalid stream flag')
+            if value.get('stream_options') is not None and not isinstance(value['stream_options'],dict):
+                raise ValueError('Invalid stream options')
+            for key in ('max_tokens','max_completion_tokens','max_output_tokens'):
+                if key in value and (type(value[key]) is not int or not 0 < value[key] <= CONTEXT_TOKENS):
+                    raise ValueError('Invalid output token bound')
+        except (ValueError, TypeError, OSError):
+            self.error(400,'request_refused','Invalid model request or token bound')
+            return
+        try:
+            request_id = self.server.ledger.reserve(route[1],route[2])
+        except BudgetRefused:
+            self.error(429,'budget_refused','Daily spending boundary reached; wait for UTC reset')
+            return
+        except Exception:
+            self.error(503,'request_refused','Spending ledger unavailable; inference blocked')
+            return
+        status, usage, error = None, None, None
+        diagnostic={'protocol':request_shape(value)}
+        metadata = {}
+        headers_sent = False
+        completed = False
+        def complete():
+            nonlocal completed
+            if not completed:
+                self.server.ledger.finish(request_id,usage=usage,status=status,error=error,diagnostic=diagnostic,metadata=metadata)
+                completed = True
+        try:
+            # The native API's final usage chunk is necessary for accounting.
+            # Do not change native prompts, generation limits or reasoning.
+            if value.get('stream') and route[2] == 'chat/completions':
+                value['stream_options'] = {**(value.get('stream_options') or {}),'include_usage':True}
+            request = urllib.request.Request(self.server.upstream+'/'+route[2],
+                data=json.dumps(value,ensure_ascii=False).encode(), headers={
+                    'Authorization':'Bearer '+self.server.upstream_key,
+                    'Content-Type':'application/json'})
+            deadline = time.monotonic() + DEADLINE_SECONDS
+            with self.server.open(request, timeout=DEADLINE_SECONDS) as response:
+                status = response.status
+                observe_metadata(metadata, headers=response.headers)
+                self.server.ledger.observe_metadata(request_id, metadata)
+                media_type=response.headers.get('Content-Type','').split(';',1)[0].strip().lower()
+                stream = media_type == 'text/event-stream'
+                diagnostic['protocol']['wire']='sse' if stream else 'json' if media_type=='application/json' else 'other'
+                self.send_response(status)
+                self.send_header('Content-Type','text/event-stream' if stream else 'application/json')
+                self.send_header('X-Gateway-Request-ID',request_id)
+                self.send_header('Connection','close')
+                self.end_headers()
+                self.close_connection = True
+                headers_sent = True
+                if stream:
+                    total, event, disconnected = 0, [], False
+                    def event_usage():
+                        try:
+                            parsed=json.loads(b'\n'.join(event))
+                            observe_usage(diagnostic['protocol'],parsed)
+                            observe_metadata(metadata, value=parsed)
+                            self.server.ledger.observe_metadata(request_id, metadata)
+                            diagnostic.update(response_diagnostic(parsed))
+                            return usage_from(parsed)
+                        except (ValueError, TypeError, AttributeError):
+                            return None
+                    while True:
+                        if time.monotonic() > deadline:
+                            raise TimeoutError('Bounded inference transport timeout')
+                        line = response.readline(MAX_RESPONSE_BYTES+1)
+                        if not line:
+                            # A complete final usage object can arrive without
+                            # an SSE blank-line terminator. Preserve the wire
+                            # bytes and still account for valid reported usage.
+                            if event:usage = event_usage() or usage
+                            break
+                        total += len(line)
+                        if total > MAX_RESPONSE_BYTES:
+                            raise ValueError('Response exceeds the transport bound')
+                        if line.startswith(b'data:'):
+                            event.append(line[5:].strip())
+                        if not line.strip() and event:
+                            usage = event_usage() or usage
+                            event = []
+                        if not disconnected:
+                            try:
+                                self.wfile.write(line)
+                                self.wfile.flush()
+                            except (BrokenPipeError,ConnectionResetError):
+                                # Continue consuming to settle usage, even after
+                                # the downstream SDK has closed its connection.
+                                disconnected = True
+                else:
+                    data = response.read(MAX_RESPONSE_BYTES+1)
+                    if len(data) > MAX_RESPONSE_BYTES:
+                        raise ValueError('Response exceeds the transport bound')
+                    try:
+                        parsed=json.loads(data)
+                        observe_usage(diagnostic['protocol'],parsed)
+                        observe_metadata(metadata, value=parsed)
+                        usage = usage_from(parsed)
+                        diagnostic.update(response_diagnostic(parsed))
+                    except (ValueError,TypeError,AttributeError):
+                        pass
+                    try:
+                        self.wfile.write(data)
+                    except (BrokenPipeError,ConnectionResetError):
+                        pass
+                if usage is None:
+                    error = 'missing_usage_sse' if stream else 'missing_usage_json'
+        except urllib.error.HTTPError as exc:
+            status, error = exc.code, 'upstream_http_'+str(exc.code)
+            observe_metadata(metadata, headers=exc.headers)
+            upstream_diagnostic = upstream_error_diagnostic(exc)
+            diagnostic.update(upstream_diagnostic)
+            if upstream_diagnostic:error += ':'+':'.join(upstream_diagnostic[k] for k in sorted(upstream_diagnostic))
+            if status in (401,403):self.server.ledger.block_auth()
+            complete()
+            if not headers_sent:
+                self.reply(status, {'error':{'type':'upstream_error',
+                    'message':'Upstream model HTTP '+str(status), **upstream_diagnostic},
+                    'gateway_request_id':request_id})
+        except Exception as exc:
+            error = 'transport_'+type(exc).__name__
+            complete()
+            if not headers_sent:
+                self.reply(502, {'error':{'type':'upstream_error','message':'Upstream transport failed; cost remains reserved'}, 'gateway_request_id':request_id})
+        finally:
+            complete()

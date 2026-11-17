@@ -53,11 +53,18 @@ def question_writer(prompt):
 
 
 @pytest.mark.parametrize('judge_protocol', ['semantic-judge-v1', 'semantic-judge-date-scope-v2'])
-def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_path, judge_protocol):
+@pytest.mark.parametrize('clock_version', [None, 'honcho-wall-clock-v5'])
+def test_one_message_covers_all_failed_facts_preserves_penalty_and_session(tmp_path, judge_protocol, clock_version):
     calls = []
     def runner(question, **kwargs):
         calls.append((question, kwargs))
-        return turn(question, 'Recovered answer', tokens=(100 + 30 * len(calls), 20 + 10 * len(calls)))
+        value=turn(question, 'Recovered answer', tokens=(100 + 30 * len(calls), 20 + 10 * len(calls)))
+        if clock_version:
+            requested=value.at
+            value.at='2026-09-11T09:01:00-04:00'
+            value.prompt=value.prompt.replace(requested,value.at)
+            value.provider_clock={'version':clock_version,'role':'recovery','requested_at':requested}
+        return value
     c = contract()
     c.claims += (SimpleNamespace(id='companion', statement='Devon is going.', evidence=('m1',)),)
     original_grade = grade(('missed', 'missed'))
@@ -305,7 +312,10 @@ def test_resumed_turn_recovers_only_its_full_tool_results(tmp_path):
 
 def test_timeout_preserves_tool_attempts_and_errors(tmp_path, monkeypatch):
     import subprocess
-    from pacbench import harness
+    from contextlib import nullcontext
+    from pacbench import harness, live_trials, hermes_gateway
+    monkeypatch.setattr(live_trials, 'require_live_trials_ready', lambda: None)
+    monkeypatch.setattr(hermes_gateway, 'turn_gateway', lambda *a, **kw: nullcontext({'state': 'mock'}))
     monkeypatch.setattr(harness, '_check_paths', lambda _: None)
     monkeypatch.setattr(harness, 'turn_env', lambda *args: {})
     def timeout(*args, **kwargs):
@@ -314,6 +324,7 @@ def test_timeout_preserves_tool_attempts_and_errors(tmp_path, monkeypatch):
     monkeypatch.setattr(harness.subprocess, 'run', timeout)
     t = harness.run_turn('Which street?', at='2026-09-11T09:00:00-04:00', home=tmp_path, allowlist='', timeout_s=1)
     assert t.returncode == -1
+    assert t.timed_out is True and t.wall_deadline_s==1
     assert t.tool_calls[0]['name'] == 'memcal_search_archive'
     assert turn_metrics(t)['source_fallback_attempted'] is True
     assert t.session_input_tokens is None
@@ -441,3 +452,53 @@ def test_retained_honcho_context_keeps_credit_but_included_history_is_source_acc
     profile=tool_profile(turn(calls=[{'name':'honcho_context','input':{}}],results=[result]))
     assert profile['source_fallback_attempted']==history
     assert profile['operations'][0]['category']==('source_messages' if history else 'memory_detail')
+
+
+def test_exhausted_authoring_is_incomplete_without_phantom_native_turn(tmp_path):
+    component=tmp_path/'component';output=component/'repeat-1/honcho/turns/case/followups'
+    c=contract();p=plan();g=grade(('correct','missed'));initial=turn(answer='It is Friday.')
+    def writer(prompt):
+        return json.dumps({'question':'Friday at seven, right?'}) if prompt.startswith('Write ') else json.dumps({'safe':False,'covers_claim_ids':[],'reason':'Leading question.'})
+    result=run_followups(contract=c,plan=p,grade=g,initial_turn=initial,output=output,
+        judge=judge,home=tmp_path,allowlist='',extra_env={},question_model=writer,
+        question_dir=component/'combined-questions',budget_snapshot=lambda:{'projects':[]},
+        run_turn=lambda *a,**kw:pytest.fail('Refused follow-up must never be sent'))
+    assert result['state']=='incomplete' and result['attempts'][0]['question'] is None
+    initial_grade={'claims':[asdict(s) for s in g.slots],'correct':g.correct,'missed':g.missed,'misrepresented':g.misrepresented,'recovery':g.recovery}
+    def audit():return audit_followups(contract=c,plan=p,initial_turn=initial,initial_grade=initial_grade,output=output)
+    assert audit()==['follow-up diagnostics incomplete']
+    rejected=next((component/'combined-questions').glob('*.rejected.json'));d=json.loads(rejected.read_text());d['drafts']=d['drafts'][:1];rejected.write_text(json.dumps(d))
+    assert any('both rejected' in error for error in audit())
+
+@pytest.mark.parametrize('state',['excluded','unknown'])
+def test_strict_followup_stops_before_judge_without_turning_missing_credit_into_zero(tmp_path,state):
+    initial=turn(answer='Friday.');g=grade(('correct','missed'));sent=[];judged=[]
+    def runner(question,**kwargs):
+        sent.append(question)
+        t=turn(question,'Seven.')
+        if state=='excluded':
+            t.tool_calls=[{'name':'memcal_open_source','arguments':{}}]
+            t.tool_results=[{'success':True,'text':'{"evidence":"Original source text"}'}]
+        else:t.prefetch_context='Unclassified native payload'
+        return t
+    report=run_followups(contract=contract(),plan=plan(),grade=g,initial_turn=initial,
+        output=tmp_path,judge=lambda p:judged.append(p),home=tmp_path/'hermes-home',allowlist='',
+        extra_env={'PACBENCH_STRICT_MEMORY_ONLY':'1'},provider_name='memcal',
+        question_model=lambda p:json.dumps({'question':'What time?'} if p.startswith('Write ') else
+            {'safe':True,'covers_claim_ids':['time'],'reason':'No expected value.'}),
+        run_turn=runner,budget_snapshot=lambda:{'projects':[]})
+    assert len(sent)==1 and judged==[] and report['score'] is None
+    assert report['score_state']=='strict-ungraded' and report['attempts'][0]['verdicts']==[]
+    assert g.correct==1 and not (tmp_path/'combined/judgment.json').exists()
+    assert audit_followups(contract=contract(),plan=plan(),initial_turn=initial,
+        initial_grade={'claims':[asdict(s) for s in g.slots],'correct':1,'missed':1,
+            'misrepresented':0,'recovery':g.recovery},output=tmp_path)==[]
+
+
+def test_pinned_checkpoint_result_tokens_are_turn_scoped_without_rewriting_legacy_counters():
+    a=turn(tokens=(10,3));b=turn(tokens=(10,3))
+    assert turn_metrics(b,a)['input_tokens']==0  # Preserve the old receipt condition.
+    b.hermes_gateway={'version':'checkpoint-session-v1','native_result_token_scope':'turn'}
+    measured=turn_metrics(b,a)
+    assert measured['input_tokens']==10 and measured['output_tokens']==3
+    assert (b.session_input_tokens,b.session_output_tokens)==(10,3)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -24,11 +25,85 @@ from .native_checks import run_checks
 from .tool_policy import VERSION as TOOL_POLICY, policy_record
 from .usage import tracked_turn
 from .stop import OperatorStop, check_stop
+from .provider_lineup import RETIRED_PROVIDERS, require_not_retired
 
-MEMCAL_SRC = harness.REPO.parent / "memcal"
+from .provider_versions import memcal_source
+MEMCAL_SRC = memcal_source(harness.REPO)
 # These use profile-local stores without requiring a shared remote namespace.
-ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "byterover", "supermemory", "honcho"}
+ISOLATED_PROVIDERS = {"holographic", "memcal", "mem0", "hindsight", "openviking", "supermemory", "honcho", "reme", "cognee", "memos"}
 _ARM_SHUTDOWNS = {}
+
+
+def native_provider_name(provider):
+    return 'memtensor' if provider=='memos' else provider
+
+
+def memcal_model_settings(model: str, base: str, key: str) -> dict:
+    """Native store-scoped model settings; pure and usable in offline plans."""
+    return {'MEMCAL_LLM_PROVIDER': 'openai-compatible', 'MEMCAL_OPENAI_BASE_URL': base,
+            'OPENAI_COMPAT_API_KEY': key, 'MEMCAL_PROPOSE_MODEL': model,
+            'MEMCAL_SWEEP_MODEL': model, 'MEMCAL_MATCH_MODEL': model}
+
+
+def hindsight_model_settings(run_id: str, model: str, base: str, key: str) -> tuple[dict, dict]:
+    """Use Hindsight's native OpenAI transport for DeepSeek, Meta for Spark."""
+    from .role_routes import memory_model
+    OPENROUTER_MODEL=memory_model()
+    provider = 'openai' if model == OPENROUTER_MODEL else 'meta'
+    config = {'mode': 'local_external', 'profile': 'pacbench-' + run_id,
+              'bank_id': 'pacbench-' + run_id, 'llm_provider': provider,
+              'llm_model': model, 'llm_base_url': base, 'llm_api_key': key}
+    env = {'HINDSIGHT_LLM_API_KEY': key, 'HINDSIGHT_API_LLM_API_KEY': key,
+           'HINDSIGHT_API_LLM_BASE_URL': base, 'HINDSIGHT_API_LLM_MODEL': model,
+           'HINDSIGHT_API_LLM_PROVIDER': provider, 'HINDSIGHT_API_ENABLE_API_KEY_AUTH': 'false'}
+    if model == OPENROUTER_MODEL:
+        env['HINDSIGHT_API_LLM_TIMEOUT']='300'
+    return config, env
+
+
+def mem0_model_settings(model: str, base: str, *, openrouter: bool = False) -> dict:
+    """Fields applied to the native Mem0 SDK config after its setup builder."""
+    settings = {'openai_base_url': base}
+    if openrouter:
+        # Native Mem0 gives this setting precedence over openai_base_url.
+        settings['openrouter_base_url'] = base
+    from .role_routes import memory_model
+    OPENROUTER_MODEL=memory_model()
+    if model in {'muse-spark-1.3-contributor', OPENROUTER_MODEL}:
+        settings['is_reasoning_model'] = True
+    return settings
+
+
+def openrouter_provider_plan(provider: str, root: Path) -> dict:
+    """Illustrate native settings using inert placeholders; never contact services.
+
+    These configurations are not readiness or compatibility evidence. Real
+    execution separately requires the authorized task transport and reviewed inputs.
+    """
+    require_not_retired(provider)
+    from .openrouter_route import MODEL, ENDPOINT
+    from provider_adapters import (honcho_local, openviking_local,
+                                   supermemory_local)
+    root = Path(root)
+    base, key = 'http://127.0.0.1:1/p/provider/v1', '<local-token-placeholder>'
+    if provider == 'memcal':
+        native = memcal_model_settings(MODEL, base, key)
+    elif provider == 'mem0':
+        native = {'model': MODEL, **mem0_model_settings(MODEL, base, openrouter=True)}
+    elif provider == 'hindsight':
+        config, env = hindsight_model_settings('plan', MODEL, base, key)
+        native = {'config': config, 'environment': env}
+    elif provider == 'openviking':
+        native = openviking_local.plan_config(root, MODEL, base, key, port=1)
+    elif provider == 'supermemory':
+        native = supermemory_local.plan_config(root, MODEL, base, key, port=1)
+    elif provider == 'honcho':
+        native = honcho_local.plan_config(root, MODEL, base, key, db_port=1)
+    else:
+        raise ValueError('unsupported provider for OpenRouter plan')
+    return {'provider': provider, 'model': MODEL, 'endpoint': ENDPOINT,
+            'native_settings': native, 'paid_calls_enabled': False,
+            'status': 'offline configuration only; transport and native compatibility unverified'}
 
 
 def next_checkpoint(rows, at):
@@ -42,6 +117,8 @@ def copy_prepared_files(source, output):
     for name in ('bundle.json','contract.json','resolved-spec.json','shared-text.json'):
         if name=='shared-text.json' and not (source/name).exists():continue
         shutil.copyfile(source/name,output/name)
+    from .contract_carry_forward import copy_review_evidence
+    copy_review_evidence(source,output)
 
 
 def ingest_pending(needed, ingested, failed_batches, output, root, provider, env,
@@ -80,7 +157,8 @@ def stop_arm_model_work(root):
         cleanup_run_processes(root)
 
 PROBE = '''
-import json, sys
+import json, sys, inspect, hashlib
+from pathlib import Path
 from plugins.memory import load_memory_provider
 p = load_memory_provider(sys.argv[1], register_skills=False)
 if p is None:
@@ -91,6 +169,10 @@ else:
               "reason": "" if available else (p.unavailable_reason() or "native setup incomplete"),
               "tools": [s.get("name", s.get("function", {}).get("name"))
                         for s in p.get_tool_schemas()]}
+    location = inspect.getsourcefile(type(p))
+    result['loaded_native_provider'] = p.name
+    result['loaded_provider_module'] = location
+    result['loaded_source_sha256'] = hashlib.sha256(Path(location).read_bytes()).hexdigest() if location else None
 print(json.dumps(result))
 '''
 
@@ -106,56 +188,168 @@ thread = getattr(p, "_init_thread", None)
 if thread is not None:
     thread.join(timeout=30)
 try:
-    tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search", "byterover":"brv_status", "supermemory":"supermemory-profile", "honcho":"honcho_profile"}[p.name]
-    args = ({"action": "list"} if p.name == "holographic" else
-            {"query": "native read-only capability check"} if p.name in {"mem0","hindsight","openviking"} else {})
-    output = p.handle_tool_call(tool, args)
+    if p.name == "memtensor":
+        tool, args = "memos_skill_list", {}
+        output = p.handle_tool_call(tool,args)
+    elif p.name == "cognee":
+        tool, args = None, {}
+        output = json.dumps({"success": p._is_usable(),
+            "mode": "native read-only dataset inventory",
+            "datasets": p._backend.list_datasets(timeout=10)})
+    elif p.name == "reme":
+        tool, args = None, {}
+        # Native initialize completed the HTTP health check. This provider
+        # intentionally offers no model tools; do not invent a smoke tool.
+        output = json.dumps({"success": p._backend_available is True,
+                             "mode": "native health; automatic-prefetch-only"})
+    else:
+        tool = {"holographic": "fact_store", "memcal": "memcal_list_days", "mem0": "mem0_search", "hindsight":"hindsight_recall", "openviking":"viking_search", "supermemory":"supermemory-profile", "honcho":"honcho_profile"}[p.name]
+        args = ({"action": "list"} if p.name == "holographic" else
+                {"query": "native read-only capability check"} if p.name in {"mem0","hindsight","openviking"} else {})
+        output = p.handle_tool_call(tool, args)
     print(json.dumps({"tool": tool, "arguments": args, "output": output}))
 finally:
     p.shutdown()
 '''
 
 
+def catalog_migrated_providers() -> set[str]:
+    """Read Hermes' own migration inventory and the pinned checkout's catalog."""
+    migration = harness.ISOLATED_TREE / "hermes_cli" / "memory_provider_migration.py"
+    if not migration.exists():
+        return set()  # Older bundled-provider Hermes releases.
+    tree = ast.parse(migration.read_text())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "_LEFT_CORE" for t in node.targets):
+            value = node.value
+            if not (isinstance(value, ast.Call) and isinstance(value.func, ast.Name)
+                    and value.func.id == "frozenset" and len(value.args) == 1):
+                raise RuntimeError("Unrecognized Hermes provider migration inventory")
+            names = ast.literal_eval(value.args[0])
+            if not isinstance(names, (set, frozenset)) or not all(isinstance(n, str) for n in names):
+                raise RuntimeError("Invalid Hermes provider migration inventory")
+            catalog = harness.ISOLATED_TREE / "plugin-catalog"
+            return {n for n in names if (catalog / f"{n}.yaml").is_file()}
+    raise RuntimeError("Hermes provider migration inventory is missing")
+
+
 def provider_names() -> list[str]:
-    """Inventory the pinned checkout, rather than maintaining a vendor wish list."""
-    root = harness.ISOLATED_TREE / "plugins" / "memory"
-    names = sorted(p.name for p in root.iterdir()
-                   if p.is_dir() and (p / "plugin.yaml").is_file())
-    return names + ["memori", "memcal"]
+    """Offline selection catalog; presence does not establish provider readiness."""
+    root=harness.ISOLATED_TREE/'plugins/memory'
+    names={p.name for p in root.iterdir() if p.is_dir() and (p/'plugin.yaml').is_file()} if root.is_dir() else set()
+    return sorted((names | catalog_migrated_providers() | ISOLATED_PROVIDERS | {'memori','memcal'})-RETIRED_PROVIDERS.keys())
+
+
+def require_trial_provider(provider: str, *, resume: bool = False) -> None:
+    """Refuse moved providers without a reviewed provisioning route."""
+    from .catalog_plugins import CATALOG
+    bundled = harness.ISOLATED_TREE / "plugins" / "memory" / provider
+    if provider in catalog_migrated_providers() and not (bundled / "plugin.yaml").is_file():
+        if provider not in CATALOG:
+            raise RuntimeError(f"No reviewed trial-home catalog provisioning route for {provider!r}")
+        if resume and provider not in {'supermemory','openviking','hindsight','mem0','honcho'}:
+            raise RuntimeError("Catalog provider resume requires a verified installed-plugin recovery protocol")
 
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
               local_timezone: str = "", resume: bool = False,
-              honcho_simulated_at: str | None = None) -> dict:
+              honcho_simulated_at: str | None = None,
+              inference_route: str = 'muse-gateway') -> dict:
+    require_not_retired(provider)
+    if provider == 'memcal':
+        from .provider_versions import verify_memcal_source
+        verify_memcal_source(harness.REPO)
+    if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
+        raise ValueError('Unknown inference route')
+    if inference_route == 'openrouter':
+        if provider not in {'memcal','mem0','hindsight','supermemory','honcho','openviking','reme','cognee','memos'}:
+            raise ValueError('Unsupported OpenRouter memory provider')
+        from .openrouter_route import MODEL
+        if model != MODEL or os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
+            raise ValueError('OpenRouter pilot requires its exact model and run-owned transport')
+        require_live_cost_boundary()
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
+    require_trial_provider(provider, resume=resume)
     home = root / "hermes-home"
     run_id = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
     driver_project = f"pacbench-{run_id}-{provider}-driver"
     memory_project = f"pacbench-{run_id}-{provider}-memory"
     driver_url, client_key = client_settings(driver_project)
-    if resume and (provider!='openviking' or not (home/'config.yaml').exists()):
-        raise ValueError('Only an existing OpenViking home supports verified ingestion resume')
+    _, memory_key = client_settings(memory_project)
+    if resume and (provider not in {'openviking','memos','supermemory','hindsight','mem0','cognee','memcal','honcho'} or not (home/'config.yaml').exists()):
+        raise ValueError('Provider lacks a verified retained-store resume protocol')
+    from .catalog_plugins import CATALOG, install_catalog_provider
+    external = provider in CATALOG and not (harness.ISOLATED_TREE / "plugins" / "memory" / provider / "plugin.yaml").is_file()
     if not resume:harness.provision_home(
         home, provider_plugin_src=(MEMCAL_SRC / "integrations/hermes/memcal"
                                    if provider == "memcal" else None),
-        provider_name=provider, model=model, model_provider="meta-ai",
-        model_base_url=driver_url)
+        provider_name="" if external else native_provider_name(provider), model=('gpt-6-luna' if inference_route == 'codex-subscription' else model),
+        model_provider=('openai-codex' if inference_route == 'codex-subscription' else
+                        'openrouter' if inference_route == 'openrouter' else 'meta-ai'),
+        model_base_url=(None if inference_route == 'codex-subscription' else driver_url))
+    # Native services and in-process tools use their persistent memory capability.
+    # Hermes home above retains the separately selected answer model.
+    if inference_route == 'openrouter':
+        from .role_routes import memory_model, record as role_record
+        model=memory_model()
+        if role_record():save(root/'role-routes.json',role_record())
     # Isolate HOME fallbacks; only the selected provider supplies memory.
     fallback = root / "fallback-home"
     fallback.mkdir(exist_ok=resume)
+    if external and not resume:
+        receipt = install_catalog_provider(provider, home, fallback, harness.ISOLATED_BIN, harness.ISOLATED_TREE)
+        save(root / "catalog-plugin.json", receipt)
+        # A memory provider is activated by memory.provider, not plugins.enabled.
+        # Do this only after the exact source and dependencies pass preflight.
+        from ruamel.yaml import YAML
+        config = YAML(typ="safe").load((home / "config.yaml").read_text())
+        config["memory"]["provider"] = provider
+        config.setdefault("security", {})["allow_lazy_installs"] = False
+        harness._write_yaml(home / "config.yaml", config)
+    if external and resume:
+        from .catalog_plugins import verify_retained_catalog_provider
+        verify_retained_catalog_provider(provider,home)
     env = {"HOME": str(fallback.resolve()), "PACBENCH_NO_BUILTIN_MEMORY": "1", "PACBENCH_PROVIDER_ONLY": "1",
            "MEMCAL_HOME": str((root / "memcal-home").resolve()),
            "MEMCAL_SRC": str(MEMCAL_SRC),
            "PACBENCH_USAGE_ROLES": json.dumps({driver_project:"hermes",memory_project:"memory_provider"}), "HERMES_ENABLE_PROJECT_PLUGINS": "0"}
+    if provider=='memcal':
+        from .prefetch_provenance import VERSION as PREFETCH_PROTOCOL
+        env['PACBENCH_PREFETCH_PROVENANCE']=json.dumps({'protocol':PREFETCH_PROTOCOL,
+            'provider':'memcal','state':'unverified',
+            'reason':'Actual native brief and query-driven wiki injection retained; no typed per-block source-free witness.'})
+    if inference_route == 'codex-subscription':
+        env['PACBENCH_INFERENCE_ROUTE'] = inference_route
+        # Only provider-internal Spark calls belong to the gateway project.
+        env['PACBENCH_USAGE_ROLES'] = json.dumps({memory_project: 'memory_provider'})
     if local_timezone:
         from zoneinfo import ZoneInfo
         ZoneInfo(local_timezone)  # Reject invalid simulation zones before any live calls.
         env["TZ"] = local_timezone
     env.update({"META": "", "META_API_KEY": client_key, "MODEL_API_KEY": client_key,
                 "META_MODEL_API_KEY": client_key, "META_BASE_URL": driver_url,
-                "OPENAI_API_KEY": client_key, "OPENROUTER_API_KEY": "", "OPENROUTER_API_BASE": "", "MEM0_API_KEY": "",
+                "OPENAI_API_KEY": memory_key, "OPENROUTER_API_KEY": "", "OPENROUTER_API_BASE": "", "MEM0_API_KEY": "",
                 "MEM0_MODE": "oss", "MEM0_HOST": "", "MEM0_TELEMETRY": "false",
                 "MEM0_DIR": str((root / "mem0-state").resolve())})
-    if provider == "mem0":
+    if inference_route == 'openrouter':
+        env['OPENROUTER_API_KEY'] = client_key  # Local run token, never the upstream key.
+        env['OPENROUTER_API_BASE'] = driver_url
+        env['CUSTOM_BASE_URL'] = ''
+        env['OPENROUTER_BASE_URL'] = driver_url
+    from .role_routes import split_enabled
+    if inference_route=='openrouter' and split_enabled():
+        if provider=='hindsight':env['HINDSIGHT_API_LLM_MAX_CONCURRENT']='1'
+        if provider=='memcal':env['MEMCAL_MAX_PARALLEL']='1'
+    if provider == 'mem0' and resume:
+        config=json.loads((home/'mem0.json').read_text())
+        expected='pacbench-'+hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
+        if (config.get('mode')!='oss' or config.get('user_id')!=expected or
+            config['oss']['llm']['config']['model']!=model or config['oss'].get('graph_store') or
+            config['oss']['llm']['config']['api_key']!=memory_key):raise ValueError('Retained Mem0 native configuration differs')
+        from .gateway_client import validate_route
+        validate_route(config['oss']['llm']['config']['openai_base_url'],memory_key)
+    if provider == "mem0" and not resume:
         identity = "pacbench-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:24]
         extraction_url, _ = client_settings(memory_project)
         configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
@@ -176,8 +370,10 @@ def provision(root: Path, provider: str, model: str = "unconfigured", *,
             builder = '''
 import json,sys
 from pathlib import Path
-from plugins.memory.mem0._setup import build_oss_config
-from plugins.memory.mem0 import Mem0MemoryProvider
+sys.path.insert(0, sys.argv[4])
+from pacbench.provider_loader import provider_module
+build_oss_config = provider_module("mem0", "_setup").build_oss_config
+Mem0MemoryProvider = provider_module("mem0").Mem0MemoryProvider
 flags=json.loads(sys.argv[1])
 oss,_=build_oss_config(flags)
 Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},sys.argv[3])
@@ -187,7 +383,7 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
                      "oss_embedder_model": "nomic-embed-text", "oss_embedder_url": "http://127.0.0.1:11435",
                      "oss_vector": "qdrant", "oss_vector_path": str((root / "qdrant").resolve())}
             proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c", builder,
-                                   json.dumps(flags), identity, str(home.resolve())],
+                                   json.dumps(flags), identity, str(home.resolve()), str(harness.REPO)],
                                   env={**os.environ, **env, "HERMES_HOME": str(home.resolve())},
                                   cwd=harness.ISOLATED_TREE, capture_output=True, text=True, timeout=30)
             save(root / "native-manual-setup.json", {"route": "README manual OSS mem0.json",
@@ -201,13 +397,15 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         validate_route(actual_url, client_key)
         if actual_url != extraction_url:
             raise RuntimeError("Mem0 model endpoint differs from the isolated gateway project")
+        config['oss']['llm']['config'].update(mem0_model_settings(
+            configured_model, extraction_url, openrouter=inference_route == 'openrouter'))
+        config['oss']['llm']['config']['api_key'] = memory_key
         config["sync_max_chars"] = 6000
         # The README's manual setup documents this SDK flag for reasoning
-        # models. Its name heuristic knows GPT/o-series, but not Spark. Let
+        # models. Its name heuristic knows GPT/o-series, but not Spark/DeepSeek. Let
         # the native SDK choose its reasoning-model request parameters rather
         # than treating Spark as a legacy chat model with a 2,000-token cap.
-        if configured_model == 'muse-spark-1.3-contributor':
-            config['oss']['llm']['config']['is_reasoning_model'] = True
+        if config['oss']['llm']['config'].get('is_reasoning_model') is True:
             save(root/'model-compatibility.json',{
                 'model':configured_model,'is_reasoning_model':True,
                 'route':'Hermes Mem0 README manual OSS configuration; native SDK explicit model classification',
@@ -215,20 +413,21 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         # Leave output budgets and reasoning effort to the native SDK.
         save(home / "mem0.json", config)
         os.chmod(home / "mem0.json", 0o600)
-        (home / ".env").write_text("OPENAI_API_KEY=" + client_key + "\n")
+        (home / ".env").write_text("OPENAI_API_KEY=" + memory_key + "\n")
         os.chmod(home / ".env", 0o600)
     if provider == "memcal":
         memcal_url, _ = client_settings(memory_project)
         configured_model = model if model != "unconfigured" else os.environ.get("MODEL", "muse-spark-1.3-contributor")
-        env.update({"MEMCAL_LLM_PROVIDER": "openai-compatible", "MEMCAL_OPENAI_BASE_URL": memcal_url,
-                    "OPENAI_COMPAT_API_KEY": client_key, "MEMCAL_PROPOSE_MODEL": configured_model,
-                    "MEMCAL_SWEEP_MODEL": configured_model, "MEMCAL_MATCH_MODEL": configured_model})
+        env.update(memcal_model_settings(configured_model, memcal_url, memory_key))
         # Recommended store-scoped configuration overrides project .env fallbacks.
         memcal_home = root / "memcal-home"
         memcal_home.mkdir(parents=True, exist_ok=True)
         routed = {key:value for key,value in env.items() if key.startswith('MEMCAL_') and key not in {'MEMCAL_HOME','MEMCAL_SRC'}}
-        routed['OPENAI_COMPAT_API_KEY'] = client_key
-        (memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
+        routed['OPENAI_COMPAT_API_KEY'] = memory_key
+        if resume:
+            retained=dict(line.split('=',1) for line in (memcal_home/'.env').read_text().splitlines() if '=' in line)
+            if retained!=routed:raise ValueError('Retained Memcal model configuration differs')
+        else:(memcal_home / '.env').write_text(''.join(f'{key}={value}\n' for key,value in routed.items()))
         os.chmod(memcal_home / '.env', 0o600)
         # Native first-install bootstrap, with no facts seeded into the store.
         bootstrap = (
@@ -237,15 +436,19 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
             "import os; cfg=config.load(); "
             "assert cfg.llm_provider == 'openai-compatible' and cfg.openai_base_url == os.environ['MEMCAL_OPENAI_BASE_URL'] and cfg.openai_api_key == os.environ['OPENAI_COMPAT_API_KEY'], 'Memcal model routing must use the shared gateway'; cfg.ensure_dirs(); "
             "conn=db.open_db(cfg.db_path); brief.write(conn,cfg); conn.close()")
-        proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
-                               bootstrap, str(MEMCAL_SRC)],
-                              env={**os.environ, **env}, capture_output=True, timeout=30)
-        if proc.returncode:
-            raise RuntimeError("Memcal native scratch-store bootstrap failed")
+        if not resume:
+            proc = subprocess.run([str(harness.ISOLATED_BIN.parent / "python"), "-c",
+                                   bootstrap, str(MEMCAL_SRC)],
+                                  env={**os.environ, **env}, capture_output=True, timeout=30)
+            if proc.returncode:
+                raise RuntimeError("Memcal native scratch-store bootstrap failed")
     if provider == 'hindsight':
-        save(root/'native-trace-observer.json',{'version':'hindsight-native-reflection-traces-v2',
+        env['PACBENCH_HINDSIGHT_TRACE_DIR']=str((root/'private/hindsight-native-traces').resolve())
+        save(root/'native-trace-observer.json',{'version':'hindsight-native-reflection-traces-v3',
             'route':'Read-only native /llm-requests API; observe the default trace writer',
             'native_writer_flush_s':0.5,'observation_timeout_s':3,'processing_forced':False,
+            'schema_tools':'Recognize native 1.2 declarations, request schemas, outputs and ordered result replay',
+            'private_raw_snapshots':True,
             'scope':'Reflection tools and original source chunks seen by the native model. Gateway remains authoritative for costs; trace tokens are separate native telemetry.'})
         # README local_external setup with a run-owned self-hosted native server.
         # Preserve failed embedded trials: the pinned plugin repeatedly restarts
@@ -260,14 +463,14 @@ Mem0MemoryProvider().save_config({"mode":"oss","user_id":sys.argv[2],"oss":oss},
         validate_route(base,key)
         configured_model=model if model!='unconfigured' else 'muse-spark-1.3-contributor'
         folder=home/'hindsight'
-        folder.mkdir()
-        save(folder/'config.json',{'mode':'local_external','profile':'pacbench-'+run_id,
-            'bank_id':'pacbench-'+run_id,'llm_provider':'meta',
-            'llm_model':configured_model,'llm_base_url':base,'llm_api_key':key})
+        folder.mkdir(exist_ok=resume)
+        hindsight_config, hindsight_env = hindsight_model_settings(run_id, configured_model, base, key)
+        if resume:
+            retained=json.loads((folder/'config.json').read_text())
+            if any(retained.get(k)!=v for k,v in hindsight_config.items()):raise ValueError('Retained Hindsight profile/model differs')
+        else:save(folder/'config.json', hindsight_config)
         os.chmod(folder/'config.json',0o600)
-        env.update(HINDSIGHT_LLM_API_KEY=key,HINDSIGHT_API_LLM_API_KEY=key,
-                   HINDSIGHT_API_LLM_BASE_URL=base,HINDSIGHT_API_LLM_MODEL=configured_model,
-                   HINDSIGHT_API_LLM_PROVIDER='meta',HINDSIGHT_API_ENABLE_API_KEY_AUTH='false')
+        env.update(hindsight_env)
         # Ordinary provisioning creates an empty bank, not starter memories or a
         # benchmark mission. Recall of a nonexistent bank is otherwise a 404.
         bootstrap='''
@@ -279,13 +482,19 @@ cfg=json.loads((Path(sys.argv[1])/'hindsight/config.json').read_text())
 p=HindsightEmbedded(profile=cfg['profile'],llm_provider=cfg['llm_provider'],llm_model=cfg['llm_model'],
     llm_api_key=cfg['llm_api_key'],llm_base_url=cfg['llm_base_url'])
 try:
-    result=p.create_bank(bank_id=sys.argv[2])
-    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result.model_dump(mode='json'),
+    if sys.argv[3]=='resume':
+        import urllib.request
+        p._ensure_started()
+        with urllib.request.urlopen(p._manager.get_url(cfg['profile'])+'/v1/default/banks',timeout=10) as response:
+            result=json.load(response)
+        assert sys.argv[2] in json.dumps(result), 'Retained Hindsight bank missing'
+    else:result=p.create_bank(bank_id=sys.argv[2]).model_dump(mode='json')
+    print(json.dumps({'endpoint':p._manager.get_url(cfg['profile']),'bank':result,
         'runtime_versions':{name:version(name) for name in ('hindsight-api-slim','hindsight-client','hindsight-embed')}}))
 finally:p.close()
 '''
         proc=subprocess.run([str(backend_python),'-c',bootstrap,
-                             str(home.resolve()),'pacbench-'+run_id],
+                             str(home.resolve()),'pacbench-'+run_id,'resume' if resume else 'fresh'],
                             env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
                             cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
         save(root/'native-bank-setup.json',{'route':'Self-hosted Hindsight native server; create_bank defaults; no starter facts',
@@ -309,33 +518,45 @@ finally:p.close()
         from provider_adapters.openviking_local import start
         base,key=client_settings(memory_project)
         _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
-    if provider=='byterover':
-        from provider_adapters.byterover_local import configure
-        base,key=client_settings(memory_project)
-        configure(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
     if provider=='honcho':
         from provider_adapters.honcho_local import start
+        from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL
+        env[ENVIRONMENT] = PROTOCOL
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,resume=resume,
             **({'simulated_at':honcho_simulated_at} if honcho_simulated_at else {}))
+    if provider=='reme':
+        from provider_adapters.reme_local import start
+        base,key=client_settings(memory_project)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model,base,key)
+    if provider=='cognee':
+        from provider_adapters.cognee_runtime import start
+        base,key=client_settings(memory_project)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model,base,key)
+    if provider=='memos':
+        from provider_adapters.memos_local import start
+        base,key=client_settings(memory_project)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model,base,key,resume=resume)
     if provider=='supermemory':
         from provider_adapters.supermemory_local import start
         base,key=client_settings(memory_project)
-        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key)
+        _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,resume=resume)
     return env
 
 
 def probe(root: Path, provider: str, env: dict, *, smoke: bool = False, smoke_timeout_s: int = 30) -> dict:
+    require_not_retired(provider)
     child_env = harness.turn_env("2026-09-11T09:00:00-04:00",
                                  root / "hermes-home", "", env)
     if provider == 'honcho' and (root/'provider-clock.json').exists():
         from provider_adapters.honcho_clock import load
         clock, _ = load(root)
         child_env['PACBENCH_NOW'] = clock.now().isoformat()
-        child_env = clock.environment(child_env)
+        child_env = clock.python_environment(child_env)
+        child_env['PACBENCH_PYTHON_CLOCK_ROLE']='probe'
     try:
         proc = subprocess.run(
-            [str(harness.ISOLATED_BIN.parent / "python"), "-c", PROBE, provider],
+            [str(harness.ISOLATED_BIN.parent / "python"), "-c", PROBE, native_provider_name(provider)],
             cwd=harness.ISOLATED_TREE, env=child_env, text=True,
             capture_output=True, timeout=60)
         result = json.loads(proc.stdout.splitlines()[-1])
@@ -351,7 +572,7 @@ def probe(root: Path, provider: str, env: dict, *, smoke: bool = False, smoke_ti
     if smoke and result["available"] and provider in ISOLATED_PROVIDERS:
         try:
             proc = subprocess.run(
-                [str(harness.ISOLATED_BIN.parent / "python"), "-c", READ_ONLY_SMOKE, provider],
+                [str(harness.ISOLATED_BIN.parent / "python"), "-c", READ_ONLY_SMOKE, native_provider_name(provider)],
                 cwd=harness.ISOLATED_TREE, env=child_env, text=True,
                 capture_output=True, timeout=smoke_timeout_s)
             if proc.returncode:
@@ -393,8 +614,22 @@ def read_prepared(source: Path, max_messages: int) -> tuple[list[dict], object, 
 
 def run(source: Path | None, output: Path, max_messages: int = 150,
         repetitions: int = 1, *, smoke: bool = False, providers: list[str] | None = None,
-        question_dir: Path | None = None, honcho_clock: str = 'real') -> dict:
+        question_dir: Path | None = None, honcho_clock: str = 'real',
+        inference_route: str = 'muse-gateway', judge_reasoning_effort: str | None = None,
+        judge_timeout_s: int = 180, recall_timeout_s: int = 180) -> dict:
+    for provider in providers or []:require_not_retired(provider)
+    from .live_trials import require_live_trials_ready
+    require_live_trials_ready()
     from .document_ingestion import BLOCKERS, ingest_day, prepare_sources, record_recall_isolation, validate_evaluation_clocks
+    if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
+        raise ValueError('Unknown inference route')
+    if type(judge_timeout_s) is not int or not 0<judge_timeout_s<=900:
+        raise ValueError('Judge deadline must be 1–900 real seconds')
+    if type(recall_timeout_s) is not int or not 0<recall_timeout_s<=900:
+        raise ValueError('Recall deadline must be 1–900 real seconds')
+    if judge_reasoning_effort is not None and (inference_route!='openrouter' or
+            judge_reasoning_effort not in {'none','low','medium','high'}):
+        raise ValueError('Explicit judge reasoning requires the direct OpenRouter condition')
     if not 1 <= repetitions <= 3 or not 1 <= max_messages <= 100000:
         raise ValueError("pilot limits: 1–3 repetitions, 1–100000 messages; increase gradually")
     selected = providers if providers is not None else provider_names()
@@ -402,6 +637,19 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         raise ValueError("invalid or duplicate provider selection")
     if honcho_clock not in ('real', 'simulated') or (honcho_clock == 'simulated' and (not source or 'honcho' not in selected)):
         raise ValueError('A simulated Honcho clock requires prepared source and the Honcho provider')
+    if inference_route == 'openrouter':
+        if any(p not in {'memcal','mem0','hindsight','supermemory','honcho','openviking','reme','cognee','memos'} for p in selected):
+            raise ValueError('Unsupported OpenRouter memory provider')
+        if os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
+            raise RuntimeError('OpenRouter requires the run-local transport; key and spending limit must be configured first')
+        require_live_cost_boundary()
+    elif os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        raise ValueError('Transport and inference route differ')
+    if source and inference_route == 'codex-subscription':
+        raise RuntimeError('Codex native pilot is blocked: an isolated Hermes OAuth provision/login/resume workflow is not implemented; no ingestion or inference was started')
+    if source:
+        from .context_isolation import validate_recall_environment
+        validate_recall_environment()
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     stop_file = Path(os.environ.get('PACBENCH_STOP_FILE') or output / 'STOP').resolve()
@@ -414,7 +662,42 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
     results = []
     report = {"state": "inventory", "results": results, "mode": "native-hermes",
               "builtin_memory": False, "tool_policy": TOOL_POLICY, "session_search": False,'ingestion_mode':'documents'}
-    report['provenance_version'] = 'source-provenance-v2'
+    report['inference_route'] = inference_route
+    if judge_reasoning_effort is not None:
+        report['judge_generation_conditions']={'reasoning_effort':judge_reasoning_effort,
+            'scope':'Benchmark judge only; native provider and Hermes settings unchanged'}
+    report.setdefault('judge_generation_conditions',{})['wall_deadline_s']=judge_timeout_s
+    report['recall_wall_deadline_s']=recall_timeout_s
+    if 'honcho' in selected and os.environ.get('DERIVER_MODEL_CONFIG__THINKING_EFFORT'):
+        report['provider_generation_conditions'] = {'honcho': {
+            'deriver_thinking_effort': os.environ['DERIVER_MODEL_CONFIG__THINKING_EFFORT'],
+            'scope': 'Documented native model setting; output limits and batching remain unchanged'}}
+    if inference_route == 'openrouter':
+        from .openrouter_route import MODEL, ENDPOINT
+        from .openrouter_direct import active
+        if active():
+            from .direct_accounting import VERSION as TRANSPORT_VERSION
+        else:
+            from .openrouter_proxy import VERSION as TRANSPORT_VERSION
+        from .role_routes import memory_model, record as role_record
+        if role_record():report['role_routes']=role_record()
+        report.update(hermes_model=MODEL, judge_model=MODEL, extraction_model=memory_model(),
+                      openrouter_endpoint=ENDPOINT, transport=TRANSPORT_VERSION)
+    if inference_route == 'codex-subscription':
+        report['hermes_model'] = report['judge_model'] = 'gpt-6-luna'
+        report['subscription_cost_status'] = 'unpriced'
+    report['provenance_version'] = ('source-provenance-v3' if any(p in {'cognee','memos','supermemory'} for p in selected) else 'source-provenance-v2')
+    report['provider_loader_protocol']='native-loaded-source-v1'
+    if source and 'openviking' in selected:
+        from .terminal_processing import VERSION as TERMINAL_PROTOCOL
+        report['terminal_processing_protocols']={'openviking':TERMINAL_PROTOCOL}
+    from .clock_context import NATIVE as CLOCK_CONTEXT
+    from .openrouter_direct import active as direct_active
+    report['clock_context_protocol']=CLOCK_CONTEXT
+    report['question_prompt_protocol']=harness.PROMPT_PROTOCOL
+    if source and 'honcho' in selected:
+        from provider_adapters.honcho_enrollment import PROTOCOL as HONCHO_MEMBERSHIP
+        report['provider_membership_protocols'] = {'honcho': HONCHO_MEMBERSHIP}
     if honcho_clock == 'simulated':
         from provider_adapters.honcho_clock import VERSION as HONCHO_CLOCK
         report['provider_clocks'] = {'honcho': HONCHO_CLOCK}
@@ -450,7 +733,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
         from .document_ingestion import VERSION as INGESTION_VERSION
         report.update(ingestion_version=INGESTION_VERSION,
                       document_provider_blockers=dict(BLOCKERS),
-                      ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York'))
+                      ingestion_schedule=prepare_sources(output,messages,resolved.get('timezone') or 'America/New_York',
+                          native_fixtures=not (os.environ.get('PACBENCH_LOGICAL_DOCUMENTS_ONLY')=='1' and 'memcal' not in selected)))
+        report['source_transport_condition']='logical-document-metadata-v1' if os.environ.get('PACBENCH_LOGICAL_DOCUMENTS_ONLY')=='1' else 'native-source-fixtures-v1'
+        report['strict_memory_only']=os.environ.get('PACBENCH_STRICT_MEMORY_ONLY')=='1'
         validate_evaluation_clocks(report['ingestion_schedule'],[p for p in selected if p not in BLOCKERS],
             [row['at'] for row,_,_ in evaluations] if evaluations else [resolved['question_at']],
             report['process_timezone'] or 'America/New_York', chronological=bool(evaluations))
@@ -460,9 +746,15 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             shutil.copyfile(source / 'evaluation-plan.json', output / 'evaluation-plan.json')
             shutil.copytree(source / 'evaluations', output / 'evaluations')
             report.update(evaluation_plan_hash=evaluation_plan['plan_hash'], evaluation_context=evaluation_plan['context'])
-        model_judge = ModelClient(key=os.environ["META_API_KEY"], model=driver.model_id,
-                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                            record_dir=output / "model-calls")
+        if inference_route == 'codex-subscription':
+            from .codex_model_calls import CodexModelClient
+            model_judge = CodexModelClient(model='gpt-6-luna', record_dir=output / 'model-calls')
+        else:
+            judge_base, judge_token = client_settings("pacbench-judge")
+            model_judge = ModelClient(key=judge_token, model=driver.model_id,
+                                url=judge_base + "/chat/completions",
+                                record_dir=output / "model-calls", reasoning_effort=judge_reasoning_effort,
+                                json_mode=inference_route=='openrouter',timeout_s=judge_timeout_s)
         def judge(*args, **kwargs):
             check_stop(stop_file)
             if active_clock_root is not None:
@@ -508,14 +800,15 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
             try:
                 clock_options = {}
                 if provider == 'honcho' and honcho_clock == 'simulated':
-                    from .document_ingestion import processing_at
-                    from datetime import datetime, timedelta
-                    first = datetime.fromisoformat(processing_at(
-                        report['ingestion_schedule'][0]['at'], 'honcho', report['process_timezone']))
-                    clock_options['honcho_simulated_at'] = (first-timedelta(minutes=5)).isoformat()
+                    from provider_adapters.honcho_enrollment import initial_at
+                    clock_options['honcho_simulated_at'] = initial_at(messages)
                 env = provision(root, provider, driver.model_id if driver else "unconfigured",
-                                local_timezone=resolved.get("timezone", "") if resolved else "", **clock_options)
+                                local_timezone=resolved.get("timezone", "") if resolved else "",
+                                inference_route=inference_route, **clock_options)
                 env['PACBENCH_STOP_FILE'] = str(stop_file)
+                env['PACBENCH_CLOCK_CONTEXT_PROTOCOL']=report['clock_context_protocol']
+                if inference_route=='openrouter' and direct_active():
+                    env['PACBENCH_API_INPUT_TRACE']=str(root/'api-inputs.jsonl')
                 if provider == 'honcho' and honcho_clock == 'simulated':
                     active_clock_root = root
                 def guarded_turn(*args, **kwargs):
@@ -612,10 +905,10 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                                ingest_day, check_model_health)
                 if not (root/'pre-recall-isolation.json').exists():record_recall_isolation(root)
                 if provider == 'honcho' and honcho_clock == 'simulated':
-                    from provider_adapters.honcho_clock import before_turn
+                    from provider_adapters.honcho_clock import stage_turn
                     # Age any genuine capture work before checking a later
                     # session's dependency; never flush or backdate that work.
-                    before_turn(root, row['at'], env)
+                    stage_turn(root, row['at'], env)
                 if evaluations:
                     from .native_writes import ensure_ready
                     ensure_ready(provider,row,evaluations,evaluation_plan['context'],root,env,directory)
@@ -629,6 +922,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     sequence = run_checks(evaluations, evaluation_plan['context'], root, judge, allowlist, env,
                                           question_dir=question_dir, before_check=import_before_check,
                                           evidence_by_id=evidence_for_check,
+                                          turn_timeout_s=recall_timeout_s,
                                           provenance_version=report['provenance_version'], diagnostic_version=report['evidence_diagnostic_protocol'], judge_protocol=report['judge_protocol'])
                     result.update(state=sequence['state'], checks=sequence['checks'], input_hash=report['input_hash'],
                                   reason='' if sequence['state'] == 'diagnostic' else 'evaluation sequence incomplete')
@@ -673,7 +967,7 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     break
                 turn = tracked_turn(harness.run_turn, contract.question, usage_path=root / "usage.json", at=resolved["question_at"],
                                         home=root / "hermes-home", allowlist=allowlist,
-                                        extra_env=env, timeout_s=180)
+                                        extra_env=env, timeout_s=recall_timeout_s)
                 save(root / "recall.json", vars(turn))
                 try:
                     check_stop(stop_file)
@@ -693,7 +987,8 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                         from .native_checks import diagnostic_inputs
                         from .evaluation import source_evidence as build_source_evidence
                         source_evidence = build_source_evidence(messages, report["evidence_diagnostic_protocol"])
-                        grade = grade_native_semantic(resolved["id"], turn.prompt, turn.answer,
+                        from .clock_context import judge_question
+                        grade = grade_native_semantic(resolved["id"], judge_question(turn), turn.answer,
                                                tuple(Claim(c.id, c.statement, c.evidence)
                                                      for c in contract.claims), judge,
                                                record_path=root / "judgment.json", assess_recovery=True,
@@ -721,10 +1016,28 @@ def run(source: Path | None, output: Path, max_messages: int = 150,
                     result.update(state="interrupted", reason="operator stop requested")
                     interrupted = True
             from .usage import snapshot
-            # Stop this run-owned backend before moving to another provider.
-            # Leaving its workers alive until matrix exit permits background
-            # model work and late costs outside the completed arm's lifetime.
-            stop_arm_model_work(root)
+            try:
+                if provider=='openviking' and report.get('terminal_processing_protocols'):
+                    from .terminal_processing import observe_before_stop
+                    def terminal_boundary():
+                        check_stop(stop_file)
+                        check_model_health()
+                    terminal=observe_before_stop(root,env,boundary=terminal_boundary)
+                    result['terminal_processing']={'protocol':terminal['protocol'],'state':terminal['state'],
+                        'scope_hash':terminal['scope_hash']}
+                    if terminal['state']!='complete':
+                        capability['recall_verified']=capability.get('live_verified',False)
+                        capability['live_verified']=False
+                        if result['state']=='diagnostic':
+                            result.update(state='partial',failure_phase='terminal_processing',
+                                reason='Post-answer native processing '+terminal['state']+'; semantic grades preserved')
+                    if terminal['state']=='stopped_by_boundary':
+                        if terminal.get('error_type')=='OperatorStop':interrupted=True
+                        else:live_stopped=True
+                save(root/'pre-shutdown-model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+            finally:
+                # Even a failed observer or ledger snapshot must stop owned work.
+                stop_arm_model_work(root)
             save(root / "model-usage.json", snapshot(json.loads(env["PACBENCH_USAGE_ROLES"])))
             save(root / "status.json", result)
             save(output / "summary.json", report)
@@ -767,9 +1080,11 @@ def main() -> int:
     parser.add_argument('--question-dir',type=Path,help='Shared reviewed recovery cache for concurrent source-identical arms')
     parser.add_argument('--honcho-clock', choices=('real','simulated'), default='real',
                         help='Isolated native Honcho wall clock; gateway and harness stay on real time')
+    parser.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription', 'openrouter'),
+                        default='muse-gateway', help='Model route; openrouter requires the capped openrouter_run entrypoint')
     args = parser.parse_args()
     report = run(args.prepared, args.output, args.max_messages, args.repetitions, smoke=args.smoke, providers=args.providers,
-                 question_dir=args.question_dir, honcho_clock=args.honcho_clock)
+                 question_dir=args.question_dir, honcho_clock=args.honcho_clock, inference_route=args.inference_route)
     for r in report["results"]:
         print(r["provider"], r["state"], r["capability"].get("execution_blocker") or
               r["capability"].get("reason", ""))

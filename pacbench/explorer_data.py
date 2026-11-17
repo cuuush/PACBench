@@ -172,6 +172,11 @@ def native_run(run_dir: Path, runs_dir: Path, *, include_preflight=True):
             'model_usage': model_usage,
             'model_usage_after_settlement': settled_usage,
             'turn': exchanges[0]['turn'] if exchanges else None}
+        from .provider_lineup import RETIRED_PROVIDERS
+        if provider in RETIRED_PROVIDERS:
+            collection[key]['label'] += ' · historical only'
+            collection[key]['provider_lifecycle'] = 'retired'
+            collection[key]['retirement_reason'] = RETIRED_PROVIDERS[provider]
         collection[key]['evaluation'] = read_json(arm / 'evaluation.json')
         if collection[key]['evaluation']:
             for item in collection[key]['evaluation'].get('checks', []):

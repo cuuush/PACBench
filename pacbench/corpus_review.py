@@ -7,8 +7,8 @@ from pathlib import Path
 from .followups import digest, save
 from .semantic_contract import _dialogue
 
-VERSION = 'source-realism-v9'
-SOURCE_BLIND = {'source-realism-v7','source-realism-v8',VERSION}
+VERSION = 'source-realism-v10'
+SOURCE_BLIND = {'source-realism-v7','source-realism-v8','source-realism-v9',VERSION,'source-realism-v11'}
 SUPPORTED_VERSIONS = {'source-realism-v3', 'source-realism-v4', 'source-realism-v5', 'source-realism-v6', *SOURCE_BLIND}
 
 
@@ -19,6 +19,24 @@ def review_intent(resolved):
 
 def review_prompt(messages, resolved, *, version=VERSION):
     if version not in SUPPORTED_VERSIONS:raise ValueError('Unsupported corpus review version')
+    if version in {'source-realism-v10','source-realism-v11'}:
+        from .corpus_epistemic import prompt
+        if version=='source-realism-v11':
+            from .authoring import ScenePlan,build_scene_observations
+            from dataclasses import fields
+            names={f.name for f in fields(ScenePlan)}
+            exact_ids=[]
+            for s in resolved['scenes']:
+                if s.get('source_review')=='author-source-v1':
+                    plan=ScenePlan(**{k:v for k,v in s.items() if k in names})
+                    exact_ids.extend(o.source_id for o in build_scene_observations(resolved['id'],plan,
+                        [(m['sender'],m['text']) for m in plan.messages]))
+            return prompt(messages,resolved)+ ('\nAuthor-owned exact source IDs: '+json.dumps(exact_ids)+
+                '\nThese records are intentionally unjudged author source: do not assess their writing, '
+                'naturalness or compliance with scene facts. The natural_enough gate applies only to '
+                'generated source. Use ALL actual records for independent question answerability and '
+                'source-supported criterion checks; an author-owned record is not proof that an expectation is valid.')
+        return prompt(messages,resolved)
     if version == 'source-realism-v9':
         return _v8_prompt(messages,resolved) + (
             '\nJudge the intended state assuming memory retained prior delivered '
@@ -150,6 +168,9 @@ def _v7_prompt(messages, resolved, *, include_turn_metadata=False):
 
 def validation_errors(verdict, messages, resolved, *, version=VERSION):
     """Verify exact citations; v8 also accepts delivered public user inputs."""
+    if version in {'source-realism-v10','source-realism-v11'}:
+        from .corpus_epistemic import validation_errors as epistemic_errors
+        return epistemic_errors(verdict,messages,resolved)
     errors = []
     def add(path, code):
         errors.append({'path': path, 'code': code})
@@ -261,18 +282,34 @@ def verdict_passes(verdict, messages, resolved, *, version=VERSION):
     return len(set(found)) == len(found) and set(found) == set(ids)
 
 
-def review_corpus(messages, resolved, model, root: Path):
+def review_corpus(messages, resolved, model, root: Path, *, version=VERSION):
     # ModelClient reuses only an exact successful request. A changed source or
     # expectation produces a new request, including on preparation resume.
-    result = model(review_prompt(messages, resolved))
+    from .model_calls import ModelClient
+    # Full-corpus output is larger than a per-answer judgment. This changes only
+    # the client deadline, keeping the actual model request and review standard.
+    if isinstance(model,ModelClient) and len(resolved['checks'])>8:
+        import copy
+        model=copy.copy(model);model.timeout_s=900;model.max_attempts=1
+    result = model(review_prompt(messages, resolved,version=version))
     verdict = json.loads(result.text)
-    passed = verdict_passes(verdict, messages, resolved)
-    receipt = {'state': 'pass' if passed else 'fail', 'review_version': VERSION,
+    passed = verdict_passes(verdict, messages, resolved,version=version)
+    receipt = {'state': 'pass' if passed else 'fail', 'review_version': version,
                'source_hash': digest(messages), 'intent_hash': digest(review_intent(resolved)),
                'review': verdict, 'model_call': result.record_path, 'usage': result.usage}
-    if VERSION in SOURCE_BLIND:
+    if isinstance(model,ModelClient):
+        from .evidence_store import read_json
+        call=read_json(Path(result.record_path))
+        deadline=call.get('client_wall_deadline_s',call.get('direct_timing',{}).get('wall_deadline_s'))
+        if deadline is not None:
+            receipt['execution_condition']={'version':'corpus-review-real-deadline-v1','wall_deadline_s':deadline}
+            if 'client_max_attempts' in call:receipt['execution_condition']['max_attempts']=call['client_max_attempts']
+    if version in SOURCE_BLIND:
         receipt['scope'] = 'source-coherence-and-public-question-answerability'
-        receipt['validation_errors'] = validation_errors(verdict, messages, resolved)
+        receipt['validation_errors'] = validation_errors(verdict, messages, resolved,version=version)
+    if version in {'source-realism-v10','source-realism-v11'}:
+        from .corpus_epistemic import eligible_evidence
+        receipt['eligibility_bindings']={c['id']:digest(eligible_evidence(messages,resolved,c['id'])) for c in resolved['checks']}
     save(root / 'realism-review.json', receipt)
     if not passed:
         raise ValueError(f'Corpus realism review rejected: {verdict}')

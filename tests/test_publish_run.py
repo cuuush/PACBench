@@ -16,7 +16,7 @@ from tests.test_document_ingestion import message
 def repo(tmp_path,monkeypatch):
     root=tmp_path/'repo';root.mkdir();(root/'artifacts').mkdir()
     subprocess.run(['git','init','-q',str(root)],check=True,capture_output=True)
-    (root/'.gitignore').write_text('/artifacts/\n/runs/**/hermes-home/\n/runs/**/model-calls/private/\n')
+    (root/'.gitignore').write_text((Path(publish_run.__file__).resolve().parents[1]/'.gitignore').read_text())
     monkeypatch.setattr(publish_run,'REPO',root)
     return root
 
@@ -49,6 +49,7 @@ def component(repo,name,provider):
     save(root/'repeat-1'/provider/'hermes-home/credentials.json',{'private':'DO-NOT-PUBLISH'})
     save(root/'model-calls/same.json',{'text':'different actual call from '+name})
     save(root/'model-calls/private/replay.json',{'private':'DO-NOT-PUBLISH'})
+    save(root/'repeat-1'/provider/'private/hindsight-native-traces/raw.json',{'reasoning':'DO-NOT-PUBLISH'})
     return root
 
 
@@ -159,7 +160,7 @@ def test_provider_condition_copy_cannot_bypass_public_symlink_exclusion(repo,kin
         publish_run.publish([root],repo/'runs/unsafe')
 
 
-@pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation'])
+@pytest.mark.parametrize('change',['none','override','failed','missing','malformed','wrong-source','wrong-validation','wrong-scope'])
 def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change):
     from pacbench.preparation_audit import audit_prepared
     from pacbench.corpus_review import VERSION, review_prompt
@@ -172,6 +173,7 @@ def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change)
     quality={'state':'pass','source_hash':digest([message('m1')]),
         'intent_hash':digest({'scenes':[],'checks':[]}),
         'review_version':VERSION,'scope':'source-coherence-and-public-question-answerability','review':review,'model_call':'original/runtime/model-calls/realism.json'}
+    if VERSION=='source-realism-v10':quality['eligibility_bindings']={}
     call={'status':'ok','text':json.dumps(review),'request':{'messages':[
         {'role':'user','content':review_prompt([message('m1')],resolved)}]}}
     if change=='override':quality['review']={**review,'notes':'Silently replaced verdict.'}
@@ -179,6 +181,7 @@ def test_corpus_review_requires_the_actual_successful_model_verdict(repo,change)
     if change=='malformed':call['text']='not a verdict'
     if change=='wrong-source':call['request']['messages'][0]['content']='Reviewed a different corpus.'
     if change=='wrong-validation':quality['validation_errors']=[{'path':'x','code':'fabricated'}]
+    if change=='wrong-scope':quality['eligibility_bindings']={'invented':'unbound'}
     save(root/'realism-review.json',quality)
     if change!='missing':save(root/'model-calls/realism.json',call)
     result=audit_prepared(root)

@@ -41,9 +41,14 @@ Work on small, inspectable changes before expanding the benchmark:
    malformed judge JSON and the permitted retry. Use controlled correct and wrong
    answers to test changes. Version any new judging condition and preserve the
    original grades and failed attempts.
+   Experimental `semantic-judge-compact-v3` keeps the date-scoped grading
+   criteria but omits the evidence diagnostic from that request and marks it
+   ungraded. It is not the native default. Offline controls verify parsing and
+   preservation only; live correct and wrong controls are required before use.
 2. **Investigate provider compatibility with small canaries.** Supermemory stopped
-   before completing the month; OpenViking and ByteRover have no selected current
-   month arm. Establish native processing and recall before trying a full month.
+   before completing the month; OpenViking has no selected current month arm.
+   ByteRover is retired; preserve its historical traces without new execution.
+   Establish native processing and recall before trying a full month.
    Prior error labels alone do not establish a cause or a fix.
 3. **Keep Honcho's processing failures separate from recall.** Its selected month
    attempt failed structured-output processing before questions. The small clock
@@ -59,13 +64,33 @@ Work on small, inspectable changes before expanding the benchmark:
 
 ## Run a new experiment
 
+For a fresh environment, run `python3 -m pacbench.bootstrap --install --start-services` from
+the repository root, then `python3 -m pacbench.bootstrap --check`. See the
+[runtime setup](vendor/README) for prerequisites and a copyable cloud setup
+snippet. This provisions pinned local components without paid inference.
+Private spending history must be restored separately before any paid run;
+installation does not recover the ledger or establish native recall readiness.
+
+Parallel catalog installs can share a provisioned, pinned Hermes tool store via
+`HERMES_RUNTIME_DIR`. Give each arm its own Hermes home, provider data and
+receipts. The shared tool store contains install binaries.
+
+Use `python -m pacbench.runtime_cleanup plan --reference <kept-hermes-home/tools>
+<run-hermes-home/tools>...` to list confirmed duplicate Python and uv packages.
+The reference should be on persistent storage. To reclaim an explicitly selected
+set of stopped runs, use `remove` with the same paths and pass the existing
+benchmark lock with `--execution-lock`. The command checks package bytes, modes,
+links and pinned facts and writes a restore receipt before removal. `restore`
+uses the same arguments and verifies the replacement. Provider stores, source
+files, scoring artifacts and billing receipts are outside the cleanup scope.
+
 Live experiments require substantial setup. Read the
 [provider map](docs/document-ingestion-provider-map.md) and [runtime instructions](vendor/README)
 before provisioning services. Native servers use separate environments from
 Hermes' pinned client environment. Record actual revisions, model settings,
 clock conditions and every processing deviation from defaults.
 
-All writer, verifier, judge, Hermes and provider inference for this project uses
+The default writer, verifier, judge, Hermes and provider inference route uses
 **Spark Contributor through [muse-gateway](https://github.com/cuuush/muse-gateway)**,
 an independent repository normally checked out at `/workspace/muse-gateway`.
 The shared limit is **$10 per UTC day**, with no lifetime cap. Check the live
@@ -76,7 +101,124 @@ inventory. Never bypass a refusal or erase unknown cost bounds.
 When resuming existing work, recover the actual private gateway state, including
 its spending ledger and credentials. Gateway source and public request receipts
 do not recover spending history. If that state is missing, paid work remains
-blocked; do not initialize a replacement ledger to continue the experiment.
+blocked; do not initialize a replacement ledger to continue the experiment. With
+the actual private state restored, start the in-repository gateway:
+
+```sh
+python -m pacbench.gateway --state /workspace/shared/muse-gateway
+```
+
+The client uses `PACBENCH_GATEWAY_STATE` when set, falls back to the legacy
+`MUSE_GATEWAY_STATE`, and otherwise uses `/workspace/shared/muse-gateway`. The
+existing ledger, unknown cost bounds and authentication circuit remain authoritative.
+
+Request evidence retains available input/output, reasoning and cache token
+counts, request/generation IDs, model and observed benchmark-stage attribution.
+Reported charges, token-price estimates and unconfirmed budget bounds are
+separate; reasoning and cached tokens are components of the totals, not extra
+tokens to add again. Missing service telemetry stays unknown.
+
+The current inference route is direct Meta. OpenRouter reconciliation applies
+only to genuine OpenRouter-origin rows with a generation ID; it cannot supply
+charges for direct Meta requests. With an authorized `OPENROUTER_API_KEY`, an
+explicit pass against an existing ledger is:
+
+```sh
+python -m pacbench.gateway.reconcile_cli --state /workspace/shared/muse-gateway
+```
+
+The command records retry status and backoff for unresolved eligible requests.
+It does not initialize a ledger or schedule future passes automatically.
+
+An explicit `--inference-route codex-subscription` selects GPT-6 Luna for
+preparation or for the native pilot's Hermes and judge calls. Subscription
+usage is unpriced and is not represented by gateway receipts. Provider-internal
+inference still uses Spark through Muse, so its ledger and access gates remain
+required. The native pilot route is experimental and fails before ingestion: each fresh
+Hermes profile requires its own native Codex OAuth login, and the pilot does not
+yet offer a provision/login/resume handoff. Do not copy the Codex CLI refresh
+token into Hermes; the pinned Hermes integration warns that refresh tokens are
+single-use. The route does not authorize bypassing a missing provider ledger.
+Text-only Codex calls keep SQLite state inside their disposable workspace using
+the documented `sqlite_home` setting, without changing the authentication home.
+The Codex CLI must still be able to start with its existing native login; a
+read-only runtime startup failure is an execution blocker, not a model result.
+
+The experimental OpenRouter planner uses the selected
+`deepseek/deepseek-v4.1-flash-1017` model and exact `deepinfra/fp8/flex`
+endpoint for Hermes, native extraction and judging. Inspect it without a key,
+network access or paid calls:
+
+```sh
+python -m pacbench.openrouter_run --plan
+# Inspect a selection instead:
+python -m pacbench.openrouter_run --plan --providers memcal honcho
+```
+
+The current Pizza Day task has a separately approved $20 total OpenRouter budget,
+including preparation, diagnostics, all providers and retries. Its persistent
+task state is `/workspace/shared/pacbench-openrouter-pizza-day-20261112`.
+Preserve that ledger and its uncertain charges across every restart. This is new
+authorized OpenRouter accounting; Muse's historical ledger remains missing.
+
+The user retired the local inference proxy. `openrouter_run --plan` reviews
+direct HTTPS configuration. Its execution path uses client-side transport hooks
+in Python urllib/HTTPX and native JavaScript fetch; no local inference server or
+forwarding connection is started. Keep old proxy source and trial evidence for
+reproducibility. Prior proxy scores remain provisional.
+
+Each request durably reserves its full-context/output cost bound in the same
+task ledger before connecting directly to OpenRouter. Short admission and
+settlement locks never cover network work. Interrupted requests retain their
+bounds and uncertain outcomes prevent automatic replay. Native clients receive
+labelled accounting capabilities; only the transport hooks substitute the real
+credential. Requests that bypass those hooks cannot authenticate. Hooks add only
+the exact routing/price ceilings and streaming usage reporting, without changing
+source processing, prompts or generation limits. Node uses its require preload;
+the shipped Supermemory binary loads the hook through native `bunfig.toml`.
+A separate key or routing preset is not required by this path.
+
+Run only against audited frozen preparation, with a new output directory:
+
+```sh
+python -m pacbench.openrouter_run \
+  --prepared artifacts/pizza-day-openrouter-20261112/week.json \
+  --output runs/my-direct-pizza-trial --providers memcal --spend-limit-usd 20
+```
+
+For the historical Pizza Day archive, prepare fresh review inputs without
+changing the sources or copying old approvals:
+
+```sh
+python -m pacbench.pizza_day_recovery <historical-preparation-directory>
+```
+
+This prints the original messages, a proposed current check and exact contract
+and corpus review prompts. Add `--source-only` to emit just the source records
+and public question for independent review. The archive's source IDs and timing
+differ from the current compiler; the output remains blocked until provenance
+compatibility, current reviews and the actual preparation audit are resolved.
+
+Before a Memcal canary, inspect the local prerequisites without inference:
+
+```sh
+python3 -m pacbench.preflight \
+  --prepared runs/bike-pickup-native-clock-20261105/preparation/week.json \
+  --all-providers
+```
+
+This checks frozen preparation, the exact Hermes pin and patch, installed client
+dependencies, the sibling Memcal checkout, isolated scratch space, driver
+configuration and existing gateway files. It does not initialize stores or
+recover spending history. The optional all-provider inventory reports installation
+paths and additional requirements for all seven integrations; file presence alone
+does not establish native readiness or OpenRouter compatibility.
+Add `--check-gateway` for a free authenticated health
+check after restoring the original state. A passing setup check is not proof of
+model access or recall; verify the recovered ledger and free model inventory
+before running paid controls. If the configured temporary directory resolves
+inside Git, choose a writable `TMPDIR` outside every project; do not disable the
+context-isolation check.
 
 Prefer an existing verified preparation. After services and gateway access are
 ready, a month trial follows this shape:
@@ -93,9 +235,10 @@ Use a fresh output directory. This example assumes Memcal and its native
 dependencies are installed; it is not an installer. Pull current Memcal before
 a requested retest and record its actual revision. Do not overwrite frozen
 evidence, reingest completed days to probe authentication or blindly reuse a
-failed native store. Only OpenViking currently has a dedicated pre-recall resume
-protocol (`python3 -m pacbench.native_resume <run>`), with strict unchanged-input
-and successful-prefix checks.
+failed native store. The historical OpenViking pre-recall resume protocol has
+strict unchanged-input and successful-prefix checks. Catalog-provider resume
+remains blocked until existing-home plugin provenance and recovery are verified;
+do not resume an older store under the upgraded integration by relabeling it.
 
 For a new scenario, follow [authoring](docs/authoring-options.md) and
 [conversation checks](docs/flexible-checks.md). Validate the spec offline first,
@@ -161,12 +304,8 @@ read without changing answers, pending grades or the frozen cohort.
 
 The standalone receipt helpers normalize safe generation IDs and exact costs and
 can retain atomic, immutable metadata sidecars without rewriting a billing ledger.
-They contain no prompts, content, credentials or full response payloads. Main does
-not connect these helpers to live transport. Reviewed Python streaming hooks remain
-on `implement/receipt-cost-ownership-20261116` because their direct-dispatch runtime
-and reservation dependencies are absent from main; those unrelated historical
-modules are not imported by this change. JavaScript and other transport paths also
-need compatible early capture before claiming universal coverage.
+They contain no prompts, content, credentials or full response payloads. These offline helpers are also used by the direct transports described below.
+Receipt coverage remains limited to the routes with instrumentation.
 
 Route evidence is classified as proven, missing, conflicting or recorded-only.
 A model name, endpoint suffix, generation-ID shape or recorded `upstream_origin`
@@ -207,7 +346,7 @@ are append-only evidence, separate from financial settlement. No journal event
 releases exposure. A missing journal, unknown legacy owner, ambiguous prior attempt
 or journal write failure fails closed. There is no takeover or lease-expiry API.
 
-Production integration is still blocked on these requirements:
+Legacy reservation takeover remains blocked on these requirements:
 
 - Atomically commit immutable attempt identity with the **existing** pre-dispatch
   exposure reservation. The staged journal's reservation reference is not proof
@@ -235,10 +374,47 @@ The executor-local ownership audit and guard changes are not available in every
 checkout. Integrate and review those exact changes before implementing any legacy
 migration; do not infer access, reconstruct ownership or launch with a new ledger.
 
+## Direct receipt integration
+
+The revised Pizza Week runner uses the standalone receipt and staged
+ownership modules. Its Python urllib/HTTPX and Node/Bun fetch hooks retain immutable, sanitized generation/cost metadata as responses arrive.
+`pacbench.live_receipts.direct_evidence` verifies direct billing receipt hashes
+and attempt identities before feeding the receipt-only report. An accounting
+hold or settled label without a supported receipt never substitutes for a cost.
+Sidecar failures are flagged while primary response evidence remains available.
+
+After its original preflight gates pass, the full-run launcher selects
+`PACBENCH_DISPATCH_TRACKING=direct-process-evidence-v1`. New attempt context and
+actual sender PID/start-time/boot identity commit atomically with the existing
+financial reservation. A durable dispatch-possible boundary precedes native send.
+The Node helper binds its actual parent sender. Repeated sends, changed identity,
+unknown legacy callbacks and automatic operation replay fail closed. EOF and
+local disconnect remain separate from billing; interruption retains liability.
+Provider calls during answering stay background/ambiguous unless a submission
+witness establishes more specific causality.
+
+This records process evidence; it does not implement supervisor fencing, legacy
+takeover or complete provider-queue lineage. The staged SQLite API stays offline.
+The explicitly approved observational Pizza Week mode selects a separate
+append-only receipt journal with `PACBENCH_RECEIPT_JOURNAL`. Historical files stay
+read-only. This mode applies no local spending cap, financial reservations or
+missing-receipt admission gate; historical ownership is not a prerequisite for new
+work. Current execution locking, provider readiness, frozen chronology and saved
+output dedupe still apply. Only the existing prepaid balance funds requests,
+with Auto Recharge off and no top-up. Explicit provider in-flight-budget rejections
+honor bounded Retry-After retries; other 402 categories remain distinct pauses.
+The older reservation-based behavior remains available for legacy callers that
+do not select this observational mode. Future instrumentation cannot repair missing history.
+Tests use synthetic responses and isolated ledgers; they do not establish live
+provider readiness, new grades or benchmark completion.
+
 ## Validate changes
 
-Install `pytest` in your development environment to run the Python suite; Node.js
-is needed for the JavaScript syntax checks. Run checks appropriate to your change:
+The runtime bootstrap excludes development dependencies. After bootstrap, install
+the pinned test dependencies with
+`uv pip install --python vendor/venv-hermes-isolated/bin/python -r requirements-dev.txt`
+and activate that environment to run the suite. Node.js is needed for the
+JavaScript syntax checks. Run checks appropriate to your change:
 
 ```sh
 python3 -m pytest -q
@@ -260,8 +436,7 @@ request. For evaluation changes, identify the affected protocol and demonstrate
 plausible correct and incorrect controls. Report limitations and uncertainty
 instead of assigning causes that the evidence cannot establish.
 
-Benchmark and explorer changes belong here. Gateway fixes belong in
-[muse-gateway](https://github.com/cuuush/muse-gateway); Memcal product fixes belong
+Benchmark, explorer and gateway changes belong here. Memcal product fixes belong
 in [Memcal](https://github.com/cuuush/memcal). Do not modify third-party provider
 code to rescue a benchmark result.
 

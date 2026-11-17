@@ -105,7 +105,8 @@ def test_document_audit_accepts_utf8_smtp_and_rejects_changed_body(tmp_path):
 
 
 def test_native_memcal_imap_reader_and_contacts_resolve_two_accounts(tmp_path):
-    repo=Path(__file__).resolve().parents[2]/'memcal'
+    from pacbench.provider_versions import memcal_source
+    repo=memcal_source(Path(__file__).resolve().parents[1])
     python=Path(__file__).resolve().parents[1]/'vendor/venv-hermes-isolated/bin/python'
     if not repo.exists() or not python.exists():
         pytest.skip('Optional sibling Memcal checkout/runtime not installed')

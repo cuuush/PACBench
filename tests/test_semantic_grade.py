@@ -72,7 +72,7 @@ def test_description_alone_generates_and_judges_a_scene():
         return "Devon: Pizza Friday night?\nMe: Yes, let's do it!"
     def judge(prompt):
         assert "Pizza Friday night?" in prompt
-        return json.dumps({"supported": True, "evidence": [1, 2], "problem": ""})
+        return json.dumps({'facts': [], "supported": True, "evidence": [1, 2], "problem": ""})
     result = realize_scene(scene, render, judge)
     obs = build_scene_observations("pizza", scene, list(result.lines))
     assert [o.sender for o in obs] == ["Devon", "Me"]
@@ -102,7 +102,7 @@ def test_scene_retry_continues_writers_draft_after_verifier_rejection():
     def verifier(_):
         nonlocal calls
         calls += 1
-        return json.dumps({"supported": calls == 2, "evidence": [1, 2],
+        return json.dumps({'facts': [], "supported": calls == 2, "evidence": [1, 2],
                            "problem": "" if calls == 2 else "not agreed"})
     result = realize_scene(plan, Writer(), verifier)
     assert result.record.attempts == 2
@@ -115,7 +115,7 @@ def test_rendered_json_keeps_writer_note_out_of_frozen_messages():
         plan,
         lambda _: json.dumps({"dialogue": "Sam: Ice cream?\nMe: Yes!",
                               "writer_note": "The brief greeting makes the invitation feel casual."}),
-        lambda _: json.dumps({"supported": True, "evidence": [1, 2], "problem": ""}))
+        lambda _: json.dumps({'facts': [], "supported": True, "evidence": [1, 2], "problem": ""}))
     assert result.lines == (("Sam", "Ice cream?"), ("Me", "Yes!"))
     assert result.record.writer_notes == ["The brief greeting makes the invitation feel casual."]
     assert "writer_note" not in [o.text for o in build_scene_observations("chat", plan, list(result.lines))]
@@ -341,3 +341,39 @@ def test_judge_retry_preserves_both_requests_and_rejects_invalid_quote(tmp_path)
     assert grade.evidence_diagnostic['state'] == 'ungraded'
     with pytest.raises(FileExistsError):
         grade_semantic_with_retry('day', 'When?', 'Saturday', (Claim('day','Saturday'),), judge, attempt_dir=tmp_path)
+
+
+def test_compact_protocol_separates_diagnostic_without_changing_semantic_verdicts(tmp_path):
+    from pacbench.semantic_grade import (Claim, grade_semantic, judge_prompt,
+        COMPACT_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, DIAGNOSTIC_VERSION)
+    claims = (Claim('date', 'Upcoming dinner is Saturday October 24.'),)
+    inputs = {'answer_visible': [{'id': 'prefetch', 'text': 'Saturday October 24'}], 'source_evidence': []}
+    base = dict(assess_recovery=True, assess_interaction=True, diagnostic_inputs=inputs,
+                diagnostic_version=DIAGNOSTIC_VERSION)
+    compact = judge_prompt('When is dinner?', 'Saturday October 24', claims,
+                           judge_protocol=COMPACT_JUDGE_PROTOCOL, **base)
+    old = judge_prompt('When is dinner?', 'Saturday October 24', claims,
+                       judge_protocol=DATE_SCOPED_JUDGE_PROTOCOL, **base)
+    assert 'Diagnostic inputs:' not in compact and 'Diagnostic inputs:' in old
+    assert 'past or different date does not satisfy' in compact
+    for answer, verdict, kind in [('Saturday October 24', 'correct', 'provided'),
+                                  ('Thursday October 22', 'misrepresented', 'incorrect')]:
+        response = json.dumps({'verdicts': [{'id': 'date', 'verdict': verdict, 'reason': answer}],
+            'recovery': [{'id': 'date', 'kind': kind, 'reason': answer}],
+            'interaction': 'answer', 'benchmark_error': None})
+        grade = grade_semantic('date', 'When is dinner?', answer, claims, lambda _: response,
+            record_path=tmp_path / f'{verdict}.json', judge_protocol=COMPACT_JUDGE_PROTOCOL, **base)
+        assert grade.slots[0].verdict == verdict
+        assert grade.evidence_diagnostic['state'] == 'ungraded'
+        assert json.loads((tmp_path / f'{verdict}.json').read_text())['diagnostic_inputs'] == inputs
+
+
+def test_compact_protocol_does_not_salvage_saved_truncated_judgment():
+    from pathlib import Path
+    from pacbench.semantic_grade import Claim, grade_semantic, COMPACT_JUDGE_PROTOCOL
+    path = Path('runs/pizza-month-local-20261105/repeat-1/memcal/turns/maya-options/judgment-attempts/attempt-2.json')
+    saved = json.loads(path.read_text())
+    claims = tuple(Claim(c['id'], c['description'], tuple(c['evidence'])) for c in saved['claims'])
+    with pytest.raises(ValueError, match='unusable semantic judge response'):
+        grade_semantic(saved['checkpoint'], saved['question'], saved['answer'], claims,
+                       lambda _: saved['response'], judge_protocol=COMPACT_JUDGE_PROTOCOL)

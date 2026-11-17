@@ -1,0 +1,396 @@
+"""Recover a complete scored prefix in a retained native provider store.
+
+Reject partial ingests, future state and successful-but-ungraded tail turns.
+Archive original evidence/stores before changing any runner state. No completed
+question, import, native memory or grade is rewritten or replayed.
+"""
+import argparse,hashlib,json,os,shutil
+from pathlib import Path
+from .followups import save
+
+
+def read(path):return json.loads(path.read_text())
+
+
+def honcho_completed_cleanup_import(root,receipt):
+    """Recover an observer timeout from recorded native enrollment/cleanup.
+
+    Retention is reconstructed from the same disabled-TOML configuration and
+    inherited environment, then checked again on actual native reopen. Record
+    that distinction rather than presenting a historical config observation.
+    """
+    import subprocess,copy
+    from provider_adapters.honcho_clock import cleaned_queue_coverage
+    if any('QUEUE_ERROR_RETENTION' in k for k in os.environ):
+        raise ValueError('Historical native retention override cannot be reconstructed')
+    repo=Path(__file__).resolve().parents[1];native=repo/'vendor/honcho-local'
+    env={**os.environ,'PYTHONPATH':str(native),'HONCHO_CONFIG_TOML_DISABLED':'1'}
+    p=subprocess.run([str(native/'.venv/bin/python'),'-c',
+        'from src.config import settings; print(settings.DERIVER.QUEUE_ERROR_RETENTION_SECONDS)'],
+        env=env,capture_output=True,text=True,check=True,timeout=30)
+    retention=int(p.stdout.strip().splitlines()[-1]);r=receipt['result']
+    if r.get('readiness')!='Real processing deadline exceeded; missing witnesses are not success':
+        raise ValueError('Not a completed-queue observer timeout')
+    from datetime import datetime
+    lower_bound=min((m['created_at'] for a in r['result'] for m in a['messages']),key=datetime.fromisoformat)
+    ids=cleaned_queue_coverage(r['message_witnesses'],r['processing_status'],retention_seconds=retention,not_before=lower_bound)
+    expected={m['id'] for a in r['result'] for m in a['messages']}
+    if ids!=expected:raise ValueError('Native successful cleanup does not cover all accepted messages')
+    log=(root/'honcho-api.log').read_text()
+    if '"DELETE ' in log or '"PATCH ' in log:raise ValueError('Native destructive API history requires separate review')
+    recovered=copy.deepcopy(receipt);recovered.update(ready=True,state='ready',observer_recovery_protocol='honcho-completed-queue-observer-timeout-v1')
+    recovered['result'].update(ready=True,readiness='Recorded enrolled native rows successfully cleaned within error retention',
+        queue_cleanup_evidence={'protocol':'honcho-enrolled-queue-success-cleanup-v1','retention_seconds':retention,'message_ids':sorted(ids)})
+    proof={'protocol':'honcho-completed-queue-observer-timeout-v1','original_sha256':hashlib.sha256(json.dumps(receipt,sort_keys=True).encode()).hexdigest(),
+        'native_source_resubmissions':0,'native_queue_edits':0,'retention_seconds':retention,
+        'retention_evidence':'Same inherited environment has no retention override; disabled-TOML native config reconstructed; actual reopen revalidates the default',
+        'native_source_sha256':{name:hashlib.sha256((native/name).read_bytes()).hexdigest() for name in
+            ['src/reconciler/queue_cleanup.py','src/config.py']},
+        'api_log_sha256':hashlib.sha256(log.encode()).hexdigest(),
+        'deriver_log_sha256':hashlib.sha256((root/'honcho-deriver.log').read_bytes()).hexdigest()}
+    return recovered,proof
+
+
+def finalize_audit(output):
+    """Offline finalization from the actual complete evaluation and smoke proof."""
+    from .native_audit import audit
+    from .native_pilot import smoke_succeeded
+    output=output.resolve();report=read(output/'summary.json');result=report['results'][0]
+    root=output/'repeat-1'/result['provider'];sequence=read(root/'evaluation.json')
+    if sequence['state']!='diagnostic' or len(sequence['checks'])!=37 or len(list((root/'turns').glob('*/grade.json')))!=37:
+        raise ValueError('All frozen scored cases must already be complete')
+    cap=result['capability']
+    if not smoke_succeeded(cap):raise ValueError('Native read-only smoke is not verified')
+    history=root/'audit-finalizations'/str(1+len(list((root/'audit-finalizations').glob('*'))));history.mkdir(parents=True)
+    for name in ('summary.json','native-audit.json'):
+        if (output/name).exists():shutil.copyfile(output/name,history/name)
+    if 'wiring_verified' not in cap:
+        save(history/'field-completion.json',{'field':'capability.wiring_verified','reason':'Earlier scored resume checked real native smoke but omitted its metadata flag',
+            'source_smoke_sha256':hashlib.sha256(json.dumps(cap,sort_keys=True).encode()).hexdigest(),'native_data_changed':False})
+        cap['wiring_verified']=True
+    result.update(state='diagnostic',checks=sequence['checks'],reason='Scored sequence complete; independent native audit follows')
+    cap['live_verified']=True;report['state']='diagnostic';save(output/'summary.json',report);save(root/'status.json',result)
+    checked=audit(output);report['audit']=checked
+    if checked['state']!='pass':report['state']='incomplete'
+    save(output/'summary.json',report);save(output/'native-audit.json',checked)
+    return report
+
+
+def archive_dead_gateway_controls(root,history):
+    """Archive a zero-byte interrupted native publication only after proving
+    its companion owner records refer to this home and no longer live."""
+    import fcntl
+    from .import_lifecycle import identity
+    home=root/'hermes-home';pidfile=home/'gateway.pid'
+    if not pidfile.exists() or pidfile.stat().st_size:return
+    with (home/'.pacbench-gateway.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        records=[]
+        for name in ('gateway.lock','gateway_state.json'):
+            path=home/name
+            if not path.exists():continue
+            value=read(path)
+            if value.get('kind')!='hermes-gateway' or value.get('hermes_home')!=str(home.resolve()):raise ValueError('Gateway companion ownership differs')
+            live=identity(value['pid'])
+            if live and live['state'] not in {'Z','X'} and int(live['start_ticks'])==value['start_time']:raise ValueError('Native gateway owner is still live')
+            records.append(name)
+        if not records:raise ValueError('Empty gateway record lacks companion ownership evidence')
+        archive=history/'interrupted-gateway-publication';archive.mkdir()
+        for name in ('gateway.pid',*records,'gateway.sock','gateway.sock.path','.gateway-planned-stop.json'):
+            path=home/name
+            if path.exists() or path.is_symlink():shutil.move(path,archive/name)
+        save(archive/'recovery.json',{'classification':'interrupted-zero-byte-publication','companion_owners_dead':True,'native_sessions_changed':False})
+
+
+def mem0_read_only_failed_import(output,root,receipt,batch):
+    """Prove this specific SDK failure occurred before any persistent write.
+
+    The reviewed pinned implementation only reads history/vector search before
+    its first LLM extraction; writes, including message history, follow a usable
+    extraction response. No paid dispatch and no response therefore means this
+    failed attempt did not reveal its future source in native memory.
+    """
+    from . import harness
+    sdk=next((harness.ISOLATED_BIN.parent.parent/'lib').glob('python*/site-packages/mem0/memory/main.py'))
+    sha=hashlib.sha256(sdk.read_bytes()).hexdigest()
+    config=read(root/'hermes-home/mem0.json');usage=receipt.get('usage',{})
+    observations=root/'ingestion-model-calls'/ (batch['id']+'.json')
+    error=receipt.get('stderr','')
+    if (sha!='f329ca4a17af1fbefb32ac10d4cc7ae7ddbdb7435a87eb74c30915cff98b8b7c' or
+        config['oss'].get('graph_store') or receipt.get('ready') is not False or receipt.get('state')!='failed' or
+        usage.get('state')!='captured' or usage.get('model_calls')!=[] or
+        any(r.get('model_calls')!=0 for r in usage.get('roles',{}).values()) or
+        not observations.exists() or read(observations)!=[] or
+        'in _add_to_vector_store' not in error or 'LLM extraction failed: Connection error.' not in error):
+        raise ValueError('Failed Mem0 import is not proven read-only')
+    if receipt['document_sha256']!=hashlib.sha256((output/'sources'/batch['id']/'messages.txt').read_bytes()).hexdigest():raise ValueError('Failed source binding differs')
+    return {'protocol':'mem0-pre-extraction-read-only-failure-v1','sdk_source_sha256':sha,
+        'original_receipt_sha256':hashlib.sha256(json.dumps(receipt,sort_keys=True).encode()).hexdigest(),
+        'paid_dispatches':0,'extraction_responses':0,'persistent_native_writes':0,
+        'classification':'Failed before extraction; not complete and not a source eligible for recall'}
+
+
+def cognee_read_only_failed_import(output,root,receipt,batch):
+    if (receipt.get('ready') is not False or receipt.get('state')!='failed' or
+        receipt.get('usage',{}).get('state')!='captured' or receipt['usage'].get('model_calls')!=[] or
+        not any(s in receipt.get('stderr','') for s in ['QualificationError: Dataset differs from verified prior source receipts',
+            'QualificationError: Previous native operation has no terminal witness; do not add another document'])):
+        raise ValueError('Cognee failure is not a pre-submission integrity refusal')
+    expected=hashlib.sha256((output/'sources'/batch['id']/'messages.txt').read_bytes()).hexdigest()
+    if expected!=receipt.get('document_sha256'):raise ValueError('Failed source identity differs')
+    import sqlite3,urllib.parse
+    with sqlite3.connect((root/'cognee-system/databases/cognee_db').resolve().as_uri()+'?mode=ro',uri=True) as db:
+        hashes=[hashlib.sha256(Path(urllib.parse.urlparse(row[0]).path).read_bytes()).hexdigest()
+            for row in db.execute('SELECT raw_data_location FROM data')]
+    if expected in hashes:raise ValueError('Source may already be stored; do not resubmit')
+    return {'protocol':'cognee-pre-submission-integrity-refusal-v1','paid_dispatches':0,
+        'source_raw_hash_absent':expected,'classification':'No remember request was sent; original refused receipt retained'}
+
+
+def renew_scored_workspace(root,history):
+    """Reopen the same empty cwd for retained Hermes sessions, without asserting
+    that their legitimate prior scored conversations must not exist."""
+    from .context_isolation import outside_project
+    receipt=root/'recall-workspace.json';data=read(receipt);workspace=Path(data['workspace'])
+    if (not workspace.is_absolute() or not workspace.name.startswith('pacbench-chat-') or
+        workspace.parent!=Path('/var/tmp') or not outside_project(workspace)):
+        raise ValueError('Retained scored workspace is not isolated')
+    if workspace.exists() and any(workspace.iterdir()):raise ValueError('Retained scored workspace is not empty')
+    workspace.mkdir(mode=0o700,exist_ok=True)
+    shutil.copyfile(receipt,history/'recall-workspace.json')
+    return workspace
+
+
+def verify_prefix(output,report,checks,*,allow_complete=False):
+    from .document_ingestion import ready_sources
+    from .harness import question_prompt
+    provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
+    evaluation=read(root/'evaluation.json');prefix=[]
+    strict=evaluation.get('strict_memory_protocol')
+    if strict not in (None,'strict-memory-only-v1'):raise ValueError('Unknown retained strict memory protocol')
+    sessions={}
+    for item in evaluation['checks']:
+        if item['state'] not in ({'diagnostic','strict-ungraded'} if strict else {'diagnostic'}) or item.get('recovery',{}).get('state','complete')!='complete':break
+        prefix.append(item)
+    if not 0<len(prefix)<=len(checks) or len(prefix)==len(checks) and not allow_complete:raise ValueError('No incomplete scored prefix to resume')
+    for (row,contract,_),item in zip(checks,prefix):
+        d=root/'turns'/row['id'];t=read(d/'turn.json')
+        if (item['id']!=row['id'] or item['contract_hash']!=contract.contract_hash or
+            read(d/'status.json')!=item or t['returncode'] or t['policy_blocks'] or
+            t['context_isolation']['state']!='pass' or not t['session_id'] or
+            t['prompt']!=question_prompt(contract.question,row['at'],report['question_prompt_protocol']) or t['at']!=row['at'] or
+            not t.get('answer','').strip()):
+            raise ValueError('Completed scored evidence differs')
+        if strict:
+            from .strict_memory import classify
+            from .native_checks import fresh_state,session_key,advance
+            from .harness import TurnResult
+            state=sessions.setdefault(session_key(row,evaluation['context']),fresh_state())
+            decision=classify(provider,t,state.get('strict','eligible'))
+            if decision!=read(d/'strict-memory.json'):raise ValueError('Retained strict provenance differs')
+            state['strict']=decision['state']
+            if item['state']=='strict-ungraded':
+                if decision['state']=='eligible' or item.get('verdict') is not None or (d/'grade.json').exists() or (d/'judgment.json').exists():
+                    raise ValueError('Strict ungraded prefix has fabricated scoring or eligible provenance')
+            elif decision['state']!='eligible':raise ValueError('Source-assisted prefix was graded')
+            advance(state,TurnResult(**t),d,report.get('provenance_version','source-provenance-v1'))
+        if item['state']=='diagnostic':
+            g=read(d/'grade.json');j=read(d/'judgment.json')
+            if j['answer']!=t['answer'] or json.loads(j['response'])['verdicts']!=g['claims']:
+                raise ValueError('Completed scored evidence differs')
+        expected={b['id'] for b in ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'])}
+        if set(read(d/'source-state.json')['ingested_batches'])!=expected:raise ValueError('Completed chronology differs')
+    completed=[];gap=False
+    for batch in report['ingestion_schedule']:
+        p=root/batch['file']
+        if not p.exists():gap=True;continue
+        receipt=read(p);source=output/'sources'/batch['id']/'messages.txt'
+        if provider=='honcho' and receipt.get('ready') is False:
+            receipt,_=honcho_completed_cleanup_import(root,receipt)
+        if provider in {'mem0','cognee'} and receipt.get('ready') is False:
+            (mem0_read_only_failed_import if provider=='mem0' else cognee_read_only_failed_import)(output,root,receipt,batch);gap=True;continue
+        if (gap or receipt.get('ready') is not True or receipt.get('state')!='ready' or
+            receipt['source_ids']!=batch['source_ids'] or
+            receipt['document_sha256']!=hashlib.sha256(source.read_bytes()).hexdigest()):
+            raise ValueError('Partial or changed native ingest cannot be resumed')
+        completed.append(batch['id'])
+    next_row=checks[min(len(prefix),len(checks)-1)][0]
+    if provider=='honcho':
+        from provider_adapters.honcho_clock import load
+        from datetime import datetime
+        if load(root)[0].now()>=datetime.fromisoformat(next_row['at']):
+            raise ValueError('Retained Honcho clock has reached the next unanswered checkpoint')
+    allowed={b['id'] for b in ready_sources(report['ingestion_schedule'],provider,next_row['at'],report['process_timezone'])}
+    if not set(completed)<=allowed:raise ValueError('Retained store contains future sources')
+    for row,contract,_ in checks[len(prefix):]:
+        p=root/'turns'/row['id']/'turn.json'
+        if p.exists():
+            t=read(p)
+            if t.get('prompt')!=question_prompt(contract.question,row['at'],report['question_prompt_protocol']) or t.get('at')!=row['at']:
+                raise ValueError('Archived failed turn differs from frozen question')
+            if not t.get('returncode') and t.get('answer','').strip():raise ValueError('Ungraded successful turn needs judge-only recovery')
+        if (root/'turns'/row['id']/'grade.json').exists():raise ValueError('Non-prefix grades require a different recovery protocol')
+    return prefix,completed
+
+
+def resume(output,*,terminal_only=False):
+    from .native_pilot import read_prepared,provision,probe,smoke_succeeded,stop_arm_model_work,ingest_pending
+    from .evaluation import load_evaluations,judge_evidence
+    from .native_checks import run_checks
+    from .gateway_client import client_settings,require_live_cost_boundary
+    from .model_calls import ModelClient
+    from .document_ingestion import ready_sources,ingest_day,source_state
+    from .tool_policy import policy_record
+    from .stop import check_stop
+    from .usage import snapshot
+    from .native_audit import audit
+    from .import_lifecycle import scan
+    from .openrouter_route import MODEL
+    output=output.resolve();report=read(output/'summary.json');provider=report['results'][0]['provider'];root=output/'repeat-1'/provider
+    if provider not in {'memos','supermemory','openviking','hindsight','mem0','cognee','memcal','honcho'} or len(report['results'])!=1:raise ValueError('Unsupported scored store recovery')
+    if report['question_prompt_protocol']!='native-question-v2' or report['role_routes']['condition']!='luna-all-roles-v1':raise ValueError('Scored model/prompt condition differs')
+    cohort=read(output.parent/'cohort.json')
+    for field,variable in [('memos_reasoning_condition','PACBENCH_MEMOS_REASONING_CONDITION'),
+        ('memos_ingest_condition','PACBENCH_MEMOS_INGEST_CONDITION'),
+        ('effective_output_ceiling_condition','PACBENCH_EFFECTIVE_OUTPUT_TOKENS'),('compatibility_condition','PACBENCH_LUNA_COMPATIBILITY')]:
+        if field not in cohort and field in {'compatibility_condition','effective_output_ceiling_condition'}:
+            # Older manifests omit display conditions. Exact per-request
+            # receipts bind the original setting; never infer it from a
+            # current default or relabel a different condition.
+            from .direct_accounting import live_budget
+            project='pacbench-'+hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]+'-'+provider
+            prior=[r for r in live_budget().snapshot() if r['project'] in {project+'-driver',project+'-memory'}]
+            if prior and {str(r.get(field)) for r in prior}=={str(os.environ.get(variable))}:continue
+        if cohort.get(field)!=os.environ.get(variable):raise ValueError('Recovery inference condition differs: '+field)
+    if scan(root,'scored-resume-inspection')[0]:raise ValueError('Previous owned workers are still alive')
+    messages,contract,resolved=read_prepared((output/report['source']).resolve(),150)
+    if hashlib.sha256(json.dumps(messages,sort_keys=True,ensure_ascii=False).encode()).hexdigest()!=report['input_hash'] or contract.contract_hash!=report['contract_hash']:raise ValueError('Frozen source identity differs')
+    plan,checks=load_evaluations(output,messages,resolved)
+    if plan['plan_hash']!=report['evaluation_plan_hash']:raise ValueError('Frozen evaluation plan differs')
+    prefix,ingested=verify_prefix(output,report,checks,allow_complete=terminal_only)
+    if terminal_only and (provider!='openviking' or len(prefix)!=len(checks)):raise ValueError('Terminal-only recovery requires all OpenViking grades')
+    history=root/'scored-resumes'/str(1+len(list((root/'scored-resumes').glob('*'))));history.mkdir(parents=True)
+    for name in ('summary.json','native-audit.json'):
+        if (output/name).exists():shutil.copyfile(output/name,history/name)
+    for name in ('evaluation.json','status.json','native-server-setup.json','model-usage.json','model-usage-after-settlement.json','pre-recall-isolation.json'):
+        if (root/name).exists():shutil.copyfile(root/name,history/name)
+    # Quiescent native stores and Hermes session DBs retain an immutable backup.
+    stores={'memos':['memos-home'],'supermemory':['supermemory-data'],'openviking':['openviking-data'],'hindsight':['fallback-home'],'mem0':['qdrant','mem0-state'],
+        'cognee':['cognee-data','cognee-system','cognee-cache'],'memcal':['memcal-home'],
+        'honcho':['honcho-db','provider-clock']}[provider]
+    for name in ['hermes-home',*stores]:
+        if name=='cognee-cache' and not (root/name).exists():continue
+        if provider=='honcho' and name=='honcho-db':
+            import subprocess
+            from provider_adapters.honcho_local import PGVECTOR_IMAGE
+            docker_env={k:v for k,v in os.environ.items() if k not in {'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
+            with (history/'honcho-db.tar').open('xb') as archive:
+                subprocess.run(['docker','--host=unix:///var/run/docker.sock','run','--rm','--user','0:0',
+                    '-v',str(root/name)+':/data:ro','--entrypoint','tar',PGVECTOR_IMAGE,'-C','/data','-cf','-','.'],
+                    stdout=archive,stderr=subprocess.PIPE,env=docker_env,check=True,timeout=120)
+            continue
+        shutil.copytree(root/name,history/name,symlinks=True)
+    if provider=='honcho':
+        for batch in report['ingestion_schedule']:
+            p=root/batch['file']
+            if p.exists() and read(p).get('ready') is False:
+                recovered,proof=honcho_completed_cleanup_import(root,read(p))
+                archive=history/'native-completion-recovery';archive.mkdir(exist_ok=True)
+                shutil.copyfile(p,archive/p.name);save(archive/(p.stem+'.proof.json'),proof)
+                save(p,recovered)
+    archive_dead_gateway_controls(root,history)
+    if terminal_only and (root/'terminal-processing').exists():shutil.move(root/'terminal-processing',history/'prior-terminal-processing')
+    if provider in {'mem0','cognee'}:
+        for batch in report['ingestion_schedule']:
+            p=root/batch['file']
+            if p.exists() and read(p).get('ready') is False:
+                proof=(mem0_read_only_failed_import if provider=='mem0' else cognee_read_only_failed_import)(output,root,read(p),batch)
+                archive=history/'read-only-failed-imports';archive.mkdir(exist_ok=True)
+                shutil.move(p,archive/p.name);save(archive/(p.stem+'.proof.json'),proof)
+    for row,_,_ in checks[len(prefix):]:
+        d=root/'turns'/row['id']
+        if d.exists():(history/'tail-turns').mkdir(exist_ok=True);shutil.move(d,history/'tail-turns'/row['id'])
+    retained_evaluation=read(root/'evaluation.json')
+    save(root/'evaluation.json',{'state':'running','context':plan['context'],'checks':prefix,
+        **({'strict_memory_protocol':retained_evaluation['strict_memory_protocol']} if 'strict_memory_protocol' in retained_evaluation else {})})
+    workspace=renew_scored_workspace(root,history)
+    stop=history/'STOP';os.environ['PACBENCH_STOP_FILE']=str(stop)
+    save(history/'resume.json',{'provider':provider,'completed_questions_preserved':[p['id'] for p in prefix],
+        'completed_imports_preserved':ingested,'protocol':'scored-prefix-retained-store-v1','funded_run_id':os.environ.get('PACBENCH_FUNDED_RUN_ID'),
+        'memos_reasoning_condition':os.environ.get('PACBENCH_MEMOS_REASONING_CONDITION'),'effective_output_ceiling_condition':os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS')})
+    env=None;result=report['results'][0]
+    try:
+        if provider=='honcho':
+            effort=report['provider_generation_conditions']['honcho']['deriver_thinking_effort']
+            if effort!='none':raise ValueError('Unsupported retained Honcho inference condition')
+            os.environ['DERIVER_MODEL_CONFIG__THINKING_EFFORT']=effort
+        env=provision(root,provider,MODEL,local_timezone=report['process_timezone'],resume=True,inference_route='openrouter')
+        env.update(PACBENCH_STOP_FILE=str(stop),PACBENCH_CLOCK_CONTEXT_PROTOCOL=report['clock_context_protocol'],PACBENCH_API_INPUT_TRACE=str(root/'api-inputs.jsonl'))
+        if provider=='openviking':
+            import urllib.request,urllib.parse
+            from .document_audit import audit_openviking_receipt
+            for batch in report['ingestion_schedule']:
+                if batch['id'] not in ingested:continue
+                receipt=read(root/batch['file'])
+                if audit_openviking_receipt(receipt.get('result',{})):raise ValueError('Retained OpenViking readiness receipt differs')
+                uri='viking://resources/'+batch['id'];url=env['OPENVIKING_ENDPOINT']+'/api/v1/fs/stat?'+urllib.parse.urlencode({'uri':uri})
+                request=urllib.request.Request(url,headers={'X-OpenViking-Account':env['OPENVIKING_ACCOUNT'],'X-OpenViking-User':env['OPENVIKING_USER']})
+                with urllib.request.urlopen(request,timeout=10) as response:stat=json.load(response)
+                if stat.get('status')!='ok' or not stat.get('result'):raise ValueError('Retained native resource missing')
+        capability=read(root/'preflight.json') if terminal_only or provider=='memcal' else probe(root,provider,env,smoke=True,smoke_timeout_s=120)
+        if not smoke_succeeded(capability):raise RuntimeError('Retained native capability failed')
+        capability['wiring_verified']=True
+        policy=policy_record(provider,capability['tools'])
+        if policy!=read(root/'tool-policy.json'):raise ValueError('Native tool policy changed')
+        env['PACBENCH_SOURCE_ARGUMENT_RULES']=json.dumps(policy['source_argument_rules']);failed=set()
+        def before(row,directory):
+            check_stop(stop);require_live_cost_boundary()
+            needed=ready_sources(report['ingestion_schedule'],provider,row['at'],report['process_timezone'])
+            ingest_pending(needed,ingested,failed,output,root,provider,env,report['process_timezone'],stop,ingest_day,require_live_cost_boundary)
+            from .native_writes import ensure_ready
+            ensure_ready(provider,row,checks,plan['context'],root,env,directory)
+            save(directory/'source-state.json',source_state(row['at'],ingested))
+        base,key=client_settings('pacbench-judge');conditions=report['judge_generation_conditions']
+        judge_client=ModelClient(key=key,model=MODEL,url=base+'/chat/completions',record_dir=output/'model-calls',reasoning_effort=conditions['reasoning_effort'],json_mode=True,timeout_s=conditions['wall_deadline_s'])
+        def judge(*a,**kw):check_stop(stop);return judge_client(*a,**kw)
+        def evidence(row):return judge_evidence(output,messages,resolved,row,plan['context'],diagnostic_version=report['evidence_diagnostic_protocol'])
+        sequence=run_checks(checks,plan['context'],root,judge,','.join(policy['allowed_tools']),env,question_dir=output/'combined-questions',
+            before_check=before,evidence_by_id=evidence,provenance_version=report['provenance_version'],diagnostic_version=report['evidence_diagnostic_protocol'],
+            judge_protocol=report['judge_protocol'],turn_timeout_s=report['recall_wall_deadline_s'],resume_prefix=len(prefix))
+        if provider=='openviking' and report.get('terminal_processing_protocols'):
+            from .terminal_processing import observe_before_stop
+            terminal=observe_before_stop(root,env,timeout_s=180,boundary=lambda:(check_stop(stop),require_live_cost_boundary()))
+            result['terminal_processing']={k:terminal[k] for k in ('protocol','state','scope_hash')}
+        result.update(state=sequence['state'],checks=sequence['checks'],capability=capability,reason='' if sequence['state']=='diagnostic' else 'Recovered sequence incomplete')
+        capability['live_verified']=sequence['state']=='diagnostic'
+    finally:
+        stop_arm_model_work(root)
+        if env:save(root/'model-usage.json',snapshot(json.loads(env['PACBENCH_USAGE_ROLES'])))
+        from .process_cleanup import cleanup_run_processes
+        save(history/'workspace-cleanup.json',cleanup_run_processes(workspace))
+        shutil.rmtree(workspace,ignore_errors=True)
+    report['state']='diagnostic' if result['state']=='diagnostic' else 'incomplete';save(root/'status.json',result);save(output/'summary.json',report)
+    checked=audit(output);report['audit']=checked
+    if checked['state']!='pass':report['state']='incomplete'
+    save(output/'native-audit.json',checked);save(output/'summary.json',report)
+    return report
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);p.add_argument('--detach',action='store_true');p.add_argument('--terminal-only',action='store_true');p.add_argument('--audit-only',action='store_true');a=p.parse_args()
+    if a.audit_only:
+        r=finalize_audit(a.output);print(json.dumps({'state':r['state'],'audit':r['audit']}));return
+    if a.detach:
+        from .durable_job import launch
+        import sys
+        index=1
+        while (a.output/f'scored-recovery-job-{index}.launch.private.json').exists():index+=1
+        target=a.output/f'scored-recovery-job-{index}'
+        print(json.dumps(launch([sys.executable,'-m','pacbench.scored_resume',str(a.output.resolve()),*(['--terminal-only'] if a.terminal_only else [])],target)));return
+    from .openrouter_direct import direct_environment
+    key=os.environ['OPENROUTER_API_KEY']
+    with direct_environment(key):report=resume(a.output,terminal_only=a.terminal_only)
+    print(json.dumps({'provider':report['results'][0]['provider'],'state':report['state'],'audit':report['audit']['state']}))
+
+
+if __name__=='__main__':main()

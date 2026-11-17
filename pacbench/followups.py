@@ -13,6 +13,7 @@ from .gateway_client import require_live_cost_boundary
 from .model_calls import ModelOutput
 from .stop import OperatorStop
 from .semantic_grade import Claim, Grade, GradedClaim, VERDICTS, grade_native_semantic, audit_native_judge_attempts, LEGACY_JUDGE_PROTOCOL
+from .clock_context import judge_question
 
 RECOVERY_WEIGHT = 0.5
 SOURCE_CATEGORIES = {'archive_search', 'source_evidence', 'source_messages'}
@@ -92,6 +93,23 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
         return 'memory_reasoning'
     if name == 'honcho_conclude':
         return 'memory_search' if arguments.get('list') else 'memory_write'
+    if name == 'cognee_recall':
+        mode=str(arguments.get('search_type') or '').upper()
+        return 'source_evidence' if mode in {'CHUNKS','CHUNKS_LEXICAL','RAG_COMPLETION','HYBRID_COMPLETION'} else 'unclassified'
+    if name == 'cognee_recap':
+        return 'source_messages'  # It exposes original recorded session history.
+    if name in {'cognee_remember','cognee_forget'}:
+        return 'memory_write'
+    if name == 'cognee_switch_dataset':
+        return 'memory_detail'
+    if name == 'cognee_code_search':
+        return 'source_evidence'
+    if name=='memos_search':return 'source_evidence'
+    if name=='memos_timeline':return 'source_messages'
+    if name=='memos_get':
+        return 'source_evidence' if arguments.get('kind','trace')=='trace' else 'memory_detail'
+    if name in {'memos_skill_list','memos_skill_get','memos_environment'}:
+        return 'memory_detail'
     if name in {'tool_search', 'tool_describe'}:
         return 'tool_discovery'
     if name == 'tool_call':
@@ -101,10 +119,16 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
     if name in {'memcal_search_wiki', 'memcal_list_days', 'memcal_list_month',
                 'mem0_search', 'hindsight_recall', 'mcp__hindsight__recall', 'mcp__hindsight__list_memories'}:
         return 'memory_search'
-    if name in {'supermemory-search','supermemory_search','brv_query'}:
+    if name in {'supermemory-search','supermemory_search'}:
+        return 'unclassified'  # Native v5 default hybrid formatter merges chunks and memories.
+    if name == 'brv_query':
         return 'memory_search'
-    if name in {'supermemory-profile','supermemory_profile','brv_status'}:
+    if name in {'supermemory-profile','supermemory_profile'}:
+        return 'unclassified' if arguments.get('query') else 'memory_detail'
+    if name == 'brv_status':
         return 'memory_detail'
+    if name in {'supermemory-read-document','supermemory_read_document'}:
+        return 'source_evidence'
     if name in {'supermemory-save','supermemory_store','supermemory-forget','supermemory_forget','brv_curate'}:
         return 'memory_write'
     if name=='hindsight_reflect':
@@ -130,7 +154,7 @@ def tool_category(name: str, arguments: dict, source_tools=()) -> str:
 
 
 def tool_profile(turn, *, source_tools=(), provenance_version='source-provenance-v1') -> dict:
-    if provenance_version not in {'source-provenance-v1', 'source-provenance-v2'}:
+    if provenance_version not in {'source-provenance-v1', 'source-provenance-v2', 'source-provenance-v3'}:
         raise ValueError('Unknown source provenance version')
     operations = []
     for index, call in enumerate(turn.tool_calls):
@@ -193,6 +217,16 @@ def tool_profile(turn, *, source_tools=(), provenance_version='source-provenance
                       for op in answer_operations)
     native_unknown=sum(bool(t.get('error')) for t in traces if t.get('provider') in {'honcho','hindsight'})+sum(op['category']=='unclassified' or
         op['category'] in SOURCE_CATEGORIES and op['attribution']!='explicit-query-match' for op in answer_operations)
+    prefetch_provenance=None
+    if provenance_version=='source-provenance-v3':
+        from .prefetch_provenance import observe
+        declared=getattr(turn,'prefetch_provenance',None)
+        if declared:
+            prefetch_provenance=observe({k:v for k,v in declared.items() if k!='prefetch_sha256'},turn.prefetch_context)
+            if prefetch_provenance!=declared:
+                raise ValueError('Native prefetch provenance differs from actual context')
+            native_source=native_source or declared['state']=='source'
+            native_unknown+=declared['state']=='unverified'
     return {'top_level_calls': len(turn.tool_calls), 'total_tool_operations': len(operations),
         'provider_internal_tool_calls': len(native_calls) if traces and all(
             'toolCalls' in trace.get('record', {}) for trace in traces) else None,
@@ -205,12 +239,15 @@ def tool_profile(turn, *, source_tools=(), provenance_version='source-provenance
         'repeated_operations': sum(count - 1 for count in signatures.values()),
         'unmatched_tool_results': turn.tool_results[len(turn.tool_calls):],
         'source_fallback_attempted': native_source or any(c in SOURCE_CATEGORIES for c in categories),
-        'unclassified_operations': categories.get('unclassified', 0)+native_unknown}
+        'unclassified_operations': categories.get('unclassified', 0)+native_unknown,
+        **({'prefetch_provenance':prefetch_provenance} if provenance_version=='source-provenance-v3' else {})}
 
 
 def turn_metrics(turn, previous=None, *, source_tools=(), provenance_version='source-provenance-v1') -> dict:
     def delta(field):
         current = getattr(turn, field)
+        if (getattr(turn,'hermes_gateway',None) or {}).get('native_result_token_scope')=='turn':
+            return current if type(current) is int and current>=0 else None
         prior = getattr(previous, field) if previous is not None else 0
         if previous is not None and previous.session_id != turn.session_id:
             return None
@@ -373,7 +410,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                   judge, home: Path, allowlist: str, extra_env: dict | None,
                   source_tools=(), run_turn=None, budget_snapshot=None,
                   question_model=None, question_dir: Path | None = None,
-                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> dict:
+                  previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL, provider_name=None) -> dict:
     """Ask once for all initially failed claims in the real recall conversation."""
     run_turn = run_turn or harness.run_turn
     budget_snapshot = budget_snapshot or require_live_cost_boundary
@@ -423,17 +460,32 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
                             extra_env=turn_environment, timeout_s=180, session_id=initial_turn.session_id,
                             session_started_at=initial_turn.session_started_at or initial_turn.at)
             save(directory / 'turn.json', vars(turn))
+            if (turn.hermes_gateway or {}).get('version')=='checkpoint-session-v1':
+                from .checkpoint_evaluator import audit_transport
+                audit_transport(turn)
             attempt['metrics'] = turn_metrics(turn, initial_turn, source_tools=source_tools, provenance_version=provenance_version)
             attempt['gateway_window'] = cost_window(before, budget_snapshot())
             if turn.session_id != initial_turn.session_id or turn.returncode or turn.policy_blocks or not turn.answer.strip():
                 raise ValueError('follow-up turn failed, changed session, or was policy blocked')
+            if (extra_env or {}).get('PACBENCH_STRICT_MEMORY_ONLY',os.environ.get('PACBENCH_STRICT_MEMORY_ONLY')) == '1':
+                from .strict_memory import classify
+                provider = provider_name or (extra_env or {}).get('PACBENCH_PROVIDER_NAME') or home.parent.name
+                inherited = classify(provider, initial_turn)['state']
+                decision = classify(provider, turn, inherited)
+                save(directory / 'strict-memory.json', decision)
+                report['strict_memory_provider'] = provider
+                if decision['state'] != 'eligible':
+                    attempt.update(state='strict-ungraded', verdicts=[])
+                    report.update(state='complete', score=None, score_state='strict-ungraded')
+                    save(output / 'recovery.json', report)
+                    return report
             from .native_checks import diagnostic_inputs
             from types import SimpleNamespace
             inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
-            followup_grade = grade_native_semantic(grade.checkpoint, turn.prompt, turn.answer,
+            followup_grade = grade_native_semantic(grade.checkpoint, judge_question(turn), turn.answer,
                 tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge,
                 record_path=directory / 'judgment.json', conversation=tuple(conversation) + (
-                    {'role': 'user', 'content': initial_turn.prompt},
+                    {'role': 'user', 'content': judge_question(initial_turn)},
                     {'role': 'assistant', 'content': initial_turn.answer}), diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol)
             save(directory / 'grade.json', {'claims': [vars(s) for s in followup_grade.slots],
                 **({'evidence_diagnostic': followup_grade.evidence_diagnostic} if inputs is not None else {})})
@@ -456,7 +508,7 @@ def run_followups(*, contract, plan: dict, grade, initial_turn, output: Path,
 
 
 def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
-                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL) -> list[str]:
+                    output: Path, previous_turn=None, conversation=(), inherited_path=None, provenance_version='source-provenance-v1', evidence_by_id=None, diagnostic_version='answer-visible-evidence-v1', judge_protocol=LEGACY_JUDGE_PROTOCOL, clock_context_protocol='user-clock-prefix-v1', prompt_protocol=None, provider_name=None, strict_memory=False) -> list[str]:
     """Recheck attempt limits, unchanged initial score, real session and trace costs."""
     errors = []
     def check(ok, message):
@@ -488,9 +540,24 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
         check(len(report['attempts']) == int(eligible) and
               (not eligible or report['attempts'][0]['claim_ids'] == failed),
               'expected exactly one combined follow-up covering all eligible omissions')
-        check(len(list(output.glob('*/turn.json'))) == int(eligible), 'unexpected combined follow-up turn count')
+        refusal=(report['state']=='incomplete' and eligible and len(report['attempts'])==1 and
+            report['attempts'][0].get('question') is None and report['attempts'][0].get('state')=='failed' and
+            report['attempts'][0].get('error')=='ValueError: combined follow-up failed neutral/complete coverage review')
+        check(len(list(output.glob('*/turn.json'))) == (0 if refusal else int(eligible)), 'unexpected combined follow-up turn count')
         effort = initial_effort(initial_turn, previous_turn, inherited_path=inherited_path, provenance_version=provenance_version)
         check(report['initial_metrics'] == effort, 'initial effort mismatch')
+        if refusal:
+            binding=combined_binding(contract,plan,[c for c in contract.claims if c.id in failed])
+            rejected=read(output.parents[4]/'combined-questions'/(digest(binding)+'.rejected.json'))
+            drafts=rejected.get('drafts',[])
+            check(len(drafts)==2 and all(isinstance(d.get('question'),str) and 1<=len(d['question'].strip())<=2000 and
+                not(d.get('review',{}).get('safe') is True and _covers_all(d['review'],failed) and
+                    isinstance(d['review'].get('reason'),str) and d['review']['reason'].strip()) for d in drafts),
+                'Authoring refusal lacks both rejected frozen-policy drafts')
+            check(not list(output.glob('*/question-plan.json')) and not list(output.glob('*/judgment.json')) and
+                  report['attempts'][0]['verdicts']==[],'Pre-dispatch refusal contains a delivered recovery experiment')
+            check(report['score']==recovery_score(grade,effort,report['attempts']),'Refused recovery changed initial credit')
+            return errors  # Keep the explicit incomplete diagnostic; no invented plan or turn.
         previous = initial_turn
         for attempt in report['attempts']:
             directory = output / 'combined'
@@ -513,39 +580,55 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             question = frozen_question['question']
             check(attempt['question'] == question, 'follow-up question changed')
             turn = harness.TurnResult(**read(directory / 'turn.json'))
+            if (turn.hermes_gateway or {}).get('version')=='checkpoint-session-v1':
+                from .checkpoint_evaluator import audit_transport
+                audit_transport(turn)
             from .usage import provider_paths_match
             if (directory/'usage.json').exists():
                 check(provider_paths_match(turn,read(directory/'usage.json')),
                     'follow-up provider path timing differs from recorded inference inputs')
             clock = turn.provider_clock
-            recovery_at = turn.at if clock and clock.get('version') in ('honcho-wall-clock-v2','honcho-wall-clock-v3') else initial_turn.at
+            recovery_at = turn.at if clock and clock.get('version') in ('honcho-wall-clock-v2','honcho-wall-clock-v3','honcho-wall-clock-v4','honcho-wall-clock-v5','checkpoint-observation-clock-v1') else initial_turn.at
             if clock:
                 from datetime import datetime
                 check(clock.get('role') == 'recovery' and clock.get('requested_at') == initial_turn.at and
                       datetime.fromisoformat(turn.at) >= datetime.fromisoformat(initial_turn.at),
                       'invalid simulated recovery clock')
-            expected_prompt = (f'[Simulated now: {recovery_at}. Treat this as the current date and '
-                               f'time for everything in this turn.]\n\n{question}')
-            check(turn.prompt == expected_prompt and turn.at == recovery_at, 'follow-up clock/prompt mismatch')
+            from .clock_context import expected_prompt
+            expected=expected_prompt(recovery_at,question,clock_context_protocol)
+            if prompt_protocol is not None:expected=harness.question_prompt(question,recovery_at,prompt_protocol)
+            check(turn.prompt == expected and turn.at == recovery_at, 'follow-up clock/prompt mismatch')
             check(turn.session_id == initial_turn.session_id, 'follow-up lost recall conversation')
             check(not turn.returncode and not turn.policy_blocks, 'follow-up turn failed/blocked')
             check(attempt['metrics'] == turn_metrics(turn, previous, provenance_version=provenance_version), 'follow-up tool/token metrics mismatch')
+            if strict_memory:
+                check(report.get('strict_memory_provider') == provider_name, 'missing or changed strict follow-up provider')
+            if strict_memory or report.get('strict_memory_provider'):
+                from .strict_memory import classify
+                provider = provider_name or report['strict_memory_provider']
+                decision = classify(provider, turn, classify(provider, initial_turn)['state'])
+                check(read(directory / 'strict-memory.json') == decision, 'follow-up strict provenance mismatch')
+                if decision['state'] != 'eligible':
+                    check(attempt['state'] == 'strict-ungraded' and attempt['verdicts'] == [], 'excluded recovery was scored')
+                    check(not (directory/'judgment.json').exists() and not (directory/'grade.json').exists(), 'excluded recovery was judged')
+                    check(report.get('score_state') == 'strict-ungraded' and report['score'] is None, 'unverified recovery gained credit')
+                    return errors
             judgment = read(directory / 'judgment.json')
             check(judgment.get('judge_protocol', LEGACY_JUDGE_PROTOCOL) == judge_protocol, 'follow-up judge protocol mismatch')
-            check(judgment['question'] == turn.prompt and judgment['answer'] == turn.answer,
+            check(judgment['question'] == judge_question(turn) and judgment['answer'] == turn.answer,
                   'follow-up judgment context mismatch')
             if 'conversation' in judgment:
                 check(judgment['conversation'] == list(conversation) + [
-                    {'role': 'user', 'content': initial_turn.prompt},
+                    {'role': 'user', 'content': judge_question(initial_turn)},
                     {'role': 'assistant', 'content': initial_turn.answer}], 'follow-up prior conversation mismatch')
             selected = [c for c in contract.claims if c.id in selected_ids]
             if judge_protocol != LEGACY_JUDGE_PROTOCOL:
                 from .native_checks import diagnostic_inputs
                 from types import SimpleNamespace
                 inputs = diagnostic_inputs(turn, SimpleNamespace(claims=selected), evidence_by_id, prior_turn=initial_turn, diagnostic_version=diagnostic_version) if evidence_by_id is not None else None
-                audit_native_judge_attempts(directory/'judgment.json', question=turn.prompt, answer=turn.answer,
+                audit_native_judge_attempts(directory/'judgment.json', question=judge_question(turn), answer=turn.answer,
                     claims=tuple(Claim(c.id, c.statement, c.evidence) for c in selected), judge_protocol=judge_protocol,
-                    conversation=list(conversation) + [{'role':'user','content':initial_turn.prompt}, {'role':'assistant','content':initial_turn.answer}],
+                    conversation=list(conversation) + [{'role':'user','content':judge_question(initial_turn)}, {'role':'assistant','content':initial_turn.answer}],
                     diagnostic_inputs=inputs, diagnostic_version=diagnostic_version)
             judgments = read(directory / 'grade.json')['claims']
             check(json.loads(judgment['response'])['verdicts'] == judgments,
@@ -562,7 +645,7 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
                 check(diagnostic_version in DIAGNOSTIC_VERSIONS and judgment['diagnostic_protocol'] == diagnostic_version and
                     saved_grade.get('evidence_diagnostic') == validate_diagnostic(json.loads(judgment['response']).get('evidence_diagnostic'), claim_objects, turn.answer, inputs, diagnostic_version),
                     'follow-up diagnostic differs from judge')
-                check(judgment['prompt'] == judge_prompt(turn.prompt, turn.answer, claim_objects,
+                check(judgment['prompt'] == judge_prompt(judge_question(turn), turn.answer, claim_objects,
                     conversation=judgment['conversation'], diagnostic_inputs=inputs, diagnostic_version=diagnostic_version, judge_protocol=judge_protocol) + judgment.get('prompt_suffix', ''), 'follow-up diagnostic prompt mismatch')
                 reconstructed = diagnostic_inputs(turn, SimpleNamespace(claims=selected),
                     evidence_by_id if evidence_by_id is not None else {x['id']: x['text'] for x in inputs.get('source_evidence', [])}, prior_turn=initial_turn, diagnostic_version=diagnostic_version)
@@ -579,6 +662,6 @@ def audit_followups(*, contract, plan: dict, initial_turn, initial_grade: dict,
             previous = turn
         check(report['score'] == recovery_score(grade, effort, report['attempts']),
               'recovery score mismatch or first-answer penalty erased')
-    except (OSError, ValueError, KeyError, TypeError, IndexError) as exc:
+    except (OSError, ValueError, KeyError, TypeError, IndexError, RuntimeError) as exc:
         errors.append(f'follow-up audit failed: {type(exc).__name__}: {exc}')
     return errors

@@ -1,0 +1,40 @@
+{
+  "version": "reviewed-runtime-dependency-constraints-v1",
+  "scope": "Exact package versions for reviewed runtime dependencies; Hermes and Honcho retain upstream source lockfiles. Optional/dev entries constrain versions only when selected, without adding them to runtime installs.",
+  "components": {
+    "hermes": {
+      "python": "3.14.9",
+      "packages": 129,
+      "sha256": "a8ff42f6d7bde5103991c0340074113ebc661b2de381dd95a3537969880ccdf9"
+    },
+    "hindsight": {
+      "python": "3.12.14",
+      "packages": 205,
+      "sha256": "ef7c78f6749317a2d91104341552e06a2da026eac8eaec3b25faed4c2e17f93a"
+    },
+    "cognee": {
+      "python": "3.12.14",
+      "packages": 171,
+      "sha256": "6f154d02d70fa5a2d0586c99e79f68136949428a974b60a1bb2f0bd574f7a8b1"
+    },
+    "openviking": {
+      "python": "3.12.14",
+      "packages": 324,
+      "sha256": "1386df3a9468d36c39464a87c6df7f0f3dca6df40ec93c66a5f28874d76c347d"
+    },
+    "reme": {
+      "python": "3.12.14",
+      "packages": 147,
+      "sha256": "c9eedc8285f23ff333adce328663f8dfa6e38928d8730731ef36948e8117c223"
+    },
+    "memos": {
+      "packages": 300,
+      "sha256": "a2d089496a01c71e6d7510e3d7cb46b88651e35e70b699c0cbe2ffc2e9b1d9e6"
+    },
+    "honcho": {
+      "python": "3.13.5",
+      "upstream_lock": "vendor/honcho-local/uv.lock",
+      "extra_requirement": "time-machine==3.6.0"
+    }
+  }
+}

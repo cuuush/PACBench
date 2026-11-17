@@ -12,15 +12,17 @@ from .evidence_store import read_json
 
 def audit_combined_contract_review(root, document, observations, check):
     """Bind v7's two independent subreviews to their one actual model request."""
-    if (document.get('authoring_version') != 'event-scoped-v7' or
+    if (document.get('authoring_version') not in {'event-scoped-v7','event-scoped-v8-attribute-anchors'} or
             document.get('kind', 'recall') == 'behavior'):
         return []
     from .semantic_contract import (ContractClaim, _dialogue, combined_review_prompt,
                                     contract_review_prompts, shared_context_review_prompt)
+    from .contract_carry_forward import review_observations
+    observations=review_observations(root,document,observations,check)
     claims = tuple(ContractClaim(c['id'], c['statement'], tuple(c['evidence'])) for c in document['claims'])
     claim_prompt, question_prompt = contract_review_prompts(
         claims=claims, author_facts=tuple(check.get('facts', [])), dialogue=_dialogue(observations),
-        question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'])
+        question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'],review_version=document['authoring_version'])
     retry = ('\nThe previous response was not a valid JSON object. '
              'Return one complete JSON object with no surrounding text.')
     receipt = document.get('combined_review_receipt') or {}
@@ -31,7 +33,7 @@ def audit_combined_contract_review(root, document, observations, check):
         elif prompt_format == 'shared-context-v2':
             expected = shared_context_review_prompt(
                 claims=claims, author_facts=tuple(check.get('facts', [])), dialogue=_dialogue(observations),
-                question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'])
+                question_at=check['at'], user_question=check['prompt'], test_intent=check.get('expect') or check['prompt'],review_version=document['authoring_version'])
         else:
             raise ValueError('unknown combined review prompt format')
         path = receipt['model_call']
@@ -74,6 +76,15 @@ def audit_scenes(root, resolved, life_id, messages):
         plan=ScenePlan(**{k:v for k,v in spec.items() if k in names})
         built=[o.public() for o in build_scene_observations(life_id,plan,row['lines'])]
         expected.extend(built)
+        if plan.source_review == 'author-source-v1':
+            from .authoring import realize_scene
+            from .prepare import realization_binding
+            exact=realize_scene(plan,None,None)
+            if (row['source_ids']!=[m['source_id'] for m in built] or
+                    row['record']!=vars(exact.record) or row['verdict']!=exact.verdict or
+                    row.get('verification_binding')!=realization_binding(plan,row['lines'],())):
+                errors.append(f'{plan.id}: invalid unjudged author-source integrity/provenance')
+            continue  # Deliberately no model verdict or checker receipt to validate.
         if row['source_ids']!=[m['source_id'] for m in built] or row['record']['status']!='ok' or row['verdict'].get('supported') is not True:
             errors.append(f"{plan.id}: incomplete source verification")
         if plan.messages is not None:
@@ -132,29 +143,48 @@ def audit_prepared(root: Path) -> dict:
             quality=json.loads((root/'realism-review.json').read_text())
             if summary.get('corpus_review_version') and quality.get('review_version') != summary['corpus_review_version']:
                 errors.append('Corpus realism review version differs from preparation')
-            intent={'scenes':[{k:s[k] for k in ('id','at','thread','scene','facts')} for s in resolved['scenes']],
-                    'checks':resolved['checks']}
-            if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
-                    quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues')):
-                errors.append('Corpus realism review is stale or unresolved')
-            if (quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9') and
-                    quality.get('scope') != 'source-coherence-and-public-question-answerability'):
-                errors.append('Corpus realism review scope is missing or incorrect')
-            from .corpus_review import verdict_passes
-            if not verdict_passes(quality.get('review'), messages, resolved, version=quality.get('review_version')):
-                errors.append('Corpus realism review lacks valid source-grounded assessments')
-            if quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9') and 'validation_errors' in quality:
-                from .corpus_review import validation_errors
-                if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved,
-                                                                    version=quality['review_version']):
-                    errors.append('Corpus realism validation errors differ from review evidence')
-            call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
-            if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
-                errors.append('Corpus realism review differs from its actual model receipt')
-            from .corpus_review import SUPPORTED_VERSIONS, review_prompt
-            if quality.get('review_version') in SUPPORTED_VERSIONS and call.get('request', {}).get('messages') != [
-                    {'role': 'user', 'content': review_prompt(messages, resolved,version=quality['review_version'])}]:
-                errors.append('Corpus realism review did not receive the actual frozen source and expectations')
+            from .checkpoint_corpus_review import VERSION as CHECKPOINT_VERSION, BOUND_VERSION, audit as audit_checkpoints
+            if quality.get('review_version') in {CHECKPOINT_VERSION,BOUND_VERSION}:
+                errors.extend(audit_checkpoints(root,messages,resolved,quality))
+            else:
+                intent={'scenes':[{k:s[k] for k in ('id','at','thread','scene','facts')} for s in resolved['scenes']],
+                        'checks':resolved['checks']}
+                if (quality.get('state')!='pass' or quality.get('source_hash')!=digest(messages) or
+                        quality.get('intent_hash')!=digest(intent) or quality.get('review',{}).get('issues')):
+                    errors.append('Corpus realism review is stale or unresolved')
+                if (quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10','source-realism-v11') and
+                        quality.get('scope') != 'source-coherence-and-public-question-answerability'):
+                    errors.append('Corpus realism review scope is missing or incorrect')
+                from .corpus_review import verdict_passes
+                if quality.get('review_version') in {'source-realism-v10','source-realism-v11'}:
+                    from .corpus_epistemic import eligible_evidence
+                    expected_bindings={c['id']:digest(eligible_evidence(messages,resolved,c['id'])) for c in resolved['checks']}
+                    if quality.get('eligibility_bindings')!=expected_bindings:
+                        errors.append('Corpus review eligible-history bindings differ from actual checkpoints')
+                if not verdict_passes(quality.get('review'), messages, resolved, version=quality.get('review_version')):
+                    errors.append('Corpus realism review lacks valid source-grounded assessments')
+                if quality.get('review_version') in ('source-realism-v7','source-realism-v8','source-realism-v9','source-realism-v10','source-realism-v11') and 'validation_errors' in quality:
+                    from .corpus_review import validation_errors
+                    if quality['validation_errors'] != validation_errors(quality.get('review'), messages, resolved,
+                                                                        version=quality['review_version']):
+                        errors.append('Corpus realism validation errors differ from review evidence')
+                call=read_json(root/'model-calls'/Path(quality.get('model_call','')).name)
+                execution=quality.get('execution_condition')
+                if execution is not None:
+                    deadline=call.get('client_wall_deadline_s',call.get('direct_timing',{}).get('wall_deadline_s'))
+                    if (execution.get('version')!='corpus-review-real-deadline-v1' or
+                            type(deadline) is not int or not 0<deadline<=900 or
+                            execution.get('wall_deadline_s')!=deadline):
+                        errors.append('Corpus review client deadline differs from its actual model receipt')
+                    if 'max_attempts' in execution and (execution['max_attempts']!=call.get('client_max_attempts') or
+                            execution['max_attempts'] not in (1,2) or deadline==900 and execution['max_attempts']!=1):
+                        errors.append('Corpus review attempt limit differs from its actual model receipt')
+                if call.get('status')!='ok' or json.loads(call.get('text',''))!=quality.get('review'):
+                    errors.append('Corpus realism review differs from its actual model receipt')
+                from .corpus_review import SUPPORTED_VERSIONS, review_prompt
+                if quality.get('review_version') in SUPPORTED_VERSIONS and call.get('request', {}).get('messages') != [
+                        {'role': 'user', 'content': review_prompt(messages, resolved,version=quality['review_version'])}]:
+                    errors.append('Corpus realism review did not receive the actual frozen source and expectations')
         if resolved.get('ingestion_days') is not None:
             from datetime import date, datetime
             from .document_ingestion import daily_batches

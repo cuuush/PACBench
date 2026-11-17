@@ -43,7 +43,8 @@ def test_stop_checks_environment_and_explicit_path(tmp_path, monkeypatch):
 @pytest.mark.parametrize('mode',['operator',401,403])
 def test_terminal_first_arm_does_not_start_independent_arm(tmp_path, monkeypatch,mode):
     from types import SimpleNamespace
-    from pacbench import native_pilot, document_ingestion, native_audit, usage
+    from pacbench import native_pilot, document_ingestion, native_audit, usage, live_trials
+    monkeypatch.setattr(live_trials, 'require_live_trials_ready', lambda: None)
     source = tmp_path/'prepared'
     source.mkdir()
     for name in ('bundle.json', 'contract.json', 'resolved-spec.json', 'evaluation-plan.json'):

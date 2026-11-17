@@ -69,8 +69,15 @@ class ScenePlan:
     noise: str = "low"
     messages_per_person: tuple[int, int] | None = None
     messages: tuple[dict[str, str], ...] | None = None
+    # Explicit in new resolved receipts; defaults preserve historical contracts.
+    source_review: str = "model"
+    initial_participants: tuple[str, ...] | None = None
 
     def __post_init__(self) -> None:
+        if self.source_review not in {'model', 'author-source-v1'}:
+            raise AuthoringError('Unknown source_review')
+        if self.source_review == 'author-source-v1' and (self.messages is None or self.facts):
+            raise AuthoringError('Unjudged author source requires exact messages without scene facts')
         if not isinstance(self.id,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}',self.id):
             raise AuthoringError('scene id must be a safe name of at most 128 letters, digits, underscores or hyphens')
         if self.channel not in CHANNELS:
@@ -81,6 +88,13 @@ class ScenePlan:
         if self.participants:
             validate_participants(self.participants)
             object.__setattr__(self,'participants',tuple(self.participants))
+        if self.initial_participants is not None:
+            initial = self.initial_participants
+            if (self.messages is None or not isinstance(initial, (list, tuple)) or
+                    'Me' not in initial or len(set(initial)) != len(initial) or
+                    any(p not in self.participants for p in initial)):
+                raise AuthoringError('initial_participants requires exact source and known contacts including Me')
+            object.__setattr__(self, 'initial_participants', tuple(initial))
         if (not isinstance(self.cast, dict) or any(
                 not isinstance(name, str) or not name.strip() or name not in self.participants or
                 not isinstance(description, str) or not description.strip()
@@ -136,11 +150,26 @@ class ScenePlan:
             end_clock = datetime.fromisoformat(self.window_end)
             if start_clock.tzinfo is None or end_clock.tzinfo is None or end_clock <= start_clock:
                 raise AuthoringError("supplied messages need an offset-aware, increasing scene window")
+            normalized = []
             for message in self.messages:
-                if (not isinstance(message, dict) or set(message) != {"sender", "text", "at"} or
+                if (not isinstance(message, dict) or set(message)-{"sender", "text", "at", "time"} or
+                        not {'sender', 'text'} <= set(message) or ('at' in message and 'time' in message) or
                         any(not isinstance(message[k], str) or not message[k].strip()
-                            for k in ("sender", "text", "at"))):
-                    raise AuthoringError("messages need exactly nonempty sender, text and at strings")
+                            for k in message)):
+                    raise AuthoringError("messages need sender/text and optional time or ISO at")
+                message = dict(message)
+                if 'time' in message:
+                    from .prepare import clock_on_day, local_clock
+                    if not self.timezone:
+                        raise AuthoringError('Readable message time requires a scene timezone')
+                    wall = clock_on_day(start_clock.date(), message.pop('time'))
+                    message['at'] = local_clock(wall, ZoneInfo(self.timezone)).isoformat(timespec='seconds')
+                elif 'at' not in message:
+                    # Elapsed minutes, including across midnight and DST transitions.
+                    clock = (previous.astimezone(timezone.utc) + timedelta(minutes=1)
+                             if previous is not None else start_clock)
+                    if self.timezone: clock = clock.astimezone(ZoneInfo(self.timezone))
+                    message['at'] = clock.isoformat(timespec='seconds')
                 try:
                     clock = datetime.fromisoformat(message["at"])
                 except ValueError as exc:
@@ -157,7 +186,8 @@ class ScenePlan:
                 if previous is not None and clock <= previous:
                     raise AuthoringError("supplied messages must have strictly increasing timestamps")
                 previous = clock
-            object.__setattr__(self, "messages", tuple(dict(m) for m in self.messages))
+                normalized.append(message)
+            object.__setattr__(self, "messages", tuple(normalized))
             # Use the same structural checks as generated scenes before any model call.
             build_scene_observations("supplied-validation", self,
                                      [(m["sender"], m["text"]) for m in self.messages])
@@ -269,9 +299,11 @@ def scene_spec(plan: ScenePlan) -> dict[str, Any]:
         **({'email_subject':plan.email_subject} if plan.email_subject else {}),
         "noise": plan.noise, "messages_per_person": list(plan.messages_per_person) if plan.messages_per_person is not None else None,
         **({"messages": [dict(m) for m in plan.messages]} if plan.messages is not None else {}),
+        **({'source_review': plan.source_review} if plan.source_review != 'model' else {}),
+        **({'initial_participants': list(plan.initial_participants)} if plan.initial_participants is not None else {}),
         "prompt_version": ("scene-supplied-v1" if plan.messages is not None else
                            "scene-authored-v1" if plan.noise == "authored" else SCENE_PROMPT_VERSION),
-        "judge_prompt_version": JUDGE_PROMPT_VERSION,
+        "judge_prompt_version": ('unjudged-author-source-v1' if plan.source_review == 'author-source-v1' else JUDGE_PROMPT_VERSION),
     }
 
 
@@ -390,21 +422,27 @@ def build_scene_observations(life_id: str, plan: ScenePlan,
     # Author scene names can reveal cancellations or outcomes. Export only
     # opaque source identities; readable authoring labels stay in audit files.
     thread='thread-'+hashlib.sha256(f'{plan.channel}:{plan.thread}'.encode()).hexdigest()[:24]
+    rosters=[]
+    roster=list(plan.initial_participants) if plan.initial_participants is not None else list(plan.participants)
+    for sender, _ in lines:
+        if sender not in roster and plan.initial_participants is not None: roster.append(sender)
+        if plan.participants: validate_participants(roster)
+        rosters.append(list(roster))
     return tuple(
         Observation(
             source_id='message-'+hashlib.sha256(f'{life_id}/{plan.id}/{i}'.encode()).hexdigest()[:24], channel=plan.channel,
             written_at=stamp, arrived_at=stamp, collected_at=stamp,
             sender=sender, thread=thread, text=text,
             from_owner=sender == "Me", structured=(
-                {'participants':list(plan.participants),'chat_name':plan.chat_name,
+                {'participants':roster,'chat_name':plan.chat_name,
                  **({'email_subject':plan.email_subject} if plan.email_subject else {})} if plan.participants else None))
-        for i, ((sender, text), stamp) in enumerate(zip(lines, stamps)))
+        for i, ((sender, text), stamp, roster) in enumerate(zip(lines, stamps, rosters)))
 
 
 # ------------------------------------------------------------------ judging --
 
 #: Approved narrow-judge prompter (verdicts only, never ground truth).
-JUDGE_PROMPT_VERSION = "scene-judge-v10"
+JUDGE_PROMPT_VERSION = "scene-judge-v11"
 
 def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                  prior_lines: tuple[tuple[str, ...], ...] = ()) -> str:
@@ -424,20 +462,34 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
                         f"{row[0][:10]} {row[1]}: {row[2]}" if len(row) == 3
                         else f"{row[0]}: {row[1]}") for row in prior_lines) +
              "\n\n" if prior_lines else "")
-    required = ("\n\nFor each numbered required fact, report whether the dialogue "
-                "actually establishes it, with line citations. Distinguish "
-                "a suggestion from a commitment and an old option from the "
-                "current plan. Include `facts`, an array with one object per "
-                "numbered fact: index (1-based integer), supported (boolean), "
-                "evidence (array of line integers), problem (short string). "
-                "Reject the scene if any fact is absent or contradicted.\n"+
+    required = ("\n\nRequired authored facts:\n" +
                 "\n".join(f"{i}. {fact}" for i, fact in enumerate(plan.facts, 1))
-                if plan.facts else "")
+                if plan.facts else "\n\nThere are no required authored facts.")
+    response_contract = (
+        "\n\nReturn only one JSON object with all four top-level keys: "
+        'supported (boolean), evidence (array of new-message line integers), '
+        'problem (string), and facts (array). Example shape: '
+        '{"supported":true,"evidence":[1],"problem":"","facts":'
+        '[{"index":1,"supported":true,"evidence":[1],"problem":""}]}. '
+        "The facts array supplements the independent whole-scene verdict; "
+        "it never substitutes for the top-level supported, evidence, or problem. "
+        "Include exactly one ordered facts row per numbered required fact, "
+        "with its 1-based integer index, boolean supported, evidence array and "
+        "problem string. If there are no required facts, return facts: []. "
+        "Every supported judgment needs at least one in-range citation. "
+        "For unsupported details, explain the absence or contradiction; "
+        "evidence may be empty when there is no line to cite. Reject the whole "
+        "scene if any required fact is absent or contradicted. Do not invent "
+        "a global approval from individually supported facts.")
     return (
         cast + "You are verifying a fictional conversation, not writing it. "
         "Does the dialogue establish the scenario, including each specified "
-        "person, detail, and commitment? Reject missing, contradictory, or "
-        "merely tentative details when the scenario says agreed. Check that "
+        "person, detail, and commitment that the author actually requires? Reject missing, contradictory, or "
+        "merely tentative details when the scenario says agreed. Require a commitment only "
+        "where the authored scenario or facts require one. With supplied messages "
+        "and no authored scenario or facts, check coherence, identities, chronology "
+        "and relevant continuity without inventing an event or commitment requirement. "
+        "Ordinary chatter may establish no new plan; it must still be coherent. Check that "
         "each asserted participant's commitment is clear in context; "
         "do not count mere interest, uncertainty or silence as agreement. "
         "Cite evidence of commitment without requiring a scripted confirmation order. Check that "
@@ -445,15 +497,13 @@ def judge_prompt(plan: ScenePlan, lines: list[tuple[str, str]],
         "an old week's venue is not the current venue unless someone changes it. "
         "Quoted email history is historical context, not a new confirmation. "
         "`Me` consistently represents the user. Judge meaning, not token "
-        "overlap. Return only JSON with keys supported (boolean), evidence "
-        "(array of numbered dialogue line integers), and problem (short "
-        "explanation, empty when supported).\n\n"
+        "overlap.\n\n"
         f"Conversation date: {plan.window_start[:10]}. Resolve relative "
         "dates from this fictional date.\n"
         f"The new messages will be timestamped between {plan.window_start[11:16]} "
         f"and {plan.window_end[11:16]} local time. Reject dialogue that "
         "clearly places the current exchange at a different time of day.\n"
-        f"Scenario: {plan.scene}{required}\n\n{prior}New messages:\n{transcript}"
+        f"Scenario: {plan.scene or 'No additional scenario is asserted.'}{required}\n\n{prior}New messages:\n{transcript}{response_contract}"
     )
 
 
@@ -539,6 +589,8 @@ def judge_scene(plan: ScenePlan, lines: list[tuple[str, str]],
     judgment_path). Fail closed on an unparsable verdict or any unsupported
     fact. Every call is persisted to `record_dir` when given (audit evidence,
     pass or fail)."""
+    if plan.source_review == 'author-source-v1':
+        raise AuthoringError('Author source is intentionally unjudged; no scene checker may be dispatched')
     prompt = judge_prompt(plan, lines, prior_lines)
     generated = judge_generate(prompt)
     model_call = generated.record_path if isinstance(generated, ModelOutput) else None
@@ -558,26 +610,23 @@ def judge_scene(plan: ScenePlan, lines: list[tuple[str, str]],
         raise SceneJudgeError(plan.id, problem,
                               judgment_path=path) from exc
     try:
-        if not isinstance(verdict, dict):
-            raise TypeError("judge verdict must be a JSON object")
-        evidence = verdict["evidence"]
-        ok = (isinstance(verdict["supported"], bool)
-              and verdict["supported"] is True
-              and isinstance(evidence, list) and bool(evidence)
-              and all(type(i) is int and 1 <= i <= len(lines) for i in evidence)
-              and isinstance(verdict["problem"], str))
-        if plan.facts:
-            facts = verdict.get("facts")
-            ok = ok and isinstance(facts, list) and len(facts) == len(plan.facts)
-            if ok:
-                ok = all(
-                    isinstance(row, dict) and row.get("index") == i and
-                    row.get("supported") is True and
-                    isinstance(row.get("evidence"), list) and row["evidence"] and
-                    all(type(n) is int and 1 <= n <= len(lines)
-                        for n in row["evidence"]) and
-                    isinstance(row.get("problem"), str)
-                    for i, row in enumerate(facts, 1))
+        if not isinstance(verdict, dict) or set(verdict) != {'supported', 'evidence', 'problem', 'facts'}:
+            raise TypeError("judge must return the complete scene verdict schema")
+        def valid_assessment(row):
+            evidence = row.get('evidence')
+            return (type(row.get('supported')) is bool and isinstance(row.get('problem'), str)
+                    and isinstance(evidence, list)
+                    and (bool(evidence) or row['supported'] is False)
+                    and all(type(i) is int and 1 <= i <= len(lines) for i in evidence))
+        facts = verdict['facts']
+        if (not valid_assessment(verdict) or not isinstance(facts, list)
+                or len(facts) != len(plan.facts)
+                or any(not isinstance(row, dict)
+                    or set(row) != {'index', 'supported', 'evidence', 'problem'}
+                    or type(row.get('index')) is not int or row['index'] != i
+                    or not valid_assessment(row) for i, row in enumerate(facts, 1))):
+            raise TypeError("judge returned malformed assessments or citations")
+        ok = verdict['supported'] is True and all(row['supported'] is True for row in facts)
     except (AttributeError, TypeError, KeyError) as exc:
         problem = f"malformed verdict shape: {out[:120]!r}"
         path = _record(plan, lines, prompt, out, verdict, False, model,
@@ -623,6 +672,10 @@ def realize_scene(plan: ScenePlan, generate: Generate | None,
     if plan.messages is not None:
         lines = [(m["sender"], m["text"]) for m in plan.messages]
         build_scene_observations("scene-build", plan, lines)
+        if plan.source_review == 'author-source-v1':
+            return SceneRealization(plan.id, tuple(lines),
+                SceneRecord(scene_id=plan.id, status='ok', source_mode='supplied'),
+                {'state': 'unjudged', 'protocol': 'author-source-v1', 'integrity': 'pass'})
         # Exact source is author-owned: check once, never redraw a rejected message.
         verdict, pc, rc, jpath = judge_scene(
             plan, lines, judge_generate, model=model, record_dir=record_dir,

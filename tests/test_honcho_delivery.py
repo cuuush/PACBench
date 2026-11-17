@@ -5,6 +5,7 @@ import json
 import subprocess
 import sys
 from types import ModuleType
+from unittest.mock import Mock
 
 import pytest
 
@@ -95,22 +96,24 @@ def test_duplicate_native_id_cannot_prove_distinct_source_messages():
     assert error['error_class']=='AcknowledgmentMismatch'
 
 
-def test_worker_setup_error_does_not_print_exception_body(monkeypatch,capsys):
+@pytest.mark.parametrize('provider',['honcho','supermemory'])
+def test_worker_setup_error_does_not_print_exception_body(monkeypatch,capsys,provider):
     def broken(*a):raise ValueError('SECRET_VALIDATION_BODY')
-    monkeypatch.setattr(connector,'honcho',broken)
-    assert connector.main(['honcho','source','root','at','processing_at'])==1
+    monkeypatch.setattr(connector,provider,broken)
+    assert connector.main([provider,'source','root','at','processing_at'])==1
     captured=capsys.readouterr()
     assert 'SECRET_VALIDATION_BODY' not in captured.out+captured.err
     assert json.loads(captured.out)['native_error']['error_class']=='ValueError'
 
 
 @pytest.mark.parametrize('fail_second',[False,True])
-def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,monkeypatch,fail_second):
+@pytest.mark.parametrize('speaker',['Riley','Alex Reed'])
+def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,monkeypatch,fail_second,speaker):
     cfg=SimpleNamespace(user_observe_me=True,user_observe_others=False,
         ai_observe_me=False,ai_observe_others=True)
     session=Session(fail_at=2 if fail_second else None,error=TimeoutError('SECRET_NATIVE_BODY'))
     session.add_peers=lambda peers:None
-    session.get_peer_configuration=lambda peer:SimpleNamespace(observe_me=False,observe_others=True)
+    session.get_peer_configuration=lambda peer:SimpleNamespace(observe_me=peer=='user',observe_others=peer!='user')
     session.queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{'total_work_units':0})
     class Peer:
         def __init__(self,name):self.name=name
@@ -123,8 +126,10 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     api=ModuleType('honcho.api_types');api.SessionPeerConfig=SimpleNamespace
     plugin=ModuleType('plugins.memory.honcho.client')
     plugin.HonchoClientConfig=SimpleNamespace(from_global_config=lambda:cfg)
-    for name,value in [('honcho',native),('honcho.api_types',api),('plugins.memory.honcho.client',plugin)]:
+    for name,value in [('honcho',native),('honcho.api_types',api)]:
         monkeypatch.setitem(sys.modules,name,value)
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     monkeypatch.setattr('pacbench.gateway_client.require_live_cost_boundary',lambda:{})
     monkeypatch.setattr('pacbench.stop.check_stop',lambda *a:None)
     monkeypatch.setattr('provider_adapters.honcho_clock.enabled',lambda r:True)
@@ -135,10 +140,19 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
     (root/'hermes-home/honcho.json').write_text(json.dumps({'baseUrl':'http://127.0.0.1:1',
         'hosts':{'hermes':{'aiPeer':'hermes','peerName':'user','workspace':'isolated'}}}))
     (root/'native-processing-settings.json').write_text('{}')
-    records=[{'channel':'imessage','thread':'opaque','sender':'Riley','from_owner':False,
+    from provider_adapters import honcho_enrollment as enrollment
+    monkeypatch.setenv(enrollment.ENVIRONMENT,enrollment.PROTOCOL)
+    monkeypatch.setattr(enrollment,'verify_before_submission',lambda *a:{})
+    records=[{'channel':'imessage','thread':'opaque','sender':speaker,'from_owner':False,
+        'structured':{'participants':['Me',speaker]},
         'source_id':f'source-{i}','text':f'Message {i}','written_at':'2026-10-19T12:00:00-04:00'} for i in range(201)]
     (source/'messages.json').write_text(json.dumps(records))
     result=connector.honcho(source,root,'unused','unused')
+    resolver.assert_called_once_with('honcho','client')
+    for ack in result['result']:
+        for message in ack['messages']:
+            assert message['peer_id']==speaker.replace(' ','-')
+            assert message['metadata']['sender']==speaker
     assert result['ready'] is not fail_second
     assert bool(processed) is not fail_second
     index=root/'ingestion-delivery/day/index.json'
@@ -159,7 +173,8 @@ def test_connector_writes_atomic_per_chunk_receipts_before_processing(tmp_path,m
 
 
 @pytest.mark.parametrize('timeout',[False,True])
-def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,timeout):
+@pytest.mark.parametrize('provider',['honcho','supermemory'])
+def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,timeout,provider):
     from pacbench import document_ingestion as ingestion
     from tests.test_document_ingestion import message
     schedule=ingestion.prepare_sources(tmp_path,[message('one')],'America/New_York')
@@ -171,8 +186,17 @@ def test_worker_streams_cannot_leak_native_error_payload(tmp_path,monkeypatch,ti
         if timeout:raise subprocess.TimeoutExpired(a[0],1,output=b'SECRET_ERROR_INPUT',stderr=b'SECRET_ERROR_INPUT')
         return subprocess.CompletedProcess(a[0],1,'SECRET_ERROR_INPUT','SECRET_ERROR_INPUT')
     monkeypatch.setattr(ingestion.subprocess,'run',run)
-    record=ingestion.ingest_day('honcho',source,root,{'PACBENCH_USAGE_ROLES':'{}'},schedule[0]['at'],'America/New_York')
+    record=ingestion.ingest_day(provider,source,root,{'PACBENCH_USAGE_ROLES':'{}'},schedule[0]['at'],'America/New_York')
     assert record['ready'] is False
     assert record['stdout']==record['stderr']==''
     assert 'SECRET_ERROR_INPUT' not in json.dumps(record)
     assert set(record['worker_diagnostics'])=={'stdout','stderr'}
+def test_operator_stop_precedes_honcho_readiness_poll(tmp_path,monkeypatch):
+    from types import SimpleNamespace
+    from pacbench.stop import OperatorStop
+    from provider_adapters.document_connector import wait_honcho_sessions
+    marker=tmp_path/'STOP';marker.write_text('stop queued processing')
+    monkeypatch.setenv('PACBENCH_STOP_FILE',str(marker))
+    session=SimpleNamespace(id='source',queue_status=lambda:pytest.fail('polled after operator stop'))
+    with pytest.raises(OperatorStop):
+        wait_honcho_sessions([session],{},minimum_work={'source':1})

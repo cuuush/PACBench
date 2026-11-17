@@ -83,15 +83,19 @@ and [judging and recovery policy](docs/followups.md) for the precise rules.
 
 ## Providers and setup
 
-The harness has integrations for **Memcal, Mem0, Hindsight, Supermemory, Honcho,
-OpenViking and ByteRover**. Integration does not mean every provider has completed
+The active local lineup is **Memcal, Mem0 OSS, Hindsight, Supermemory, Honcho,
+OpenViking, ReMe, Cognee and MemOS**. Integration does not mean every provider has completed
 the current scenario. See the [provider map](docs/document-ingestion-provider-map.md)
 for native delivery methods, configuration and known limitations.
 
+ByteRover is retired from the active benchmark at the user's direction. Its
+saved results and audit support remain available as historical evidence.
+
 Running a new trial requires separate provider services, pinned Hermes
 integrations, embeddings and model access. It is a self-hosted development
-workflow. The [contribution guide](CONTRIBUTING.md) explains the prerequisites,
-validation commands and next steps.
+workflow. PACBench's budget gateway runs from this repository; it requires the
+existing private ledger before any paid work. The [contribution guide](CONTRIBUTING.md)
+explains the prerequisites, validation commands and next steps.
 
 ## Contribute
 

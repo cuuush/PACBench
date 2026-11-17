@@ -1,5 +1,301 @@
 # vendor/ — PACBench-owned isolated Hermes (W1)
 
+## Reproduce the current runtime
+
+From a checkout of this branch on Linux x86-64, run:
+
+```sh
+python3 -m pacbench.bootstrap --install --start-services
+```
+
+Requirements: Python 3.11+, `uv`, Git, GNU tar with `zstd`, Node 22.21+ with npm, and a working
+local Docker daemon. Keep the inherited HTTPS proxy and CA trust. Run as the
+normal user with writable workspace and home directories. Stock Ollama creates
+its native identity in `~/.ollama`; a sandbox that makes the home read-only
+needs a normal outside-sandbox setup invocation. The installer never reads,
+creates or replaces the task's private ledger or needs an inference API key.
+
+The default invocation without `--install` prints a plan. `--components hermes
+honcho` selects a subset; `--check` verifies installed identities offline.
+Pinned Hermes includes the Mem0 and other provider clients and the clean Memcal
+0.8.11 checkout. Separate environments install Hindsight, OpenViking, ReMe,
+Cognee and Honcho. MemOS and Supermemory assets are hash-verified. The clock
+uses the existing reproducible Docker build. Embeddings install a pinned
+CPU Ollama runtime, native Nomic model and offline MiniLM files. A temporary
+loopback Ollama server downloads the model and checks a 768-dimensional local
+embedding, then stops. `--start-services` additionally leaves the verified runtime
+ready at `127.0.0.1:11435`, checking its version, model identity and actual local
+embedding. Existing mismatched services are refused. No paid model requests or
+source ingestion occur.
+
+The separately authorized MemCal correction diagnostic selects
+`PACBENCH_MEMCAL_CONDITION=wiki-supersession-review-da58057-v1` and a clean
+`PACBENCH_MEMCAL_SRC` checkout at `da58057eb00f79082dfcf8f59baa264267c83ca1`.
+The version string 0.8.12 alone is insufficient. This explicit review condition
+does not migrate the default stable pin or any existing provider home.
+
+Existing source trees at a different revision, untracked files, or changes
+other than Hermes's reviewed isolation patch fail closed. Preserve and move
+those directories aside explicitly before retrying; the installer never resets
+them. Downloads can require several GB. Top-level provider releases, source
+commits and asset hashes are pinned. Reviewed Python patch versions and selected
+backend dependencies are constrained by `vendor/runtime-locks`; MemOS uses its
+reviewed npm lock. These snapshots constrain the selected runtime without
+installing optional or development packages.
+Installation identity is not native processing or recall qualification.
+
+### Persistent Hermes lifecycle qualification
+
+`pacbench.gateway_reuse.PersistentGateway` is an opt-in, serial,
+`fixed-checkpoint-gateway-reuse-v1` condition. It starts the pinned stock gateway
+once and invokes its ordinary CLI for fresh sessions. It checks the exact tracked
+Hermes isolation patch, native provider pins, fixed environment and model/config
+bytes. No benchmark hints or provider-write suppression are added.
+
+The bindings cover ReMe HTTP, Mem0 OSS 2.2.1 with the frozen native plugin digest,
+and an explicit MemCal review SHA. MemCal defaults to the authorized `dac7214…`
+tree; selecting `da58057…` is an explicit offline canary condition, not repair
+qualification. Unknown source versions fail closed. Production backend isolation
+remains a separate qualification gate. Give every question an exact isolated
+clone of a **quiescent, already ready** checkpoint. `clone_observation` checks
+byte fidelity and rejects links; it does not establish native readiness, service
+workspace binding or portability of an open database. Those proofs remain
+caller prerequisites. Never copy an active native store or reuse a dirty clone.
+ReMe requires a distinct independently verified native service. Mem0 rebinds its
+ordinary local Qdrant path and stable history-directory alias; MemCal rebinds a
+stable native-home alias. Switches happen only after the previous session's full
+cleanup fence. Native source fixtures, model/embedding settings, writes and
+provider instructions remain unchanged.
+
+Answer output, native transcript/API-content records, automatic recall, explicit
+tools and saved-prompt provenance are retained atomically before cleanup. Such
+receipts are experimental and ungraded; saved transcript sidecars alone do not
+prove every API-visible field or that retrieved content is source-free. Record
+answer-ready latency, native close/drain and final process teardown separately.
+Native session detach is not a drain receipt: pinned Hermes evicts on a daemon
+thread, and ReMe shutdown can leave a live writer. The read-only observer checks
+native release threads, manager futures, provider workers/backends, actual live
+child PIDs and sticky native write failures, including Mem0 embedding warnings.
+Unknown providers and timeouts block the owner;
+they never turn into clean readiness or implicit retries. A failed owner must
+exit, preserve its artifacts and settle any paid traffic before explicit
+recovery from a verified checkpoint with a fresh observation clone. An uncertain
+shutdown force-stops only the identity-verified owned PID and remains failed.
+
+`pacbench.checkpoint_clock.CheckpointClock` implements the separately named
+`checkpoint-observation-clock-v1` option. It owns a clock outside the canonical
+ingestion directory and rejects other live clock consumers. After verified
+drain it advances **only this observation clock**, forward only, to the next
+exact authored question time. Every question has an immutable descriptor and
+single-use native session/request binding. Native submit, receive and SQLite
+admission are audited inside the unchanged five-second question window. Process
+adoption remains separate. Two existing PACBench clock reads in the tracked
+Hermes patch obtain the descriptor's current/start time; no instructions are
+added and the daemon environment is not rewritten between questions. API input
+receipts v3 bind both process and question identities. Billing/OS/TLS clocks
+remain real. Restart at actual ingestion/checkpoint boundaries, not by default
+after every question. Late/failed questions never rewind or replay.
+
+`observation_adapters.checkpoint_plan` preserves exact frozen contract questions,
+times, criteria and batch visibility. On revised Pizza Week it yields six groups
+of 6/8/5/4/2/17 questions for each of the three arms, retaining 42 questions and
+188 criteria. Authored fact counts are separate from scoring criteria. Never
+collapse ten-minute question gaps into one timestamp or use a later source store.
+
+This is **not yet a matched scored-r2 execution condition**. Canonical split-clock
+state and funded execution remain refused. Full source-only native snapshots,
+service/readiness proofs (including ReMe background jobs), the repaired MemCal
+target and quality gate, provider-specific production source-snapshot qualification,
+and authoritative prepaid headroom must pass
+before live scoring. Offline lifecycle canaries cannot
+waive those gates. The historical v5 validator and scored default remain intact.
+
+`checkpoint_evaluator.launch` now connects this transport to the actual scored
+`run_checks` and omission follow-up path. `freeze_inputs` binds the existing r2
+files (142 messages, 42 questions, 188 criteria); it does not render new source.
+Each ingestion boundary requires native ingestion receipts, exact source hashes,
+a closed/reopened source-only snapshot and a quiescence witness before gateway
+startup. Per-question observations are separate clones. One explicit follow-up
+may resume only its own observation/session, at naturally advancing time before
+the next question; a second continuation is refused. Atomic ready/cleanup and
+clock receipts are re-audited before judging. Source-assisted or unknown initial
+and recovery answers are ungraded; an unknown recovery score is null, not zero.
+The original grades and historical validators are unchanged.
+
+The r2 `lunch-continuity` conversation spans two ingestion checkpoints.
+`native-cold-session-checkpoint-v1` seals its actual committed native history,
+including API-bound content, after verified drain. Only after the old gateway
+stops does SQLite's readonly backup copy unchanged native state into the next
+checkpoint's fresh Hermes home. The stock resume interface retains the exact
+session ID, original start time and designated history; it uses a fresh clone
+of the later source-only memory snapshot. No pending writes or provider memory
+store is copied with the conversation. Independent questions still create blank
+sessions, even though native history is present with session search disabled.
+The pinned gateway CLI's terminal result reports its settled execution's tokens;
+the separate session-usage interface is cumulative. New transport receipts label
+that result as turn-scoped so recovery reporting does not subtract an earlier
+turn or misreport a cold resume as zero tokens. Raw counters and historical
+receipt interpretation remain unchanged; provider charges still come from the
+billing receipts, not these display counters.
+A runtime must declare this capability and supply the actual seal/transfer proof;
+a flag alone cannot authorize a continuation. ReMe, Mem0 and the explicitly
+labeled MemCal base have native offline transport canaries; this does not certify
+native source processing for all three.
+
+Synthetic production-path canaries exercise all three native adapters; the
+MemCal canary uses the explicitly labeled da58057 base, not the missing repair
+target. These transport canaries do not certify native extraction or source
+processing quality. Funded transport remains disabled.
+
+`native_checkpoint_sources.Mem0SourceCheckpoints` uses the existing
+`document_ingestion.ingest_day` runner and shipped OSS backend with `infer=True`.
+It admits exact frozen source documents in chronological prefixes, retains native
+request/response witnesses and failure receipts, verifies the complete document
+in actual native extraction input, and never retries ambiguous ingestion. After
+native worker exit it clones the closed Qdrant/history namespace and reopens a
+separate probe through the pinned SDK (`get_all(filters=...)`), verifying native
+SQLite integrity and both namespace paths. The source-only snapshot stays
+unchanged. Simulated source time has a separate real billing-clock anchor.
+Synthetic responses can prove persistence and lifecycle, not extraction quality.
+The production verifier rejects generic ready flags or untyped closure files;
+ReMe resource watcher/index and repaired MemCal collector/dream snapshot adapters
+remain unqualified until their own native witnesses exist. Synthetic storage
+fixtures require an explicit offline condition. Funded launch is refused before
+source ingestion, not only when Hermes starts.
+
+`funded_run_budget.describe_admission` reports the named run's remaining guard
+separately from observed wallet credit, settled pre-read debits, unknown ceilings,
+and conservative pending-credit room. It is read-only and does not release a
+hold, change authorization or assume an unknown request is free or still unpaid.
+Never subtract an already posted settlement from available prepaid credit again.
+
+`single_admission_owner.SingleAdmissionOwner` prepares idempotent owner-dispatch
+semantics on the same ledger: duplicate diagnostic/executor/attempt tuples never
+send again, changed payloads conflict, and uncertain dispatches retain holds.
+Explicit cohort ceilings are checked atomically alongside the global cap. Its
+dispatch simulation requires a marked synthetic ledger; the live method refuses
+until an authenticated private owner-dispatch channel exists. No transferable
+permit, copied ledger or operational accounting transfer permits concurrent
+executors. Authoritative balance observations alone do not settle old calls.
+
+Offline qualification (synthetic loopback responses, no paid inference):
+
+```sh
+TMPDIR=/var/tmp vendor/venv-hermes-isolated/bin/python -m pytest -q \
+  tests/test_gateway_reuse.py tests/test_hermes_gateway.py \
+  tests/test_checkpoint_clock.py tests/test_observation_adapters.py \
+  tests/test_checkpoint_evaluator.py tests/test_checkpoint_sessions.py \
+  tests/test_native_checkpoint_sources.py tests/test_single_admission_owner.py \
+  tests/test_gateway_python_clock.py tests/test_turn_timings.py
+```
+
+Real isolation tests require a temporary root outside every Git ancestor;
+sandbox-provided synthetic Git mounts must not cover that root. These tests run
+actual stock gateway sessions, native ReMe queues/async loops, actual Mem0 local
+Qdrant/history storage and native MemCal archives. Synthetic model/embedding or
+ReMe storage responses do not verify model extraction or production store cloning.
+
+Example saved cloud-environment setup, with this repository already selected
+at the desired review commit:
+
+```sh
+set -eu
+cd /workspace/PACBench
+python3 -m pacbench.bootstrap --install --start-services
+python3 -m pacbench.bootstrap --check
+```
+
+Before paid execution, restore the **original** private directory
+`/workspace/shared/pacbench-openrouter-pizza-day-20261112` using the environment's
+private persistence/handoff mechanism. It must contain `ledger.json` and
+`authorization.json`, including all historical unknowns, reservations and
+external allocations. Never put it in Git, a setup script, or rebuild it from a
+checkpoint total. A fresh code checkout alone does not carry spending history.
+Keep model credentials in environment settings. Missing accounting blocks paid
+execution independently of a successful bootstrap.
+
+Use the route-specific free preflight to avoid confusing missing historical
+Muse configuration with the authorized OpenRouter route:
+
+```sh
+TMPDIR=/var/tmp python3 -m pacbench.preflight --inference-route openrouter \
+  --prepared artifacts/pizza-week-hybrid-stream-v7-20261113/week.json --all-providers
+```
+
+Start the installed embedding server in the execution environment before a run:
+
+```sh
+OLLAMA_MODELS="$PWD/vendor/ollama/models" OLLAMA_HOST=127.0.0.1:11435 \
+  vendor/ollama/bin/ollama serve
+```
+
+This process stays in the foreground; keep it in a separate terminal or managed
+process. Native adapters own their other services. Select `TMPDIR=/var/tmp`
+for recall and tests because Hermes must run outside Git. To run the offline
+suite, install the test-only dependencies, then execute:
+
+```sh
+uv pip install --python vendor/venv-hermes-isolated/bin/python pytest PyYAML
+TMPDIR=/var/tmp vendor/venv-hermes-isolated/bin/python -m pytest -q
+```
+
+The source pins and ordinary backend settings below remain authoritative.
+
+**Fresh native trials require the pinned setup and original shared accounting.**
+Use the reviewed cohort launcher below only with an authorized spending cap.
+The isolated Hermes v0.23.1 integration has
+passed a free synthetic local gateway/CLI canary and a separate direct HTTPS
+check. Each turn owns and gracefully stops its native gateway. The current
+Honcho `honcho-wall-clock-v5` protocol uses a shared-offset Python clock for
+Hermes/API/deriver and the reproducible preload library for PostgreSQL only;
+OpenSSL and monotonic timers retain real time. Gateway and CLI adoption is bound
+to each process identity and turn nonce. The bounded natural startup interval
+and native submission/admission guards are documented in the provider map;
+CLI launch time is never reported as actual question dispatch. Long homes use
+Hermes's authenticated native short-socket pointer, not a guessed socket path. The native system date line supplies a
+date, not exact current time. Historical clock receipts retain their original
+protocols and cannot resume as v5. These checks establish transport behavior,
+not model quality or native provider processing. Keep the persistent OpenRouter
+task ledger and its existing uncertain holds; never initialize a replacement.
+Every arm must pass native preflight and processing barriers before recall.
+The unrelated Muse route
+remains blocked if its historical ledger is missing.
+
+This release supports Python 3.14 for normal runtime use. Its lock explicitly
+overrides `browser-harness==0.1.13`'s `pillow==12.3.0` requirement with
+`pillow==13.0.0`; Hermes PM recognizes this intentional metadata mismatch.
+Use the upstream locked/PM installation, not an ordinary unconstrained pip
+install. The documented source developer activation selects the `all` extra:
+
+  export HERMES_HOME="$(mktemp -d)"
+  export HERMES_RUNTIME_DIR="$HERMES_HOME/tools"
+  cd vendor/hermes-isolated
+  source ./activate
+  hermes pm doctor
+
+Run this in an isolated shell from the PACBench root. Upstream documents this
+as a runtime-only developer setup, not the full user-facing installer. PM
+activation itself has not been verified here; native provider recall also
+remains unverified.
+
+The isolated target environment was built from the upstream lock using the
+`all` extra, then the selected client requirements and Memcal were installed.
+Reproduce this non-PM-managed environment from the PACBench root, with Python
+3.14.9 available and `/path/to/memcal` set to the intended checkout:
+
+  export UV_PROJECT_ENVIRONMENT="$PWD/vendor/venv-hermes-isolated"
+  (cd vendor/hermes-isolated && uv sync --locked --no-default-groups --extra all --python /path/to/python3.14)
+  uv pip install --python "$UV_PROJECT_ENVIRONMENT/bin/python" -r vendor/hermes-isolated-extra-requirements.txt -e /path/to/memcal
+
+The current stable-provider cohort uses Memcal 0.8.11 from an isolated checkout.
+Set `PACBENCH_MEMCAL_SRC` to that clean release checkout when its location differs
+from the default sibling `memcal-stable-20261113`; source verification requires
+commit `e67b8d912484b5b4317dafcff4d60fc975194d8e`. Original development
+installations do not determine current runtime versions. Install the additional
+client requirements after syncing Hermes and verify the actual distributions.
+Hermes v0.23.1 is still the current stable release. Its upstream Pillow lock
+override is retained. Offline imports and tests alone do not qualify recall.
+
 - `HERMES_PIN`: pinned upstream remote + full commit SHA (tracked).
 - `hermes-isolated/`: git clone of https://github.com/NousResearch/hermes-agent.git
   at that SHA plus exactly `patches/hermes-isolated.diff`; integrity tests reject other edits.
@@ -7,9 +303,10 @@
   (gitignored). Use with a scratch home, never `~/.hermes`:
   `HERMES_HOME=$(mktemp -d) vendor/venv-hermes-isolated/bin/hermes --version`
 
-Install the pinned client integrations from `hermes-isolated-extra-requirements.txt`.
-Install the sibling Memcal checkout normally too, so its declared source-reader
-dependencies are present: `uv pip install --python vendor/venv-hermes-isolated/bin/python -e ../memcal`.
+The client versions in `hermes-isolated-extra-requirements.txt` document the
+target environment; they do not yet establish a PM-managed provisioning
+workflow. Install Memcal with its declared dependencies, including pytypedstream,
+when provisioning its provider; a source-only import is insufficient.
 Run native servers in their own environments: OpenViking requires MCP <2 whereas
 Hermes uses MCP 2. Keep Hindsight's API dependencies separate from Hermes' pinned
 clients too; its older API releases required an incompatible cryptography version.
@@ -18,7 +315,7 @@ daemon using `vendor/venv-hindsight/bin/python`:
 
   uv venv --python 3.12 vendor/venv-hindsight
   uv pip install --python vendor/venv-hindsight/bin/python torch --index-url https://download.pytorch.org/whl/cpu
-  uv pip install --python vendor/venv-hindsight/bin/python hindsight-all==1.1.0
+  uv pip install --python vendor/venv-hindsight/bin/python hindsight-all==1.2.1
 
 Use the official CPU PyTorch wheel on Linux CPU hosts; the default GPU wheel pulls
 several GB of unused CUDA dependencies. These are hardware/transport installations,
@@ -27,7 +324,440 @@ Hindsight's server version is separate from Hermes' pinned client version:
 the older 0.6.1 API does not implement the native Meta model adapter.
 
 Honcho uses the upstream manual self-hosting checkout at commit
-`5314d0a8635f02375b8ad73c89eb80f86d7d1cb4` (3.4.1), installed with
+`70c67624169683b9e265517aec95a51b8077cabc` (3.6.1), installed with
 `uv sync --frozen --no-dev` in `vendor/honcho-local`. Keep its native batching
-and output defaults. Hermes pins the published `honcho-ai==2.2.0` client. A release update does not establish successful ingestion;
+and output defaults. Hermes pins the published `honcho-ai==2.9.0` client. A release update does not establish successful ingestion;
 verify a small native import and Hermes recall before larger runs.
+
+## Hermes catalog memory providers
+
+The pinned Hermes release moves these providers out of its source tree. Its reviewed
+catalog entries identify the following plugin sources and commits (these pins describe
+plugin code, not the independently provisioned native servers):
+
+| Provider | Source path | Catalog commit |
+| --- | --- | --- |
+| Mem0 | `mem0ai/mem0/integrations/hermes-plugin-mem0` | `43849c6e9d4d773b83a8144b6373aedc67241a5d` |
+| Honcho | `plastic-labs/honcho/hermes-plugin-honcho` | `894b88321872e01702a1aa638ddfdde6ad60f173` |
+| Hindsight | `vectorize-io/hindsight/hindsight-integrations/hermes` | `f14cc1eb5624b0374cb4d82768eb2e0b9c21ae24` |
+| Supermemory | `supermemoryai/hermes-supermemory` | `91405dd00fdf2a0b3515b25c25557598f6793299` |
+| OpenViking | `volcengine/OpenViking/examples/hermes-plugin` | `e855796c83f9eb575d9b0f3082926660730f6a63` |
+
+For fresh homes the stable-provider cohort uses Hermes's documented source form
+with explicit `--ref --no-deps --no-enable`. `pacbench/catalog_plugins.py`
+records selected upstream source revisions separately from the historical
+Hermes catalog above. Plugins come from Mem0 2.2.1, Honcho 3.6.1, Hindsight 1.2.1
+and OpenViking 0.5.4.1 releases. Supermemory has no standalone plugin tags or
+releases; its current declared plugin 2.0.0 is pinned to full revision
+`a8f360166419958ce77b876c69f7be3bf0716d67`, requiring SDK 5.0.1.
+The published local server remains server-v0.0.9. Native v5 document import,
+namespace reads, processing and dreaming completion must all be verified.
+server-v0.0.9 omits `dreamingStatus` from v5 document responses. The runner
+observes its supported native v3 list/get API read-only, binding the namespace,
+public/native IDs, unchanged source, metadata and actual consolidation phase.
+Indexing completion alone remains insufficient. Actor SDK/plugin versions stay
+current; the observer neither resubmits source nor changes native processing.
+
+Cognee 1.6.8 runs in a private server environment with the unchanged 1.4.3 native
+HTTP integration. Its automatic local installer still selects 1.6.6; PACBench
+manually provisions the newer local server and records that distinction.
+ReMe uses stable v0.4.2.2, including its `core` extra, rather than development
+0.4.2.3. Install its shipped Hermes integration from the same release. Preserve
+its default resource watcher, extraction, indexing and result-hook witnesses.
+
+MemOS's native local plugin is a separate release from the root Python package.
+Install official npm `@memtensor/memos-local-plugin@2.0.21` under
+`vendor/memos-local-plugin/`, preserving the verified `release.tgz` and extracted
+`package/`. `MEMOS_LOCAL_PIN.json` binds the archive; the harness compares every
+shipped file before loading it. Install dependencies with Node's inherited proxy
+support (`NODE_USE_ENV_PROXY=1`). Production installation used `--omit=dev
+--omit=optional --legacy-peer-deps` because unused DeepSeek Harness development
+peers conflict upstream. No runtime source files are rewritten. The native
+Hermes bridge, public core bootstrap and raw-document HTTP API remain unchanged.
+The bootstrap additionally installs the Linux x64 Sharp/libvips runtime packages
+required by Transformers for native text embeddings; npm marks these optional,
+but omitting them can break the import. It verifies an offline 384-dimensional
+embedding through MemOS's shipped embedder before declaring assets ready.
+
+Each new cohort needs fresh native processing, context injection and tool checks.
+Fresh homes disable lazy installs after verified plugin installation. Service
+readiness and dependent-write processing receipts remain required; version
+updates never imply successful ingestion or recall.
+
+## Rebuild this cohort in another session
+
+Runtime directories above are ignored installations and are not carried by a Git
+clone. Rebuild them from the recorded releases; do not copy private provider
+homes, model credentials or old trial stores. Code and the frozen Week are on
+`upgrade/stable-providers-20261113`; use a reviewed full commit, then follow the
+existing Hermes lock/patch commands above. The source inventory is
+`artifacts/provider-stable-upgrade-20261113/installed-components.json`.
+
+The qualified Linux x86-64 interpreters were Python 3.14.9 for Hermes, 3.13.5 for
+Honcho, and 3.12.14 for Hindsight/OpenViking/Cognee/ReMe. Preserve separate venvs.
+Install the following without starting model work:
+
+- Clone Hermes at `vendor/HERMES_PIN`, apply `patches/hermes-isolated.diff`, sync
+  its locked `all` extra into `vendor/venv-hermes-isolated`, then install the
+  extra client requirements and clean Memcal 0.8.11 checkout described above.
+- Provision `vendor/venv-hindsight` with official CPU PyTorch and
+  `hindsight-all==1.2.1`; `vendor/venv-openviking` with `openviking==0.5.4.1`;
+  and `vendor/venv-cognee` with `cognee==1.6.8`. The installed ReMe runtime used
+  `agentscope==2.0.11` as well as the stable ReMe core extra.
+- Clone `plastic-labs/honcho` at
+  `70c67624169683b9e265517aec95a51b8077cabc` into `vendor/honcho-local` and
+  `uv sync --frozen --no-dev` with Python 3.13.5. PostgreSQL used
+  `pgvector/pgvector@sha256:88164492558c9773a1e17a8305abaca7863e05b3d8bbcdb792774890a2047e06`.
+- Clone `agentscope-ai/ReMe` at
+  `36c23674ad8c599dae20b0687af40acd8ecb990e` into `vendor/reme`, and install
+  its `core` extra into `vendor/venv-reme`. Clone `topoteretes/cognee-integrations`
+  at `a176248914fdb32a78354854b300174203b15a5c` into `vendor/cognee-integrations`.
+  Native plugin setup is performed by the existing adapters in fresh run homes.
+- Download the official Supermemory `server-v0.0.9` release asset
+  `supermemory-server-linux-x64` into `vendor/supermemory-local`, verify SHA-256
+  `d7987ecbf2b024c6de9d167becbcfcaabce447169b41d6f56db86f87d5187984`, mark it
+  executable, and retain an `installation.json` matching the inventory record.
+  Install MemOS's verified npm archive and dependencies as described above.
+- The original machine used Node 24.22.1, uv 0.13.5 and Ollama 0.40.16. Provision
+  local `nomic-embed-text` at `127.0.0.1:11435`; its observed model digest was
+  `0a109f422b47e3a30ba2b10eca18548e944e8a23073ee3f3e947efcf3c45e59f`.
+  Check an actual 768-dimensional embedding before initializing providers.
+- Build `vendor/libfaketime/install-runtime-v4.sh` using its pinned container and
+  verify the library digest in `BUILD.md`. Install the hash-pinned Python clock
+  wheels with `vendor/python-clock/install-runtime.py` into the selected existing
+  Python venvs. Keep TLS and monotonic deadlines on real time.
+
+These are recorded working pins and a reconstruction recipe, not proof that a
+fresh installation succeeded. Verify actual dependencies, plugin imports,
+clock instrumentation, TLS and local embeddings in the destination. Configure
+`OPENROUTER_API_KEY` through the managed environment settings; never put its value
+in Git, handoff text or the accounting archive. No service credentials are needed
+from the old native stores.
+
+Transfer original accounting separately with `python -m
+pacbench.accounting_transfer export ... --destination-thread <thread-id>`.
+It freezes source paid admission and exports only private JSON accounting data.
+Restore the verified archive in the destination with its expected SHA-256 and
+matching thread ID. `restore ... --activate` changes only ownership metadata;
+all calls, uncertain bounds, outstanding reservations and allocations are kept.
+Never overwrite existing accounting or run both copies. The source stays frozen.
+The archive belongs in private storage, never this public Git repository.
+
+The frozen Week imports and audits without model calls. After destination setup,
+original accounting restoration, applicable approval and integrity checks pass,
+`scripts/run_reviewed_week_cohort.py --output runs/<new-name>` launches the nine
+isolated local arms. It uses the original $20 task cap, exact DeepInfra Flex
+route, native questions and shared frozen source. Do not run Week in the source
+session during this handoff.
+
+Failed-arm retries use a new output directory and `--providers`, for example
+`python scripts/run_reviewed_week_cohort.py --providers mem0 hindsight honcho --output runs/week-retry --concurrency 3`.
+The launcher supports 1–9 concurrent arms (`--concurrency 8` for eight remaining
+providers); each keeps isolated native stores and shares the same atomic spending
+ledger. Concurrent trials do not support latency rankings.
+Preserve successful original arms and select replacements explicitly when
+publishing; do not copy failed stores into a fresh attempt.
+Use `--import-only` on the same launcher to qualify the entire frozen source
+without sending benchmark questions or invoking the judge. Every batch must
+finish native processing before the next is imported; a failure stops that arm.
+`processing-complete` means its ingestion audit passed, not that semantic fact
+review is finished. Keep these full-week qualification stores separate from
+chronological benchmark stores to prevent future-source exposure.
+The reviewed retry launcher gives the benchmark judge a 600-second HTTP wall
+deadline (`--judge-timeout-s 600`), recorded separately from its unchanged low
+reasoning setting. This avoids cancelling otherwise active streamed judgments
+at 180 seconds. Recall and recovery receive a separately recorded 600-second
+harness deadline (`--recall-timeout-s 600`). Neither changes provider or Hermes
+model parameters. A timed-out turn remains ungraded, including when incomplete
+clock evidence also fails the trace checks; it is not labeled a forbidden-tool
+attempt solely because the process was interrupted.
+
+For an ended OpenRouter request with a recorded generation ID but missing usage,
+`python -m pacbench.openrouter_reconcile LEDGER_REQUEST_ID` fetches free generation
+and model-catalog receipts, stores them in the private accounting directory,
+and settles only validated actual usage. Requests without a generation ID remain
+held. No inference call, budget reset, or automatic replay is performed.
+
+Use `--detach` when a reviewed cohort must keep running while a terminal or chat
+turn ends, for example:
+
+```bash
+python scripts/run_reviewed_week_cohort.py --import-only --detach \
+  --providers memcal mem0 hindsight openviking honcho reme cognee memos \
+  --concurrency 8 --output runs/week-import-new
+```
+
+This creates a private PID receipt and controller log beside the output directory.
+`launched` confirms process creation only; inspect the log and provider receipts
+for preflight, processing and verification results. A second launch with the same
+output name is refused. Continue to preserve previously completed providers.
+
+Measured import qualification with bounded cleanup has one entry point:
+
+```bash
+vendor/venv-hermes-isolated/bin/python -m pacbench.measured_import \
+  --output runs/week-import-measured --concurrency 2 --timeout-s 3600 --detach
+```
+
+It verifies the reviewed corpus and original shared accounting, creates fresh
+stores for the selected providers (all nine by default), and invokes only native
+import. It sends no benchmark questions and no judge calls. Use `--providers`
+to select affected arms. Choose concurrency explicitly: upstream rate limits and
+simultaneous conservative cost reservations can make nine arms impractical.
+This does not change provider model settings, batching or prompts.
+
+Cancel the entire measured cohort with `touch runs/week-import-measured/STOP`.
+The supervisor requests cooperative stopping, then enforces a bounded real-clock
+grace period against verified run-owned processes and containers. Its default
+one-hour per-provider limit includes provisioning, imports and native readiness;
+it does not classify a five-minute import as failed. Cancellation and timeouts
+preserve stores, failed receipts and all accounting holds. An HTTP 429 creates
+the cohort STOP atomically at settlement and blocks new admissions across its
+projects, preventing automatic SDK retry storms; it does not settle that charge.
+Use a new reviewed attempt after investigating the rate limit.
+
+Inspect `measured-cohort.json`, `<provider>.lifecycle.json` and
+`<provider>.metrics.json`. Private ownership receipts are written before native
+provisioning and updated during execution. They contain exact PID/start-time
+identities; they never contain credentials. Cleanup verifies exact Docker IDs,
+run labels and database bind mounts, preserving the underlying database files.
+`verified-inventory-stopped` covers observed descendants and processes with
+verified run bindings. This environment has no per-arm cgroup containment, so
+processes that discard every ownership binding between scans cannot be ruled out
+universally. Remote model requests also cannot be cancelled reliably: unknown
+usage retains its full accounting bound.
+
+The phase journal records real UTC and monotonic start/end boundaries for source
+preparation, initialization, probe, each batch through native readiness, input
+audit and shutdown. Crashes leave an explicitly unfinished phase. Metrics retain
+every observed request ID, request-body hash, timing, HTTP status, generation ID,
+token counts/details and reported charge or unresolved bound. Identical bodies
+are shown without assuming they constitute retries. Admission-to-response time
+includes network, model processing and provider queueing; remaining time cannot
+be separated reliably into local work, polling and harness overhead. Local
+compute and local embedding cost are excluded. Concurrent trials do not support
+an intrinsic latency ranking. Full source and stored-content review remains a
+separate gate after processing; full-week stores cannot feed earlier benchmark
+checkpoints.
+
+OpenViking resource acceptance can precede detached ancestor summaries. The
+import adapter uses its documented global wait followed by a healthy idle
+queue observer (including Semantic-Nodes), under the same external deadline.
+It also reads native summary artifacts for unresolved failure placeholders: a
+model error can be swallowed by OpenViking while queue error counters stay zero.
+Reviewed OpenRouter imports additionally reject native leaf/partial/merge
+failure log events and require request-bound evidence of complete, nonempty
+assistant text with a stop finish reason. This evidence stores lengths and
+fingerprints, never assistant or reasoning text. The strict model-response
+witness currently requires the reviewed OpenRouter transport; another transport
+cannot silently claim the same qualification. These are read-only readiness
+checks; no flush, fact repair or inference-setting change is applied. Failed attempts and full uncertain charge bounds are retained.
+
+Direct accounting also retains exact failed-response bodies under the private
+task state's `response-errors/`, with a SHA-256, byte count and explicit
+body-complete flag. Only allowlisted retry/rate-limit and correlation headers
+are retained; authorization and cookie headers are excluded. Closing or
+interrupting a response does not establish that its body was complete. Native
+SDK retries can replace the original exception, so inspect this preserved
+evidence when diagnosing a rejection. Evidence retention never automatically
+releases a cost hold or treats missing tokens as zero.
+
+`vendor/runtime-locks` also constrains the reviewed backend dependency versions
+and exact Python patch versions. Hermes and Honcho keep their upstream source
+lockfiles; the extra Hermes/native SDK install is constrained too. CPU PyTorch
+is selected by its exact reviewed wheel version. MemOS uses the committed npm
+lock with `npm ci`, followed by its two pinned Linux text-embedding addons.
+The constraint files do not install development or unselected optional packages.
+`bootstrap --check` compares installed constrained dependencies and npm packages
+with this manifest; a reviewed cohort now checks this before any paid work.
+This prevents a fresh session from silently selecting newer transitive SDKs.
+
+Reviewed import-only route comparisons use an explicit profile; the default
+remains `deepseek-flex`. `PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global`
+selects exactly `openai/gpt-6-luna` on `amazon-bedrock/global`, with fallback
+disabled. Register an explicitly approved additional route against the original
+private accounting using `python -m pacbench.openrouter_authorize_route
+--authorization '<actual user approval>'` under that profile. Registration keeps
+historical rows, their original pricing and holds, the original route, and the
+shared $20 cap. It does not release allocations. Bounds cover every catalog price
+tier and additive cache writes. The Luna grant rejects driver/judge requests.
+
+The measured launcher checks positive remaining headroom instead of imposing
+an arbitrary dollar or maximum-output minimum. Native requests have different
+output caps; only their actual admission can determine the correct reservation.
+Every admission atomically checks all historical liabilities and concurrent
+reservations, and refuses an unaffordable request before sending it. Native
+output limits and reasoning settings are not changed by accounting bounds.
+
+`pacbench.measured_import --providers cognee --probe-source-ids <four IDs>`
+selects one existing conversation from one daily visibility checkpoint, using a
+fresh store. It is explicitly a four-message probe, never a full Week result.
+Default runs retain all 125 frozen messages. Cognee writes record the actual
+unchanged multipart body privately, document/message counts and source hashes;
+provider model requests are captured privately under each arm's
+`memory-api-inputs/`, without authorization headers. These traces are excluded
+from Git. The frozen source itself is not rewritten.
+
+OpenViking's optional `PACBENCH_OPENVIKING_IMPORT_CONDITION=luna-budget-serial-v1`
+sets its documented `vlm.max_concurrent=1` and records a condition sidecar. This
+is a separately labeled budget-limited condition, distinct from the native
+32-slot default. It does not alter prompts, reasoning, output caps or readiness.
+Use it only for the approved Luna route. Performance comparisons must disclose
+this concurrency difference and the simultaneous model/route change.
+
+`PACBENCH_LUNA_CONCURRENCY_CONDITION=luna-budget-serial-v1` similarly sets
+Hindsight's documented `HINDSIGHT_API_LLM_MAX_CONCURRENT=1` or Memcal's
+`MEMCAL_MAX_PARALLEL=1`, only for a selected Hindsight/Memcal Luna arm. The
+condition sidecar records the exact native environment. These are separately
+labeled budget-limited conditions; other providers and native defaults are
+unchanged. No reasoning effort or output cap is injected.
+
+For future Luna calls only, `PACBENCH_RESERVATION_POLICY=shared-context-v1`
+uses the documented shared input/output context window instead of reserving a
+full input window and maximum output simultaneously. It maximizes charge over
+`input + output <= context`, retaining worst tier prices and additive cache-write
+cost. It does not alter output limits, reasoning, requests or any historical
+hold. Every new ledger row records its policy. The public catalog's922,000
+max-prompt field is not assumed to be an independently enforced cap. Actual
+reported charges above any bound are recorded in full and stop new admission.
+
+### Split roles for a scored Pizza Week
+
+The explicit `--role-routes luna-memory-deepseek-v1` condition keeps stock
+Hermes answering and the date-scoped judge on the existing DeepSeek/DeepInfra
+Flex route, while all provider-native model work uses Luna/Bedrock Global.
+Selection follows each persistent `-memory`, `-driver`, or `pacbench-judge`
+accounting capability. Native retrieval, post-answer processing and background
+workers therefore retain the memory route. No temporary global profile switch,
+extra prompt instructions, output cap or reasoning setting is added. Judge low
+reasoning and the existing 600-second judge/recall deadlines remain explicit
+launcher options. Hindsight and Memcal use the measured concurrency1 condition;
+OpenViking uses its separately recorded concurrency1 condition. Honcho retains
+the documented simulated clock and native thinking-none condition.
+
+Use the DeepSeek driver profile for the parent process. The split condition is
+opt-in; older callers keep their original single profile. Both profiles must
+already be explicitly authorized against the same private ledger. The installed
+Luna grant remains memory/import-only; it is not broadened to allow Luna judges
+or Hermes requests. Dependencies and model access still require normal
+preflight checks. Fresh stores and chronological daily source gates are required
+for the frozen37 questions; whole-Week qualification stores cannot answer early
+checkpoints fairly.
+
+A split scored cohort requires an explicit liability envelope. The example below
+is a **no-spend preflight**, and currently reports insufficient shared headroom:
+
+```sh
+PACBENCH_OPENROUTER_PROFILE=deepseek-flex \
+python3 scripts/run_reviewed_week_cohort.py \
+  --preflight-only --role-routes luna-memory-deepseek-v1 \
+  --cohort-spend-limit-usd 8 --concurrency 1 \
+  --output runs/pizza-week-scored-luna-memory
+```
+
+The additional cohort ceiling covers settled charges, uncertain calls and live
+reservations across all roles. It never raises the task cap or releases old
+holds. Child runs inherit one cohort identity; previously accounted cohort
+spend is subtracted from its remaining envelope rather than funded twice.
+Refusal at either ceiling stops admission and retains unresolved exposure.
+The historical task cap remains$20; any increase requires explicit approval
+and a separately reviewed accounting-authorization update before execution.
+
+For an estimate from existing private telemetry, without inference or ledger
+changes, use `python3 -m pacbench.scored_budget_plan`. This reports scenario
+estimates separately from transient reservations and a bounded financial plan;
+it does not promise full completion or authorize spending. It needs the private
+run artifacts and original ledger, which bootstrap does not reconstruct.
+
+For the separately requested all-Luna scored condition, select
+`PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global` and
+`--role-routes luna-all-roles-v1`. All three accounting roles then use exactly
+`openai/gpt-6-luna` on `amazon-bedrock/global`, without provider fallback.
+Role labels, chronological source gates and measured native concurrency remain
+separate and unchanged. This explicitly changes the answer/judge model from the
+mixed condition; it does not change the existing judge schema, low reasoning,
+scoring rules, or native output settings.
+
+`python3 -m pacbench.scored_budget_plan --all-luna` reprices historical scoring
+token samples for planning. It is not a live Luna scoring measurement. The
+current proposed financial envelope is14USD; it is not an approved increase:
+
+```sh
+PACBENCH_OPENROUTER_PROFILE=luna-bedrock-global \
+python3 scripts/run_reviewed_week_cohort.py \
+  --preflight-only --role-routes luna-all-roles-v1 \
+  --cohort-spend-limit-usd 14 --concurrency 1 \
+  --output runs/pizza-week-scored-all-luna
+```
+
+The existing Luna grant is import-only. After funding is established, the explicit
+route registration supports `--scope scored-week-roles` with the user's recorded
+all-role authorization; it preserves prices, token bounds, historical rows and
+the task cap and records the scope transition. A mere role environment variable
+cannot broaden a grant. Until the financial preflight passes, do not start paid
+work. The current20USD aggregate cap and historical holds remain intact.
+
+Incremental scored execution uses `--incremental` instead of pre-funding a whole
+cohort. The persistent20USD aggregate guard still atomically covers all settled,
+uncertain and in-flight exposure. Optional cohort ceilings remain additional
+limits, not mandatory reservations of forecast spend.
+
+The reviewed `PACBENCH_RESERVATION_POLICY=openai-cache-total-shared-v1` condition
+fixes future Luna cache-write accounting: OpenRouter documents default writes as
+1.25x the original input rate, a replacement rate rather than an additive fee.
+The maximum catalog default-write/input rate across context tiers is0.25USD/M;
+completion is0.75USD/M. Maximizing over the shared1,050,000-token context with
+128,000 output tokens yields a0.3265USD reservation. No new output cap is injected.
+Extended cache TTL/retention is refused, catalog tiers are checked, and legacy
+reservations and pricing snapshots are retained unchanged. Source:
+https://openrouter.ai/docs/guides/best-practices/prompt-caching
+
+For this Luna endpoint, the explicit compatibility condition
+`PACBENCH_LUNA_COMPATIBILITY=temperature-omitted-default-v1` omits an unsupported
+native `temperature` field at the guarded transport boundary. This uses the
+provider default; it is not equivalent to temperature0. The ledger retains the
+original native parameter and omission metadata. Routing remains exact with
+`require_parameters=true`; source text and stock integrations stay unchanged.
+A complete, uniquely bound OpenRouter404 `Filter by Parameters` funnel can be
+recorded as `rejected_no_dispatch` by the narrow reconciliation method. Its
+reservation release is audited separately from provider-reported settled charges;
+absence of usage alone never permits release.
+
+A separately recorded `PACBENCH_EFFECTIVE_OUTPUT_TOKENS=32768` scored condition
+sets the actual transmitted output ceiling, retaining any smaller native limit.
+It is not merely an accounting adjustment. Original native parameters, effective
+ceiling and bound remain in each request receipt. Length termination records a
+truncation error, signals the run STOP file and prevents automatic paid retries.
+Use a fresh failed-provider run for this condition; preserve earlier valid cases
+and label conditions when comparing results.
+
+MemOS's pinned native retrieval filter can select a160-token response budget.
+Luna's default reasoning can consume it before producing JSON. The separately
+labeled `PACBENCH_MEMOS_REASONING_CONDITION=native-none-v1` variant sets the
+provider's documented `llm.reasoning.effort: none`; it changes only native MemOS
+reasoning, not Hermes/judge effort or factual inputs. Keep default-condition
+failures/results and report the variant separately. Do not silently relabel it
+as a successful native-default run.
+
+The explicitly authorized `PACBENCH_FUNDED_RUN_ID=pizza-week-scored-prepaid-20261114`
+continuation uses a named, resumable prepaid run budget. Its ceiling is the lesser
+of $20.00 and verified available credit at enrollment. Each outgoing request
+atomically reserves its conservative bound and rechecks current OpenRouter
+prepaid credit, including new pending/unknown requests. Existing historical
+charges, allocations and unknown bounds remain audit records; completed charges
+already reflected in provider credit are not charged to this new budget again.
+No account, key, credit or top-up settings are changed. Archived planning
+scenarios do not gate execution or request a higher limit.
+
+Continue the frozen chronological scored fixture under all-Luna role routes,
+retain completed cases and resume only a verified native state. Stop on a real
+admission refusal, truncation, inaccessible provider or failed readiness; preserve
+partial artifacts. Report actual charges separately from reservations and
+unknowns, with cents in user-facing summaries and exact receipt arithmetic.
+
+The native-none MemOS condition retains its shipped160–2048-token relevance
+filter and its native `safeCutoff` fallback. Filter truncations remain explicit
+failed native calls and receive no extra tokens; the transport passes the response
+through so the stock handler can finish. They do not exhaust the separate32768
+harness ceiling. Answer/judge truncations and harness-ceiling exhaustion still
+stop the affected execution. Earlier guard-induced stops remain in the receipts.

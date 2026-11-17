@@ -12,8 +12,13 @@ HASHES = {
 
 
 def configure(root, env):
-    runtime=Path(__file__).resolve().parents[1]/'vendor/venv-hermes-isolated/lib'
-    for bundled in runtime.glob('python*/site-packages/litellm/litellm_core_utils/tokenizers'):
+    vendor=Path(__file__).resolve().parents[1]/'vendor'
+    # Isolated servers can own the installed LiteLLM assets even when the
+    # Hermes client environment does not depend on LiteLLM. Use identical
+    # official bytes, never a mirror or an unverified replacement tokenizer.
+    candidates = [vendor/'venv-hermes-isolated', vendor/'venv-hindsight', vendor/'venv-openviking']
+    for bundled in (path for runtime in candidates for path in
+                    runtime.glob('lib/python*/site-packages/litellm/litellm_core_utils/tokenizers')):
         if not all((bundled/name).exists() for name in HASHES):continue
         cache=root/'tokenizer-cache'
         cache.mkdir(exist_ok=True)

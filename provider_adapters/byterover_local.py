@@ -1,4 +1,4 @@
-"""ByteRover's documented local CLI and OpenAI-compatible setup."""
+"""Historical ByteRover configuration evidence; new execution is retired."""
 from __future__ import annotations
 import json
 import os
@@ -8,7 +8,15 @@ from pacbench.followups import save
 from pacbench.gateway_client import validate_route
 
 
+
+def plan_config(root, model, base, key):
+    """Return native setup commands without running the CLI."""
+    return [['vc', 'init'], ['providers', 'connect', 'openai-compatible',
+            '--base-url', base, '--api-key', key, '--model', model, '--format', 'json']]
+
 def configure(root,env,model,base,key):
+    from pacbench.provider_lineup import require_not_retired
+    require_not_retired('byterover')
     validate_route(base,key)
     binary=Path(__file__).resolve().parents[1]/'vendor/byterover-local/node_modules/.bin/brv'
     if not binary.exists():raise RuntimeError('Install byterover-cli in vendor/byterover-local')
@@ -20,8 +28,7 @@ def configure(root,env,model,base,key):
         PACBENCH_PROVIDER_TRACE_ROOT=str((root/'fallback-home/.local/share/brv').resolve()),
         OPENAI_COMPATIBLE_API_KEY=key,BRV_API_KEY='')
     attempts=[]
-    for args in [['vc','init'],['providers','connect','openai-compatible','--base-url',base,
-                              '--api-key',key,'--model',model,'--format','json']]:
+    for args in plan_config(root,model,base,key):
         p=subprocess.run([str(binary),*args],cwd=project,env={**os.environ,**env},
                          stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=120)
         attempts.append({'arguments':[a.replace(key,'<gateway-token>') for a in args],
@@ -32,5 +39,5 @@ def configure(root,env,model,base,key):
     cfg=json.loads((Path(env['XDG_CONFIG_HOME'])/'brv/providers.json').read_text())
     active=cfg['providers'].get('openai-compatible',{})
     if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!=model:
-        raise RuntimeError('ByteRover did not select the configured Contributor model')
+        raise RuntimeError('ByteRover did not select the configured route model')
     validate_route(active['baseUrl'],key)

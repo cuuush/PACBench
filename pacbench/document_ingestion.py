@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import sqlite3
 import subprocess
@@ -20,6 +21,7 @@ NIGHTLY_JSON_VERSION = 'daily-source-documents-v2'
 LEGACY_VERSION = 'daily-source-documents-v1'
 SUPPORTED_VERSIONS = (LEGACY_VERSION,NIGHTLY_JSON_VERSION,VERSION)
 PROCESSING_TIMEOUT_S = 900
+HINDSIGHT_PROCESSING_TIMEOUT_S = 900
 PUBLIC_FIELDS = {'source_id','channel','thread','sender','text','from_owner',
                  'written_at','arrived_at','collected_at','structured'}
 BLOCKERS = {
@@ -97,7 +99,7 @@ def document_text(batch, collected_at, *, version=VERSION):
     return '\n'.join(lines)+'\n'
 
 
-def prepare_sources(output, messages, timezone):
+def prepare_sources(output, messages, timezone, *, native_fixtures=True):
     from .imessage_fixture import append_messages
     from .email_fixture import append_emails
     batches=daily_batches(messages,timezone)
@@ -114,18 +116,19 @@ def prepare_sources(output, messages, timezone):
         fixture=None
         imessages=[m for m in batch if m['channel']=='imessage']
         names=sorted({name for m in batch for name in (m.get('structured') or {}).get('participants',[])})
-        if imessages or any(m['channel']=='email' for m in batch):
+        if native_fixtures and (imessages or any(m['channel']=='email' for m in batch)):
             if previous:
                 for src in previous.glob('chat.*'):
                     shutil.copyfile(src,root/src.name)
-            fixture=append_messages(root/'chat.db',imessages,contacts=names)
+            fixture=append_messages(root/'chat.db',imessages,contacts=names,
+                membership_condition=os.environ.get('PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION') or None)
             previous=root
         elif previous:
             for src in previous.glob('chat.*'):
                 shutil.copyfile(src,root/src.name)
         emails=[m for m in batch if m['channel']=='email']
         mailbox=None
-        if emails:
+        if emails and native_fixtures:
             if previous_mail:
                 shutil.copyfile(previous_mail/'mailbox.json',root/'mailbox.json')
             mailbox=append_emails(root/'mailbox.json',emails)
@@ -133,6 +136,7 @@ def prepare_sources(output, messages, timezone):
         # Freeze the actual source format and availability separately from grading.
         save(root/'source.json',{'version':VERSION,'at':at,'source_ids':[m['source_id'] for m in batch],
             'document_sha256':hashlib.sha256(text.encode()).hexdigest(),'fixture':fixture,
+            **({'transport_condition':'logical-document-metadata-v1'} if not native_fixtures else {}),
             **({'mailbox':mailbox} if mailbox else {}),
             'fixture_hashes':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in
                               [*root.glob('chat.*'),*root.glob('mailbox.json')]}})
@@ -197,27 +201,50 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
     # Honcho's asynchronous deriver needs a longer bounded batch barrier.
     if timeout_s is None:
         timeout_s=PROCESSING_TIMEOUT_S  # One nightly batch may contain several real conversations.
+        if provider=='cognee':
+            timeout_s=1830  # Cognify and native automatic improve must both finish.
+        if provider=='hindsight':
+            # Retain plus native consolidation can outlast the generic batch
+            # watchdog during upstream retries. Completion remains mandatory;
+            # give the connector time to save its terminal readiness evidence.
+            timeout_s=HINDSIGHT_PROCESSING_TIMEOUT_S+30
         if provider=='honcho':
             defaults=json.loads((root/'native-processing-settings.json').read_text())
             timeout_s=1020+defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     native_at=processing_at(at,provider,timezone)
-    if provider == 'honcho':
-        from provider_adapters.honcho_clock import enabled, before_turn
-        if enabled(root):
-            # The connector itself must remain real-time: it controls the
-            # native clock and its operational deadlines. Discard child-only
-            # preload env; the provider services are already isolated.
-            before_turn(root, native_at, env)
     child_env=harness.turn_env(native_at,root/'hermes-home','',env)
     roles=json.loads(env['PACBENCH_USAGE_ROLES'])
     before=snapshot(roles)
     started=time.monotonic()
     record={'version':VERSION,'provider':provider,'at':at,'processing_at':native_at,
+            'processing_timeout_s':timeout_s,
             'document_sha256':hashlib.sha256((source/'messages.txt').read_bytes()).hexdigest(),
             'source_ids':json.loads((source/'source.json').read_text())['source_ids'],
             'delivery':('native-sources' if provider=='memcal' else 'native-messages' if provider=='honcho' else 'document'),
             'hermes_ingestion_turns':0,'state':'failed','ready':False}
     try:
+        if provider == 'honcho':
+            from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL
+            if env.get(ENVIRONMENT):
+                if env[ENVIRONMENT] != PROTOCOL:
+                    raise ValueError('Unsupported Honcho membership protocol')
+                # Real-clock controller; only native DB/API/deriver use the
+                # provider calendar. Enroll before advancing to overnight import.
+                enrollment = subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),
+                    '-m','provider_adapters.honcho_enrollment',str(source),str(root)],
+                    cwd=harness.REPO,env=child_env,capture_output=True,text=True,timeout=180)
+                result=json.loads(enrollment.stdout.rstrip('\r\n').rsplit('\n',1)[-1])
+                record['membership_protocol']=PROTOCOL
+                record['enrollment']=result
+                if enrollment.returncode == 75 and result.get('operator_stop') is True:
+                    raise OperatorStop('operator stop requested during native enrollment')
+                if enrollment.returncode or result.get('ready') is not True:
+                    record.update(reason='Native chronological membership could not be established',
+                                  native_error=result.get('native_error',{}))
+                    return record
+            from provider_adapters.honcho_clock import enabled, before_turn
+            if enabled(root):
+                before_turn(root, native_at, env)
         proc=subprocess.run([str(harness.ISOLATED_BIN.parent/'python'),'-c',WORKER,
                             str(harness.REPO),provider,str(source),str(root),at,native_at],
                            cwd=harness.ISOLATED_TREE,env=child_env,capture_output=True,text=True,timeout=timeout_s)
@@ -237,7 +264,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
         record.update(reason='Native ingestion/processing deadline exceeded',stdout=(exc.stdout or b'').decode() if isinstance(exc.stdout,bytes) else exc.stdout,
                       stderr=(exc.stderr or b'').decode() if isinstance(exc.stderr,bytes) else exc.stderr)
     except (OSError,ValueError,IndexError) as exc:
-        if provider=='honcho':
+        if provider in ('honcho','supermemory'):
             from provider_adapters.document_connector import native_error_receipt
             record.update(reason='Native worker failed; raw error withheld',native_error=native_error_receipt(exc))
         else:record['reason']=f'{type(exc).__name__}: {exc}'
@@ -254,6 +281,7 @@ def ingest_day(provider, source, root, env, at, timezone, *, timeout_s=None):
                 try:verify_honcho_delivery(journal,complete=record['ready'])
                 except (ValueError,OSError,KeyError,TypeError):
                     record.update(ready=False,state='failed',reason='Native delivery receipt integrity failed')
+        if provider in ('honcho','supermemory'):
             # Keep parsed acknowledgments, not an SDK traceback that may echo
             # the complete input or credentials. This also covers timeouts.
             streams={}

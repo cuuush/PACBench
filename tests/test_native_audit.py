@@ -89,6 +89,66 @@ def test_missing_native_ingestion_cannot_pass(trace):
     assert audit(root)['state'] == 'fail'
 
 
+def test_scored_recovery_attributes_existing_sessions_without_faking_empty_receipt(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace;summary=json.loads((root/'summary.json').read_text())
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    save(arm/'pre-recall-isolation.json',{'hermes_sessions_before_recall':['recall'],'builtin_memory_before_recall':{}})
+    assert 'Hermes source conversation or builtin facts existed before recall' in audit_ingestion(root,arm,messages,summary)
+    save(arm/'scored-resumes/1/resume.json',{'protocol':'scored-prefix-retained-store-v1'})
+    assert audit_ingestion(root,arm,messages,summary)==[]
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute("INSERT INTO sessions VALUES ('unattributed','/tmp',NULL,NULL)")
+    assert 'Unexpected Hermes ingestion or prior sessions' in audit_ingestion(root,arm,messages,summary)
+
+
+def test_interrupted_native_input_needs_frozen_question_gate_and_actual_context(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace;summary=json.loads((root/'summary.json').read_text())
+    summary['question_prompt_protocol']='native-question-v2'
+    turn=json.loads((arm/'recall.json').read_text());turn['prompt']='When is dinner?';save(arm/'recall.json',turn)
+    save(root/'evaluation-plan.json',{'checks':[{'id':'abort','at':turn['at']}]})
+    save(root/'evaluations/abort/contract.json',{'question':'When is dinner?'})
+    folder=arm/'scored-resumes/1';save(folder/'resume.json',{'protocol':'scored-prefix-retained-store-v1'})
+    save(folder/'tail-turns/abort/status.json',{'state':'interrupted'})
+    save(folder/'tail-turns/abort/source-state.json',{'ingested_batches':[x['id'] for x in summary['ingestion_schedule']]})
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute("UPDATE messages SET content='When is dinner?'")
+        db.execute("INSERT INTO sessions SELECT 'aborted',cwd,system_prompt,system_prompt_hash FROM sessions WHERE id='recall'")
+        db.execute("INSERT INTO messages VALUES (2,'aborted','user','When is dinner?')")
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    assert audit_ingestion(root,arm,messages,summary)==[]
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:db.execute("UPDATE messages SET content='Unexplained source text' WHERE id=2")
+    assert 'Native Hermes user messages differ from evaluation questions' in audit_ingestion(root,arm,messages,summary)
+
+
+def test_declared_judge_reasoning_requires_the_actual_model_request(trace):
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary.update(inference_route='openrouter',judge_generation_conditions={'reasoning_effort':'low'})
+    save(root/'summary.json',summary)
+    assert any('generation condition' in e for e in audit(root)['errors'])
+    judgment=json.loads((arm/'judgment.json').read_text());judgment['model_call']='judge.json'
+    save(arm/'judgment.json',judgment)
+    save(root/'model-calls/judge.json',{'request':{'reasoning_effort':'low'}})
+    assert audit(root)['state']=='pass'
+    save(root/'model-calls/judge.json',{'request':{'reasoning_effort':'high'}})
+    assert any('generation condition' in e for e in audit(root)['errors'])
+
+
+def test_v3_provenance_is_supported_without_rewriting_legacy_conditions(trace):
+    root,_=trace
+    summary=json.loads((root/'summary.json').read_text())
+    summary['provenance_version']='source-provenance-v3'
+    save(root/'summary.json',summary)
+    assert audit(root)['state']=='pass'
+    summary['provenance_version']='invented-protocol'
+    save(root/'summary.json',summary)
+    assert 'Unsupported provenance protocol' in str(audit(root)['errors'])
+
+
 def test_selected_completed_arm_can_be_audited_without_certifying_an_interrupted_one(trace):
     root,arm=trace
     summary=json.loads((root/'summary.json').read_text())
@@ -107,6 +167,19 @@ def test_source_document_corruption_cannot_pass(trace):
     root, _ = trace
     next((root / 'sources').glob('*/messages.txt')).write_text('A preloaded answer')
     assert 'delivered source text differs' in str(audit(root)['errors'])
+
+
+@pytest.mark.parametrize('field,value',[('sender','Maya'),('thread','other-thread')])
+def test_sender_or_thread_only_exposure_change_cannot_pass(trace,field,value):
+    root,_=trace
+    path=next((root/'sources').glob('*/messages.json'))
+    document=path.with_name('messages.txt');text=document.read_bytes()
+    messages=json.loads(path.read_text());body=messages[0]['text']
+    messages[0][field]=value;save(path,messages)
+    assert messages[0]['text']==body and document.read_bytes()==text
+    result=audit(root)
+    assert result['state']=='fail'
+    assert any('delivered source text differs from frozen observations' in e for e in result['errors'])
 
 
 @pytest.mark.parametrize('compact',[False,True])
@@ -217,3 +290,58 @@ def test_audit_rejects_unknown_recorded_protocol_before_reading_run(tmp_path, ke
     result = audit(tmp_path)
     assert result['state'] == 'fail'
     assert 'Unsupported' in str(result['errors'])
+
+
+def test_native_question_protocol_rejects_legacy_prefix(trace):
+    root, arm = trace
+    summary = json.loads((root / 'summary.json').read_text())
+    summary['question_prompt_protocol'] = 'native-question-v2'
+    save(root / 'summary.json', summary)
+    assert any('recall/clock mismatch' in e for e in audit(root)['errors'])
+    recall = json.loads((arm / 'recall.json').read_text())
+    recall['prompt'] = 'When is dinner?'
+    save(arm / 'recall.json', recall)
+    judgment = json.loads((arm / 'judgment.json').read_text())
+    judgment['question'] = recall['prompt']
+    save(arm / 'judgment.json', judgment)
+    # The native saved input must agree too; changing only public receipts
+    # must not hide a prefixed question that Hermes actually received.
+    assert 'Native Hermes user messages differ' in str(audit(root)['errors'])
+    with sqlite3.connect(arm / 'hermes-home/state.db') as db:
+        db.execute("UPDATE messages SET content=? WHERE role='user'", (recall['prompt'],))
+    assert audit(root)['state'] == 'pass', audit(root)
+
+
+def test_audit_reads_private_session_bound_prompt_after_native_gc(trace):
+    root, arm = trace
+    home = arm / 'hermes-home'
+    workspace = Path(json.loads((arm / 'recall-workspace.json').read_text())['workspace'])
+    context = actual_context(home, 'recall', workspace, capture=True)
+    recall = json.loads((arm / 'recall.json').read_text())
+    recall['context_isolation'] = context
+    save(arm / 'recall.json', recall)
+    replacement = 'Later native system prompt'
+    digest = hashlib.sha256(replacement.encode()).hexdigest()
+    with sqlite3.connect(home / 'state.db') as db:
+        db.execute('INSERT INTO system_prompts VALUES (?,?)', (digest, replacement))
+        db.execute('UPDATE sessions SET system_prompt_hash=?', (digest,))
+        db.execute('DELETE FROM system_prompts WHERE hash=?', (context['system_prompt_sha256'],))
+    assert audit(root)['state'] == 'pass', audit(root)
+    next((home / 'private-system-prompts').rglob('*.json')).unlink()
+    assert any('snapshot unavailable or invalid' in e for e in audit(root)['errors'])
+
+
+def test_import_only_audit_requires_no_queries_and_keeps_all_source_checks(trace):
+    from pacbench.document_audit import audit_ingestion
+    from pacbench.frozen import load_bundle,messages_for
+    root,arm=trace
+    summary=json.loads((root/'summary.json').read_text());summary['mode']='native-import-validation'
+    messages=messages_for(load_bundle(root/'bundle.json',summary['bundle_hash']),'test')
+    assert 'Import-only validation contains benchmark turns' in audit_ingestion(root,arm,messages,summary,import_only=True)
+    (arm/'recall.json').unlink()
+    with sqlite3.connect(arm/'hermes-home/state.db') as db:
+        db.execute('DELETE FROM messages');db.execute('DELETE FROM sessions')
+    assert audit_ingestion(root,arm,messages,summary,import_only=True)==[]
+    record=arm/summary['ingestion_schedule'][0]['file'];data=json.loads(record.read_text())
+    data['ready']=False;data['state']='failed';save(record,data)
+    assert 'native processing did not complete' in audit_ingestion(root,arm,messages,summary,import_only=True)

@@ -168,8 +168,10 @@ def load_evaluations(root, messages, resolved):
         document = read_json(directory / 'contract.json')
         evidence=contract_evidence(messages,resolved['checks'],spec,resolved.get('evaluation_context','shared'),
             structured_sessions=document.get('evidence_version')==EVIDENCE_VERSION)
+        from .contract_carry_forward import review_observations
+        reviewed_evidence=review_observations(root,document,evidence,spec)
         if (any(row.get(k)!=spec.get(k) for k in ('session','kind','trigger','depends_on','expect')) or
-                c.contract_hash != row['contract_hash'] or c.evidence_hash != digest(evidence) or
+                c.contract_hash != row['contract_hash'] or c.evidence_hash != digest(reviewed_evidence) or
                 policy['plan_hash'] != row['policy_hash'] or row['at'] != spec['at'] or
                 c.question != spec['prompt'] or spec['facts'] and [x.statement for x in c.claims] != spec['facts'] or
                 spec.get('expect') and document.get('test_intent')!=spec['expect'] or

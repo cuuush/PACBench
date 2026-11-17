@@ -38,10 +38,13 @@ def test_hindsight_does_not_fail_at_one_hundred_operations_or_miss_later_pending
 @pytest.mark.parametrize('status,pending,expected', [('completed',None,True),
     ('completed',{'count':1},True),('completed',{'count':0},True),
     ('error',None,False),('queued',None,False)])
-def test_byterover_requires_completion_without_approving_retrospective_review(tmp_path,monkeypatch,status,pending,expected):
+@pytest.mark.parametrize('transport,model', [('muse-gateway','muse-spark-1.3-contributor'),
+                                          ('openrouter','deepseek/deepseek-v4.1-flash-1017')])
+def test_byterover_requires_completion_without_approving_retrospective_review(tmp_path,monkeypatch,status,pending,expected,transport,model):
+    monkeypatch.setenv('PACBENCH_TRANSPORT',transport)
     config=tmp_path/'config/brv';config.mkdir(parents=True)
     (config/'providers.json').write_text(json.dumps({'activeProvider':'openai-compatible',
-        'providers':{'openai-compatible':{'activeModel':'muse-spark-1.3-contributor','baseUrl':'http://127.0.0.1:1/v1'}}}))
+        'providers':{'openai-compatible':{'activeModel':model,'baseUrl':'http://127.0.0.1:1/v1'}}}))
     monkeypatch.setenv('XDG_CONFIG_HOME',str(config.parent))
     monkeypatch.setenv('OPENAI_COMPATIBLE_API_KEY','unit-test-token')
     source=tmp_path/'source';source.mkdir();(source/'messages.txt').write_text('Unmodified source text\n')
@@ -106,24 +109,28 @@ def test_supermemory_ingestion_waits_for_memory_and_uses_native_namespace(tmp_pa
     home=tmp_path/'arm/hermes-home';home.mkdir(parents=True)
     (home.parent/'document-ingestion-config.json').write_text(json.dumps({'dreaming':'instant'}))
     resolve=Mock(return_value='native_canonical_tag')
-    monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
+    plugin=SimpleNamespace(
         _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
-        _resolve_container_tag=resolve))
+        _expand_container_tag=resolve,_sanitize_tag=lambda value:value)
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     add=Mock(return_value=SimpleNamespace(
         id='doc-1',model_dump=lambda **kw:{'id':'doc-1'}))
     statuses=iter([{'status':'done'}] if dreaming_field is None else [
                   {'status':'done',dreaming_field:'dreaming'},
                    {'status':'done',dreaming_field:'dreaming'},
                    {'status':'done',dreaming_field:'done'}])
-    get=Mock(side_effect=lambda id:SimpleNamespace(model_dump=lambda **kw:next(statuses)))
+    get=Mock(side_effect=lambda namespace,id:SimpleNamespace(model_dump=lambda **kw:{'id':id,'system':next(statuses)}))
     documents=SimpleNamespace(add=add,get=get)
-    monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=lambda **kw:SimpleNamespace(documents=documents)))
+    monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=lambda **kw:SimpleNamespace(add=add,documents=documents)))
     monkeypatch.setenv('SUPERMEMORY_API_KEY','local-test-key')
     monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
     sleep=Mock();monkeypatch.setattr('provider_adapters.document_connector.time.sleep',sleep)
     result=supermemory(source,home.parent,'now','now')
+    resolver.assert_called_once_with('supermemory')
     resolve.assert_called_once_with('raw-tag','default')
-    assert add.call_args.kwargs['container_tags']==['native_canonical_tag']
+    assert add.call_args.args==('native_canonical_tag',)
+    assert add.call_args.kwargs['id']=='day' and add.call_args.kwargs['date']=='now'
     assert add.call_args.kwargs['content']=='Raw daily text\n'
     assert add.call_args.kwargs['dreaming']=='instant'
     assert result['delivery_options']=={'dreaming':'instant'}
@@ -167,11 +174,14 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
     client=SimpleNamespace(session=lambda id:session,peer=Peer)
     monkeypatch.setitem(sys.modules,'honcho',SimpleNamespace(Honcho=lambda **kw:client))
     monkeypatch.setitem(sys.modules,'honcho.api_types',SimpleNamespace(SessionPeerConfig=lambda **kw:SimpleNamespace(**kw)))
-    monkeypatch.setitem(sys.modules,'plugins.memory.honcho.client',SimpleNamespace(
-        HonchoClientConfig=SimpleNamespace(from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
-            user_observe_me=True,user_observe_others=True))))
+    plugin=SimpleNamespace(HonchoClientConfig=SimpleNamespace(
+        from_global_config=lambda:SimpleNamespace(ai_observe_me=True,ai_observe_others=True,
+            user_observe_me=True,user_observe_others=True)))
+    resolver=Mock(return_value=plugin)
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',resolver)
     monkeypatch.setattr('provider_adapters.honcho_local.queue_errors',lambda root:[])
     result=honcho(source,home.parent,'now','now')
+    resolver.assert_called_once_with('honcho','client')
     assert result['ready'] and len(pending)==len(messages)
     assert list(result['processing_status'][0]['sessions'])==['session-1']
     assert participants==['user','Devon','hermes']
@@ -183,16 +193,25 @@ def test_honcho_daily_batch_preserves_real_speakers_text_and_times(tmp_path,monk
         assert native.metadata=={k:v for k,v in original.items() if k!='text'}
 
 
-@pytest.mark.parametrize('session_name',['source','unrelated'])
+@pytest.mark.parametrize('session_name',['source','unrelated',None,''])
 def test_honcho_public_completed_counter_does_not_hide_failed_source_work(session_name):
     from provider_adapters.document_connector import wait_honcho_sessions
     session=SimpleNamespace(id='source',queue_status=lambda:SimpleNamespace(model_dump=lambda **kw:{
         'total_work_units':1,'completed_work_units':1,'pending_work_units':0,'in_progress_work_units':0}))
     failure={'session_name':session_name,'error_class':'StructuredOutputError','error_sha256':'error-hash'}
     records,ready,reason,_=wait_honcho_sessions([session],{}, {'source':1},read_errors=lambda:[failure])
-    assert ready==(session_name!='source')
-    if session_name=='source':
+    assert ready==(session_name=='unrelated')
+    if session_name!='unrelated':
         assert 'work failed' in reason and records[-1]['native_queue_errors']==[failure]
+    else:
+        assert records[-1]['unrelated_queue_errors']==[failure]
+        assert not records[-1]['native_queue_errors']
+
+
+def test_honcho_empty_session_discovery_cannot_prove_source_processing():
+    from provider_adapters.document_connector import wait_honcho_sessions
+    records,ready,reason,_=wait_honcho_sessions([],{})
+    assert not ready and not records and 'unproven' in reason
 
 
 def test_honcho_native_queue_telemetry_never_exports_raw_error_text(tmp_path,monkeypatch):

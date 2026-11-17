@@ -113,17 +113,31 @@ def verify_honcho_delivery(path, *, complete=False):
 class ExtractionLog(logging.Handler):
     """Observe native errors; never turn swallowed parser failures into readiness."""
     def __init__(self):
-        super().__init__(logging.ERROR)
+        super().__init__(logging.WARNING)
         self.errors=[]
 
     def emit(self,record):
-        self.errors.append({'logger':record.name,'message':record.getMessage()})
+        message=record.getMessage()
+        prefixes=('Failed to embed memory text: ', 'Failed to embed memory text (async): ')
+        if (record.levelno == logging.WARNING and record.name == 'mem0.memory.main' and message.startswith(prefixes)):
+            import hashlib
+            self.errors.append({'logger':record.name,'level':'WARNING',
+                'classification':'native_per_item_embedding_failed',
+                'message':'Native per-item fallback embedding failed; extracted item may be skipped',
+                'message_sha256':hashlib.sha256(message.encode()).hexdigest()})
+        elif record.levelno >= logging.ERROR:
+            self.errors.append({'logger':record.name,'message':message})
 
 
 def mem0(source, root, at, processing_at):
-    from mem0 import Memory
+    from pacbench.provider_loader import provider_module
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'hermes-home/mem0.json').read_text())
+    from pacbench.openrouter_direct import active
+    if active():
+        # The bare SDK prioritizes this environment key over config.api_key.
+        # Hermes' shipped DirectOpenAILLM instead uses the explicit config key.
+        os.environ['OPENROUTER_API_KEY']=cfg['oss']['llm']['config']['api_key']
     validate_route(cfg['oss']['llm']['config']['openai_base_url'],os.environ['OPENAI_API_KEY'])
     # The SDK explicitly documents string input and infer=True. No plugin sync
     # truncation, fake user/assistant pair, custom extraction prompt or infer=False.
@@ -131,9 +145,18 @@ def mem0(source, root, at, processing_at):
     def observe(llm,response,request):
         model_calls.append({'request':request,'response':response.model_dump(mode='json')})
     cfg['oss']['llm']['config']['response_callback']=observe
-    memory=Memory.from_config(cfg['oss'])
+    # The shipped backend binds vector dimensions to the configured embedder
+    # and rejects incompatible existing stores. Bare Memory.from_config keeps
+    # Qdrant's 1536 default, silently relying on a prior smoke search to create
+    # the actual 768-dimensional collection. Import must stand on its own.
+    backend=provider_module('mem0','_backend').OSSBackend(cfg['oss'])
+    memory=backend._memory
     validate_route(str(memory.llm.client.base_url).rstrip('/'),memory.llm.client.api_key)
     errors=ExtractionLog()
+    native_logger=logging.getLogger('mem0.memory.main')
+    previous_native_level=native_logger.level
+    if native_logger.getEffectiveLevel()>logging.WARNING:
+        native_logger.setLevel(logging.WARNING)  # A quiet host must not suppress the native skip witness.
     logging.getLogger().addHandler(errors)
     try:
         result=memory.add((source/'messages.txt').read_text(),user_id=cfg['user_id'],
@@ -141,14 +164,19 @@ def mem0(source, root, at, processing_at):
                                                'collected_at':at})
     finally:
         logging.getLogger().removeHandler(errors)
+        native_logger.setLevel(previous_native_level)
         folder=root/'ingestion-model-calls'
         folder.mkdir(exist_ok=True)
         (folder/(source.name+'.json')).write_text(json.dumps(model_calls,ensure_ascii=False,indent=2)+'\n')
+        backend.close()
     incomplete=any(c.get('finish_reason')=='length' for call in model_calls for c in call['response'].get('choices',[]))
     return {'ready':not errors.errors and not incomplete,'interface':'mem0.Memory.add(str,infer=True)',
+            'construction':'Hermes shipped OSSBackend with native embedding dimension binding',
             'result':result,'native_errors':errors.errors,'model_output_truncated':incomplete,
+            'native_failure_observation':'mem0-errors-and-per-item-embedding-warnings-v1',
             'model_call_record':str(folder/(source.name+'.json')),
-            'readiness':'Synchronous OSS add with no native error or truncated model response'}
+            'readiness':('Native OSS import failed readiness; returned results do not certify all extracted items persisted'
+                         if errors.errors or incomplete else 'Synchronous OSS add with no observed native failure or truncated model response')}
 
 
 def memcal(source, root, at, processing_at):
@@ -180,14 +208,18 @@ def memcal(source, root, at, processing_at):
         mail_transport=None
         collection_error=None
         try:
+            from pacbench.imessage_membership import native_control_read_witness,CONDITION as MEMBERSHIP_CONDITION
+            control_reads=native_control_read_witness(source,int(db.get_meta(conn,'imessage.rowid','0') or 0))
             report=sources.catch_up(sources.get('imessage',cfg),conn,cfg,collection_id=collection)
             if report.more and not report.error:
                 collection_error='native collection incomplete'
                 raise RuntimeError('iMessage collection incomplete')
             if report.error:raise RuntimeError(report.error)
             expected=sum(m['channel']=='imessage' for m in messages)
-            if report.read!=expected:
-                raise RuntimeError(f'Native reader consumed {report.read}/{expected} new messages')
+            if report.read!=expected+control_reads['control_rows']:
+                raise RuntimeError(f'Native reader consumed {report.read}/{expected} dialogue + {control_reads["control_rows"]} verified control rows')
+            if control_reads['protocol']==MEMBERSHIP_CONDITION and report.archived!=expected:
+                raise RuntimeError('Native dialogue archive coverage differs from the temporal fixture')
             if any(m['channel']=='email' for m in messages):
                 from pacbench.email_fixture import MailboxServer
                 with MailboxServer(source/'mailbox.json') as mailbox:
@@ -233,7 +265,7 @@ def memcal(source, root, at, processing_at):
         return {'ready':not bool(result.errors),'interface':'native source readers + native nightly dream',
                 'collector_protocol':'native-cli-collection-v1',
                 'collection':collection_record,
-                'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),
+                'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),'control_read_witness':control_reads,
                 **({'email_ingest':asdict(mail_report),'email_transport':mail_transport} if mail_report else {}),
                 'bundles':native_bundles,'model_call_record':str(diagnostic),
                 'native_event_state':event_state,
@@ -261,10 +293,11 @@ def hindsight_operations(provider,client,bank_id,deadline):
 
 
 def hindsight(source,root,at,processing_at):
-    from plugins.memory.hindsight import HindsightMemoryProvider
+    from pacbench.provider_loader import provider_module
+    HindsightMemoryProvider = provider_module("hindsight").HindsightMemoryProvider
     from pacbench.gateway_client import validate_route
-    from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
-    deadline=time.monotonic()+PROCESSING_TIMEOUT_S
+    from pacbench.document_ingestion import HINDSIGHT_PROCESSING_TIMEOUT_S
+    deadline=time.monotonic()+HINDSIGHT_PROCESSING_TIMEOUT_S
     cfg=json.loads((root/'hermes-home/hindsight/config.json').read_text())
     validate_route(cfg['llm_base_url'],os.environ['HINDSIGHT_LLM_API_KEY'])
     provider=HindsightMemoryProvider()
@@ -293,12 +326,14 @@ def hindsight(source,root,at,processing_at):
         return {'ready':not failed and not pending,'interface':'Hindsight.retain(content,document_id,retain_async=False)',
                 'result':result.model_dump(mode='json') if hasattr(result,'model_dump') else str(result),
                 'processing_status':statuses,
+                'processing_deadline_s':HINDSIGHT_PROCESSING_TIMEOUT_S,
                 'readiness':'Native retain and observation consolidation completion via Operations API'}
     finally:provider.shutdown()
 
 
 def openviking(source,root,at,processing_at):
-    from plugins.memory.openviking import OpenVikingMemoryProvider
+    from pacbench.provider_loader import provider_module
+    OpenVikingMemoryProvider = provider_module("openviking").OpenVikingMemoryProvider
     from pacbench.gateway_client import validate_route
     cfg=json.loads((root/'ov.conf').read_text())
     validate_route(cfg['vlm']['api_base'],cfg['vlm']['api_key'])
@@ -309,6 +344,7 @@ def openviking(source,root,at,processing_at):
         # full API response (its tool wrapper discards processing evidence).
         upload=p._client.upload_temp_file(source/'messages.txt')
         from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
+        deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
         result=p._client.post('/api/v1/resources',{'temp_file_id':upload,
             'source_name':source.name+'.txt','wait':True,'timeout':PROCESSING_TIMEOUT_S-60},
             timeout=PROCESSING_TIMEOUT_S-30)
@@ -318,8 +354,48 @@ def openviking(source,root,at,processing_at):
             bool(native.get('root_uri')) and isinstance(queues,dict) and bool(queues) and not any(
                 not isinstance(q,dict) or q.get('errors') or q.get('error_count',0)
                 for q in queues.values()))
+        global_completion=None;global_observation=None;global_waits=0
+        if ready:
+            from pacbench.document_audit import openviking_observer_state
+            # Parent summaries escape per-resource task tracking. The global
+            # wait drains them; a subsequent observer snapshot catches embedding
+            # spawned between the wait's sequential queue snapshots.
+            while True:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('Native global processing deadline reached')
+                global_completion=p._client.post('/api/v1/system/wait',{},timeout=remaining)
+                global_waits+=1
+                global_queues=global_completion.get('result')
+                ready=(global_completion.get('status')=='ok' and isinstance(global_queues,dict)
+                    and bool(global_queues) and all(isinstance(q,dict) and q.get('error_count')==0
+                    and q.get('errors')==[] for q in global_queues.values()))
+                if not ready:break
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TimeoutError('Native global observation deadline reached')
+                global_observation=p._client.get('/api/v1/observer/queue?format=json',timeout=remaining)
+                state=openviking_observer_state(global_observation)
+                if state=='busy':continue
+                ready=state=='ready';break
+        artifacts=None;failure_log=None;model_responses=None
+        if ready:
+            from pacbench.document_audit import openviking_generated_artifacts
+            artifacts=openviking_generated_artifacts(cfg['storage']['workspace'])
+            from pacbench.document_audit import openviking_failure_log,openviking_response_evidence
+            failure_log=openviking_failure_log(root/'openviking-server.log')
+            if os.environ.get('PACBENCH_TRANSPORT')=='openrouter':
+                from pacbench.direct_accounting import live_budget,project_from_authorization
+                project=project_from_authorization('Bearer '+cfg['vlm']['api_key'])
+                if not project:raise RuntimeError('OpenViking request accounting binding is unavailable')
+                model_responses=openviking_response_evidence([r for r in live_budget().snapshot() if r.get('project')==project])
+            ready=(artifacts['state']=='complete' and failure_log['state']=='complete'
+                and (model_responses or {}).get('state')=='complete')
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',
-                'result':result,'readiness':'Native completed semantic/vector processing with queue status and no errors'}
+                'result':result,'completion_protocol':'openviking-global-import-readiness-v4',
+                'native_global_queue_completion':global_completion,
+                'native_global_queue_observation':global_observation,'native_global_wait_count':global_waits,
+                'native_generated_artifact_check':artifacts,
+                'native_failure_log_check':failure_log,'native_model_response_check':model_responses,
+                'readiness':'All scheduled native resource and global queue processing completed, including ancestor summaries; no errors or pending work'}
     finally:p.shutdown()
 
 
@@ -327,8 +403,12 @@ def byterover(source,root,at,processing_at):
     from pacbench.gateway_client import validate_route
     cfg=json.loads((Path(os.environ['XDG_CONFIG_HOME'])/'brv/providers.json').read_text())
     active=cfg['providers'].get('openai-compatible',{})
-    if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!='muse-spark-1.3-contributor':
-        raise ValueError('ByteRover inference must use configured Contributor')
+    expected_model = 'muse-spark-1.3-contributor'
+    if os.environ.get('PACBENCH_TRANSPORT') == 'openrouter':
+        from pacbench.openrouter_route import MODEL
+        expected_model = MODEL
+    if cfg['activeProvider']!='openai-compatible' or active.get('activeModel')!=expected_model:
+        raise ValueError('ByteRover inference must use the configured route model')
     validate_route(active['baseUrl'],os.environ['OPENAI_COMPATIBLE_API_KEY'])
     project=root/'hermes-home/byterover'
     target=project/'imports'/source.name/'messages.txt';target.parent.mkdir(parents=True)
@@ -357,7 +437,8 @@ def byterover(source,root,at,processing_at):
 def honcho(source,root,at,processing_at):
     from honcho import Honcho
     from honcho.api_types import SessionPeerConfig
-    from plugins.memory.honcho.client import HonchoClientConfig
+    from pacbench.provider_loader import provider_module
+    HonchoClientConfig = provider_module("honcho", "client").HonchoClientConfig
     import hashlib
     cfg=json.loads((root/'hermes-home/honcho.json').read_text())
     if not cfg['baseUrl'].startswith('http://127.0.0.1:'):
@@ -367,6 +448,15 @@ def honcho(source,root,at,processing_at):
     observer=host['aiPeer']
     client=Honcho(base_url=cfg['baseUrl'],workspace_id=host['workspace'],environment='local',max_retries=0,timeout=30)
     messages=json.loads((source/'messages.json').read_text())
+    from provider_adapters.honcho_enrollment import ENVIRONMENT, PROTOCOL, LEGACY_PROTOCOL, source_peer_id, source_plans, verify_before_submission
+    membership = None
+    membership_plans = {}
+    peer_protocol=PROTOCOL if os.environ.get(ENVIRONMENT)==PROTOCOL else LEGACY_PROTOCOL
+    if os.environ.get(ENVIRONMENT):
+        if os.environ[ENVIRONMENT] != PROTOCOL:
+            raise ValueError('Unsupported Honcho membership protocol')
+        membership = verify_before_submission(root, source, messages, host)
+        membership_plans = {p['session_id']:p for p in source_plans(messages, host)}
     groups={}
     for message in messages:groups.setdefault((message['channel'],message['thread']),[]).append(message)
     acknowledgments=[];sessions=[];minimum_work={}
@@ -381,8 +471,13 @@ def honcho(source,root,at,processing_at):
         sessions.append(session)
         peers={}
         for m in batch:
-            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            peer_id=source_peer_id('Me' if m['from_owner'] else m['sender'],host,protocol=peer_protocol)
             peers[peer_id]=client.peer(peer_id)
+        if membership is not None:
+            # Include silent source-declared participants, especially the owner
+            # receiving a single incoming message, without inventing utterances.
+            for peer_id in membership_plans[session.id]['source_peers']:
+                peers.setdefault(peer_id, client.peer(peer_id))
         # Real source participants, not a fabricated user/assistant exchange.
         # Hermes recalls from its AI observer's perspective. Honcho requires
         # this observer to witness source messages as they arrive; adding it
@@ -404,10 +499,14 @@ def honcho(source,root,at,processing_at):
             if (owner.observe_me!=native_config.user_observe_me or
                     owner.observe_others!=native_config.user_observe_others):
                 raise RuntimeError('Honcho did not apply the configured owner membership')
+        if membership is not None:
+            # Re-adding active peers must not move joined_at. Verify after the
+            # SDK call, immediately before any original messages are submitted.
+            membership = verify_before_submission(root, source, messages, host)
         baseline=session.queue_status().model_dump(mode='json')
         pending=[]
         for m in batch:
-            peer_id=host['peerName'] if m['from_owner'] else m['sender']
+            peer_id=source_peer_id('Me' if m['from_owner'] else m['sender'],host,protocol=peer_protocol)
             pending.append(peers[peer_id].message(m['text'],created_at=m['written_at'],
                 metadata={k:v for k,v in m.items() if k!='text'}))
         entry={'session_id':session.id,'source_messages':len(pending),
@@ -450,20 +549,25 @@ def honcho(source,root,at,processing_at):
     journal['state']='submitted';save(journal_path,journal)
     defaults=json.loads((root/'native-processing-settings.json').read_text())
     from provider_adapters.honcho_clock import enabled, wait_for_batch
+    membership_fields = ({'membership_protocol':PROTOCOL,'membership_witness':membership}
+                         if membership is not None else {})
     if enabled(root):
-        return wait_for_batch(root, acknowledgments,
-            json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')))
+        return {**wait_for_batch(root, acknowledgments,
+            json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))), **membership_fields}
     grace=defaults['deriver']['REPRESENTATION_BATCH_MAX_AGE_SECONDS']
     from provider_adapters.honcho_local import queue_errors
     statuses,done,reason,health=wait_honcho_sessions(sessions,json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}')),minimum_work,
         batch_grace_s=grace,read_errors=lambda:queue_errors(root))
-    return {'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
+    return {**membership_fields, 'ready':done,'interface':'Native Honcho session.add_messages(real source peers and timestamps)',
         'result':acknowledgments,'processing_status':statuses,'model_health':health,
+        'source_error_scope':'submitted-source-sessions-v1',
         'readiness':('Native acknowledgments, new work enrollment and submitted-session processing complete' if done else reason),
         'readiness_scope':'Finite isolated batch, submitted source sessions only; unrelated workspace work is not a barrier'}
 
 
 def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read_errors=None):
+    if not sessions:
+        return [],False,'No submitted Honcho sessions; source processing is unproven',{}
     minimum_work=minimum_work or {}
     # A finite, isolated import has no concurrent producers. This is a scoped
     # benchmark readiness barrier, not a production requirement that the entire
@@ -471,8 +575,10 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
     statuses=[];started=time.monotonic();last_progress=started
     done=False;reason='';health={}
     from pacbench.usage import provider_model_health, snapshot
-    previous=None;last_error_check=None
+    from pacbench.stop import check_stop
+    previous=None;last_error_check=None;previous_errors=[]
     while True:
+        check_stop()
         status={session.id:session.queue_status().model_dump(mode='json') for session in sessions}
         elapsed=time.monotonic()-started
         if status!=previous:
@@ -481,10 +587,16 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
         done=all(s['pending_work_units']==0 and s['in_progress_work_units']==0 and
             s.get('total_work_units',0)>=minimum_work.get(id,0) for id,s in status.items())
         if read_errors and (done or last_error_check is None or elapsed-last_error_check>=10):
-            failures=read_errors();last_error_check=elapsed
-            failures=[r for r in failures if r.get('session_name') in status]
+            observed_errors=read_errors();last_error_check=elapsed
+            # An absent session cannot prove an error belongs to unrelated
+            # capture work. Match the simulated-clock barrier's fail-closed scope.
+            failures=[r for r in observed_errors if not r.get('session_name') or r['session_name'] in status]
+            unrelated=[r for r in observed_errors if r.get('session_name') and r['session_name'] not in status]
+            if observed_errors!=previous_errors:
+                statuses.append({'elapsed_s':round(elapsed,2),'sessions':status,
+                    'native_queue_errors':failures,'unrelated_queue_errors':unrelated})
+                previous_errors=observed_errors
             if failures:
-                statuses.append({'elapsed_s':round(elapsed,2),'sessions':status,'native_queue_errors':failures})
                 done=False;reason='Native Honcho submitted-source work failed; public completion counts include errors';break
         if roles:
             health=provider_model_health(snapshot(roles))
@@ -509,30 +621,48 @@ def wait_honcho_sessions(sessions,roles,minimum_work=None,*,batch_grace_s=0,read
 
 def supermemory(source,root,at,processing_at):
     from supermemory import Supermemory
-    from plugins.memory.supermemory import _load_supermemory_config, _resolve_container_tag
-    cfg=_load_supermemory_config(str(root/'hermes-home'))
-    tag=_resolve_container_tag(cfg['container_tag'],'default')
-    if not cfg['base_url'].startswith('http://127.0.0.1:'):
-        raise ValueError('Supermemory document ingest requires the run-owned local server')
+    from pacbench.provider_loader import provider_module
+    plugin = provider_module("supermemory")
+    from provider_adapters.supermemory_native import namespace, document
+    cfg,tag=namespace(plugin,root/'hermes-home')
     client=Supermemory(api_key=os.environ['SUPERMEMORY_API_KEY'],base_url=cfg['base_url'],max_retries=0,timeout=30)
     delivery=json.loads((root/'document-ingestion-config.json').read_text())
     if delivery.get('dreaming')!='instant':raise ValueError('Undeclared Supermemory ingestion mode')
-    result=client.documents.add(content=(source/'messages.txt').read_text(),
-        container_tags=[tag],custom_id=source.name,dreaming=delivery['dreaming'],
-        metadata={'source':'daily-transcript','collected_at':at})
+    content=(source/'messages.txt').read_text()
+    try:
+        result=client.add(tag,content=content,id=source.name,date=at,dreaming=delivery['dreaming'],
+            metadata={'source':'daily-transcript','collected_at':at})
+    except Exception as error:
+        failure={**native_error_receipt(error),'phase':'document-add'}
+        failure['commit_state']=('rejected' if failure.get('http_status') in (400,401,403,404,413,422)
+                                 else 'unknown')
+        return {'ready':False,'reason':'Native document delivery failed; no blind retry; raw error withheld',
+                'interface':'Supermemory SDK documents.add(raw content) + documents.get',
+                'native_error':failure,'container_tag':tag,'processing_status':[],
+                'delivery_options':{'dreaming':delivery['dreaming']}}
     from pacbench.document_ingestion import PROCESSING_TIMEOUT_S
     from pacbench.gateway_client import require_live_cost_boundary
     from pacbench.usage import snapshot,provider_model_health
     roles=json.loads(os.environ.get('PACBENCH_USAGE_ROLES','{}'))
-    statuses=[];deadline=time.monotonic()+PROCESSING_TIMEOUT_S-30
-    ready=False;reason='Native memory processing deadline exceeded'
+    statuses=[];status_read_failures=[];observation_timeout=min(PROCESSING_TIMEOUT_S-30,300);deadline=time.monotonic()+observation_timeout
+    ready=False;reason='Native memory processing deadline exceeded';failure=None
     while True:
-        status=client.documents.get(result.id).model_dump(mode='json')
+        try:
+            raw,status=document(client,tag,result.id,endpoint=cfg['base_url'],key=os.environ['SUPERMEMORY_API_KEY'])
+        except Exception as error:
+            # Delivery already succeeded. Preserve its ID and every observed
+            # state, rather than losing them to a traceback or resubmitting.
+            failure={**native_error_receipt(error),'phase':'document-status','commit_state':'accepted'}
+            reason='Native document status unavailable; accepted delivery retained; raw error withheld'
+            if (type(error).__name__.endswith('TimeoutError') or isinstance(error,TimeoutError) or
+                    failure.get('http_status') in (429,500,502,503,504)) and time.monotonic()<deadline:
+                status_read_failures.append(failure);time.sleep(1);continue
+            break
         # SDK responses duplicate camel/snake aliases and may append complete
         # memories on every poll. Keep the source witness and state changes,
         # not repeated native memory dumps or duplicate spelling aliases.
-        observed={k:status.get(k) for k in ('id','custom_id','content','container_tags','status')}
-        observed['dreaming_status']=status.get('dreaming_status',status.get('dreamingStatus'))
+        observed={**status,'content':raw.get('content'),'metadata':raw.get('metadata'),
+                  'native_system':raw.get('system'),'request_namespace':tag}
         if not statuses or observed!=statuses[-1]:statuses.append(observed)
         state=status.get('status')
         dreaming=status.get('dreaming_status',status.get('dreamingStatus'))
@@ -542,16 +672,19 @@ def supermemory(source,root,at,processing_at):
             try:require_live_cost_boundary()
             except RuntimeError as exc:reason=str(exc);break
         if state=='done' and dreaming=='done':
-            ready=True;reason='';break
+            ready=True;reason='';failure=None;break
         if state in {'failed','error'} or dreaming in {'failed','error'}:
             reason='Native document processing or memory dreaming failed';break
         if state=='done' and dreaming is None:
             reason='Native memory consolidation status unavailable';break
         if time.monotonic()>=deadline:break
         time.sleep(1)
-    return {'ready':ready,'reason':reason,'interface':'Supermemory SDK documents.add(raw content) + documents.get',
+    return {'ready':ready,'reason':reason,'interface':'Supermemory SDK v5 add(namespace,raw content) + documents.get(namespace,id)',
+            'native_api_protocol':'supermemory-v5-documents-v1','request_namespace':tag,
             'result':result.model_dump(mode='json'),'container_tag':tag,'processing_status':statuses,
+            **({'native_error':failure} if failure else {}),
             'delivery_options':{'dreaming':delivery['dreaming']},
+            'status_observation_timeout_s':observation_timeout,'transient_status_read_failures':status_read_failures,
             'readiness_requirement':'Native document processing and memory dreaming both done'}
 
 
@@ -563,19 +696,35 @@ def main(args=None):
         print(json.dumps({'operator_stop': True}))
         return 75
     provider,src,arm,at,processing_at=args or sys.argv[1:]
-    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'byterover':byterover,'supermemory':supermemory,'honcho':honcho}
+    from pacbench.provider_lineup import require_not_retired
+    require_not_retired(provider)
+    dispatch={'mem0':mem0,'memcal':memcal,'hindsight':hindsight,'openviking':openviking,'supermemory':supermemory,'honcho':honcho}
+    if provider=='reme':
+        from provider_adapters.reme_resource import ingest
+        dispatch['reme']=lambda source,root,at,processing_at:ingest(source,root)
+    if provider=='cognee':
+        from provider_adapters.cognee_documents import ingest
+        dispatch['cognee']=lambda source,root,at,processing_at:ingest(source,root)
+    if provider=='memos':
+        from provider_adapters.reme_memos_documents import ingest
+        def ingest_memos(source,root,at,processing_at):
+            from .memos_semantic_ready import RAW
+            config=json.loads((root/'memos-document-config.json').read_text())
+            return ingest('memos',source,config['endpoint'],memos_condition=config.get('ingestion_condition',RAW),
+                          memos_database=root/'memos-home/data/memos.db')
+        dispatch['memos']=ingest_memos
     try:
         result=dispatch[provider](Path(src),Path(arm),at,processing_at)
     except OperatorStop:
         print(json.dumps({'operator_stop':True}))
         return 75
     except Exception as error:
-        if provider!='honcho':raise
-        result={'ready':False,'interface':'Native Honcho connector',
+        if provider not in ('honcho','supermemory'):raise
+        result={'ready':False,'interface':f'Native {provider.title()} connector',
                 'native_error':native_error_receipt(error),
                 'readiness':'Native connector failed; raw exception body withheld'}
         journal=Path(arm)/'ingestion-delivery'/Path(src).name/'index.json'
-        if journal.exists():result['delivery_journal']=str(journal.relative_to(Path(arm)))
+        if provider=='honcho' and journal.exists():result['delivery_journal']=str(journal.relative_to(Path(arm)))
     print(json.dumps(result,ensure_ascii=False,default=lambda value:sorted(value) if isinstance(value,set) else str(value)))
     return 0 if result['ready'] else 1
 

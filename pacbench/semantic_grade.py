@@ -52,7 +52,10 @@ class BenchmarkContractError(ValueError):
 VERDICTS = {"correct", "missed", "misrepresented"}
 LEGACY_JUDGE_PROTOCOL = 'semantic-judge-v1'
 DATE_SCOPED_JUDGE_PROTOCOL = 'semantic-judge-date-scope-v2'
-JUDGE_PROTOCOLS = {LEGACY_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL}
+# Experimental: separate semantic grading from the bulky evidence diagnostic.
+# Not selected for native runs until live positive and negative controls pass.
+COMPACT_JUDGE_PROTOCOL = 'semantic-judge-compact-v3'
+JUDGE_PROTOCOLS = {LEGACY_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL}
 
 
 LEGACY_DIAGNOSTIC_VERSION = "answer-visible-evidence-v1"
@@ -135,7 +138,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "do not award a correct value attached to a different outing. "
         "Resolve the answer's inherited event and day scope from the question, "
         "simulated clock and prior conversation; do not require repeating that scope. "
-        + ("Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. " if judge_protocol == DATE_SCOPED_JUDGE_PROTOCOL else "") +
+        + ("Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. " if judge_protocol in (DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL) else "") +
         "A correct fragment does not satisfy a claim if the same answer contradicts it. "
         "Distinguish current-state claims from historical claims; judge "
         "the state and time described by each claim. "
@@ -168,7 +171,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         + ("Use the prior conversation only to resolve references in the latest answer. "
          "Do not award a fact merely because it appeared in an earlier answer.\n"
          f"Prior public conversation: {json.dumps(conversation, ensure_ascii=False)}\n" if conversation else "")
-        + (diagnostic_prompt(diagnostic_inputs, diagnostic_version) if diagnostic_inputs is not None else "") +
+        + (diagnostic_prompt(diagnostic_inputs, diagnostic_version) if diagnostic_inputs is not None and judge_protocol != COMPACT_JUDGE_PROTOCOL else "") +
         f"Question: {question}\nAnswer: {answer}\n"
         f"Claims (hidden from the assistant): {json.dumps(spec, ensure_ascii=False)}"
     )
@@ -225,7 +228,10 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
         validate_recovery(recovery, rows)
     result = Grade(checkpoint=checkpoint_id, recovery=recovery,interaction=parsed.get('interaction','answer'))
     if diagnostic_inputs is not None:
-        result.evidence_diagnostic = validate_diagnostic(parsed.get("evidence_diagnostic"), claims, answer, diagnostic_inputs, diagnostic_version)
+        result.evidence_diagnostic = ({'version': diagnostic_version, 'state': 'ungraded',
+            'reason': 'Evidence diagnostic not requested under compact judge protocol'}
+            if judge_protocol == COMPACT_JUDGE_PROTOCOL else
+            validate_diagnostic(parsed.get("evidence_diagnostic"), claims, answer, diagnostic_inputs, diagnostic_version))
     result.slots = [GradedClaim(r["id"], r["verdict"], r["reason"]) for r in rows]
     result.correct = sum(r.verdict == "correct" for r in result.slots)
     result.missed = sum(r.verdict == "missed" for r in result.slots)

@@ -25,7 +25,8 @@ def test_memcal_native_collection_records_transport_and_original_times(tmp_path,
     prepare_sources(tmp_path,[chat,mail],'America/New_York')
     root=tmp_path/'arm'; root.mkdir()
     home=tmp_path/'home'; home.mkdir()
-    src=os.environ.get('MEMCAL_TEST_SRC',str(__import__('pathlib').Path(__file__).resolve().parents[2]/'memcal'))
+    from pacbench.provider_versions import memcal_source
+    src=os.environ.get('MEMCAL_TEST_SRC',str(memcal_source(__import__('pathlib').Path(__file__).resolve().parents[1])))
     program='''
 import json, os, sqlite3, sys
 from pathlib import Path
@@ -102,6 +103,64 @@ def test_openviking_native_completion_rejects_error_counters_even_without_error_
     if damage=='counter-only':native['queue_status']['Semantic']['error_count']=1
     if damage=='missing-queues':native.pop('queue_status')
     assert bool(audit_openviking_receipt({'result':{'result':native}}))==(damage!='none')
+
+
+@pytest.mark.parametrize('global_error',[False,True])
+@pytest.mark.parametrize('snapshot_race',[False,True])
+@pytest.mark.parametrize('artifact_failure',[False,True])
+def test_openviking_resource_ready_waits_for_background_global_completion(tmp_path,monkeypatch,global_error,snapshot_race,artifact_failure):
+    from types import SimpleNamespace
+    from provider_adapters import document_connector as dc
+    root=tmp_path/'arm';root.mkdir();source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('all source')
+    workspace=root/'workspace';generated=workspace/'viking/default/resources/.overview.md'
+    generated.parent.mkdir(parents=True);generated.write_text('[Directory overview is not generated]' if artifact_failure else 'Native overview')
+    (root/'ov.conf').write_text(json.dumps({'vlm':{'api_base':'unused','api_key':'inert'},'storage':{'workspace':str(workspace)}}))
+    (root/'openviking-server.log').write_text('Native startup complete')
+    monkeypatch.setenv('PACBENCH_TRANSPORT','openrouter')
+    monkeypatch.setattr('pacbench.direct_accounting.project_from_authorization',lambda _: 'unit')
+    good={'id':'call','project':'unit','http_status':200,'response_validation':{'body_complete':True,'envelope_errors':[],
+        'assistant_nonwhitespace_characters':10,'finish_reasons':['stop']}}
+    monkeypatch.setattr('pacbench.direct_accounting.live_budget',lambda:SimpleNamespace(snapshot=lambda:[good]))
+    stages=[]
+    class Client:
+        def upload_temp_file(self,path):return 'native-upload'
+        def get(self,path,**kwargs):
+            stages.append('observer')
+            busy=snapshot_race and stages.count('observer')==1
+            return {'status':'ok','result':{'is_healthy':True,'has_errors':False,'status':{'queues':[
+                {'queue':q,'pending':int(busy and q=='Embedding'),'in_progress':0,'errors':0} for q in ['Semantic','Embedding','Semantic-Nodes']]}}}
+        def post(self,path,body,**kwargs):
+            stages.append(path)
+            if path=='/api/v1/resources':
+                return {'status':'ok','result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
+                    'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}}
+            assert path=='/api/v1/system/wait' and body=={} and kwargs['timeout']>0
+            stages.append('background-completed')
+            return {'status':'ok','result':{'Semantic':{'error_count':int(global_error),'errors':[]}}}
+    class Provider:
+        _client=Client()
+        def initialize(self,*a,**kw):pass
+        def shutdown(self):stages.append('shutdown')
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',lambda _:SimpleNamespace(OpenVikingMemoryProvider=Provider))
+    monkeypatch.setattr('pacbench.gateway_client.validate_route',lambda *a:None)
+    value=dc.openviking(source,root,'at','processing-at')
+    assert value['ready'] is (not global_error and not artifact_failure)
+    expected=['/api/v1/resources','/api/v1/system/wait','background-completed']
+    if not global_error:
+        expected+=['observer']
+        if snapshot_race:expected+=['/api/v1/system/wait','background-completed','observer']
+    assert stages==expected+['shutdown']
+    assert value['completion_protocol']=='openviking-global-import-readiness-v4'
+    from pacbench.document_audit import audit_openviking_receipt
+    assert bool(audit_openviking_receipt(value)) is (global_error or artifact_failure)
+
+
+def test_openviking_global_protocol_requires_its_native_witness():
+    from pacbench.document_audit import audit_openviking_receipt
+    value={'result':{'result':{'status':'success','errors':[],'root_uri':'viking://resources/day',
+        'queue_status':{'Semantic':{'error_count':0,'errors':[]}}}},
+        'completion_protocol':'openviking-global-import-readiness-v4'}
+    assert audit_openviking_receipt(value)==['OpenViking global processing completion is unproven']
 
 
 @pytest.mark.parametrize('damage',['none','index-only','missing-status','wrong-source','wrong-document','wrong-namespace','wrong-mode'])
@@ -271,7 +330,8 @@ def test_old_ingestion_receipts_keep_their_original_clock_condition():
     assert processing_at(at,'memcal','America/New_York',version=LEGACY_VERSION)=='2026-10-15T03:00:00-04:00'
 
 
-def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch):
+@pytest.mark.parametrize('provider',['memcal','hindsight'])
+def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch,provider):
     from pacbench import document_ingestion as module
     schedule=prepare_sources(tmp_path,[message('one')],'America/New_York')
     source=tmp_path/'sources'/schedule[0]['id']
@@ -279,11 +339,12 @@ def test_failed_native_processing_keeps_structured_evidence(tmp_path,monkeypatch
     monkeypatch.setattr(module.subprocess,'run',lambda *a,**kw:
         subprocess.CompletedProcess(a[0],1,json.dumps(failure)+'\n','failure diagnostic'))
     monkeypatch.setattr(module,'snapshot',lambda roles:{'state':'captured','at':'now','calls':[]})
-    record=module.ingest_day('memcal',source,tmp_path/'arm',{'PACBENCH_USAGE_ROLES':'{}'},
+    record=module.ingest_day(provider,source,tmp_path/'arm',{'PACBENCH_USAGE_ROLES':'{}'},
                              schedule[0]['at'],'America/New_York')
     assert record['state']=='failed' and record['ready'] is False
     assert record['result']==failure and record['returncode']==1
     assert record['hermes_ingestion_turns']==0
+    assert record['processing_timeout_s']==(930 if provider=='hindsight' else 900)
 
 
 def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path):
@@ -304,7 +365,8 @@ def test_recall_isolation_detects_real_native_session_or_builtin_facts(tmp_path)
     assert json.loads((tmp_path/'pre-recall-isolation.json').read_text())['hermes_sessions_before_recall']==[]
 
 
-@pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer','enrollment'])
+@pytest.mark.parametrize('damage',[None,'text','speaker','time','session','missing','pending','observer','enrollment',
+                                  'unknown-error-scope','unattributed-error','misattributed-source-error'])
 def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damage):
     from pacbench.document_audit import audit_honcho_receipt
     import hashlib
@@ -322,6 +384,13 @@ def test_honcho_native_receipt_audit_rejects_changed_or_unprocessed_source(damag
     elif damage=='pending':receipt['processing_status'][0]['sessions'][session]['pending_work_units']=1
     elif damage=='observer':receipt['result'][0]['observer']['observe_others']=False
     elif damage=='enrollment':receipt['processing_status'][0]['sessions'][session]['total_work_units']=0
+    elif damage=='unknown-error-scope':receipt['source_error_scope']='ignore-all-errors'
+    elif damage in ('unattributed-error','misattributed-source-error'):
+        receipt['processing_status'][0]['unrelated_queue_errors']=[{
+            'session_name':None if damage=='unattributed-error' else session,'error_class':'StructuredOutputError'}]
+    else:
+        receipt['processing_status'][0]['unrelated_queue_errors']=[{
+            'session_name':'unrelated-capture-session','error_class':'StructuredOutputError'}]
     errors=audit_honcho_receipt([original],receipt)
     assert bool(errors)==bool(damage)
 
@@ -342,3 +411,141 @@ def test_honcho_readiness_audit_carries_enrollment_across_daily_batches():
     assert previous=={session:1}
     second={**original,'source_id':'source-2'}
     assert 'Honcho readiness preceded new source work enrollment' in audit_honcho_receipt([second],receipt(second),previous)
+
+
+def test_v5_supermemory_native_status_cannot_claim_consolidation_from_indexing():
+    from types import SimpleNamespace
+    from provider_adapters.supermemory_native import document
+    from pacbench.native_writes import complete
+    seen=[]
+    def get(namespace, identifier):
+        seen.append((namespace,identifier))
+        return SimpleNamespace(model_dump=lambda **_: {'id':'source/day','content':'Original raw text',
+            'system':{'status':'done','dreamingStatus':'dreaming'}})
+    client=SimpleNamespace(documents=SimpleNamespace(get=get))
+    raw,state=document(client,'isolated-namespace','source/day')
+    assert seen==[('isolated-namespace','source%2Fday')]
+    assert raw['content']=='Original raw text' and complete('supermemory',[state])==(False,False)
+
+
+def test_v5_supermemory_document_audit_binds_namespace_source_and_both_statuses():
+    from copy import deepcopy
+    from pacbench.document_audit import audit_supermemory_receipt
+    system={'status':'done','dreamingStatus':'done'}
+    receipt={'native_api_protocol':'supermemory-v5-documents-v1','request_namespace':'namespace',
+        'container_tag':'namespace','result':{'id':'2026-10-05'},
+        'delivery_options':{'dreaming':'instant'},'processing_status':[{
+            'id':'2026-10-05','content':'Exact original raw text',
+            'metadata':{'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'},
+            'status':'done','dreaming_status':'done','native_system':system,'request_namespace':'namespace'}]}
+    assert audit_supermemory_receipt(receipt,'2026-10-05','Exact original raw text')==[]
+    for change in ['namespace','source','consolidation']:
+        broken=deepcopy(receipt)
+        if change=='namespace':broken['processing_status'][-1]['request_namespace']='other'
+        if change=='source':broken['processing_status'][-1]['content']='Extracted or changed text'
+        if change=='consolidation':broken['processing_status'][-1]['native_system']['dreamingStatus']='dreaming'
+        assert audit_supermemory_receipt(broken,'2026-10-05','Exact original raw text')
+
+
+@pytest.mark.parametrize('mode',['pending','done','wrong-source','wrong-namespace'])
+def test_published_local_supermemory_v3_observer_supplies_actual_consolidation(monkeypatch,mode):
+    import io
+    from types import SimpleNamespace
+    from provider_adapters.supermemory_native import document
+    from pacbench.native_writes import complete
+    metadata={'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'}
+    original={'id':'source-day','content':'Original source','metadata':metadata,'system':{'status':'done'}}
+    def get(*args):return SimpleNamespace(model_dump=lambda **_:original)
+    seen=[]
+    def read(request,**kwargs):
+        seen.append((request.full_url,request.get_method(),request.data))
+        if request.full_url.endswith('/list'):
+            value={'memories':[{'id':'opaque-native-id','customId':'source-day','containerTags':['native-tag']}],
+                   'pagination':{'currentPage':1,'totalPages':1}}
+        else:
+            value={'id':'opaque-native-id','customId':'source-day',
+                   'containerTags':['other' if mode=='wrong-namespace' else 'native-tag'],
+                   'content':'Changed source' if mode=='wrong-source' else 'Original source',
+                   'metadata':metadata,'status':'done','dreamingStatus':'dreaming' if mode=='pending' else 'done'}
+        return io.BytesIO(json.dumps(value).encode())
+    monkeypatch.setattr('urllib.request.urlopen',read)
+    client=SimpleNamespace(documents=SimpleNamespace(get=get))
+    if mode.startswith('wrong'):
+        with pytest.raises(ValueError,match='differs from v5 source or namespace'):
+            document(client,'native-tag','source-day',endpoint='http://127.0.0.1:1234',key='native-local-key')
+        return
+    raw,state=document(client,'native-tag','source-day',endpoint='http://127.0.0.1:1234',key='native-local-key')
+    assert complete('supermemory',[state])==(mode=='done',False)
+    assert raw==original and 'dreamingStatus' not in raw['system']
+    assert state['native_completion_witness']['processing_forced'] is False
+    assert [x[1] for x in seen]==['POST','GET']
+    assert seen[0][0].endswith('/v3/documents/list') and seen[1][0].endswith('/v3/documents/opaque-native-id')
+    assert json.loads(seen[0][2])=={'containerTags':['native-tag'],'includeContent':False,'page':1,'limit':100}
+
+
+def test_v5_audit_accepts_only_source_bound_native_v3_completion_witness():
+    from copy import deepcopy
+    import hashlib
+    from pacbench.document_audit import audit_supermemory_receipt
+    text='Unchanged source';metadata={'source':'daily-transcript','collected_at':'2026-10-05T23:00:00-04:00'}
+    witness={'protocol':'supermemory-native-v3-completion-observer-v1','native_id':'native-id','public_id':'day',
+        'namespace':'namespace','status':'done','dreaming_status':'done','metadata':metadata,
+        'content_sha256':hashlib.sha256(text.encode()).hexdigest(),'processing_forced':False}
+    final={'id':'day','content':text,'metadata':metadata,'status':'done','dreaming_status':'done',
+        'native_system':{'status':'done'},'request_namespace':'namespace','native_completion_witness':witness}
+    receipt={'native_api_protocol':'supermemory-v5-documents-v1','container_tag':'namespace','request_namespace':'namespace',
+        'result':{'id':'day'},'processing_status':[final]}
+    assert audit_supermemory_receipt(receipt,'day',text)==[]
+    for field,bad in [('namespace','other'),('content_sha256','0'*64),('dreaming_status','dreaming'),('processing_forced',True)]:
+        broken=deepcopy(receipt);broken['processing_status'][0]['native_completion_witness'][field]=bad
+        assert audit_supermemory_receipt(broken,'day',text)
+
+
+@pytest.mark.parametrize('damage',['none','busy','nodes-busy','missing','malformed','error','unhealthy'])
+def test_openviking_post_wait_observation_rejects_busy_or_unproven_work(damage):
+    from pacbench.document_audit import openviking_observer_state
+    queues=[{'queue':q,'pending':0,'in_progress':0,'errors':0} for q in ['Embedding','Semantic','Semantic-Nodes']]
+    value={'status':'ok','result':{'is_healthy':True,'has_errors':False,'status':{'queues':queues}}}
+    if damage=='busy':queues[0]['pending']=1
+    if damage=='nodes-busy':queues[2]['in_progress']=1
+    if damage=='missing':queues.pop(0)
+    if damage=='malformed':queues[0]['pending']='0'
+    if damage=='error':queues[1]['errors']=1
+    if damage=='unhealthy':value['result']['is_healthy']=False
+    expected='ready' if damage=='none' else 'busy' if damage in ('busy','nodes-busy') else 'invalid'
+    assert openviking_observer_state(value)==expected
+
+
+def test_openviking_placeholder_check_is_read_only_and_rejects_absent_artifacts(tmp_path):
+    from pacbench.document_audit import openviking_generated_artifacts
+    assert openviking_generated_artifacts(tmp_path)['state']=='incomplete'
+    p=tmp_path/'viking/default/resources/.abstract.md';p.parent.mkdir(parents=True)
+    p.write_text('metadata\n[Directory overview is not ready]')
+    before=p.read_bytes();result=openviking_generated_artifacts(tmp_path)
+    assert result['state']=='incomplete' and result['files'][0]['failed_placeholder'] is True
+    assert p.read_bytes()==before
+
+
+@pytest.mark.parametrize('damage',['none','empty','length','incomplete','error','unobserved'])
+def test_openviking_response_completion_does_not_follow_billing_or_queue_health(damage):
+    from pacbench.document_audit import openviking_response_evidence
+    row={'id':'native','state':'settled','http_status':200,'response_validation':{'body_complete':True,
+        'envelope_errors':[],'assistant_nonwhitespace_characters':15,'finish_reasons':['stop']}}
+    v=row['response_validation']
+    if damage=='empty':v['assistant_nonwhitespace_characters']=0
+    if damage=='length':v['finish_reasons']=['length']
+    if damage=='incomplete':v['body_complete']=False
+    if damage=='error':v['envelope_errors']=[{'code':504}]
+    if damage=='unobserved':row.pop('response_validation')
+    assert (openviking_response_evidence([row])['state']=='complete') is (damage=='none')
+
+
+@pytest.mark.parametrize('marker',[
+    'Failed to generate summary for','VLM not available, using empty summary',
+    'Failed to generate partial overview batch','Failed to merge partial overviews',
+    'Failed to generate overview for','Failed to dispatch directory'])
+def test_openviking_native_silent_leaf_partial_and_merge_failures_are_not_ready(tmp_path,marker):
+    from pacbench.document_audit import openviking_failure_log
+    p=tmp_path/'server.log';p.write_text('Native queue healthy\nERROR '+marker+' native resource\n')
+    check=openviking_failure_log(p)
+    assert check['state']=='incomplete' and check['failures']==[{'line':2,'marker':marker}]

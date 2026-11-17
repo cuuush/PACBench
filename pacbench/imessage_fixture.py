@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 VERSION = 'apple-messages-text-v4'
+MEMBERSHIP_LIMITATION = ('Apple Messages fixture has a global chat_handle_join roster, not historical membership. '
+    'Changing membership in the same thread is unsupported; refusing to backfill old messages or create a different chat.')
 APPLE_EPOCH = datetime(2001, 1, 1, tzinfo=timezone.utc)
 SCHEMA = (Path(__file__).parent/'source_schemas/apple_messages.sql').read_text()
 
@@ -32,13 +34,16 @@ def identity(name: str) -> dict:
     return {'name':name, 'handle':f'{uid.hex[:16]}@example.test', 'uid':str(uid).upper()}
 
 
-def append_messages(path: Path, messages: list[dict], *, contacts=()) -> dict:
+def append_messages(path: Path, messages: list[dict], *, contacts=(), membership_condition=None) -> dict:
     """Idempotently append available source messages; reject conflicting replay.
 
     Handles are synthetic Apple-ID email addresses in the reserved .test domain.
     Names are separate contact data, never handle IDs tailored to a reader.
     Receipt timestamps remain unknown (zero); we do not invent read/delivery times.
     """
+    if membership_condition is not None:
+        from .imessage_membership import append_temporal_messages
+        return append_temporal_messages(path, messages, contacts=contacts, condition=membership_condition)
     path = Path(path)
     for m in messages:
         if m['channel'] != 'imessage':
@@ -74,14 +79,14 @@ def append_messages(path: Path, messages: list[dict], *, contacts=()) -> dict:
                     any(not isinstance(name,str) or not name.strip() for name in roster) or
                     'Me' not in roster or len(roster)<2 or len(set(roster))!=len(roster) or
                     any(m['sender'] not in roster for m in batch)):
-                    raise ValueError('Inconsistent source chat membership')
+                    raise ValueError('Inconsistent source chat membership. '+MEMBERSHIP_LIMITATION)
             else:
                 roster = sorted(set((prior_thread or {}).get('participants',[])) |
                                 {'Me'} | {m['sender'] for m in batch if not m['from_owner']})
             if len(roster)<2:
                 raise ValueError('Outgoing-only chat requires explicit recipient source metadata')
             if prior_thread and rosters and prior_thread['participants'] != roster:
-                raise ValueError('Source membership changed without a modeled chat membership event')
+                raise ValueError(MEMBERSHIP_LIMITATION)
             labels = {(m.get('structured') or {}).get('chat_name','') for m in batch}
             if len(labels)!=1:raise ValueError('Inconsistent source group name')
             display = next(iter(labels))

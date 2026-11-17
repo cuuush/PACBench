@@ -92,6 +92,10 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
         counts[key]=counts.get(key,0)+1
     for index, authored in enumerate(rows, 1):
         row = dict(authored)
+        # Omitted facts selects the new author-owned source protocol. Explicit
+        # legacy facts (even []) retain the historical independent scene review.
+        if row.get('messages') is not None and 'facts' not in row:
+            row.setdefault('source_review', 'author-source-v1')
         if 'messages' in row and row['messages'] is None:
             raise ValueError('messages must be a nonempty list, not null')
         row['noise']=noise
@@ -146,10 +150,12 @@ def resolve_spec(spec: dict, root: Path, *, week_start=None) -> tuple[list[Scene
             raise ValueError("test_scene_id does not identify a scene")
     else:
         eligible = [s for s in scenes if s.facts or s.test_intent.strip()]
+        if not eligible and spec.get('checks'):
+            eligible=[scenes[-1]]
         if len(eligible) != 1:
             raise ValueError("choose one test scene when multiple scenes have facts or intent")
         target = eligible[0]
-    if not target.facts and not target.test_intent.strip():
+    if not target.facts and not target.test_intent.strip() and not spec.get('checks'):
         raise ValueError("test scene needs required facts or test intent")
     life_id = spec.get("id") or root.name
     latest = max(datetime.fromisoformat(s.window_end) for s in scenes)
@@ -192,7 +198,8 @@ def clock_on_day(day, value):
     import re
     if not isinstance(value,str):raise ValueError('Time must be human-readable, such as 7:30 am or 8 pm')
     clock=re.sub(r'\s+','',value.lower())
-    for fmt in ('%I:%M%p','%I%p'):
+    clock={'noon':'12pm','midnight':'12am'}.get(clock,clock)
+    for fmt in ('%I:%M:%S%p','%I:%M%p','%I%p'):
         try:return datetime.combine(day,datetime.strptime(clock,fmt).time()).isoformat(timespec='seconds')
         except ValueError:pass
     raise ValueError(f'Invalid human time: {value!r}; use 7:30 am or 8 pm')
@@ -204,11 +211,11 @@ def normalize_week(spec, week_start=None):
     if 'days' in spec and 'weeks' in spec:raise ValueError('Use days or weeks, not both')
     if any(k in spec for k in ('scenes','checks','facts')):
         raise ValueError('Weeks use inline scene facts and turn expectations, without a top-level fact catalog')
-    weeks=spec.get('weeks',[spec.get('days')]);channels=spec.get('channels')
+    weeks=spec.get('weeks',[spec.get('days')]);channels=spec.get('channels', {})
     if not isinstance(weeks,list) or not weeks:raise ValueError('weeks must be a nonempty list of weekday maps')
     if any(not isinstance(days,dict) or set(days)!=set(WEEKDAYS) for days in weeks):
         raise ValueError('Week days must be monday through sunday')
-    if not isinstance(channels,dict) or not channels:raise ValueError('Week needs reusable channel definitions')
+    if not isinstance(channels,dict):raise ValueError('channels must be a map when supplied')
     allowed={'type','participants','name','subject'}
     for key,value in channels.items():
         if not isinstance(value,dict) or set(value)-allowed or not value.get('type') or not value.get('participants'):
@@ -223,9 +230,8 @@ def normalize_week(spec, week_start=None):
         if value.get('subject') and (value['type']!='email' or not isinstance(value['subject'],str)):
             raise ValueError('Channel subject requires an email channel')
     cast = spec.get('cast', {})
-    participants = {p for channel in channels.values() for p in channel['participants']}
     if (not isinstance(cast, dict) or any(
-            not isinstance(name, str) or not name.strip() or name not in participants or
+            not isinstance(name, str) or not name.strip() or
             not isinstance(description, str) or not description.strip()
             for name, description in cast.items())):
         raise ValueError('Cast needs channel participant names and nonempty descriptions')
@@ -235,6 +241,7 @@ def normalize_week(spec, week_start=None):
     if week_start and monday.weekday()!=0:raise ValueError('week-start must be a Monday')
     monday-=timedelta(days=monday.weekday())
     scenes,checks=[],[]
+    threads={}
     for offset in range(7*len(weeks)):
         week_index,weekday_index=divmod(offset,7)
         weekday=WEEKDAYS[weekday_index]
@@ -243,28 +250,60 @@ def normalize_week(spec, week_start=None):
         for scene in day.get('scenes',[]):
             row=dict(scene);channel_id=row.pop('channel',None)
             if 'weeks' in spec:row['id']=f"w{week_index+1}-{row['id']}"
-            if channel_id not in channels:raise ValueError(f'Unknown channel {channel_id!r}')
-            definition=channels[channel_id]
-            row.update(channel=definition['type'],thread=channel_id,participants=definition['participants'],
-                chat_name=definition.get('name',''),at=clock_on_day(date,row.pop('time')))
-            relevant_cast = {name: cast[name] for name in definition['participants'] if name in cast}
+            if 'thread' not in row:
+                if channel_id not in channels:raise ValueError(f'Unknown channel {channel_id!r}; supply a stable thread key')
+                definition=channels[channel_id]
+                if 'joins' in row:raise ValueError('joins requires a scene-local thread, not a fixed legacy channel')
+                if 'participants' in row:raise ValueError('Legacy channels have fixed membership; use scene-local thread metadata for changing groups')
+                row.update(channel=definition['type'],thread=channel_id,participants=list(definition['participants']),
+                    chat_name=definition.get('name',''))
+                if definition.get('subject'):row['email_subject']=definition['subject']
+            else:
+                tid=row['thread']
+                if tid in channels:raise ValueError('Do not mix legacy channel and scene-local thread membership for the same key')
+                if not isinstance(tid,str) or not tid or tid!=norm_thread(tid):raise ValueError('thread must be a stripped lowercase stable key')
+                prior=threads.get(tid)
+                kind=row.pop('type', channel_id or (prior['type'] if prior else 'imessage'))
+                subject=row.pop('subject',prior['subject'] if prior else '')
+                name=row.pop('name',prior['name'] if prior else '')
+                if kind not in CHANNELS:raise ValueError('Unknown scene source type')
+                if prior and (kind,subject,name)!=(prior['type'],prior['subject'],prior['name']):
+                    raise ValueError('A thread cannot change source type, name or email subject; use a separate thread key')
+                local=row.pop('participants',None)
+                if local is not None:validate_participants(local)
+                roster=list(prior['participants']) if prior else ['Me']
+                joins=row.pop('joins',[])
+                if (not isinstance(joins,list) or any(not isinstance(p,str) or not p.strip() or p!=p.strip() for p in joins) or
+                        len(set(joins))!=len(joins) or any(p in roster for p in joins)):
+                    raise ValueError('joins must list distinct new contact names, excluding existing members and Me')
+                for member in [*(local or []),*joins]:
+                    if member not in roster:roster.append(member)
+                if 'messages' in row and row['messages'] is not None:
+                    row['initial_participants']=list(roster)
+                    for message in row['messages']:
+                        if not isinstance(message,dict) or not isinstance(message.get('sender'),str):raise ValueError('Exact messages require named speakers')
+                        if message['sender'] not in roster:roster.append(message['sender'])
+                validate_participants(roster)
+                row.update(channel=kind,participants=roster,chat_name=name,email_subject=subject)
+                threads[tid]={'type':kind,'subject':subject,'name':name,'participants':list(roster)}
+            row['at']=clock_on_day(date,row.pop('time'))
+            relevant_cast = {name: cast[name] for name in row['participants'] if name in cast}
             if relevant_cast: row['cast'] = relevant_cast
-            if definition.get('subject'):
-                row['email_subject']=definition['subject']
             if 'until' in row:row['window_end']=clock_on_day(date,row.pop('until'))
-            if not isinstance(row.get('facts'),list) or any(not isinstance(f,str) or not f.strip() for f in row['facts']):
+            if ('facts' in row and (not isinstance(row['facts'],list) or any(not isinstance(f,str) or not f.strip() for f in row['facts'])) or
+                    'messages' not in row and 'facts' not in row):
                 raise ValueError('Scene facts are inline English statements')
             scenes.append(row)
         for conversation in day.get('conversations',[]):
             session=conversation['id'];clock=clock_on_day(date,conversation['time'])
             for index,turn in enumerate(conversation['turns']):
                 row=dict(turn)
-                if 'criteria' in row or ('expect' in row) == ('facts' in row):
+                if 'criteria' in row or not ('expect' in row or 'facts' in row):
                     raise ValueError('Assistant turn needs either English expect or inline facts')
                 if 'expect' in row:
                     if not isinstance(row['expect'],str) or not row['expect'].strip():
                         raise ValueError('Assistant turn needs an English expect description')
-                elif (row.get('kind', 'recall') != 'recall' or not isinstance(row['facts'],list) or
+                if 'facts' in row and (row.get('kind', 'recall') != 'recall' or not isinstance(row['facts'],list) or
                       not 1 <= len(row['facts']) <= 50 or
                       any(not isinstance(f,str) or not f.strip() for f in row['facts'])):
                     raise ValueError('Recall facts must be a nonempty list of inline English statements')
@@ -272,9 +311,12 @@ def normalize_week(spec, week_start=None):
                 row['session']=session
                 checks.append(row)
     if not scenes or not checks:raise ValueError('Week requires sources and assistant turns')
+    if set(cast)-({p for row in scenes for p in row['participants']} |
+                  {p for channel in channels.values() for p in channel['participants']}):
+        raise ValueError('Cast names must refer to source participants; cast is not membership authority')
     return {**{k:v for k,v in spec.items() if k not in ('days','weeks','channels','cast')},'week':True,
         'week_start':monday.isoformat(),'scenes':scenes,'checks':checks,'question_at':checks[0]['at'],
-        'test_scene_id':next(s['id'] for s in reversed(scenes) if s['facts'])}
+        'test_scene_id':next((s['id'] for s in reversed(scenes) if s.get('facts')),scenes[-1]['id'])}
 
 
 def generation_spec(plan):
@@ -285,6 +327,9 @@ def generation_spec(plan):
 def realization_binding(plan, lines, verification_lines):
     from .authoring import JUDGE_PROMPT_VERSION
     from .followups import digest
+    if plan.source_review == 'author-source-v1':
+        return digest({'version':'unjudged-author-source-v1', 'spec':scene_spec(plan),
+                       'lines':[list(line) for line in lines]})
     return digest({'version':JUDGE_PROMPT_VERSION,
         'prompt':judge_prompt(plan,list(lines),verification_lines)})
 
@@ -294,6 +339,12 @@ def reuse_realization(plan, previous, judge, *, model, record_dir, verification_
     lines=tuple(tuple(line) for line in previous['lines'])
     if plan.messages is not None:
         build_scene_observations('cached-supplied-validation', plan, list(lines))
+    if plan.source_review == 'author-source-v1':
+        expected=realize_scene(plan,None,None)
+        if (previous['record']!=vars(expected.record) or previous['verdict']!=expected.verdict or
+                previous.get('verification_binding')!=realization_binding(plan,lines,())):
+            raise ValueError('Unjudged author source cannot carry a fabricated checker receipt')
+        return expected
     record=SceneRecord(**previous['record'])
     if previous.get('verification_binding')==realization_binding(plan,lines,verification_lines):
         return SceneRealization(plan.id,lines,record,previous['verdict'])
@@ -315,9 +366,12 @@ def load_scene_cache(root):
 
 def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     scenes, target, resolved = resolve_spec(spec, root,week_start=progress.get("week_start"))
+    if progress.get('imported_scenes') is not None and set(progress['imported_scenes']['scenes']) != {s.id for s in scenes}:
+        raise ValueError('Imported scene IDs differ from the compiled source spec')
     cache=load_scene_cache(root) if progress.get('resume') else {}
     reusable={sid:entry['realization'] for sid,entry in cache.items()
-        if entry['realization']['record']['status']=='ok' and entry['realization']['verdict'].get('supported') is True and
+        if entry['realization']['record']['status']=='ok' and (entry['realization']['verdict'].get('supported') is True or
+            entry['realization']['verdict']=={'state':'unjudged','protocol':'author-source-v1','integrity':'pass'}) and
         any(s.id==sid and generation_spec(s)=={k:v for k,v in entry['spec'].items()
             if k!='judge_prompt_version'} for s in scenes)}
     if progress.get('resume'):
@@ -330,22 +384,34 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     life_id = resolved["id"]
     progress["stage"] = "scene generation and verification"
     save(root / "experiment-status.json", progress)
-    driver = load_driver()
-    key = os.environ["META_API_KEY"]
     call_dir = root / "model-calls"
-    writer = (ResponsesWriter(key=key, model=driver.model_id, record_dir=call_dir,
-                             url=client_settings("pacbench-authoring")[0] + "/responses",
-                             cache_dir=root / "model-cache")
-              if any(s.messages is None for s in scenes) else None)
-    judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
-                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                        cache_dir=root / "model-cache")
-    # Keep independent verification and answer grading unchanged. Native low
-    # reasoning produced valid criterion drafts where the default setting
-    # repeatedly emitted malformed JSON on the larger multi-outing question.
-    draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
-                        url=client_settings("pacbench-judge")[0] + "/chat/completions",
-                        cache_dir=root / "model-cache", reasoning_effort="low")
+    needs_writer = any(scene.messages is None for scene in scenes)
+    if progress.get('inference_route', 'muse-gateway') == 'codex-subscription':
+        from types import SimpleNamespace
+        from .codex_model_calls import CodexModelClient
+        driver = SimpleNamespace(model_id='gpt-6-luna')
+        options = {'model': driver.model_id, 'record_dir': call_dir,
+                   'cache_dir': root / 'model-cache'}
+        writer = CodexModelClient(**options) if needs_writer else None
+        judge = CodexModelClient(**options)
+        draft = CodexModelClient(**options, reasoning_effort='low')
+    else:
+        driver = load_driver()
+        key = os.environ["META_API_KEY"]
+        routed = progress.get('inference_route') == 'openrouter'
+        writer_type = ModelClient if routed else ResponsesWriter
+        writer = (writer_type(key=key, model=driver.model_id, record_dir=call_dir,
+                                 url=client_settings("pacbench-authoring")[0] + ('/chat/completions' if routed else '/responses'),
+                                 cache_dir=root / "model-cache",
+                                 **({'reasoning_effort':'low'} if routed else {})) if needs_writer else None)
+        judge = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                            cache_dir=root / "model-cache",reasoning_effort=progress.get('judge_reasoning_effort'),
+                            json_mode=routed)
+        # Spark's native low reasoning avoids malformed criterion drafts.
+        draft = ModelClient(key=key, model=driver.model_id, record_dir=call_dir,
+                            url=client_settings("pacbench-judge")[0] + "/chat/completions",
+                            cache_dir=root / "model-cache", reasoning_effort="low",json_mode=routed)
     observations = []
     scene_records = []
     thread_history: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
@@ -359,6 +425,26 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
             continue
         try:
             realized=None
+            imported = progress.get('imported_scenes')
+            if imported is not None:
+                lines = imported['scenes'][plan.id]
+                if (not isinstance(lines, list) or not lines or
+                        any(not isinstance(line, (list, tuple)) or len(line) != 2 or
+                            not all(isinstance(x, str) and x.strip() for x in line)
+                            for line in lines)):
+                    raise ValueError('Invalid imported dialogue')
+                if plan.participants and any(line[0] not in plan.participants for line in lines):
+                    raise ValueError('Imported sender is absent from the current roster')
+                build_scene_observations(life_id, plan, lines)
+                if plan.source_review == 'author-source-v1':
+                    realized=realize_scene(plan,None,None)
+                else:
+                    verdict, pc, rc, path = judge_scene(plan, lines, judge, model=driver.model_id,
+                        record_dir=root/'scene-verifications', prior_lines=verification_lines)
+                    record = SceneRecord(scene_id=plan.id, status='ok', judge_calls=1,
+                        prompt_chars=pc, response_chars=rc, judgment_paths=[path] if path else [],
+                        writer_notes=['Imported original dialogue; current IDs and timing are newly compiled. Source bundle: '+imported['source_bundle_hash']])
+                    realized = SceneRealization(plan.id, tuple(tuple(x) for x in lines), record, verdict)
             if plan.id in reusable:
                 previous=reusable[plan.id]
                 try:
@@ -399,7 +485,8 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
         "lineage": life_id, "messages": observations}}}
     write_bundle(bundle, root / "bundle.json")
     save(root / "bundle-provenance.json", {"hash": bundle_hash(bundle),
-                                           "source": "verified-scenes"})
+        "source": ("author-source-integrity-and-reviewed-generated-scenes" if
+                   any(s.source_review=='author-source-v1' for s in scenes) else "verified-scenes")})
     if failures:
         save(root/'scene-errors.json',failures)
         summary={'state':'incomplete','results':[],'message_count':len(observations),
@@ -431,7 +518,8 @@ def _prepare_body(spec: dict, root: Path, progress: dict) -> dict:
     progress['stage'] = 'corpus realism review'
     save(root / 'experiment-status.json', progress)
     from .corpus_review import VERSION as REVIEW_VERSION, review_corpus
-    review_corpus(observations, resolved, judge, root)
+    if any(s.source_review=='author-source-v1' for s in scenes):REVIEW_VERSION='source-realism-v11'
+    review_corpus(observations, resolved, judge, root, version=REVIEW_VERSION)
     freeze_policy(contract, root / "followup-plan.json")
     summary = {"state": "prepared", "results": [], "message_count":len(observations),
                "noise":resolved['noise'],
@@ -451,9 +539,10 @@ def export_week(root, destination):
     if audit_prepared(root)['state']!='pass':raise ValueError('Cannot freeze incomplete preparation')
     from .followups import digest
     names=['spec.json','resolved-spec.json','bundle.json','bundle-provenance.json','scenes.json','shared-text.json',
-           'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json']
+           'contract.json','followup-plan.json','summary.json','evaluation-plan.json','realism-review.json',
+           'corpus-review-recovery.json','corrective-derivation.json']
     paths=[root/name for name in names if (root/name).exists()]
-    for folder in ('evaluations','scene-verifications','model-calls','review-attempts'):
+    for folder in ('evaluations','scene-verifications','model-calls','review-attempts','carry-forward','checkpoint-source-reviews','citation-bindings'):
         paths.extend((root/folder).glob('*.json') if folder == 'model-calls'
                      else (root/folder).rglob('*.json'))
     files={}
@@ -494,21 +583,62 @@ def import_week(source, root):
     if report['state']!='pass':raise ValueError('Frozen week failed preparation audit: '+str(report['errors']))
     return root
 
-def prepare(spec: dict, root: Path, *, resume=False, week_start=None) -> dict:
+def prepare(spec: dict, root: Path, *, resume=False, week_start=None,
+            inference_route='muse-gateway', imported_scenes=None, judge_reasoning_effort=None) -> dict:
     """Run once and leave a diagnosis even when authoring fails early."""
+    if inference_route not in ('muse-gateway', 'codex-subscription', 'openrouter'):
+        raise ValueError('Unknown preparation inference route')
+    if judge_reasoning_effort is not None and (inference_route!='openrouter' or
+            judge_reasoning_effort not in {'none','low','medium','high'}):
+        raise ValueError('Explicit judge reasoning requires the direct OpenRouter condition')
+    if inference_route == 'openrouter' and os.environ.get('PACBENCH_TRANSPORT') != 'openrouter':
+        raise ValueError('OpenRouter preparation requires its authorized task transport')
     if resume and not (root/'resolved-spec.json').exists():raise ValueError('Resume requires an existing authoring directory')
+    if resume:
+        old_path = root/'experiment-status.json'
+        old = json.loads(old_path.read_text()) if old_path.exists() else {}
+        if old.get('inference_route', 'muse-gateway') != inference_route:
+            raise ValueError('Cannot resume preparation under a different inference route')
+        if old.get('judge_reasoning_effort') != judge_reasoning_effort:
+            raise ValueError('Cannot resume preparation under a different judge reasoning condition')
     if resume and 'noise' not in spec:
         previous = json.loads((root/'resolved-spec.json').read_text())
         if previous.get('noise', 'low') != 'authored':
             raise ValueError("Legacy preparation requires explicit noise on resume: retain its old "
                              "mode, or set noise='authored' to deliberately regenerate changed scenes")
+    if resume:
+        previous=json.loads((root/'resolved-spec.json').read_text())
+        prior_modes={s['id']:s.get('source_review','model') for s in previous.get('scenes',[])
+                     if s.get('messages') is not None and s.get('source_review','model')=='model'}
+        proposed=resolve_spec(spec,root,week_start=week_start)[0] if prior_modes else []
+        if any(s.source_review=='author-source-v1' and s.id in prior_modes for s in proposed):
+            raise ValueError('Cannot drop a legacy scene review contract on resume; use a fresh preparation for unjudged author source')
     root.mkdir(parents=True, exist_ok=resume)
     save(root / "spec.json", spec)
     progress = {"state": "running", "stage": "spec validation",
-                "started_at": datetime.now(timezone.utc).isoformat(), 'resume':resume,'week_start':week_start}
+                "started_at": datetime.now(timezone.utc).isoformat(), 'resume':resume,'week_start':week_start,
+                'inference_route':inference_route}
+    if judge_reasoning_effort is not None:progress['judge_reasoning_effort']=judge_reasoning_effort
+    if imported_scenes is not None:
+        save(root/'imported-scenes.json', imported_scenes)
+        progress['imported_scenes'] = imported_scenes
     save(root / "experiment-status.json", progress)
     try:
         summary = _prepare_body(spec, root, progress)
+        if inference_route=='openrouter' and imported_scenes is None:
+            summary['author_generation_conditions']={'reasoning_effort':'low',
+                'scope':'Synthetic source writer only; independent native memory processing unchanged'}
+            save(root/'summary.json',summary)
+        if judge_reasoning_effort is not None:
+            summary['judge_generation_conditions']={'reasoning_effort':judge_reasoning_effort,
+                'scope':'Independent preparation reviews only; source writer configuration unchanged'}
+            save(root/'summary.json',summary)
+        if inference_route == 'codex-subscription':
+            summary['inference_route'] = inference_route
+            summary['author_model'] = 'gpt-6-luna'
+            summary['verification_model'] = 'gpt-6-luna'
+            summary['usage_cost_status'] = 'subscription-unpriced'
+            save(root / 'summary.json', summary)
         audit = audit_prepared(root) if summary['state']=='prepared' else {'state':'fail','errors':summary.get('errors',[])}
         save(root / "run-audit.json", audit)
         if audit["state"] != "pass":
@@ -534,8 +664,11 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--week-start",help="Override the spec's first Monday (YYYY-MM-DD); legacy unpinned specs default to this week")
     parser.add_argument('--resume',action='store_true',help='Reuse unchanged verified scenes while fixing preparation; no writer calls for those scenes')
+    parser.add_argument('--inference-route', choices=('muse-gateway', 'codex-subscription'),
+                        default='muse-gateway', help='Explicit author and verifier model route')
     args = parser.parse_args()
-    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start)
+    result = prepare(read_spec(args.spec), args.output.resolve(),resume=args.resume,week_start=args.week_start,
+                     inference_route=args.inference_route)
     print(args.output)
     return 0 if result['state'] == 'prepared' else 1
 

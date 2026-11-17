@@ -40,11 +40,49 @@ New native trials declare `semantic-judge-date-scope-v2`, which judges upcoming 
 [Omission recovery](followups.md) keeps its original policy: one combined question for silent implicit omissions, partial credit separately, and none for zero recall, incorrect details, explicit misses or admitted lookup failure. Tools, gateway cost windows, native provider work and actual session continuity remain logged. The explorer's **Criteria & judges** view shows the frozen criteria and decisions per answer.
 
 
-Fresh-session checks that depend on an earlier assistant update wait for native
-write completion. Honcho uses its current per-session setup default, witnesses
-the actual captured user input, and checks enrolled owner work plus native queue
-errors. It retains its normal accumulation delay. Empty write discovery cannot
-prove completion. These are availability-gated recall trials; simulated question
-clocks are not measurements of wall-clock aging or a response-time SLA.
+Fresh-session checks that depend on an earlier assistant update use
+`accepted-native-writes-v3`. Explicit writes and automatic conversation capture
+are additive obligations. Supermemory must contain the exact native-cleaned user
+and final assistant pair in the current conversation document, with indexing and
+dreaming complete for that content. OpenViking binds both captured sides to
+completed archive tasks. Honcho observes distinct contiguous native chunks for
+both peers and causal representation queue receipts, plus actually scheduled
+summaries and active workspace dreams. Accepted conclusions are verified
+separately. Native transforms are recomputed during execution and audit.
+
+Honcho retains its native accumulation delay. Future idle dreaming is deferred
+and unclaimed; no clock is advanced to force it. Its native cleanup may remove
+successful queue rows, so observed processing receipts are retained. If a needed
+completion receipt disappeared before observation, readiness remains unproven;
+facts, empty queues and model traces do not substitute for it. Earlier v1/v2
+receipts retain their historical condition. These are availability-gated recall
+trials; simulated question clocks are not measurements of wall-clock aging or a
+response-time SLA.
 
 Answer evidence diagnostics can be requested alongside the existing semantic judgment. They report whether captured prefetch or direct tool results contain evidence for each criterion, and separately assess factual assertions made beyond the criteria against the cited source excerpts. These are diagnostic observations and do not change claim scores or recovery. Source coverage is partial: missing support is unverifiable, and only direct contrary evidence supports a contradiction. Captured inputs record truncation and missing citations; provider background traces are not treated as visible to the answer. Availability alone does not establish whether the assistant used or ignored evidence. Malformed diagnostics remain ungraded without discarding an otherwise valid answer grade; older judgments remain unchanged.
+
+### Offline review of incomplete diagnostics
+
+`judge-diagnostic-isolation-v1` is an opt-in, format-only review for saved
+responses with complete semantic fields followed by an unfinished diagnostic.
+It accepts only missing closing containers in the final diagnostic, rejects
+duplicate keys and damaged or incomplete semantic values, and replays the
+existing verdicts through the original validator. It never repairs or credits
+diagnostic evidence, calls a model, or changes the native judge protocol.
+
+```sh
+python -m pacbench.judge_format_review create \
+  runs/pizza-month-local-20261105/reviews/judge-format-isolation-v1 \
+  --source runs/pizza-month-local-20261105
+python -m pacbench.judge_format_review audit \
+  runs/pizza-month-local-20261105/reviews/judge-format-isolation-v1
+```
+
+Creation requires a new overlay directory. Review includes every saved judgment
+and binds contracts, answers, model requests and original attempts. The audit
+recomputes the review and rejects changed evidence. This recovers an existing
+model verdict, not independent proof of answer correctness. Original summaries,
+recovery attempts and source penalties remain unchanged; no new retention credit
+is assigned. Unexecuted checks and provider ingestion failures are outside this
+review and remain incomplete. New live judging conditions still require their
+own correct/wrong-answer controls and cost authorization.

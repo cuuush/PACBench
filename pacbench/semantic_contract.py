@@ -58,10 +58,10 @@ def combined_review_prompt(claim_prompt, question_prompt):
             "\n\nQUESTION REVIEW:\n" + question_prompt.replace("Return ONLY JSON", "Use this JSON schema"))
 
 
-def shared_context_review_prompt(*, claims, author_facts, dialogue, question_at, user_question, test_intent):
+def shared_context_review_prompt(*, claims, author_facts, dialogue, question_at, user_question, test_intent, review_version=AUTHORING_VERSION):
     claim_prompt, question_prompt = contract_review_prompts(
         claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
-        user_question=user_question, test_intent=test_intent)
+        user_question=user_question, test_intent=test_intent,review_version=review_version)
     claim_instructions = claim_prompt.split("\n\nQuestion time: ", 1)[0]
     question_instructions = question_prompt.split("\nQuestion time: ", 1)[0]
     return ("Independently perform both reviews using the shared context below. Return one JSON object with exactly "
@@ -115,7 +115,8 @@ def _fact_instruction(author_facts):
     return fact_instruction
 
 
-def contract_review_prompts(*, claims, author_facts, dialogue, question_at, user_question, test_intent):
+def contract_review_prompts(*, claims, author_facts, dialogue, question_at, user_question, test_intent, review_version=AUTHORING_VERSION):
+    if review_version not in {AUTHORING_VERSION,'event-scoped-v8-attribute-anchors'}:raise ValueError('Unknown contract review version')
     fact_instruction = _fact_instruction(author_facts)
     claim_review_prompt = (
         "Review each proposed claim against the dialogue and test intent. "
@@ -165,6 +166,17 @@ def contract_review_prompts(*, claims, author_facts, dialogue, question_at, user
         'Return ONLY JSON {"safe":true,"faithful":true,"elicits_all":true,"reason":"explanation"}.\n'
         f"Question time: {question_at}\nPrompt: {user_question.strip() if isinstance(user_question,str) else user_question}\n"
         f"Expected facts: {json.dumps([vars(c) for c in claims])}\nDialogue:\n{dialogue}")
+    if review_version=='event-scoped-v8-attribute-anchors':
+        claim_review_prompt=('Atomicity: distinguish target identification from scored attributes. '
+            'A date, person or venue used to identify the event is not automatically a second scored fact. '
+            'For example, a claim that the October 9 lunch starts at12:30 may assess start time while October 9 identifies the lunch. '
+            'A claim separately requiring both the event date and start time must split. '
+            'Do not waive real compound claims, unsupported commitments or optional details. '
+            'Accepted invitations or stated intentions establish agreement/RSVP state, not actual attendance. '+claim_review_prompt)
+        supplied_question_review_prompt=('Grounded unknowns: a question may legitimately ask what is known or unexplained '
+            'about a source-grounded entity. Do not reject an explicitly unknown requested attribute just because its value '
+            'is not established; reject an invented entity or a demand to assert an unsupported definite value. '
+            'A retrospective request for recorded plans does not assert that a past event actually happened. '+supplied_question_review_prompt)
     return claim_review_prompt, supplied_question_review_prompt
 
 
@@ -175,7 +187,7 @@ def build_contract(*, scene: str, test_intent: str,
                    author_facts: tuple[str, ...] = (),
                    user_question: str | None = None,
                    question_at: str = "", behavior: bool = False,
-                   _claim_feedback: dict | None = None) -> EvaluationContract:
+                   _claim_feedback: dict | None = None, review_version=AUTHORING_VERSION) -> EvaluationContract:
     """Derive, independently verify, and freeze claims before either arm runs."""
     if not observations:
         raise ValueError("contract needs frozen dialogue")
@@ -279,7 +291,7 @@ def build_contract(*, scene: str, test_intent: str,
 
     claim_review_prompt, supplied_question_review_prompt = contract_review_prompts(
         claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
-        user_question=user_question, test_intent=test_intent)
+        user_question=user_question, test_intent=test_intent,review_version=review_version)
     combined_receipt = None
     question_review = None
     if user_question is not None:
@@ -287,7 +299,7 @@ def build_contract(*, scene: str, test_intent: str,
             raise ValueError("supplied evaluation prompt must be bounded nonempty text")
         prompt = shared_context_review_prompt(
             claims=claims, author_facts=author_facts, dialogue=dialogue, question_at=question_at,
-            user_question=user_question, test_intent=test_intent)
+            user_question=user_question, test_intent=test_intent,review_version=review_version)
         combined, response, actual_prompt = _call_json_with_receipt(verify, prompt)
         reviewed, question_review = combined.get('claim_review'), combined.get('question_review')
         if not isinstance(reviewed,dict) or not isinstance(question_review,dict):
@@ -316,7 +328,7 @@ def build_contract(*, scene: str, test_intent: str,
                 generate=generate,verify=verify,question_generate=question_generate,
                 output_path=output_path,author_facts=author_facts,user_question=user_question,
                 question_at=question_at,behavior=behavior,
-                _claim_feedback={'claims':proposed['claims'],'review':reviewed})
+                _claim_feedback={'claims':proposed['claims'],'review':reviewed},review_version=review_version)
         raise ValueError(f"contract review rejected claims: {reviewed}")
 
     question_prompt = (
@@ -369,7 +381,7 @@ def build_contract(*, scene: str, test_intent: str,
         raise ValueError(f"question unsafe or unfaithful: {question_review}")
     evidence_hash = hashlib.sha256(json.dumps(observations, sort_keys=True,
                                               ensure_ascii=False).encode()).hexdigest()
-    body = {"authoring_version":AUTHORING_VERSION,"evidence_version":EVIDENCE_VERSION,"claims": [vars(c) for c in claims], "question": question.strip(),
+    body = {"authoring_version":review_version,"evidence_version":EVIDENCE_VERSION,"claims": [vars(c) for c in claims], "question": question.strip(),
             "evidence_hash": evidence_hash, "review": reviewed,
             "question_review": question_review,
             "author_fact_count": len(author_facts),"test_intent":test_intent}

@@ -1,0 +1,81 @@
+"""Native transport failure receipts, without live providers or inference."""
+import json
+import sys
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+import pytest
+
+from provider_adapters.document_connector import supermemory
+
+
+@pytest.fixture
+def native(tmp_path,monkeypatch):
+    source=tmp_path/'day';source.mkdir();(source/'messages.txt').write_text('Raw daily text\n')
+    root=tmp_path/'arm';(root/'hermes-home').mkdir(parents=True)
+    (root/'document-ingestion-config.json').write_text(json.dumps({'dreaming':'instant'}))
+    monkeypatch.setitem(sys.modules,'plugins.memory.supermemory',SimpleNamespace(
+        _load_supermemory_config=lambda path:{'base_url':'http://127.0.0.1:1234','container_tag':'raw-tag'},
+        _expand_container_tag=lambda *a:'native-tag',_sanitize_tag=lambda value:value))
+    monkeypatch.setattr('pacbench.provider_loader.provider_module',
+        lambda *a, **kw: sys.modules['plugins.memory.supermemory'])
+    documents=SimpleNamespace(add=Mock(return_value=SimpleNamespace(
+        id='accepted-id',model_dump=lambda **kw:{'id':'accepted-id','status':'queued'})),get=Mock())
+    client=Mock(return_value=SimpleNamespace(add=documents.add,documents=documents))
+    monkeypatch.setitem(sys.modules,'supermemory',SimpleNamespace(Supermemory=client))
+    monkeypatch.setenv('SUPERMEMORY_API_KEY','local-test-key')
+    monkeypatch.delenv('PACBENCH_USAGE_ROLES',raising=False)
+    monkeypatch.setattr('provider_adapters.document_connector.time.sleep',lambda seconds:None)
+    return source,root,documents,client
+
+
+@pytest.mark.parametrize('status',[None,400,401,403,422,500])
+def test_document_delivery_failure_is_sanitized_and_never_retried(native,status):
+    source,root,documents,client=native
+    error=RuntimeError('SECRET_NATIVE_BODY')
+    if status is not None:error.status_code=status
+    documents.add.side_effect=error
+    result=supermemory(source,root,'now','now')
+    assert not result['ready']
+    documents.add.assert_called_once();documents.get.assert_not_called()
+    assert client.call_args.kwargs['max_retries']==0
+    assert result['native_error']['phase']=='document-add'
+    assert result['native_error']['commit_state']==('rejected' if status in (400,401,403,422) else 'unknown')
+    assert result['native_error'].get('authentication_blocked',False)==(status in (401,403))
+    assert 'SECRET_NATIVE_BODY' not in json.dumps(result)
+
+
+@pytest.mark.parametrize('observed_first',[False,True])
+def test_status_failure_preserves_accepted_document_and_prior_states(native,observed_first):
+    source,root,documents,_=native
+    state={'id':'accepted-id','system':{'status':'done','dreaming_status':'dreaming'},
+           'content':'Raw daily text\n','metadata':{'source':'daily-transcript','collected_at':'now'}}
+    prior=[SimpleNamespace(model_dump=lambda **kw:state)] if observed_first else []
+    documents.get.side_effect=[*prior,TimeoutError('SECRET_NATIVE_BODY')]
+    ticks=iter([0,1,10000] if observed_first else [0,10000])
+    # This case exercises a terminal deadline; transient reads have their own
+    # recovery test below, without reissuing document add.
+    from unittest.mock import patch
+    with patch('provider_adapters.document_connector.time.monotonic',side_effect=lambda:next(ticks)):
+        result=supermemory(source,root,'now','now')
+    assert not result['ready'] and result['result']['id']=='accepted-id'
+    assert len(result['processing_status'])==int(observed_first)
+    if observed_first:
+        observed=result['processing_status'][0]
+        assert observed['native_system']==state['system'] and observed['content']==state['content']
+        assert observed['request_namespace']=='native-tag' and observed['dreaming_status']=='dreaming'
+    assert result['native_error']['commit_state']=='accepted'
+    assert result['native_error']['phase']=='document-status'
+    assert result['native_error']['error_class']=='TimeoutError'
+    assert documents.add.call_count==1 and documents.get.call_count==len(prior)+1
+    assert 'SECRET_NATIVE_BODY' not in json.dumps(result)
+
+
+def test_transient_status_timeout_does_not_kill_accepted_native_work(native):
+    source,root,documents,_=native
+    raw={'id':'accepted-id','system':{'status':'done','dreaming_status':'done'},
+         'content':'Raw daily text\n','metadata':{'source':'daily-transcript','collected_at':'now'}}
+    documents.get.side_effect=[TimeoutError('temporary'),SimpleNamespace(model_dump=lambda **kw:raw)]
+    result=supermemory(source,root,'now','now')
+    assert result['ready'] and len(result['transient_status_read_failures'])==1
+    assert 'native_error' not in result and documents.add.call_count==1 and documents.get.call_count==2

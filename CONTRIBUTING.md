@@ -122,6 +122,119 @@ claims. Automated bulk review is advisory, not proof of source quality.
 - Account for deferred provider work and unknown costs. Removing an obsolete
   development artifact never removes its charges from the gateway ledger.
 
+## Inspect receipt costs offline
+
+`python -m pacbench.phase_costs` reads retained evidence without opening credentials,
+calling providers or changing a ledger. For example, choose a **new** output path:
+
+```sh
+python -m pacbench.phase_costs \
+  --snapshots runs/pizza-month-local-20261105/repeat-1/mem0/model-usage.json \
+  --components runs/pizza-month-local-20261105 \
+  --output /tmp/pacbench-mem0-receipt-costs.json
+```
+
+Use `--ledger <retained-direct-ledger.json>` instead of `--snapshots` for an offline
+copy of a direct JSON ledger, optionally with `--since-index`. The command reads
+immutable `receipt-metadata/<request-id>/` sidecars alongside that ledger when
+available. `--generation-index` accepts a retained generation-observation index;
+lookups are joined by original request ID and verified generation ID. No network
+lookup is performed. Output must be a new file outside input components.
+
+The v2 report preserves exact decimal USD internally and supplies rounded cents
+for display. Only explicit OpenRouter `usage.cost` or identity-bound generation
+`total_cost` evidence qualifies as actual. `settled` alone does not: Muse's token
+price estimates remain estimates. Historical direct records without retained
+explicit provenance remain unknown in this report. Conflicting receipts and
+multiple requests claiming the same generation remain visible and are excluded
+from actual subtotals. Missing values and empty bins are not authoritative zero.
+Conservative accounting amounts are exposure, never an additional bill to add to
+actual costs. Detail tokens are subsets of input/output, not extra tokens.
+
+Legacy memory windows identify observed timing only. The report leaves their
+causal phase ambiguous; driver projects identify retrieval/answering, and shared
+judging is counted separately once. Explicit phase attribution requires a matching
+run and arm in request-bound dispatch context. Unattributed setup, native background
+work and embeddings without that evidence stay separate. Receipt coverage describes
+retained requests, not all work or a complete lifecycle invoice. Saved scores are
+read without changing answers, pending grades or the frozen cohort.
+
+The standalone receipt helpers normalize safe generation IDs and exact costs and
+can retain atomic, immutable metadata sidecars without rewriting a billing ledger.
+They contain no prompts, content, credentials or full response payloads. Main does
+not connect these helpers to live transport. Reviewed Python streaming hooks remain
+on `implement/receipt-cost-ownership-20261116` because their direct-dispatch runtime
+and reservation dependencies are absent from main; those unrelated historical
+modules are not imported by this change. JavaScript and other transport paths also
+need compatible early capture before claiming universal coverage.
+
+Route evidence is classified as proven, missing, conflicting or recorded-only.
+A model name, endpoint suffix, generation-ID shape or recorded `upstream_origin`
+alone cannot establish the billing service. In the historical embedded gateway,
+`direct_meta` was inserted even when the server upstream was configured differently;
+it is not proof of a Meta route or a token-price estimate. The offline report does
+not repair that ledger label or infer the route of historical reservations.
+Explicit normalized receipt sources preserve authoritative costs. Contradictory
+origin/provider evidence withholds named billing/upstream attribution while leaving
+those charges visible; same-generation collisions across known execution routes
+remain quarantined with their receipts intact rather than summed twice. Unscoped
+generation records cannot borrow a route merely by matching an ID; retained
+OpenRouter observation indexes must declare their supported source/version.
+
+Per-provider benchmark request charges are distinct from account-level credit
+purchase fees and any separately documented provider invoices or BYOK charges.
+This report does not reconstruct those charges or allocate unknown/shared costs
+to benchmark arms. They must remain separate evidence rather than assumed zero
+or added to request totals without checking their scope.
+
+The checked-in cost audit retains the historical report, source hashes and route
+census. Some original Pizza Day snapshots exist only on the historical branch;
+portable tests explicitly project its already reviewed receipt records when those
+sources are absent. This does not reconstruct a private ledger or claim access to
+the revised Pizza Week cohort.
+
+## Stage dispatch ownership without resuming execution
+
+`pacbench.dispatch_ownership` is an independently testable **offline staging
+protocol**, disconnected from live transport, startup, budget enrollment and
+resume. Its inspection result always denies production dispatch. It stores
+immutable run/arm/phase/operation/attempt/retry identity, worker and process-instance
+identity, and the original reservation reference before recording a possible send.
+Queue envelopes carry that same context; delayed callbacks keep their original
+attempt. Concurrent ownership and dispatch-boundary claims deduplicate durably.
+Receipt IDs, disconnects, response termination, saved answers and pending grades
+are append-only evidence, separate from financial settlement. No journal event
+releases exposure. A missing journal, unknown legacy owner, ambiguous prior attempt
+or journal write failure fails closed. There is no takeover or lease-expiry API.
+
+Production integration is still blocked on these requirements:
+
+- Atomically commit immutable attempt identity with the **existing** pre-dispatch
+  exposure reservation. The staged journal's reservation reference is not proof
+  of a financial reservation and cannot authorize a send by itself. Preserve the
+  existing hard startup guard and every unresolved historical hold.
+- Add a supported supervisor fencing protocol binding the actual run, worker
+  process instance, queue consumers and exact request set to a durable ownership
+  epoch. Every send must reject an obsolete epoch. An available lock, absent PID,
+  elapsed time, lookup 404 or account balance change cannot establish revocation.
+- Require request-bound terminal execution proof before supported takeover;
+  financial reconciliation separately requires authenticated receipt identity.
+  A terminal response or recorded cost does not prove all native workers stopped.
+  Unknown liability remains in the original ledger through migration and retry.
+- Propagate context through each provider queue and callback, including native
+  background operations and embeddings; reject missing or conflicting context.
+  Port early normalized receipt capture to remaining transports without buffering
+  or changing native streams. Report analytics failures without losing answers.
+- Resume only hash-verified unchanged checkpoints in the original stores and
+  ledger after supported fencing. Preserve saved answers, successful grades and
+  pending grades; do not redispatch a completed answer to repair analytics.
+  Retry requires explicit authorization and separately bounded exposure while
+  retaining the prior attempt and its liability.
+
+The executor-local ownership audit and guard changes are not available in every
+checkout. Integrate and review those exact changes before implementing any legacy
+migration; do not infer access, reconstruct ownership or launch with a new ledger.
+
 ## Validate changes
 
 Install `pytest` in your development environment to run the Python suite; Node.js

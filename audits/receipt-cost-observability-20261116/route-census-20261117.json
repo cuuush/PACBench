@@ -1,0 +1,235 @@
+{
+  "version": "offline-retained-route-census-v1",
+  "implementation_followup_base": "cc8ba948ce4e2277acaab91a64f0d33089c9f815",
+  "historical_source_verified": {
+    "base": "8e3558add680db6e597a07b9e7ad6d309544c840",
+    "ledger_insert": "pacbench/gateway/ledger.py:82 hard-codes upstream_origin=direct_meta",
+    "configurable_upstream": "pacbench/gateway/server.py:89-92 accepts upstream and stores self.upstream; requests use it at :210",
+    "ledger_source_sha256": "1d9c724150545258c0e286b930d8b2ced43fb63443115234c3d7eff346c73717",
+    "server_source_sha256": "48276adc05130e9939e30f4be61d980bab0fc3109ba2cc06441193b84f5c88c1"
+  },
+  "scope": "All retained runs/**/model-usage.json files in this checkout only. Proven means request-bound retained transport/receipt evidence, not a live or account-level audit.",
+  "requests": 675,
+  "unique_request_ids": 675,
+  "snapshots": 15,
+  "route_counts": {
+    "proven": 72,
+    "missing": 603,
+    "conflicting": 0,
+    "recorded-only": 0
+  },
+  "recorded_upstream_origin_present": 0,
+  "proven_routes": [
+    {
+      "billing_provider": "OpenRouter",
+      "upstream_provider": "DeepInfra",
+      "requests": 72
+    }
+  ],
+  "generation_identity_collisions": {},
+  "prior_report_comparison": {
+    "report_path": "audits/receipt-cost-observability-20261116/retained-cost-report.json",
+    "sha256": "a2d21827347932b3b1ebfc12911e90acce71506a2ddbdb16a349afd698c34ad5",
+    "requests": 72,
+    "previous_actual_usd": "0.018890392192",
+    "current_actual_usd": "0.018890392192",
+    "display_usd": "0.02",
+    "actual_total_changed": false,
+    "named_route_attribution_changed": false,
+    "new_classification": "72 proven OpenRouter / DeepInfra; prior report file unchanged"
+  },
+  "fix_scope": [
+    "Origin labels alone do not prove a route or estimate",
+    "Unscoped generation records cannot borrow an upstream by matching ID",
+    "Conflicting provenance preserves exact receipt amounts but withholds named upstream attribution",
+    "Same-ID collisions across known execution routes retain receipts and remain quarantined against double counting"
+  ],
+  "limits": [
+    "No inference about the 44 legacy reservations, their upstream or ownership",
+    "No original-executor, ledger, credential, billing API or account-setting access",
+    "Missing/shared/native work remains outside receipt coverage",
+    "Per-provider benchmark request costs exclude account-level credit purchase fees and separately documented invoices/BYOK charges"
+  ],
+  "sources": [
+    {
+      "path": "runs/bike-pickup-native-clock-20261105/repeat-1/honcho/model-usage.json",
+      "sha256": "ccd37cec672392e417ee5b78852a9035634f702212a745e6a55e89299d9f0e57",
+      "requests": 49,
+      "routes": {
+        "proven": 0,
+        "missing": 49,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-openviking-terminal-v1-20261113/repeat-1/openviking/model-usage.json",
+      "sha256": "cf2eea721040ff29ecb5e4944cfb9a2cf17ff0cbdd782ecc84e852d409596444",
+      "requests": 8,
+      "routes": {
+        "proven": 8,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/cognee/repeat-1/cognee/model-usage.json",
+      "sha256": "712ebaade714bf89e6eaf0065194a0091dfe206504d7378202509f47bcd63d70",
+      "requests": 6,
+      "routes": {
+        "proven": 6,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/hindsight/repeat-1/hindsight/model-usage.json",
+      "sha256": "8e20741d768d0d4cb616d7efa9a510ace97728bc5b5a4ac963ed6ad7aa8d5001",
+      "requests": 11,
+      "routes": {
+        "proven": 11,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/mem0/repeat-1/mem0/model-usage.json",
+      "sha256": "376c8459faf484547802866c22e51663bc875fbe7d61458d80e947bb82398206",
+      "requests": 4,
+      "routes": {
+        "proven": 4,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/memcal/repeat-1/memcal/model-usage.json",
+      "sha256": "a958b5a9dafeac95c00233ae83443adee4d7edf0bae7f89e0dd4eada09f1e31b",
+      "requests": 4,
+      "routes": {
+        "proven": 4,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/memos/repeat-1/memos/model-usage.json",
+      "sha256": "1c6b0e56a97d769f62a5136ff85ecef7dbf66f652954fb4eeeae0e3a0d8da85e",
+      "requests": 7,
+      "routes": {
+        "proven": 7,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-20261113/reme/repeat-1/reme/model-usage.json",
+      "sha256": "cab1c3e8a8ad40827ba1df15150358bd37124dc35927c36be8a8cdf72b91e332",
+      "requests": 9,
+      "routes": {
+        "proven": 9,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-native-status-v2-20261113/honcho/repeat-1/honcho/model-usage.json",
+      "sha256": "4c87bb7f7206af89423a486ea7d8758056e576a732368d9755ae68bb25085c5f",
+      "requests": 18,
+      "routes": {
+        "proven": 18,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-day-stable-native-status-v2-20261113/supermemory/repeat-1/supermemory/model-usage.json",
+      "sha256": "9fb753fc8d512b5acfefd0dc4f783619e465faf4d1b804d2735315907e8837e6",
+      "requests": 5,
+      "routes": {
+        "proven": 5,
+        "missing": 0,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-month-local-20261105/repeat-1/hindsight/model-usage.json",
+      "sha256": "e1b7acc01543f607a2dae0b89a184421796c3506cf3fbcd44007a997136aeb33",
+      "requests": 218,
+      "routes": {
+        "proven": 0,
+        "missing": 218,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-month-local-20261105/repeat-1/honcho/model-usage.json",
+      "sha256": "e1f42687b74403a304c986a596226ee23f88b2240dd1f0a6b7998e06dbe96bc4",
+      "requests": 15,
+      "routes": {
+        "proven": 0,
+        "missing": 15,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-month-local-20261105/repeat-1/mem0/model-usage.json",
+      "sha256": "c7624ed0a0c8c2057b3a2c9f365c4f7f1ca2e31b73f82d94326705000e1462fd",
+      "requests": 90,
+      "routes": {
+        "proven": 0,
+        "missing": 90,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-month-local-20261105/repeat-1/memcal/model-usage.json",
+      "sha256": "d9721c0a3466ce3a0964d2ab1f9c73482b233521e8f735701d7c41f5650c1ff7",
+      "requests": 114,
+      "routes": {
+        "proven": 0,
+        "missing": 114,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    },
+    {
+      "path": "runs/pizza-month-local-20261105/repeat-1/supermemory/model-usage.json",
+      "sha256": "1e8d6d808aa0fb1d44b26ad0964bea3f761a0a75153a351094e32cdce1917526",
+      "requests": 117,
+      "routes": {
+        "proven": 0,
+        "missing": 117,
+        "conflicting": 0,
+        "recorded-only": 0
+      }
+    }
+  ],
+  "validation": {
+    "command": "/workspace/.venvs/dev/bin/python -m pytest -q tests/test_receipt_routes.py tests/test_receipt_costs.py tests/test_phase_costs.py tests/test_direct_accounting.py tests/test_usage_accounting.py -k \"not timeout_turn_carries_no_tokens\"",
+    "passed": 90,
+    "subtests_passed": 7,
+    "deselected": 1,
+    "excluded_reason": "Harness timeout test needs a temporary workspace outside Git; inherited sandbox limitation",
+    "additional_checks": [
+      "git diff --check",
+      "Original report input SHA-256 values unchanged",
+      "Prior historical receipt total and named route attribution unchanged"
+    ],
+    "dispatch_changes": false,
+    "private_state_access": false,
+    "paid_model_calls": 0
+  }
+}

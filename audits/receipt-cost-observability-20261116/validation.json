@@ -1,0 +1,18 @@
+{
+  "command": "/workspace/.venvs/dev/bin/python -m pytest -q -rs tests/test_receipt_costs.py tests/test_phase_costs.py tests/test_dispatch_ownership.py tests/test_direct_accounting.py tests/test_usage_accounting.py tests/test_direct_runtime.py tests/test_embedded_gateway_startup.py tests/test_generation_reconciliation.py tests/test_funded_run_budget.py tests/test_saved_completion.py -k \"not timeout_turn_carries_no_tokens\"",
+  "passed": 118,
+  "subtests_passed": 7,
+  "skipped": 1,
+  "deselected": 1,
+  "limits": [
+    "No live/native provider validation, inference, executor control or private-ledger access",
+    "Harness timeout test excluded because /tmp is under synthetic Git and /var/tmp is read-only; existing workspace recovery test also cannot run in this sandbox"
+  ],
+  "additional_checks": [
+    "git diff --check",
+    "Python compileall on changed modules",
+    "Original reservation AST unchanged",
+    "Retained run sources unchanged"
+  ],
+  "paid_model_calls": 0
+}

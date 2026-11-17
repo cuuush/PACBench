@@ -1,0 +1,44 @@
+{
+  "version": "main-cost-integration-v1",
+  "base_main": "5cb27b26fc107ba7dcbb43a785b1be1bf53f3e91",
+  "reviewed_source_commits": [
+    "6d4a68d533a6fb25f312f85e50310d85f122bdf1",
+    "cc8ba948ce4e2277acaab91a64f0d33089c9f815",
+    "df07796332ea8b2f87ea42b435c8fe776a0ee521"
+  ],
+  "strategy": "Port reviewed standalone modules and evidence onto main; no historical-base ancestry or unrelated runtime modules.",
+  "byte_identical_core": {
+    "pacbench/phase_costs.py": "91a76f5054c45ebf9272cdbfd811523fdd7a2774b01c56de532b7d45d3d1afb2",
+    "pacbench/receipt_costs.py": "04cf4b3d2e659213e9010a8f435394b6923db0fd5d3100300c495eebf3844741",
+    "pacbench/dispatch_ownership.py": "9f94bc4f4b94dea517b422e322b088f7a117269554fcd605bacb4b6d1c39c805"
+  },
+  "excluded_runtime_hooks": [
+    "pacbench/direct_accounting.py additions",
+    "pacbench/direct_http.py additions",
+    "pacbench/usage.py direct receipt_snapshot integration"
+  ],
+  "exclusion_reason": "Current main lacks the direct runtime/reservation modules and dependencies. The reviewed hooks remain on the original local branch; production transport is unchanged.",
+  "fixture_adaptation": "Portable tests explicitly project the reviewed 72-request report; original Pizza Day snapshots are not fabricated or transplanted.",
+  "local_validation": {
+    "focused_feature_tests_passed": 39,
+    "accounting_regression_tests_passed": 66,
+    "accounting_regression_test_excluded": 1,
+    "excluded_test": "tests/test_usage_accounting.py::ParseTurnTokens::test_timeout_turn_carries_no_tokens",
+    "reason": "Inherited test requires a temporary directory outside Git; managed sandbox marks temporary roots as Git ancestors.",
+    "other_checks": [
+      "Python compileall on standalone modules",
+      "node --check explorer/dashboard.js",
+      "node --check explorer/timeline.js",
+      "git diff --check"
+    ],
+    "ci": "New read-only offline workflow runs all 67 focused/accounting tests on a clean GitHub runner, including the excluded local test."
+  },
+  "preserved": [
+    "Main live accounting and dispatch source",
+    "Existing runtime guard",
+    "Original ledger, holds and saved cohort artifacts"
+  ],
+  "paid_model_calls": 0,
+  "live_restart": false,
+  "production_dispatch_connected": false
+}

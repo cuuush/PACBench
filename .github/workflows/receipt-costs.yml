@@ -1,0 +1,49 @@
+name: Receipt costs offline
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/receipt-costs.yml'
+      - 'pacbench/receipt_costs.py'
+      - 'pacbench/phase_costs.py'
+      - 'pacbench/dispatch_ownership.py'
+      - 'tests/receipt_fixtures.py'
+      - 'tests/test_receipt_*.py'
+      - 'tests/test_phase_costs.py'
+      - 'tests/test_dispatch_ownership.py'
+      - 'audits/receipt-cost-observability-20261116/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/receipt-costs.yml'
+      - 'pacbench/receipt_costs.py'
+      - 'pacbench/phase_costs.py'
+      - 'pacbench/dispatch_ownership.py'
+      - 'tests/receipt_fixtures.py'
+      - 'tests/test_receipt_*.py'
+      - 'tests/test_phase_costs.py'
+      - 'tests/test_dispatch_ownership.py'
+      - 'audits/receipt-cost-observability-20261116/**'
+
+permissions:
+  contents: read
+
+jobs:
+  receipt-costs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MUSE_GATEWAY_STATE: /tmp/pacbench-no-live-state
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pytest==9.2.0 PyYAML==6.0.3
+      - name: Verify offline receipts and existing accounting boundaries
+        run: >-
+          python -m pytest -q
+          tests/test_receipt_costs.py tests/test_receipt_routes.py
+          tests/test_receipt_metadata.py tests/test_phase_costs.py
+          tests/test_dispatch_ownership.py tests/test_cost_review.py
+          tests/test_usage_accounting.py tests/test_gateway_boundary.py

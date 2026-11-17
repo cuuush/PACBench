@@ -61,7 +61,10 @@ def freeze_policy(contract, path: Path) -> dict:
 
 
 def load_questions(path: Path, contract) -> dict:
-    plan = json.loads(path.read_text())
+    return validate_policy(json.loads(path.read_text()), contract)
+
+
+def validate_policy(plan: dict, contract) -> dict:
     body = {k: v for k, v in plan.items() if k != 'plan_hash'}
     if plan.get('plan_hash') != digest(body) or plan.get('contract_hash') != contract.contract_hash:
         raise ValueError('follow-up plan hash/contract mismatch')

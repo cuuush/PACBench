@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Only the approved frozen r2 39→62-message / three-question native canary."""
+"""Prepare or run the reviewed three-arm Pizza Week r2 benchmark."""
 import argparse,fcntl,json,os,subprocess,sys
 from decimal import Decimal
 from pathlib import Path
@@ -7,10 +7,10 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 
 
-def preflight():
+def preflight(dataset=None):
  from pacbench import full_run_capability as cap
  from pacbench.checkpoint_canary import MEMCAL
- from pacbench.provider_versions import verify_memcal_source
+ from pacbench.provider_versions import memcal_source,verify_memcal_source
  from pacbench.direct_accounting import live_budget,request_cost_bound
  from pacbench.funded_run_budget import selected,credit_snapshot,describe_admission
  from pacbench.openrouter_run import fetch_catalog
@@ -32,10 +32,12 @@ def preflight():
    raise RuntimeError('Original ownership guard: retained reserved requests lack verified terminal owners; refuse before network or service setup')
  for name in ['PACBENCH_EXECUTION_SCOPE','PACBENCH_NATIVE_DIAGNOSTIC_SCOPE','PACBENCH_OFFLINE_CONFORMANCE',cap.ENV,'PACBENCH_CHECKPOINT_CANARY']:
   if os.environ.get(name):raise RuntimeError('Cross-scope or offline permission cannot fund canary')
- os.environ.update(PACBENCH_MEMCAL_SRC=str(MEMCAL),MEMCAL_SRC=str(MEMCAL),
+ memcal=memcal_source(ROOT) if dataset is not None else MEMCAL
+ os.environ.update(PACBENCH_MEMCAL_SRC=str(memcal),MEMCAL_SRC=str(memcal),
   PACBENCH_MEMCAL_CONDITION='wiki-preference-operations-review-c19d216-v1')
+ specification=cap.specification(dataset) if dataset is not None else cap.specification()
  pin=verify_memcal_source(ROOT)
- if pin['revision']!=cap.specification()['memcal']:raise RuntimeError('Wrong exact reviewed MemCal tree')
+ if pin['revision']!=specification['memcal']:raise RuntimeError('Wrong exact reviewed MemCal tree')
  route,inventory=fetch_catalog(profile='luna-bedrock-global')
  if 'temperature' in inventory['supported_parameters']:raise RuntimeError('Reviewed endpoint parameter contract changed')
  embedding=check('http://127.0.0.1:11435/v1')
@@ -50,16 +52,43 @@ def preflight():
  bound=None if observing() else request_cost_bound({**budget.config,'prompt_per_million':'.25'},32768,shared_context=True)
  if not observing() and bound>Decimal(arithmetic['currently_enforced_admission_room_usd']):raise RuntimeError('Next conservative canary request cannot fit original guards')
  from pacbench.live_dispatch import CONDITION
- return budget,{'state':'free-preflight-pass','source':pin,'frozen':cap.FROZEN,'specification':cap.specification(),'dispatch_tracking':CONDITION,
+ return budget,{'state':'free-preflight-pass','source':pin,'frozen':cap.FROZEN,'specification':specification,'dispatch_tracking':CONDITION,
   'route':route,'inventory':inventory,'embedding':embedding,'credit':credit,'admission':arithmetic,
   'per_request_ceiling_usd':str(bound) if bound is not None else None,'aggregate_forecast_reserved':False,'paid_calls':0}
 
 
 def main():
- ap=argparse.ArgumentParser(description='Exact three-arm revised r2 scored run');ap.add_argument('--output',type=Path,required=True);ap.add_argument('--execute',action='store_true');ap.add_argument('--resume-from',type=Path);a=ap.parse_args()
+ ap=argparse.ArgumentParser(description=__doc__)
+ ap.add_argument('--output',type=Path)
+ ap.add_argument('--dataset',type=Path,help='Directory containing the committed Pizza Week r2 dataset')
+ ap.add_argument('--offline-preflight',action='store_true',help='Validate the dataset and native source fixtures without services or model calls')
+ ap.add_argument('--execute',action='store_true')
+ ap.add_argument('--resume-from',type=Path)
+ a=ap.parse_args()
+ if a.offline_preflight and (a.dataset is None or a.execute or a.resume_from or a.output):
+  ap.error('--offline-preflight requires --dataset and cannot be combined with --execute, --resume-from or --output')
+ if not a.offline_preflight and a.output is None:
+  ap.error('--output is required except with --offline-preflight')
+ if a.dataset is not None:
+  from pacbench.pizza_week_dataset import load
+  try:
+   preparation,schedule,checks,plan=load(a.dataset)
+   if a.offline_preflight:
+    from tempfile import TemporaryDirectory
+    from pacbench.checkpoint_full_run import prepare_fixture
+    with TemporaryDirectory(prefix='pacbench-r2-') as directory:
+     prepare_fixture(Path(directory),preparation,schedule,dataset=True)
+    print(json.dumps({'state':'dataset-preflight-pass','frozen_inputs':plan['frozen_inputs'],
+                      'native_source_batches':len(schedule),'checkpoint_groups':len(plan['groups']),
+                      'new_paid_calls':0}))
+    return
+  except (ValueError,OSError,RuntimeError) as exc:
+   ap.error(str(exc))
+  a.dataset=preparation
  from pacbench.gateway_reuse import atomic
  from pacbench.scored_run_report import display_usd
- budget,plan=preflight();atomic(a.output.with_name(a.output.name+'-preflight.json'),plan)
+ budget,plan=preflight(a.dataset) if a.dataset is not None else preflight()
+ atomic(a.output.with_name(a.output.name+'-preflight.json'),plan)
  if not a.execute:
   print(json.dumps({'state':plan['state'],'per_request_ceiling':display_usd(plan['per_request_ceiling_usd']) if plan['per_request_ceiling_usd'] is not None else 'not applied','new_paid_calls':0}));return
  subprocess.run(['git','diff','--quiet'],cwd=ROOT,check=True)
@@ -74,7 +103,7 @@ def main():
   fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
   try:
    with direct_environment(os.environ['OPENROUTER_API_KEY']):
-    report=run(a.output,dict(os.environ),settings=client_settings,budget=budget,resume_from=a.resume_from)
+    report=run(a.output,dict(os.environ),settings=client_settings,budget=budget,resume_from=a.resume_from,**({'dataset':a.dataset} if a.dataset is not None else {}))
   finally:
    rows=[r for r in budget.snapshot() if r.get('checkpoint_full_run_root')==str(a.output.resolve())]
    billing={'attempts':len(rows),'settled_actual_usd':str(sum((Decimal(r['settled_charge_usd']) for r in rows if r['state']=='settled' and r.get('settled_charge_usd') is not None),Decimal(0))),

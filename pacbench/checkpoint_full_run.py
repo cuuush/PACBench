@@ -14,13 +14,30 @@ MEMCAL=Path('/workspace/memcal-review-wiki-retraction')
 MEM0_PLUGIN=ROOT/'runs/pizza-week-revised-20261115/cohort-corrected-v5-native-retry1/mem0/repeat-1/mem0/hermes-home/plugins/mem0'
 
 
-def profile(root,provider,base):
+def profile(root,provider,base,*,memcal=MEMCAL,portable=False):
  from . import harness
  root=Path(root);root.mkdir(exist_ok=True)
- plugin=MEMCAL/'integrations/hermes/memcal' if provider=='memcal' else MEM0_PLUGIN if provider=='mem0' else None
+ plugin=memcal/'integrations/hermes/memcal' if provider=='memcal' else MEM0_PLUGIN if provider=='mem0' and not portable else None
  harness.provision_home(root/'hermes-home',provider_plugin_src=plugin,provider_name=provider,
   model='openai/gpt-6-luna',model_provider='openrouter',model_base_url=base)
  if provider=='reme':(root/'hermes-home/plugins/reme').symlink_to(ROOT/'vendor/reme/integrations/hermes_agent',target_is_directory=True)
+
+
+def prepare_fixture(output, preparation, schedule, *, dataset=False):
+ from .document_ingestion import prepare_sources
+ from .imessage_membership import CONDITION
+ bundle_path=preparation/('sources/bundle.json' if dataset else 'bundle.json')
+ bundle=json.loads(bundle_path.read_text())
+ messages=[m for life in bundle['lives'].values() for m in life['messages']]
+ made=prepare_sources(output,messages,'America/New_York',native_fixtures=True,
+                      membership_condition=CONDITION)
+ for batch,original in zip(made,schedule,strict=True):
+  document=output/batch['source_file']
+  if (any(batch[k]!=original[k] for k in ('id','at','source_ids','source_file')) or
+      cap.sha(document)!=original['document_sha256'] or
+      (dataset and document.read_bytes()!=(preparation/original['source_file']).read_bytes())):
+   raise GatewayLifecycleError('Native fixture differs from frozen source')
+ return messages
 
 
 def serial_rows(budget,root,prior_root=None):
@@ -105,9 +122,8 @@ def prepare_prefix(prior,provider,checks,plan,schedule,destination,evidence):
  return count
 
 
-def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offline_provider=None,offline_stop_after=None):
+def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offline_provider=None,offline_stop_after=None,dataset=None):
  from . import harness
- from .document_ingestion import prepare_sources
  from .native_checkpoint_sources import Mem0SourceCheckpoints,MemcalSourceCheckpoints,ReMeSourceCheckpoints
  from .checkpoint_evaluator import launch
  from .model_calls import ModelClient
@@ -126,15 +142,22 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
  os.environ['PACBENCH_DIRECT_STOP_ON_429']=str(root/'STOP')
  os.environ['PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION']=CONDITION
  env['PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION']=CONDITION
- preparation,schedule,checks,full=cap.frozen();canonical={};configs={};projects={}
+ preparation,schedule,checks,full=cap.frozen(dataset) if dataset is not None else cap.frozen()
+ canonical={};configs={};projects={}
  native_fixture=root/'native-source-fixture'
- bundle=json.loads((preparation/'bundle.json').read_text());messages=[m for v in bundle['lives'].values() for m in v['messages']]
+ messages=prepare_fixture(native_fixture,preparation,schedule,dataset=dataset is not None)
+ if dataset is not None:
+  from .evaluation import contract_evidence,source_evidence
+  def evidence(row):
+   return source_evidence(contract_evidence(messages,[q for q,_,_ in checks],row,'isolated'),DIAGNOSTIC_VERSION)
+ else:
+  resolved=json.loads((preparation/'resolved-spec.json').read_text())
+  def evidence(row):
+   return judge_evidence(preparation,messages,resolved,row,'isolated',diagnostic_version=DIAGNOSTIC_VERSION)
+ specification=cap.specification(dataset) if dataset is not None else cap.specification()
  source_ids={sid for b in schedule for sid in b['source_ids']}
- made=prepare_sources(native_fixture,messages,'America/New_York',native_fixtures=True)
- for b in made:
-  original=next(s for s in schedule if s['id']==b['id'])
-  if cap.sha(native_fixture/b['source_file'])!=original['document_sha256'] or b['source_ids']!=original['source_ids']:
-   raise GatewayLifecycleError('Canary native fixture differs from frozen source')
+ from .provider_versions import memcal_source
+ memcal=memcal_source(ROOT) if dataset is not None else MEMCAL
  for provider in cap.PROVIDERS:
   arm=root/provider
   arm.mkdir()
@@ -143,9 +166,11 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
   runid=hashlib.sha256(str(arm).encode()).hexdigest()[:12]
   projects[provider]={role:f'pacbench-{runid}-{provider}-{role}' for role in ['memory','driver','judge']}
   base,driverkey=settings(projects[provider]['driver']);mbase,memorykey=settings(projects[provider]['memory'])
-  profile(c,provider,base);(c/'fallback-home').mkdir()
+  if dataset is None:profile(c,provider,base)
+  else:profile(c,provider,base,memcal=memcal,portable=True)
+  (c/'fallback-home').mkdir()
   if provider=='reme' and prior and (prior/provider/'canonical/hermes-home/reme').exists():shutil.copytree(prior/provider/'canonical/hermes-home/reme',c/'hermes-home/reme')
-  child={**env,'HOME':str(c/'fallback-home'),'MEMCAL_SRC':str(MEMCAL),'PACBENCH_MEMCAL_REUSE_REVISION':cap.specification()['memcal'],
+  child={**env,'HOME':str(c/'fallback-home'),'MEMCAL_SRC':str(memcal),'PACBENCH_MEMCAL_REUSE_REVISION':specification['memcal'],
    'PACBENCH_NO_BUILTIN_MEMORY':'1','PACBENCH_NO_SESSION_SEARCH':'1','PACBENCH_PROVIDER_ONLY':'1','HERMES_ENABLE_PROJECT_PLUGINS':'0',
    'OPENROUTER_API_KEY':driverkey,'OPENROUTER_API_BASE':base,'OPENROUTER_BASE_URL':base,'OPENAI_API_KEY':memorykey,
    'PACBENCH_USAGE_ROLES':json.dumps({projects[provider]['driver']:'hermes',projects[provider]['memory']:'memory_provider'}),
@@ -159,7 +184,18 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
    from .native_pilot import memcal_model_settings
    child.update(memcal_model_settings('openai/gpt-6-luna',mbase,memorykey));child['MEMCAL_FALLBACK_PROVIDER']=''
   elif provider=='mem0':
-   cfg=json.loads(((prior/'mem0/canonical/hermes-home/mem0.json') if prior else MEM0_PLUGIN.parents[1]/'mem0.json').read_text())
+   if dataset is not None:
+    from .catalog_plugins import install_catalog_provider
+    install=install_catalog_provider('mem0',c/'hermes-home',c/'fallback-home',harness.ISOLATED_BIN,harness.ISOLATED_TREE)
+    atomic(c/'catalog-plugin.json',install)
+   if prior or dataset is None:
+    cfg=json.loads(((prior/'mem0/canonical/hermes-home/mem0.json') if prior else MEM0_PLUGIN.parents[1]/'mem0.json').read_text())
+   else:
+    # Same native OSS configuration as the reviewed arm, with fresh local state.
+    cfg={'mode':'oss','sync_max_chars':6000,'oss':{
+     'llm':{'provider':'openai','config':{'openrouter_base_url':'https://openrouter.ai/api/v1','is_reasoning_model':True}},
+     'embedder':{'provider':'ollama','config':{'model':'nomic-embed-text','ollama_base_url':'http://127.0.0.1:11435','embedding_dims':768}},
+     'vector_store':{'provider':'qdrant','config':{'path':str(c/'qdrant')}}}}
    if not prior:cfg['user_id']='r2-scored-'+runid
    cfg['oss']['llm']['config'].update(api_key=memorykey,model='openai/gpt-6-luna',openai_base_url=mbase)
    (c/'hermes-home/mem0.json').write_text(json.dumps(cfg))
@@ -170,11 +206,11 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
    atomic(work/(provider+'-native-tools.json'),native)
   canonical[provider]=(c,child,mbase,memorykey)
   configs[provider]=cap.sha(c/'hermes-home/config.yaml')
- permission=cap.create(root,projects,configs,prior_root=prior)
+ permission=cap.create(root,projects,configs,prior_root=prior,**({'dataset':dataset} if dataset is not None else {}))
  env[cap.ENV]=json.dumps(permission)
  os.environ[cap.ENV]=json.dumps(permission)
  for c,child,_,_ in canonical.values():child[cap.ENV]=json.dumps(permission)
- report={'protocol':cap.PROTOCOL,'frozen_inputs':full['frozen_inputs'],'providers':{},'conditions':cap.specification(),
+ report={'protocol':cap.PROTOCOL,'frozen_inputs':full['frozen_inputs'],'providers':{},'conditions':specification,
   'recovery':{'prior_report':cap.binding(prior/'report.json')} if prior else None,
   'pacbench_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()}
  report['dispatch_tracking']=env.get('PACBENCH_DISPATCH_TRACKING')
@@ -195,9 +231,10 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
     report['providers'][provider]={'state':'reused-complete','evaluation':str(old_evaluation),'prior_report':cap.binding(prior/'report.json')}
     atomic(root/'report.json',report);continue
   c,child,base,key=canonical[provider]
+  document_root=native_fixture if dataset is not None else preparation
   source=(MemcalSourceCheckpoints(native_fixture,c,schedule,child,PYTHON,timeout_s=120) if provider=='memcal' else
-   Mem0SourceCheckpoints(preparation,c,schedule,child,PYTHON,timeout_s=120) if provider=='mem0' else
-   ReMeSourceCheckpoints(preparation,c,schedule,child,ROOT/'vendor/venv-reme/bin/python',model='openai/gpt-6-luna',base=base,key=key))
+   Mem0SourceCheckpoints(document_root,c,schedule,child,PYTHON,timeout_s=120) if provider=='mem0' else
+   ReMeSourceCheckpoints(document_root,c,schedule,child,ROOT/'vendor/venv-reme/bin/python',model='openai/gpt-6-luna',base=base,key=key))
   plan=json.loads(json.dumps({**full,'provider':provider}))
   if offline_slice:
    checks_for_arm=[c for c in checks if c[0]['id'] in offline_slice]
@@ -206,8 +243,6 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
   else:checks_for_arm=checks
   runtimes=[];reused={};reused_followups={};resume_count=0
   if prior and (prior/provider/'question-plans').exists():shutil.copytree(prior/provider/'question-plans',arm/'question-plans')
-  resolved=json.loads((preparation/'resolved-spec.json').read_text())
-  evidence=lambda row:judge_evidence(preparation,messages,resolved,row,'isolated',diagnostic_version=DIAGNOSTIC_VERSION)
   if prior and (prior/provider/'evaluation/evaluation.json').exists():
    resume_count=prepare_prefix(prior,provider,checks_for_arm,plan,schedule,arm/'evaluation',evidence)
    if not resume_count:
@@ -379,7 +414,6 @@ def run(root,env,*,settings,budget=None,offline_slice=None,resume_from=None,offl
    finally:
     with (arm/'judge-timing.jsonl').open('a') as f:f.write(json.dumps({'question_id':slot['question_id'],'wall_s':time.monotonic()-begin,'prompt_sha256':hashlib.sha256(prompt.encode()).hexdigest()})+'\n')
     publish(slot)
-  resolved=json.loads((preparation/'resolved-spec.json').read_text())
   try:
    result=launch(checks=checks_for_arm,plan=plan,schedule=schedule,runtime_factory=Runtime,root=arm/'evaluation',judge=judge,
     env={**child,cap.ENV:json.dumps(permission)},reused_turns=reused,resume_prefix=resume_count,question_dir=arm/'question-plans',budget_snapshot=boundary,

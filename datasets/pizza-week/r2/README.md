@@ -19,8 +19,24 @@ The original 87-file input hash was
 Its checksum map is preserved in `original_contract`. The original grading
 files embedded model prompts and review receipts. These files export their
 reusable grading fields and retain the original contract hashes as provenance.
-`dataset_sha256` binds the exported payload separately. The old executor's
-archive-bound launcher requires a dataset reader before it can use this layout.
+`dataset_sha256` binds the exported payload separately.
 
 Run `python -m pytest -q tests/test_pizza_week_r2_dataset.py` to check checksums,
 source serialization, chronology, and grading coverage offline.
+
+From the PACBench repository root, verify the complete dataset and construct
+temporary native Messages and email fixtures without credentials or services:
+
+```sh
+python3 scripts/run_three_arm_revised_week.py --dataset datasets/pizza-week/r2 --offline-preflight
+```
+
+For a configured three-arm runtime, select the same dataset with
+`--dataset datasets/pizza-week/r2 --output /path/to/new-run --execute`.
+The launcher validates this exact dataset before runtime preflight and keeps
+the existing route, readiness and accounting checks. Set
+`PACBENCH_MEMCAL_SRC` to the clean reviewed MemCal checkout and follow the
+[pinned runtime setup](../../../vendor/README). The launcher uses the pinned
+Mem0 catalog installation for this dataset. It does not need previous run
+directories for a fresh run. Omit `--execute` for the existing runtime preflight.
+Omit `--dataset` for the legacy archive-backed launcher behavior.

@@ -86,3 +86,50 @@ def test_provider_sources_and_evaluation_use_the_frozen_timeline():
         assert policy['plan_hash'] == digest({k: v for k, v in policy.items() if k != 'plan_hash'})
         assert policy['claim_ids'] == [claim['id'] for claim in question['claims']]
     assert [q['id'] for q in questions if q['session'] == 'lunch-continuity'] == ['lunch-snapshot', 'lunch-refreshed']
+
+
+def test_launcher_selects_dataset_without_runtime_or_archive(tmp_path):
+    import subprocess
+    import sys
+
+    dataset = tmp_path / 'dataset'
+    shutil.copytree(DATASET, dataset)
+    command = [sys.executable, str(ROOT / 'scripts/run_three_arm_revised_week.py'),
+               '--dataset', str(dataset), '--offline-preflight']
+    result = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, check=True)
+    report = json.loads(result.stdout)
+    assert report['state'] == 'dataset-preflight-pass'
+    assert report['frozen_inputs'] == {'protocol': 'r2-input-file-bindings-v1',
+                                       'sha256': FROZEN, 'messages': 142,
+                                       'questions': 42, 'criteria': 188}
+    assert report['native_source_batches'] == 7
+    assert report['new_paid_calls'] == 0
+    assert list(tmp_path.iterdir()) == [dataset]
+    for flags in (['--execute'], ['--regenerate'], ['--resume-from', 'archive']):
+        result = subprocess.run(command + flags, cwd=tmp_path, capture_output=True, text=True)
+        assert result.returncode == 2
+    source = next(dataset.glob('sources/*/messages.txt'))
+    source.write_bytes(source.read_bytes() + b'changed')
+    result = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'Dataset checksum differs' in result.stderr
+
+
+def test_full_run_capability_stays_bound_to_selected_dataset(tmp_path):
+    import pytest
+    from pacbench import full_run_capability as cap
+
+    dataset = tmp_path / 'dataset'
+    shutil.copytree(DATASET, dataset)
+    root = tmp_path / 'run'
+    root.mkdir()
+    projects = {p: {role: f'pacbench-{sha256(str(root / p).encode()).hexdigest()[:12]}-{p}-{role}'
+                    for role in ('memory', 'driver', 'judge')} for p in cap.PROVIDERS}
+    receipt = cap.create(root, projects, dict.fromkeys(cap.PROVIDERS, 'test'), dataset=dataset)
+    scope = cap.load(receipt)
+    assert scope['dataset'] == str(dataset)
+    assert scope['specification']['full_frozen'] == FROZEN
+    assert sum(len(group['questions']) for group in scope['specification']['groups']) == 42
+    (dataset / 'manifest.json').unlink()
+    with pytest.raises(FileNotFoundError):
+        cap.load(receipt)

@@ -16,12 +16,15 @@ def read(b):
  if p.is_symlink() or sha(p)!=b['sha256']:raise GatewayLifecycleError('Full-run bound evidence changed')
  return json.loads(p.read_text())
 
-def frozen():
+def frozen(dataset=None):
+ if dataset is not None:
+  from .pizza_week_dataset import load
+  return load(dataset)
  from .canary_capability import frozen as source
  return source(full=True)
 
-def specification():
- _,schedule,_,plan=frozen()
+def specification(dataset=None):
+ _,schedule,_,plan=frozen(dataset) if dataset is not None else frozen()
  return {'full_frozen':FROZEN,'groups':plan['groups'],'schedule':schedule,
   'model':'openai/gpt-6-luna','profile':'luna-bedrock-global','endpoint':'amazon-bedrock/global',
   'scoring':'semantic-judge-date-scope-v2','strict_memory':'strict-memory-only-v1',
@@ -29,7 +32,7 @@ def specification():
   'luna_compatibility':'temperature-omitted-default-v1',
   'memcal':'c19d216a7e5dd3913f69ab79c24d2d339bacef16','max_calls':MAX_CALLS}
 
-def create(root,projects,configs,*,prior_root=None):
+def create(root,projects,configs,*,prior_root=None,dataset=None):
  from .gateway_reuse import atomic
  root=Path(root).resolve()
  expected={p:{r:'pacbench-'+hashlib.sha256(str((root/p).resolve()).encode()).hexdigest()[:12]+'-'+p+'-'+r for r in ['memory','driver','judge']} for p in PROVIDERS}
@@ -38,7 +41,8 @@ def create(root,projects,configs,*,prior_root=None):
  if prior_root:
   prior_root=Path(prior_root).resolve()
   recovery={'root':str(prior_root),'report':binding(prior_root/'report.json'),'capability':binding(prior_root/'capability.json')}
- path=root/'capability.json';atomic(path,{'protocol':PROTOCOL,'root':str(root),'specification':specification(),
+ path=root/'capability.json';atomic(path,{'protocol':PROTOCOL,'root':str(root),'specification':specification(dataset) if dataset is not None else specification(),
+  **({'dataset':str(Path(dataset).resolve())} if dataset is not None else {}),
   'projects':projects,'configs':configs,'slot_path':str(root/'active-slot.json'),'recovery':recovery})
  return binding(path)
 
@@ -50,7 +54,10 @@ def load(b=None):
   if not value:raise GatewayLifecycleError('Full-run capability absent')
   b=json.loads(value)
  c=read(b)
- if set(c)!={'protocol','root','specification','projects','configs','slot_path','recovery'} or c['protocol']!=PROTOCOL or c['specification']!=specification():raise GatewayLifecycleError('Full-run scope/contract/route differs')
+ dataset=c.get('dataset')
+ required={'protocol','root','specification','projects','configs','slot_path','recovery'}
+ if dataset is not None:required.add('dataset')
+ if set(c)!=required or c['protocol']!=PROTOCOL or c['specification']!=(specification(dataset) if dataset is not None else specification()):raise GatewayLifecycleError('Full-run scope/contract/route differs')
  root=Path(c['root']).resolve()
  if Path(b['path']).resolve()!=root/'capability.json' or c['slot_path']!=str(root/'active-slot.json'):raise GatewayLifecycleError('Full-run paths differ')
  expected={p:{r:'pacbench-'+hashlib.sha256(str((root/p).resolve()).encode()).hexdigest()[:12]+'-'+p+'-'+r for r in ['memory','driver','judge']} for p in PROVIDERS}
@@ -139,7 +146,8 @@ def question(b,owner,prompt,at,observation,session_id):
   # The production author/reviewer seals the plan before native dispatch.
   from .semantic_contract import load_contract
   from .followups import load_questions,combined_binding
-  prep,_,checks,_=frozen();_,contract,policy=next(c for c in checks if c[0]['id']==q['id'])
+  _,_,checks,_=frozen(c['dataset']) if 'dataset' in c else frozen()
+  _,contract,policy=next(check for check in checks if check[0]['id']==q['id'])
   from .semantic_grade import Grade,GradedClaim
   from .followups import natural_eligibility
   raw=json.loads((Path(s['question_directory'])/'grade.json').read_text())

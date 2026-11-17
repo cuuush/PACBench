@@ -99,7 +99,7 @@ def document_text(batch, collected_at, *, version=VERSION):
     return '\n'.join(lines)+'\n'
 
 
-def prepare_sources(output, messages, timezone, *, native_fixtures=True):
+def prepare_sources(output, messages, timezone, *, native_fixtures=True, membership_condition=None):
     from .imessage_fixture import append_messages
     from .email_fixture import append_emails
     batches=daily_batches(messages,timezone)
@@ -121,7 +121,7 @@ def prepare_sources(output, messages, timezone, *, native_fixtures=True):
                 for src in previous.glob('chat.*'):
                     shutil.copyfile(src,root/src.name)
             fixture=append_messages(root/'chat.db',imessages,contacts=names,
-                membership_condition=os.environ.get('PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION') or None)
+                membership_condition=membership_condition or os.environ.get('PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION') or None)
             previous=root
         elif previous:
             for src in previous.glob('chat.*'):

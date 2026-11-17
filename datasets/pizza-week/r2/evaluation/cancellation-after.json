@@ -1,0 +1,64 @@
+{
+  "id": "cancellation-after",
+  "at": "2026-10-07T09:30:00-04:00",
+  "session": "cancellation-after-fresh",
+  "question": "What’s the status of my studio bookings?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The pottery booking is cancelled.",
+      "evidence": [
+        "message-62da634d42cbdd5aab31a837",
+        "message-4017cc672959d2c262ac5ecb"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The framing booking remains agreed.",
+      "evidence": [
+        "message-47ab3d8afffe41eced9f1ab5",
+        "message-4017cc672959d2c262ac5ecb"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The framing booking is Thursday October 8.",
+      "evidence": [
+        "message-ae385732cd2ce9b54980bbd3",
+        "message-4017cc672959d2c262ac5ecb"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The framing booking starts at 10 am.",
+      "evidence": [
+        "message-ae385732cd2ce9b54980bbd3"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "The framing venue is the Oak studio.",
+      "evidence": [
+        "message-ae385732cd2ce9b54980bbd3"
+      ]
+    }
+  ],
+  "original_contract_hash": "571cc3f0ba904a16eafba015b290b206a68579881407092cc4bc040a80e38b54",
+  "original_evidence_hash": "9ac302625d3e2fe5392f10095aabfe91604afda08008a42ab2f25605094d4996",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "571cc3f0ba904a16eafba015b290b206a68579881407092cc4bc040a80e38b54",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "046737d5d85532c01a70073aa28d87b04877c2543f6e9a2cd63ab3ad0e50185a"
+  }
+}

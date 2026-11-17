@@ -1,0 +1,29 @@
+{
+  "id": "attendance-final",
+  "at": "2026-10-12T10:00:00-04:00",
+  "session": "attendance-final-fresh",
+  "question": "Did I attend the October 6 watercolor workshop?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The user reported that they missed the October 6 workshop.",
+      "evidence": [
+        "message-09de6538ff5bb038a0823c0d"
+      ]
+    }
+  ],
+  "original_contract_hash": "b3755649bbe26b4ede5d9beed8530336e0813f420988e2decf0d284914b8ef20",
+  "original_evidence_hash": "f0ac93882b0516d5d50ccd1b0a40b1f97afd0db1fc7cc805435b16c5b5dc926e",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "b3755649bbe26b4ede5d9beed8530336e0813f420988e2decf0d284914b8ef20",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "85a6f342a1ca07ac8932e28bbe54b6c540cec5df5b59c52561b6253c7c1ce0b5"
+  }
+}

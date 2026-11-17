@@ -1,0 +1,55 @@
+{
+  "id": "assistant-bored",
+  "at": "2026-10-10T09:20:00-04:00",
+  "session": "assistant-bored-fresh",
+  "expect": "Surface Jen’s 2 pm Roxy matinee as an open option to check with her, not as confirmed or already booked. Other suggestions are fine if clearly framed as ideas, but a generic suggestion alone does not demonstrate recall of this option.",
+  "question": "I’m bored. Anything I could do today?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Jen’s Roxy matinee option is for Saturday October 10.",
+      "evidence": [
+        "message-5b921de23adbdcf35cc2e39a"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "Jen’s Saturday October 10 Roxy matinee option is at 2 pm.",
+      "evidence": [
+        "message-5b921de23adbdcf35cc2e39a"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "Jen’s invitation to the Saturday October 10 Roxy matinee remains open.",
+      "evidence": [
+        "message-5b921de23adbdcf35cc2e39a",
+        "message-d9668812be193a21e345b105"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The user has not accepted Jen’s Saturday October 10 Roxy matinee invitation.",
+      "evidence": [
+        "message-e740d6faf5101b6910a5ffca"
+      ]
+    }
+  ],
+  "original_contract_hash": "b93f510336fe9085e554ae2d60fedffb3a7815031d15ed26a4535f99ac4c65fb",
+  "original_evidence_hash": "5f31107cd9449157ae0d18db8591d96e34292a6f9f33c8d4790ea429186874f2",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "b93f510336fe9085e554ae2d60fedffb3a7815031d15ed26a4535f99ac4c65fb",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "369befc03c056b0e41b6c5f43a4d5951fc010d63f2c8eb292fd6ee2f6a439a53"
+  }
+}

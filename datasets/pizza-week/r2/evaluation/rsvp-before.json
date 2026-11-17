@@ -1,0 +1,54 @@
+{
+  "id": "rsvp-before",
+  "at": "2026-10-06T09:00:00-04:00",
+  "session": "rsvp-before-fresh",
+  "question": "Who sent Friday’s lunch invitation, and what responses have come back so far?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Maya sent the lunch invitation.",
+      "evidence": [
+        "message-84165f4026ea26e5089b1074"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The user accepted the lunch invitation.",
+      "evidence": [
+        "message-1efe7b0b5b7e0bc8183de054"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "Leo has not replied to the lunch invitation.",
+      "evidence": [
+        "message-84165f4026ea26e5089b1074",
+        "message-cebf3499c4273ea2ccb0181c"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "Tess’s response is conditional on her shift finishing early.",
+      "evidence": [
+        "message-cebf3499c4273ea2ccb0181c"
+      ]
+    }
+  ],
+  "original_contract_hash": "a3d08038ce7eed43da666c40516ace85489e13c72b4768d4ad53e9c2fbfed5e3",
+  "original_evidence_hash": "2c83ee421a06d1472ed77b97f142b74755b45c977af5337d00d7323a24811351",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "a3d08038ce7eed43da666c40516ace85489e13c72b4768d4ad53e9c2fbfed5e3",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "5bed58221bc9c6a6ce90a568217703434631a85b8bd5343ffa5bfdcfc150c503"
+  }
+}

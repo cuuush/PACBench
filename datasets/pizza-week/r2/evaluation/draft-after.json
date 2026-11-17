@@ -1,0 +1,61 @@
+{
+  "id": "draft-after",
+  "at": "2026-10-08T09:30:00-04:00",
+  "session": "draft-after-fresh",
+  "question": "What’s the plan for the PizzaLab tasting—who and when?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The user has decided to attend the PizzaLab tasting.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The tasting attendance is planned for Sunday October 11.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The intended tasting start time is 2 pm.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The intended tasting end time is 2:30 pm.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "Devon declined to join the tasting.",
+      "evidence": [
+        "message-a49109de9aa693e10875777a"
+      ]
+    }
+  ],
+  "original_contract_hash": "129b10a3cbc2ff771f39ea3523f787a1100e72b16a2ffe2d56a96f5f454382fe",
+  "original_evidence_hash": "2109c4765484b50c60906c76159614dc5579bfb23a609bee758242afa2566753",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "129b10a3cbc2ff771f39ea3523f787a1100e72b16a2ffe2d56a96f5f454382fe",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "476e165f7621046bc83ac00388e9911d9a5b5a06cfbe98cbdf21670dcd844bb1"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "visit-mid",
+  "at": "2026-10-10T09:00:00-04:00",
+  "session": "visit-mid-fresh",
+  "question": "When does Morgan’s visit end, and where are they staying?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Morgan is staying at the user’s home.",
+      "evidence": [
+        "message-f8537d8a8c37e7aa6b273eec",
+        "message-228ba90053a70685a27af315",
+        "message-6d22975b096aa2acf6ad153d"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The currently agreed end date is Monday October 12.",
+      "evidence": [
+        "message-f8537d8a8c37e7aa6b273eec",
+        "message-228ba90053a70685a27af315"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The currently agreed end time is 9 am.",
+      "evidence": [
+        "message-f8537d8a8c37e7aa6b273eec",
+        "message-228ba90053a70685a27af315"
+      ]
+    }
+  ],
+  "original_contract_hash": "6963c21236ecec76dbc6695aab07d0ed54d76fd222abee4e9b091ac48a20b105",
+  "original_evidence_hash": "dd3bfc2476f9089ca4394d6bd662d62ddc04b5e03af5445b0ff6d22266397158",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "6963c21236ecec76dbc6695aab07d0ed54d76fd222abee4e9b091ac48a20b105",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "b1e97042637e2233f6d8669fd0c5a9651edf69687c09cc4c13801c709ad79b72"
+  }
+}

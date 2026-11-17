@@ -1,0 +1,78 @@
+{
+  "id": "namesakes",
+  "at": "2026-10-12T10:40:00-04:00",
+  "session": "namesakes-fresh",
+  "question": "Who is AC, and where do the two Alexes and I stand on dairy and mushrooms?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "AC refers to Alex Chen.",
+      "evidence": [
+        "message-33d581418a76773d65ed1d63",
+        "message-ffca1d68b3a11804b344cb13"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "Alex Chen avoids dairy.",
+      "evidence": [
+        "message-ffca1d68b3a11804b344cb13"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "Alex Chen accepts mushrooms.",
+      "evidence": [
+        "message-ffca1d68b3a11804b344cb13"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "Alex Reed avoids mushrooms.",
+      "evidence": [
+        "message-e82539b517ceacb0b7fbc1ae"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "Alex Reed eats dairy.",
+      "evidence": [
+        "message-e82539b517ceacb0b7fbc1ae"
+      ]
+    },
+    {
+      "id": "fact-6",
+      "statement": "The user currently avoids dairy.",
+      "evidence": [
+        "message-47d2b77139d1e94ac504c42a"
+      ]
+    },
+    {
+      "id": "fact-7",
+      "statement": "The user currently accepts mushrooms.",
+      "evidence": [
+        "message-47d2b77139d1e94ac504c42a"
+      ]
+    }
+  ],
+  "original_contract_hash": "78ab2e66d3ca40ba1512a52253ac8cb59b3d0e2d8aabd24703d34aadcc7b53fc",
+  "original_evidence_hash": "bbabc328a405f36f21680de53f03ff3d89db56fd008220d02796a186e505dfcc",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "78ab2e66d3ca40ba1512a52253ac8cb59b3d0e2d8aabd24703d34aadcc7b53fc",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5",
+      "fact-6",
+      "fact-7"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "e464beb8f663204ba2ed128c1d0835bf2445717ff3939ea036182291ca567e25"
+  }
+}

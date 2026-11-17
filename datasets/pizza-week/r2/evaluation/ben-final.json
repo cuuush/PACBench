@@ -1,0 +1,52 @@
+{
+  "id": "ben-final",
+  "at": "2026-10-12T09:20:00-04:00",
+  "session": "ben-final-fresh",
+  "question": "When and where did Ben and I agree to have dinner?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The final agreed dinner date is Saturday October 10.",
+      "evidence": [
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The final agreed dinner time is 7 pm.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The final agreed dinner venue is Juniper Cafe.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    }
+  ],
+  "original_contract_hash": "c4cc2793496a3910fc4852ab2011f64a10af7b76c02d256fd053b5f0bf376048",
+  "original_evidence_hash": "8bdb7a960bade9a12e030be3323b3735a54a80dbdbd8c44ffe5c017cf4d2076e",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "c4cc2793496a3910fc4852ab2011f64a10af7b76c02d256fd053b5f0bf376048",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "525d0929a6a994634f05ec6c9f60b88d6b14f251e91756f96919209954162eed"
+  }
+}

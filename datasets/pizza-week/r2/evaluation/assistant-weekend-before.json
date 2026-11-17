@@ -1,0 +1,85 @@
+{
+  "id": "assistant-weekend-before",
+  "at": "2026-10-08T09:45:00-04:00",
+  "session": "assistant-weekend-before-fresh",
+  "expect": "The confirmed outings are Ben's Saturday 7 pm dinner at Juniper Cafe and Sunday's 2–2:30 pm PizzaLab tasting, which the user decided to attend. Do not include a Sunday drill return that has not been agreed yet. The overnight guest stay with Morgan can be mentioned but does not require the user to join an outing. Do not count the Roxy matinee or Rae's concert as confirmed. Tentative options can be mentioned if clearly labeled.",
+  "question": "What’s my weekend looking like?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Ben’s dinner is scheduled for Saturday October 10.",
+      "evidence": [
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "Ben’s Saturday October 10 dinner is at 7 pm.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "Ben’s Saturday October 10 dinner is at Juniper Cafe.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The user decided to attend the PizzaLab tasting.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "The PizzaLab tasting is scheduled for Sunday October 11.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-6",
+      "statement": "The PizzaLab tasting on Sunday October 11 starts at 2 pm.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "fact-7",
+      "statement": "The PizzaLab tasting on Sunday October 11 ends at 2:30 pm.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    }
+  ],
+  "original_contract_hash": "69579daa19571827cd59eba94970bb89dd71e169f80bb6d94388608ffc020ed4",
+  "original_evidence_hash": "c8079096c45375b09597665b0b8ab3817a1c0d6e65815874b81c8fa7b1de4a59",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "69579daa19571827cd59eba94970bb89dd71e169f80bb6d94388608ffc020ed4",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5",
+      "fact-6",
+      "fact-7"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "a0e3cf54bc788b339c5ad7ffc1df5f5df2ff654b938f8649cfe7d42ec28987b8"
+  }
+}

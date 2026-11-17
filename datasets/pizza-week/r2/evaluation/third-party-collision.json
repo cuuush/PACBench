@@ -1,0 +1,39 @@
+{
+  "id": "third-party-collision",
+  "at": "2026-10-12T11:40:00-04:00",
+  "session": "third-party-collision-fresh",
+  "question": "Who was I supposed to meet for pizza on Friday evening?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "Devon is the user’s Friday-evening pizza companion.",
+      "evidence": [
+        "message-b557c3bb938054b11bc6e4d7",
+        "message-4180509c0f5fb703223f661d"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "No companion other than Devon is agreed for that Friday-evening pizza outing.",
+      "evidence": [
+        "message-4180509c0f5fb703223f661d",
+        "message-13bb3e3cb59c783d95abfd24"
+      ]
+    }
+  ],
+  "original_contract_hash": "c1c3c5b022ea8e0e2dc2b40fc79bc532493a2e570414c2f9693a2ac2cbdcbce5",
+  "original_evidence_hash": "9627a78b25ad764e9ed437bcd4d7c776ed154302d0f6e8f72311082546e6961b",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "c1c3c5b022ea8e0e2dc2b40fc79bc532493a2e570414c2f9693a2ac2cbdcbce5",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "9befd6d5e508cbb8c83c980828b1d536b89de9e5b10c190b0f4211240f7e9b3a"
+  }
+}

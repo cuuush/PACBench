@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
+from contextlib import closing, contextmanager
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -179,16 +180,59 @@ def mem0(source, root, at, processing_at):
                          if errors.errors or incomplete else 'Synchronous OSS add with no observed native failure or truncated model response')}
 
 
-def memcal(source, root, at, processing_at):
-    sys.path.insert(0,os.environ['MEMCAL_SRC'])
-    from memcal import archive,brief,config,db,identity,sources
-    from memcal.dream.run import dream
-    from pacbench.gateway_client import validate_route
-    if not (source/'chat.db').exists():
-        raise ValueError('Native source fixture unavailable for this channel; no archive-write fallback')
-    messages=json.loads((source/'messages.json').read_text())
+def check_memcal_fixture_paths(source, root, cfg):
+    """Reject shared homes, symlinked stores and non-fixture input before any writes."""
+    root = root.resolve()
+    user_home, memory_home = Path.home().absolute(), cfg.home.absolute()
+    # Some callers keep the OS home beside the arm under the same private
+    # run that owns sources/<day>. Others stage their sources separately.
+    scope = root.parent if source.resolve().parent == root.parent/'sources' else root
+    if (scope not in user_home.parents or root not in memory_home.parents
+            or user_home == memory_home or cfg.imessage_backend != 'chatdb'):
+        raise ValueError('Expected separate run-owned homes and the native chat.db reader')
+    files = [source/name for name in ('chat.db','chat.contacts.abcddb','chat.fixture.json','messages.json')]
+    if not all(path.is_file() and path.absolute() == path.resolve() for path in files):
+        raise ValueError('Synthetic Messages and Contacts fixture files are required')
+    for target in (user_home/'Library/Messages/chat.db',
+                   user_home/'Library/Application Support/AddressBook/Sources/00000000-0000-0000-0000-000000000001/AddressBook-v22.abcddb',
+                   cfg.db_path, cfg.db_path.with_name('memcal.db-wal'), cfg.db_path.with_name('memcal.db-shm'),
+                   root/'synthetic-maildir', source/'mailbox.json'):
+        if target.absolute() != target.resolve():
+            raise ValueError('Symlinked source or store is outside the synthetic collection boundary')
+
+
+@contextmanager
+def memcal_source_mailbox(source, root, cfg):
+    """Authenticate the isolated source before opening or migrating a native store."""
+    from pacbench.email_fixture import OBSERVED_HEADERS
+    from pacbench.maildir_transport import email_server
+    from memcal.sources.proton import Bridge
+    check_memcal_fixture_paths(source, root, cfg)
+    messages = json.loads((source/'messages.json').read_text())
     if any(m['channel'] not in {'imessage','email'} for m in messages):
         raise ValueError('No native fixture connector for this source channel')
+    path = source/'mailbox.json'
+    empty_sync = path.is_file() and json.loads(path.read_text()).get('header_condition') == OBSERVED_HEADERS
+    if not empty_sync and not any(m['channel']=='email' for m in messages):
+        yield messages, None
+        return
+    with email_server(path, root) as mailbox:
+        cfg.env.update(PROTON_BRIDGE_HOST='127.0.0.1', PROTON_BRIDGE_PORT=str(mailbox.port),
+                       PROTON_BRIDGE_USER=mailbox.user, PROTON_BRIDGE_PASSWORD=mailbox.password)
+        bridge = Bridge(cfg)
+        if (bridge.host, bridge.port, bridge.user, bridge.password) != ('127.0.0.1', mailbox.port, mailbox.user, mailbox.password):
+            raise ValueError('Native source credentials do not resolve to the private mailbox')
+        with bridge:
+            if not {'Sent', 'INBOX'}.issubset(bridge.folders()):
+                raise ValueError('Native source lacks the declared Inbox and Sent folders')
+        # Isolate commands belonging to actual collection from the source login probe.
+        mailbox.commands.clear()
+        yield messages, mailbox
+
+
+def collect_memcal_sources(source, root, cfg, conn, messages, mailbox):
+    """Collect synthetic sources with the stock readers; no extraction or model calls."""
+    from memcal import archive, db, identity, sources
     # Normal filesystem locations under the isolated HOME; native contacts loader.
     target=Path.home()/'Library/Application Support/AddressBook/Sources/00000000-0000-0000-0000-000000000001/AddressBook-v22.abcddb'
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -196,58 +240,73 @@ def memcal(source, root, at, processing_at):
     chat=Path.home()/'Library/Messages/chat.db'
     chat.parent.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(source/'chat.db',chat)
+    linked,contact_report=identity.import_contacts(conn)
+    collection=archive.open_collection(conn,mode='cli')
+    mail_report=None
+    mail_transport=None
+    collection_error=None
+    try:
+        from pacbench.imessage_membership import native_control_read_witness,CONDITION as MEMBERSHIP_CONDITION
+        control_reads=native_control_read_witness(source,int(db.get_meta(conn,'imessage.rowid','0') or 0))
+        report=sources.catch_up(sources.get('imessage',cfg),conn,cfg,collection_id=collection)
+        if report.more and not report.error:
+            collection_error='native collection incomplete'
+            raise RuntimeError('iMessage collection incomplete')
+        if report.error:raise RuntimeError(report.error)
+        expected=sum(m['channel']=='imessage' for m in messages)
+        if report.read!=expected+control_reads['control_rows']:
+            raise RuntimeError(f'Native reader consumed {report.read}/{expected} dialogue + {control_reads["control_rows"]} verified control rows')
+        if control_reads['protocol']==MEMBERSHIP_CONDITION and report.archived!=expected:
+            raise RuntimeError('Native dialogue archive coverage differs from the temporal fixture')
+        if mailbox is not None:
+            mail_report=sources.catch_up(sources.get('email',cfg),conn,cfg,collection_id=collection)
+            mail_transport={'interface':'TLS IMAP4rev1 Inbox/Sent fixture',
+                            'commands':mailbox.commands,'account':mailbox.user}
+            if hasattr(mailbox, 'deployment'):
+                mail_transport.update(interface='Private Maildir via STARTTLS IMAP', deployment=mailbox.deployment)
+                mail_transport['native_cursors'] = {}
+                for folder, cursor in mailbox.deployment['server_cursors'].items():
+                    native = db.get_meta(conn, f'watermark.proton.{folder}', '') or ''
+                    if cursor['highest_uid'] and native != f"{cursor['uidvalidity']}:{cursor['highest_uid']}":
+                        raise RuntimeError('Native IMAP cursor differs from the available mailbox')
+                    mail_transport['native_cursors'][folder] = native
+            if mail_report.more and not mail_report.error:
+                collection_error='native collection incomplete'
+                raise RuntimeError('email collection incomplete')
+            if mail_report.error:raise RuntimeError(mail_report.error)
+            expected_mail=sum(m['channel']=='email' for m in messages)
+            if mail_report.read!=expected_mail:
+                raise RuntimeError(f'Native IMAP reader consumed {mail_report.read}/{expected_mail} new emails')
+        expected_channels={'imessage'} | ({'email'} if mail_report is not None else set())
+        persisted=conn.execute('SELECT collection_id,channel,status FROM collection_sources WHERE collection_id=?',
+                               (collection,)).fetchall()
+        if (len(persisted)!=len(expected_channels) or
+            {row['channel'] for row in persisted}!=expected_channels or
+            any(row['collection_id']!=collection or row['status']!='complete' for row in persisted)):
+            raise RuntimeError('Native collection outcomes missing or incomplete')
+    except Exception:
+        collection_error=collection_error or 'native collection failed'
+        raise
+    finally:
+        archive.close_collection(conn,collection,error=collection_error)
+    collection_record=archive.collections(conn,limit=1)[0]
+    return {'collector_protocol':'native-cli-collection-v1', 'collection':collection_record,
+            'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),
+            'control_read_witness':control_reads,
+            **({'email_ingest':asdict(mail_report),'email_transport':mail_transport} if mail_report else {})}
+
+
+def memcal(source, root, at, processing_at):
+    sys.path.insert(0,os.environ['MEMCAL_SRC'])
+    from memcal import brief,config,db
+    from memcal.dream.run import dream
+    from pacbench.gateway_client import validate_route
     cfg=config.load()
     if cfg.llm_provider!='openai-compatible':raise ValueError('Memcal inference must use gateway')
     validate_route(cfg.openai_base_url,cfg.openai_api_key)
-    conn=db.open_db(cfg.db_path)
-    try:
-        os.environ['MEMCAL_TODAY']=processing_at
-        linked,contact_report=identity.import_contacts(conn)
-        collection=archive.open_collection(conn,mode='cli')
-        mail_report=None
-        mail_transport=None
-        collection_error=None
-        try:
-            from pacbench.imessage_membership import native_control_read_witness,CONDITION as MEMBERSHIP_CONDITION
-            control_reads=native_control_read_witness(source,int(db.get_meta(conn,'imessage.rowid','0') or 0))
-            report=sources.catch_up(sources.get('imessage',cfg),conn,cfg,collection_id=collection)
-            if report.more and not report.error:
-                collection_error='native collection incomplete'
-                raise RuntimeError('iMessage collection incomplete')
-            if report.error:raise RuntimeError(report.error)
-            expected=sum(m['channel']=='imessage' for m in messages)
-            if report.read!=expected+control_reads['control_rows']:
-                raise RuntimeError(f'Native reader consumed {report.read}/{expected} dialogue + {control_reads["control_rows"]} verified control rows')
-            if control_reads['protocol']==MEMBERSHIP_CONDITION and report.archived!=expected:
-                raise RuntimeError('Native dialogue archive coverage differs from the temporal fixture')
-            if any(m['channel']=='email' for m in messages):
-                from pacbench.email_fixture import MailboxServer
-                with MailboxServer(source/'mailbox.json') as mailbox:
-                    cfg.env.update(PROTON_BRIDGE_HOST='127.0.0.1',PROTON_BRIDGE_PORT=str(mailbox.port),
-                                   PROTON_BRIDGE_USER=mailbox.user,PROTON_BRIDGE_PASSWORD=mailbox.password)
-                    mail_report=sources.catch_up(sources.get('email',cfg),conn,cfg,collection_id=collection)
-                    mail_transport={'interface':'TLS IMAP4rev1 Inbox/Sent fixture',
-                                    'commands':mailbox.commands,'account':mailbox.user}
-                if mail_report.more and not mail_report.error:
-                    collection_error='native collection incomplete'
-                    raise RuntimeError('email collection incomplete')
-                if mail_report.error:raise RuntimeError(mail_report.error)
-                expected_mail=sum(m['channel']=='email' for m in messages)
-                if mail_report.read!=expected_mail:
-                    raise RuntimeError(f'Native IMAP reader consumed {mail_report.read}/{expected_mail} new emails')
-            expected_channels={'imessage'} | ({'email'} if mail_report is not None else set())
-            persisted=conn.execute('SELECT collection_id,channel,status FROM collection_sources WHERE collection_id=?',
-                                   (collection,)).fetchall()
-            if (len(persisted)!=len(expected_channels) or
-                {row['channel'] for row in persisted}!=expected_channels or
-                any(row['collection_id']!=collection or row['status']!='complete' for row in persisted)):
-                raise RuntimeError('Native collection outcomes missing or incomplete')
-        except Exception:
-            collection_error=collection_error or 'native collection failed'
-            raise
-        finally:
-            archive.close_collection(conn,collection,error=collection_error)
-        collection_record=archive.collections(conn,limit=1)[0]
+    os.environ['MEMCAL_TODAY']=processing_at
+    with memcal_source_mailbox(source,root,cfg) as (messages,mailbox), closing(db.open_db(cfg.db_path)) as conn:
+        collection=collect_memcal_sources(source, root, cfg, conn, messages, mailbox)
         result=dream(conn,cfg)  # product defaults, ordinary nightly processing
         brief.write(conn,cfg)
         event_state=[dict(row) for row in conn.execute(
@@ -263,15 +322,11 @@ def memcal(source, root, at, processing_at):
         diagnostic=folder/(source.name+'.json')
         diagnostic.write_text(json.dumps({'bundles':native_bundles,'calls':native_calls},ensure_ascii=False,indent=2)+'\n')
         return {'ready':not bool(result.errors),'interface':'native source readers + native nightly dream',
-                'collector_protocol':'native-cli-collection-v1',
-                'collection':collection_record,
-                'contacts':{'linked':linked,'report':contact_report},'ingest':asdict(report),'control_read_witness':control_reads,
-                **({'email_ingest':asdict(mail_report),'email_transport':mail_transport} if mail_report else {}),
+                **collection,
                 'bundles':native_bundles,'model_call_record':str(diagnostic),
                 'native_event_state':event_state,
                 'processing':{'run_id':result.run_id,'errors':result.errors,'report':result.report()},
                 'readiness':'Native dream completion without errors'}
-    finally:conn.close()
 
 
 def hindsight_operations(provider,client,bank_id,deadline):
@@ -386,7 +441,14 @@ def openviking(source,root,at,processing_at):
                 from pacbench.direct_accounting import live_budget,project_from_authorization
                 project=project_from_authorization('Bearer '+cfg['vlm']['api_key'])
                 if not project:raise RuntimeError('OpenViking request accounting binding is unavailable')
-                model_responses=openviking_response_evidence([r for r in live_budget().snapshot() if r.get('project')==project])
+                rows=[r for r in live_budget().snapshot() if r.get('project')==project]
+                if os.environ.get('PACBENCH_R2_LIVE_SCOPE'):
+                    # The canonical importer and isolated question stores share
+                    # a model account alias. Check every request for this batch,
+                    # where the frozen dispatch slot proves it originated.
+                    rows=[r for r in rows if r.get('checkpoint_full_run_slot',{}).get('kind')=='ingest'
+                          and r['checkpoint_full_run_slot'].get('batch_id')==source.name]
+                model_responses=openviking_response_evidence(rows)
             ready=(artifacts['state']=='complete' and failure_log['state']=='complete'
                 and (model_responses or {}).get('state')=='complete')
         return {'ready':ready,'interface':'OpenViking temp_upload + resources(wait=True)',

@@ -160,7 +160,7 @@ def child_environment(inherited, env, overrides, model):
         child.pop('DERIVER_MODEL_CONFIG__MAX_OUTPUT_TOKENS', None)
     return child
 
-def start(root,env,model,base,key,*,resume=False,simulated_at=None):
+def start(root,env,model,base,key,*,resume=False,simulated_at=None,checkpoint=None):
     check_operator_condition(root)
     validate_route(base,key)
     source=Path(__file__).resolve().parents[1]/'vendor/honcho-local'
@@ -169,7 +169,7 @@ def start(root,env,model,base,key,*,resume=False,simulated_at=None):
     # A healthy API/database alone does not establish embedding readiness.
     # Catch a missing local service before startup dialectic/model smoke calls.
     from .embedding_health import check as check_embeddings
-    save(root/'native-embedding-preflight.json', check_embeddings())
+    save(root/'native-embedding-preflight.json', check_embeddings(timeout=90) if checkpoint else check_embeddings())
     ports=[]
     for _ in range(2):
         with socket.socket() as s:s.bind(('127.0.0.1',0));ports.append(s.getsockname()[1])
@@ -294,11 +294,24 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
                 processing['deriver'].get(k)!=v for k,v in prior['deriver'].items()):
             raise ValueError('Retained Honcho native processing conditions changed')
     save(root/'native-processing-settings.json',processing)
-    deadline=time.monotonic()+30
+    # The image's temporary initdb server listens only on a Unix socket.
+    # Wait for the final server before restoring a logical checkpoint.
+    deadline=time.monotonic()+90
     while time.monotonic()<deadline:
-        ready=subprocess.run([*docker,'exec',name,'pg_isready','-U','postgres'],env=docker_env,capture_output=True,timeout=10)
+        try:
+            ready=subprocess.run([*docker,'exec',name,'pg_isready','-h','127.0.0.1','-U','postgres'],
+                                 env=docker_env,capture_output=True,timeout=10)
+        except subprocess.TimeoutExpired:
+            continue
         if ready.returncode==0:break
         time.sleep(.2)
+    else:
+        raise RuntimeError('Honcho final PostgreSQL server readiness deadline exceeded')
+    if checkpoint is not None:
+        if resume or not clock:
+            raise ValueError('Logical restore requires a fresh owned database and native clock')
+        from .honcho_checkpoint import restore
+        restore(name, checkpoint)
     if resume:
         daily=sorted((root/'ingestion').glob('*.json'))
         if daily:
@@ -342,17 +355,30 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
             start_new_session=bool(clock), stdin=subprocess.DEVNULL,stdout=log,stderr=log))
         native_processes[label] = processes[-1]
         log.close()
-    deadline=time.monotonic()+90;health=None
-    while time.monotonic()<deadline and processes[0].poll() is None:
+    startup_started=time.monotonic()
+    startup_timeout=180 if checkpoint else 90
+    probe_timeout=4 if checkpoint else 2
+    deadline=startup_started+startup_timeout
+    health=None
+    probes=0
+    last_probe_error=None
+    while processes[0].poll() is None:
+        remaining=deadline-time.monotonic()
+        if remaining<=0:break
+        probes+=1
         try:
-            with urllib.request.urlopen(endpoint+'/health',timeout=2) as r:health=json.load(r)
+            with urllib.request.urlopen(endpoint+'/health',timeout=min(probe_timeout,remaining)) as r:health=json.load(r)
             break
-        except (OSError,ValueError):time.sleep(.2)
+        except (OSError,ValueError) as exc:
+            last_probe_error=type(exc).__name__
+            time.sleep(.2)
+    startup={'wall_s':round(time.monotonic()-startup_started,3),'deadline_s':startup_timeout,
+             'health_probes':probes,'last_probe_error':last_probe_error,'api_exit_code':processes[0].poll()}
     save(root/'native-server-setup.json',{'route':'Documented manual self-hosting, native API + deriver + local pgvector',
          'version':tomllib.loads((source/'pyproject.toml').read_text())['project']['version'],
          'source_revision':subprocess.run(['git','rev-parse','HEAD'],cwd=source,
              capture_output=True,text=True,check=True,timeout=10).stdout.strip(),
-         'endpoint':endpoint,'health':health,'models':model,
+         'endpoint':endpoint,'health':health,'startup':startup,'models':model,
          'embedding':'local Ollama nomic-embed-text','starter_facts':False,
          'hermes_session_strategy':'per-session',
          'processing':processing,'processing_option':('Unmodified native batching and output defaults'
@@ -366,10 +392,11 @@ print(json.dumps({'native_defaults_verified':deriver_limit is None and deriver_t
         except Exception:
             stop()
             raise
+    workspace = checkpoint['workspace'] if checkpoint else 'pacbench-'+identity
     save(root/'hermes-home/honcho.json',{'baseUrl':endpoint,'hosts':{'hermes':{
-        'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':'pacbench-'+identity,
+        'enabled':True,'aiPeer':'hermes','peerName':'user','workspace':workspace,
         'sessionStrategy':'per-session',
         'observationMode':'directional'}}})  # Current native setup default, not the legacy-file migration mode.
     env['PACBENCH_HONCHO_TRACE_FILE']=str(root/'honcho-reasoning-traces.jsonl')
-    env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE='pacbench-'+identity)
+    env.update(HONCHO_BASE_URL=endpoint,HONCHO_API_KEY='',HONCHO_WORKSPACE=workspace)
     return stop

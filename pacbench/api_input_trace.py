@@ -31,6 +31,12 @@ def record(project, receipt):
             row.update(protocol='direct-hermes-api-input-v3',clock_condition=VERSION,
                 process_clock_nonce=os.environ['PACBENCH_PYTHON_CLOCK_NONCE'],
                 turn_nonce=d['nonce'],question_sha256=d['question_sha256'])
+    if os.environ.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2':
+        # The complete private model payload is the witness. HTTP headers and
+        # credentials are not part of it. Preserve tools, tool IDs and grouping.
+        row.update(protocol='workflow-driver-input-v1', request=body,
+                   messages=body['messages'],
+                   tools=[t['function']['name'] for t in body.get('tools', [])])
     encoded=json.dumps(row,ensure_ascii=False)+'\n'
     with path.open('a') as stream:
         path.chmod(0o600)

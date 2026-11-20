@@ -60,9 +60,10 @@ def drain_then_close(owner,turn,folder,clock_evidence):
   process=subprocess.Popen([str(owner.python),'-c',LEASE,turn.session_id,str(ready)],env=owner.env,cwd=owner.cwd,
    stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=errors,text=True)
   started=time.monotonic();after_ns=time.monotonic_ns();last=None;passed=False
+  lease_timeout=15 if owner.env.get('PACBENCH_R2_LIVE_SCOPE') else 5
   try:
    while not ready.exists():
-    if process.poll() is not None or time.monotonic()-started>5:raise GatewayLifecycleError('Native pre-close viewer lease unavailable')
+    if process.poll() is not None or time.monotonic()-started>lease_timeout:raise GatewayLifecycleError('Native pre-close viewer lease unavailable')
     time.sleep(.02)
    lease=json.loads(ready.read_text())
    if lease.get('session_id')!=turn.session_id or lease.get('pid')!=process.pid:raise GatewayLifecycleError('Native viewer lease identity differs')

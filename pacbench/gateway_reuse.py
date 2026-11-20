@@ -17,13 +17,21 @@ from .hermes_gateway import GatewayLifecycleError,_identity,_live,turn_gateway
 from .gateway.reuse_runtime import PROTOCOL
 
 
+NATIVE_CHAT_CLOSE = ('import asyncio,sys;from hermes_cli.gateway_client import connect_gateway;'
+                  '\nasync def main():\n async with connect_gateway() as c:\n'
+                  '  timeout=float(sys.argv[2]) if len(sys.argv)>2 else None;'
+                  '\n  s=await c.rpc("session.resume",_timeout=timeout,session_id=sys.argv[1]);'
+                  '\n  await c.rpc("session.detach",_timeout=timeout,session_id=sys.argv[1],subscription_id=s["subscription_id"],end_reason="cli_close")'
+                  '\nasyncio.run(main())')
+
+
 def native_children(pid):
     """Linux PPID witness; does not require CONFIG_CHECKPOINT_RESTORE."""
     children=[]
     for process in Path('/proc').iterdir():
         if not process.name.isdigit():continue
         try:fields=(process/'stat').read_text().rsplit(')',1)[1].split()
-        except FileNotFoundError:continue
+        except (FileNotFoundError,ProcessLookupError):continue
         if int(fields[1])==pid and fields[0] not in {'Z','X'}:children.append(int(process.name))
     return children
 
@@ -58,6 +66,10 @@ def atomic(path,value):
     return hashlib.sha256(raw).hexdigest()
 
 
+class RecoveryHorizonExceeded(GatewayLifecycleError):
+    """A drained observation passed its recovery window before dispatch."""
+
+
 class PersistentGateway:
     """A run-owned process; fresh sessions via native CLI, no implicit retries.
 
@@ -73,12 +85,18 @@ class PersistentGateway:
         self.canary=canary
         self.full_run=full_run
         if canary is not None and full_run is not None:raise GatewayLifecycleError('Conflicting execution capabilities')
-        if provider not in {'reme','mem0','memcal'}:raise GatewayLifecycleError('Unknown native observation provider')
+        if provider not in {'reme','mem0','memcal','memos','openviking','hindsight','supermemory','honcho','cognee'}:raise GatewayLifecycleError('Unknown native observation provider')
         self.alias=None
-        if provider in {'mem0','memcal'}:
+        workflow_memcal = provider == 'memcal' and self.env.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2'
+        if workflow_memcal:
+            # The collector and continuing chat must share the same run-owned store.
+            store = self.home.parent / 'memcal-home'
+            if self.env.get('MEMCAL_HOME') != str(store) or store.resolve() != store or not store.is_dir():
+                raise GatewayLifecycleError('Continuing MemCal chat requires its run-owned native store')
+        elif provider in {'mem0','memcal','memos'}:
             self.alias=self.home.parent/(provider+'-observation')
-            self.env['MEM0_DIR' if provider=='mem0' else 'MEMCAL_HOME']=str(self.alias)
-            if provider=='memcal' and observation_clock is not None:self.env.pop('MEMCAL_TODAY',None)
+            self.env[{'mem0':'MEM0_DIR','memcal':'MEMCAL_HOME','memos':'MEMOS_HOME'}[provider]]=str(self.alias)
+        if provider=='memcal' and observation_clock is not None:self.env.pop('MEMCAL_TODAY',None)
         from .gateway.preclose import ENV,CONDITION
         self.preclose_condition=self.env.get(ENV)
         if self.preclose_condition is not None and (self.preclose_condition!=CONDITION or provider!='reme' or observation_clock is None):
@@ -98,7 +116,12 @@ class PersistentGateway:
             if observation_clock is None or self.env.get('LD_PRELOAD') or any(k.startswith('FAKETIME') for k in self.env) or (self.home.parent/'provider-clock.json').exists():
                 raise GatewayLifecycleError('Persistent simulated-clock scoring requires a new versioned request-bound clock protocol')
         if self.env.get('PACBENCH_DIRECT')=='1':
-            if canary is None and full_run is None:raise GatewayLifecycleError('Funded scored execution cannot use the unqualified fixed-clock reuse condition')
+            from . import workflow_capability
+            if self.env.get(workflow_capability.ENV):
+                if canary or full_run:
+                    raise GatewayLifecycleError('Conflicting workflow and legacy gateway owners')
+                workflow_capability.owner(self.env,self.home,checkpoint,provider,observation_clock)
+            elif canary is None and full_run is None:raise GatewayLifecycleError('Funded scored execution cannot use the unqualified fixed-clock reuse condition')
         if canary is not None:
             from .canary_capability import owner
             owner(canary,self.env,self.home,checkpoint,provider,observation_clock)
@@ -126,11 +149,16 @@ class PersistentGateway:
         from .observation_adapters import native_source
         self.pins={'hermes':pin,**native_source(provider,self.home,repo,self.env,self.python),
             'hermes_isolation_sha256':hashlib.sha256((repo/'patches/hermes-isolated.diff').read_bytes()).hexdigest()}
-        self.pins['reuse_observer_sha256']=hashlib.sha256((repo/'pacbench/gateway/reuse_runtime.py').read_bytes()).hexdigest()
+        self.runtime_observer='memos_reuse_runtime' if provider in {'memos','openviking'} else 'reuse_runtime'
+        self.pins['reuse_observer_sha256']=hashlib.sha256((repo/'pacbench/gateway'/(self.runtime_observer+'.py')).read_bytes()).hexdigest()
+        if provider in {'hindsight','supermemory','honcho','cognee'}:
+            self.runtime_observer=provider+'_reuse_runtime'
+            self.pins['provider_observer_adapter_sha256']=hashlib.sha256((repo/'pacbench/gateway'/(self.runtime_observer+'.py')).read_bytes()).hexdigest()
+            self.pins['reuse_observer_sha256']=hashlib.sha256((repo/'pacbench/gateway/memos_reuse_runtime.py').read_bytes()).hexdigest()
 
     def __enter__(self):
         self.owner=turn_gateway(self.home,self.python,self.env,cwd=self.cwd,
-            shutdown_timeout=self.cleanup_timeout,runtime_module='pacbench.gateway.reuse_runtime')
+            shutdown_timeout=self.cleanup_timeout,runtime_module='pacbench.gateway.'+self.runtime_observer)
         self.witness=self.owner.__enter__();return self
 
     def __exit__(self,*exc):return self.owner.__exit__(*exc)
@@ -215,19 +243,41 @@ class PersistentGateway:
                 context['followups']+=1;horizon=context['horizon'];at=context['initial_at']
             continuation={'initial_at':session_origin,'continued_session_id':session_id,'history_sha256':previous['sha256'],
                 'continuation_reason':'authored-checkpoint' if authored_resume else 'omission-recovery'}
+        if self.provider=='honcho' and continuation and not authored_resume:
+            from provider_adapters.honcho_clock import load as load_clock
+            native_clock,_=load_clock(Path(observation['service_root']))
+            if horizon and native_clock.now()>=datetime.fromisoformat(horizon):
+                raise RecoveryHorizonExceeded('Native Honcho recovery clock crossed the next scripted question horizon; no follow-up dispatched')
         if observation.get('checkpoint')!=self.checkpoint or not Path(observation.get('workspace','')).is_dir():
             raise GatewayLifecycleError('A verified checkpoint observation backend is required')
         if observation.get('workspace') in self.workspaces and (not continuation or authored_resume):
             raise GatewayLifecycleError('A fresh verified checkpoint observation backend is required')
-        if self.provider=='reme' and (not continuation or authored_resume) and (observation.get('endpoint') in self.endpoints or not observation.get('endpoint') or
+        if self.provider in {'reme','openviking','supermemory','honcho','cognee'} and (not continuation or authored_resume) and (observation.get('endpoint') in self.endpoints or not observation.get('endpoint') or
             type(observation.get('pid')) is not int or observation['pid']<=1 or not _live(observation['pid'])):
             raise GatewayLifecycleError('A distinct native ReMe service is required')
         manifest=tree_manifest(observation['workspace'])
-        if (not continuation or authored_resume) and (manifest!=observation.get('snapshot_manifest') or manifest['sha256']!=self.checkpoint):
-            raise GatewayLifecycleError('Observation is not an exact checkpoint clone')
+        startup=None
+        if not continuation or authored_resume:
+            if (self.provider=='openviking' and observation.get('native_resource_uris') and
+                    observation['snapshot_manifest']['sha256']==self.checkpoint):
+                from .openviking_checkpoint import verify_open_clone
+                startup=verify_open_clone(observation,manifest)
+            elif self.provider=='supermemory' and observation.get('documents') and observation['snapshot_manifest']['sha256']==self.checkpoint:
+                import re
+                before=observation['snapshot_manifest']['files'];after=manifest['files']
+                changed={k for k in before.keys()|after.keys() if before.get(k)!=after.get(k)}
+                runtime={'data','data-shm','data-wal','.instance.lock',
+                         'runtime/rivet/engine.json','runtime/rivet/engine.pid'}
+                unexpected=sorted(path for path in changed-runtime if not re.fullmatch(
+                    r'runtime/rivet/data/rivet-engine/db/(?:CURRENT|LOCK|LOG(?:\.old\.[0-9]+)?|MANIFEST-[0-9]+|OPTIONS-[0-9]+|[0-9]+\.(?:log|sst))',path))
+                if unexpected:
+                    raise GatewayLifecycleError('Supermemory startup changed unexpected store files: '+', '.join(unexpected))
+                startup={'changed_storage_files':sorted(changed),'native_documents':observation['documents']}
+            elif manifest!=observation.get('snapshot_manifest') or manifest['sha256']!=self.checkpoint:
+                raise GatewayLifecycleError('Observation is not an exact checkpoint clone')
         from .observation_adapters import plan,switch_alias
         config_path=self.home/('reme/config.json' if self.provider=='reme' else 'mem0.json')
-        config=json.loads(config_path.read_text()) if self.provider!='memcal' else {}
+        config=json.loads(config_path.read_text()) if self.provider in {'mem0','reme'} else {}
         binding=plan(self.provider,config,observation['workspace'],endpoint=observation.get('endpoint'))
         if self.alias:
             target=Path(binding['state_alias_target']);target.mkdir(parents=True,exist_ok=True)
@@ -236,8 +286,38 @@ class PersistentGateway:
                 if self.alias.resolve()!=target:raise GatewayLifecycleError('Follow-up native binding changed')
             elif self.alias.exists():raise GatewayLifecycleError('Refuse to replace an existing native store')
             else:self.alias.symlink_to(target,target_is_directory=True)
-        if self.provider!='memcal':atomic(config_path,binding['config'])
-        if self.provider=='reme':self.endpoints.add(observation['endpoint'])
+        if self.provider in {'mem0','reme'}:atomic(config_path,binding['config'])
+        if self.provider=='honcho':
+            from provider_adapters.honcho_checkpoint import bind_profile
+            bind_profile(self.home, observation, binding['endpoint'])
+        if self.provider=='cognee':
+            from provider_adapters.cognee_checkpoint import bind_profile
+            bind_profile(self.home, observation, binding['endpoint'])
+        if self.provider=='hindsight':
+            import re
+            bank=observation.get('bank','')
+            if not re.fullmatch('pacbench-q-[a-f0-9]{20}',bank) or not observation.get('clone_operation'):
+                raise GatewayLifecycleError('Hindsight observation must use its verified native clone')
+            config_path=self.home/'hindsight/config.json'
+            native_config=json.loads(config_path.read_text())
+            if native_config.get('api_url')!=binding['endpoint'] or native_config.get('mode')!='local_external':
+                raise GatewayLifecycleError('Hindsight observation endpoint or native mode differs')
+            atomic(config_path,{**native_config,'bank_id':bank})
+        if self.provider=='supermemory':
+            key=self.env['SUPERMEMORY_API_KEY']
+            if hashlib.sha256(key.encode()).hexdigest()!=observation['open_api_key_sha256']:
+                raise GatewayLifecycleError('Supermemory observation key differs from the local native store')
+            atomic(self.home/'supermemory.json',{'base_url':binding['endpoint'],'container_tag':observation['namespace']})
+        if self.provider=='openviking':
+            if not binding['endpoint'].startswith('http://127.0.0.1:'):
+                raise GatewayLifecycleError('OpenViking endpoint is outside the local observation')
+            envfile=self.home/'.env'
+            if envfile.is_symlink() or (envfile.exists() and not envfile.read_text().startswith('OPENVIKING_ENDPOINT=http://127.0.0.1:')):
+                raise GatewayLifecycleError('Unexpected native OpenViking profile environment')
+            temporary=envfile.with_suffix('.observation-next')
+            temporary.write_text('OPENVIKING_ENDPOINT='+binding['endpoint']+'\n')
+            temporary.chmod(0o600);temporary.replace(envfile)
+        if self.provider in {'reme','openviking','supermemory','honcho','cognee'}:self.endpoints.add(observation['endpoint'])
         self.workspaces.add(observation['workspace']);attempt=uuid.uuid4().hex
         folder=self.home.parent/'reuse-turns'/attempt;folder.mkdir(parents=True,mode=0o700)
         start=time.monotonic();started=datetime.now(timezone.utc).isoformat()
@@ -248,6 +328,8 @@ class PersistentGateway:
             command.extend(['--resume',session_id])
             if self.observation_clock and not authored_resume:
                 question_at=max(datetime.fromtimestamp(time.time()+float(self.observation_clock.path.read_text()),timezone.utc),datetime.fromisoformat(initial_at)).astimezone(datetime.fromisoformat(initial_at).tzinfo).isoformat()
+                if self.provider=='honcho':
+                    question_at=max(datetime.fromisoformat(question_at),native_clock.now()).isoformat()
         child_env=self.env
         try:
             if self.observation_clock is not None:
@@ -262,11 +344,20 @@ class PersistentGateway:
             raise
         context_trace=Path(self.env['PACBENCH_CONTEXT_TRACE']);context_before=context_trace.read_bytes() if context_trace.exists() else b''
         from .harness import provider_trace_snapshot
-        provider_before=provider_trace_snapshot(self.env)
+        trace_env=self.env
+        if self.provider=='honcho':
+            trace_env={**self.env,'PACBENCH_HONCHO_TRACE_FILE':str(Path(observation['service_root'])/'honcho-reasoning-traces.jsonl')}
+        provider_before=provider_trace_snapshot(trace_env)
         try:
             proc=subprocess.run(command,env=child_env,cwd=self.cwd,capture_output=True,text=True,timeout=timeout)
             from .harness import _parse_turn
             turn=_parse_turn(prompt,question_at,proc,time.monotonic()-start)
+            if proc.returncode and self.env.get('PACBENCH_R2_LIVE_SCOPE'):
+                stderr=proc.stderr
+                for name in ('PACBENCH_DIRECT_UPSTREAM_KEY','OPENROUTER_API_KEY','OPENAI_API_KEY'):
+                    secret=child_env.get(name)
+                    if secret:stderr=stderr.replace(secret,'<redacted>')
+                atomic(folder/'cli-error.private.json',{'stderr':stderr[-8000:]})
             atomic(folder/'native-result.json',{'native_stream':proc.stdout,'returncode':proc.returncode,
                 'session_id':turn.session_id,'provenance_verified':False})
             if turn.returncode!=0 or not turn.answer or not turn.session_id or (turn.session_id in self.sessions and not continuation) or (continuation and turn.session_id!=session_id):
@@ -291,11 +382,14 @@ class PersistentGateway:
             if questions!=[(q,) for q in [*prior_users,prompt]]:raise GatewayLifecycleError('Session transcript contains an unexpected sender or altered input')
             from .harness import capture_prefetch,capture_prefetch_provenance,capture_provider_traces,_recover_tool_results
             capture_prefetch(turn,context_trace,context_before);capture_prefetch_provenance(turn,self.env)
-            _recover_tool_results(turn,self.home/'state.db');capture_provider_traces(turn,self.env,provider_before)
+            _recover_tool_results(turn,self.home/'state.db');capture_provider_traces(turn,trace_env,provider_before)
             from dataclasses import asdict
             clock_evidence=None
             if clock_descriptor:
                 from .checkpoint_clock import audit_question
+                if self.env.get('PACBENCH_R2_LIVE_SCOPE'):
+                    clock_descriptor=json.loads((self.observation_clock.folder/'questions'/(clock_descriptor['nonce']+'.json')).read_text())
+                    question_at=clock_descriptor['at']
                 clock_evidence=audit_question(self.observation_clock.folder,clock_descriptor,turn,self.witness)
                 current=json.loads((self.home/'reuse-observer.json').read_text()).get('application_clock',{})
                 if (current.get('nonce')!=clock_descriptor['nonce'] or
@@ -311,25 +405,53 @@ class PersistentGateway:
                 'started_at':started,'answer_ready_at':datetime.now(timezone.utc).isoformat(),
                 'answer_ready_latency_s':time.monotonic()-start,'native_stream':proc.stdout,
                 'context_isolation':provenance,'observation':observation,'native_turn':asdict(turn),
+                'observation_native_startup':startup,
                 'answer_visible_records':visible,'pins':self.pins,'config_sha256':self.config_sha256,
                 'observation_clock':clock_evidence,
                 'retention_credit':'ungraded experimental lifecycle condition'})
             ready=time.monotonic()
             # Native supported close. This RPC deliberately does NOT prove drain.
-            code=('import asyncio,sys;from hermes_cli.gateway_client import connect_gateway;'
-                  '\nasync def main():\n async with connect_gateway() as c:\n'
-                  '  s=await c.rpc("session.resume",session_id=sys.argv[1]);'
-                  '\n  await c.rpc("session.detach",session_id=sys.argv[1],subscription_id=s["subscription_id"],end_reason="cli_close")'
-                  '\nasyncio.run(main())')
+            code=NATIVE_CHAT_CLOSE
             preclose=None
             if self.preclose_condition:
                 from .gateway.preclose import drain_then_close
                 preclose=drain_then_close(self,turn,folder,clock_evidence)
             else:
-                closed=subprocess.run([str(self.python),'-c',code,turn.session_id],env=self.env,cwd=self.cwd,
+                # Native Cognee can still finish a cache write while ending the
+                # session. Keep the close RPC inside its audited cleanup window.
+                timeout_arg=[str(self.cleanup_timeout - 30)] if self.provider=='cognee' else []
+                closed=subprocess.run([str(self.python),'-c',code,turn.session_id,*timeout_arg],env=self.env,cwd=self.cwd,
                     capture_output=True,text=True,timeout=self.cleanup_timeout)
-                if closed.returncode:raise GatewayLifecycleError('Native close failed')
+                if closed.returncode:
+                    last=closed.stderr.splitlines()[-1:] or ['']
+                    import re
+                    error_type=re.match(r'^[A-Za-z_][A-Za-z_0-9.]+(?=:|$)',last[0])
+                    atomic(folder/'native-close-error.json',{'returncode':closed.returncode,
+                           'error_type':error_type.group() if error_type else None})
+                    raise GatewayLifecycleError('Native close failed')
             drain=self.fence(turn.session_id)
+            if self.provider=='openviking' and not any(p.get('endpoint')==observation['endpoint'] for s in drain['sessions'] if s['session_id']==turn.session_id for p in s['providers'] if p['name']=='openviking'):
+                raise GatewayLifecycleError('Native OpenViking observation endpoint was not used')
+            if self.provider=='honcho':
+                from provider_adapters.honcho_checkpoint import verify_turn
+                drain['native_honcho_writes']=verify_turn(observation,turn,drain)
+            if self.provider=='cognee':
+                from provider_adapters.cognee_checkpoint import verify_turn
+                drain['native_cognee_writes']=verify_turn(observation,turn,drain)
+            if self.provider=='hindsight':
+                if not any(p.get('bank')==observation['bank'] and p.get('endpoint')==observation['endpoint']
+                           for s in drain['sessions'] if s['session_id']==turn.session_id
+                           for p in s['providers'] if p['name']=='hindsight'):
+                    raise GatewayLifecycleError('Native Hindsight observation bank was not used')
+                from .hindsight_checkpoint import settled
+                drain['native_bank_operations']=settled(observation['endpoint'],observation['bank'])
+            if self.provider=='supermemory':
+                if not any(p.get('namespace')==observation['namespace'] and p.get('endpoint')==observation['endpoint']
+                           for s in drain['sessions'] if s['session_id']==turn.session_id
+                           for p in s['providers'] if p['name']=='supermemory'):
+                    raise GatewayLifecycleError('Native Supermemory observation store was not used')
+                from .supermemory_checkpoint import settled
+                drain['native_document_statuses']=settled(observation['endpoint'],self.env['SUPERMEMORY_API_KEY'],observation['namespace'])
             preclose_binding=({'path':str(folder/'preclose.json'),'sha256':hashlib.sha256((folder/'preclose.json').read_bytes()).hexdigest()} if preclose else None)
             atomic(folder/'cleanup.json',{'protocol':PROTOCOL,'state':'drained','post_answer_cleanup_s':time.monotonic()-ready,
                 'native_observation':drain,'preclose':preclose_binding})
@@ -363,6 +485,10 @@ class PersistentGateway:
                 atomic(folder/'interrupted-result.json',{'native_stream':decoded(exc.stdout),
                     'outcome':'unknown; native process may have accepted work','automatic_replay':False})
             evidence={'first_native_failure':getattr(self,'first_native_failure',None)}
+            if exc.__cause__ is not None:
+                cause=exc.__cause__
+                evidence['cause']={'type':type(cause).__name__,'errno':getattr(cause,'errno',None)}
+                if isinstance(cause,GatewayLifecycleError):evidence['cause']['reason']=str(cause)[:260]
             try:
                 latest=json.loads((self.home/'reuse-observer.json').read_text())
                 if (latest.get('protocol')!=PROTOCOL or latest.get('pid')!=self.witness['pid'] or

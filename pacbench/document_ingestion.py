@@ -99,7 +99,8 @@ def document_text(batch, collected_at, *, version=VERSION):
     return '\n'.join(lines)+'\n'
 
 
-def prepare_sources(output, messages, timezone, *, native_fixtures=True):
+def prepare_sources(output, messages, timezone, *, native_fixtures=True, membership_condition=None,
+                    observed_email_headers_only=False):
     from .imessage_fixture import append_messages
     from .email_fixture import append_emails
     batches=daily_batches(messages,timezone)
@@ -121,17 +122,17 @@ def prepare_sources(output, messages, timezone, *, native_fixtures=True):
                 for src in previous.glob('chat.*'):
                     shutil.copyfile(src,root/src.name)
             fixture=append_messages(root/'chat.db',imessages,contacts=names,
-                membership_condition=os.environ.get('PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION') or None)
+                membership_condition=membership_condition or os.environ.get('PACBENCH_IMESSAGE_MEMBERSHIP_CONDITION') or None)
             previous=root
         elif previous:
             for src in previous.glob('chat.*'):
                 shutil.copyfile(src,root/src.name)
         emails=[m for m in batch if m['channel']=='email']
         mailbox=None
-        if emails and native_fixtures:
+        if native_fixtures and (emails or observed_email_headers_only):
             if previous_mail:
                 shutil.copyfile(previous_mail/'mailbox.json',root/'mailbox.json')
-            mailbox=append_emails(root/'mailbox.json',emails)
+            mailbox=append_emails(root/'mailbox.json',emails,observed_headers_only=observed_email_headers_only)
             previous_mail=root
         # Freeze the actual source format and availability separately from grading.
         save(root/'source.json',{'version':VERSION,'at':at,'source_ids':[m['source_id'] for m in batch],

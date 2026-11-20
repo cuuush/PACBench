@@ -43,6 +43,9 @@ interrupted service.
 
 ## How it works
 
+The [conversational workflow guide](docs/pizza-week-workflow.md) documents
+offline conformance and the durable controller shared with Pizza Day.
+
 1. **Author a scenario.** A JSON spec describes people, channels, scenes and
    natural questions. Scenes can supply exact messages or ask a writer to generate
    a conversation. Day, week and month scenarios use the same format.

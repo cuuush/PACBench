@@ -296,3 +296,15 @@ def test_completed_enrollment_can_be_reused_only_after_native_revalidation(tmp_p
     state['memberships'][0]['left_at']=AFTER
     with pytest.raises(enrollment.EnrollmentError):enrollment.enroll_source(source,root)
     assert len(calls)==1
+
+
+def test_additive_cross_batch_roster_is_opt_in_and_rejects_removal():
+    first=enrollment.source_plans([message()],HOST)[0]
+    previous={first['session_id']:first['participants']}
+    added={**first,'participants':sorted([*first['participants'],'Nora'])}
+    with pytest.raises(enrollment.EnrollmentError):
+        enrollment.validate_roster_continuity([added],previous)
+    changed=enrollment.validate_roster_continuity([added],previous,additive=True)
+    assert 'Nora' in changed[first['session_id']]
+    with pytest.raises(enrollment.EnrollmentError):
+        enrollment.validate_roster_continuity([first],changed,additive=True)

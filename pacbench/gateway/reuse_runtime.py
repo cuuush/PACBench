@@ -34,7 +34,12 @@ def provider_state(provider):
     backend=provider._backend
     loop_thread=getattr(backend,'_thread',None)
     deferred=provider._deferred_backend_close
-    return {'name':name,'unfinished_writes':unfinished,
+    workflow = {}
+    if os.environ.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2':
+        import sys
+        native = sys.modules[type(provider).__module__]
+        workflow['native_dialog_id'] = native._scoped_session_id(provider._profile_id,provider._session_id)
+    return {**workflow,'name':name,'unfinished_writes':unfinished,
         'write_enabled':provider._write_enabled,'shutdown_started':provider._shutdown_started,
         'writer_alive':bool(writer and writer.is_alive()),'deferred_backend_close':deferred,
         'backend_attached':backend is not None,'backend_loop_alive':bool(loop_thread and loop_thread.is_alive()),
@@ -44,6 +49,10 @@ def provider_state(provider):
 
 def install(home):
     from agent.memory_manager import MemoryManager
+    if os.environ.get('PACBENCH_REUSE_CLOCK_STATE'):
+        # The native CLI temporarily filters sys.path during bootstrap. Resolve
+        # the clock before starting the concurrent observer and CLI entry point.
+        from hermes_time import now as application_now
     original_init=MemoryManager.initialize_all;original_shutdown=MemoryManager.shutdown_all
     original_submit=MemoryManager._submit_background;original_sync=MemoryManager.sync_all
     rows={};lock=threading.RLock();path=home/'reuse-observer.json';failures=set()
@@ -86,8 +95,7 @@ def install(home):
                 'native_memory_threads':[t.name for t in threads if t.name.startswith(('reme-memory-','reme-embedded-','mem0-','mem-sync','memory-prefetch-'))]}
             if os.environ.get('PACBENCH_REUSE_CLOCK_STATE'):
                 from pacbench.checkpoint_clock import benchmark_env,descriptor
-                from hermes_time import now
-                value['application_clock']={'now':now().isoformat(),'declared_at':benchmark_env('PACBENCH_NOW')}
+                value['application_clock']={'now':application_now().isoformat(),'declared_at':benchmark_env('PACBENCH_NOW')}
                 if Path(os.environ['PACBENCH_REUSE_CLOCK_STATE']).exists():
                     value['application_clock']['nonce']=descriptor(validate_clock=False)['nonce']
             raw=(json.dumps(value,sort_keys=True)+'\n').encode()

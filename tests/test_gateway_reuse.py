@@ -15,6 +15,32 @@ ROOT=Path(__file__).resolve().parents[1]
 PYTHON=ROOT/'vendor/venv-hermes-isolated/bin/python'
 
 
+def test_native_child_scan_survives_a_process_exiting_between_list_and_read(monkeypatch):
+    from pacbench import gateway_reuse
+
+    class Process:
+        def __init__(self, pid, stat):
+            self.name = str(pid)
+            self.stat = stat
+
+        def __truediv__(self, name):
+            assert name == 'stat'
+            return self
+
+        def read_text(self):
+            if self.stat is None:
+                raise ProcessLookupError(3, 'No such process')
+            return self.stat
+
+    class Proc:
+        def iterdir(self):
+            return iter([Process(20, None), Process(21, '21 (worker) S 10'),
+                         Process(22, '22 (exited) Z 10'), Process(23, '23 (unrelated) S 9')])
+
+    monkeypatch.setattr(gateway_reuse, 'Path', lambda _: Proc())
+    assert gateway_reuse.native_children(10) == [21]
+
+
 @pytest.mark.parametrize('clock',[{'PACBENCH_PYTHON_CLOCK_FILE':'/clock'}, {'LD_PRELOAD':'/clock.so'}, {'FAKETIME':'yesterday'}])
 def test_old_clock_condition_cannot_be_relabelled_as_persistent(tmp_path,clock):
     with pytest.raises(GatewayLifecycleError,match='new versioned'):
@@ -37,7 +63,7 @@ class LocalNativeFixture:
     The ReMe provider itself, its queue, locks, writer and HTTP backend are real.
     The storage handler is synthetic: this does not test native LLM extraction.
     """
-    def __init__(self,workspace):
+    def __init__(self,workspace, *, on_driver_request=None):
         self.workspace=workspace;workspace.mkdir(exist_ok=True);self.requests=[];self.entered=threading.Event();self.release=threading.Event()
         self.model_entered=threading.Event();self.model_release=threading.Event();self.model_release.set()
         fixture=self
@@ -53,8 +79,10 @@ class LocalNativeFixture:
                 if self.path.endswith('/chat/completions'):
                     fixture.model_entered.set();fixture.model_release.wait(10)
                     if body.get('stream'):
-                        events=[{'id':'offline-only','object':'chat.completion.chunk','model':'offline-model','choices':[{'index':0,'delta':{'role':'assistant','content':'Synthetic answer.'},'finish_reason':None}]},
-                            {'id':'offline-only','object':'chat.completion.chunk','model':'offline-model','choices':[{'index':0,'delta':{},'finish_reason':'stop'}],'usage':{'prompt_tokens':10,'completion_tokens':3,'total_tokens':13}}]
+                        tool = on_driver_request(body) if on_driver_request is not None else None
+                        delta = {'role':'assistant','tool_calls':[tool]} if tool else {'role':'assistant','content':'Synthetic answer.'}
+                        events=[{'id':'offline-only','object':'chat.completion.chunk','model':'offline-model','choices':[{'index':0,'delta':delta,'finish_reason':None}]},
+                            {'id':'offline-only','object':'chat.completion.chunk','model':'offline-model','choices':[{'index':0,'delta':{},'finish_reason':'tool_calls' if tool else 'stop'}],'usage':{'prompt_tokens':10,'completion_tokens':3,'total_tokens':13}}]
                         raw=(''.join('data: '+json.dumps(e)+'\n\n' for e in events)+'data: [DONE]\n\n').encode()
                         self.send_response(200);self.send_header('Content-Type','text/event-stream');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
                     else:self.reply({'id':'offline-only','model':'offline-model','choices':[{'index':0,'message':{'role':'assistant','content':fixture.completion_reply(body) if hasattr(fixture,'completion_reply') else '{"facts":[]}'},'finish_reason':'stop'}],'usage':{'prompt_tokens':10,'completion_tokens':3,'total_tokens':13}})

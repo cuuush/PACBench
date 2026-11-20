@@ -192,7 +192,7 @@ def snapshot(root, ids=(), observer='hermes'):
         'DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'}}
     proc = subprocess.run(['docker', '--host=unix:///var/run/docker.sock', 'exec',
         config['container'], 'psql', '-U', 'postgres', '-d', 'postgres',
-        '-X', '-t', '-A', '-c', sql], env=docker_env, capture_output=True, text=True, timeout=15)
+        '-X', '-t', '-A', '-c', sql], env=docker_env, capture_output=True, text=True, timeout=90)
     if proc.returncode:
         raise RuntimeError('Native simulated-clock queue telemetry unavailable')
     return json.loads(proc.stdout)

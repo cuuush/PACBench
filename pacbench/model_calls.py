@@ -110,6 +110,13 @@ class ModelOutput:
     request_sha: str = ""
 
 
+def captured_attempt(capture):
+    budget, ident = capture.receipt['budget'], capture.receipt['id']
+    if hasattr(budget, 'get_attempt'):
+        return budget.get_attempt(ident)
+    return next((row for row in budget.snapshot() if row['id']==ident), None)
+
+
 class ModelClient:
     def __init__(self, *, key: str, model: str, record_dir: Path,
                  temperature: float = 0.0,
@@ -218,9 +225,10 @@ class ModelClient:
                                 raise ValueError('Direct judge stream has no accounting receipt')
                             if capture is not None:
                                 capture.finish()
-                                accounting_receipt=next(row for row in capture.receipt['budget'].snapshot()
-                                                        if row['id']==capture.receipt['id'])
-                                if accounting_receipt['state']!='settled':
+                                accounting_receipt=captured_attempt(capture)
+                                if accounting_receipt is None:
+                                    raise ValueError('Completed judge request has no recorded receipt')
+                                if accounting_receipt['state']!='settled' and not (os.environ.get('PACBENCH_R2_LIVE_SCOPE') or os.environ.get('PACBENCH_WORKFLOW_SCOPE')):
                                     raise ValueError('Judge stream cost and token usage did not settle')
                         else:
                             decoded = json.loads(response_body)
@@ -265,8 +273,7 @@ class ModelClient:
             if accounting_receipt is None and response is not None:
                 capture=getattr(response,'capture',None)
                 if capture is not None:
-                    accounting_receipt=next((row for row in capture.receipt['budget'].snapshot()
-                                              if row['id']==capture.receipt['id']),None)
+                    accounting_receipt=captured_attempt(capture)
             record = {"created_at": datetime.now(timezone.utc).isoformat(),
                       "client_wall_deadline_s": self.timeout_s,
                       "client_max_attempts": self.max_attempts,
@@ -278,6 +285,17 @@ class ModelClient:
                       "cost_status": ("reported" if (raw or {}).get("usage", {}).get("cost_usd") is not None
                                       else "not reported by API"),
                       "error": error, "error_response": error_response}
+            capture = getattr(response, 'capture', None)
+            if capture and accounting_receipt and accounting_receipt.get('accounting_role') == 'judge':
+                routed = json.loads(capture.receipt['body'])
+                digest = hashlib.sha256(json.dumps(routed, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                if capture.receipt['id'] == accounting_receipt['id'] and digest == accounting_receipt.get('request_sha256'):
+                    # Request identity and routing can be known even when price is missing.
+                    record['judge_transport'] = {'id':capture.receipt['id'], 'request':routed,
+                                                 'request_sha256':digest, 'endpoint':accounting_receipt['endpoint']}
+                    checkpoint = (accounting_receipt.get('workflow_slot') or {}).get('checkpoint_effect')
+                    if checkpoint is not None:
+                        record['judge_transport']['checkpoint_effect'] = checkpoint
             if accounting_receipt is not None and accounting_receipt['state']=='settled':
                 record['cost_usd']=float(accounting_receipt.get('settled_charge_usd',accounting_receipt.get('accounted')))
                 record['cost_status']='reported; retained in the linked accounting receipt'

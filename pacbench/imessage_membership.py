@@ -11,6 +11,7 @@ extracts membership from notices. Bodyless notices are not dialogue.
 """
 from __future__ import annotations
 
+from collections import Counter
 from copy import deepcopy
 import hashlib
 import json
@@ -30,6 +31,11 @@ READER_GROUP_ACTION_SHA256 = '3c88d0b18b25102545d34f6cd0d8322d37993273d1cc6eb816
 
 def _fingerprint(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def _join_guid(thread, boundary_source_id, name):
+    key = f'pacbench-source-join:{thread}:{boundary_source_id}:{name}'
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, key)).upper()
 
 
 def _contacts(path, contacts):
@@ -122,7 +128,7 @@ def append_temporal_messages(path, messages, *, contacts=(), condition):
             for hid in members:conn.execute('INSERT OR IGNORE INTO chat_handle_join VALUES(?,?)',(cid,hid))
             ns=apple_ns(m['written_at'])
             for name in added:
-                guid=str(uuid.uuid5(uuid.NAMESPACE_URL,'pacbench-source-join:'+m['thread']+':'+m['source_id']+':'+name)).upper()
+                guid=_join_guid(m['thread'], m['source_id'], name)
                 rid=conn.execute('INSERT INTO message(guid,text,handle_id,service,account,account_guid,date,is_from_me,is_sent,item_type,other_handle,group_action_type,cache_roomnames,is_finished,is_prepared) VALUES(?,NULL,NULL,?,?,?,?,0,0,1,?,0,?,1,1)',
                     (guid,'iMessage',owner['handle'],'iMessage:'+owner['handle'],ns,handle(name),identifier)).lastrowid
                 conn.execute('INSERT INTO chat_message_join VALUES(?,?,?)',(cid,rid,ns));notices+=1
@@ -170,15 +176,37 @@ def native_control_read_witness(source, prior_rowid):
         raise ValueError('Native fixture artifact bindings missing')
     for name,digest in state.get('artifact_sha256',{}).items():
         if hashlib.sha256((source/name).read_bytes()).hexdigest()!=digest:raise ValueError('Native fixture artifact changed')
-    ids={m['source_id'] for m in json.loads((source/'messages.json').read_text())}
-    expected=[]
+    batch = {m['source_id']: m for m in json.loads((source / 'messages.json').read_text())}
+    expected = Counter()
     for thread in state['threads'].values():
         for frame in thread['history'][1:]:
-            if frame['boundary_source_id'] in ids:
-                expected.extend((apple_ns(frame['at']),identity(name)['handle']) for name in frame['added'])
-    with sqlite3.connect(f'file:{source/"chat.db"}?mode=ro',uri=True) as conn:
-        rows=conn.execute('SELECT m.ROWID,m.date,h.id,m.text,m.handle_id,m.item_type,m.group_action_type FROM message m LEFT JOIN handle h ON h.ROWID=m.other_handle WHERE m.ROWID>? AND m.item_type!=0 ORDER BY m.ROWID',(prior_rowid,)).fetchall()
-    if ([(r[1],r[2]) for r in rows]!=expected or any(r[3] is not None or r[4] is not None or r[5:]!=(1,0) for r in rows)):
+            boundary = batch.get(frame['boundary_source_id'])
+            if boundary is None:
+                continue
+            chat = 'chat' + uuid.uuid5(uuid.NAMESPACE_URL, 'pacbench-source-thread:' + boundary['thread']).hex
+            guid = str(uuid.uuid5(uuid.NAMESPACE_URL, 'pacbench-source-message:' + boundary['source_id'])).upper()
+            for name in frame['added']:
+                notice = _join_guid(boundary['thread'], boundary['source_id'], name)
+                expected[(notice, apple_ns(boundary['written_at']), identity(name)['handle'], chat, guid)] += 1
+
+    # Several chats can gain members at the same instant. Bind each notice to
+    # the following dialogue in its own chat, independently of manifest order.
+    query = """
+        SELECT m.ROWID, m.guid, m.date, h.id, c.chat_identifier,
+               (SELECT b.guid FROM chat_message_join bj JOIN message b ON b.ROWID = bj.message_id
+                WHERE bj.chat_id = j.chat_id AND b.ROWID > m.ROWID AND b.item_type = 0
+                ORDER BY b.ROWID LIMIT 1),
+               m.text, m.handle_id, m.item_type, m.group_action_type, m.is_from_me
+        FROM message m
+        LEFT JOIN handle h ON h.ROWID = m.other_handle
+        LEFT JOIN chat_message_join j ON j.message_id = m.ROWID
+        LEFT JOIN chat c ON c.ROWID = j.chat_id
+        WHERE m.ROWID > ? AND m.item_type != 0 ORDER BY m.ROWID
+    """
+    with sqlite3.connect((source / 'chat.db').resolve().as_uri() + '?mode=ro', uri=True) as conn:
+        rows = conn.execute(query, (prior_rowid,)).fetchall()
+    if (Counter(row[1:6] for row in rows) != expected
+            or any(row[6:] != (None, None, 1, 0, 0) for row in rows)):
         raise ValueError('Unexpected native membership control rows; do not relax dialogue coverage')
     return {'protocol':CONDITION,'control_rows':len(rows),'control_rowids':[r[0] for r in rows],
         'scope':'Counted by native read cursor; bodyless, not archive dialogue or source facts'}

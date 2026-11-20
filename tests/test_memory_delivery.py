@@ -10,6 +10,8 @@ from pacbench.context_isolation import memory_delivery
     ('retained fact','different question\n\n<memory-context>retained fact</memory-context>','inconsistent'),
     ('retained fact',None,'inconsistent'),
     ('',None,'empty'),
+    ('','question\n\n<memory-context>different hook</memory-context>','inconsistent'),
+    ('retained fact','question\n\n<memory-context>different hook</memory-context>retained fact','inconsistent'),
 ])
 def test_saved_display_text_does_not_substitute_for_api_delivery(tmp_path,prefetch,sidecar,state):
     with sqlite3.connect(tmp_path/'state.db') as db:

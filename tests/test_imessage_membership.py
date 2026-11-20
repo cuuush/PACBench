@@ -129,3 +129,31 @@ def test_native_read_counter_distinguishes_verified_notice_from_dialogue(tmp_pat
     assert witness['control_rows']==1 and witness['protocol']==CONDITION
     with sqlite3.connect(source/'chat.db') as db:db.execute('UPDATE message SET text="Invented source" WHERE item_type=1')
     with pytest.raises(ValueError,match='artifact changed'):native_control_read_witness(source,1)
+
+
+def test_read_witness_binds_interleaved_joins_to_their_source_chats(tmp_path):
+    from pacbench.imessage_membership import native_control_read_witness
+
+    monday, thursday, _ = rows()
+    first = {**monday, 'source_id': 'first', 'thread': 'first'}
+    second = {**monday, 'source_id': 'second', 'thread': 'second'}
+    path = tmp_path / 'chat.db'
+    append(path, [first, second])
+    joins = [
+        {**thursday, 'source_id': 'a', 'thread': 'second'},
+        {**thursday, 'source_id': 'b', 'thread': 'first'},
+    ]
+    append(path, joins)
+    (tmp_path / 'messages.json').write_text(json.dumps(joins))
+    assert native_control_read_witness(tmp_path, 2)['control_rowids'] == [3, 5]
+
+    # A fixture producer could publish a consistent file digest while wiring the
+    # two identical notices to the wrong chats.
+    with sqlite3.connect(path) as db:
+        db.execute('UPDATE chat_message_join SET chat_id=3-chat_id WHERE message_id IN (3,5)')
+    sidecar = path.with_suffix('.fixture.json')
+    manifest = json.loads(sidecar.read_text())
+    manifest['artifact_sha256'][path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    sidecar.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match='membership control rows'):
+        native_control_read_witness(tmp_path, 2)

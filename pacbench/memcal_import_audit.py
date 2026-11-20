@@ -5,7 +5,8 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime,parseaddr,getaddresses
 from pathlib import Path
 from types import SimpleNamespace
-from .email_fixture import MailboxServer,mail_address
+from .email_fixture import OBSERVED_HEADERS, MailboxServer, mail_address
+from .maildir_transport import email_server
 from .imessage_fixture import identity
 from .provider_versions import verify_memcal_source,memcal_source
 
@@ -25,9 +26,11 @@ def audit(component):
     native={(r['channel'],r['external_id']):r for r in archive}
     if len(native)!=len(archive):raise ValueError('Duplicate native archive identity')
     checks=[];mailboxes=sorted((component/'sources').glob('*/mailbox.json'));mailbox=mailboxes[-1]
-    fixture=json.loads(mailbox.read_text())['messages'];email_sources={m['source_id']:m for m in source if m['channel']=='email'}
+    snapshot=json.loads(mailbox.read_text());observed_headers=snapshot.get('header_condition')==OBSERVED_HEADERS
+    fixture=snapshot['messages'];email_sources={m['source_id']:m for m in source if m['channel']=='email'}
     if {r['source']['source_id'] for r in fixture}!=set(email_sources):raise ValueError('Mailbox omits source email')
-    with MailboxServer(mailbox) as server:
+    service=email_server(mailbox,root,verify_only=True) if observed_headers else MailboxServer(mailbox)
+    with service as server:
         secrets={'PROTON_BRIDGE_HOST':'127.0.0.1','PROTON_BRIDGE_PORT':str(server.port),'PROTON_BRIDGE_USER':server.user,'PROTON_BRIDGE_PASSWORD':server.password}
         cfg=SimpleNamespace(secret=lambda name,alias:secrets.get(name))
         with proton.Bridge(cfg) as bridge:
@@ -37,12 +40,25 @@ def audit(component):
                 expected=[r for r in fixture if r['folder']==folder]
                 if bridge.uids_since(0)!=[r['uid'] for r in expected]:raise ValueError('Native mailbox UID coverage differs')
                 for row in expected:
-                    m=row['source'];message=bridge.message(row['uid']);raw=proton.extract_text(message)
+                    m=email_sources[row['source']['source_id']]
+                    if row['source']!=m:
+                        raise ValueError('Mailbox source metadata differs from the daily frozen input')
+                    message=bridge.message(row['uid']);raw=proton.extract_text(message)
                     if raw.replace('\r\n','\n').strip()!=m['text'].strip():raise ValueError('Native reader did not receive complete email body')
                     if parsedate_to_datetime(message['Date'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Source email time changed')
                     if parseaddr(message['From'])[1]!=mail_address(m['sender']):raise ValueError('Source email author changed')
-                    recipients={addr for _,addr in getaddresses(message.get_all('To',[]))};wanted={mail_address(p) for p in m['structured']['participants'] if p!=m['sender']}
-                    if recipients!=wanted:raise ValueError('Source email recipients changed')
+                    if observed_headers:
+                        headers=m['structured'].get('email_headers',{})
+                        for header in ('To','Cc','References','In-Reply-To'):
+                            if message.get(header)!=headers.get(header):
+                                raise ValueError('Native email routing or reply headers differ from the observed source')
+                        transport_id=f"<{uuid.uuid5(uuid.NAMESPACE_URL,m['source_id'])}@mail.example.test>"
+                        if (str(message['Subject'])!=m['structured']['email_subject'] or
+                                message.get('Message-ID')!=headers.get('Message-ID',transport_id)):
+                            raise ValueError('Native email subject or identity changed')
+                    else:
+                        recipients={addr for _,addr in getaddresses(message.get_all('To',[]))};wanted={mail_address(p) for p in m['structured']['participants'] if p!=m['sender']}
+                        if recipients!=wanted:raise ValueError('Source email recipients changed')
                     key=('email',row['message_id'].strip('<>'));a=native[key];shaped,meta=proton._shape_body(raw,str(message['Subject']))
                     if shaped!=a['text'] or bool(a['from_me'])!=m['from_owner'] or datetime.fromisoformat(a['ts'])!=datetime.fromisoformat(m['written_at']):raise ValueError('Stored native email differs from stock reader output')
                     quotes=textclean.strip_quotes(raw)!=raw

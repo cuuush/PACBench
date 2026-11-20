@@ -153,6 +153,50 @@ def test_current_execution_serial_queue_is_separate_from_money(observed):
   second=waiting.result(timeout=2)
  assert second['id']!=r['id']
 
+
+def test_async_observational_queue_allows_active_request_to_settle(observed,monkeypatch):
+ import asyncio
+ import httpx
+ from pacbench import direct_http as hook
+ from pacbench.observational_receipts import ENV
+ b,_=observed
+ b.execution_queue_timeout_s=.3
+ monkeypatch.setenv(ENV,str(b.path))
+ monkeypatch.setenv('PACBENCH_DIRECT','1')
+ monkeypatch.setenv('PACBENCH_DIRECT_UPSTREAM_KEY','offline-key')
+ monkeypatch.setattr(hook,'live_budget',lambda **kw:b)
+ monkeypatch.setattr(httpx.Client,'send',httpx.Client.send)
+ monkeypatch.setattr(httpx.AsyncClient,'send',httpx.AsyncClient.send)
+ hook._install_httpx(httpx)
+
+ async def scenario():
+  active=asyncio.Event()
+  calls=[]
+  async def upstream(request):
+   prompt=json.loads(request.content)['messages'][0]['content']
+   calls.append(prompt)
+   if prompt=='first':
+    active.set()
+    await asyncio.sleep(.08)
+   payload=json.loads(response(b,'0.00001'))
+   payload['id']='gen-'+prompt
+   return httpx.Response(200,json=payload)
+  async with httpx.AsyncClient(transport=httpx.MockTransport(upstream)) as client:
+   async def request(prompt):
+    return await client.post('https://openrouter.ai/api/v1/chat/completions',
+      headers={'Authorization':'Bearer pbdirect-test-memory'},
+      json={'model':b.model,'messages':[{'role':'user','content':prompt}]})
+   async with asyncio.timeout(5), asyncio.TaskGroup() as group:
+    first=group.create_task(request('first'))
+    await active.wait()
+    second=group.create_task(request('second'))
+   assert [first.result().status_code, second.result().status_code]==[200,200]
+   assert calls==['first','second']
+
+ asyncio.run(scenario())
+ assert [r['state'] for r in b.snapshot() if r.get('accounting_mode')==MODE]==['settled','settled']
+
+
 def test_shared_pool_rate_limit_is_distinct_from_depletion(observed):
  b,_=observed
  # Use a judge project so its authenticated response body is retained privately.

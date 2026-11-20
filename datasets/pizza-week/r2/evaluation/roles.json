@@ -1,0 +1,74 @@
+{
+  "id": "roles",
+  "at": "2026-10-12T09:40:00-04:00",
+  "session": "roles-fresh",
+  "question": "What’s the plan for Rae’s concert—when, where, and who’s going?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The concert date is Sunday October 11.",
+      "evidence": [
+        "message-cc12595edab973fb502f8811"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The concert time is 8 pm.",
+      "evidence": [
+        "message-afca8dfe756fddf732c7b50d"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The concert venue is Foundry Theatre.",
+      "evidence": [
+        "message-afca8dfe756fddf732c7b50d"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The user’s concert attendance is unconfirmed.",
+      "evidence": [
+        "message-b5d0fba69b918e89fe8133af",
+        "message-65a016d30477625b09311e15"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "Devon’s concert attendance is conditional on his shift.",
+      "evidence": [
+        "message-9b1e8ca31d53c369a8b02c17",
+        "message-efa2dad726615c608765e796"
+      ]
+    },
+    {
+      "id": "fact-6",
+      "statement": "No confirmed companion for the user is recorded.",
+      "evidence": [
+        "message-b5d0fba69b918e89fe8133af",
+        "message-9b1e8ca31d53c369a8b02c17",
+        "message-65a016d30477625b09311e15",
+        "message-efa2dad726615c608765e796"
+      ]
+    }
+  ],
+  "original_contract_hash": "b40992ab67a3754a9f5d18987d12974c5f924ae76e1c1ad842ee947d00184db9",
+  "original_evidence_hash": "770b34b125cdb08f3153ff6c4268599e39e31532bec31a76e3a16144286f5383",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "b40992ab67a3754a9f5d18987d12974c5f924ae76e1c1ad842ee947d00184db9",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5",
+      "fact-6"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "cfe5d8efb4b5b7efa4839f890d26b981cd2ab978a04a74a46412617c893841c5"
+  }
+}

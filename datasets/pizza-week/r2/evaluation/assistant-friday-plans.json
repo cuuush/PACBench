@@ -1,0 +1,130 @@
+{
+  "id": "assistant-friday-plans",
+  "at": "2026-10-09T08:30:00-04:00",
+  "session": "assistant-friday-plans-fresh",
+  "expect": "The calendar for Friday includes the 9 am parcel-support call, 12:30 pm lunch with Maya at Mario's on Pine Street, and 6 pm pizza with Devon at Luigi's on 5th Street. Morgan is expected to arrive around 4 pm, which may be mentioned but is not a required outing; Morgan can let themself in. Do not treat the public North Hall pizza social as the user's plan.",
+  "question": "Am I doing anything today?",
+  "claims": [
+    {
+      "id": "call-date",
+      "statement": "The parcel-support call is scheduled for Friday, October 9, 2026.",
+      "evidence": [
+        "message-10275cfa9855a72b271413e2"
+      ]
+    },
+    {
+      "id": "call-time",
+      "statement": "The parcel-support call on Friday, October 9, is at 9 am.",
+      "evidence": [
+        "message-10275cfa9855a72b271413e2"
+      ]
+    },
+    {
+      "id": "lunch-date",
+      "statement": "Lunch with Maya is scheduled for Friday, October 9, 2026.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72",
+        "message-5a337fa38bda7dc3b087f1ad",
+        "message-70eaf4efec7abbe141b4813e",
+        "message-ab675ac72b9a466e09a4a91a",
+        "message-e7a2f911d8fa36506339f31c",
+        "message-a002577d0a7104788a02ccc2"
+      ]
+    },
+    {
+      "id": "lunch-time",
+      "statement": "Lunch with Maya on Friday, October 9, is at 12:30 pm.",
+      "evidence": [
+        "message-70eaf4efec7abbe141b4813e",
+        "message-ab675ac72b9a466e09a4a91a"
+      ]
+    },
+    {
+      "id": "lunch-attendees",
+      "statement": "The Friday, October 9 lunch is just the user and Maya.",
+      "evidence": [
+        "message-e7a2f911d8fa36506339f31c",
+        "message-a002577d0a7104788a02ccc2"
+      ]
+    },
+    {
+      "id": "lunch-venue",
+      "statement": "The Friday, October 9 lunch is at Mario’s.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72",
+        "message-5a337fa38bda7dc3b087f1ad"
+      ]
+    },
+    {
+      "id": "lunch-street",
+      "statement": "Mario’s, the venue for the Friday, October 9 lunch, is on Pine Street.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72"
+      ]
+    },
+    {
+      "id": "pizza-date",
+      "statement": "Pizza with Devon is scheduled for Friday, October 9, 2026.",
+      "evidence": [
+        "message-b557c3bb938054b11bc6e4d7",
+        "message-4180509c0f5fb703223f661d",
+        "message-13bb3e3cb59c783d95abfd24"
+      ]
+    },
+    {
+      "id": "pizza-time",
+      "statement": "Pizza with Devon on Friday, October 9, is at 6 pm.",
+      "evidence": [
+        "message-b557c3bb938054b11bc6e4d7",
+        "message-4180509c0f5fb703223f661d"
+      ]
+    },
+    {
+      "id": "pizza-attendees",
+      "statement": "The Friday, October 9 pizza plan is just the user and Devon.",
+      "evidence": [
+        "message-4180509c0f5fb703223f661d",
+        "message-13bb3e3cb59c783d95abfd24"
+      ]
+    },
+    {
+      "id": "pizza-venue",
+      "statement": "The Friday, October 9 pizza plan is at Luigi’s.",
+      "evidence": [
+        "message-b557c3bb938054b11bc6e4d7"
+      ]
+    },
+    {
+      "id": "pizza-street",
+      "statement": "Luigi’s, the venue for the Friday, October 9 pizza plan, is on 5th Street.",
+      "evidence": [
+        "message-b557c3bb938054b11bc6e4d7"
+      ]
+    }
+  ],
+  "original_contract_hash": "f5d214a880bc8039e3a326019caa0ede1543a5265ca14d8dc8a9a1f2e7aece09",
+  "original_evidence_hash": "3e7e18009b9dcf7c878332ba84a44cf2abee4c81c8d5979b98b57f6c6ae4ae77",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "f5d214a880bc8039e3a326019caa0ede1543a5265ca14d8dc8a9a1f2e7aece09",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "call-date",
+      "call-time",
+      "lunch-date",
+      "lunch-time",
+      "lunch-attendees",
+      "lunch-venue",
+      "lunch-street",
+      "pizza-date",
+      "pizza-time",
+      "pizza-attendees",
+      "pizza-venue",
+      "pizza-street"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "255f590ebf69f023e5cc9245644c219065d364134330f9468b7f5fc08383414b"
+  }
+}

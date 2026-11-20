@@ -1,0 +1,87 @@
+{
+  "id": "lunch-history",
+  "at": "2026-10-12T09:10:00-04:00",
+  "session": "lunch-history-fresh",
+  "question": "How did the time and place of the October 9 lunch change?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The original lunch time was 1 pm.",
+      "evidence": [
+        "message-84165f4026ea26e5089b1074"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The intermediate lunch time was noon.",
+      "evidence": [
+        "message-2bf558cd8ee5b5204f8392a2",
+        "message-f48f97255f44fd842cf8d6d6",
+        "message-24862b467f0edde9f259877e",
+        "message-a46c8303f4280a825254fd9f",
+        "message-c60a8c041039c2e1b72a0e76"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The final lunch time was 12:30 pm.",
+      "evidence": [
+        "message-70eaf4efec7abbe141b4813e",
+        "message-ab675ac72b9a466e09a4a91a",
+        "message-ba48e22a9602fd8dd1304ede",
+        "message-7e3645a9f4db36a81909dab0"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The original lunch venue was Rosa’s.",
+      "evidence": [
+        "message-84165f4026ea26e5089b1074"
+      ]
+    },
+    {
+      "id": "fact-5",
+      "statement": "The original lunch venue was on Oak Street.",
+      "evidence": [
+        "message-84165f4026ea26e5089b1074"
+      ]
+    },
+    {
+      "id": "fact-6",
+      "statement": "The final lunch venue was Mario’s.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72",
+        "message-5a337fa38bda7dc3b087f1ad",
+        "message-d103f8331eb75429b9764195",
+        "message-5d6fd7067db71a7b2c6ed0a6"
+      ]
+    },
+    {
+      "id": "fact-7",
+      "statement": "The final lunch venue was on Pine Street.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72"
+      ]
+    }
+  ],
+  "original_contract_hash": "42cf43c87fbce827568b6e830a3d1116f7e9e1b6af14bc2efc03dd35a485ea85",
+  "original_evidence_hash": "34b3788c2572f01d566c09d813e695b1fcbca2433887704d79bd38a3015ea0a7",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "42cf43c87fbce827568b6e830a3d1116f7e9e1b6af14bc2efc03dd35a485ea85",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4",
+      "fact-5",
+      "fact-6",
+      "fact-7"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "30aaecf9b405de388e291cc303c7167bc12eea06d404bfb5c3b2d857c1c63894"
+  }
+}

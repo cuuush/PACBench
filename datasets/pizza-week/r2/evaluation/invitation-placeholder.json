@@ -1,0 +1,37 @@
+{
+  "id": "invitation-placeholder",
+  "at": "2026-10-07T10:10:00-04:00",
+  "session": "invitation-placeholder-fresh",
+  "question": "What’s the status of Rae’s concert invitation, and where is it?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "No acceptance or decline by the user is recorded.",
+      "evidence": [
+        "message-cc12595edab973fb502f8811"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The concert venue has not been supplied.",
+      "evidence": [
+        "message-cc12595edab973fb502f8811"
+      ]
+    }
+  ],
+  "original_contract_hash": "8737f6c1bba53c7cf92afc2a98c3826a27bd3ba5ed4a48526f6243ac04932209",
+  "original_evidence_hash": "717386f4732c88eca279058e856438ff61f1ce2ddc7dca91fe5825dc4d524ecc",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "8737f6c1bba53c7cf92afc2a98c3826a27bd3ba5ed4a48526f6243ac04932209",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "52eb7c1bb1e564057932ca55df8bdc8e90788da5729999f31c31709fc065aaff"
+  }
+}

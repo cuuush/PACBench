@@ -1,0 +1,47 @@
+{
+  "id": "lunch-refreshed",
+  "at": "2026-10-07T09:10:00-04:00",
+  "session": "lunch-continuity",
+  "question": "Where and when is Friday lunch with Maya now?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The Friday lunch time is noon.",
+      "evidence": [
+        "message-2bf558cd8ee5b5204f8392a2",
+        "message-f48f97255f44fd842cf8d6d6"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The Friday lunch venue is Mario’s.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72",
+        "message-5a337fa38bda7dc3b087f1ad"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The Friday lunch venue is on Pine Street.",
+      "evidence": [
+        "message-ed996546e0d2b3eed33e0e72"
+      ]
+    }
+  ],
+  "original_contract_hash": "cdc28b4bd0819f2aa695b9e714e119b8051b160a36fc62969c2af964b5ae0ba2",
+  "original_evidence_hash": "0f0589bb392321444e7625b7097af23ed46d978cc9367af76aec15bc19d06c39",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "cdc28b4bd0819f2aa695b9e714e119b8051b160a36fc62969c2af964b5ae0ba2",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "71a659cce7d0b22d2898de0d4314cff51cc8f8cd735e682d1ea333e5ba6c296d"
+  }
+}

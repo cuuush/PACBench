@@ -1,0 +1,150 @@
+{
+  "version": "pizza-week-conversation-v2",
+  "dataset": "datasets/pizza-week/r2",
+  "timezone": "America/New_York",
+  "availability_basis": "source-arrival-or-later-access",
+  "nightly_cutoff": "21:00",
+  "judge": "semantic-judge-context-v4",
+  "state": "continuing-account",
+  "session_groups": {
+    "maya-lunch": [
+      "rsvp-before",
+      "lunch-snapshot",
+      "rsvp-after",
+      "lunch-refreshed",
+      "withdrawal"
+    ],
+    "wednesday-studio": [
+      "cancellation-after",
+      "attendance-unknown"
+    ],
+    "thursday-weekend": [
+      "draft-after",
+      "assistant-weekend-before"
+    ],
+    "friday-morning": [
+      "assistant-friday-plans",
+      "assistant-next-pizza"
+    ],
+    "friday-day-by-day": [
+      "game-reference",
+      "friday-lunch-time",
+      "saturday-dinner-time",
+      "assistant-weekend-after",
+      "weekend-correction",
+      "weekend-uptake"
+    ],
+    "saturday-plans": [
+      "visit-mid",
+      "assistant-bored"
+    ],
+    "monday-lunch": [
+      "pizza-final",
+      "lunch-history"
+    ],
+    "monday-ben": [
+      "ben-final",
+      "ben-mail-separate",
+      "ben-correction",
+      "ben-uptake"
+    ],
+    "monday-alex": [
+      "upcoming-small",
+      "namesakes"
+    ]
+  },
+  "isolated_controls": [
+    "lunch-fresh"
+  ],
+  "additional_turns": [
+    {
+      "id": "friday-lunch-time",
+      "at": "2026-10-09T09:05:00-04:00",
+      "prompt": "And Friday, what time is lunch?",
+      "measure": "conversational-followup",
+      "after": "game-reference",
+      "source_claims": {
+        "question": "assistant-friday-plans",
+        "ids": [
+          "lunch-time"
+        ]
+      }
+    },
+    {
+      "id": "saturday-dinner-time",
+      "at": "2026-10-09T09:10:00-04:00",
+      "prompt": "What about Saturday evening? When and where am I having dinner?",
+      "measure": "conversational-followup",
+      "after": "friday-lunch-time",
+      "source_claims": {
+        "question": "assistant-weekend-after",
+        "ids": [
+          "dinner-time",
+          "dinner-venue"
+        ]
+      }
+    },
+    {
+      "id": "weekend-correction",
+      "at": "2026-10-09T09:18:00-04:00",
+      "prompt": "Actually, I should have been more specific. When I ask for my weekend rundown, I mean Saturday only. Call that my porch list.",
+      "measure": "user-correction",
+      "after": "assistant-weekend-after"
+    },
+    {
+      "id": "weekend-uptake",
+      "at": "2026-10-09T09:20:00-04:00",
+      "prompt": "What days should you cover in that list for me?",
+      "measure": "correction-uptake",
+      "after": "weekend-correction",
+      "user_claim": {
+        "id": "scope",
+        "statement": "The user's list covers Saturday only.",
+        "source_turn": "weekend-correction"
+      }
+    },
+    {
+      "id": "weekend-persistence",
+      "at": "2026-10-10T09:25:00-04:00",
+      "prompt": "Remind me what I meant by my porch list?",
+      "measure": "correction-persistence",
+      "after": "weekend-uptake",
+      "user_claim": {
+        "id": "scope",
+        "statement": "The user's porch list covers Saturday only.",
+        "source_turn": "weekend-correction"
+      }
+    },
+    {
+      "id": "ben-correction",
+      "at": "2026-10-12T09:33:00-04:00",
+      "prompt": "Sorry, I meant how to file my reminders. Use ‘outings’ for the dinner reminder and ‘home’ for the errand.",
+      "measure": "user-correction",
+      "after": "ben-mail-separate"
+    },
+    {
+      "id": "ben-uptake",
+      "at": "2026-10-12T09:35:00-04:00",
+      "prompt": "Which heading goes on the dinner reminder, then?",
+      "measure": "correction-uptake",
+      "after": "ben-correction",
+      "user_claim": {
+        "id": "heading",
+        "statement": "The dinner reminder belongs under outings.",
+        "source_turn": "ben-correction"
+      }
+    },
+    {
+      "id": "ben-persistence",
+      "at": "2026-10-12T12:00:00-04:00",
+      "prompt": "Where did I say I wanted to file the reminder for that errand with Ben?",
+      "measure": "correction-persistence",
+      "after": "ben-uptake",
+      "user_claim": {
+        "id": "heading",
+        "statement": "The errand reminder belongs under home.",
+        "source_turn": "ben-correction"
+      }
+    }
+  ]
+}

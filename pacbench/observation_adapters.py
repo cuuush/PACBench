@@ -82,6 +82,7 @@ def switch_alias(alias,target,drain):
 def checkpoint_plan(resolved,schedule,provider,*,contracts=None):
     """Keep every exact question time; restart at a changed ingestion boundary."""
     from .document_ingestion import ready_sources
+    from .semantic_contract import EvaluationContract
     if provider not in {'memcal','mem0','reme'}:raise ValueError('Unknown staged provider')
     questions=sorted(resolved['checks'],key=lambda q:datetime.fromisoformat(q['at']))
     if len({q['id'] for q in questions})!=len(questions):raise ValueError('Duplicate question identity')
@@ -96,7 +97,10 @@ def checkpoint_plan(resolved,schedule,provider,*,contracts=None):
             groups.append({'id':len(groups)+1,'ready_batch_ids':list(key[0]),'local_date':key[1],
                 'restart_before_ingest_or_clock_boundary':True,'questions':[]});last_key=key
         contract=contracts[q['id']] if contracts is not None else None
-        if contract is not None:
+        if isinstance(contract, EvaluationContract):
+            contract = {'question': contract.question, 'contract_hash': contract.contract_hash,
+                        'claims': contract.claims}
+        elif contract is not None:
             body={k:v for k,v in contract.items() if k!='contract_hash'}
             if (hashlib.sha256(json.dumps(body,sort_keys=True,ensure_ascii=False).encode()).hexdigest()!=contract['contract_hash'] or
                 contract['question_at']!=q['at']):raise ValueError('Frozen contract hash or question time differs')
@@ -109,7 +113,7 @@ def checkpoint_plan(resolved,schedule,provider,*,contracts=None):
             'contract_hash':contract['contract_hash'] if contract else None,
             'criteria_count':len(contract['claims']) if contract else None,'authored_fact_count':len(q['facts'])})
     return {'protocol':'chronological-observation-checkpoints-v1','provider':provider,'groups':groups,
-        'questions':len(questions),'criteria':sum(len(c['claims']) for c in contracts.values()) if contracts is not None else None,
+        'questions':len(questions),'criteria':sum(q['criteria_count'] for g in groups for q in g['questions']) if contracts is not None else None,
         'authored_facts':sum(len(q['facts']) for q in questions),
         'times_collapsed':False,'automatic_replay':False,'live_qualified':False,
         'required_gates':['checkpoint native readiness and quiescence','native isolated observation binding',

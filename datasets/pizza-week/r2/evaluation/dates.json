@@ -1,0 +1,47 @@
+{
+  "id": "dates",
+  "at": "2026-10-12T10:20:00-04:00",
+  "session": "dates-fresh",
+  "question": "When is my next interview-prep call with Jen, and when was her workshop certificate from?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The interview-prep call date is Thursday October 15.",
+      "evidence": [
+        "message-88baf5046b724fd7b26c64b9",
+        "message-4738f0ddde8def90e332f451"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The interview-prep call time is 10 am.",
+      "evidence": [
+        "message-88baf5046b724fd7b26c64b9",
+        "message-4738f0ddde8def90e332f451"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The certificate is from the workshop on January 2, 2024.",
+      "evidence": [
+        "message-bc219ba4addfbbcea3c6acb5"
+      ]
+    }
+  ],
+  "original_contract_hash": "23cd5f06efc539e886f0e5d7fe415cdf6c30990357731ddc66b87b7f49bbcaf5",
+  "original_evidence_hash": "cae0617016714b37f7fab046b8afe2bcfee9a65184b05d4f0cb0348ec0b108da",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "23cd5f06efc539e886f0e5d7fe415cdf6c30990357731ddc66b87b7f49bbcaf5",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "a0439d9bce10bf204b4a72b426ca17cfc0d68355ddb4ee877b574e3d766ed243"
+  }
+}

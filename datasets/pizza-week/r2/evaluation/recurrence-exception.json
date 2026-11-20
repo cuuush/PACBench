@@ -1,0 +1,57 @@
+{
+  "id": "recurrence-exception",
+  "at": "2026-10-07T10:00:00-04:00",
+  "session": "recurrence-exception-fresh",
+  "question": "When is our game this week and the following week?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "This week’s game date is Thursday October 8.",
+      "evidence": [
+        "message-97ba71ffbdb8556ad27cf59e",
+        "message-9e3d1184a60d95347d16ff0a",
+        "message-3693453a2dfb5082d6019c46"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "This week’s game time is 8 pm.",
+      "evidence": [
+        "message-97ba71ffbdb8556ad27cf59e"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The following week’s agreed game date is Wednesday October 14.",
+      "evidence": [
+        "message-97ba71ffbdb8556ad27cf59e",
+        "message-9e3d1184a60d95347d16ff0a",
+        "message-3693453a2dfb5082d6019c46"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The following week’s agreed game time is 8 pm.",
+      "evidence": [
+        "message-97ba71ffbdb8556ad27cf59e"
+      ]
+    }
+  ],
+  "original_contract_hash": "39a3126930e98d3307b72fd5299f20cbf07abfb1d0f9e2ff100cd49eca6f24cd",
+  "original_evidence_hash": "ad7c232ffcf8b17ffce2fd4eab2b6b767dbc404f3a964af0f24ea1cdee3d48d3",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "39a3126930e98d3307b72fd5299f20cbf07abfb1d0f9e2ff100cd49eca6f24cd",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "e76ec596d680fc82bf44afc4e560443115bb5873fc8028caa649b8f8d9405aa6"
+  }
+}

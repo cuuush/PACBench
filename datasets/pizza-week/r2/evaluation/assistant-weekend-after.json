@@ -1,0 +1,104 @@
+{
+  "id": "assistant-weekend-after",
+  "at": "2026-10-09T09:15:00-04:00",
+  "session": "assistant-weekend-after-fresh",
+  "expect": "The user has Saturday dinner with Ben at 7 pm at Juniper Cafe, Sunday’s 2–2:30 pm PizzaLab tasting, and a Sunday 3 pm drill return from Ben at the user’s door. Keep the drill return separate from dinner. The overnight guest stay with Morgan can be mentioned but does not require the user to join an outing. Do not count the Roxy matinee or Rae's concert as confirmed. Tentative options can be mentioned if clearly labeled.",
+  "question": "What’s my weekend looking like?",
+  "claims": [
+    {
+      "id": "dinner-date",
+      "statement": "Dinner with Ben is scheduled for Saturday, October 10.",
+      "evidence": [
+        "message-0a0b9d9e87a648dfdc742ac7",
+        "message-a6e3e58fcbde96b5456484cf",
+        "message-cfc5215a1df308d00d93488d"
+      ]
+    },
+    {
+      "id": "dinner-time",
+      "statement": "The Saturday, October 10 dinner with Ben is at 7 pm.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7"
+      ]
+    },
+    {
+      "id": "dinner-venue",
+      "statement": "The Saturday, October 10 dinner with Ben is at Juniper Cafe.",
+      "evidence": [
+        "message-b3529fb0881dc977a1303a65",
+        "message-6e5997a6f7c2077ace849405",
+        "message-0a0b9d9e87a648dfdc742ac7"
+      ]
+    },
+    {
+      "id": "tasting-date",
+      "statement": "The PizzaLab tasting is on Sunday, October 11.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "tasting-time",
+      "statement": "The Sunday, October 11 PizzaLab tasting is from 2 to 2:30 pm.",
+      "evidence": [
+        "message-bbc539a4447e14fece98267d"
+      ]
+    },
+    {
+      "id": "drill-return-date",
+      "statement": "Ben will return the drill on Sunday, October 11.",
+      "evidence": [
+        "message-63a773936f7b411216273849",
+        "message-171369e3e0cebb95b3ba6c13"
+      ]
+    },
+    {
+      "id": "drill-return-time",
+      "statement": "Ben will return the drill at 3 pm on Sunday, October 11.",
+      "evidence": [
+        "message-63a773936f7b411216273849",
+        "message-171369e3e0cebb95b3ba6c13"
+      ]
+    },
+    {
+      "id": "drill-return-location",
+      "statement": "Ben will leave the drill at the user's door on Sunday, October 11.",
+      "evidence": [
+        "message-63a773936f7b411216273849",
+        "message-171369e3e0cebb95b3ba6c13"
+      ]
+    },
+    {
+      "id": "drill-separate",
+      "statement": "The Sunday, October 11 drill return is separate from Saturday dinner with Ben.",
+      "evidence": [
+        "message-63a773936f7b411216273849",
+        "message-171369e3e0cebb95b3ba6c13"
+      ]
+    }
+  ],
+  "original_contract_hash": "964ea407b9dcbf168f3f081fb14ffedb1dc4f89856afdace02c32ea04586be20",
+  "original_evidence_hash": "40b784701b16a5fa18b8d187891953703f9d43a07835426363a4c7b1d2630a56",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "964ea407b9dcbf168f3f081fb14ffedb1dc4f89856afdace02c32ea04586be20",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "dinner-date",
+      "dinner-time",
+      "dinner-venue",
+      "tasting-date",
+      "tasting-time",
+      "drill-return-date",
+      "drill-return-time",
+      "drill-return-location",
+      "drill-separate"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "65d49c9c30d45e605eed229b8dbcc96c262d13bc54a3b706b9130a1230c7b180"
+  }
+}

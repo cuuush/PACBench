@@ -1,0 +1,55 @@
+{
+  "id": "visit-final",
+  "at": "2026-10-12T10:10:00-04:00",
+  "session": "visit-final-fresh",
+  "question": "What arrival and departure dates and times did Morgan and I settle on?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The planned arrival date was Friday October 9.",
+      "evidence": [
+        "message-f8537d8a8c37e7aa6b273eec"
+      ]
+    },
+    {
+      "id": "fact-2",
+      "statement": "The planned arrival time was around 4 pm.",
+      "evidence": [
+        "message-f8537d8a8c37e7aa6b273eec"
+      ]
+    },
+    {
+      "id": "fact-3",
+      "statement": "The final agreed departure date was Sunday October 11.",
+      "evidence": [
+        "message-d9e58051e0667d1bbb6c0d7f",
+        "message-f5ee7dfe8c15a1356d23c7b8"
+      ]
+    },
+    {
+      "id": "fact-4",
+      "statement": "The final agreed departure time was 10 am.",
+      "evidence": [
+        "message-d9e58051e0667d1bbb6c0d7f",
+        "message-f5ee7dfe8c15a1356d23c7b8"
+      ]
+    }
+  ],
+  "original_contract_hash": "e8a9d5f94ed5a4558a9e7d46cd2784f72dc621bb2e1ef484361b90962c60aa8b",
+  "original_evidence_hash": "46e1a8a4335636f25c20ceca285386e708a0a000df541dc871044bcc6509c0bf",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "e8a9d5f94ed5a4558a9e7d46cd2784f72dc621bb2e1ef484361b90962c60aa8b",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1",
+      "fact-2",
+      "fact-3",
+      "fact-4"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "7cc08e2622615f409fb368e01910617bf56f0dc4886b9cb495d5b9b4643e575f"
+  }
+}

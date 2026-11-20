@@ -1,0 +1,31 @@
+{
+  "id": "cancellation-before",
+  "at": "2026-10-06T09:10:00-04:00",
+  "session": "cancellation-before-fresh",
+  "question": "Which studio booking was cancelled?",
+  "claims": [
+    {
+      "id": "fact-1",
+      "statement": "The cancellation cannot be assigned to either studio booking from the available message.",
+      "evidence": [
+        "message-ae385732cd2ce9b54980bbd3",
+        "message-47ab3d8afffe41eced9f1ab5",
+        "message-62da634d42cbdd5aab31a837"
+      ]
+    }
+  ],
+  "original_contract_hash": "93aaf9ba1f1c76f58e0cc0c0b9e2f9ba57439f22473da2d143a25f43bf0a31d1",
+  "original_evidence_hash": "b6122bffd56fd18c8086ce910760078f88d4b42b463e3bc29b09eda2939851ad",
+  "followup_policy": {
+    "protocol_version": 3,
+    "contract_hash": "93aaf9ba1f1c76f58e0cc0c0b9e2f9ba57439f22473da2d143a25f43bf0a31d1",
+    "authoring_revision": "specific-missing-facts-v3",
+    "minimum_initial_correct": 1,
+    "eligibility_policy": "natural-omissions-v1",
+    "claim_ids": [
+      "fact-1"
+    ],
+    "policy": "one combined Spark-authored clarification for silent implicit omissions only",
+    "plan_hash": "077a576d50474686be570646d6aa0e58c27fcdf85359c541aff5d596685be8c0"
+  }
+}

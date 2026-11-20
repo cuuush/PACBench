@@ -9,6 +9,22 @@ from .prepare import read_spec, resolve_spec
 
 def inspect_spec(path, *, week_start=None):
     spec = read_spec(path)
+    if spec.get('version') == 'pizza-week-conversation-v2':
+        from .workflow_spec import compile_week
+
+        _, documents, turns, _ = compile_week('continuing-account', path)
+        compile_week('isolated-control', path)
+        start = documents[0].cutoff[:10]
+        if week_start and week_start != start:
+            raise ValueError(f'Workflow dates are frozen to the week starting {start}')
+        return {
+            'id': spec['version'],
+            'source_days': len({d.cutoff for d in documents}),
+            'scenes': 'frozen',
+            'questions': sum(t.measure != 'user-correction' for t in turns),
+            'noise': 'frozen',
+            'start': start,
+        }
     if ('days' in spec or 'weeks' in spec) and not (week_start or spec.get('week_start')):
         raise ValueError('Pin week_start in the spec or supply --week-start; validation never uses today')
     scenes, _, resolved = resolve_spec(spec, Path(path).with_suffix(''), week_start=week_start)

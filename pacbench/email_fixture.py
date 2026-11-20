@@ -28,10 +28,17 @@ def mail_address(name):
     return identity(name)['uid'].lower() + '@mail.example.test'
 
 
-def append_emails(path, messages):
+OBSERVED_HEADERS = 'observed-email-headers-v2'
+
+
+def append_emails(path, messages, *, observed_headers_only=False):
     """Persist stable UIDs, Message-IDs and reply headers across daily snapshots."""
     path = Path(path)
     mailbox = json.loads(path.read_text()) if path.exists() else {'version': 1, 'messages': []}
+    if path.exists() and (mailbox.get('header_condition') == OBSERVED_HEADERS) != observed_headers_only:
+        raise ValueError('Email header condition differs from existing snapshot')
+    if observed_headers_only:
+        mailbox['header_condition'] = OBSERVED_HEADERS
     known = {row['source']['source_id']: row for row in mailbox['messages']}
     for source in sorted(messages, key=lambda m: (m['written_at'], m['source_id'])):
         if source['channel'] != 'email':
@@ -50,13 +57,25 @@ def append_emails(path, messages):
             raise ValueError('Email needs declared recipients, subject and ownership')
         earlier = [row for row in mailbox['messages'] if row['source']['thread'] == source['thread']]
         own_id = '<' + str(uuid.uuid5(uuid.NAMESPACE_URL, source['source_id'])) + '@mail.example.test>'
+        headers = metadata.get('email_headers', {}) if observed_headers_only else {}
+        if (not isinstance(headers,dict) or set(headers) - {'To','Cc','Message-ID','In-Reply-To','References'}
+                or any(not isinstance(v,str) or '\r' in v or '\n' in v for v in headers.values())):
+            raise ValueError('Invalid observed email headers')
+        own_id = headers.get('Message-ID', own_id)
+        if any(row['message_id'] == own_id for row in mailbox['messages']):
+            raise ValueError('Duplicate source Message-ID')
         msg = EmailMessage(policy=SMTP)
         msg['From'] = formataddr((source['sender'], mail_address(source['sender'])))
-        msg['To'] = ', '.join(formataddr((p, mail_address(p))) for p in roster if p != source['sender'])
+        if not observed_headers_only:
+            msg['To'] = ', '.join(formataddr((p, mail_address(p))) for p in roster if p != source['sender'])
         msg['Date'] = format_datetime(datetime.fromisoformat(source['written_at']))
         msg['Message-ID'] = own_id
-        msg['Subject'] = ('Re: ' if earlier else '') + subject
-        if earlier:
+        msg['Subject'] = subject if observed_headers_only else ('Re: ' if earlier else '') + subject
+        if observed_headers_only:
+            for name, value in headers.items():
+                if name != 'Message-ID':
+                    msg[name] = value
+        elif earlier:
             msg['In-Reply-To'] = earlier[-1]['message_id']
             msg['References'] = ' '.join(row['message_id'] for row in earlier)
         msg.set_content(source['text'])
@@ -64,6 +83,8 @@ def append_emails(path, messages):
         row = {'source': source, 'folder': folder,
                'uid': 1 + sum(r['folder'] == folder for r in mailbox['messages']),
                'message_id': own_id, 'rfc822': msg.as_bytes().decode('utf-8')}
+        if observed_headers_only:
+            row['transport_assigned_headers'] = ['From'] + ([] if 'Message-ID' in headers else ['Message-ID'])
         mailbox['messages'].append(row)
         known[source['source_id']] = row
     path.write_text(json.dumps(mailbox, indent=2, ensure_ascii=False) + '\n')

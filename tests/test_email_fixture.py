@@ -146,3 +146,60 @@ conn.close()
         assert result['identities']==['Ben','Ben']
         assert len(result['rows'])==2 and len({r['thread'] for r in result['rows']})==1
         assert all('Saturday' in r['text'] for r in result['rows'])
+
+
+def test_v2_observed_headers_preserve_absence_and_literal_subject(tmp_path):
+    from email import policy
+    path = tmp_path/'mailbox.json'
+    incoming, outgoing = exchange()
+    outgoing['structured'] = {**outgoing['structured'], 'email_headers': {
+        'Cc':'Desk <desk@example.test>', 'Message-ID':'<seen@example.test>'}}
+    append_emails(path, [incoming, outgoing], observed_headers_only=True)
+    a, b = json.loads(path.read_text())['messages']
+    first, reply = (message_from_bytes(m['rfc822'].encode(),policy=policy.default) for m in (a,b))
+    assert first['Subject'] == reply['Subject'] == 'Thursday dinner'
+    assert all(m.get(k) is None for m in (first,reply) for k in ('To','In-Reply-To','References'))
+    assert first.get('Cc') is None and str(reply['Cc']) == 'Desk <desk@example.test>'
+    assert reply['Message-ID'] == '<seen@example.test>'
+    assert a['transport_assigned_headers'] == ['From','Message-ID']
+    assert b['transport_assigned_headers'] == ['From']
+    with pytest.raises(ValueError, match='condition'):
+        append_emails(path, [incoming])
+
+
+def test_v2_requires_real_mailbox_runtime(tmp_path, monkeypatch):
+    from pacbench.maildir_transport import email_server
+    path = tmp_path/'mailbox.json'
+    append_emails(path, exchange(), observed_headers_only=True)
+    monkeypatch.delenv('PACBENCH_IMAP_SERVER_PYTHON', raising=False)
+    with pytest.raises(ValueError, match='requires'):
+        email_server(path, tmp_path)
+
+
+def test_maildir_rejects_later_prefix_and_preserves_unowned_state(tmp_path):
+    from pacbench.maildir_transport import maildir_server
+    server_python = os.environ.get('PACBENCH_IMAP_SERVER_PYTHON')
+    if not server_python:
+        pytest.skip('Set PACBENCH_IMAP_SERVER_PYTHON to a private pinned pymap runtime')
+    incoming, outgoing = exchange()
+    earlier = tmp_path/'one.json'
+    later = tmp_path/'two.json'
+    append_emails(earlier, [incoming], observed_headers_only=True)
+    append_emails(later, [incoming,outgoing], observed_headers_only=True)
+    state = tmp_path/'service'
+    for path, amount in ((earlier,1),(later,1),(later,0)):
+        with maildir_server(path,state,server_python) as server:
+            assert server.deployment['appended'] == amount
+    with pytest.raises(ValueError, match='later or unrelated'):
+        with maildir_server(earlier,state,server_python):
+            pytest.fail('A mailbox with future messages must fail before collection')
+    with pytest.raises(ValueError, match='missing'):
+        with maildir_server(later,tmp_path/'absent',server_python,verify_only=True):
+            pytest.fail('Read-only verification cannot provision a missing mailbox')
+    assert not (tmp_path/'absent').exists()
+    other = tmp_path/'unowned'
+    other.mkdir()
+    with pytest.raises(ValueError, match='unowned'):
+        with maildir_server(earlier,other,server_python):
+            pytest.fail('Cannot open unrelated mailbox')
+    assert list(other.iterdir()) == []

@@ -7,8 +7,9 @@ import os,json,hashlib,uuid,fcntl
 from pathlib import Path
 from contextlib import contextmanager
 from decimal import Decimal
-from .openrouter_route import with_route
+from .openrouter_route import with_route, PROFILES
 from .response_receipts import parse,sanitized,receipt
+from .receipt_projection import IndexedAttempts, Projection, account_refused
 from .live_dispatch import sender_identity,operation_id,CONDITION,OwnershipConflict
 
 ENV='PACBENCH_RECEIPT_JOURNAL'
@@ -61,7 +62,9 @@ class ObservedBudget:
  @contextmanager
  def journal(self):
   with self.path.open('a+') as f:
-   os.chmod(self.path,0o600);fcntl.flock(f,fcntl.LOCK_EX);f.seek(0)
+   fcntl.flock(f,fcntl.LOCK_EX)
+   if os.fstat(f.fileno()).st_mode & 0o777 != 0o600:os.fchmod(f.fileno(),0o600)
+   f.seek(0)
    events=[json.loads(line) for line in f if line.strip()];rows={}
    for e in events:
     if e['kind']=='prepared':rows[e['id']]=e['row']
@@ -85,13 +88,17 @@ class ObservedBudget:
    return [{**r,'accounted_upper_bound_usd':float(r['accounted']) if 'accounted' in r else None,
      'financials':financials(r) if r.get('accounting_mode')!=MODE else {'actual_usd':r.get('settled_charge_usd'),'local_reservations_applied':False}} for r in state['calls']]
 
- def reserve(self,project,body,*,cohort_scope=None,sender=None):
+ def reserve(self,project,body,*,cohort_scope=None,sender=None,wait=True):
   import time
   from .canary_capability import CanaryBusy
-  deadline=time.monotonic()+60
+  timeout=getattr(self,'execution_queue_timeout_s',60)
+  deadline=time.monotonic()+timeout
   while True:
    try:return self.prepare(project,body,cohort_scope=cohort_scope,sender=sender)
-   except CanaryBusy:
+   except CanaryBusy as exc:
+    if not wait:
+     exc.queue_timeout_s=timeout
+     raise
     if time.monotonic()>=deadline:raise RuntimeError('Current execution queue deadline; no request dispatched') from None
     time.sleep(.05)
 
@@ -118,22 +125,28 @@ class ObservedBudget:
    'dispatch_owner':sender_identity(sender),'dispatch_tracking_condition':CONDITION,'dispatch_execution':'prepared',
    'dispatch_events':[{'kind':'prepared','at':now()}],'effective_output_maximum':request[key],**fields(permit)}
   row['accounting_role']='hermes' if project.endswith('-driver') else 'judge' if project.endswith('-judge') else 'memory_provider'
-  row['dispatch_context']={'run_id':'pizza-week-scored-prepaid-20261114','arm_id':permit['slot']['provider'],
-   'phase':'judging' if permit['slot']['kind'] in {'judge','retained_judge'} else 'answering' if row['accounting_role']=='hermes' else 'ingest' if permit['slot']['kind']=='ingest' else 'background',
+  row['dispatch_context']={'run_id':permit.get('run_id','pizza-week-scored-prepaid-20261114'),'arm_id':permit['slot']['provider'],
+   'phase':'judging' if permit['slot']['kind'] in {'judge','retained_judge'} else 'answering' if row['accounting_role']=='hermes' else permit['slot']['kind'] if permit['slot']['kind'] in {'ingest','cleanup'} else 'background',
    'attempt_id':row['id'],'attempt_number':1,'operation_id':operation_id(row)}
   with self.journal() as (rows,append):
    check_cohort_stop()
    stop=os.environ.get('PACBENCH_STOP_FILE')
    if stop and Path(stop).exists():raise RuntimeError('Execution stopped')
-   if any(r.get('http_status') in (401,403) or r.get('http_status')==429 and r.get('provider_rejection')!='upstream_provider_shared_pool_rate_limit' or r.get('http_status')==402 and r.get('provider_rejection') not in ('openrouter_in_flight_budget','in_flight_budget_exhausted') for r in rows.values()):raise RuntimeError('Provider refusal; no further dispatch or retry')
-   previous=[r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==row['dispatch_context']['operation_id']]
+   indexed=isinstance(rows,IndexedAttempts)
+   refused=rows.refused() if indexed else any(account_refused(r) for r in rows.values())
+   if refused:
+    raise RuntimeError('Provider refusal; no further dispatch or retry')
+   operation=row['dispatch_context']['operation_id']
+   previous=(rows.previous(project,operation) if indexed else
+             [r for r in rows.values() if r['project']==project and r.get('dispatch_context',{}).get('operation_id')==operation])
    if previous:
     grant=json.loads(os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY','{}'))
     lost_output=(project.endswith('-judge') and len(previous)==1 and grant.get('attempt_id')==previous[0]['id'] and previous[0].get('state')=='settled' and grant.get('reason')=='model_recorder_failed_before_saving_judgment')
     if not lost_output and (len(previous)>=3 or previous[-1].get('provider_rejection') not in ('openrouter_in_flight_budget','in_flight_budget_exhausted','upstream_provider_shared_pool_rate_limit')):raise OwnershipConflict('No automatic replay of a prepared request')
     row['retry_of']=previous[-1]['id'];row['dispatch_context']['attempt_number']=len(previous)+1
     if lost_output:row['retry_reason']=grant['reason']
-   if any(not r.get('finished') for r in rows.values()):
+   busy=rows.active() if indexed else any(not r.get('finished') for r in rows.values())
+   if busy:
     from .canary_capability import CanaryBusy
     raise CanaryBusy('Current execution request still active')
    append('prepared',row['id'],row)
@@ -245,3 +258,67 @@ def credit_snapshot():
  if not dest.exists():
   with dest.open('xb') as f:dest.chmod(0o600);f.write(raw)
  return {'request_started':start,'observed_at':now(),'remaining_usd':str(remaining),'receipt_sha256':hashlib.sha256(raw).hexdigest(),'source':'OpenRouter GET /api/v1/credits'}
+
+
+class RunReceiptJournal(ObservedBudget):
+    """Observational Luna journal with no historical store or local spending limit."""
+    execution_queue_timeout_s = 180
+
+    def __init__(self, path):
+        self.path = path
+        self.profile_name = 'luna-bedrock-global'
+        self.profile = PROFILES[self.profile_name]
+        self.model = self.profile['model']
+        self.endpoint = self.profile['endpoint']
+        self.provider = with_route({}, profile=self.profile_name)['provider']
+
+    @contextmanager
+    def locked(self, *, write=True):
+        if write:
+            raise RuntimeError('Run receipts are append-only')
+        with self.journal() as (rows, _):
+            yield {'calls': list(rows.values())}
+
+    def snapshot(self):
+        with self.locked(write=False) as state:
+            return state['calls']
+
+class IndexedRunReceiptJournal(RunReceiptJournal):
+    """Run-owned MemCal journal. Full replay is explicit for an existing run."""
+    def journal(self):
+        return Projection(self.path).open()
+
+    def initialize_from_journal(self):
+        with Projection(self.path).open(initialize=True):
+            pass
+
+    def get_attempt(self, ident):
+        with self.journal() as (rows, _):
+            return rows[ident]
+
+    def has_offline_generations(self):
+        with self.journal() as (rows, _):
+            return rows.db.execute('SELECT 1 FROM attempts WHERE offline=1 LIMIT 1').fetchone() is not None
+
+    def has_active_attempts(self, roles=None):
+        with self.journal() as (rows, _):
+            if roles is None:
+                return rows.active()
+            return any(rows.db.execute('SELECT 1 FROM attempts WHERE active=1 AND role=? LIMIT 1',
+                                       (role,)).fetchone() for role in roles)
+
+    def lineage_for_requests(self, ids):
+        with self.journal() as (rows, _):
+            pending = set(ids)
+            found = {}
+            while pending:
+                ident = pending.pop()
+                result = rows.db.execute('SELECT rowid,payload FROM attempts WHERE id=?',(ident,)).fetchone()
+                if result:
+                    ordinal, encoded = result
+                    row = json.loads(encoded)
+                    found[ident] = (ordinal, row)
+                    parent = row.get('retry_of')
+                    if parent and parent not in found:
+                        pending.add(parent)
+            return [row for _,row in sorted(found.values(),key=lambda r:r[0])]

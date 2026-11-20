@@ -283,3 +283,33 @@ def test_direct_success_records_correlation_but_never_copies_raw_body(tmp_path,m
     assert output.text=='complete' and value['response']['id']=='gen-response'
     assert value['direct_response']['body_bytes']==len(body)
     assert 'failed_response_body' not in value and not (tmp_path/'private').exists()
+
+
+def test_native_judge_records_routed_request_even_when_cost_is_unknown(tmp_path, monkeypatch):
+    import hashlib
+    from email.message import Message
+    from types import SimpleNamespace
+    from pacbench.openrouter_route import CHAT_COMPLETIONS_URL, with_route
+    model = 'openai/gpt-6-luna'
+    monkeypatch.setenv('PACBENCH_DIRECT','1')
+    monkeypatch.setattr('pacbench.gateway_client.validate_route', lambda *a:None)
+    class Response:
+        status = 200
+        headers = Message()
+        def __init__(self, request, **kwargs):
+            sent = with_route(json.loads(request.data), profile='luna-bedrock-global')
+            digest = hashlib.sha256(json.dumps(sent,sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+            row = dict(id='attempt',state='receipt_pending',accounting_role='judge',
+                       endpoint='amazon-bedrock/global',request_sha256=digest)
+            self.capture = SimpleNamespace(receipt={'id':'attempt','body':json.dumps(sent).encode(),
+                                                     'budget':SimpleNamespace(snapshot=lambda:[row])})
+            self.stream = io.BytesIO(b'{"choices":[{"message":{"content":"complete"}}]}')
+        def read1(self,*args): return self.stream.read(*args)
+        def __enter__(self): return self
+        def __exit__(self,*args): self.stream.close()
+    monkeypatch.setattr('pacbench.model_calls.urllib.request.urlopen', Response)
+    client = ModelClient(key='inert',model=model,url=CHAT_COMPLETIONS_URL,record_dir=tmp_path,streaming=False)
+    record = json.loads(Path(client('question').record_path).read_text())
+    assert record['judge_transport']['id'] == 'attempt'
+    assert record['judge_transport']['request']['messages'] == [{'role':'user','content':'question'}]
+    assert record['cost_usd'] is None

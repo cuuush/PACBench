@@ -4,6 +4,8 @@ This records new sender identity, not a supervisor fencing/takeover protocol.
 It never imports legacy owners, permits retries, releases holds or admits work.
 The staged SQLite journal remains offline and disconnected from dispatch.
 """
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import asdict
 import hashlib
 import json
@@ -46,9 +48,29 @@ def sender_identity(supplied=None):
     return supplied
 
 
+_fresh = ContextVar('new_workflow_effect', default=None)
+
+
+@contextmanager
+def fresh_effect(progress, phase, key, attempt):
+    """Only the newly inserted external callback receives this transient execution context."""
+    token = _fresh.set((progress, phase, key, attempt))
+    try:
+        yield
+    finally:
+        _fresh.reset(token)
+
+
+def owns_fresh_effect(progress, claim):
+    return _fresh.get() == (progress, claim['phase'], claim['key'], claim['attempt_id'])
+
+
 def operation_id(row):
-    slot = row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
+    slot = row.get('workflow_slot') or row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
     scope = {k:slot[k] for k in ('kind','provider','group_id','batch_id','question_id') if k in slot}
+    effect = slot.get('checkpoint_effect')
+    if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
+        scope.update(checkpoint_effect=effect, project=row['project'])
     return hashlib.sha256(json.dumps({'request':row['request_sha256'],'scope':scope},sort_keys=True).encode()).hexdigest()
 
 
@@ -56,7 +78,7 @@ def attach(row, prior_retry=None, sender=None):
     if not enabled():
         return
     owner = sender_identity(sender)
-    slot = row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
+    slot = row.get('workflow_slot') or row.get('checkpoint_full_run_slot') or row.get('checkpoint_canary_slot') or {}
     role = row.get('accounting_role')
     phase = ('judging' if role == 'judge' else 'answering' if role == 'hermes' else
              'ingest' if slot.get('kind') == 'ingest' else 'background')
@@ -95,6 +117,13 @@ def check_owner(row, sender=None):
 def mark_possible(row, at, sender=None):
     if not check_owner(row, sender):
         return
+    slot = row.get('workflow_slot') or {}
+    if slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
+        from .workflow_capability import confirm_memcal_sender
+        confirm_memcal_sender(row)
+    elif slot.get('kind') == 'judge' and slot.get('checkpoint_effect'):
+        from .workflow_capability import confirm_workflow_judge_sender
+        confirm_workflow_judge_sender(row)
     if row['dispatch_execution'] != 'prepared':
         raise OwnershipConflict('Dispatch already possible; no automatic send replay')
     row['dispatch_events'].append({'kind': 'dispatch_possible', 'at': at})

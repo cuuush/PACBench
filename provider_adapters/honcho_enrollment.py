@@ -119,11 +119,12 @@ def validate_windows(plans, snapshot, *, allow_missing=False):
     return set(required) - seen
 
 
-def validate_roster_continuity(plans, previous):
+def validate_roster_continuity(plans, previous, *, additive=False):
     updated = dict(previous)
     for plan in plans:
         prior = previous.get(plan['session_id'])
-        if prior is not None and prior != plan['participants']:
+        if (prior is not None and prior != plan['participants'] and
+                not (additive and set(prior) < set(plan['participants']))):
             raise EnrollmentError('Honcho source roster changed across imported batches')
         updated[plan['session_id']] = plan['participants']
     return updated
@@ -192,7 +193,14 @@ def enroll_source(source, root):
         return {**json.loads(path.read_text()),'reuse_verified_native_snapshot':current}
     rosters_path = root/'honcho-enrollment-rosters.json'
     rosters = json.loads(rosters_path.read_text()) if rosters_path.exists() else {}
-    validate_roster_continuity(plans, rosters)
+    additive = os.environ.get('PACBENCH_HONCHO_ROSTER_TRANSITIONS') == 'native-additive-window-v1'
+    # Fresh portable r2 already declares the exact historical roster in its bound dataset.
+    if os.environ.get('PACBENCH_R2_LIVE_SCOPE') and os.environ.get('PACBENCH_CHECKPOINT_FULL_RUN'):
+        from pacbench.full_run_capability import load, slot
+        capability=load()
+        active,_=slot(capability)
+        additive=active['provider']=='honcho' and active['kind']=='ingest' and 'dataset' in capability
+    validate_roster_continuity(plans, rosters, additive=additive)
     identities_path=root/'honcho-peer-identities.json'
     identities=json.loads(identities_path.read_text()) if identities_path.exists() else {}
     identities=validate_peer_identities(plans,identities)
@@ -209,6 +217,23 @@ def enroll_source(source, root):
             check_stop(os.environ.get('PACBENCH_STOP_FILE'))
             before = native_snapshot(root, host['workspace'], [plan])
             missing = validate_windows([plan], before, allow_missing=True)
+            previous_roster = set(rosters.get(plan['session_id'], []))
+            added = set(plan['participants'])-previous_roster if previous_roster else set()
+            transition = None
+            if added:
+                from .honcho_checkpoint import sql
+                added_peers = {plan['peer_ids'][name] for name in added}
+                if not additive or missing != {(plan['session_id'], name) for name in added_peers}:
+                    raise EnrollmentError('Native membership and advertised additive transition differ')
+                container = json.loads((root/'provider-clock.json').read_text())['container']
+                session = plan['session_id']
+                if not re.fullmatch(r'source-[0-9a-f]{24}',session):
+                    raise EnrollmentError('Source session identity changed')
+                latest = sql(container,'postgres',f"SELECT max(created_at) FROM messages WHERE session_name='{session}'")
+                if not latest or instant(latest) >= instant(plan['earliest_source_at']):
+                    raise EnrollmentError('The added peer cannot be enrolled between source events')
+                transition = {'prior_last_message_at':latest,'added_peers':sorted(added_peers),
+                              'first_new_message_at':plan['earliest_source_at']}
             if missing:
                 horizon = instant(plan['earliest_source_at'])
                 if instant(before['db_at']) >= horizon:
@@ -229,6 +254,15 @@ def enroll_source(source, root):
                 client.session(plan['session_id']).add_peers(peers)
             after = native_snapshot(root, host['workspace'], [plan])
             validate_windows([plan], after)
+            if transition:
+                existing = {r['peer_id']:r for r in before['memberships']}
+                membership = {r['peer_id']:r for r in after['memberships']}
+                if (any(membership[name]!=row for name,row in existing.items())
+                        or any(not instant(transition['prior_last_message_at']) < instant(membership[name]['joined_at'])
+                               <=instant(transition['first_new_message_at']) for name in transition['added_peers'])):
+                    raise EnrollmentError('Honcho additive native peer history window differs')
+                transition.update(session=plan['session_id'],memberships=after['memberships'])
+                record.setdefault('native_additive_windows',[]).append(transition)
             record['observations'].append(after)
             rosters[plan['session_id']] = plan['participants']
             save(rosters_path, rosters)

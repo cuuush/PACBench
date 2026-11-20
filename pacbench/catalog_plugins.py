@@ -111,12 +111,19 @@ def install_catalog_provider(name: str, home: Path, fallback: Path, hermes_bin: 
         raise RuntimeError(f'Pinned Hermes catalog mismatch for {name}')
     env = {**os.environ, 'HOME': str(fallback.resolve()), 'HERMES_HOME': str(home.resolve()),
            'HERMES_ENABLE_PROJECT_PLUGINS': '0', 'GIT_TERMINAL_PROMPT': '0'}
+    if env.get('PACBENCH_R2_LIVE_SCOPE') or env.get('PACBENCH_WORKFLOW_SCOPE'):
+        # Package setup is offline from the inference transport. Its child
+        # Python bootstrap must not load the request-bound benchmark hooks.
+        for key in ('PACBENCH_DIRECT', 'PACBENCH_DIRECT_UPSTREAM_KEY', 'PYTHONPATH', 'NODE_OPTIONS'):
+            env.pop(key, None)
     command = [str(hermes_bin), 'plugins', 'install', identifier, '--ref', sha, '--no-deps', '--no-enable']
     try:
         result = subprocess.run(command, cwd=tree, env=env, capture_output=True, text=True, timeout=600)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise RuntimeError(f'Hermes catalog install for {name} did not complete: {type(exc).__name__}') from exc
     if result.returncode:
+        if os.environ.get('PACBENCH_R2_LIVE_SCOPE') or os.environ.get('PACBENCH_WORKFLOW_SCOPE'):
+            (home.parent/'catalog-install-error.private.log').write_text(result.stdout + '\n' + result.stderr)
         raise RuntimeError(f'Hermes catalog install for {name} failed (exit {result.returncode})')
     directory = home / 'plugins' / name
     try:

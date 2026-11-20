@@ -183,7 +183,7 @@ def turn_gateway(home: Path, python: Path, env: dict, *, cwd: Path, startup_time
                  runtime_module: str = 'hermes_cli.main'):
     """Start, verify and gracefully stop a private native gateway; refuse uncertain ownership."""
     home = home.resolve()
-    if runtime_module not in {'hermes_cli.main','pacbench.gateway.reuse_runtime'}:
+    if runtime_module not in {'hermes_cli.main','pacbench.gateway.reuse_runtime','pacbench.gateway.memos_reuse_runtime','pacbench.gateway.hindsight_reuse_runtime','pacbench.gateway.supermemory_reuse_runtime','pacbench.gateway.honcho_reuse_runtime','pacbench.gateway.cognee_reuse_runtime'}:
         raise GatewayLifecycleError('Unknown gateway entry point')
     if not home.is_dir() or os.name != 'posix' or not Path('/proc/self/stat').exists():
         raise GatewayLifecycleError('A private existing home and Linux process identities are required')

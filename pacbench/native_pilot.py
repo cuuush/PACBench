@@ -253,7 +253,7 @@ def require_trial_provider(provider: str, *, resume: bool = False) -> None:
 
 def provision(root: Path, provider: str, model: str = "unconfigured", *,
               local_timezone: str = "", resume: bool = False,
-              honcho_simulated_at: str | None = None,
+              honcho_simulated_at: str | None = None, honcho_checkpoint: dict | None = None,
               inference_route: str = 'muse-gateway') -> dict:
     require_not_retired(provider)
     if provider == 'memcal':
@@ -493,10 +493,11 @@ try:
         'runtime_versions':{name:version(name) for name in ('hindsight-api-slim','hindsight-client','hindsight-embed')}}))
 finally:p.close()
 '''
+        startup_timeout=240 if os.environ.get('PACBENCH_R2_LIVE_SCOPE') else 120
         proc=subprocess.run([str(backend_python),'-c',bootstrap,
                              str(home.resolve()),'pacbench-'+run_id,'resume' if resume else 'fresh'],
                             env={**os.environ,**env,'HERMES_HOME':str(home.resolve())},
-                            cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=120)
+                            cwd=harness.ISOLATED_TREE,capture_output=True,text=True,timeout=startup_timeout)
         save(root/'native-bank-setup.json',{'route':'Self-hosted Hindsight native server; create_bank defaults; no starter facts',
              'returncode':proc.returncode,'stdout':proc.stdout.replace(key,'<gateway-token>'),
              'stderr':proc.stderr.replace(key,'<gateway-token>')})
@@ -524,7 +525,8 @@ finally:p.close()
         env[ENVIRONMENT] = PROTOCOL
         base,key=client_settings(memory_project)
         _ARM_SHUTDOWNS[root.resolve()] = start(root.resolve(),env,model if model!='unconfigured' else 'muse-spark-1.3-contributor',base,key,resume=resume,
-            **({'simulated_at':honcho_simulated_at} if honcho_simulated_at else {}))
+            **({'simulated_at':honcho_simulated_at} if honcho_simulated_at else {}),
+            **({'checkpoint':honcho_checkpoint} if honcho_checkpoint else {}))
     if provider=='reme':
         from provider_adapters.reme_local import start
         base,key=client_settings(memory_project)

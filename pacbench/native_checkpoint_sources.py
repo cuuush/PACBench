@@ -181,8 +181,11 @@ class MemcalSourceCheckpoints:
         self.ingested=[];self.receipts={};self.failed=False;self.store=self.root/'source-only-store';self.store.mkdir()
         from .observation_adapters import native_source
         self.pins=native_source('memcal',self.root/'hermes-home',Path(__file__).resolve().parents[1],self.env,self.python)
-        from .provider_versions import MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION
-        if self.pins.get('memcal') not in {MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION}:raise GatewayLifecycleError('Exact repaired MemCal tree required')
+        from .provider_versions import MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION,MEMCAL_REVISION
+        if self.pins.get('memcal') not in {MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION} and not (
+                self.pins.get('memcal')==MEMCAL_REVISION and self.pins.get('memcal_baseline')=='stable-0.8.11'
+                and self.env.get('PACBENCH_R2_LIVE_SCOPE')):
+            raise GatewayLifecycleError('MemCal checkpoint pin differs')
         self.env.update(MEMCAL_HOME=str(self.store),PACBENCH_USAGE_ROLES=self.env.get('PACBENCH_USAGE_ROLES','{}'))
 
     def materialize(self,group,destination):
@@ -329,7 +332,7 @@ class ReMeSourceCheckpoints:
 def verify_collector_snapshot(provider,proof,schedule,ids,manifest):
     """Provider-specific qualification after common receipt/hash validation."""
     from .document_audit import audit_reme_resource_receipt
-    from .provider_versions import MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION
+    from .provider_versions import MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION,MEMCAL_REVISION
     from .reme_memos_setup import PINS
     by_id={b['id']:b for b in schedule}
     expected_rows=sum(len(by_id[i]['source_ids']) for i in ids)
@@ -342,7 +345,10 @@ def verify_collector_snapshot(provider,proof,schedule,ids,manifest):
             reopened.get('memory_mutation_requested') is not False):
             raise GatewayLifecycleError('Native collector/store reopen evidence invalid')
         if provider=='memcal':
-            if (native.get('pins',{}).get('memcal') not in {MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION} or reopened.get('sqlite_integrity')!='ok' or
+            pins=native.get('pins',{})
+            valid_pin=pins.get('memcal') in {MEMCAL_CONTEXT_REVISION,MEMCAL_OPERATIONS_REVISION} or (
+                pins.get('memcal')==MEMCAL_REVISION and pins.get('memcal_baseline')=='stable-0.8.11')
+            if (not valid_pin or reopened.get('sqlite_integrity')!='ok' or
                 reopened.get('archive_rows')!=expected_rows or native.get('expected_archive_rows')!=expected_rows or
                 any(reopened.get(k)!=0 for k in ['pending_spool','failed_runs','incomplete_collection_sources'])):
                 raise GatewayLifecycleError('Native repaired MemCal archive/processing coverage incomplete')

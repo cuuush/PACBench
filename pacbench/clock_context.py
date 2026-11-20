@@ -53,7 +53,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
             raise ValueError('Missing/ambiguous actual HTTP input witness')
         actor_ids=[];auxiliary_ids=[];continuation_ids=[]
         for row in candidates:
-            if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2'):
+            if row.get('protocol') not in ('direct-hermes-api-input-v1','direct-hermes-api-input-v2','workflow-driver-input-v1'):
                 raise ValueError('Unknown HTTP input witness protocol')
             systems=[m.get('content') for m in row['messages'] if m['role']=='system']
             users=[m.get('content') for m in row['messages'] if m['role']=='user']
@@ -88,7 +88,7 @@ def delivery(root, turn, *, before=(), identifiers=None, hook_before=0, hook_ind
                     raise ValueError('Actual system input differs from the native saved prompt or contains benchmark clock instructions')
                 if (getattr(turn,'provider_clock',None) or {}).get('version')=='honcho-wall-clock-v5':
                     gateway=getattr(turn,'hermes_gateway',None) or {}
-                    if (row.get('protocol')!='direct-hermes-api-input-v2' or row.get('pid')!=gateway.get('pid') or
+                    if (row.get('protocol') not in ('direct-hermes-api-input-v2','workflow-driver-input-v1') or row.get('pid')!=gateway.get('pid') or
                         row.get('process_start_ticks')!=gateway.get('start_time') or
                         row.get('clock_role')!='hermes-gateway' or row.get('turn_nonce')!=gateway.get('turn_nonce')):
                         raise ValueError('Actual actor request lacks the verified gateway clock identity')

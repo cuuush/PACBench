@@ -743,6 +743,11 @@ class DirectBudget:
 
 
 def live_budget(*, nonblocking=False, project=None, profile=None):
+    if os.environ.get("PACBENCH_WORKFLOW_SCOPE"):
+        from . import execution_capability, workflow_capability
+        if execution_capability.selected() is not workflow_capability or os.environ.get("PACBENCH_R2_LIVE_SCOPE"):
+            raise ValueError("Conflicting live run scopes")
+        return workflow_capability.budget(project=project, profile=profile)
     if project is not None:
         from .role_routes import profile_for_project
         selected=profile_for_project(project)

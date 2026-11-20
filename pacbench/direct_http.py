@@ -4,19 +4,22 @@ No listener or forwarding connection exists. This process's original HTTP client
 connects to OpenRouter after a short durable reservation. Native streams are
 passed through as read; an interrupted stream retains its cost bound.
 """
+import asyncio
 import json
 import os
 import urllib.request
 import urllib.error
+from weakref import WeakSet
 from urllib.parse import urlsplit
 
 from .direct_accounting import live_budget, project_from_authorization, VERSION
 
 _installed=False
+_httpx_wrappers=WeakSet()
 _MAX_RESPONSE=32*1024*1024
 
 
-def admitted(url,headers,body):
+def admitted(url,headers,body,*,wait=True):
     if os.environ.get('PACBENCH_DIRECT')!='1':return None
     parsed=urlsplit(str(url))
     if parsed.hostname!='openrouter.ai':
@@ -38,7 +41,8 @@ def admitted(url,headers,body):
         return {'headers':{**dict(headers),'Authorization':auth},'free':True}
     if parsed.path!='/api/v1/chat/completions' or not body:
         raise RuntimeError('Unsupported direct model endpoint')
-    budget=live_budget(project=project);receipt=budget.reserve(project,json.loads(body))
+    budget=live_budget(project=project)
+    receipt=budget.reserve(project,json.loads(body),wait=False) if not wait else budget.reserve(project,json.loads(body))
     from .api_input_trace import record as record_api_input
     record_api_input(project,receipt)
     from .api_input_trace import record_memory
@@ -159,6 +163,10 @@ def install():
 
 
 def _install_httpx(httpx):
+    # SDK aliases and repeated setup can expose the same client methods.
+    # Wrapping twice would admit the translated upstream request a second time.
+    if httpx.Client.send in _httpx_wrappers and httpx.AsyncClient.send in _httpx_wrappers:
+        return
     class SyncStream(httpx.SyncByteStream):
         def __init__(self,raw,capture):self.raw=raw;self.capture=capture
         def __iter__(self):
@@ -182,8 +190,8 @@ def _install_httpx(httpx):
             try:await self.raw.aclose()
             finally:self.capture.finish()
     send=httpx.Client.send;asend=httpx.AsyncClient.send
-    def prepared(request,body):
-        receipt=admitted(request.url,request.headers,body)
+    def prepared(request,body,*,wait=True):
+        receipt=admitted(request.url,request.headers,body,wait=wait)
         if receipt is None:return request,None
         fresh=httpx.Request(request.method,request.url,headers=receipt['headers'],
             content=receipt.get('body'),extensions=request.extensions)
@@ -221,7 +229,23 @@ def _install_httpx(httpx):
         return response
     async def asending(self,request,**kwargs):
         if request.url.host!='openrouter.ai':return await asend(self,request,**kwargs)
-        fresh,receipt=prepared(request,await request.aread())
+        body=await request.aread()
+        from .observational_receipts import enabled as observing
+        if observing():
+            from .canary_capability import CanaryBusy
+            loop=asyncio.get_running_loop()
+            started=loop.time()
+            while True:
+                try:
+                    fresh,receipt=prepared(request,body,wait=False)
+                    break
+                except CanaryBusy as exc:
+                    if loop.time()-started>=exc.queue_timeout_s:
+                        raise RuntimeError('Current execution queue deadline; no request dispatched') from None
+                    # An active async request on this loop must be able to settle.
+                    await asyncio.sleep(.05)
+        else:
+            fresh,receipt=prepared(request,body)
         kwargs['follow_redirects']=False
         eager=not kwargs.get('stream',False);kwargs['stream']=True
         before_send(receipt)
@@ -238,4 +262,9 @@ def _install_httpx(httpx):
             try:await response.aread()
             except BaseException:await response.aclose();raise
         return response
-    httpx.Client.send=sending;httpx.AsyncClient.send=asending
+    if send not in _httpx_wrappers:
+        _httpx_wrappers.add(sending)
+        httpx.Client.send=sending
+    if asend not in _httpx_wrappers:
+        _httpx_wrappers.add(asending)
+        httpx.AsyncClient.send=asending

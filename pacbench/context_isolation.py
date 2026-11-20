@@ -171,10 +171,16 @@ def memory_delivery(home,session_id,prompt,prefetch):
     record.update(native_user_row_id=row_id,prefetch_chars=len(prefetch),
         prefetch_sha256=hashlib.sha256(prefetch.encode()).hexdigest(),
         api_content_sha256=hashlib.sha256(api_content.encode()).hexdigest() if isinstance(api_content,str) else None)
+    # A different host injection can coexist with an empty provider hook.
+    # Match only the API-bound suffix added to this exact authored question.
+    suffix = (api_content or '')[len(prompt):] if isinstance(api_content,str) and api_content.startswith(prompt) else ''
+    _, opening, block = suffix.partition('<memory-context>')
+    inside, closing, _ = block.partition('</memory-context>')
     if not prefetch:
-        return {**record,'state':'empty','reason':'Captured native hook returned no automatic memory context'}
-    present=(isinstance(api_content,str) and api_content.startswith(prompt+'\n\n') and
-             '<memory-context>' in api_content and prefetch in api_content)
+        if opening:
+            return {**record,'state':'inconsistent','reason':'Empty native hook but the API-bound input contains a memory block'}
+        return {**record,'state':'empty','reason':'Captured native hook is empty and no memory block was observed'}
+    present = bool(suffix.startswith('\n\n') and opening and closing and prefetch in inside)
     return {**record,'state':'confirmed' if present else 'inconsistent',
             'reason':'Exact captured provider context is in the native API-bound input' if present else
                      'Captured provider context is absent or differs in the saved API-bound input'}

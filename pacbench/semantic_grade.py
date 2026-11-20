@@ -10,6 +10,8 @@ import json
 import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Callable
 
 from .model_calls import ModelOutput
@@ -45,6 +47,10 @@ class Grade:
     evidence_diagnostic: dict | None = None
 
 
+class UnusableJudgeResponse(ValueError):
+    """A completed judge response did not supply valid criterion verdicts."""
+
+
 class BenchmarkContractError(ValueError):
     """The script lacks information needed to judge a legitimate response."""
 
@@ -55,7 +61,9 @@ DATE_SCOPED_JUDGE_PROTOCOL = 'semantic-judge-date-scope-v2'
 # Experimental: separate semantic grading from the bulky evidence diagnostic.
 # Not selected for native runs until live positive and negative controls pass.
 COMPACT_JUDGE_PROTOCOL = 'semantic-judge-compact-v3'
-JUDGE_PROTOCOLS = {LEGACY_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL}
+CONTEXT_JUDGE_PROTOCOL = "semantic-judge-context-v4"
+SCENARIO_ZONE = ZoneInfo("America/New_York")
+JUDGE_PROTOCOLS = {CONTEXT_JUDGE_PROTOCOL, LEGACY_JUDGE_PROTOCOL, DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL}
 
 
 LEGACY_DIAGNOSTIC_VERSION = "answer-visible-evidence-v1"
@@ -122,13 +130,44 @@ def validate_diagnostic(value, claims, answer, inputs, version=LEGACY_DIAGNOSTIC
         return {'version': version, 'state': 'ungraded', 'reason': 'Malformed or unsupported diagnostic evidence'}
 
 
-def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL) -> str:
+def question_context(question_at):
+    """Render the scenario calendar from the immutable, offset-aware question instant."""
+    if not isinstance(question_at, str):
+        raise ValueError('Question timestamp required for contextual judgment')
+    instant = datetime.fromisoformat(question_at)
+    if instant.utcoffset() is None:
+        raise ValueError('Question timestamp requires a UTC offset')
+    local = instant.astimezone(SCENARIO_ZONE)
+    return (
+        f"Simulated question time: {local.isoformat()} ({local:%A}, {SCENARIO_ZONE.key}). "
+        f"Yesterday was {local.date() - timedelta(days=1)} and tomorrow is "
+        f"{local.date() + timedelta(days=1)}. "
+        "Resolve relative language in both question and answer (today, tonight, tomorrow, "
+        "yesterday, this weekend, next weekday) on this local calendar, including when the "
+        "answer alone uses a relative expression. Respect the stated target of retrospective "
+        "and future questions. Interpret quoted relative wording at its own message date. "
+        "Use only evidence available by the question time.\n"
+        "Identify the occurrence using the question, speaker, participants and conversation. "
+        "A wrong venue for the identified lunch does not invalidate its correct time. "
+        "A matching time explicitly attributed to someone else's separate booking earns no "
+        "credit for the user's outing. Compare each asserted attribute to its own claim. "
+        "Credit an unambiguous implication or collectively expressed fact: 'the two of us' "
+        "can establish exclusivity when both people are identified. Naming a host's address "
+        "alone does not establish attendance. A partial list or mention of one person alone "
+        "does not establish an exhaustive roster when other guests remain plausible. "
+        "Do not supply missing facts from source messages, including later confirmations. "
+        "Authorized source reads do not reduce semantic credit.\n"
+    )
+
+
+def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, question_at=None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL) -> str:
     if judge_protocol not in JUDGE_PROTOCOLS:
         raise ValueError('Unsupported semantic judge protocol')
     spec = [{"id": c.id, "claim": c.description,
              "evidence": list(c.evidence)} for c in claims]
     return (
-        "You are a semantic memory-benchmark judge. Evaluate each claim "
+        (question_context(question_at) if judge_protocol == CONTEXT_JUDGE_PROTOCOL else "")
+        + "You are a semantic memory-benchmark judge. Evaluate each claim "
         "independently against the assistant's answer to the user's question. "
         "Use meaning and context, not string matching or a demand for "
         "verbatim wording. Grade only the details stated in each claim. "
@@ -138,7 +177,7 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
         "do not award a correct value attached to a different outing. "
         "Resolve the answer's inherited event and day scope from the question, "
         "simulated clock and prior conversation; do not require repeating that scope. "
-        + ("Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. " if judge_protocol in (DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL) else "") +
+        + ("Resolve upcoming weekdays relative to the simulated question time. An explicit date in the answer must match the target date: a past or different date does not satisfy an upcoming date claim even if its weekday matches. For other attributes, evaluate only the target occurrence; do not credit details explicitly attached to a different or past occurrence. Clearly labeled historical details do not contradict the current plan merely by being mentioned. " if judge_protocol in (DATE_SCOPED_JUDGE_PROTOCOL, COMPACT_JUDGE_PROTOCOL, CONTEXT_JUDGE_PROTOCOL) else "") +
         "A correct fragment does not satisfy a claim if the same answer contradicts it. "
         "Distinguish current-state claims from historical claims; judge "
         "the state and time described by each claim. "
@@ -179,13 +218,13 @@ def judge_prompt(question: str, answer: str, claims: tuple[Claim, ...], *, conve
 
 def grade_semantic(checkpoint_id: str, question: str, answer: str,
                    claims: tuple[Claim, ...], generate: Generate,
-                   *, record_path: Path | None = None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, prompt_suffix='') -> Grade:
+                   *, record_path: Path | None = None, question_at=None, conversation=(), assess_recovery=False, assess_interaction=False, diagnostic_inputs=None, diagnostic_version=LEGACY_DIAGNOSTIC_VERSION, judge_protocol=LEGACY_JUDGE_PROTOCOL, prompt_suffix='') -> Grade:
     """Judge every claim with a model; reject missing/malformed verdicts."""
     if not claims or len({c.id for c in claims}) != len(claims):
         raise ValueError("claims must be nonempty with unique IDs")
     if diagnostic_version not in DIAGNOSTIC_VERSIONS:
         raise ValueError('Unsupported evidence diagnostic protocol')
-    prompt = judge_prompt(question, answer, claims, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs,diagnostic_version=diagnostic_version,judge_protocol=judge_protocol) + prompt_suffix
+    prompt = judge_prompt(question, answer, claims, question_at=question_at, conversation=conversation, assess_recovery=assess_recovery,assess_interaction=assess_interaction,diagnostic_inputs=diagnostic_inputs,diagnostic_version=diagnostic_version,judge_protocol=judge_protocol) + prompt_suffix
     response = generate(prompt)
     output = response.text if isinstance(response, ModelOutput) else response
     if record_path is not None:
@@ -200,6 +239,7 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
             "answer": answer, "claims": [vars(c) for c in claims],
             "prompt": prompt, "response": output,
             "conversation": list(conversation),
+            **({"question_at": question_at, "question_timezone": SCENARIO_ZONE.key} if judge_protocol == CONTEXT_JUDGE_PROTOCOL else {}),
             **({'judge_protocol': judge_protocol, 'prompt_suffix': prompt_suffix} if judge_protocol != LEGACY_JUDGE_PROTOCOL or prompt_suffix else {}),
             **({'model_call_hash': model_call_hash} if judge_protocol != LEGACY_JUDGE_PROTOCOL else {}),
             **({"diagnostic_protocol": diagnostic_version, "diagnostic_inputs": diagnostic_inputs} if diagnostic_inputs is not None else {}),
@@ -214,9 +254,9 @@ def grade_semantic(checkpoint_id: str, question: str, answer: str,
                      isinstance(r.get("reason"), str) and r["reason"].strip()
                      for r, c in zip(rows, claims)))
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
-        raise ValueError(f"unusable semantic judge response: {output[:200]!r}") from exc
+        raise UnusableJudgeResponse(f"unusable semantic judge response: {output[:200]!r}") from exc
     if not valid:
-        raise ValueError(f"unusable semantic judge verdicts: {output[:200]!r}")
+        raise UnusableJudgeResponse(f"unusable semantic judge verdicts: {output[:200]!r}")
     if assess_interaction:
         if parsed.get('interaction') not in ('answer','clarification') or 'benchmark_error' not in parsed:
             raise ValueError('Unusable interaction judgment')
@@ -286,7 +326,7 @@ def grade_native_semantic(checkpoint_id, question, answer, claims, generate, *, 
                 stream.write(existing[-1].read_text(encoding='utf-8'))
 
 
-def audit_native_judge_attempts(record_path, *, question, answer, claims, judge_protocol, **kwargs):
+def audit_native_judge_attempts(record_path, *, question, answer, claims, judge_protocol, required_profile=None, model_call_dir=None, **kwargs):
     """Reconstruct requests and bind each attempt to its original model receipt."""
     if judge_protocol == LEGACY_JUDGE_PROTOCOL: return
     from .evidence_store import read_json
@@ -297,16 +337,35 @@ def audit_native_judge_attempts(record_path, *, question, answer, claims, judge_
     if not first.exists() or set(p.name for p in directory.iterdir()) != {p.name for p in attempts}:
         raise ValueError('missing or unexpected judge attempts')
     if read_json(path) != read_json(attempts[-1]): raise ValueError('final judgment differs from final attempt')
-    model_dir = next((parent/'model-calls' for parent in path.parents if (parent/'model-calls').is_dir()), None)
+    model_dir = (Path(model_call_dir) if model_call_dir is not None else
+                 next((parent/'model-calls' for parent in path.parents if (parent/'model-calls').is_dir()), None))
     if model_dir is None: raise ValueError('missing model call directory')
     for i, attempt_path in enumerate(attempts):
         attempt = read_json(attempt_path)
         suffix = RETRY_GUIDANCE if i else ''
         expected = judge_prompt(question, answer, claims, judge_protocol=judge_protocol, **kwargs) + suffix
         model_path = model_dir / Path(attempt.get('model_call') or '').name
+        if required_profile and (not model_path.is_file() or model_path.resolve() != model_path.absolute()
+                               or Path(attempt['model_call']).resolve() != model_path.resolve()):
+            raise ValueError('native judgment lacks its own run-scoped model receipt')
         call = read_json(model_path)
         digest = hashlib.sha256(json.dumps(call, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        if (attempt.get('judge_protocol') != judge_protocol or attempt.get('prompt_suffix') != suffix or
+        if required_profile:
+            from .openrouter_route import CHAT_COMPLETIONS_URL, PROFILES, validate_request
+            profile = PROFILES[required_profile]
+            receipt = call.get('judge_transport') or {}
+            sent = receipt.get('request') or {}
+            validate_request(sent, profile=required_profile)
+            request_digest = hashlib.sha256(json.dumps(sent, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            if (not receipt.get('id') or receipt.get('request_sha256') != request_digest
+                    or receipt.get('endpoint') != profile['endpoint']
+                    or call.get('model') != profile['model'] or call.get('request', {}).get('model') != profile['model']
+                    or call.get('url') != CHAT_COMPLETIONS_URL
+                    or sent.get('messages') != [{'role':'user','content':expected}]):
+                raise ValueError('missing or incorrect native judge route evidence')
+        if ((judge_protocol == CONTEXT_JUDGE_PROTOCOL and
+             (attempt.get('question_at') != kwargs.get('question_at') or attempt.get('question_timezone') != SCENARIO_ZONE.key)) or
+                attempt.get('judge_protocol') != judge_protocol or attempt.get('prompt_suffix') != suffix or
                 attempt.get('question') != question or attempt.get('answer') != answer or
                 attempt.get('claims') != [{'id':c.id, 'description':c.description, 'evidence':list(c.evidence)} for c in claims] or
                 attempt.get('conversation') != list(kwargs.get('conversation', ())) or

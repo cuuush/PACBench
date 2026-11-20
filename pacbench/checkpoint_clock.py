@@ -30,7 +30,7 @@ def descriptor(*,validate_clock=True):
     pointer=Path(os.environ[ENV]);state=json.loads(pointer.read_text())
     if state['protocol']!=VERSION:raise RuntimeError('Unknown persistent clock condition')
     if not re.fullmatch('[0-9a-f]{32}',state.get('nonce','')):raise RuntimeError('Invalid question clock nonce')
-    path=pointer.parent/'questions'/(state['nonce']+'.json');raw=path.read_bytes()
+    path=pointer.parent/('preludes' if state.get('prelude') is True else 'questions')/(state['nonce']+'.json');raw=path.read_bytes()
     if hashlib.sha256(raw).hexdigest()!=state['sha256']:raise RuntimeError('Question clock descriptor changed')
     value=json.loads(raw)
     if value['protocol']!=VERSION or value['home']!=os.environ['HERMES_HOME']:raise RuntimeError('Question clock scope differs')
@@ -76,6 +76,35 @@ def bind(session_id,request_id,text):
     return value
 
 
+def deferred_submission(env):
+    return bool(env.get('PACBENCH_R2_LIVE_SCOPE') or env.get('PACBENCH_WORKFLOW_SCOPE'))
+
+
+def release_at_submission():
+    """Advance a bound observation clock immediately before stock CLI submit."""
+    pointer=Path(os.environ[ENV]); active=json.loads(pointer.read_text())
+    if active.get('prelude') is not True:
+        return
+    if os.environ.get('PACBENCH_PYTHON_CLOCK_ROLE')!='hermes-cli' or not deferred_submission(os.environ):
+        raise RuntimeError('Only the bound native CLI may release the r2 observation clock')
+    d=descriptor();folder=pointer.parent
+    binding=json.loads((folder/'bindings'/(d['nonce']+'.json')).read_text())
+    if binding['question_sha256']!=d['question_sha256']:
+        raise RuntimeError('Native submission binding differs')
+    path=folder/'offset';real=real_time();current=real+float(path.read_text());target=datetime.fromisoformat(d['at']).timestamp()
+    if d.get('continuation_reason')=='omission-recovery' and current>target:
+        d['at']=datetime.fromtimestamp(current,timezone.utc).isoformat()
+        target=current
+    if current>target+5 or d.get('horizon') and max(current,target)>=datetime.fromisoformat(d['horizon']).timestamp():
+        raise RuntimeError('Native CLI startup missed the authored checkpoint')
+    if current<target:
+        temp=path.with_suffix('.submission');temp.write_text(f'{target-real:+.6f}\n');temp.replace(path)
+    d['offset_sha256']=hashlib.sha256(path.read_bytes()).hexdigest()
+    d['prelude_sha256']=active['sha256']
+    sha=atomic(folder/'questions'/(d['nonce']+'.json'),d)
+    atomic(pointer,{'protocol':VERSION,'nonce':d['nonce'],'sha256':sha})
+
+
 def sample(phase,session_id,request_id,text,**extra):
     d=descriptor();path=Path(os.environ[ENV]).parent/'bindings'/(d['nonce']+'.json')
     b=json.loads(path.read_text())
@@ -106,11 +135,11 @@ def emit(stamp):
 
 
 class CheckpointClock:
-    def __init__(self,home,at,checkpoint):
+    def __init__(self,home,at,checkpoint,*,startup_lead_s=60):
         self.home=Path(home).resolve();self.folder=self.home.parent/'reuse-clock';self.folder.mkdir(mode=0o700)
-        for name in ['questions','bindings','submissions']: (self.folder/name).mkdir(mode=0o700)
+        for name in ['questions','bindings','submissions','preludes']: (self.folder/name).mkdir(mode=0o700)
         self.path=self.folder/'offset';self.checkpoint=checkpoint;self.process_nonce=uuid.uuid4().hex
-        self.path.write_text(f'{datetime.fromisoformat(at).timestamp()-time.time()-60:+.6f}\n')
+        self.path.write_text(f'{datetime.fromisoformat(at).timestamp()-time.time()-startup_lead_s:+.6f}\n')
     def environment(self,env):
         from .python_provider_clock import VERSION as PYTHON_VERSION
         repo=Path(__file__).resolve().parents[1]
@@ -137,7 +166,8 @@ class CheckpointClock:
         if target.tzinfo is None or horizon and target>=datetime.fromisoformat(horizon):raise RuntimeError('Invalid question horizon')
         now=datetime.fromtimestamp(time.time()+float(self.path.read_text()),timezone.utc)
         if (now-target).total_seconds()>5:raise RuntimeError('Observation clock cannot rewind to a missed question')
-        if now<=target:
+        deferred=deferred_submission(getattr(owner,'env',{}))
+        if now<=target and not deferred:
             offset=f'{target.timestamp()-time.time():+.6f}\n';temporary=self.path.with_suffix('.tmp');temporary.write_text(offset);temporary.replace(self.path)
         nonce=uuid.uuid4().hex;value={'protocol':VERSION,'nonce':nonce,'at':at,'horizon':horizon,
             'checkpoint':self.checkpoint,'home':str(owner.home),'gateway_pid':owner.witness['pid'],
@@ -146,8 +176,8 @@ class CheckpointClock:
             'source_clock_stepped':False,'clock_scope':'isolated Hermes observations only'}
         if continuation:value.update(kind='continuation',**continuation)
         else:value['kind']='fresh'
-        sha=atomic(self.folder/'questions'/(nonce+'.json'),value)
-        atomic(self.folder/'active.json',{'protocol':VERSION,'nonce':nonce,'sha256':sha})
+        sha=atomic(self.folder/('preludes' if deferred else 'questions')/(nonce+'.json'),value)
+        atomic(self.folder/'active.json',{'protocol':VERSION,'nonce':nonce,'sha256':sha,**({'prelude':True} if deferred else {})})
         return value
 
 
@@ -167,7 +197,8 @@ def probe(home,python,env,role,code,*,timeout=5,args=()):
 
 
 def marker_time(home,python,env):
-    r=probe(home,python,env,'gateway-marker-probe','import time,json;from pacbench.direct_accounting import now;print(json.dumps({"wall":time.time(),"billing":now()}))')
+    r=probe(home,python,env,'gateway-marker-probe','import time,json;from pacbench.direct_accounting import now;print(json.dumps({"wall":time.time(),"billing":now()}))',
+        timeout=30 if deferred_submission(env) else 5)
     if r.returncode:raise RuntimeError('Persistent clock marker failed')
     expected=time.time()+float(Path(env['PACBENCH_PYTHON_CLOCK_FILE']).read_text())
     values=json.loads(r.stdout)

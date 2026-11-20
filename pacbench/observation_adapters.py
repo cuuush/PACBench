@@ -20,9 +20,14 @@ def native_source(provider,home,repo,env,python):
         source=repo/'vendor/reme';expected=PINS['reme'][1]
         if plugin.resolve()!=source.resolve()/'integrations/hermes_agent':raise ValueError('Native ReMe plugin path differs')
     elif provider=='memcal':
-        from .provider_versions import MEMCAL_OPERATIONS_REVISION,MEMCAL_OPERATIONS_CONDITION
-        source=Path(env['MEMCAL_SRC']).resolve();expected=env.get('PACBENCH_MEMCAL_REUSE_REVISION','dac7214006b84ec364ecbcd9472daca7db588a25')
-        if expected not in {'dac7214006b84ec364ecbcd9472daca7db588a25','da58057eb00f79082dfcf8f59baa264267c83ca1',MEMCAL_OPERATIONS_REVISION}:
+        from .provider_versions import MEMCAL_OPERATIONS_REVISION,MEMCAL_OPERATIONS_CONDITION,MEMCAL_REVISION
+        source=Path(env['MEMCAL_SRC']).resolve()
+        workflow = env.get('PACBENCH_WORKFLOW_CAPTURE') == 'pizza-week-conversation-v2'
+        expected = env.get('PACBENCH_MEMCAL_REUSE_REVISION', MEMCAL_REVISION if workflow else 'dac7214006b84ec364ecbcd9472daca7db588a25')
+        stable = expected == MEMCAL_REVISION and env.get('PACBENCH_MEMCAL_CONDITION') == 'stable-0.8.11' and (workflow or bool(env.get('PACBENCH_R2_LIVE_SCOPE')))
+        if workflow and not stable:
+            raise ValueError('Continuing MemCal workflow requires its reviewed stable condition')
+        if not stable and expected not in {'dac7214006b84ec364ecbcd9472daca7db588a25','da58057eb00f79082dfcf8f59baa264267c83ca1',MEMCAL_OPERATIONS_REVISION}:
             raise ValueError('Unknown MemCal review condition')
         if expected==MEMCAL_OPERATIONS_REVISION and env.get('PACBENCH_MEMCAL_CONDITION')!=MEMCAL_OPERATIONS_CONDITION:
             raise ValueError('MemCal observation revision needs its explicit reviewed condition')
@@ -30,6 +35,23 @@ def native_source(provider,home,repo,env,python):
             raise ValueError('MemCal plugin file set differs')
         for file in (source/'integrations/hermes/memcal').glob('*.py'):
             if hashlib.sha256(file.read_bytes()).digest()!=hashlib.sha256((plugin/file.name).read_bytes()).digest():raise ValueError('MemCal plugin differs from the selected tree')
+    elif provider in {'openviking','hindsight','supermemory','honcho'}:
+        from .catalog_plugins import CATALOG,verify_retained_catalog_provider
+        verify_retained_catalog_provider(provider,Path(home))
+        return {provider:CATALOG[provider][1]}
+    elif provider=='cognee':
+        from .cognee_memobase_setup import PINS
+        source=repo/'vendor/cognee-integrations';expected=PINS['cognee']['commit']
+        installed=plugin/'cognee_integration_hermes/provider.py'
+        original=source/'integrations/hermes-agent/cognee_integration_hermes/provider.py'
+        if not installed.is_file() or installed.read_bytes()!=original.read_bytes():
+            raise ValueError('Native Cognee installed provider differs from the pinned source')
+    elif provider=='memos':
+        from .provider_versions import verify_memos_package
+        package, release=verify_memos_package(repo)
+        if (Path(home)/'plugins/memtensor').resolve()!=package.resolve()/'adapters/hermes/memos_provider':
+            raise ValueError('Native MemOS plugin path differs')
+        return {'memos':release['sha256']}
     elif provider=='mem0':
         files={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(plugin.glob('*.py'))}
         sha=hashlib.sha256(json.dumps(files,sort_keys=True).encode()).hexdigest()
@@ -40,7 +62,7 @@ def native_source(provider,home,repo,env,python):
     actual=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
     if actual!=expected or subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
         raise ValueError('Native observation provider source differs')
-    return {provider:actual}
+    return {provider:actual, **({'memcal_baseline':'stable-0.8.11'} if provider=='memcal' and stable else {})}
 
 
 def plan(provider,config,workspace,*,endpoint=None):
@@ -62,6 +84,12 @@ def plan(provider,config,workspace,*,endpoint=None):
             'state_alias_target':str(workspace/'mem0-state'),
             'required_proof':['native Qdrant checkpoint closed and reopened','native history SQLite path follows the isolated alias','native sync and prefetch workers drained','native source-only checkpoint ready'],
             'live_qualified':False}
+    if provider in {'openviking','hindsight','supermemory','honcho','cognee'}:
+        from .reme_memos_setup import local_endpoint
+        return {'provider':provider,'endpoint':local_endpoint(endpoint)}
+    if provider=='memos':
+        return {'provider':provider,'config':result,'native_binding':'resolved MEMOS_HOME per independent store',
+                'state_alias_target':str(workspace)}
     if provider=='memcal':
         return {'provider':provider,'config':result,'native_binding':'stable MEMCAL_HOME observation alias',
             'state_alias_target':str(workspace),'required_proof':['exact selected MemCal source SHA','closed native SQLite checkpoint and wiki reopened','native archive writes confined to this observation','native correction quality gate'],

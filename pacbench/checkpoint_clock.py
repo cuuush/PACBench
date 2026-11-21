@@ -10,6 +10,9 @@ from pathlib import Path
 
 VERSION='checkpoint-observation-clock-v1'
 ENV='PACBENCH_REUSE_CLOCK_STATE'
+CEILING_ENV='PACBENCH_REUSE_CLOCK_CEILING'
+CEILING_MODE='bounded-observation-v1'
+OBSERVATION_LIMIT_S=60
 
 
 def atomic(path,value):
@@ -24,6 +27,13 @@ def real_time():
         import time_machine
         return time_machine.escape_hatch.time.time() if time_machine.escape_hatch.is_travelling() else time.time()
     except ImportError:return time.time()
+
+
+def observation_epoch(path, real, env):
+    from .python_provider_clock import clock_value_ns
+    bounded = env.get(CEILING_ENV)==CEILING_MODE
+    return clock_value_ns(path.read_text(), round(real*1_000_000_000),
+                          allow_ceiling=bounded)/1_000_000_000
 
 
 def descriptor(*,validate_clock=True):
@@ -77,7 +87,8 @@ def bind(session_id,request_id,text):
 
 
 def deferred_submission(env):
-    return bool(env.get('PACBENCH_R2_LIVE_SCOPE') or env.get('PACBENCH_WORKFLOW_SCOPE'))
+    return bool(env.get('PACBENCH_R2_LIVE_SCOPE') or env.get('PACBENCH_WORKFLOW_SCOPE')
+                or env.get(CEILING_ENV)==CEILING_MODE)
 
 
 def release_at_submission():
@@ -91,14 +102,21 @@ def release_at_submission():
     binding=json.loads((folder/'bindings'/(d['nonce']+'.json')).read_text())
     if binding['question_sha256']!=d['question_sha256']:
         raise RuntimeError('Native submission binding differs')
-    path=folder/'offset';real=real_time();current=real+float(path.read_text());target=datetime.fromisoformat(d['at']).timestamp()
+    path=folder/'offset';real=real_time();current=observation_epoch(path,real,os.environ)
+    target=datetime.fromisoformat(d['at']).timestamp()
+    bounded=d.get('clock_ceiling')==CEILING_MODE
+    if bounded!=(os.environ.get(CEILING_ENV)==CEILING_MODE) or bounded and current>=target:
+        raise RuntimeError('Bounded observation requires a strictly forward native checkpoint')
     if d.get('continuation_reason')=='omission-recovery' and current>target:
         d['at']=datetime.fromtimestamp(current,timezone.utc).isoformat()
         target=current
     if current>target+5 or d.get('horizon') and max(current,target)>=datetime.fromisoformat(d['horizon']).timestamp():
         raise RuntimeError('Native CLI startup missed the authored checkpoint')
     if current<target:
-        temp=path.with_suffix('.submission');temp.write_text(f'{target-real:+.6f}\n');temp.replace(path)
+        offset=f'{target-real:+.6f}'
+        if bounded:
+            offset+=f' ceiling={int(target+OBSERVATION_LIMIT_S)*1_000_000_000}'
+        temp=path.with_suffix('.submission');temp.write_text(offset+'\n');temp.replace(path)
     d['offset_sha256']=hashlib.sha256(path.read_bytes()).hexdigest()
     d['prelude_sha256']=active['sha256']
     sha=atomic(folder/'questions'/(d['nonce']+'.json'),d)
@@ -135,15 +153,17 @@ def emit(stamp):
 
 
 class CheckpointClock:
-    def __init__(self,home,at,checkpoint,*,startup_lead_s=60):
+    def __init__(self,home,at,checkpoint,*,startup_lead_s=60,bounded=False):
         self.home=Path(home).resolve();self.folder=self.home.parent/'reuse-clock';self.folder.mkdir(mode=0o700)
         for name in ['questions','bindings','submissions','preludes']: (self.folder/name).mkdir(mode=0o700)
-        self.path=self.folder/'offset';self.checkpoint=checkpoint;self.process_nonce=uuid.uuid4().hex
+        self.path=self.folder/'offset';self.checkpoint=checkpoint;self.process_nonce=uuid.uuid4().hex;self.bounded=bounded
         self.path.write_text(f'{datetime.fromisoformat(at).timestamp()-time.time()-startup_lead_s:+.6f}\n')
     def environment(self,env):
         from .python_provider_clock import VERSION as PYTHON_VERSION
         repo=Path(__file__).resolve().parents[1]
-        return {**env,ENV:str(self.folder/'active.json'),'PACBENCH_PYTHON_CLOCK_FILE':str(self.path),
+        if CEILING_ENV in env or self.bounded and env.get('PACBENCH_WORKFLOW_CAPTURE')!='pizza-week-conversation-v2':
+            raise RuntimeError('Unexpected bounded observation clock scope')
+        return {**env,ENV:str(self.folder/'active.json'),**({CEILING_ENV:CEILING_MODE} if self.bounded else {}),'PACBENCH_PYTHON_CLOCK_FILE':str(self.path),
             'PACBENCH_PYTHON_CLOCK_PROTOCOL':PYTHON_VERSION,'PACBENCH_PYTHON_CLOCK_NONCE':self.process_nonce,
             'PACBENCH_DIRECT_CLOCK':env.get('PACBENCH_DIRECT_CLOCK',f'{real_time()},{time.monotonic()}'),
             'PYTHONPATH':str(repo/'pacbench/direct_runtime')+os.pathsep+str(repo)+os.pathsep+env.get('PYTHONPATH','')}
@@ -164,9 +184,12 @@ class CheckpointClock:
         if not own:raise RuntimeError('Owned gateway clock adoption is missing')
         target=datetime.fromisoformat(at)
         if target.tzinfo is None or horizon and target>=datetime.fromisoformat(horizon):raise RuntimeError('Invalid question horizon')
-        now=datetime.fromtimestamp(time.time()+float(self.path.read_text()),timezone.utc)
+        env=getattr(owner,'env',{})
+        now=datetime.fromtimestamp(observation_epoch(self.path,time.time(),env),timezone.utc)
         if (now-target).total_seconds()>5:raise RuntimeError('Observation clock cannot rewind to a missed question')
-        deferred=deferred_submission(getattr(owner,'env',{}))
+        deferred=deferred_submission(env)
+        if self.bounded and (not deferred or env.get(CEILING_ENV)!=CEILING_MODE or now>=target):
+            raise RuntimeError('Bounded observation requires a strictly forward native checkpoint')
         if now<=target and not deferred:
             offset=f'{target.timestamp()-time.time():+.6f}\n';temporary=self.path.with_suffix('.tmp');temporary.write_text(offset);temporary.replace(self.path)
         nonce=uuid.uuid4().hex;value={'protocol':VERSION,'nonce':nonce,'at':at,'horizon':horizon,
@@ -174,6 +197,7 @@ class CheckpointClock:
             'gateway_start_time':owner.witness['start_time'],'question_sha256':hashlib.sha256(prompt.encode()).hexdigest(),
             'offset_sha256':hashlib.sha256(self.path.read_bytes()).hexdigest(),'drain_sha256':hashlib.sha256(json.dumps(fence,sort_keys=True).encode()).hexdigest(),
             'source_clock_stepped':False,'clock_scope':'isolated Hermes observations only'}
+        if self.bounded:value['clock_ceiling']=CEILING_MODE
         if continuation:value.update(kind='continuation',**continuation)
         else:value['kind']='fresh'
         sha=atomic(self.folder/('preludes' if deferred else 'questions')/(nonce+'.json'),value)
@@ -200,7 +224,7 @@ def marker_time(home,python,env):
     r=probe(home,python,env,'gateway-marker-probe','import time,json;from pacbench.direct_accounting import now;print(json.dumps({"wall":time.time(),"billing":now()}))',
         timeout=30 if deferred_submission(env) else 5)
     if r.returncode:raise RuntimeError('Persistent clock marker failed')
-    expected=time.time()+float(Path(env['PACBENCH_PYTHON_CLOCK_FILE']).read_text())
+    expected=observation_epoch(Path(env['PACBENCH_PYTHON_CLOCK_FILE']),time.time(),env)
     values=json.loads(r.stdout)
     if abs(values['wall']-expected)>5 or abs(datetime.fromisoformat(values['billing']).timestamp()-real_time())>5:
         raise RuntimeError('Persistent simulated wall or real billing clock differs')

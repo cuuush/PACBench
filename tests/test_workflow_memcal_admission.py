@@ -129,6 +129,22 @@ def test_live_callback_binds_role_attempt_frozen_release_and_final_dispatch(scop
                     assert operation_id(row) != operation_id(other)
                     with pytest.raises(ValueError,match='changed before dispatch'):
                         cap.confirm_memcal_sender(other)
+                    from pacbench.workflow_dream_waves import observed_dream
+                    with observed_dream() as observe:
+                        observe('propose_wave', {'kind':'main','entities':['person:fixture'],'requests':1})
+                        assert cap.admission(projects['memory'],cap.PROFILE,body)['slot'] == slot
+                        with pytest.raises(ValueError,match='predecessors completed'):
+                            observe('propose_wave', {'kind':'second-look','entities':['person:fixture'],'requests':1})
+                        observe('propose_request', {'index':1})
+                        observe('propose_wave', {'kind':'second-look','entities':['person:fixture'],'requests':1})
+                        second = cap.admission(projects['memory'],cap.PROFILE,body)['slot']
+                        repeated = cap.admission(projects['memory'],cap.PROFILE,body)['slot']
+                        assert operation_id(row) != operation_id(row_for(c,bound,second,'memory'))
+                        assert second == repeated
+                        cap.confirm_memcal_sender(row_for(c,bound,second,'memory'))
+                        observe('propose_request', {'index':1})
+                        with pytest.raises(ValueError,match='Dream wave changed'):
+                            cap.confirm_memcal_sender(row_for(c,bound,second,'memory'))
                     rows.append(row_for(c,bound,slot,'memory'))
                     # A dead callback's saved file cannot be reused even while its controller lives.
                     old = (directory/'active-native-operation.json').read_bytes()

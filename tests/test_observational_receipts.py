@@ -52,6 +52,23 @@ def test_wrong_route_and_duplicate_operation_refused(observed):
  r=begin(b);b.settle(r['id'],0)
  with pytest.raises(RuntimeError,match='replay'):begin(b)
 
+def test_distinct_hindsight_consolidation_calls_keep_transport_replay_guard(observed,monkeypatch):
+ b,_=observed
+ work={'kind':'hindsight-consolidation-call-v1','ordinal':1}
+ slot={'kind':'answer','question_id':'same-question','provider':'hindsight','native_work':work}
+ permit={'root':str(b.path.parent/'run'),'slot':slot,'capability':{},'projects':['test-memory']}
+ monkeypatch.setattr('pacbench.execution_capability.admission',lambda *a:permit)
+ monkeypatch.setattr('pacbench.execution_capability.fields',lambda p:{'workflow_slot':p['slot']})
+ first=begin(b);b.settle(first['id'],0)
+ with pytest.raises(RuntimeError,match='replay'):begin(b)
+ slot['native_work']={**work,'ordinal':2}
+ second=begin(b);b.settle(second['id'],0)
+ with pytest.raises(RuntimeError,match='replay'):begin(b)
+ first,second=[row for row in b.snapshot() if (row.get('workflow_slot') or {}).get('provider')=='hindsight']
+ assert first['request_sha256']==second['request_sha256']
+ assert first['dispatch_context']['operation_id']!=second['dispatch_context']['operation_id']
+ assert first['dispatch_context']['attempt_number']==second['dispatch_context']['attempt_number']==1
+
 def test_stream_id_retained_before_interruption(observed):
  from pacbench.direct_http import Capture
  b,_=observed;r=begin(b);c=Capture({**r,'budget':b},200)
@@ -302,3 +319,18 @@ def test_openviking_response_validation_is_independent_of_cost(observed):
   assert row['state']=='receipt_missing'
   assert openviking_response_evidence([row])['state']==expected
  assert 'PRIVATE SUMMARY' not in b.path.read_text()
+
+
+def test_luna_top_p_omission_applies_only_to_the_memos_oss_native_role(observed,monkeypatch):
+    ledger,_=observed
+    monkeypatch.setenv('PACBENCH_MEMOS_OSS_LUNA_COMPAT','omit-unsupported-top-p-v1')
+    input_request={'model':ledger.model,'messages':[{'role':'user','content':'Local fixture'}],
+                   'temperature':0.6,'top_p':0.95}
+    native=ledger.reserve('test-memos-memory',input_request)
+    assert 'temperature' not in native['request'] and 'top_p' not in native['request']
+    assert ledger.snapshot()[-1]['native_request_compatibility']=='omit-unsupported-top-p-v1'
+    before_send({**native,'budget':ledger})
+    ledger.settle(native['id'],0)
+    control=ledger.reserve('test-cognee-memory',input_request)
+    assert control['request']['top_p']==0.95
+    assert 'native_request_compatibility' not in ledger.snapshot()[-1]

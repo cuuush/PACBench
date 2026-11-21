@@ -4,6 +4,7 @@ Clients are already provisioned, account-bound upstream clients. This module doe
 install software, start services, change provider configuration, or resubmit writes.
 """
 from contextlib import closing
+from datetime import datetime
 import os
 import tempfile
 from pathlib import Path
@@ -29,11 +30,12 @@ def submit_document(provider, client, account_scope, document):
         return client.add(account_scope, content=document.text, id=document.filename,
                           date=document.cutoff)
     if method == 'auto_resource':
-        directory = Path(account_scope) / 'resource'
-        directory.mkdir(exist_ok=True)
+        workspace = Path(account_scope)
+        directory = workspace / 'resource' / datetime.fromisoformat(document.cutoff).date().isoformat()
+        directory.mkdir(parents=True, exist_ok=True)
         destination = directory / document.filename
         # Publish only complete bytes, and never replace a previous import.
-        with tempfile.NamedTemporaryFile(dir=directory.parent, delete=False) as staged:
+        with tempfile.NamedTemporaryFile(dir=workspace, delete=False) as staged:
             temporary = Path(staged.name)
             try:
                 staged.write(document.text.encode())
@@ -51,7 +53,8 @@ def submit_document(provider, client, account_scope, document):
         if method == 'resources':
             upload = client.upload_temp_file(path)
             return client.post('/api/v1/resources',
-                               {'temp_file_id': upload, 'source_name': document.filename, 'wait': True})
+                               {'temp_file_id': upload, 'source_name': document.filename, 'wait': True},
+                               timeout=180)
     raise ValueError(f'unsupported native method {method}')
 
 
@@ -106,7 +109,9 @@ class MemCalReaders:
         from memcal import brief, db
         from memcal.dream.run import dream
 
-        result = dream(self.connection,self.config)
+        from .workflow_dream_waves import observed_dream
+        with observed_dream() as observe:
+            result = dream(self.connection,self.config,progress=observe)
         if result.errors:
             raise RuntimeError('native nightly processing incomplete')
         # A non-error return can still leave queued work. Verify the committed

@@ -10,6 +10,34 @@ SOURCE_ARGUMENT_RULES = {
     },
 }
 
+def viking_read_result_category(text):
+    """Classify the observed native response, including mixed URI batches."""
+    import json
+    try:
+        value = json.loads(text)
+    except (TypeError, ValueError):
+        return 'unclassified'
+    if not isinstance(value, dict):
+        return 'unclassified'
+    rows = value.get('results', [value])
+    if not isinstance(rows, list):
+        return 'unclassified'
+    categories = set()
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get('content'), str) or 'error' in row:
+            continue
+        uri, level = row.get('resolved_uri', ''), row.get('level')
+        if not isinstance(uri, str) or level not in {'full', 'abstract', 'overview'}:
+            continue
+        if uri.startswith('viking://resources/') or uri == 'viking://resources':
+            category = ('source_evidence' if level == 'full' or row.get('fallback') == 'content/read'
+                        else 'source_summary')
+        else:
+            category = 'memory_detail'
+        categories.add(category)
+    return next((category for category in ('source_evidence', 'source_summary', 'memory_detail')
+                 if category in categories), 'unclassified')
+
 
 def proven_honcho_snapshot(result):
     """The shipped formatter labels recent raw messages separately from memory."""

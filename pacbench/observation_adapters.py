@@ -47,6 +47,20 @@ def native_source(provider,home,repo,env,python):
         if not installed.is_file() or installed.read_bytes()!=original.read_bytes():
             raise ValueError('Native Cognee installed provider differs from the pinned source')
     elif provider=='memos':
+        if env.get('PACBENCH_MEMOS_OSS_CONFIG'):
+            source=Path(env['PACBENCH_MEMOS_OSS_SOURCE']).resolve()
+            expected='3a16e5fe3048a209f722806f4123fa2e533588fd'
+            deployed=Path(home)/'plugins/memososs'
+            binding=repo/'provider_adapters/memos_oss_hermes'
+            files=('__init__.py','plugin.yaml')
+            if (Path(env['PACBENCH_MEMOS_OSS_CONFIG']) != Path(home)/'memos-oss.json'
+                    or deployed.is_symlink() or any((deployed/f).read_bytes()!=(binding/f).read_bytes() for f in files)):
+                raise ValueError('MemOS OSS Hermes REST binding differs')
+            actual=subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()
+            if actual!=expected or subprocess.check_output(['git','-C',str(source),'status','--porcelain'],text=True).strip():
+                raise ValueError('MemOS OSS server source differs from the pinned release')
+            return {'memos_oss':actual,'memos_oss_hermes_files':{
+                name:hashlib.sha256((binding/name).read_bytes()).hexdigest() for name in files}}
         from .provider_versions import verify_memos_package
         package, release=verify_memos_package(repo)
         if (Path(home)/'plugins/memtensor').resolve()!=package.resolve()/'adapters/hermes/memos_provider':

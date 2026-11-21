@@ -31,19 +31,28 @@ def coverage(by_measure, *, complete=None):
 
 
 def _answer_metrics(surface):
+    from .source_policy import viking_read_result_category
+
     calls = surface['tool_calls']
     results = {r['tool_call_id']:r for r in surface['tool_results']}
-    source_calls = [c for c in calls if tool_category(c['name'], c['input']) in SOURCE_CATEGORIES]
+    observed = {row['tool_call_id']:row['category'] for row in surface.get('tool_provenance',[])}
+    source_calls = [c for c in calls if observed.get(c['tool_call_id'],tool_category(c['name'], c['input'])) in SOURCE_CATEGORIES]
     history = surface['history']
     last_user = max(i for i, row in enumerate(history) if row['role']=='user')
     prior_source = []
-    for row in history[:last_user]:
+    prior = history[:last_user]
+    prior_results = {row.get('tool_call_id'):row for row in prior if row['role']=='tool'}
+    for row in prior:
         group = row.get('tool_calls') or []
         if isinstance(group, str):
             group = json.loads(group)
         for call in group:
             fn = call['function']
-            if tool_category(fn['name'], json.loads(fn['arguments'])) in SOURCE_CATEGORIES:
+            category = tool_category(fn['name'], json.loads(fn['arguments']))
+            result = prior_results.get(call.get('id'))
+            if fn['name']=='viking_read' and result is not None:
+                category = viking_read_result_category(result.get('api_content') or result.get('content'))
+            if category in SOURCE_CATEGORIES:
                 prior_source.append(fn['name'])
     timing = surface.get('timing', {})
     delivery = surface.get('memory_delivery') or {}
@@ -54,6 +63,7 @@ def _answer_metrics(surface):
             'explicit_tool_names':dict(Counter(c['name'] for c in calls)),
             'source_lookup_calls':[{'name':c['name'], 'tool_call_id':c['tool_call_id'],
                                     'success':results.get(c['tool_call_id'],{}).get('success')} for c in source_calls],
+            'generated_source_summary_calls':sum(category=='source_summary' for category in observed.values()),
             'prior_chat_source_lookups':dict(Counter(prior_source))}
 
 

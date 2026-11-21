@@ -84,6 +84,7 @@ def start(root, env, model, base, key):
                         f'Finished server process [{process.pid}]'.encode() in segment),
                     'log_slice': {'path': str(log_path), 'offset': log_offset, 'length': len(segment),
                                   'sha256': hashlib.sha256(segment).hexdigest()}}
+        save(root / 'native-service-stop.json', shutdown)
         return dict(shutdown)
 
     atexit.register(stop)

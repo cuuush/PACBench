@@ -162,6 +162,24 @@ def test_private_snapshot_never_overrides_corrupt_database_or_missing_session(tm
 def test_bad_temporary_root_is_rejected_before_native_source_work(tmp_path,monkeypatch):
     from pacbench.context_isolation import validate_recall_environment
     (tmp_path/'.git').mkdir()
+    (tmp_path/'.git/HEAD').write_text('ref: refs/heads/main\n')
     monkeypatch.setattr('pacbench.context_isolation.tempfile.gettempdir',lambda:str(tmp_path))
     with pytest.raises(RuntimeError,match='before native ingestion'):
         validate_recall_environment()
+
+
+@pytest.mark.parametrize('kind', ['empty', 'file', 'symlink', 'metadata'])
+def test_sandbox_placeholder_does_not_admit_real_git_ancestors(tmp_path, kind):
+    from pacbench.context_isolation import outside_project
+    marker = tmp_path/'.git'
+    if kind == 'file':
+        marker.write_text('gitdir: external-worktree')
+    elif kind == 'symlink':
+        marker.symlink_to(tmp_path/'absent-metadata')
+    else:
+        marker.mkdir()
+        if kind == 'metadata':
+            (marker/'HEAD').write_text('ref: refs/heads/main\n')
+    child = tmp_path/'empty-recall'
+    child.mkdir()
+    assert outside_project(child) is (kind == 'empty')

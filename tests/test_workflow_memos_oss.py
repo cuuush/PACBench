@@ -1,0 +1,100 @@
+from hashlib import sha256
+import json
+from types import SimpleNamespace
+
+import pytest
+
+from pacbench.workflow_memos_oss import MemosWitness, native_transport_drained
+from pacbench.workflow_tracks import MEMOS_OSS_VERSION, eligibility
+
+
+@pytest.mark.parametrize('tool', ['memos_get', 'memos_search'])
+def test_source_lookup_uses_native_returned_payload(tool):
+    value = 'Native file chunk'
+    evidence = {'readback': {'native_chunk_sha256': [sha256(value.encode()).hexdigest()]}}
+    observer = SimpleNamespace(client=SimpleNamespace(user='owner'), observed={'released.txt':evidence})
+    row = {'metadata': {'user_id':'owner', 'sources':[
+        {'type':'file','doc_path':'released.txt','content':value}]}}
+    payload = {'memory': row} if tool == 'memos_get' else {'memories':[row]}
+    invoke = lambda: MemosWitness.opened_file_source(observer, tool, {'text':json.dumps(payload)})
+    assert invoke()
+    row['metadata']['sources'][0]['content'] = 'Generated or changed text'
+    assert not invoke()
+    row['metadata']['sources'][0].update(content=value, type='chat')
+    assert not invoke()
+    row['metadata']['sources'][0]['type'] = 'file'
+    row['metadata']['user_id'] = 'another cube'
+    assert not invoke()
+
+
+def test_alternate_memos_deployment_does_not_replace_npm_condition():
+    assert not eligibility('memos','nightly-document')['documented_for_scope']
+    oss = eligibility('memos','nightly-document',version=MEMOS_OSS_VERSION)
+    assert oss['documented_for_scope'] and oss['reviewed_version']==MEMOS_OSS_VERSION
+    assert oss['routes'][0]['method']=='POST /product/add with a file item'
+
+
+@pytest.mark.parametrize('http_status', [None, 404, 503])
+def test_unsuccessful_memos_transport_cannot_qualify_raw_fallback(http_status):
+    retired={'id':'original','accounting_role':'memory_provider','finished':True,
+             'state':'receipt_missing','http_status':http_status}
+    successful={**retired,'id':'different-operation','state':'settled','http_status':200,
+                'response_validation':{'body_complete':True,'assistant_nonwhitespace_characters':24}}
+    with pytest.raises(RuntimeError,match='without usable model output'):
+        native_transport_drained([retired,successful])
+    assert not native_transport_drained([retired,{**successful,'finished':None,'retry_of':'original'}])
+    assert native_transport_drained([retired,{**successful,'retry_of':'original'}])
+
+
+def test_usable_native_response_can_advance_with_unknown_cost():
+    native={'id':'received','accounting_role':'memory_provider','finished':True,
+            'state':'receipt_missing','http_status':200,
+            'response_validation':{'body_complete':True,'assistant_nonwhitespace_characters':24}}
+    assert native_transport_drained([native])
+    native['response_validation']['assistant_nonwhitespace_characters']=0
+    with pytest.raises(RuntimeError,match='without usable model output'):
+        native_transport_drained([native])
+
+
+@pytest.mark.parametrize('http_status', [None, 503])
+def test_terminal_native_failure_blocks_next_nightly_release(tmp_path,http_status):
+    endpoint = SimpleNamespace(scheduler=lambda: {'failed':0,'cancelled':0,'waiting':0,'pending':0,'in_progress':0})
+    owner = SimpleNamespace(home=tmp_path,witness={'pid':42,'start_time':7},
+                            pins={'reuse_observer_sha256':'fixture'})
+    (tmp_path/'reuse-observer.json').write_text(json.dumps({
+        'pid':42,'start_time':7,'observer_sha256':'fixture','observed_monotonic_ns':2**63,
+        'native_failures':[],'sessions':[],
+    }))
+    ledger = SimpleNamespace(snapshot=lambda: [
+        {'id':'native-failed','accounting_role':'memory_provider','finished':True,
+         'state':'receipt_missing','http_status':http_status},
+    ])
+    cutoff='2026-10-05T21:00:00-04:00'
+    witness=MemosWitness(tmp_path,owner,endpoint,None,None,None,[SimpleNamespace(cutoff=cutoff)],ledger)
+    with pytest.raises(RuntimeError,match='without usable model output'):
+        witness.collection_clock(cutoff)
+    assert witness.cutoff is None
+
+
+def test_stock_raw_capture_requires_exact_accepted_pair_and_bound_request(tmp_path):
+    gateway=tmp_path/'workflow'
+    gateway.mkdir()
+    (gateway/'workflow.jsonl').write_text(json.dumps({
+       'phase':'dispatch','question':'rsvp-before','prompt':'Exact user input'}))
+    trace=tmp_path/'memory-api-inputs'
+    trace.mkdir()
+    native='native-attempt'
+    (trace/(native+'.json')).write_text(json.dumps({
+       'request_id':native,'project':'test-memory',
+       'request':{'messages':[{'content':'user: Exact user input\nassistant: Exact assistant output'}]},
+    }))
+    receipt={'id':native,'project':'test-memory','accounting_role':'memory_provider',
+             'http_status':200,'workflow_slot':{'kind':'answer','question_id':'rsvp-before'}}
+    witness=MemosWitness(tmp_path,None,None,None,None,None,[],SimpleNamespace(snapshot=lambda:[receipt]))
+    accepted={'memory_ids':['working-id'],'memory_types':['LongTermMemory'],
+              'exact_user_in_ack':True,'exact_assistant_in_ack':True}
+    assert witness.working_memory_processed(accepted,'Exact user input','Exact assistant output')==[native]
+    assert not witness.working_memory_processed(accepted,'Exact user input','altered assistant output')
+    assert not witness.working_memory_processed({**accepted,'exact_assistant_in_ack':False},'Exact user input','Exact assistant output')
+    receipt['workflow_slot']['question_id']='wrong-turn'
+    assert not witness.working_memory_processed(accepted,'Exact user input','Exact assistant output')

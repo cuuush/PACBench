@@ -53,20 +53,42 @@ def offset_ns(raw):
     return int(value)
 
 
-def shared_time_ns(path, real_ns):
+def clock_value_ns(raw, stamp, *, allow_ceiling=False):
+    offset, separator, ceiling = raw.removesuffix('\n').partition(' ceiling=')
+    if not separator:
+        return stamp + offset_ns(raw)
+    if not allow_ceiling or not re.fullmatch(r'[1-9][0-9]{18}', ceiling):
+        raise ValueError('Invalid provider clock ceiling')
+    return min(stamp + offset_ns(offset), int(ceiling))
+
+
+def shared_time_ns(path, real_ns, *, allow_ceiling=False):
     """Re-read after sampling real time to handle a suspended clock step."""
     while True:
         first = path.read_text(encoding='ascii')
         stamp = real_ns()
         second = path.read_text(encoding='ascii')
         if first == second:
-            return stamp + offset_ns(first)
+            return clock_value_ns(first, stamp, allow_ceiling=allow_ceiling)
+
+
+def physical_cognee_watcher():
+    """The pinned detached provider watcher is outside the Hermes question clock."""
+    if os.environ.get('PACBENCH_COGNEE_PHYSICAL_EXIT_WATCHER')!='1' or sys.argv[1:2]!=['--state']:
+        return False
+    home = os.environ.get('HERMES_HOME')
+    if not home or not Path(sys.argv[0]).is_absolute():
+        return False
+    watcher = Path(home)/'plugins/cognee/cognee_integration_hermes/exit_watcher.py'
+    return watcher.is_file() and Path(sys.argv[0]).resolve()==watcher.resolve()
 
 
 def install():
     global _controller
     name = os.environ.get('PACBENCH_PYTHON_CLOCK_FILE')
     if not name:
+        return
+    if physical_cognee_watcher():
         return
     if _controller is not None:
         return
@@ -80,14 +102,17 @@ def install():
     path = Path(name)
     if not path.is_absolute():
         raise RuntimeError('Provider clock file must be absolute')
-    offset_ns(path.read_text(encoding='ascii'))
+    allow_ceiling = (os.environ.get('PACBENCH_REUSE_CLOCK_CEILING')=='bounded-observation-v1'
+                     and path.parent.name=='reuse-clock'
+                     and os.environ.get('PACBENCH_REUSE_CLOCK_STATE')==str(path.parent/'active.json'))
+    clock_value_ns(path.read_text(encoding='ascii'), 0, allow_ceiling=allow_ceiling)
     _controller = time_machine.travel(0, tick=False)
     traveller = _controller.start()
     def read_time():
         try:
             if time_machine.traveller_stack != [traveller]:
                 raise RuntimeError('Provider clock state was replaced')
-            return shared_time_ns(path, time_machine.escape_hatch.time.time_ns)
+            return shared_time_ns(path, time_machine.escape_hatch.time.time_ns, allow_ceiling=allow_ceiling)
         except BaseException:
             os.write(2,b'PACBench Python clock failed; no inference permitted\n')
             os._exit(78)

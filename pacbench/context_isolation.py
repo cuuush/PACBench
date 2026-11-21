@@ -54,8 +54,12 @@ def _snapshot(home: Path, session_id: str, workspace: Path, prompt_hash: str, pr
 def outside_project(path: Path) -> bool:
     path = path.resolve()
     repo = Path(__file__).resolve().parents[1]
+    markers = (p / '.git' for p in (path, *path.parents))
+    # The managed sandbox mounts empty, read-only .git placeholders under
+    # writable temporary roots. A real worktree marker or metadata still blocks.
     return not path.is_relative_to(repo) and not any(
-        (p / '.git').exists() for p in (path, *path.parents))
+        marker.is_symlink() or marker.is_file() or (marker.is_dir() and any(marker.iterdir()))
+        for marker in markers)
 
 
 def validate_recall_environment():

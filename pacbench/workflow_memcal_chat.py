@@ -55,8 +55,10 @@ class MemCalChatWitness:
         pid = self.owner.witness['pid']
         if _identity(self.owner.home, pid)['start_time'] != self.owner.witness['start_time']:
             raise ValueError('MemCal gateway process changed')
-        result = {key:site[key] for key in ('synthetic_source_provenance','observed_connector_grants',
-                                            'as_of_upstream','platform_created_messages_fixture')}
+        result = {key:site[key] for key in ('synthetic_source_provenance','observed_connector_grants','as_of_upstream')}
+        for key in ('platform_created_messages_fixture', 'synthetic_chatdb_fixture'):
+            if key in site:
+                result[key] = site[key]
         result.update(account=identity, store_identity=str(self.store.parent), condition=vars(condition),
                       observed_version='0.8.11', memcal_revision=MEMCAL_REVISION,
                       frontend_identity='Hermes ' + self.owner.pins['hermes'], observed_patch=self.owner.pins['hermes_isolation_sha256'],

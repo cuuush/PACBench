@@ -34,14 +34,22 @@ def provider_state(provider):
             threads.extend(provider._deferred_commit_threads)
         threads.append(provider._runtime_start_thread)
         mirror=getattr(provider,'_native_memory_mirror',None)
-        if mirror is not None:threads.append(mirror._worker)
+        active=sum(bool(t and t.is_alive()) for t in threads)
+        if mirror is not None:
+            with mirror._queue.mutex:
+                active+=mirror._queue.unfinished_tasks
+            threads.append(mirror._worker)
         return {'name':name,'endpoint':provider._endpoint,
+                'active_writers':active,
                 'clean':provider._shutting_down and not any(t and t.is_alive() for t in threads)}
     if name=='memtensor':
         workers=[provider._prefetch_thread,provider._bridge_keepalive_thread,provider._session_close_thread]
         home=provider._runtime_home
         return {'name':name,'native_runtime_home':str(home) if home else None,
                 'clean':home is not None and provider._bridge is None and not any(t and t.is_alive() for t in workers)}
+    if name=='memososs':
+        return {'name':name,'native_session':provider.session,'write_error':provider.last_error,
+                'clean':provider.closed and not provider.last_error}
     if name!='reme':return {'name':name,'clean':False,'reason':'unverified provider drain'}
     queue=provider._write_queue
     with queue.mutex:unfinished=queue.unfinished_tasks

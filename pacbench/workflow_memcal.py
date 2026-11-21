@@ -33,6 +33,7 @@ class MemCalSite:
     imap_port: int
     imap_user: str
     bluebubbles_url: str | None = None
+    synthetic_chatdb: bool = False
 
 
 def _homes(site):
@@ -46,11 +47,18 @@ def _homes(site):
             or not home.is_dir() or not store.is_dir()):
         raise MemCalSiteError('Synthetic OS home or existing MemCal store differs from the declared site')
     if site.imessage_backend == 'chatdb':
-        if sys.platform != 'darwin' or Path(pwd.getpwuid(os.getuid()).pw_dir).resolve() != home:
+        if site.synthetic_chatdb:
+            if (home != store.parent.parent / 'source-home' or not home.is_relative_to(store.parent.parent)
+                    or home == Path(pwd.getpwuid(os.getuid()).pw_dir).resolve()
+                    or site.imap_host != '127.0.0.1' or store.name != 'memcal-home'):
+                raise MemCalSiteError('Synthetic chat.db requires a fresh isolated source home and loopback IMAP')
+        elif sys.platform != 'darwin' or Path(pwd.getpwuid(os.getuid()).pw_dir).resolve() != home:
             raise MemCalSiteError('Direct Messages requires the declared macOS login and its platform-created store')
         if site.bluebubbles_url:
             raise MemCalSiteError('Direct Messages cannot use a BlueBubbles endpoint')
     elif site.imessage_backend == 'bluebubbles':
+        if site.synthetic_chatdb:
+            raise MemCalSiteError('Synthetic chat.db uses only the stock local reader')
         url = urlsplit(site.bluebubbles_url or '')
         if (url.scheme not in ('https', 'http') or not url.hostname or url.username is not None
                 or url.password is not None or url.query or url.fragment):
@@ -226,6 +234,7 @@ def inspect_memcal_readers(site, connection, config, *, channels=BOTH):
         raise MemCalSiteError('Native MemCal source-access check failed for the declared site') from None
     return {'state': 'source-access-verified', 'memcal_revision': MEMCAL_REVISION,
             'imessage_backend': site.imessage_backend, 'imap': mail,
+            **({'source_condition':'synthetic-chatdb-imap-v1'} if site.synthetic_chatdb else {}),
             'scope': 'Read-only source access. Platform provenance, as-of inventory and processing require separate witnesses.'}
 
 

@@ -131,12 +131,15 @@ class _Handler(socketserver.StreamRequestHandler):
                 if subcommand == 'SEARCH':
                     criteria = ' '.join(args[1:]).strip('()')
                     match = re.fullmatch(r'UID (\d+):\*(?: SINCE \d{2}-[A-Za-z]{3}-\d{4})?', criteria, re.I)
-                    if not match and criteria.upper()!='ALL':
+                    by_id = re.fullmatch(r'HEADER MESSAGE-ID (<[^<>]+>)', criteria, re.I)
+                    if not match and not by_id and criteria.upper()!='ALL':
                         self.wfile.write(f'{tag} BAD Unsupported search criteria\r\n'.encode())
                         self.server.commands.append({'command':command,'operation':'SEARCH','folder':folder,'status':'BAD'})
                         continue
                     if match:
                         rows = [r for r in rows if r['uid'] >= int(match[1])]
+                    if by_id:
+                        rows = [r for r in rows if r['message_id'] == by_id[1]]
                     since = re.search(r'SINCE (\d{2}-[A-Za-z]{3}-\d{4})', criteria, re.I)
                     if since:
                         floor = datetime.strptime(since[1], '%d-%b-%Y').date()
@@ -146,13 +149,20 @@ class _Handler(socketserver.StreamRequestHandler):
                 elif subcommand == 'FETCH':
                     row = next((r for r in rows if r['uid'] == int(args[1])), None)
                     if row:
-                        data = row['rfc822'].encode('utf-8')
-                        header_only = 'HEADER.FIELDS' in ' '.join(args[2:]).upper()
-                        if header_only:
-                            data = data.split(b'\r\n\r\n', 1)[0] + b'\r\n\r\n'
-                        body = 'BODY[HEADER]' if header_only else 'BODY[]'
-                        self.wfile.write(f'* {row["uid"]} FETCH (UID {row["uid"]} {body} {{{len(data)}}}\r\n'.encode())
-                        self.wfile.write(data + b')\r\n')
+                        fields = ' '.join(args[2:]).upper()
+                        if fields == '(INTERNALDATE)':
+                            source = row['source']
+                            stamp = datetime.fromisoformat(source.get('arrived_at') or source['written_at'])
+                            value = stamp.strftime('%d-%b-%Y %H:%M:%S %z')
+                            self.wfile.write(f'* {row["uid"]} FETCH (UID {row["uid"]} INTERNALDATE "{value}")\r\n'.encode())
+                        else:
+                            data = row['rfc822'].encode('utf-8')
+                            header_only = 'HEADER.FIELDS' in fields
+                            if header_only:
+                                data = data.split(b'\r\n\r\n', 1)[0] + b'\r\n\r\n'
+                            body = 'BODY[HEADER]' if header_only else 'BODY[]'
+                            self.wfile.write(f'* {row["uid"]} FETCH (UID {row["uid"]} {body} {{{len(data)}}}\r\n'.encode())
+                            self.wfile.write(data + b')\r\n')
                 else:
                     status = 'BAD'
             else:

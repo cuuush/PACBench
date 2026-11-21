@@ -71,6 +71,11 @@ def operation_id(row):
     effect = slot.get('checkpoint_effect')
     if effect is not None and slot.get('provider') == 'memcal' and row.get('workflow_slot'):
         scope.update(checkpoint_effect=effect, project=row['project'])
+        if slot.get('native_work') is not None:
+            scope['native_work'] = slot['native_work']
+    if (slot.get('provider')=='hindsight' and row.get('workflow_slot') and slot.get('native_work')
+            and row.get('accounting_role')=='memory_provider'):
+        scope['native_work'] = slot['native_work']
     return hashlib.sha256(json.dumps({'request':row['request_sha256'],'scope':scope},sort_keys=True).encode()).hexdigest()
 
 
@@ -121,6 +126,9 @@ def mark_possible(row, at, sender=None):
     if slot.get('provider') == 'memcal' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_memcal_sender
         confirm_memcal_sender(row)
+    elif slot.get('provider') in ('mem0','hindsight','openviking','reme','cognee','memos') and slot.get('journal_stage_sha256'):
+        from .workflow_capability import confirm_document_sender
+        confirm_document_sender(row)
     elif slot.get('kind') == 'judge' and slot.get('checkpoint_effect'):
         from .workflow_capability import confirm_workflow_judge_sender
         confirm_workflow_judge_sender(row)

@@ -14,7 +14,7 @@ import time
 import pytest
 
 from pacbench.provider_clock import ProviderClock
-from pacbench.python_provider_clock import offset_ns, shared_time_ns, package_metadata
+from pacbench.python_provider_clock import offset_ns, shared_time_ns, package_metadata, physical_cognee_watcher
 
 
 @pytest.mark.parametrize('value',['nan\n','inf\n','1e9\n','-1.0\n','../file','', '1.000000001\n'])
@@ -28,6 +28,22 @@ def test_sample_retries_if_offset_changes_during_suspension():
     class Offset:
         def read_text(self,**kwargs):return next(values)
     assert shared_time_ns(Offset(),lambda:next(clock))==8_000_000_000
+
+
+def test_only_the_installed_cognee_exit_watcher_keeps_physical_time(tmp_path,monkeypatch):
+    watcher = tmp_path/'plugins/cognee/cognee_integration_hermes/exit_watcher.py'
+    watcher.parent.mkdir(parents=True)
+    watcher.touch()
+    monkeypatch.delenv('PACBENCH_COGNEE_PHYSICAL_EXIT_WATCHER',raising=False)
+    monkeypatch.setenv('HERMES_HOME',str(tmp_path))
+    monkeypatch.setattr(sys,'argv',[str(watcher),'--state','offline-fixture'])
+    assert not physical_cognee_watcher()
+    monkeypatch.setenv('PACBENCH_COGNEE_PHYSICAL_EXIT_WATCHER','1')
+    assert physical_cognee_watcher()
+    monkeypatch.setattr(sys,'argv',[str(watcher.with_name('other.py')),'--state','offline-fixture'])
+    assert not physical_cognee_watcher()
+    monkeypatch.setattr(sys,'argv',[str(watcher),'--different-command'])
+    assert not physical_cognee_watcher()
 
 
 CHILD = '''

@@ -12,10 +12,11 @@ from pathlib import Path
 from .canary_capability import binding, digest, read, sha
 from .live_dispatch import process_identity
 from .workflow_spec import SPEC, compile_week, instant
-from .workflow_tracks import HERMES_TOOLS, validate_native_deployment
+from .workflow_tracks import HERMES_TOOLS, MEMOS_OSS_LUNA_COMPAT, MEMOS_OSS_TOOLS, MEMOS_OSS_VERSION, validate_native_deployment
 
 ENV = 'PACBENCH_WORKFLOW_SCOPE'
 PROFILE = 'luna-bedrock-global'
+MEMOS_OSS_ADMISSION = 'memos-oss-native-file-document-week-v1'
 
 
 @lru_cache(maxsize=2)
@@ -29,10 +30,40 @@ def schedule(spec_sha, canary):
     return docs, turns, frozen
 
 
-def create(root, provider, *, canary, prepaid, auto_recharge_evidence):
+def create(root, provider, *, canary, prepaid, auto_recharge_evidence, qualification=None):
     root = Path(root).resolve()
-    if root.name != provider or provider != 'reme':
+    if root.name != provider or provider not in ('reme', 'mem0', 'hindsight', 'openviking','cognee','memos'):
         raise ValueError('no qualified continuing-account binding for this provider')
+    if provider == 'mem0' and not canary and qualification is None:
+        raise ValueError('Mem0 Week requires a separately verified live canary')
+    if provider == 'hindsight' and not canary and qualification is None:
+        raise ValueError('Hindsight Week requires a separately verified live canary')
+    if provider == 'openviking' and not canary and qualification is None:
+        raise ValueError('OpenViking Week requires a separately verified live canary')
+    if provider == 'reme' and not canary and qualification is None:
+        raise ValueError('ReMe Week requires a separately verified live canary')
+    if provider == 'cognee' and not canary and qualification is None:
+        raise ValueError('Cognee Week requires a separately verified live canary')
+    if provider == 'memos' and not canary and qualification is None:
+        raise ValueError('MemOS OSS Week requires a separately verified live canary')
+    if qualification is not None and (provider not in ('mem0','hindsight','openviking','reme','cognee','memos') or canary is not False):
+        raise ValueError('unexpected live qualification binding')
+    if qualification is not None:
+        if provider == 'mem0':
+            from .workflow_mem0 import check_canary
+        elif provider == 'hindsight':
+            from .workflow_hindsight import check_canary
+        elif provider == 'openviking':
+            from .workflow_openviking import check_canary
+        elif provider == 'reme':
+            from .workflow_reme import check_canary
+        elif provider == 'memos':
+            from .workflow_memos_oss import check_canary
+        else:
+            from .workflow_cognee import check_canary
+        canary_root = Path(qualification['result']['path']).parent
+        if canary_root == root or check_canary(canary_root) != qualification:
+            raise ValueError('Week requires the exact retained canary bindings')
     spec_sha = sha(SPEC)
     _, _, frozen = schedule(spec_sha, canary)
     prefix = 'pacbench-' + hashlib.sha256(str(root).encode()).hexdigest()[:12] + '-' + provider
@@ -40,6 +71,30 @@ def create(root, provider, *, canary, prepaid, auto_recharge_evidence):
     record = dict(protocol='pizza-week-conversation-v2', run_id=root.parent.name, root=str(root),
                   provider=provider, controller=process_identity(), projects={provider:roles}, spec_sha256=spec_sha, frozen_inputs=frozen,
                   canary=canary, prepaid=prepaid, auto_recharge_evidence=auto_recharge_evidence)
+    if provider == 'mem0':
+        record['admission'] = 'mem0-native-oss-document-week-v1'
+        if qualification is not None:
+            record['qualification'] = qualification
+    if provider == 'hindsight':
+        record['admission'] = 'hindsight-native-file-document-week-v1'
+        if qualification is not None:
+            record['qualification'] = qualification
+    if provider == 'openviking':
+        record['admission'] = 'openviking-native-file-document-week-v1'
+        if qualification is not None:
+            record['qualification'] = qualification
+    if provider == 'reme':
+        record['admission'] = 'reme-native-watched-resource-week-v1'
+        if qualification is not None:
+            record['qualification'] = qualification
+    if provider == 'cognee':
+        record['admission'] = 'cognee-native-permanent-document-week-v1'
+        if qualification is not None:
+            record['qualification'] = qualification
+    if provider == 'memos':
+        record['admission'] = MEMOS_OSS_ADMISSION
+        if qualification is not None:
+            record['qualification'] = qualification
     path = root/'workflow-scope.json'
     with path.open('x') as stream:
         json.dump(record, stream, sort_keys=True)
@@ -64,10 +119,45 @@ def load():
         return c
     if (root != root.resolve() or root/'workflow-scope.json' != Path(bound['path'])
             or c['run_id'] != root.parent.name or c['provider'] != root.name
-            or c['provider'] not in ('reme','memcal') or c['protocol'] != 'pizza-week-conversation-v2'
+            or c['provider'] not in ('reme','memcal','mem0','hindsight','openviking','cognee','memos') or c['protocol'] != 'pizza-week-conversation-v2'
             or type(c['canary']) is not bool or c['spec_sha256'] != sha(SPEC)
             or c['frozen_inputs'] != schedule(c['spec_sha256'], c['canary'])[2]):
         raise ValueError('unbound v2 account or dataset')
+    if c['provider'] == 'mem0' and (c.get('admission') != 'mem0-native-oss-document-week-v1'
+            or c['projects'] != _mem0_projects(root)):
+        raise ValueError('unbound native Mem0 continuing-account canary scope')
+    if c['provider'] in ('mem0','hindsight','openviking','reme','cognee','memos') and not c['canary']:
+        qualification = c['qualification']
+        result = read(qualification['result'])
+        canary = read(qualification['scope'])
+        canary_root = Path(canary['root'])
+        qualified = (result['state'],result['cleanup'])==('live-canary-complete','complete')
+        if c['provider']=='hindsight' and qualification.get('cleanup'):
+            cleanup = read(qualification['cleanup'])
+            qualified = (result['state']=='incomplete' and result['cleanup']=='unverified'
+                         and Path(qualification['cleanup']['path'])==canary_root/'service-shutdown-reconciliation.json'
+                         and cleanup['state']=='verified-after-exit' and cleanup['result']==qualification['result'])
+        if (not result['canary'] or not qualified
+                or Path(qualification['scope']['path'])!=canary_root/'workflow-scope.json'
+                or Path(qualification['result']['path'])!=canary_root/'result.json'
+                or canary_root==root or canary['provider']!=c['provider'] or not canary['canary']
+                or canary['frozen_inputs']!=c['frozen_inputs'] or canary['spec_sha256']!=c['spec_sha256']):
+            raise ValueError('Week does not bind a distinct completed canary')
+    if c['provider']=='hindsight' and (c.get('admission')!='hindsight-native-file-document-week-v1'
+            or c['projects']!=_document_projects(root,'hindsight')):
+        raise ValueError('unbound native Hindsight continuing-account scope')
+    if c['provider']=='openviking' and (c.get('admission')!='openviking-native-file-document-week-v1'
+            or c['projects']!=_document_projects(root,'openviking')):
+        raise ValueError('unbound native OpenViking continuing-account scope')
+    if c['provider']=='reme' and (c.get('admission')!='reme-native-watched-resource-week-v1'
+            or c['projects']!=_document_projects(root,'reme')):
+        raise ValueError('unbound native ReMe continuing-account scope')
+    if c['provider']=='cognee' and (c.get('admission')!='cognee-native-permanent-document-week-v1'
+            or c['projects']!=_document_projects(root,'cognee')):
+        raise ValueError('unbound native Cognee continuing-account scope')
+    if c['provider']=='memos' and (c.get('admission')!=MEMOS_OSS_ADMISSION
+            or c['projects']!=_document_projects(root,'memos')):
+        raise ValueError('unbound MemoryOS OSS document scope')
     if c['provider'] == 'memcal':
         contract, plan, *_ = _memcal_schedule(c['spec_sha256'], c['canary'])
         if (c.get('admission') != MEMCAL_SCOPE or c.get('contract') != contract or c.get('plan_sha256') != plan
@@ -123,6 +213,20 @@ def owner(env, home, checkpoint, provider, clock):
                 or env.get('PACBENCH_OFFLINE_CONFORMANCE') or os.environ.get('PACBENCH_JUDGE_OUTPUT_RECOVERY')
                 or process_identity() != c['controller']):
             raise ValueError('MemCal gateway lacks the bound owner, Luna route or exclusive native tool set')
+    tools = MEMOS_OSS_TOOLS if provider == 'memos' else HERMES_TOOLS[provider]
+    if provider in ('mem0','hindsight','openviking','reme','cognee','memos') and (
+            env.get('PACBENCH_TOOL_ALLOWLIST') != ','.join(tools)
+            or env.get('PACBENCH_OPENROUTER_PROFILE') != PROFILE
+            or env.get('PACBENCH_ROLE_ROUTES') != 'luna-all-roles-v1'
+            or env.get('PACBENCH_OFFLINE_CONFORMANCE') or process_identity() != c['controller']):
+        raise ValueError('Document gateway lacks the bound owner, Luna route or exclusive native tool set')
+    if provider == 'memos' and env.get('PACBENCH_MEMOS_OSS_CONFIG') != str(home/'memos-oss.json'):
+        raise ValueError('MemOS OSS gateway does not bind its run-owned configuration')
+    if provider == 'openviking' and env.get('PACBENCH_SOURCE_ARGUMENT_RULES') != '{}':
+        raise ValueError('OpenViking continuing-account gateway must retain supported native source reads')
+    if provider=='cognee' and (env.get('PACBENCH_COGNEE_PHYSICAL_EXIT_WATCHER')!='1'
+            or env.get('COGNEE_IMPROVE_BACKGROUND')!='false'):
+        raise ValueError('Cognee needs a physical native exit watcher and in-process session promotion')
 
 
 def admission(project, profile, body):
@@ -141,6 +245,9 @@ def admission(project, profile, body):
         return admit(c, project, body)
     if provider == 'memcal':
         return _memcal_admission(c, project, body)
+    if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):
+        from .openrouter_route import validate_request
+        validate_request(body, profile=PROFILE)
     root = Path(c['root'])
     path = root/'workflow/workflow.jsonl'
     if path != path.resolve():
@@ -159,8 +266,12 @@ def admission(project, profile, body):
     condition = Condition(**deployment['condition'])
     record = deployment['deployment_witness']
     validate_native_deployment(condition, record)
+    store = {'reme':'reme-workspace','mem0':'mem0-state','hindsight':'fallback-home',
+             'openviking':'openviking-data','cognee':'cognee-data','memos':'memos-oss-service'}[provider]
     if (condition.provider != provider or condition.track != 'nightly-document'
-            or condition.state != 'continuing-account' or record['store_identity'] != str(root/'reme-workspace')):
+            or condition.state != 'continuing-account'
+            or provider == 'memos' and condition.version != MEMOS_OSS_VERSION
+            or record['store_identity'] != str(root/store)):
         raise ValueError('deployment or native store differs')
     initial = events[2] if len(events) > 2 else {}
     witness = initial.get('evidence', {})
@@ -173,8 +284,15 @@ def admission(project, profile, body):
         return dict(root=c['root'], capability=json.loads(os.environ[ENV]), run_id=c['run_id'],
                     slot=checkpoint, projects=[project])
     role = next(role for role, name in roles.items() if name == project)
-    sender = c['controller'] if role == 'judge' else record['native_processes'][role]
-    if sender != process_identity():
+    if provider=='memos' and role=='memory' and (
+            os.environ.get('PACBENCH_MEMOS_OSS_LUNA_COMPAT')!=MEMOS_OSS_LUNA_COMPAT or 'top_p' in body):
+        raise ValueError('MemOS OSS native request lacks Luna sampling compatibility')
+    senders = [c['controller'] if role == 'judge' else record['native_processes'][role]]
+    if provider == 'mem0' and role == 'memory':
+        # The stock SDK importer lives in the controller. Hermes invokes the
+        # same provider backend in its own process during recall and writeback.
+        senders.append(record['native_processes']['driver'])
+    if process_identity() not in senders:
         raise ValueError('sender differs from run-owned native process')
     docs, turns, _ = schedule(c['spec_sha256'], c['canary'])
     completed = [r for r in events if r['phase']=='readback']
@@ -187,6 +305,16 @@ def admission(project, profile, body):
         submit = next(r for r in reversed(events) if r['phase']=='submit')
         if (submit['filename'], submit['content'], submit['sha256'], submit['at']) != (doc.filename, doc.text, doc.sha256, doc.cutoff):
             raise ValueError('native submission differs from current nightly unit')
+        if provider == 'mem0':
+            all_documents, _, _ = schedule(c['spec_sha256'], False)
+            if process_identity() != c['controller'] or not mem0_import_request(
+                    body, doc, all_documents, docs[:len(ready)+1]):
+                raise ValueError('Mem0 import request lacks its exact released document')
+        if provider in ('hindsight','openviking','reme','cognee','memos'):
+            from .workflow_runner import inspect_source_cutoff
+            all_documents, _, _ = schedule(c['spec_sha256'],False)
+            inspect_source_cutoff({'model_requests':[body],'prefetch':None}, all_documents,
+                                  [d.filename for d in docs[:len(ready)+1]], [])
         slot = dict(kind='ingest', batch_id=doc.filename)
     elif event['phase']=='dispatch' and project in (roles['driver'], roles['memory']):
         seen = [r['question'] for r in events if r['phase']=='verified-turn']
@@ -199,11 +327,13 @@ def admission(project, profile, body):
                 or inventory['question'] != turn.id or inventory['source_files'] != [d.filename for d in prefix]
                 or ready != [d.sha256 for d in prefix]):
             raise ValueError('answer outside verified source prefix or schedule')
+        if provider == 'mem0' and process_identity() != record['native_processes']['driver']:
+            raise ValueError('Mem0 answer-stage request came from outside the warm gateway')
         if project == roles['driver']:
             users = [m for m in body['messages'] if m['role']=='user']
             if (not users or not isinstance(users[-1].get('content'), str) or
                     not (users[-1]['content'] == turn.prompt or users[-1]['content'].startswith(turn.prompt+'\n\n')) or
-                    sorted(t['function']['name'] for t in body.get('tools', [])) != list(HERMES_TOOLS[provider])):
+                    sorted(t['function']['name'] for t in body.get('tools', [])) != sorted(condition.tool_names)):
                 raise ValueError('driver question or tool surface differs')
         slot = dict(kind='answer', question_id=turn.id)
     elif event['phase']=='chat-close-started' and project == roles['memory']:
@@ -213,6 +343,8 @@ def admission(project, profile, body):
                 or verified.get('question') != question or visible.get('question') != question
                 or visible['surface']['session_id'] != event['session_id']):
             raise ValueError('native close differs from the verified session')
+        if provider == 'mem0' and process_identity() != record['native_processes']['driver']:
+            raise ValueError('Mem0 cleanup-stage request came from outside the warm gateway')
         slot = dict(kind='cleanup', question_id=question)
     elif event['phase']=='judge-request' and project == roles['judge']:
         if (event['question'] not in {r['question'] for r in events if r['phase']=='verified-turn'}
@@ -222,8 +354,82 @@ def admission(project, profile, body):
         slot = dict(kind='judge', question_id=event['question'])
     else:
         raise ValueError('workflow stage does not permit this request')
+    if provider in ('mem0','hindsight','openviking','reme','cognee','memos'):
+        slot['journal_stage_sha256'] = digest(event)
+    if provider == 'hindsight' and role == 'memory':
+        work = hindsight_consolidation_call(root)
+        if work is not None:
+            slot['native_work'] = work
     return dict(root=c['root'], capability=json.loads(os.environ[ENV]), run_id=c['run_id'],
                 slot={**slot,'provider':provider},projects=[project])
+
+
+def _mem0_projects(root):
+    return _document_projects(root,'mem0')
+
+
+def _document_projects(root,provider):
+    prefix = 'pacbench-' + hashlib.sha256(str(root).encode()).hexdigest()[:12] + '-' + provider + '-'
+    return {provider:{role:prefix+role for role in ('memory','driver','judge')}}
+
+
+def mem0_import_request(body, document, all_documents, released):
+    from mem0.configs.prompts import ADDITIVE_EXTRACTION_PROMPT
+    from mem0.memory.utils import parse_messages
+    from .workflow_runner import inspect_source_cutoff
+
+    messages = body.get('messages', [])
+    if (len(messages) != 2 or messages[0].get('role') != 'system'
+            or messages[0].get('content') != ADDITIVE_EXTRACTION_PROMPT or messages[1].get('role') != 'user'
+            or not isinstance(messages[1].get('content'), str) or body.get('tools')):
+        return False
+    current = parse_messages([{'role':'user','content':document.text}])
+    prompt = messages[1]['content']
+    _, marker, tail = prompt.partition('\n\n## New Messages\n')
+    observed, boundary, _ = tail.partition('\n\n## Observation Date\n')
+    if (not marker or not boundary or observed != current
+            or not prompt.startswith('## Summary\n\n\n## Last k Messages\n')
+            or '\n\n## Custom Instructions\n' in prompt):
+        return False
+    try:
+        inspect_source_cutoff({'model_requests':[body], 'prefetch':None}, all_documents,
+                              [doc.filename for doc in released], [])
+    except ValueError:
+        return False
+    return True
+
+
+def confirm_document_sender(row):
+    scope = load()
+    bound = json.loads(os.environ[ENV])
+    root = Path(scope['root'])
+    journal = root/'workflow/workflow.jsonl'
+    if (scope['provider'] not in ('mem0','hindsight','openviking','reme','cognee','memos') or scope['provider']!=row['workflow_slot']['provider']
+            or row['workflow_root']!=str(root)
+            or row['workflow_capability']!=bound or journal!=journal.resolve()):
+        raise ValueError('Document dispatch no longer belongs to its active scope')
+    if scope['provider']=='memos' and row['accounting_role']=='memory_provider' and (
+            os.environ.get('PACBENCH_MEMOS_OSS_LUNA_COMPAT')!=MEMOS_OSS_LUNA_COMPAT or
+            row.get('native_request_compatibility')!=MEMOS_OSS_LUNA_COMPAT):
+        raise ValueError('MemOS OSS sampling compatibility changed before dispatch')
+    with journal.open() as stream:
+        last = None
+        for last in stream:
+            pass
+    if last is None or digest(json.loads(last)) != row['workflow_slot']['journal_stage_sha256']:
+        raise ValueError('Document workflow stage changed before dispatch')
+
+    if scope['provider']=='hindsight' and row['accounting_role']=='memory_provider':
+        if hindsight_consolidation_call(root)!=row['workflow_slot'].get('native_work'):
+            raise ValueError('Hindsight native consolidation boundary changed before dispatch')
+
+
+def hindsight_consolidation_call(root):
+    from .workflow_hindsight_calls import native_consolidation_call
+
+    bank = json.loads((root/'hermes-home/hindsight/config.json').read_text())['bank_id']
+    return native_consolidation_call(bank)
+
 
 MEMCAL_SCOPE = 'memcal-source-operation-v1'
 
@@ -337,12 +543,20 @@ def activate_memcal(progress, account, condition, deployment, *, resume_plan=Non
         raise ValueError('MemCal process, native mixed reader, source map or deployment differs')
     validate_native_deployment(condition, deployment)
     _access(deployment['source_access'], c['imessage_backend'])
-    platform = deployment['platform_created_messages_fixture']
+    synthetic = account.client.site.synthetic_chatdb
+    platform = deployment.get('synthetic_chatdb_fixture' if synthetic else 'platform_created_messages_fixture')
     if not isinstance(platform, dict) or set(platform) != {'path','sha256'}:
-        raise ValueError('MemCal requires captured synthetic Mac provenance')
+        raise ValueError('MemCal requires a bound Messages provenance record')
     proof = read(platform)
     native = proof.get('native_capture') or {}
-    if (proof.get('platform') != 'darwin' or proof.get('account') != c['account']
+    if synthetic:
+        if (proof.get('protocol') != 'synthetic-chatdb-imap-v1' or proof.get('apple_delivery') is not False
+                or proof.get('account') != c['account'] or Path(platform['path']).parent != Path(c['root']).parent
+                or proof.get('source_map_sha256') != deployment['source_map_sha256']
+                or deployment['source_access'].get('source_condition') != 'synthetic-chatdb-imap-v1'
+                or deployment.get('platform_created_messages_fixture')):
+            raise ValueError('Synthetic chat.db provenance differs from the bound isolated source')
+    elif (proof.get('platform') != 'darwin' or proof.get('account') != c['account']
             or proof.get('imessage_backend') != c['imessage_backend']
             or proof.get('source_map_sha256') != deployment['source_map_sha256']
             or any(not isinstance(native.get(k), str) or not native[k].strip()
@@ -606,7 +820,8 @@ def _memcal_admission(c, project, body):
             if (progress.binding('memcal_activation') or {}).get('scope') != json.loads(os.environ[ENV]):
                 raise ValueError('MemCal judge lacks original qualified source scope')
     else:
-        slot = _native_lease(c, project)
+        from .workflow_dream_waves import native_dream_slot
+        slot = native_dream_slot(_native_lease(c, project))
         if slot['kind'] == 'answer':
             if c.get('admission') == 'pizza-day-synthetic-memcal-v1':
                 from .pizza_day_controller import QUESTION, QUESTION_AT
@@ -638,8 +853,10 @@ def confirm_memcal_sender(row):
         from .workflow_grading import active_claim
         if not active_claim(c,row['project'],slot['checkpoint_effect']):
             raise ValueError('MemCal judge callback is no longer live')
-    elif _native_lease(c,row['project']) != slot:
-        raise ValueError('MemCal native callback changed before dispatch')
+    else:
+        from .workflow_dream_waves import native_dream_slot
+        if native_dream_slot(_native_lease(c,row['project'])) != slot:
+            raise ValueError('MemCal native callback or Dream wave changed before dispatch')
 
 
 def confirm_workflow_judge_sender(row):

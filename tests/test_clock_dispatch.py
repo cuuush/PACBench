@@ -24,6 +24,26 @@ def test_recovery_uses_actual_time_but_never_next_checkpoint_or_next_local_day()
         clock.window({'provider_at':'2026-09-12T00:00:00-04:00'},env)
 
 
+def test_warm_client_binds_then_releases_clock_before_sampling(monkeypatch):
+    from pacbench import checkpoint_clock
+
+    monkeypatch.setenv('PACBENCH_PYTHON_CLOCK_FILE', 'offline-offset')
+    monkeypatch.setenv('PACBENCH_REUSE_CLOCK_STATE', 'offline-descriptor')
+    events = []
+    monkeypatch.setattr(checkpoint_clock, 'bind', lambda *args: events.append(('bind', args)))
+    monkeypatch.setattr(checkpoint_clock, 'release_at_submission', lambda: events.append('release'))
+    def sample(*args):
+        assert events[-1] == 'release'
+        return args
+    monkeypatch.setattr(clock, 'sample', sample)
+    monkeypatch.setattr(clock, 'window', lambda stamp: events.append(('window', stamp)))
+    monkeypatch.setattr(clock, 'emit', lambda stamp: events.append(('emit', stamp)))
+    clock.before_submit('session', 'request', 'verbatim question')
+    assert events[0] == ('bind', ('session', 'request', 'verbatim question'))
+    assert events[2:] == [(name, ('client-submit', 'session', 'request', 'verbatim question'))
+                          for name in ('window', 'emit')]
+
+
 def test_transaction_guard_resamples_after_writer_delay_without_external_effects(monkeypatch):
     monkeypatch.setattr(clock,'active',lambda:True)
     monkeypatch.setattr(clock,'sample',lambda *a,**kw:{'provider_at':'2026-09-11T09:00:06-04:00'})

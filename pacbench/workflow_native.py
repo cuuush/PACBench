@@ -46,9 +46,15 @@ def appended_rows(path, position):
 def tool_provenance(calls, results):
     """Record explicit native operations separately from automatic memory delivery."""
     from .followups import tool_category
-    return [{'tool_call_id':c['tool_call_id'], 'tool':c['name'],
-             'category':tool_category(c['name'], c['input']), 'success':r['success']}
-            for c,r in zip(calls, results, strict=True)]
+    from .source_policy import viking_read_result_category
+    observed = []
+    for call,result in zip(calls,results,strict=True):
+        name = call['name']
+        category = tool_category(name,call['input'])
+        if name=='viking_read' and result['success']:
+            category = viking_read_result_category(result['text'])
+        observed.append(dict(tool_call_id=call['tool_call_id'],tool=name,category=category,success=result['success']))
+    return observed
 
 
 class OpenChatClockOwner:
@@ -78,11 +84,12 @@ class WarmHermes:
     closes a conversation between its related turns. Per-provider readback of the
     write and source inventory belongs to the provisioned account binding.
     """
-    def __init__(self, owner, clock, observe_idle):
+    def __init__(self, owner, clock, observe_idle, *, chat_close_timeout_s=120):
         self.owner = owner
         self.clock = clock
         self.clock_owner = OpenChatClockOwner(owner, observe_idle)
         self.starts = {}
+        self.chat_close_timeout_s = chat_close_timeout_s
         if owner.env.get('PACBENCH_WORKFLOW_CAPTURE') != 'pizza-week-conversation-v2':
             raise ValueError('exact driver capture must be enabled at gateway startup')
 
@@ -191,8 +198,9 @@ class WarmHermes:
     def end_chat(self, session_id):
         owner = self.owner
         _identity(owner.home,owner.witness['pid'])
-        subprocess.run([str(owner.python),'-c',NATIVE_CHAT_CLOSE,session_id,'120'],
-                       env=owner.env,cwd=owner.cwd,capture_output=True,check=True,timeout=125)
+        timeout = self.chat_close_timeout_s
+        subprocess.run([str(owner.python),'-c',NATIVE_CHAT_CLOSE,session_id,str(timeout)],
+                       env=owner.env,cwd=owner.cwd,capture_output=True,check=True,timeout=timeout+5)
         self.starts.pop(session_id)
 
 
@@ -248,7 +256,8 @@ class NativeAccount:
 
     def sync(self, cutoff, channels):
         if self.provider == 'memcal':
-            raw = self.client.collect(channels)
+            with self.memcal_clock(cutoff):
+                raw = self.client.collect(channels)
             return self.source_witness.connector_acceptance(raw, cutoff)
         # An eligible email-only source uses the installed official client. A
         # missing grant or implementation cannot fall back to uploading exports.
@@ -260,7 +269,18 @@ class NativeAccount:
         return self.witness.connector_readback(acceptance)
 
     def process_sync(self):
-        return self.client.process()
+        active = getattr(self.source_witness, 'active', None)
+        with self.memcal_clock(active['cutoff'] if active else None):
+            return self.client.process()
+
+    def memcal_clock(self, cutoff):
+        from contextlib import nullcontext
+        from .workflow_memcal_live import run_environment
+        if getattr(getattr(self.client, 'site', None), 'synthetic_chatdb', False):
+            if not cutoff:
+                raise ValueError('Synthetic MemCal collection and Dream require a bound cutoff')
+            return run_environment({'MEMCAL_TODAY':cutoff})
+        return nullcontext()
 
     def observe_sync(self, acceptance, dream):
         return {**self.source_witness.connector_readback(acceptance, processing=dream), 'native_dream': dream}

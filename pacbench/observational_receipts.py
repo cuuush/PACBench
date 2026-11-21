@@ -108,6 +108,11 @@ class ObservedBudget:
   if body.get('model')!=self.model:raise ValueError('Exact Luna model required')
   if os.environ.get('PACBENCH_LUNA_COMPATIBILITY')!='temperature-omitted-default-v1' or os.environ.get('PACBENCH_EFFECTIVE_OUTPUT_TOKENS')!='32768':raise ValueError('Established native inference condition required')
   request={k:v for k,v in body.items() if k!='temperature'}
+  from .workflow_tracks import MEMOS_OSS_LUNA_COMPAT
+  memos_compat=(project.endswith('-memos-memory') and
+                os.environ.get('PACBENCH_MEMOS_OSS_LUNA_COMPAT')==MEMOS_OSS_LUNA_COMPAT)
+  if memos_compat:
+   request.pop('top_p',None)
   if 'max_tokens' in request and 'max_completion_tokens' in request:raise ValueError('Conflicting output limits')
   key='max_tokens' if 'max_tokens' in request else 'max_completion_tokens';limit=request.get(key,32768)
   if type(limit) is not int or limit<=0:raise ValueError('Invalid output limit')
@@ -125,6 +130,8 @@ class ObservedBudget:
    'dispatch_owner':sender_identity(sender),'dispatch_tracking_condition':CONDITION,'dispatch_execution':'prepared',
    'dispatch_events':[{'kind':'prepared','at':now()}],'effective_output_maximum':request[key],**fields(permit)}
   row['accounting_role']='hermes' if project.endswith('-driver') else 'judge' if project.endswith('-judge') else 'memory_provider'
+  if memos_compat:
+   row['native_request_compatibility']=MEMOS_OSS_LUNA_COMPAT
   row['dispatch_context']={'run_id':permit.get('run_id','pizza-week-scored-prepaid-20261114'),'arm_id':permit['slot']['provider'],
    'phase':'judging' if permit['slot']['kind'] in {'judge','retained_judge'} else 'answering' if row['accounting_role']=='hermes' else permit['slot']['kind'] if permit['slot']['kind'] in {'ingest','cleanup'} else 'background',
    'attempt_id':row['id'],'attempt_number':1,'operation_id':operation_id(row)}

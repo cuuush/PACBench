@@ -121,9 +121,11 @@ def open_account(*, root, site, scope, ledger, upstream):
         witness = MemCalChatWitness(owner,ledger,deployment=upstream.deployment)
         account = NativeAccount(site.account,'memcal',cfg.home,reader,WarmHermes(owner,clock,witness.idle),
                                 witness, source_witness=source)
+        deployment = 'synthetic chat.db and isolated IMAP' if site.synthetic_chatdb else f'synthetic {site.imessage_backend} and IMAP'
+        service_clock = ('simulated MemCal and Hermes clocks; physical IMAP and execution clocks' if site.synthetic_chatdb
+                         else 'physical connector service clock; scheduled source visibility and simulated Hermes question clock')
         condition = Condition('memcal','first-party-connector','continuing-account','Hermes '+owner.pins['hermes'],
-            model,profile['endpoint'],f'synthetic {site.imessage_backend} and IMAP','0.8.11',owner.pins['hermes_isolation_sha256'],
-            'physical connector service clock; scheduled source visibility and simulated Hermes question clock',tools)
+            model,profile['endpoint'],deployment,'0.8.11',owner.pins['hermes_isolation_sha256'],service_clock,tools)
         yield condition, account
     except BaseException as primary:
         try:

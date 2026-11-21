@@ -90,8 +90,12 @@ def run_live(campaign, site, open_account, billing_confirmation, *, canary=False
     verify_contract(docs, turns, frozen)
     inspect_memcal_site(site)
     with run_environment({'PACBENCH_OPENROUTER_PROFILE':'luna-bedrock-global'}):
-        if after_canary is not None and Path(check_canary(after_canary)).resolve() == Path(site.memcal_home).resolve():
-            raise ValueError('full week requires a fresh store distinct from the canary')
+        if after_canary is not None:
+            if Path(check_canary(after_canary)).resolve() == Path(site.memcal_home).resolve():
+                raise ValueError('full week requires a fresh store distinct from the canary')
+            prior = json.loads((Path(after_canary)/'workflow-scope.json').read_text())
+            if (prior['access'].get('source_condition') == 'synthetic-chatdb-imap-v1') != site.synthetic_chatdb:
+                raise ValueError('canary and full week require the same source condition')
         return _run(Path(campaign).absolute(), site, open_account, Path(billing_confirmation), canary)
 
 
@@ -99,9 +103,13 @@ def claim_prepared_arm(campaign, site):
     """Claim an already provisioned synthetic store without modifying its source data."""
     root = campaign/'memcal'
     store = root/'memcal-home'
+    siblings = {root}
+    if getattr(site, 'synthetic_chatdb', False):
+        siblings.update(campaign/name for name in ('source-home','private-fixtures','empty-mailbox.json',
+                                                   'source-bindings.json','synthetic-source-provenance.json'))
     if (campaign != campaign.resolve() or not campaign.is_dir() or root != root.resolve()
             or Path(site.memcal_home) != store or store != store.resolve() or not store.is_dir()
-            or set(campaign.iterdir()) != {root} or set(root.iterdir()) != {store}):
+            or set(campaign.iterdir()) != siblings or set(root.iterdir()) != {store}):
         raise ValueError('expected a fresh campaign containing only memcal/memcal-home')
     # The exclusive marker arbitrates two launchers observing the same pristine site.
     with (root/'launcher.claim').open('x') as stream:

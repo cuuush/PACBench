@@ -28,8 +28,8 @@ class RecordingClient:
         self.upload = {'filename':path.name, 'body':path.read_text()}
         return 'recorded-upload'
 
-    def post(self, path, body):
-        self.request = {'method':'post', 'path':path, 'json':body, 'upload':self.upload}
+    def post(self, path, body, *, timeout):
+        self.request = {'method':'post', 'path':path, 'json':body, 'upload':self.upload, 'timeout':timeout}
 
 
 class RecordingAccount:
@@ -56,10 +56,10 @@ class RecordingAccount:
 
     def submit(self, doc):
         scope = self.root.name if self.condition.provider == 'reme' else self.identity
-        submit_document(self.condition.provider,self.client,scope,doc)
+        native = submit_document(self.condition.provider,self.client,scope,doc)
         if self.condition.provider == 'reme':
-            path = Path(scope)/'resource'/doc.filename
-            request = {'method':'write-native-resource','filename':path.name,'body':path.read_text()}
+            path = Path(native['resource'])
+            request = {'method':'write-native-resource','filename':path.name,'date':path.parent.name,'body':path.read_text()}
         else:
             request = self.client.request
         # Recover what actually crossed the simulated native interface.

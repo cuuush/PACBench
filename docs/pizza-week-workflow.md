@@ -174,3 +174,73 @@ For an offline controller stress test, run
 recording boundaries, kills the account process, consumes grade slots with
 that process down, and verifies effect counts after restart. Its simulated
 grades never produce a benchmark score.
+
+## Terminal Pizza Week v2 results
+
+The [sanitized results snapshot](../results/pizza-week-v2/summary.json) records
+seven completed continuing-account arms: MemCal, Mem0 OSS, Hindsight,
+OpenViking, ReMe, Cognee and MemOS OSS. Each completed 49 turns across 31 chats,
+including 18 same-day continuations; 47 turns carry 192 criteria. Correct-criterion
+counts are semantic grades, not retention-adjusted scores or a calibrated
+leaderboard. Direct source attempts, successful source reads and generated source
+summaries remain distinct; unconfirmed nested provenance is excluded.
+
+The canonical synthetic dataset remains `pizza-week/r2`, with dataset digest
+`402a2e0a1ff9e7378ec2a915bc10f77bb60303bd7aef5146a9f29338bd174953`
+and original source binding
+`a27a6cac448ec525c57eda08b9095ce323de279c6a60d849623b809b8ae2a05a`.
+The v2 compiled spec digest is
+`fff48e923997739490ff4c00893548cbf3775288a337c14666acb23d853636c8`.
+The source and evaluator files are unchanged by this integration.
+
+Honcho remains unscored: stock multipart import creates peer-attributed session
+messages, while Gmail import is email-only; neither establishes the required
+mixed-source native route. Supermemory remains unscored at 6/49 turns after
+12 native document readbacks, stopped by the duplicate guard at the second
+release. It was not restarted. Offline document-context/retry findings do not
+qualify a repaired Supermemory runner, so those experiments are excluded.
+
+The seven completed arms account for $1.309257440 in matched generation receipts.
+Qualifications and incomplete attempts account separately for $0.908364540,
+including the Supermemory partial. The current campaign total is $2.217621980
+across 3,307 matched generations, with 16 unmatched attempts and zero recorded
+transport retries. Refused requests lacking matching receipts are excluded from
+actual charges. Incomplete Week attempts, qualification canaries, and the prior
+campaign's $0.065193795 remain separate in the snapshot; the prior campaign is
+not included in the current total. These are observed request charges, not a
+complete provider lifecycle invoice. Raw receipts, logs and private timing
+records are not published.
+
+### Integrated fixes and verification boundary
+
+The fixes were exported from eight separately verified execution trees based on
+`7d2540ebc4ffe42d6f36b511ed636e29bea3f323`. All eight tree hashes were reproduced
+before integration. The completed live arms qualify their respective trees;
+the combined integration tree has offline regression coverage and has not been
+rerun live.
+
+- MemCal: native synthetic Messages/Contacts and isolated TLS IMAP fixtures;
+  distinguish intended second looks from transport replay. This is fixture-backed
+  native ingestion, not live Apple or upstream mail delivery.
+- Mem0 OSS: exact document readiness, native history witnesses and separate live
+  canary admission; local Qdrant/Nomic, with optional lexical dependencies absent.
+- Hindsight: distinct native consolidation calls and a bounded, at-most-60-second
+  Hermes observation clock. Native provider time and elapsed measurements remain
+  physical. The final verified repair supersedes the earlier inherited runner.
+- OpenViking: raw-byte native upload readbacks and source lookup provenance,
+  distinguished from generated summaries.
+- ReMe: native watched files, source-linked cards and indexed chunks. Its
+  admission and send-time guards coexist with Cognee and MemOS guards.
+- Cognee: stock inline promotion, contiguous Q&A capture and exact successful
+  permanent-write argument provenance.
+- MemOS OSS: stock MemoryOS 2.0.36 REST file ingest and scoped Hermes binding;
+  omit unsupported `top_p` only for the identified native memory process on the
+  exclusive Luna route. Capture requires either exact active graph evidence or
+  accepted IDs plus exact successful native extraction. The completed arm had
+  48 exact active captures and one accepted-and-processed capture; processing
+  does not assert continued retention.
+
+No third-party provider source was changed. The independent integration review
+covered shared admission/dispatch, Hindsight clock composition, source/readiness
+claims and snapshot accounting. Regression checks use synthetic inputs and local
+services; they do not establish new live readiness or change saved grades.

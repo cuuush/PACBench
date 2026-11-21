@@ -1,0 +1,32 @@
+name: Pizza Week integration offline
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contract-and-boundaries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt httpx==0.28.1
+      - name: Verify combined provider guards and frozen results
+        run: >-
+          python -m pytest -q
+          tests/test_workflow_combined_admission.py
+          tests/test_pizza_week_results.py
+          tests/test_pizza_week_workflow_dataset.py
+          tests/test_workflow_hindsight_observation_clock.py
+          tests/test_workflow_hindsight_documents.py
+          tests/test_workflow_openviking_documents.py
+          tests/test_workflow_cognee_capture_window.py
+          tests/test_workflow_realism.py
+          tests/test_observational_receipts.py
+      - run: python -m compileall -q pacbench provider_adapters
+      - run: python -m pacbench.specs
+      - run: node --check explorer/dashboard.js && node --check explorer/timeline.js

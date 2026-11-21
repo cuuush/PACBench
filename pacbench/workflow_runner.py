@@ -95,6 +95,11 @@ def _tool_call_contract(call, *, stored=False):
     return {**contract, 'function':function}
 
 
+def _wire_tool_text(saved, sent):
+    return (isinstance(saved, str) and isinstance(sent, str)
+            and saved.rstrip('\r\n') == sent and saved != sent and bool(sent))
+
+
 def captured_turn(surface, turn, prior, condition, expected_prefix):
     history = surface['history']
     previous = prior['history'] if prior else []
@@ -129,6 +134,7 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
     expected = history[:-1]
     last_user = max(i for i, row in enumerate(expected) if row['role'] == 'user')
     captured_prefixes = set()
+    wire_tool_newline_removed = set()
     for request in surface['model_requests']:
         if (not request.get('request_id') or not request.get('messages') or
                 sorted(request['tools']) != sorted(condition.tool_names) or
@@ -149,7 +155,9 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
                         index < last_user and sent.get('content') == saved['content']):
                     raise ValueError('actual driver input lost or changed user context')
             elif content != (sent.get('content') or ''):
-                raise ValueError('wire history omitted or altered an answer or tool result')
+                if role != 'tool' or not _wire_tool_text(content, sent.get('content')):
+                    raise ValueError('wire history omitted or altered an answer or tool result')
+                wire_tool_newline_removed.add(saved['tool_call_id'])
             if role == 'tool' and saved.get('tool_call_id') != sent.get('tool_call_id'):
                 raise ValueError('wire tool response changed call ID')
             calls = saved.get('tool_calls') or []
@@ -179,16 +187,18 @@ def captured_turn(surface, turn, prior, condition, expected_prefix):
             (r['tool_call_id'], r['tool'], r['text']) for r in surface['tool_results']]:
         raise ValueError('tool result capture differs from answer-visible text')
     comparisons = {}
+    tool_wire = {r['tool_call_id']: r['content'] for r in wire if r['role'] == 'tool'}
     for result in surface['tool_results']:
         ident = result['tool_call_id']
         witness = surface.get('tool_boundaries', {}).get(ident, {})
-        comparisons[ident] = tool_text_boundary(witness, result['text'])
+        comparisons[ident] = tool_text_boundary(witness, tool_wire[ident])
     try:
         lineage = retry_activity(surface['attempts'])
     except (KeyError, ValueError, TypeError) as exc:
         lineage = {'state':'invalid', 'reason':str(exc)}
     return {**tool_activity(surface['tool_calls'], surface['tool_results']),
-            'tool_text_boundaries':comparisons, 'attempt_lineage':lineage}
+            'tool_text_boundaries':comparisons, 'attempt_lineage':lineage,
+            'wire_tool_trailing_newline_removed':sorted(wire_tool_newline_removed)}
 
 
 class Journal:
@@ -314,7 +324,7 @@ def confirm_source_only(account, prefix, journal, question=None):
 
 def run_workflow(condition, account: BoundAccount, documents, turns, journal, *, spec_digest, evidence_kind, all_source_documents=None):
     """Run on the supplied account; stop on uncertainty without replaying an import or answer."""
-    route = eligibility(condition.provider, condition.track, condition.channels)
+    route = eligibility(condition.provider, condition.track, condition.channels, version=condition.version)
     if not route['documented_for_scope']:
         raise ValueError('no supported route for this source scope: ' + route['boundary'])
     if condition.state not in ('isolated-control','continuing-account') or evidence_kind not in ('recording-fake','native'):

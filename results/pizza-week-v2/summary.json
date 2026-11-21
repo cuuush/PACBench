@@ -1,0 +1,548 @@
+{
+  "schema": "pacbench/pizza-week-results-v1",
+  "benchmark": "Pizza Week v2 continuing account",
+  "code_base": "7d2540ebc4ffe42d6f36b511ed636e29bea3f323",
+  "memcal_execution_commit": "0f31e49156ad0e4c7fe7a0d700827908830ba216",
+  "contract": {
+    "binding_sha256": "a27a6cac448ec525c57eda08b9095ce323de279c6a60d849623b809b8ae2a05a",
+    "compiled_spec_sha256": "fff48e923997739490ff4c00893548cbf3775288a337c14666acb23d853636c8",
+    "ordered_question_schedule_sha256": "05e25fbe75da17a45cfe08dba9664530708d8454ae760228c4004b37f939bf4f",
+    "synthetic_records": 142,
+    "nightly_documents": 48,
+    "releases": 7,
+    "turns": 49,
+    "graded_turns": 47,
+    "criteria": 192,
+    "chats": 31,
+    "same_day_continuations": 18
+  },
+  "route": {
+    "model": "openai/gpt-6-luna",
+    "provider": "amazon-bedrock/global"
+  },
+  "measurement": {
+    "runtime": "real elapsed wall time, including grading and cleanup",
+    "answer_latency": "upper bound at Hermes CLI return; p50 median and p95 nearest rank",
+    "source_lookup": "observed direct source attempts overlap explicit tool attempts. Nested actions without confirmed provenance are excluded.",
+    "memcal_ingest": "seven aggregate native collection witnesses corresponding to the seven releases; other completed providers logged document readbacks",
+    "cost": "matched generation receipts in USD; refused requests without matching receipts excluded; model retry counts come from the request receipt ledger"
+  },
+  "providers": [
+    {
+      "provider": "MemCal",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 166,
+      "native_ready_documents": null,
+      "native_ready_releases": 7,
+      "source_provenance": "Fixture-backed native Apple Messages/Contacts readers and isolated TLS IMAP. No live Apple or upstream mail delivery.",
+      "settled_usd": "0.133545400",
+      "matched_generations": 222,
+      "runtime_seconds": 874.649959,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 4.339936,
+        "p95": 11.151617
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 159,
+      "direct_source_attempts": 73,
+      "direct_source_successes": null,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 35,
+      "settled_usd_by_phase": {
+        "ingest": "0.046605505",
+        "answering": "0.074930245",
+        "judging": "0.012009650"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "Mem0 OSS",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 168,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Native Memory.add(infer=True), local Qdrant and Nomic. Optional lexical dependencies absent.",
+      "settled_usd": "0.078299285",
+      "matched_generations": 246,
+      "runtime_seconds": 613.609555,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 3.580589,
+        "p95": 8.083867
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 60,
+      "direct_source_attempts": 0,
+      "direct_source_successes": null,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 49,
+      "settled_usd_by_phase": {
+        "ingest": "0.022567475",
+        "answering": "0.029008560",
+        "background": "0.014063450",
+        "judging": "0.012659800"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "Hindsight",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 145,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Native multipart document retain and consolidation. Only Hermes used a bounded 60-second logical offset; native timestamps and wall durations were physical.",
+      "settled_usd": "0.506624950",
+      "matched_generations": 409,
+      "runtime_seconds": 2784.79243,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 7.347179,
+        "p95": 26.18672
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 46,
+      "direct_source_attempts": 0,
+      "direct_source_successes": 0,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 18,
+      "settled_usd_by_phase": {
+        "ingest": "0.099934150",
+        "answering": "0.048282025",
+        "background": "0.344508050",
+        "judging": "0.013900725"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "OpenViking",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 132,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Native temporary uploads/resources, raw byte digests and stock index readiness.",
+      "settled_usd": "0.193266990",
+      "matched_generations": 400,
+      "runtime_seconds": 1881.898663,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 6.02023,
+        "p95": 18.911799
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 142,
+      "direct_source_attempts": 49,
+      "direct_source_successes": 47,
+      "generated_source_summary_calls": 7,
+      "confirmed_automatic_recall_turns": 43,
+      "settled_usd_by_phase": {
+        "ingest": "0.076832025",
+        "answering": "0.065083475",
+        "cleanup": "0.033398690",
+        "background": "0.005280025",
+        "judging": "0.012672775"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "Supermemory",
+      "state": "incomplete",
+      "verified_turns": 6,
+      "criteria_graded": 0,
+      "correct": null,
+      "native_ready_documents": 12,
+      "native_ready_releases": 1,
+      "source_provenance": "Stock default dynamic native documents. Twelve documents ready before six turns. The second release stopped at the harness duplicate guard.",
+      "settled_usd": "0.046318290",
+      "matched_generations": 84,
+      "runtime_seconds": 2274.428519,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 2.653174,
+        "p95": 5.308693
+      },
+      "verified_chats": 4,
+      "same_day_continuations": 1,
+      "explicit_tool_attempts": 3,
+      "direct_source_attempts": 0,
+      "direct_source_successes": 0,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 6,
+      "settled_usd_by_phase": {
+        "ingest": "0.042632610",
+        "answering": "0.003685680"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "Honcho",
+      "state": "contract-blocked",
+      "verified_turns": 0,
+      "criteria_graded": 0,
+      "correct": null,
+      "native_ready_documents": 0,
+      "native_ready_releases": 0,
+      "source_provenance": "Blocked before any paid work. The native multipart upload writes peer-attributed session messages; the Gmail importer covers email only.",
+      "settled_usd": "0",
+      "matched_generations": 0
+    },
+    {
+      "provider": "ReMe",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 154,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Native dated file watcher, source-linked cards and BM25.",
+      "settled_usd": "0.109394550",
+      "matched_generations": 460,
+      "runtime_seconds": 1368.623107,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 2.830183,
+        "p95": 4.735809
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 0,
+      "direct_source_attempts": 0,
+      "direct_source_successes": 0,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 49,
+      "settled_usd_by_phase": {
+        "ingest": "0.025150075",
+        "answering": "0.029149705",
+        "background": "0.040805445",
+        "judging": "0.014289325"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "Cognee",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 153,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Native permanent-document dataset, inline promotion, and provenance from exact contiguous chat/tool writes.",
+      "settled_usd": "0.204958335",
+      "matched_generations": 316,
+      "runtime_seconds": 3092.237859,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 5.294209,
+        "p95": 10.311565
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 48,
+      "direct_source_attempts": 40,
+      "direct_source_successes": 40,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 17,
+      "settled_usd_by_phase": {
+        "ingest": "0.100585390",
+        "answering": "0.041412360",
+        "cleanup": "0.043311570",
+        "background": "0.005757490",
+        "judging": "0.013891525"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "provider": "MemOS OSS",
+      "state": "complete",
+      "verified_turns": 49,
+      "criteria_graded": 192,
+      "correct": 161,
+      "native_ready_documents": 48,
+      "native_ready_releases": 7,
+      "source_provenance": "Stock MemoryOS OSS 2.0.36 native REST file ingest and scoped Hermes bindings. Native graph source text matched after whitespace normalization. Forty-eight turn captures had exact active graph provenance; the remaining exchange was accepted and processed.",
+      "settled_usd": "0.083167930",
+      "matched_generations": 199,
+      "runtime_seconds": 689.470001,
+      "answer_latency_upper_bound_seconds": {
+        "p50": 3.055024,
+        "p95": 5.014204
+      },
+      "verified_chats": 31,
+      "same_day_continuations": 18,
+      "explicit_tool_attempts": 8,
+      "direct_source_attempts": 8,
+      "direct_source_successes": 8,
+      "generated_source_summary_calls": 0,
+      "confirmed_automatic_recall_turns": 49,
+      "settled_usd_by_phase": {
+        "ingest": "0.013612300",
+        "answering": "0.036388875",
+        "background": "0.020835955",
+        "judging": "0.012330800"
+      },
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    }
+  ],
+  "separate_qualifications_and_incomplete_attempts": [
+    {
+      "attempt": "cognee-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.018884575",
+      "settled_usd_by_phase": {
+        "ingest": "0.012890675",
+        "answering": "0.002911650",
+        "cleanup": "0.002251800",
+        "judging": "0.00083045"
+      },
+      "matched_generations": 34,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "cognee-week",
+      "classification": "incomplete_week",
+      "state": "incomplete",
+      "verified_turns": 26,
+      "graded_criteria": 0,
+      "settled_usd": "0.115282685",
+      "settled_usd_by_phase": {
+        "ingest": "0.063704820",
+        "answering": "0.025340565",
+        "cleanup": "0.023430310",
+        "background": "0.002806990"
+      },
+      "matched_generations": 163,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "hindsight-canary",
+      "classification": "qualification",
+      "state": "live-canary-verified-after-cleanup",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.042829115",
+      "settled_usd_by_phase": {
+        "ingest": "0.021741675",
+        "answering": "0.001746965",
+        "background": "0.018662175",
+        "judging": "0.0006783"
+      },
+      "matched_generations": 50,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "hindsight-clock-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.039725395",
+      "settled_usd_by_phase": {
+        "ingest": "0.019409475",
+        "answering": "0.002156870",
+        "background": "0.017384850",
+        "judging": "0.0007742"
+      },
+      "matched_generations": 49,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "hindsight-repair-week",
+      "classification": "incomplete_week",
+      "state": "incomplete",
+      "verified_turns": 25,
+      "graded_criteria": 0,
+      "settled_usd": "0.283729280",
+      "settled_usd_by_phase": {
+        "ingest": "0.074471895",
+        "answering": "0.020668485",
+        "background": "0.188588900"
+      },
+      "matched_generations": 218,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "hindsight-week",
+      "classification": "incomplete_week",
+      "state": "incomplete",
+      "verified_turns": 22,
+      "graded_criteria": 0,
+      "settled_usd": "0.251290765",
+      "settled_usd_by_phase": {
+        "ingest": "0.082614000",
+        "answering": "0.015479840",
+        "background": "0.153196925"
+      },
+      "matched_generations": 199,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "mem0-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.020297275",
+      "settled_usd_by_phase": {
+        "ingest": "0.015090775",
+        "answering": "0.002703025",
+        "background": "0.001701225",
+        "judging": "0.00080225"
+      },
+      "matched_generations": 30,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "memcal-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.012625360",
+      "settled_usd_by_phase": {
+        "ingest": "0.007018075",
+        "answering": "0.004651285",
+        "judging": "0.0009560"
+      },
+      "matched_generations": 25,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "memos-oss-canary",
+      "classification": "qualification",
+      "state": "incomplete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.005825540",
+      "settled_usd_by_phase": {
+        "answering": "0.005162640",
+        "judging": "0.0006629"
+      },
+      "matched_generations": 10,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 16
+    },
+    {
+      "attempt": "memos-oss-luna-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.008632705",
+      "settled_usd_by_phase": {
+        "ingest": "0.003807025",
+        "answering": "0.002360690",
+        "background": "0.001694890",
+        "judging": "0.0007701"
+      },
+      "matched_generations": 24,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "memos-oss-week",
+      "classification": "incomplete_week",
+      "state": "incomplete",
+      "verified_turns": 0,
+      "graded_criteria": 0,
+      "settled_usd": "0.003383125",
+      "settled_usd_by_phase": {
+        "ingest": "0.00216485",
+        "answering": "0.0006587",
+        "background": "0.000559575"
+      },
+      "matched_generations": 14,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "openviking-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.024742490",
+      "settled_usd_by_phase": {
+        "ingest": "0.018247650",
+        "answering": "0.002653690",
+        "cleanup": "0.002975350",
+        "background": "0.0000731",
+        "judging": "0.0007927"
+      },
+      "matched_generations": 54,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "reme-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.012394965",
+      "settled_usd_by_phase": {
+        "ingest": "0.006159315",
+        "answering": "0.002143360",
+        "background": "0.003260090",
+        "judging": "0.0008322"
+      },
+      "matched_generations": 54,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    },
+    {
+      "attempt": "supermemory-canary",
+      "classification": "qualification",
+      "state": "live-canary-complete",
+      "verified_turns": 4,
+      "graded_criteria": 12,
+      "settled_usd": "0.022402975",
+      "settled_usd_by_phase": {
+        "ingest": "0.019231350",
+        "answering": "0.002424425",
+        "judging": "0.0007472"
+      },
+      "matched_generations": 47,
+      "retried_attempts": 0,
+      "unmatched_attempt_count": 0
+    }
+  ],
+  "previous_campaign_reference": {
+    "provider": "MemCal",
+    "verified_turns": 13,
+    "planned_turns": 49,
+    "historical_partial_and_diagnostics_settled_usd": "0.065193795",
+    "included_in_current_campaign": false
+  },
+  "aggregate": {
+    "actual_settled_usd": "2.217621980",
+    "completed_weeks_settled_usd": "1.309257440",
+    "qualifications_and_incomplete_settled_usd": "0.908364540",
+    "matched_generations": 3307,
+    "missing_attempts": 16,
+    "retry_attempts": 0
+  }
+}

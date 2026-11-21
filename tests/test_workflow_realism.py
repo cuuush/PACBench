@@ -67,10 +67,11 @@ def test_actual_submission_shapes_and_exclusions(tmp_path,week,provider):
             assert req['method']=='retain_files' and req['metadata']==[{'document_id':doc.filename}]
         elif provider == 'openviking':
             assert req['path']=='/api/v1/resources' and req['json']['wait'] is True
+            assert req['timeout']==180
         elif provider == 'cognee':
             assert req['kwargs']['session_ids']==[] and req['kwargs']['text']==doc.text
         elif provider == 'reme':
-            assert req['method']=='write-native-resource'
+            assert req['method']=='write-native-resource' and req['date']==doc.cutoff[:10]
             with pytest.raises(FileExistsError):
                 account.submit(doc)
     finally:

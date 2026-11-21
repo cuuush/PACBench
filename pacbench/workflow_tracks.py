@@ -109,6 +109,16 @@ HERMES_TOOLS = {
         'memos_skill_get', 'memos_skill_list', 'memos_timeline',),
 }
 
+MEMOS_OSS_VERSION = 'MemoryOS OSS 2.0.36 / PACBench Hermes REST 1.0.0'
+MEMOS_OSS_TOOLS = ('memos_get', 'memos_search')
+MEMOS_OSS_LUNA_COMPAT = 'omit-unsupported-top-p-v1'
+MEMOS_OSS_PROVIDER = Provider(MEMOS_OSS_VERSION, document(
+    'POST /product/add with a file item', 'run-owned local user and MemCube',
+    'Sync file parse and source-linked graph readback over the supported REST API.',
+    GH+'MemTensor/MemOS/blob/3a16e5fe3048a209f722806f4123fa2e533588fd/src/memos/api/routers/server_router.py#L128'),
+    (), 'OSS REST deployment with explicit Hermes capture and recall binding; independent of the npm bridge.',
+    GH+'MemTensor/MemOS/releases/tag/v2.0.36')
+
 
 def validate_native_deployment(condition, record):
     if (not record.get('synthetic_source_provenance') or not record.get('observed_version')
@@ -120,23 +130,28 @@ def validate_native_deployment(condition, record):
             or record['effective_model_route'] != condition.model_route):
         raise ValueError('unqualified native runtime or synthetic source')
     if condition.track == 'first-party-connector':
+        fixture = record.get('platform_created_messages_fixture') or (
+            condition.provider == 'memcal' and condition.deployment == 'synthetic chat.db and isolated IMAP'
+            and record.get('synthetic_chatdb_fixture'))
         if (not record.get('observed_connector_grants') or not record.get('as_of_upstream')
-                or ('imessage' in condition.channels and not record.get('platform_created_messages_fixture'))):
+                or ('imessage' in condition.channels and not fixture)):
             raise ValueError('unverified source grant, cutoff, or platform fixture')
         grants = record['observed_connector_grants']
         if (not isinstance(grants, dict) or set(grants) != set(condition.channels)
                 or not all(isinstance(v, list) and v and all(isinstance(g, str) and g.strip() for g in v)
                            for v in grants.values())):
             raise ValueError('missing per-channel connector grants')
-    if (condition.version != PROVIDERS[condition.provider].reviewed_version or
-            sorted(condition.tool_names) != list(HERMES_TOOLS[condition.provider])):
+    oss = condition.provider == 'memos' and condition.version == MEMOS_OSS_VERSION
+    reviewed = MEMOS_OSS_PROVIDER if oss else PROVIDERS[condition.provider]
+    tools = MEMOS_OSS_TOOLS if oss else HERMES_TOOLS[condition.provider]
+    if (condition.version != reviewed.reviewed_version or sorted(condition.tool_names) != list(tools)):
         raise ValueError('native version or tool grants differ from reviewed integration')
     if condition.model != 'openai/gpt-6-luna' or condition.model_route != 'amazon-bedrock/global':
         raise ValueError('native driver differs from approved model or route')
 
 
-def eligibility(provider, track, channels=BOTH):
-    p = PROVIDERS[provider]
+def eligibility(provider, track, channels=BOTH, *, version=None):
+    p = MEMOS_OSS_PROVIDER if provider == 'memos' and version == MEMOS_OSS_VERSION else PROVIDERS[provider]
     if track not in ('nightly-document', 'first-party-connector'):
         raise ValueError('unrecognized ingestion track')
     if not channels or not set(channels) <= set(BOTH):

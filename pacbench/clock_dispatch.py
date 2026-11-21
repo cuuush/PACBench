@@ -92,8 +92,9 @@ def emit(stamp):
 def before_submit(session_id,request_id,text):
     if not active():return
     if os.environ.get('PACBENCH_REUSE_CLOCK_STATE'):
-        from .checkpoint_clock import bind
+        from .checkpoint_clock import bind,release_at_submission
         bind(session_id,request_id,text)
+        release_at_submission()
         stamp=sample('client-submit',session_id,request_id,text)
         window(stamp);emit(stamp);return
     target=datetime.fromisoformat(os.environ['PACBENCH_NOW'])

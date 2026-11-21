@@ -103,6 +103,7 @@ class HindsightWitness:
         expected = self.owner.witness
         identity = [expected['pid'],expected['start_time']]
         observer = self.owner.home/'reuse-observer.json'
+        bank_ns = receipt_ns = 0
         while time.monotonic()<deadline:
             if (self.owner.home/'reuse-observer-error.json').exists():
                 raise RuntimeError('Hindsight lifecycle observer failed')
@@ -119,16 +120,24 @@ class HindsightWitness:
                                  or any('prefetch' in t for t in p['active_workers'])
                                  for p in providers))
                 if not active and sample['observed_monotonic_ns']>=since:
+                    drain_started = time.monotonic_ns()
                     jobs = self.reader.drain(deadline=deadline)
+                    receipt_started = time.monotonic_ns()
+                    bank_ns += receipt_started - drain_started
                     local_calls = any(not r.get('finished') and r['accounting_role']!='judge' for r in self.ledger.snapshot())
+                    checked = time.monotonic_ns()
+                    receipt_ns += checked - receipt_started
                     if not local_calls:
+                        timing = {'gateway_observer_wait_s':(checked - since - bank_ns - receipt_ns) / 1e9,
+                                  'bank_drain_s':bank_ns / 1e9, 'receipt_check_s':receipt_ns / 1e9}
                         return dict(gateway_identity=identity,inflight_requests=0,pending_native_writes=0,native_errors=[],
-                                    readback={'gateway':sample,'bank_jobs':jobs})
+                                    readback={'gateway':sample,'bank_jobs':jobs,'timing':timing})
             time.sleep(.1)
         raise RuntimeError('Hindsight open-session write and bank readiness were not observed')
 
     def native_write_barrier(self, session, answer):
         sample = self.idle()['readback']
+        read_started = time.monotonic()
         path = self.owner.home/'state.db'
         with closing(sqlite3.connect(path.as_uri()+'?mode=ro',uri=True)) as connection:
             prompt, = connection.execute(
@@ -149,9 +158,11 @@ class HindsightWitness:
             last = text[-2:]
             if ([item.get('content') for item in last]==['User: '+prompt,'Assistant: '+answer]
                     and key in rows and rows[key].content_hash==row.content_hash):
+                timing = {**sample['timing'], 'conversation_readback_s':time.monotonic()-read_started}
                 self.conversation_documents[session] = key
                 return dict(session_id=session,pending_writes=0,
-                            readback={'native_document':key,'content_hash':row.content_hash,'bank_jobs':sample['bank_jobs']})
+                            readback={'native_document':key,'content_hash':row.content_hash,'bank_jobs':sample['bank_jobs'],
+                                      'timing':timing})
         raise RuntimeError('Hindsight did not expose the completed conversation write')
 
     def after_native_close(self, session):

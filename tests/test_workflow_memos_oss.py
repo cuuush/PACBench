@@ -98,3 +98,51 @@ def test_stock_raw_capture_requires_exact_accepted_pair_and_bound_request(tmp_pa
     assert not witness.working_memory_processed({**accepted,'exact_assistant_in_ack':False},'Exact user input','Exact assistant output')
     receipt['workflow_slot']['question_id']='wrong-turn'
     assert not witness.working_memory_processed(accepted,'Exact user input','Exact assistant output')
+
+
+@pytest.mark.parametrize('materialized', [False, True])
+def test_answer_uses_only_successful_post_drain_graph_and_next_dispatch_reads_again(tmp_path, monkeypatch, materialized):
+    from unittest.mock import Mock
+    from pacbench.workflow_memos_oss import MemosAccount
+
+    prompt, answer = 'question', 'response'
+    receipt = dict(session_id='chat', at='now', cube_id='user', memory_ids=['native'],
+                   question_sha256=sha256(prompt.encode()).hexdigest(),
+                   answer_sha256=sha256(answer.encode()).hexdigest())
+    retained = tmp_path/'memos-native-captures'
+    retained.mkdir()
+    (retained/'nonce.json').write_text(json.dumps(receipt))
+    source = {'id':'file-id','metadata':{'sources':[{'type':'file','doc_path':'released'}]}}
+    chat = {'id':'chat-id','metadata':{'session_id':'chat','user_id':'user','sources':[
+        {'role':'user','content':prompt},{'role':'assistant','content':answer}]}}
+    successful_graph = [source,chat] if materialized else [source]
+    # The first post-drain observation cannot prove capture. Only the next can.
+    client = SimpleNamespace(user='user', inventory=Mock(side_effect=[[source], [], successful_graph, []]))
+    ledger = SimpleNamespace(snapshot=lambda: [])
+    witness = MemosWitness(tmp_path, None, client, None, None, None, [], ledger)
+    witness.observed = {'released':{}}
+    witness.idle = Mock(return_value={'readback':{'native_scheduler':{}}})
+    witness.working_memory_processed = Mock(side_effect=[[], ['attempt']])
+    monkeypatch.setattr('pacbench.workflow_memos_oss.time.sleep', lambda _:None)
+    account = MemosAccount('fixture', 'memos', 'scope', None, None, witness)
+    assert account.source_inventory() == ['released']
+    trace = dict(session_id='chat', answer=answer, question_at='now', history=[{'role':'user','content':prompt}],
+                 model_requests=[{'request_id':'r','turn_nonce':'nonce'}], tool_calls=[], tool_results=[], tool_provenance=[])
+    verified = account.observe_answer(trace)
+    assert verified['source_files'] == ['released'] and client.inventory.call_count == 3
+    proof = verified['write_barrier']['readback']
+    assert proof['active_exact_qa_provenance'] is materialized
+    assert proof['native_extraction_attempts'] == ([] if materialized else ['attempt'])
+    assert witness.idle.call_count == 2
+    with pytest.raises(ValueError, match='missing or unreleased'):
+        account.source_inventory()
+    assert client.inventory.call_count == 4
+
+
+@pytest.mark.parametrize('files', [[], ['released', 'future']])
+def test_successful_capture_cannot_hide_wrong_post_answer_files(files):
+    witness = MemosWitness(None, None, None, None, None, None, [], None)
+    witness.observed = {'released':{}}
+    rows = [{'id':f,'metadata':{'sources':[{'type':'file','doc_path':f}]}} for f in files]
+    with pytest.raises(ValueError, match='missing or unreleased'):
+        witness._verified_source_files(rows)

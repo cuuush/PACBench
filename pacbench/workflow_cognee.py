@@ -163,14 +163,18 @@ class CogneeWitness:
         source = qualify_incremental_document(self.backend,service_url=self.endpoint,dataset=self.dataset,
             text=doc.text,prior=list(self.sources.values()),processing_status=status,timeout=1800,
             native_captures=self.prior_native_captures())
-        deadline = time.monotonic()+1800
+        started = time.monotonic()
+        deadline = started + 1800
         while True:
             operations = pipeline_rows(self.root)
             if completed(operations,before):
                 break
-            if time.monotonic()>=deadline:
+            now = time.monotonic()
+            if now >= deadline:
                 raise TimeoutError('Cognee native automatic improve did not finish')
-            time.sleep(1)
+            # After per-item qualification, catch an imminent local terminal row
+            # without increasing the sustained query rate on a long-running improve.
+            time.sleep(.2 if now - started < 1 else 1)
         self.pending[doc.filename] = {**source,'native_operation_completion':[r for r in operations if r['id'] not in before]}
         return dict(native_id=doc.filename,accepted=True,at=doc.cutoff,
                     request={'interface':'stock remember_permanent','dataset':self.dataset,'data_id':source['data_id']})

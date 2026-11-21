@@ -22,12 +22,24 @@ def native(endpoint, dataset, home):
     return backend, options[0]['id']
 
 
-def documents(backend, dataset_id):
+def verified_promotions(backend, dataset_id, sealed, prompt):
     inventory = backend.list_dataset_data(dataset_id=dataset_id, timeout=75, limit=100, offset=0)
     if len(inventory) >= 100:
         raise GatewayLifecycleError('Cognee checkpoint inventory exceeds native page')
-    return {row['id']: hashlib.sha256(backend.read_raw_data(dataset_id=dataset_id, data_id=row['id'],
-                    timeout=75).encode()).hexdigest() for row in inventory}
+    ids = [row['id'] for row in inventory]
+    listed = set(ids)
+    if len(listed) != len(ids) or not listed.issuperset(sealed):
+        raise GatewayLifecycleError('Cognee checkpoint inventory contains duplicate IDs or lacks a sealed source')
+    prompt_bytes = prompt.encode()
+    captured = []
+    for identifier in ids:
+        raw = backend.read_raw_data(dataset_id=dataset_id, data_id=identifier, timeout=75).encode()
+        if identifier in sealed:
+            if hashlib.sha256(raw).hexdigest() != sealed[identifier]:
+                raise GatewayLifecycleError('Cognee observation write changed a sealed source document')
+        elif prompt_bytes in raw:
+            captured.append(identifier)
+    return captured
 
 
 def bind_profile(home, observation, endpoint):
@@ -69,11 +81,7 @@ def verify_turn(observation, turn, drain):
         raise GatewayLifecycleError('Cognee submitted native work did not succeed')
     backend, dataset_id = native(observation['endpoint'], observation['dataset'], root / 'hermes-home')
     try:
-        actual = documents(backend, dataset_id)
-        if any(actual.get(k) != v for k, v in observation['source_documents'].items()):
-            raise GatewayLifecycleError('Cognee observation write changed a sealed source document')
-        captured = [k for k in actual if k not in observation['source_documents'] and
-                    turn.prompt in backend.read_raw_data(dataset_id=dataset_id, data_id=k, timeout=15)]
+        captured = verified_promotions(backend, dataset_id, observation['source_documents'], turn.prompt)
         if captured:
             return {'native_promoted_documents': captured, 'source_readback': 'unchanged'}
         if wants_improve is not False or not session.get('native_session'):

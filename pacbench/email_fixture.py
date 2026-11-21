@@ -9,6 +9,7 @@ import json
 import re
 import secrets
 import shlex
+import socket
 import socketserver
 import ssl
 import subprocess
@@ -179,6 +180,8 @@ class _Server(socketserver.ThreadingTCPServer):
     def get_request(self):
         sock, address = super().get_request()
         try:
+            # IMAP literals and their tagged completion are separate small TLS writes.
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             return self.context.wrap_socket(sock, server_side=True), address
         except Exception:
             sock.close()

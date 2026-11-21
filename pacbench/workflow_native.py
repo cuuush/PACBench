@@ -305,11 +305,14 @@ class NativeAccount:
             return self.frontend.ask(prompt, at=at, session_id=session_id)
         return self.frontend.ask(prompt, at=at, session_id=session_id, on_return=on_return)
 
+    def _post_answer_inventory(self, barrier):
+        return self.source_inventory()
+
     def observe_answer(self, trace):
         started = time.monotonic()
         barrier = self.witness.native_write_barrier(trace['session_id'],trace['answer'])
         timing = {**trace.get('timing', {}), 'native_write_barrier_s':time.monotonic()-started}
-        return {**trace,'timing':timing,'account':self.identity,'source_files':self.source_inventory(),'write_barrier':barrier,
+        return {**trace,'timing':timing,'account':self.identity,'source_files':self._post_answer_inventory(barrier),'write_barrier':barrier,
                 'tool_boundaries':self.witness.tool_boundaries(trace['tool_results']),
                 'attempts':self.witness.request_lineage(trace['model_requests'])}
 

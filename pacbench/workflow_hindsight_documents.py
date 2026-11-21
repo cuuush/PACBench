@@ -12,10 +12,11 @@ class HindsightDocumentReadback:
         self.known_sources = {doc.filename for doc in (self.documents if all_documents is None else all_documents)}
         self.inputs = {}
 
-    def wait(self, operation_ids, *, deadline):
+    def wait(self, operation_ids, *, deadline, timing=None):
         """Observe native file processing followed by bank-scoped job drain."""
         if len(set(operation_ids)) != len(operation_ids) or not operation_ids:
             raise ValueError('Hindsight did not identify its native file operations')
+        started = time.monotonic()
         terminal = {'failed','cancelled','canceled','not_found'}
         while time.monotonic() < deadline:
             statuses = [self.client.operations.get_operation_status(
@@ -23,7 +24,12 @@ class HindsightDocumentReadback:
             if any(item.status in terminal for item in statuses):
                 raise RuntimeError('Hindsight native file processing failed')
             if all(item.status=='completed' for item in statuses):
-                return self.drain(deadline=deadline)
+                drained_from = time.monotonic()
+                jobs = self.drain(deadline=deadline)
+                if timing is not None:
+                    timing['file_operations_s'] = drained_from - started
+                    timing['bank_drain_s'] = time.monotonic() - drained_from
+                return jobs
             time.sleep(.5)
         raise TimeoutError('Hindsight native file operation remained incomplete')
 
@@ -45,17 +51,20 @@ class HindsightDocumentReadback:
         index = len(self.inputs)
         if index >= len(self.documents) or self.documents[index] != expected:
             raise ValueError('Hindsight file readback would change the frozen release order')
-        drain = self.wait(operations, deadline=time.monotonic()+timeout)
+        timing = {}
+        drain = self.wait(operations, deadline=time.monotonic()+timeout, timing=timing)
+        read_started = time.monotonic()
         row = self.client.documents.get_document(self.bank, expected.filename, _request_timeout=15.0)
         if row.bank_id!=self.bank or row.id!=expected.filename or not isinstance(row.original_text,str):
             raise RuntimeError('Hindsight original file is missing from its native bank')
         genuine = hashlib.sha256(row.original_text.encode()).hexdigest()
         if genuine != expected.sha256:
             raise RuntimeError('Hindsight native uploaded text differs from the frozen source')
+        timing['document_readback_s'] = time.monotonic() - read_started
         self.inputs[row.id] = row.content_hash
         return dict(id=row.id, content_sha256=genuine, native_content_hash=row.content_hash,
                     memory_unit_count=row.memory_unit_count, native_operations=list(operations),
-                    bank_jobs=drain, observed_at=datetime.now(timezone.utc).isoformat())
+                    bank_jobs=drain, timing=timing, observed_at=datetime.now(timezone.utc).isoformat())
 
     def inventory(self):
         """Use one paginated native list, with exact hash checks after import."""

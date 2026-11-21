@@ -37,6 +37,9 @@ class MemosAccount(NativeAccount):
     def submit(self, doc):
         return self.witness.submit(doc)
 
+    def _post_answer_inventory(self, barrier):
+        return barrier['readback']['source_files']
+
     def observe_answer(self, trace):
         sid = trace['session_id']
         prompt = next(row['content'] for row in reversed(trace['history']) if row['role']=='user')
@@ -170,7 +173,10 @@ class MemosWitness:
         return proof
 
     def source_inventory(self):
-        actual=self._files(self.client.inventory())
+        return self._verified_source_files(self.client.inventory())
+
+    def _verified_source_files(self, inventory):
+        actual=self._files(inventory)
         if set(actual)!=set(self.observed):
             raise ValueError('MemOS OSS cube contains missing or unreleased native source files')
         return list(self.observed)
@@ -194,7 +200,8 @@ class MemosWitness:
                     session,at,self.client.user,question_hash,answer_hash):
                 raise ValueError('MemOS OSS native working memory receipt belongs to another observation')
             matches={}
-            for row in self.client.inventory():
+            inventory = self.client.inventory()
+            for row in inventory:
                 meta=row['metadata']
                 if (meta.get('session_id'),meta.get('user_id'))!=(session,self.client.user):
                     continue
@@ -208,6 +215,7 @@ class MemosWitness:
                     'native_working_memory_ids':acceptance['memory_ids'],
                     'active_exact_qa_provenance':materialized,
                     'native_extraction_attempts':extraction,
+                    'source_files':self._verified_source_files(inventory),
                     'queue':idle['readback']['native_scheduler']}}
                 self.captures[session]=proof
                 return proof

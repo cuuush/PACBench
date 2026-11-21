@@ -190,11 +190,12 @@ class Mem0Witness:
                     raise RuntimeError('incomplete Mem0 native provider observation')
                 pending = (sample['native_release_threads'] or any(row['pending_futures'] for row in sample['sessions'])
                            or any(p['workers_alive'] for p in providers if p['name'] == 'mem0'))
-                active = any(not row.get('finished') and row['accounting_role'] != 'judge'
-                             for row in self.ledger.snapshot())
-                if not pending and not active and sample['observed_monotonic_ns'] >= since:
-                    return dict(gateway_identity=identity, inflight_requests=0, pending_native_writes=0,
-                                native_errors=[], readback=sample)
+                if not pending and sample['observed_monotonic_ns'] >= since:
+                    active = any(not row.get('finished') and row['accounting_role'] != 'judge'
+                                 for row in self.ledger.snapshot())
+                    if not active:
+                        return dict(gateway_identity=identity, inflight_requests=0, pending_native_writes=0,
+                                    native_errors=[], readback=sample)
             time.sleep(.05)
         raise RuntimeError('Mem0 native open sessions did not become idle')
 
@@ -373,12 +374,66 @@ def check_canary(root):
     return {'result':result_binding,'scope':scope_binding}
 
 
+@contextmanager
+def terminal_result(root, ledger, run_id, canary, started):
+    """Reconcile the closed account once and persist even a partial report."""
+    from .gateway_reuse import atomic
+    from .workflow_metrics import summarize
+    from .workflow_receipts import receipt_summary
+
+    result = {'provider':'mem0', 'canary':canary, 'state':'incomplete', 'cleanup':'unverified',
+              'workflow':None, 'billing':None}
+    failure = None
+    try:
+        yield result
+    except BaseException as error:
+        failure = error
+        result['error'] = type(error).__name__
+        raise
+    finally:
+        try:
+            report = summarize(root/'workflow/workflow.jsonl')
+            result['workflow'] = report
+            rows = ledger.snapshot()
+            billing = receipt_summary(root, rows, run_id)
+            result['billing'] = billing
+            if failure is None:
+                coverage = report['coverage']
+                roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
+                if (coverage['verified_turns'] == coverage['planned_turns']
+                        and coverage['graded_criteria'] == coverage['planned_criteria']
+                        and all(t['driver_attempt_coverage']['coverage'] == 'complete' for t in report['turns'])
+                        and roles == {'hermes','judge','memory_provider'}
+                        and (not canary or billing['complete_cost_usd'] is not None)):
+                    result['state'] = 'live-canary-complete' if canary else 'live-week-complete'
+        except Exception as error:
+            result['report_error'] = type(error).__name__
+            if failure is None:
+                result['error'] = type(error).__name__
+                failure = error
+                raise
+            failure.add_note(f'Additional reporting failure: {type(error).__name__}')
+        finally:
+            result['elapsed_s'] = time.monotonic() - started
+            try:
+                atomic(root/'result.json', result)
+                # atomic() syncs the file before rename. Persist the directory entry too.
+                directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+                try:
+                    os.fsync(directory)
+                finally:
+                    os.close(directory)
+            except Exception as error:
+                if failure is None:
+                    raise
+                failure.add_note(f'Could not write result.json: {type(error).__name__}')
+
+
 def run(root, endpoint, confirmation, *, canary, after_canary=None):
     from . import workflow_capability as cap
     from .canary_capability import binding, read
     from .context_isolation import validate_recall_environment
     from .gateway_client import client_settings
-    from .gateway_reuse import atomic
     from .live_dispatch import CONDITION
     from .model_calls import ModelClient
     from .observational_receipts import check_cohort_stop, credit_snapshot
@@ -387,8 +442,6 @@ def run(root, endpoint, confirmation, *, canary, after_canary=None):
     from .openrouter_run import fetch_catalog
     from .workflow_memcal_contract import verify_contract
     from .workflow_memcal_live import run_environment
-    from .workflow_metrics import summarize
-    from .workflow_receipts import receipt_summary
     from .workflow_runner import run_current_week
     from .workflow_spec import compile_week
 
@@ -417,8 +470,7 @@ def run(root, endpoint, confirmation, *, canary, after_canary=None):
         with run_environment({cap.ENV:json.dumps(bound)}):
             scope = cap.load()
             ledger = cap.budget()
-            result = {'provider':'mem0','canary':canary,'state':'incomplete','cleanup':'unverified'}
-            try:
+            with terminal_result(root, ledger, scope['run_id'], canary, start) as result:
                 with direct_environment(os.environ['OPENROUTER_API_KEY']):
                     with open_account(root, endpoint, scope, ledger) as (condition, account):
                         _, key = client_settings(scope['projects']['mem0']['judge'])
@@ -426,25 +478,6 @@ def run(root, endpoint, confirmation, *, canary, after_canary=None):
                                             url=CHAT_COMPLETIONS_URL,json_mode=True,max_attempts=1)
                         run_current_week(condition,account,root/'workflow',judge=judge,canary=canary)
                     result['cleanup'] = 'complete'
-                report = summarize(root/'workflow/workflow.jsonl')
-                coverage = report['coverage']
-                rows = ledger.snapshot()
-                reports = receipt_summary(root,rows,scope['run_id'])
-                roles = {row['accounting_role'] for row in rows if row.get('upstream_request_id')}
-                if (coverage['verified_turns'] == coverage['planned_turns']
-                        and coverage['graded_criteria'] == coverage['planned_criteria']
-                        and all(t['driver_attempt_coverage']['coverage'] == 'complete' for t in report['turns'])
-                        and roles == {'hermes','judge','memory_provider'}
-                        and (not canary or reports['complete_cost_usd'] is not None)):
-                    result['state'] = 'live-canary-complete' if canary else 'live-week-complete'
-            except BaseException as exc:
-                result['error'] = type(exc).__name__
-                raise
-            finally:
-                result.update(elapsed_s=time.monotonic()-start,
-                    billing=receipt_summary(root,ledger.snapshot(),scope['run_id']),
-                    workflow=summarize(root/'workflow/workflow.jsonl'))
-                atomic(root/'result.json', result)
     return result
 
 

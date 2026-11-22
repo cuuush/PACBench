@@ -1,6 +1,8 @@
 """No services or model requests. Exercise native observation and ordinary receipts."""
 import asyncio
 from copy import deepcopy
+from email import policy
+from email.parser import BytesParser
 import fcntl
 import json
 import multiprocessing
@@ -135,7 +137,7 @@ def stub_worker(pipe, root, project):
 
 
 @pytest.fixture
-def owned(tmp_path, monkeypatch):
+def owned(tmp_path, monkeypatch, request):
     root = tmp_path/'honcho'
     (root/'hermes-home').mkdir(parents=True)
     write(root/'hermes-home/honcho.json',dict(hosts=dict(hermes=HOST)))
@@ -148,7 +150,9 @@ def owned(tmp_path, monkeypatch):
     credit.rename(verification/(credit_sha+'.private.json'))
     recharge = write(root/'recharge.json',dict(auto_recharge='off',confirmed_at='2026-01-01T00:00:00+00:00',
                                                confirmed_by='offline fixture'))
-    manifest = canonical_output(tmp_path/'producer')
+    producer = tmp_path/'producer'
+    compiler = getattr(request, 'param', None) == 'shared'
+    manifest = Path(gate.materialize_canonical_files(producer)['path']) if compiler else canonical_output(producer)
     manifest_sha = sha(manifest)
     settings = dict(PACBENCH_DIRECT='1',PACBENCH_DIRECT_UPSTREAM_KEY='offline-placeholder',
         PACBENCH_RECEIPT_JOURNAL=str(root/'receipts.jsonl'),PACBENCH_OPENROUTER_PROFILE=PROFILE,
@@ -165,6 +169,8 @@ def owned(tmp_path, monkeypatch):
         options = dict(execution_lock=lock,session_id=SESSION,canonical_manifest=manifest,manifest_sha256=manifest_sha,
                        prepaid=dict(receipt_sha256=credit_sha,source='OpenRouter GET /api/v1/credits',remaining_usd='3'),
                        auto_recharge_evidence=recharge)
+        if compiler:
+            options['layout'] = gate.CANONICAL_LAYOUT
         monkeypatch.setenv(ENV,json.dumps(gate.create(root,**options)))
         plan = load()['plan']
         ctx = multiprocessing.get_context('spawn')
@@ -232,6 +238,62 @@ def test_frozen_manifest_has_39_rows_in_one_file_and_no_early_or_duplicate_uploa
         seal(owned,ack)
     owned.rows[0]['queue'] = q
     seal(owned,ack)
+
+
+@pytest.mark.parametrize('owned', ['shared'], indirect=True)
+def test_shared_renderer_crosses_stock_upload_and_readback_but_grants_no_driver(owned):
+    sdk = pytest.importorskip('honcho')
+    from pacbench.workflow_capability import admission
+    from pacbench.workflow_daily_documents import compile_daily_week
+
+    scope = load()
+    _, documents, turns, _, manifest = compile_daily_week()
+    first = documents[0]
+    saved = owned.upload(0)
+    wire = dict(id=saved.id, content=first.text, peer_id=saved.peer_id, session_id=saved.session_id,
+                created_at=saved.created_at.isoformat(), workspace_id=saved.workspace_id,
+                token_count=3000, metadata=saved.metadata)
+    uploads = []
+
+    def respond(req):
+        assert req.url.host == 'offline.invalid'
+        if req.url.path == '/v3/workspaces':
+            return httpx.Response(200,json=dict(id=saved.workspace_id,created_at=wire['created_at']))
+        if req.url.path == f'/v3/workspaces/{saved.workspace_id}/sessions':
+            assert req.method == 'POST' and json.loads(req.content) == {'id': SESSION}
+            return httpx.Response(200,json=dict(id=SESSION,is_active=True,workspace_id=saved.workspace_id,
+                                                created_at=wire['created_at']))
+        if req.url.path.endswith('/messages/upload'):
+            message = BytesParser(policy=policy.default).parsebytes(
+                b'Content-Type: '+req.headers['content-type'].encode()+b'\r\n\r\n'+req.content)
+            fields = {p.get_param('name', header='content-disposition'):p for p in message.iter_parts()}
+            assert fields['file'].get_filename() == first.filename
+            assert fields['file'].get_payload(decode=True) == first.text.encode('utf-8')
+            assert json.loads(fields['metadata'].get_content()) == saved.metadata
+            assert instant(fields['created_at'].get_content()) == instant(first.cutoff)
+            assert fields['peer_id'].get_content() == saved.peer_id
+            uploads.append(req.method)
+            return httpx.Response(201,json=[wire])
+        assert req.method == 'GET' and req.url.path.endswith('/messages/'+saved.id)
+        return httpx.Response(200,json=wire)
+
+    with httpx.Client(transport=httpx.MockTransport(respond)) as transport:
+        runtime = sdk.Honcho(environment='local',base_url='http://offline.invalid',
+                             workspace_id=saved.workspace_id,max_retries=0,http_client=transport)
+        session = runtime.session(SESSION)
+        acknowledged = session.upload_file((first.filename,first.text.encode('utf-8'),'text/plain'),saved.peer_id,
+                                           metadata=saved.metadata,created_at=first.cutoff)
+        gate.seal(owned.root,first.cutoff,session,acknowledged,timeout=0)
+
+    assert uploads == ['POST'] and len(first.source_ids) == 39
+    assert json.loads(owned.manifest.read_text()) == manifest
+    assert owned.invoke() == ('ok','',[300])
+    owned.rows[0]['queue']['processed'] = True
+    gate.finish(owned.root,first.cutoff)
+    assert gate.followup_ready(owned.root,'rsvp-before') == turns[0].prompt
+    driver = scope['projects']['honcho']['memory'].removesuffix('-memory')+'-driver'
+    with pytest.raises(ValueError,match='unexpected workflow role'):
+        admission(driver,PROFILE,dict(model=MODEL,messages=[dict(role='user',content=turns[0].prompt)]))
 
 
 @pytest.mark.parametrize('problem',['cutoff','ack_body','extra_chunk','queued_body'])

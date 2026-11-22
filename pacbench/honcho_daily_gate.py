@@ -19,6 +19,7 @@ LOCK = 'native-diagnostic-owner.lock'
 RUNTIME = 'honcho-daily-runtime.json'
 EXTENSION = 'pacbench.honcho.daily-attempt'
 REVISION = '70c67624169683b9e265517aec95a51b8077cabc'
+CANONICAL_LAYOUT = ('document_index', 'cutoff', 'name', 'sha256', 'source_ids')
 _work = ContextVar('honcho_daily_work', default=None)
 _batch = ContextVar('honcho_daily_batch', default=None)
 _executor = ContextVar('honcho_daily_executor', default=None)
@@ -49,6 +50,11 @@ def _plan(manifest, layout):
     """Read the producer's exact JSON. Layout selects existing fields only."""
     collection, cutoff_key, file_key, hash_key, ids_key = layout
     source = read(manifest)
+    if tuple(layout) == CANONICAL_LAYOUT:
+        from .workflow_daily_documents import compile_daily_week
+
+        if source != compile_daily_week()[4]:
+            raise GateError('Honcho manifest differs from the frozen daily renderer')
     documents = source[collection]
     folder = Path(manifest['path']).parent
     plan = []
@@ -64,11 +70,34 @@ def _plan(manifest, layout):
     return plan
 
 
-def _payload(entry):
+def materialize_canonical_files(folder):
+    """Render the shared seven-file input and return its manifest binding."""
+    from .workflow_daily_documents import compile_daily_week
+
+    folder = Path(folder).absolute()
+    if folder != folder.resolve():
+        raise GateError('Expected an owned canonical input directory')
+    _, documents, _, _, manifest = compile_daily_week()
+    folder.mkdir(mode=0o700)
+    for doc in documents:
+        with (folder / doc.filename).open('xb') as stream:
+            stream.write(doc.text.encode('utf-8'))
+    return _write(folder / 'manifest.json', manifest)
+
+
+def _payload(entry, layout=None):
     raw = Path(entry['path']).read_bytes()
     content = raw.decode('utf-8')
     if len(content) > 25000 or sha256(raw).hexdigest() != entry['sha256']:
         raise GateError('Canonical file changed or exceeds a single stock upload chunk')
+    if layout and tuple(layout) == CANONICAL_LAYOUT:
+        from .workflow_daily_documents import compile_daily_week
+
+        _, documents, _, _, _ = compile_daily_week()
+        if not any(doc.cutoff == entry['at'] and doc.filename == Path(entry['path']).name
+                   and list(doc.source_ids) == entry['source_ids'] and doc.text == content for doc in documents):
+            raise GateError('Honcho release bytes or source IDs differ from the frozen daily renderer')
+        return raw
     ids = entry['source_ids']
     found = re.findall(r'\bmessage-[0-9a-f]{24}\b', content)
     if found != ids:
@@ -121,7 +150,7 @@ def create(root, *, execution_lock, session_id, canonical_manifest, manifest_sha
         raise GateError('Canonical manifest SHA-256 differs from the pinned producer output')
     plan = _plan(manifest, layout)
     for entry in plan:
-        _payload(entry)
+        _payload(entry, layout)
     fd = execution_lock.fileno()
     st = os.fstat(fd)
     scope = dict(admission=CONDITION, protocol='pizza-week-conversation-v2', provider='honcho',
@@ -312,7 +341,7 @@ def begin(root, at):
     _require_receipts(root, scope, completed)
     _inventory(root, scope, runtime(root), completed)
     entry = scope['plan'][index-1]
-    raw = _payload(entry)
+    raw = _payload(entry, scope['layout'])
     _write(_read_stage(root, index, 'intent')[0], entry)
     return Path(entry['path']).name, raw
 
